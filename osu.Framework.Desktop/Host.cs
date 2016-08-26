@@ -15,7 +15,7 @@ namespace osu.Framework.Desktop
             BasicGameHost host = null;
 
             GraphicsContextFlags flags = GraphicsContextFlags.Default;
-            if (RuntimeInfo.IsLinux)
+            if (RuntimeInfo.IsUnix)
                 host = new LinuxGameHost(flags);
             else
                 host = new WindowsGameHost(flags);
