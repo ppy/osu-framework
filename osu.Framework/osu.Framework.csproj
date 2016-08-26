@@ -205,6 +205,17 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Shaders\sh_Bloom.fs" />
+    <EmbeddedResource Include="Shaders\sh_Blur2D.h" />
+    <EmbeddedResource Include="Shaders\sh_BlurHorizontal.fs" />
+    <EmbeddedResource Include="Shaders\sh_BlurVertical.fs" />
+    <EmbeddedResource Include="Shaders\sh_Colour.fs" />
+    <EmbeddedResource Include="Shaders\sh_Colour.vs" />
+    <EmbeddedResource Include="Shaders\sh_Particle.vs" />
+    <EmbeddedResource Include="Shaders\sh_Position.vs" />
+    <EmbeddedResource Include="Shaders\sh_Texture.fs" />
+    <EmbeddedResource Include="Shaders\sh_Texture2D.vs" />
+    <EmbeddedResource Include="Shaders\sh_Texture3D.vs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup />

@@ -26,7 +26,7 @@ namespace osu.Framework
 
         protected override IFrameBasedClock Clock => clock;
 
-        public DllResourceStore Resources;
+        public ResourceStore<byte[]> Resources;
 
         public TextureStore Textures;
 
@@ -75,7 +75,9 @@ namespace osu.Framework
 
             Scheduler = new Scheduler();
 
-            Resources = new DllResourceStore(MainResourceFile);
+            Resources = new ResourceStore<byte[]>();
+            Resources.AddStore(new DllResourceStore(@"osu.Framework.dll"));
+            Resources.AddStore(new DllResourceStore(MainResourceFile));
 
             Textures = Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
 
