@@ -92,14 +92,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4" />
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\ppy.OpenTK.1.1.2225.2\lib\net20\OpenTK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
+    <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
   </ItemGroup>
   <ItemGroup>
