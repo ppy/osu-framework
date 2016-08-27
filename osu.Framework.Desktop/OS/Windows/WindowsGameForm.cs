@@ -31,6 +31,9 @@ namespace osu.Framework.Desktop.OS.Windows
 
             LocationChanged += delegate { updateScreen(); };
             ClientSizeChanged += delegate { updateScreen(); };
+
+			this.Icon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
         }
 
         protected override bool ProcessDialogKey(Keys keyData)
