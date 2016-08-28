@@ -27,7 +27,9 @@ namespace osu.Framework.Framework
         public abstract bool IsMinimized { get; }
 
         public abstract bool IsMaximized { get; set; }
-        
+
+        public abstract void CentreToScreen();
+
         protected virtual void OnActivateApp(bool active)
         {
             if (active)

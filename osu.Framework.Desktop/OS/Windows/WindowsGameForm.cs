@@ -56,6 +56,11 @@ namespace osu.Framework.Desktop.OS.Windows
             }
         }
 
+        public override void CentreToScreen()
+        {
+            CenterToScreen();
+        }
+
         private void updateScreen()
         {
             Screen screen = Screen.FromHandle(Handle);

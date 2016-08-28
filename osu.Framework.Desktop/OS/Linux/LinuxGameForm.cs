@@ -51,7 +51,12 @@ namespace osu.Framework.Desktop.OS.Linux
                 return new Rectangle(point.X, point.Y, ClientSize.Width, ClientSize.Height);
             }
         }
-        
+
+        public override void CentreToScreen()
+        {
+            CenterToScreen();
+        }
+
         private void updateScreen()
         {
             var screen = Screen.FromHandle(Handle);
