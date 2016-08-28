@@ -32,6 +32,11 @@ namespace osu.Framework.Framework
         public int Height => Size.Height;
 
         public bool IsMinimized => Form.IsMinimized;
+        public bool IsMaximized
+        {
+            get { return Form.IsMaximized; }
+            set { Form.IsMaximized = value; }
+        }
 
         public IntPtr Handle => gameWindow.Handle;
 

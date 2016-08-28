@@ -19,6 +19,12 @@ namespace osu.Framework.Desktop.OS.Windows
 
         public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
 
+        public override bool IsMaximized
+        {
+            get { return this.WindowState == FormWindowState.Maximized; }
+            set { this.WindowState = value ? (FormWindowState.Maximized) : (FormWindowState.Normal); }
+        }
+
         private Screen screen;
 
         internal WindowsGameForm(GraphicsContextFlags flags) : base(flags)
@@ -48,11 +54,6 @@ namespace osu.Framework.Desktop.OS.Windows
                 Point point = PointToScreen(Point.Empty);
                 return new Rectangle(point.X, point.Y, ClientSize.Width, ClientSize.Height);
             }
-        }
-
-        public override void CentreToScreen()
-        {
-            CenterToScreen();
         }
 
         private void updateScreen()

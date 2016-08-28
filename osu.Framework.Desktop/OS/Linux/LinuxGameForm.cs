@@ -12,7 +12,13 @@ namespace osu.Framework.Desktop.OS.Linux
     public class LinuxGameForm : BasicGameForm
     {
         public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
-        
+
+        public override bool IsMaximized
+        {
+            get { return this.WindowState == FormWindowState.Maximized; }
+            set { this.WindowState = value ? (FormWindowState.Maximized) : (FormWindowState.Normal); }
+        }
+
         public override event EventHandler ScreenChanged;
 
         private Screen screen;
@@ -44,11 +50,6 @@ namespace osu.Framework.Desktop.OS.Linux
                 Point point = PointToScreen(Point.Empty);
                 return new Rectangle(point.X, point.Y, ClientSize.Width, ClientSize.Height);
             }
-        }
-
-        public override void CentreToScreen()
-        {
-            CenterToScreen();
         }
         
         private void updateScreen()
