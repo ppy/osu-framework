@@ -44,12 +44,6 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        private void addBindable(T lookup, IBindable bindable)
-        {
-            configStore[lookup] = bindable;
-            bindable.ValueChanged += delegate { hasUnsavedChanges = true; };
-        }
-
         public BindableInt Set(T lookup, int value)
         {
             BindableInt bindable = GetBindable<int>(lookup) as BindableInt;
@@ -67,6 +61,29 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        public BindableBool Set(T lookup, bool value)
+        {
+            BindableBool bindable = GetBindable<bool>(lookup) as BindableBool;
+
+            if(bindable == null)
+            {
+                bindable = new BindableBool(value);
+                addBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            return bindable;
+        }
+
+        private void addBindable(T lookup, IBindable bindable)
+        {
+            configStore[lookup] = bindable;
+            bindable.ValueChanged += delegate { hasUnsavedChanges = true; };
+        }
+        
         public Bindable<U> Set<U>(T lookup, U value) where U : IComparable
         {
             Bindable<U> bindable = GetBindable<U>(lookup);
