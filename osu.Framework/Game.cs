@@ -138,6 +138,11 @@ namespace osu.Framework
             }
         }
 
+        public void Exit()
+        {
+            host.Exit();
+        }
+
         protected virtual void OnDroppedText(string text)
         {
         }
