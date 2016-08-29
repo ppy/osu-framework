@@ -35,6 +35,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cyotek.Drawing.BitmapFont, Version=1.3.1.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Cyotek.Drawing.BitmapFont.1.3.1\lib\net20\Cyotek.Drawing.BitmapFont.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="ManagedBass, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\ManagedBass.0.23.2\lib\net45\ManagedBass.dll</HintPath>
       <Private>True</Private>
