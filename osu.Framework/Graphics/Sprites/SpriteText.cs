@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Sprites
 
             base.Load();
 
-            spaceWidth = getSprite('.')?.Width ?? 20;
+            spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }
 
         private string text;
