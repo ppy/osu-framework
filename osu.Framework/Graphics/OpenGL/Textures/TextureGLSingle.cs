@@ -285,7 +285,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         }
 
                         GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-                        GL.GenerateMipmap(TextureTarget.Texture2D);
                     }
                     // Just update content of the current texture
                     else if (dataPointer != IntPtr.Zero)
@@ -294,6 +293,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         int div = (int)Math.Pow(2, levelToBeUploaded);
                         GL.TexSubImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, boundsToBeUploaded.X / div, boundsToBeUploaded.Y / div, boundsToBeUploaded.Width / div, boundsToBeUploaded.Height / div, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
                     }
+
+                    GL.GenerateMipmap(TextureTarget.Texture2D);
 
                     return true;
                 }
