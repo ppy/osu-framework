@@ -39,27 +39,28 @@ namespace osu.Framework.Graphics.Textures
             {
                 textureCache[name] = tex = TextureLoader.FromBytes(base.Get(name), atlas);
 
-                if (tex != null)
-                {
-                    //temporary test for availability of mipmap levels
-                    int level = 1;
-                    int div = 2;
+                //tex.SetData(tex, );
+                //if (tex != null)
+                //{
+                //    //temporary test for availability of mipmap levels
+                //    int level = 1;
+                //    int div = 2;
 
-                    while (tex.Width / div > 0)
-                    {
-                        byte[] by = base.Get($@"{name}/{div}");
+                //    while (tex.Width / div > 0)
+                //    {
+                //        byte[] by = base.Get($@"{name}/{div}");
 
-                        if (by == null) break;
+                //        if (by == null) break;
 
-                        using (MemoryStream ms = new MemoryStream(by))
-                        using (Bitmap b = (Bitmap)Image.FromStream(ms, false, false))
-                        using (Bitmap b2 = new Bitmap(b, new Size(tex.Width / div, tex.Height / div)))
-                            tex.SetData(b2, level);
+                //        using (MemoryStream ms = new MemoryStream(by))
+                //        using (Bitmap b = (Bitmap)Image.FromStream(ms, false, false))
+                //        using (Bitmap b2 = new Bitmap(b, new Size(tex.Width / div, tex.Height / div)))
+                //            tex.SetData(b2, level);
 
-                        level++;
-                        div *= 2;
-                    }
-                }
+                //        level++;
+                //        div *= 2;
+                //    }
+                //}
             }
 
             if (tex != null && ScaleAdjust != 1)
