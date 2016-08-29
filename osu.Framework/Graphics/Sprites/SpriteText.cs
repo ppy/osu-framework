@@ -134,27 +134,29 @@ namespace osu.Framework.Graphics.Sprites
 
         private string getCharName(char c)
         {
-            switch (c)
-            {
-                case ' ':
-                    return null;
-                case ',':
-                    return @"comma";
-                case '.':
-                    return @"dot";
-                case '%':
-                    return @"percent";
-                case '/':
-                    return @"slash";
-                case '\\':
-                    return @"fps";
-                case '=':
-                    return @"ms";
-                case '+':
-                    return @"hz";
-                default:
-                    return c.ToString();
-            }
+            return c.ToString();
+
+            //switch (c)
+            //{
+            //    case ' ':
+            //        return null;
+            //    case ',':
+            //        return @"comma";
+            //    case '.':
+            //        return @"dot";
+            //    case '%':
+            //        return @"percent";
+            //    case '/':
+            //        return @"slash";
+            //    case '\\':
+            //        return @"fps";
+            //    case '=':
+            //        return @"ms";
+            //    case '+':
+            //        return @"hz";
+            //    default:
+            //        return c.ToString();
+            //}
         }
     }
 }
