@@ -48,13 +48,6 @@ namespace osu.Framework.Graphics.Sprites
 
             base.Load();
 
-            // Cache all sprites that may be used in the future.
-            for (char i = '0'; i <= '9'; i++)
-                getTexture(i);
-            getTexture('.');
-            getTexture(',');
-            getTexture('%');
-
             spaceWidth = getSprite('.')?.Width ?? 20;
         }
 
