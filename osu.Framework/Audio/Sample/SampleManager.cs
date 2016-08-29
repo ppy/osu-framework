@@ -18,6 +18,8 @@ namespace osu.Framework.Audio.Sample
         {
             byte[] data = store.Get(name);
 
+            if (data == null) return null;
+
             AudioSample sample = new AudioSampleBass(data);
             AddItem(sample);
             return sample;
