@@ -192,7 +192,6 @@ namespace osu.Framework.Graphics
             return transformFloatTo(Rotation, newRotation, duration, easing, TransformationType.Rotation);
         }
 
-        [Obsolete]
         public Drawable MoveToX(float destination, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
@@ -204,7 +203,6 @@ namespace osu.Framework.Graphics
             return transformFloatTo(Position.X, destination, duration, easing, TransformationType.MovementX);
         }
 
-        [Obsolete]
         public Drawable MoveToY(float destination, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
