@@ -24,13 +24,17 @@ namespace osu.Framework.Resources
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
             this.store = store;
-
             this.assetName = assetName;
 
-            font = new BitmapFont();
-            font.LoadText(store.GetStream($@"{assetName}.fnt"));
-
-
+            try
+            {
+                font = new BitmapFont();
+                font.LoadText(store.GetStream($@"{assetName}.fnt"));
+            }
+            catch
+            {
+                throw new Exception($@"Couldn't load font asset from {assetName}.");
+            }
         }
 
         public byte[] Get(string name)
