@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics
         /// Unfocuses this drawable.
         /// </summary>
         /// <param name="state">The input state.</param>
-        internal void TriggerFocusLost(InputState state = null, bool isCallback = false)
+        public void TriggerFocusLost(InputState state = null, bool isCallback = false)
         {
             if (!HasFocus)
                 return;
@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics
 
         public bool HandleInput = true;
 
-        internal virtual bool HasFocus => ourInputManager?.FocusedDrawable == this;
+        public virtual bool HasFocus => ourInputManager?.FocusedDrawable == this;
 
         internal bool Hovering;
 

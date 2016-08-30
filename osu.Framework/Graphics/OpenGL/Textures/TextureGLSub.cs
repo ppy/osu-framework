@@ -52,8 +52,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public override void SetData(byte[] data, int level = 0, PixelFormat format = PixelFormat.Rgba)
         {
-            Debug.Assert(!isDisposed);
-
             lock (this)
             {
                 formatToBeUploaded = format;
@@ -67,8 +65,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2d> spriteBatch = null)
         {
-            Debug.Assert(!isDisposed);
-
             Upload();
 
             RectangleF actualBounds = bounds;
@@ -87,9 +83,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Upload()
         {
-            if (isDisposed)
-                return false;
-
             lock (this)
             {
                 if (dataToBeUploaded != null)
