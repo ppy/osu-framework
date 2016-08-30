@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-            Font = @"Exo2.0-Regular";
+            Font = @"Fonts/Exo2.0-Regular";
         }
 
         public override void Load()
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
             {
                 if (centralStore == null)
-                    centralStore = new TextureStore(new GlyphStore(Game.Resources.Get(@"Fonts.Exo2.0-Regular.otf"), @"Exo2.0-Regular")) { ScaleAdjust = 0.16f };
+                    centralStore = new TextureStore(new GlyphStore(Game.Resources, Font)) { ScaleAdjust = 0.16f };
 
                 store = centralStore;
             }
