@@ -283,8 +283,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             GL.TexSubImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, boundsToBeUploaded.X, boundsToBeUploaded.Y, boundsToBeUploaded.Width, boundsToBeUploaded.Height, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
                         }
-
-                        GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
                     }
                     // Just update content of the current texture
                     else if (dataPointer != IntPtr.Zero)
@@ -294,8 +292,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         GL.TexSubImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, boundsToBeUploaded.X / div, boundsToBeUploaded.Y / div, boundsToBeUploaded.Width / div, boundsToBeUploaded.Height / div, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
                     }
 
+                    //todo: this should be scheduled so it doesn't run multiple times when first creating sprite atlases.
+                    GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
                     GL.GenerateMipmap(TextureTarget.Texture2D);
-
                     return true;
                 }
                 finally
