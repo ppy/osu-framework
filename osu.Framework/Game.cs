@@ -195,6 +195,11 @@ namespace osu.Framework
         {
             base.Dispose(isDisposing);
 
+            Scheduler?.Dispose();
+            Scheduler = null;
+            Audio?.Dispose();
+            Audio = null;
+
             Window.OnSizeChanged -= onWindowSizeChange;
         }
     }

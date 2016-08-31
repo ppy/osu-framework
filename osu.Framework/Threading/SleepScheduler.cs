@@ -31,5 +31,12 @@ namespace osu.Framework.Threading
 
             return false;
         }
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            sleeper?.Dispose();
+            sleeper = null;
+        }
     }
 }

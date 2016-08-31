@@ -38,8 +38,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (isDisposed)
                 return;
 
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
 

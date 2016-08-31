@@ -166,7 +166,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Dispose(true);
         }

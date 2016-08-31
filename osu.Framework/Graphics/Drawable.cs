@@ -923,8 +923,8 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;
