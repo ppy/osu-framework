@@ -11,7 +11,7 @@ namespace osu.Framework.Threading
         private AutoResetEvent sleepTimeOut;
         private AutoResetEvent taskDone;
         private object locker = new object();
-        private VoidDelegate task;
+        private Action task;
         private bool cleanLater;
         internal bool IsSleeping { get; private set; }
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Threading
                 cleanLater = true;
         }
 
-        public void Invoke(VoidDelegate task)
+        public void Invoke(Action task)
         {
             lock (locker)
             {

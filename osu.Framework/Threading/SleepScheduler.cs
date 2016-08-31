@@ -1,6 +1,7 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Threading;
 
 namespace osu.Framework.Threading
@@ -13,7 +14,7 @@ namespace osu.Framework.Threading
         {
             this.sleeper = sleeper;
         }
-        public override bool Add(VoidDelegate d, bool forceDelayed = false)
+        public override bool Add(Action d, bool forceDelayed = false)
         {
             if (!sleeper.IsSleeping || isMainThread)
             {
@@ -24,7 +25,7 @@ namespace osu.Framework.Threading
                 ThreadPool.QueueUserWorkItem(State =>
                 {
                     if (sleeper.IsSleeping)
-                        sleeper.Invoke(new VoidDelegate(d));
+                        sleeper.Invoke(d);
                     else
                         Add(d, forceDelayed);
                 });

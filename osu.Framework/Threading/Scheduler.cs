@@ -14,7 +14,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler : IDisposable
     {
-        private readonly Queue<VoidDelegate> schedulerQueue = new Queue<VoidDelegate>();
+        private readonly Queue<Action> schedulerQueue = new Queue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
         private Stopwatch timer = new Stopwatch();
@@ -39,7 +39,7 @@ namespace osu.Framework.Threading
         /// <returns>true if any tasks were run.</returns>
         public bool Update()
         {
-            VoidDelegate[] runnable;
+            Action[] runnable;
 
             lock (schedulerQueue)
             {
@@ -76,12 +76,12 @@ namespace osu.Framework.Threading
                 if (c == 0) return false;
 
                 //create a safe copy of pending tasks.
-                runnable = new VoidDelegate[c];
+                runnable = new Action[c];
                 schedulerQueue.CopyTo(runnable, 0);
                 schedulerQueue.Clear();
             }
 
-            foreach (VoidDelegate v in runnable)
+            foreach (Action v in runnable)
             {
                 try
                 {
@@ -105,7 +105,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>Whether we could run without scheduling</returns>
-        public virtual bool Add(VoidDelegate task, bool forceScheduled = false)
+        public virtual bool Add(Action task, bool forceScheduled = false)
         {
             if (!forceScheduled && isMainThread)
             {
@@ -132,7 +132,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The work to be done.</param>
         /// <param name="timeUntilRun">Milliseconds until run.</param>
         /// <param name="repeat">Whether this task should repeat.</param>
-        public ScheduledDelegate AddDelayed(VoidDelegate task, double timeUntilRun, bool repeat = false)
+        public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
             ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : 0);
 
@@ -144,7 +144,7 @@ namespace osu.Framework.Threading
         /// </summary>
         /// <param name="task">The work to be done.</param>
         /// <returns>Whether this is the first queue attempt of this work.</returns>
-        public bool AddOnce(VoidDelegate task)
+        public bool AddOnce(Action task)
         {
             if (schedulerQueue.Contains(task))
                 return false;
@@ -175,7 +175,7 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(VoidDelegate task, double waitTime, double repeatInterval = 0)
+        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = 0)
         {
             WaitTime = waitTime;
             RepeatInterval = repeatInterval;
@@ -185,7 +185,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The work task.
         /// </summary>
-        VoidDelegate Task;
+        Action Task;
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.
