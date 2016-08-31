@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Configuration
 {
-    public interface IHasObjectValue
+    public interface IParseable
     {
         bool Parse(object s);
     }

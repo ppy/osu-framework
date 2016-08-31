@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Configuration
 {
-    public interface IBindable : IHasObjectValue, IValueChangedObservable
+    public interface IBindable : IParseable, IValueChangedObservable
     {
     }
 }

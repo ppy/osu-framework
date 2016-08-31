@@ -108,7 +108,7 @@
     <Compile Include="Configuration\BindableInt.cs" />
     <Compile Include="Configuration\ConfigManager.cs" />
     <Compile Include="Configuration\IBindable.cs" />
-    <Compile Include="Configuration\IHasObjectValue.cs" />
+    <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Configuration\SafeWriteStream.cs" />
     <Compile Include="Audio\AudioManager.cs" />
