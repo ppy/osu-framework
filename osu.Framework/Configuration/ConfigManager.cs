@@ -96,6 +96,12 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        private void addBindable(T lookup, IBindable bindable)
+        {
+            configStore[lookup] = bindable;
+            bindable.ValueChanged += delegate { hasUnsavedChanges = true; };
+        }
+
         private Bindable<U> set<U>(T lookup, U value) where U : IComparable
         {
             Bindable<U> bindable = new Bindable<U>(value);

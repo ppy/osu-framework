@@ -39,22 +39,6 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
-        public object ObjectValue
-        {
-            get
-            {
-                return Value;
-            }
-            set
-            {
-                try
-                {
-                    Value = (T)value;
-                }
-                catch { }
-            }
-        }
-
         public virtual bool Parse(object s)
         {
             if (s is T)

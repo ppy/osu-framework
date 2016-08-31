@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-            Font = @"Exo2.0-Regular";
+            Font = @"Fonts/Exo2.0-Regular";
         }
 
         public override void Load()
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
             {
                 if (centralStore == null)
-                    centralStore = new TextureStore(new GlyphStore(Game.Resources.Get(@"Fonts.Exo2.0-Regular.otf"), @"Exo2.0-Regular")) { ScaleAdjust = 0.16f };
+                    centralStore = new TextureStore(new GlyphStore(Game.Resources, Font)) { ScaleAdjust = 0.16f };
 
                 store = centralStore;
             }
@@ -48,14 +48,7 @@ namespace osu.Framework.Graphics.Sprites
 
             base.Load();
 
-            // Cache all sprites that may be used in the future.
-            for (char i = '0'; i <= '9'; i++)
-                getTexture(i);
-            getTexture('.');
-            getTexture(',');
-            getTexture('%');
-
-            spaceWidth = getSprite('.')?.Width ?? 20;
+            spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }
 
         private string text;
@@ -134,27 +127,29 @@ namespace osu.Framework.Graphics.Sprites
 
         private string getCharName(char c)
         {
-            switch (c)
-            {
-                case ' ':
-                    return null;
-                case ',':
-                    return @"comma";
-                case '.':
-                    return @"dot";
-                case '%':
-                    return @"percent";
-                case '/':
-                    return @"slash";
-                case '\\':
-                    return @"fps";
-                case '=':
-                    return @"ms";
-                case '+':
-                    return @"hz";
-                default:
-                    return c.ToString();
-            }
+            return c.ToString();
+
+            //switch (c)
+            //{
+            //    case ' ':
+            //        return null;
+            //    case ',':
+            //        return @"comma";
+            //    case '.':
+            //        return @"dot";
+            //    case '%':
+            //        return @"percent";
+            //    case '/':
+            //        return @"slash";
+            //    case '\\':
+            //        return @"fps";
+            //    case '=':
+            //        return @"ms";
+            //    case '+':
+            //        return @"hz";
+            //    default:
+            //        return c.ToString();
+            //}
         }
     }
 }

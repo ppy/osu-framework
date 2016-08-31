@@ -42,8 +42,7 @@ namespace osu.Framework.Graphics
         {
             Transformations.ForEach(t =>
             {
-                t.Loop = true;
-                t.LoopDelay = Math.Max(0, transformationDelay + delay - t.Duration);
+                t.Loop(Math.Max(0, transformationDelay + delay - t.Duration));
             });
         }
 
@@ -55,15 +54,15 @@ namespace osu.Framework.Graphics
         {
             //expiry should happen either at the end of the last transformation or using the current sequence delay (whichever is highest).
             double max = Time + transformationDelay;
-            foreach (Transformation t in Transformations)
-                if (t.Time2 > max) max = t.Time2 + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+            foreach (ITransform t in Transformations)
+                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (Transformation t in Transformations)
-                    if (t.Time1 < min) min = t.Time1;
+                foreach (ITransform t in Transformations)
+                    if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < Int32.MaxValue ? min : Int32.MinValue;
             }
 
@@ -75,10 +74,10 @@ namespace osu.Framework.Graphics
             if (change == 0)
                 return;
 
-            foreach (Transformation t in Transformations)
+            foreach (ITransform t in Transformations)
             {
-                t.Time1 += change;
-                t.Time2 += change;
+                t.StartTime += change;
+                t.EndTime += change;
             }
         }
 
@@ -104,17 +103,23 @@ namespace osu.Framework.Graphics
             return FadeTo(1, duration, easing);
         }
 
-        public Transformation FadeInFromZero(double duration)
+        public TransformAlpha FadeInFromZero(double duration)
         {
             if (transformationDelay == 0)
             {
                 Alpha = 0;
-                Transformations.RemoveAll(t => t.Type == TransformationType.Fade);
+                Transformations.RemoveAll(t => t is TransformAlpha);
             }
 
             double startTime = Time + transformationDelay;
 
-            Transformation tr = new Transformation(TransformationType.Fade, 0, 1, startTime, startTime + duration);
+            TransformAlpha tr = new TransformAlpha(Clock)
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = 0,
+                EndValue = 1,
+            };
             Transformations.Add(tr);
             return tr;
         }
@@ -124,37 +129,49 @@ namespace osu.Framework.Graphics
             return FadeTo(0, duration, easing);
         }
 
-        public Transformation FadeOutFromOne(double duration)
+        public TransformAlpha FadeOutFromOne(double duration)
         {
             if (transformationDelay == 0)
             {
                 Alpha = 1;
-                Transformations.RemoveAll(t => t.Type == TransformationType.Fade);
+                Transformations.RemoveAll(t => t is TransformAlpha);
             }
 
             double startTime = Time + transformationDelay;
 
-            Transformation tr =
-                new Transformation(TransformationType.Fade, 1, 0, startTime, startTime + duration);
+            TransformAlpha tr = new TransformAlpha(Clock)
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = 1,
+                EndValue = 0,
+            };
             Transformations.Add(tr);
             return tr;
         }
 
         #region Float-based helpers
-        private Drawable transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformationType transform)
+        private Drawable transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
         {
+            Type type = transform.GetType();
             if (transformationDelay == 0)
             {
-                Transformations.RemoveAll(t => t.Type == transform);
+                Transformations.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
                     return this;
             }
             else
-                startValue = Transformations.FindLast(t => t.Type == transform)?.EndFloat ?? startValue;
+                startValue = (Transformations.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
-            Transformations.Add(new Transformation(transform, startValue, newValue, startTime, startTime + duration, easing));
+            transform.StartTime = startTime;
+            transform.EndTime = startTime + duration;
+            transform.StartValue = startValue;
+            transform.EndValue = newValue;
+            transform.Easing = easing;
+
+            Transformations.Add(transform);
 
             return this;
         }
@@ -167,7 +184,7 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformFloatTo(Alpha, newAlpha, duration, easing, TransformationType.Fade);
+            return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
         }
 
         public Drawable ScaleTo(float newScale, double duration, EasingTypes easing = EasingTypes.None)
@@ -178,7 +195,7 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformFloatTo(Scale, newScale, duration, easing, TransformationType.Scale);
+            return transformFloatTo(Scale, newScale, duration, easing, new TransformScale(Clock));
         }
 
         public Drawable RotateTo(float newRotation, double duration, EasingTypes easing = EasingTypes.None)
@@ -189,10 +206,9 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformFloatTo(Rotation, newRotation, duration, easing, TransformationType.Rotation);
+            return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation(Clock));
         }
 
-        [Obsolete]
         public Drawable MoveToX(float destination, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
@@ -201,10 +217,9 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformFloatTo(Position.X, destination, duration, easing, TransformationType.MovementX);
+            return transformFloatTo(Position.X, destination, duration, easing, new TransformPositionX(Clock));
         }
 
-        [Obsolete]
         public Drawable MoveToY(float destination, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
@@ -213,25 +228,32 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformFloatTo(Position.Y, destination, duration, easing, TransformationType.MovementY);
+            return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
         }
         #endregion
 
         #region Vector2-based helpers
-        private Drawable transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformationType transform)
+        private Drawable transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
+            Type type = transform.GetType();
             if (transformationDelay == 0)
             {
-                Transformations.RemoveAll(t => t.Type == transform);
+                Transformations.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
                     return this;
             }
             else
-                startValue = Transformations.FindLast(t => t.Type == transform)?.EndVector ?? startValue;
+                startValue = (Transformations.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
-            Transformations.Add(new Transformation(transform, startValue, newValue, startTime, startTime + duration, easing));
+            transform.StartTime = startTime;
+            transform.EndTime = startTime + duration;
+            transform.StartValue = startValue;
+            transform.EndValue = newValue;
+            transform.Easing = easing;
+
+            Transformations.Add(transform);
 
             return this;
         }
@@ -244,7 +266,7 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformVectorTo(VectorScale, newScale, duration, easing, TransformationType.VectorScale);
+            return transformVectorTo(VectorScale, newScale, duration, easing, new TransformScaleVector(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration, EasingTypes easing = EasingTypes.None)
@@ -255,12 +277,12 @@ namespace osu.Framework.Graphics
                 return this;
             }
 
-            return transformVectorTo(Position, newPosition, duration, easing, TransformationType.Movement);
+            return transformVectorTo(Position, newPosition, duration, easing, new TransformPosition(Clock));
         }
 
         public Drawable MoveToRelative(Vector2 offset, int duration, EasingTypes easing = EasingTypes.None)
         {
-            return MoveTo(Transformations.FindLast(t => t.Type == TransformationType.Movement)?.EndVector ?? Position + offset, duration, easing);
+            return MoveTo((Transformations.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
         #endregion
 
@@ -270,16 +292,23 @@ namespace osu.Framework.Graphics
             Color4 startValue = Colour;
             if (transformationDelay == 0)
             {
-                Transformations.RemoveAll(t => t.Type == TransformationType.Colour);
+                Transformations.RemoveAll(t => t is TransformColour);
                 if (startValue == newColour)
                     return this;
             }
             else
-                startValue = Transformations.FindLast(t => t.Type == TransformationType.Colour)?.EndColour ?? startValue;
+                startValue = (Transformations.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
-            Transformations.Add(new Transformation(startValue, newColour, startTime, startTime + duration, easing));
+            Transformations.Add(new TransformColour(Clock)
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = startValue,
+                EndValue = newColour,
+                Easing = easing,
+            });
 
             return this;
         }
@@ -288,12 +317,18 @@ namespace osu.Framework.Graphics
         {
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
-            Color4 startValue = Transformations.FindLast(t => t.Type == TransformationType.Colour)?.EndColour ?? Colour;
-            Transformations.RemoveAll(t => t.Type == TransformationType.Colour);
+            Color4 startValue = (Transformations.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
+            Transformations.RemoveAll(t => t is TransformColour);
 
             double startTime = Time + transformationDelay;
 
-            Transformations.Add(new Transformation(flashColour, startValue, startTime, startTime + duration));
+            Transformations.Add(new TransformColour(Clock)
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = flashColour,
+                EndValue = startValue,
+            });
 
             return this;
         }
