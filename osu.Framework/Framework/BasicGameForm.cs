@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -23,8 +24,14 @@ namespace osu.Framework.Framework
         public event EventHandler UserResized;
 
         public abstract Rectangle ClientBounds { get; }
+        
+        public bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
 
-        public abstract bool IsMinimized { get; }
+        public bool IsMaximized
+        {
+            get { return this.WindowState == FormWindowState.Maximized; }
+            set { this.WindowState = value ? FormWindowState.Maximized : FormWindowState.Normal; }
+        }
 
         public abstract void CentreToScreen();
 

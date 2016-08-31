@@ -17,8 +17,6 @@ namespace osu.Framework.Desktop.OS.Windows
 
         public event WndProcDelegate OnWndProc;
 
-        public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
-
         private Screen screen;
 
         internal WindowsGameForm(GraphicsContextFlags flags) : base(flags)

@@ -61,6 +61,23 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
+        public BindableBool Set(T lookup, bool value)
+        {
+            BindableBool bindable = GetBindable<bool>(lookup) as BindableBool;
+
+            if(bindable == null)
+            {
+                bindable = new BindableBool(value);
+                addBindable(lookup, bindable);
+            }
+            else
+            {
+                bindable.Value = value;
+            }
+
+            return bindable;
+        }
+        
         public Bindable<U> Set<U>(T lookup, U value) where U : IComparable
         {
             Bindable<U> bindable = GetBindable<U>(lookup);

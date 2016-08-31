@@ -11,8 +11,6 @@ namespace osu.Framework.Desktop.OS.Linux
 {
     public class LinuxGameForm : BasicGameForm
     {
-        public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
-        
         public override event EventHandler ScreenChanged;
 
         private Screen screen;
@@ -50,7 +48,7 @@ namespace osu.Framework.Desktop.OS.Linux
         {
             CenterToScreen();
         }
-        
+
         private void updateScreen()
         {
             var screen = Screen.FromHandle(Handle);
