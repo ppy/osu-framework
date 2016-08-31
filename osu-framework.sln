@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Desktop", "os
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleGame", "SampleGame\SampleGame.csproj", "{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu.Framework.Test", "osu.Framework.Test\osu.Framework.Test.csproj", "{8E7610BF-0E1C-4A19-89BD-222E18753E3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,12 @@ Global
 		{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}.Deploy|Any CPU.Build.0 = Deploy|Any CPU
 		{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A66DD92-ADB1-4994-89E2-C94E04ACDA0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Deploy|Any CPU.ActiveCfg = Release|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Deploy|Any CPU.Build.0 = Release|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E7610BF-0E1C-4A19-89BD-222E18753E3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

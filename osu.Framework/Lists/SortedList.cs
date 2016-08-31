@@ -9,7 +9,7 @@ using System.Text;
 
 namespace osu.Framework.Lists
 {
-    class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
+    public class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
     {
         private IComparer<T> comparer;
 
