@@ -5,8 +5,6 @@ namespace osu.Framework.Configuration
 {
     public interface IHasObjectValue
     {
-        object ObjectValue { get; set; }
-
         bool Parse(object s);
     }
 }
