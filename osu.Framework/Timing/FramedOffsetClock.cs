@@ -11,7 +11,7 @@ namespace osu.Framework.Timing
     {
         public double Offset;
 
-        public double CurrentTime => base.CurrentTime + Offset;
+        public override double CurrentTime => base.CurrentTime + Offset;
 
         public FramedOffsetClock(IClock source)
             : base(source)

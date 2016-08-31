@@ -17,9 +17,7 @@ namespace osu.Framework.Lists
         {
             this.comparer = comparer;
         }
-
-        public int Capacity => InternalList.Capacity;
-        public int Count => InternalList.Count;
+        
         public bool IsFixedSize => ((IList)InternalList).IsFixedSize;
         public bool IsReadOnly => ((IList)InternalList).IsReadOnly;
         public bool IsSynchronized => ((IList)InternalList).IsSynchronized;

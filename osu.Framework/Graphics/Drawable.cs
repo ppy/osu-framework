@@ -493,7 +493,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual Drawable Add(Drawable drawable)
+        protected Drawable Add(Drawable drawable)
         {
             if (drawable == null)
                 return null;
