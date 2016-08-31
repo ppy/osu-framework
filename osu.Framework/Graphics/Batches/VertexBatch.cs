@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Batches
     {
         public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();
 
-        public int Size { get; private set; }
+        public int Size { get; }
 
         private int changeBeginIndex = -1;
         private int changeEndIndex = -1;

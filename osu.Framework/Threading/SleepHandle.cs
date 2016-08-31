@@ -6,14 +6,14 @@ using System.Threading;
 
 namespace osu.Framework.Threading
 {
-    public class SleepHandle
+    public class SleepHandle : IDisposable
     {
         private AutoResetEvent sleepTimeOut;
         private AutoResetEvent taskDone;
         private object locker = new object();
-        private VoidDelegate task;
+        private Action task;
         private bool cleanLater;
-        internal bool IsSleeping{ get; private set;}
+        internal bool IsSleeping { get; private set; }
 
         public SleepHandle()
         {
@@ -37,7 +37,6 @@ namespace osu.Framework.Threading
                 sleepTimeOut.WaitOne(timeMS);
                 if (task != null)
                     executeTask(false);
-
             } while ((DateTime.Now - before).TotalMilliseconds < timeMS);
             IsSleeping = false;
             // in case task was trying to be inoked right after a an other task got executed
@@ -55,20 +54,32 @@ namespace osu.Framework.Threading
                 cleanLater = true;
         }
 
-        public void Invoke(VoidDelegate task)
+        public void Invoke(Action task)
         {
             lock (locker)
             {
-                if (this.task!=null)
+                if (this.task != null)
                     throw new Exception();
                 this.task = task;
                 //disrupt time handle
                 sleepTimeOut.Set();
                 taskDone.WaitOne();
-                
             }
         }
 
-    }
+        #region IDisposable Support
 
+        protected virtual void Dispose(bool disposing)
+        {
+            sleepTimeOut?.Dispose();
+            sleepTimeOut = null;
+            taskDone?.Dispose();
+            taskDone = null;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
+    }
 }

@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     internal class UniformBase
     {
-        public string Name { get; private set; }
+        public string Name { get; }
 
         private object value;
         public object Value

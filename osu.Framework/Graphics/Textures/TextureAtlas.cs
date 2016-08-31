@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentY = 0;
 
+            atlasTexture?.Dispose();
             atlasTexture = new TextureGLSingle(atlasWidth, atlasHeight);
         }
 

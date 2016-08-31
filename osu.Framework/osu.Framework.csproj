@@ -101,7 +101,6 @@
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\RNG.cs" />
-    <Compile Include="Threading\Delegates.cs" />
     <Compile Include="Configuration\Bindable.cs" />
     <Compile Include="Configuration\BindableBool.cs" />
     <Compile Include="Configuration\BindableDouble.cs" />

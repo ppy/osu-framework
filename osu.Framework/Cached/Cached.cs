@@ -8,7 +8,7 @@ namespace osu.Framework.Cached
 {
     public class Cached<T>
     {
-        public delegate T PropertyUpdater<T>();
+        public delegate T PropertyUpdater();
 
         /// <summary>
         /// How often this property is refreshed.
@@ -23,7 +23,7 @@ namespace osu.Framework.Cached
         private bool isStale => lastUpdateTime < 0 || (RefreshInterval >= 0 && clock?.CurrentTime > lastUpdateTime + RefreshInterval);
         public bool IsValid => !isStale;
 
-        private PropertyUpdater<T> updateDelegate;
+        private PropertyUpdater updateDelegate;
         private readonly IClock clock;
         private double lastUpdateTime = -1;
 
@@ -32,7 +32,7 @@ namespace osu.Framework.Cached
         /// </summary>
         /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
         /// <param name="refreshInterval">How often we should refresh this property. Set to -1 to never update. Set to 0 for once per frame.</param>
-        public Cached(PropertyUpdater<T> updateDelegate = null, IClock clock = null, int refreshInterval = -1)
+        public Cached(PropertyUpdater updateDelegate = null, IClock clock = null, int refreshInterval = -1)
         {
             RefreshInterval = refreshInterval;
             this.updateDelegate = updateDelegate;
@@ -48,7 +48,7 @@ namespace osu.Framework.Cached
         /// Refresh this cached object with a custom delegate.
         /// </summary>
         /// <param name="providedDelegate"></param>
-        public T Refresh(PropertyUpdater<T> providedDelegate)
+        public T Refresh(PropertyUpdater providedDelegate)
         {
             if (isStale)
             {

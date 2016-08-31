@@ -15,22 +15,22 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class Container : Drawable
     {
-        public virtual Drawable Add(Drawable drawable)
+        public new virtual Drawable Add(Drawable drawable)
         {
             return base.Add(drawable);
         }
 
-        public void Add(IEnumerable<Drawable> drawables)
+        public new void Add(IEnumerable<Drawable> drawables)
         {
             base.Add(drawables);
         }
 
-        public virtual bool Remove(Drawable drawable, bool dispose = true)
+        public new virtual bool Remove(Drawable drawable, bool dispose = true)
         {
             return base.Remove(drawable, dispose);
         }
 
-        public void Remove(IEnumerable<Drawable> drawables, bool dispose = true)
+        public new void Remove(IEnumerable<Drawable> drawables, bool dispose = true)
         {
             base.Remove(drawables);
         }
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
             return base.RemoveAll(match);
         }
 
-        public virtual void Clear(bool dispose = true)
+        public new virtual void Clear(bool dispose = true)
         {
             base.Clear(dispose);
         }

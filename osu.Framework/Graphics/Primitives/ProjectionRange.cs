@@ -18,12 +18,12 @@ namespace osu.Framework.Graphics.Primitives
         /// <summary>
         /// The minimum projected value.
         /// </summary>
-        public float Min { get; private set; }
+        public float Min { get; }
 
         /// <summary>
         /// The maximum projected value.
         /// </summary>
-        public float Max { get; private set; }
+        public float Max { get; }
 
         public ProjectionRange(Vector2 axis, Vector2[] vertices)
         {

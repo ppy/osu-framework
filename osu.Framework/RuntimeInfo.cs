@@ -16,14 +16,14 @@ namespace osu.Framework
         [DllImport(@"kernel32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        public static bool Is32Bit { get; private set; }
-        public static bool Is64Bit { get; private set; }
-        public static bool IsMono { get; private set; }
-        public static bool IsWindows { get; private set; }
-        public static bool IsUnix { get; private set; }
-        public static bool IsLinux { get; private set; }
-        public static bool IsMacOSX { get; private set; }
-        public static bool IsWine { get; private set; }
+        public static bool Is32Bit { get; }
+        public static bool Is64Bit { get; }
+        public static bool IsMono { get; }
+        public static bool IsWindows { get; }
+        public static bool IsUnix { get; }
+        public static bool IsLinux { get; }
+        public static bool IsMacOSX { get; }
+        public static bool IsWine { get; }
 
         static RuntimeInfo()
         {

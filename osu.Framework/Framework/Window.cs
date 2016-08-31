@@ -3,10 +3,8 @@
 
 using System;
 using System.Drawing;
-using OpenTK;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using osu.Framework.Threading;
+using System.Windows.Forms;
 
 namespace osu.Framework.Framework
 {
@@ -17,8 +15,8 @@ namespace osu.Framework.Framework
         private const int default_width = 1366;
         private const int default_height = 768;
 
-        public event VoidDelegate OnSizeChanged;
-        public event BoolDelegate OnMinimizedStateChanged;
+        public event Action OnSizeChanged;
+        public event Action<bool> OnMinimizedStateChanged;
 
         public BasicGameForm Form => host?.Window?.Form;
         public Size Size
@@ -101,7 +99,6 @@ namespace osu.Framework.Framework
 
                     Form.WindowState = FormWindowState.Minimized;
                     Form.Visible = false;
-
                 }
                 else
                 {

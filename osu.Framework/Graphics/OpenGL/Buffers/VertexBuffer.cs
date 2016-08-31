@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         }
 
         protected bool isDisposed = false;
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
                 return;

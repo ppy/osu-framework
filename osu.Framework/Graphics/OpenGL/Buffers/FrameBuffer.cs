@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private int lastFramebuffer;
         private int frameBuffer = -1;
 
-        internal TextureGL Texture { get; private set; }
+        internal TextureGL Texture { get; }
 
         private bool IsBound => lastFramebuffer != -1;
 

@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private RenderBufferInfo info;
         private bool isDisposed;
 
-        internal RenderbufferInternalFormat Format { get; private set; }
+        internal RenderbufferInternalFormat Format { get; }
 
         internal RenderBuffer(RenderbufferInternalFormat format)
         {

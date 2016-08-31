@@ -5,26 +5,23 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
-using OpenTK;
-using osu.Framework.Graphics.Primitives;
+using osu.Framework.Cached;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Timing;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Lists;
-using osu.Framework.Cached;
-using osu.Framework.MathUtils;
-using System.Threading;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {
     public partial class Drawable : IDisposable, IHasLifetime
     {
-        public event VoidDelegate OnUpdate;
+        public event Action OnUpdate;
 
         private LifetimeList<Drawable> internalChildren;
         public ReadOnlyList<Drawable> Children
@@ -109,7 +106,6 @@ namespace osu.Framework.Graphics
                 Invalidate();
             }
         }
-
 
         private Color4 colour = Color4.White;
         public Color4 Colour
@@ -234,7 +230,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 ActualSize
         {
-
             get
             {
                 Vector2 size = Size;
@@ -493,7 +488,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual Drawable Add(Drawable drawable)
+        protected Drawable Add(Drawable drawable)
         {
             if (drawable == null)
                 return null;
@@ -610,6 +605,7 @@ namespace osu.Framework.Graphics
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private delegate Vector2 BoundsResult();
+
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
         internal Vector2 GetBoundingSize(Drawable calculateDrawable)
         {
@@ -746,7 +742,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void UpdateLayout()
         {
-
         }
 
         protected virtual void Draw()
@@ -923,8 +918,8 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;

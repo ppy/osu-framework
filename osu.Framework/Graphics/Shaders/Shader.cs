@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Shaders
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (Loaded)
             {

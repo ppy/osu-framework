@@ -1,8 +1,8 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
-using System.IO;
 using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -17,7 +17,7 @@ namespace osu.Framework.Audio
         public TrackManager Track => GetTrackManager();
         public SampleManager Sample => GetSampleManager();
 
-        internal event VoidDelegate AvailableDevicesChanged;
+        internal event Action AvailableDevicesChanged;
 
         internal List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
 
@@ -123,7 +123,6 @@ namespace osu.Framework.Audio
 
             int newDeviceIndex = AudioDevices.FindIndex(df => df.Name == newDevice);
 
-
             DeviceInfo newDeviceInfo = new DeviceInfo();
 
             try
@@ -176,7 +175,6 @@ namespace osu.Framework.Audio
 
         private void clearAllCaches()
         {
-
         }
 
         private int lastDeviceCount;
@@ -226,7 +224,7 @@ namespace osu.Framework.Audio
 
                 //just update the available devices.
                 //if (availableDevices > lastDeviceCount)
-                    //NotificationManager.ShowMessage(LocalisationManager.GetString(OsuString.AudioEngine_NewDeviceDetected), Color4.YellowGreen, 5000);
+                //NotificationManager.ShowMessage(LocalisationManager.GetString(OsuString.AudioEngine_NewDeviceDetected), Color4.YellowGreen, 5000);
             }
 
             lastDeviceCount = availableDevices;

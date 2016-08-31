@@ -20,12 +20,12 @@ namespace osu.Framework.Audio.Track
 
         private AsyncBufferStream dataStream;
 
-        public bool Looping { get; private set; }
+        public bool Looping { get; }
 
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
-        public bool Preview { get; private set; }
+        public bool Preview { get; }
 
         /// <summary>
         /// The handle for this track, if there is one.

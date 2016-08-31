@@ -120,7 +120,7 @@ namespace osu.Framework.Logging
             return l;
         }
 
-        public LoggingTarget Target { get; private set; }
+        public LoggingTarget Target { get; }
 
         public string Filename => logDirectory == null ? null : Path.Combine(logDirectory, $@"{Target.ToString().ToLower()}.log");
 
