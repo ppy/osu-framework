@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
 
-        public string Font { get; private set; }
+        public string Font { get; }
 
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
