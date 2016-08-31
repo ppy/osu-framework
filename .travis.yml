@@ -1,2 +1,8 @@
 language: csharp
 solution: osu-framework.sln
+install:
+    - nuget restore osu-framework.sln
+    - nuget install xunit.runner.console -Version 2.1.0 -OutputDirectory testrunner
+script:
+    - xbuild /p:Configuration=Release osu-framework.sln
+    - mono ./testrunner/xunit.runner.console.2.1.0/tools/xunit.console.exe ./osu.Framework.Test/bin/Release/osu.Framework.Test.dll
