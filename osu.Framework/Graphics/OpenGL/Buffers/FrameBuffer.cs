@@ -10,18 +10,18 @@ using System.Text;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    class FrameBuffer : IDisposable
+    public class FrameBuffer : IDisposable
     {
         private int lastFramebuffer;
         private int frameBuffer = -1;
 
-        internal TextureGL Texture { get; }
+        public TextureGL Texture { get; }
 
         private bool IsBound => lastFramebuffer != -1;
 
         private List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
-        internal FrameBuffer(bool withTexture = true)
+        public FrameBuffer(bool withTexture = true)
         {
             frameBuffer = GL.GenFramebuffer();
 
@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// Sets the size of the texture of this framebuffer.
         /// </summary>
-        internal Vector2 Size
+        public Vector2 Size
         {
             get { return size; }
             set
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// Attaches a RenderBuffer to this framebuffer.
         /// </summary>
         /// <param name="format">The type of RenderBuffer to attach.</param>
-        internal void Attach(RenderbufferInternalFormat format)
+        public void Attach(RenderbufferInternalFormat format)
         {
             if (attachedRenderBuffers.Exists(r => r.Format == format))
                 return;
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// Binds the framebuffer.
         /// <para>Does not clear the buffer or reset the viewport/ortho.</para>
         /// </summary>
-        internal void Bind()
+        public void Bind()
         {
             if (frameBuffer == -1)
                 return;
@@ -112,13 +112,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             // Bind framebuffer and all its renderbuffers
             lastFramebuffer = GLWrapper.BindFrameBuffer(frameBuffer);
-            attachedRenderBuffers.ForEach(r => r.Bind(frameBuffer));
+            attachedRenderBuffers.ForEach(r =>
+            {
+                r.Size = Size;
+                r.Bind(frameBuffer);
+            });
         }
 
         /// <summary>
         /// Unbinds the framebuffer.
         /// </summary>
-        internal void Unbind()
+        public void Unbind()
         {
             if (!IsBound)
                 return;

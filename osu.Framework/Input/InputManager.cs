@@ -554,7 +554,7 @@ namespace osu.Framework.Input
         {
             try
             {
-                if (handler.Initialize())
+                if (handler.Initialize(Game))
                 {
                     int index = inputHandlers.BinarySearch(handler, new InputHandlerComparer());
                     if (index < 0)

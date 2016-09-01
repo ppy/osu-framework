@@ -21,6 +21,19 @@ namespace osu.Framework.Framework
 
         public BasicGameWindow() { }
 
+        public Size Size
+        {
+            get
+            {
+                return Form.ClientSize;
+            }
+
+            set
+            {
+                Form.ClientSize = value;
+            }
+        }
+
         public abstract void Close();
 
         private string title;
