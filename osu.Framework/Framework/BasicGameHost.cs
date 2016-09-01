@@ -27,7 +27,8 @@ namespace osu.Framework.Framework
         public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
         {
             //update out size based on the underlying window
-            Size = new Vector2(Window.Size.Width, Window.Size.Height);
+            if (!Window.IsMinimized)
+                Size = new Vector2(Window.Size.Width, Window.Size.Height);
 
             return base.Invalidate(affectsSize, affectsPosition, source);
         }
