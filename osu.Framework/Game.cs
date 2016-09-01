@@ -75,7 +75,7 @@ namespace osu.Framework
             Scheduler = new Scheduler();
 
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new DllResourceStore(@"osu.Framework.dll"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
 
             Textures = Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
