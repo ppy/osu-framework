@@ -61,7 +61,16 @@ namespace osu.Framework.Graphics.Transformations
 
         public abstract T CurrentValue { get; }
 
-        public abstract void Apply(Drawable d);
+        public virtual void Apply(Drawable d)
+        {
+            if (Time > EndTime && LoopCount != CurrentLoopCount)
+            {
+                CurrentLoopCount++;
+                double duration = Duration;
+                StartTime = EndTime + LoopDelay;
+                EndTime = StartTime + duration;
+            }
+        }
 
         public int CompareTo(Transform<T> other)
         {
