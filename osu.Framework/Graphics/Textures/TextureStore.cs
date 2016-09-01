@@ -1,10 +1,10 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Resources;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {

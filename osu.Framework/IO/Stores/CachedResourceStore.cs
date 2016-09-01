@@ -2,9 +2,8 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Resources;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class CachedResourceStore<T> : ResourceStore<T>
     {

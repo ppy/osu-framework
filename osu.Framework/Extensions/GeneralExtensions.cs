@@ -3,17 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
-using System.Threading.Tasks;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
-namespace System
+namespace osu.Framework.Extensions
 {
     /// <summary>
     /// This class holds extension methods for various purposes and should not be used explicitly, ever.

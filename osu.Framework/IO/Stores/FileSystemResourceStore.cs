@@ -2,10 +2,9 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Globalization;
 using System.IO;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class FileSystemResourceStore : ChangeableResourceStore<byte[]>, IDisposable
     {
@@ -57,7 +56,7 @@ namespace osu.Framework.Resources
 
         public override byte[] Get(string name)
         {
-            return File.ReadAllBytes(Path.Combine(directory, name));
+            return System.IO.File.ReadAllBytes(Path.Combine(directory, name));
         }
     }
 }

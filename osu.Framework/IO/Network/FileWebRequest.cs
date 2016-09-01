@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.IO.Network
 {

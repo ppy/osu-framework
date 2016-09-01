@@ -2,13 +2,12 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
-using System.Collections.Generic;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class GlyphStore : IResourceStore<byte[]>
     {

@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Resources;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class ResourceStore<T> : IResourceStore<T>
     {

@@ -9,7 +9,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 
-namespace osu.Framework.IO
+namespace osu.Framework.IO.File
 {
     public static class FileSafety
     {
@@ -76,13 +76,13 @@ namespace osu.Framework.IO
             {
                 if (overwrite)
                     FileDelete(dest);
-                File.Move(src, dest);
+                System.IO.File.Move(src, dest);
             }
             catch
             {
                 try
                 {
-                    File.Copy(src, dest);
+                    System.IO.File.Copy(src, dest);
                     return FileDelete(src);
                 }
                 catch
@@ -136,7 +136,7 @@ namespace osu.Framework.IO
 
             try
             {
-                File.Delete(filename);
+                System.IO.File.Delete(filename);
                 return true;
             }
             catch { }
@@ -144,7 +144,7 @@ namespace osu.Framework.IO
             string deathLocation = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             try
             {
-                File.Move(filename, deathLocation);
+                System.IO.File.Move(filename, deathLocation);
             }
             catch
             {
@@ -158,11 +158,11 @@ namespace osu.Framework.IO
         {
             filename = PathSanitise(filename);
 
-            if (!File.Exists(filename)) return true;
+            if (!System.IO.File.Exists(filename)) return true;
 
             try
             {
-                File.Delete(filename);
+                System.IO.File.Delete(filename);
                 return true;
             }
             catch { }
@@ -176,7 +176,7 @@ namespace osu.Framework.IO
                     di.Attributes |= FileAttributes.Hidden;
                 }
 
-                File.Move(filename, CLEANUP_DIRECTORY + @"/" + Guid.NewGuid());
+                System.IO.File.Move(filename, CLEANUP_DIRECTORY + @"/" + Guid.NewGuid());
                 return true;
             }
             catch { }
@@ -242,10 +242,10 @@ namespace osu.Framework.IO
                 {
                     try
                     {
-                        File.Copy(file, newFile);
+                        System.IO.File.Copy(file, newFile);
                     }
                     catch { }
-                    File.Delete(file);
+                    System.IO.File.Delete(file);
                 }
 
             }
@@ -395,10 +395,10 @@ namespace osu.Framework.IO
         public static void CreateBackup(string filename)
         {
             string backupFilename = filename + @"." + DateTime.Now.Ticks + @".bak";
-            if (File.Exists(filename) && !File.Exists(backupFilename))
+            if (System.IO.File.Exists(filename) && !System.IO.File.Exists(backupFilename))
             {
                 Debug.Print(@"Backup created: " + backupFilename);
-                File.Move(filename, backupFilename);
+                System.IO.File.Move(filename, backupFilename);
             }
         }
 

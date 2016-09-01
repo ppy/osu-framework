@@ -5,7 +5,7 @@ using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Resources;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -43,6 +43,8 @@ namespace osu.Framework.Graphics.Sprites
 
         public override void Load()
         {
+            base.Load();
+
             if (store == null)
             {
                 if (centralStore == null)
@@ -50,9 +52,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 store = centralStore;
             }
-
-
-            base.Load();
 
             spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }

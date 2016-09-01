@@ -1,11 +1,10 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.IO;
 using System.Reflection;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class DllResourceStore : IResourceStore<byte[]>
     {

@@ -10,7 +10,6 @@ using System.Threading;
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
-using osu.Framework.Resources;
 using osu.Framework.Graphics.Shaders;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
