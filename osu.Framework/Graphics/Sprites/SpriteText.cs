@@ -43,12 +43,7 @@ namespace osu.Framework.Graphics.Sprites
             base.Load();
 
             if (store == null)
-            {
-                if (defaultFontStore == null)
-                    defaultFontStore = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.16f };
-
-                store = defaultFontStore;
-            }
+                store = Game.Fonts;
 
             spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }

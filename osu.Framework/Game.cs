@@ -50,6 +50,8 @@ namespace osu.Framework
 
         public ShaderManager Shaders;
 
+        public TextureStore Fonts;
+
         public Game()
         {
             Game = this;
@@ -84,6 +86,8 @@ namespace osu.Framework
             Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
+
+            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.2f };
 
             AddProcessingContainer(new UserInputManager());
         }
