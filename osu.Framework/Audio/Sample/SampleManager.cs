@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Sample
             this.store = store;
         }
 
-        public AudioSample GetSample(string name)
+        public AudioSample Get(string name)
         {
             byte[] data = store.Get(name);
 

@@ -81,7 +81,7 @@ namespace osu.Framework
 
             Textures = Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
 
-            Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
+            Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
 

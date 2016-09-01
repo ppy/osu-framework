@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics.Shaders
 
         private Dictionary<string, ShaderPart> partCache = new Dictionary<string, ShaderPart>();
 
-        IResourceStore<byte[]> store;
+        ResourceStore<byte[]> store;
 
-        public ShaderManager(IResourceStore<byte[]> store)
+        public ShaderManager(ResourceStore<byte[]> store)
         {
             this.store = store;
         }

@@ -18,6 +18,8 @@ namespace osu.Framework.Graphics.Textures
 
         public TextureStore(IResourceStore<byte[]> store) : base(store)
         {
+            AddExtension(@"png");
+            AddExtension(@"jpg");
         }
 
         /// <summary>
@@ -28,10 +30,6 @@ namespace osu.Framework.Graphics.Textures
         public new virtual Texture Get(string name)
         {
             Texture tex;
-
-            //add file extension if it's missing.
-            if (!name.Contains(@"."))
-                name = name + @".png";
 
             if (textureCache.TryGetValue(name, out tex))
                 tex = tex != null ? new Texture(tex.TextureGL) : null;
