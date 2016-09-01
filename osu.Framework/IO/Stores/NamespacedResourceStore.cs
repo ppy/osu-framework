@@ -1,6 +1,8 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
+
 namespace osu.Framework.IO.Stores
 {
     public class NamespacedResourceStore<T> : ResourceStore<T>
@@ -16,9 +18,9 @@ namespace osu.Framework.IO.Stores
             Namespace = ns;
         }
 
-        public override T Get(string name)
+        protected override List<string> GetFilenames(string name)
         {
-            return base.Get($@"{Namespace}/{name}");
+            return base.GetFilenames($@"{Namespace}/{name}");
         }
     }
 }
