@@ -5,13 +5,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Cached;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Shaders;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using osu.Framework.Graphics.OpenGL.Textures;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
@@ -25,8 +22,6 @@ namespace osu.Framework.Graphics.OpenGL
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
-
-        public static Rectangle ViewportZeroBased => new Rectangle(0, Game.Window.Height - Viewport.Height, Viewport.Width, Viewport.Height);
 
         public static bool UsingBackbuffer => lastFrameBuffer == 0;
 
@@ -42,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static Scheduler resetScheduler = new Scheduler();
 
-        internal static void Reset()
+        internal static void Reset(Vector2 size)
         {
             resetScheduler.Update();
 
@@ -61,7 +56,7 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = Rectangle.Empty;
             Ortho = Rectangle.Empty;
 
-            PushViewport();
+            PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
             PushScissor();
 
             CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
@@ -171,32 +166,25 @@ namespace osu.Framework.Graphics.OpenGL
         /// Applies a new viewport rectangle.
         /// </summary>
         /// <param name="viewport">The viewport rectangle.</param>
-        public static void PushViewport(Rectangle? viewport = null)
+        public static void PushViewport(Rectangle viewport)
         {
             Rectangle actualRect = Rectangle.Empty;
 
-            if (viewport.HasValue)
-            {
-                actualRect = viewport.Value;
+            actualRect = viewport;
 
-                if (actualRect.Width < 0)
-                {
-                    actualRect.X += viewport.Value.Width;
-                    actualRect.Width = -viewport.Value.Width;
-                }
-
-                if (actualRect.Height < 0)
-                {
-                    actualRect.Y += viewport.Value.Height;
-                    actualRect.Height = -viewport.Value.Height;
-                }
-            }
-            else
+            if (actualRect.Width < 0)
             {
-                actualRect = new Rectangle(0, 0, Game.Window.Width, Game.Window.Height);
+                actualRect.X += viewport.Width;
+                actualRect.Width = -viewport.Width;
             }
 
-            PushOrtho();
+            if (actualRect.Height < 0)
+            {
+                actualRect.Y += viewport.Height;
+                actualRect.Height = -viewport.Height;
+            }
+
+            PushOrtho(viewport);
 
             viewportStack.Push(Viewport);
 
@@ -231,15 +219,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// Applies a new orthographic projection rectangle.
         /// </summary>
         /// <param name="ortho">The orthographic projection rectangle.</param>
-        public static void PushOrtho(Rectangle? ortho = null)
+        public static void PushOrtho(Rectangle ortho)
         {
-            Rectangle actualRect = ortho ?? new Rectangle(0, 0, Game.Window.Width, Game.Window.Height);
-
             orthoStack.Push(Ortho);
 
-            if (Ortho == actualRect)
+            if (Ortho == ortho)
                 return;
-            Ortho = actualRect;
+            Ortho = ortho;
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);

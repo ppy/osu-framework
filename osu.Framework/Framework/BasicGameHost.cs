@@ -3,6 +3,7 @@
 
 using System;
 using System.Windows.Forms;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK;
@@ -23,7 +24,31 @@ namespace osu.Framework.Framework
 
         public override bool IsVisible => true;
 
-        public override Vector2 Size => new Vector2(Window?.Form.ClientSize.Width ?? 0, Window?.Form.ClientSize.Height ?? 0);
+        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        {
+            //update out size based on the underlying window
+            if (!Window.IsMinimized)
+                Size = new Vector2(Window.Size.Width, Window.Size.Height);
+
+            return base.Invalidate(affectsSize, affectsPosition, source);
+        }
+
+        public override Vector2 Size
+        {
+            get
+            {
+                return base.Size;
+            }
+
+            set
+            {
+                //update the underlying window size based on our new set size.
+                //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
+                Window.Size = new System.Drawing.Size((int)value.X, (int)value.Y);
+
+                base.Size = value;
+            }
+        }
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
@@ -42,7 +67,7 @@ namespace osu.Framework.Framework
 
         protected virtual void OnIdle(object sender, EventArgs args)
         {
-            GLWrapper.Reset();
+            GLWrapper.Reset(Size);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             UpdateSubTree();

@@ -9,15 +9,17 @@ namespace osu.Framework.Input
 {
     public class UserInputManager : InputManager
     {
-        public UserInputManager()
+        public override void Load()
         {
+            base.Load();
+
             //AddHandler(new TouchHandler());
             //if (!RawDisctionary.sSkipTablet) AddHandler(new TabletHandler());
             //AddHandler(new JoystickHandler());
             //AddHandler(new RawMouseHandler());
             AddHandler(new CursorMouseHandler());
-            AddHandler(new FormMouseHandler(Game.Window.Form));
-            AddHandler(new FormKeyboardHandler(Game.Window.Form));
+            AddHandler(new FormMouseHandler());
+            AddHandler(new FormKeyboardHandler());
             AddHandler(new OpenTKKeyboardHandler());
         }
     }

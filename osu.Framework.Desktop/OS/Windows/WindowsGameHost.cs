@@ -8,6 +8,9 @@ using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
 using osu.Framework.Framework;
 using OpenTK.Graphics;
+using osu.Framework.Graphics;
+using OpenTK;
+using GLControl = osu.Framework.Framework.GLControl;
 
 namespace osu.Framework.Desktop.OS.Windows
 {

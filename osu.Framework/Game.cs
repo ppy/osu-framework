@@ -18,7 +18,7 @@ namespace osu.Framework
 {
     public class Game : LargeContainer
     {
-        public static Window Window { get; private set; }
+        public BasicGameWindow Window => host?.Window;
 
         internal Scheduler Scheduler;
 
@@ -43,6 +43,8 @@ namespace osu.Framework
         private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;
 
+        public BasicGameHost Host => host;
+
         private bool exitRequested;
         private bool isActive;
 
@@ -61,8 +63,6 @@ namespace osu.Framework
 
             this.host = host;
             host.Exiting += (sender, args) => { OnExiting(this, args); };
-
-            Window = new Window(host);
 
             form.FormClosing += OnFormClosing;
             form.DragEnter += dragEnter;
@@ -186,11 +186,6 @@ namespace osu.Framework
         {
         }
 
-        private void onWindowSizeChange()
-        {
-            Invalidate();
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -199,8 +194,6 @@ namespace osu.Framework
             Scheduler = null;
             Audio?.Dispose();
             Audio = null;
-
-            Window.OnSizeChanged -= onWindowSizeChange;
         }
     }
 }
