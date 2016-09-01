@@ -39,6 +39,11 @@ namespace osu.Framework.Audio
 
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            trackStore.AddExtension(@"mp3");
+
+            sampleStore.AddExtension(@"wav");
+            sampleStore.AddExtension(@"mp3");
+
             globalTrackManager = GetTrackManager(trackStore);
             globalSampleManager = GetSampleManager(sampleStore);
 

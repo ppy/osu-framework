@@ -14,6 +14,8 @@ namespace osu.Framework.Resources
 
         private List<IResourceStore<T>> stores = new List<IResourceStore<T>>();
 
+        private List<string> searchExtensions = new List<string>();
+
         /// <summary>
         /// Initializes a resource store with no stores.
         /// </summary>
@@ -79,19 +81,29 @@ namespace osu.Framework.Resources
         {
             object result = null;
 
+            List<string> filenames = new List<string>() { name };
+
+            //add file extension if it's missing.
+            if (!name.Contains(@"."))
+                foreach (string ext in searchExtensions)
+                    filenames.Add($@"{name}.{ext}");
+
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in stores)
             {
-                try
+                foreach (string f in filenames)
                 {
-                    result = store.Get(name);
-                    if (result != null)
-                        break;
+                    try
+                    {
+                        result = store.Get(f);
+                        if (result != null)
+                            return (T)result;
+                    }
+                    catch { }
                 }
-                catch { }
             }
 
-            return (T)result;
+            return default(T);
         }
 
         public Stream GetStream(string name)
@@ -136,6 +148,17 @@ namespace osu.Framework.Resources
                 : base($"A reload delegate is already bound to the resource '{resourceName}'.")
             {
             }
+        }
+
+        /// <summary>
+        /// Add a file extension to automatically append to any lookups on this store.
+        /// </summary>
+        public void AddExtension(string extension)
+        {
+            extension = extension.Trim('.');
+
+            if (!searchExtensions.Contains(extension))
+                searchExtensions.Add(extension);
         }
     }
 }
