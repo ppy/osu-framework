@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.Transformations
     {
         public override void Apply(Drawable d)
         {
+            base.Apply(d);
             d.Position = new Vector2(CurrentValue, d.Position.Y);
         }
 

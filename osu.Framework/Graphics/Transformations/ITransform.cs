@@ -19,6 +19,6 @@ namespace osu.Framework.Graphics.Transformations
         ITransform CloneReverse();
 
         void Reverse();
-        void Loop(double delay, int loopCount = 0);
+        void Loop(double delay, int loopCount = -1);
     }
 }
