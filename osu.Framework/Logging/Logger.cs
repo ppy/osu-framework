@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using osu.Framework.IO;
+using osu.Framework.IO.File;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Logging

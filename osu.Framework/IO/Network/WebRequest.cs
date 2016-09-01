@@ -12,6 +12,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using Amib.Threading;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.IO.Network

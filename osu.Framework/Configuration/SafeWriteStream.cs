@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using osu.Framework.IO;
+using osu.Framework.IO.File;
 
 namespace osu.Framework.Configuration
 {

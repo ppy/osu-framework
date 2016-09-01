@@ -185,14 +185,14 @@
     <Compile Include="Graphics\Containers\ProcessingContainer.cs" />
     <Compile Include="Graphics\Drawables\Box.cs" />
     <Compile Include="Graphics\Drawable_Interaction.cs" />
-    <Compile Include="Resources\CachedResourceStore.cs" />
-    <Compile Include="Resources\ChangeableResourceStore.cs" />
-    <Compile Include="Resources\DllResourceStore.cs" />
-    <Compile Include="Resources\FileSystemResourceStore.cs" />
-    <Compile Include="Resources\GlyphStore.cs" />
-    <Compile Include="Resources\IResourceStore.cs" />
-    <Compile Include="Resources\NamespacedResourceStore.cs" />
-    <Compile Include="Resources\ResourceStore.cs" />
+    <Compile Include="IO\Stores\CachedResourceStore.cs" />
+    <Compile Include="IO\Stores\ChangeableResourceStore.cs" />
+    <Compile Include="IO\Stores\DllResourceStore.cs" />
+    <Compile Include="IO\Stores\FileSystemResourceStore.cs" />
+    <Compile Include="IO\Stores\GlyphStore.cs" />
+    <Compile Include="IO\Stores\IResourceStore.cs" />
+    <Compile Include="IO\Stores\NamespacedResourceStore.cs" />
+    <Compile Include="IO\Stores\ResourceStore.cs" />
     <Compile Include="Graphics\Textures\Texture.cs" />
     <Compile Include="Graphics\Textures\TextureAtlas.cs" />
     <Compile Include="Graphics\Textures\TextureLoader.cs" />
@@ -224,19 +224,23 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="packages.config" />
-    <EmbeddedResource Include="Shaders\sh_Bloom.fs" />
-    <EmbeddedResource Include="Shaders\sh_Blur2D.h" />
-    <EmbeddedResource Include="Shaders\sh_BlurHorizontal.fs" />
-    <EmbeddedResource Include="Shaders\sh_BlurVertical.fs" />
-    <EmbeddedResource Include="Shaders\sh_Colour.fs" />
-    <EmbeddedResource Include="Shaders\sh_Colour.vs" />
-    <EmbeddedResource Include="Shaders\sh_Particle.vs" />
-    <EmbeddedResource Include="Shaders\sh_Position.vs" />
-    <EmbeddedResource Include="Shaders\sh_Texture.fs" />
-    <EmbeddedResource Include="Shaders\sh_Texture2D.vs" />
-    <EmbeddedResource Include="Shaders\sh_Texture3D.vs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Bloom.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Blur2D.h" />
+    <EmbeddedResource Include="Resources\Shaders\sh_BlurHorizontal.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_BlurVertical.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Colour.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Colour.vs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Particle.vs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Position.vs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Texture2D.vs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Texture3D.vs" />
+    <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resources\Fonts\LICENSE.txt" />
+    <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
+  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

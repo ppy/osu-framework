@@ -4,9 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Resources;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class ResourceStore<T> : IResourceStore<T>
     {
@@ -79,14 +78,7 @@ namespace osu.Framework.Resources
         /// <returns>The object.</returns>
         public virtual T Get(string name)
         {
-            object result = null;
-
-            List<string> filenames = new List<string>() { name };
-
-            //add file extension if it's missing.
-            if (!name.Contains(@"."))
-                foreach (string ext in searchExtensions)
-                    filenames.Add($@"{name}.{ext}");
+            List<string> filenames = GetFilenames(name);
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in stores)
@@ -95,7 +87,7 @@ namespace osu.Framework.Resources
                 {
                     try
                     {
-                        result = store.Get(f);
+                        object result = store.Get(f);
                         if (result != null)
                             return (T)result;
                     }
@@ -108,21 +100,35 @@ namespace osu.Framework.Resources
 
         public Stream GetStream(string name)
         {
-            Stream result = null;
+            List<string> filenames = GetFilenames(name);
 
             // Cache miss - get the resource
             foreach (IResourceStore<T> store in stores)
             {
-                try
+                foreach (string f in filenames)
                 {
-                    result = store.GetStream(name);
-                    if (result != null)
-                        break;
+                    try
+                    {
+                        var result = store.GetStream(f);
+                        if (result != null)
+                            return result;
+                    }
+                    catch { }
                 }
-                catch { }
             }
 
-            return result;
+            return null;
+        }
+
+        protected virtual List<string> GetFilenames(string name)
+        {
+            List<string> filenames = new List<string>() { name };
+            //add file extension if it's missing.
+            if (!name.Contains(@"."))
+                foreach (string ext in searchExtensions)
+                    filenames.Add($@"{name}.{ext}");
+
+            return filenames;
         }
 
         /// <summary>

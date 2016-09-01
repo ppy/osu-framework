@@ -3,7 +3,7 @@
 
 using System.IO;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public interface IResourceStore<T>
     {

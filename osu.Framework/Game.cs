@@ -10,8 +10,8 @@ using System.Threading;
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
-using osu.Framework.Resources;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.IO.Stores;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
 namespace osu.Framework
@@ -30,6 +30,9 @@ namespace osu.Framework
 
         public TextureStore Textures;
 
+        /// <summary>
+        /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
+        /// </summary>
         protected virtual string MainResourceFile => AppDomain.CurrentDomain.FriendlyName;
 
         protected int MaximumFramesPerSecond
@@ -51,6 +54,8 @@ namespace osu.Framework
         public AudioManager Audio;
 
         public ShaderManager Shaders;
+
+        public TextureStore Fonts;
 
         public Game()
         {
@@ -76,7 +81,7 @@ namespace osu.Framework
             Scheduler = new Scheduler();
 
             Resources = new ResourceStore<byte[]>();
-            Resources.AddStore(new DllResourceStore(@"osu.Framework.dll"));
+            Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
 
             Textures = Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
@@ -84,6 +89,8 @@ namespace osu.Framework
             Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
+
+            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.2f };
 
             AddProcessingContainer(new UserInputManager());
         }

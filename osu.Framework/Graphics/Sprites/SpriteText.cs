@@ -1,12 +1,11 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Resources;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -15,38 +14,36 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The amount by which characters should overlap each other (negative character spacing).
         /// </summary>
-        public float SpacingOverlap;
+        public float SpacingOverlap
+        {
+            get { return Padding.X; }
+            set
+            {
+                Padding = new Vector2(value, 0);
+            }
+        }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
-
-        public string Font { get; }
 
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
         private float spaceWidth;
 
-        private static TextureStore centralStore;
+        private static TextureStore defaultFontStore;
 
         private TextureStore store;
 
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-            Font = @"Fonts/Exo2.0-Regular";
         }
 
         public override void Load()
         {
-            if (store == null)
-            {
-                if (centralStore == null)
-                    centralStore = new TextureStore(new GlyphStore(Game.Resources, Font)) { ScaleAdjust = 0.16f };
-
-                store = centralStore;
-            }
-
-
             base.Load();
+
+            if (store == null)
+                store = Game.Fonts;
 
             spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }
@@ -119,37 +116,8 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Texture getTexture(char c) => store?.Get(getTextureName(c));
         private Sprite getSprite(char c) => new Sprite(getTexture(c));
-
-        private string getTextureName(char c) => $@"{Font}-{getCharName(c)}";
-        private bool isSpecialChar(char c) => getCharName(c) != c.ToString();
-
-        private string getCharName(char c)
-        {
-            return c.ToString();
-
-            //switch (c)
-            //{
-            //    case ' ':
-            //        return null;
-            //    case ',':
-            //        return @"comma";
-            //    case '.':
-            //        return @"dot";
-            //    case '%':
-            //        return @"percent";
-            //    case '/':
-            //        return @"slash";
-            //    case '\\':
-            //        return @"fps";
-            //    case '=':
-            //        return @"ms";
-            //    case '+':
-            //        return @"hz";
-            //    default:
-            //        return c.ToString();
-            //}
-        }
+        private Texture getTexture(char c) => store?.Get(getTextureName(c));
+        private string getTextureName(char c) => $@"{c}";
     }
 }

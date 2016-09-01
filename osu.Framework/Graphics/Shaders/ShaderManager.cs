@@ -5,8 +5,8 @@ using OpenTK.Graphics.ES20;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using osu.Framework.Resources;
 
 namespace osu.Framework.Graphics.Shaders
 {

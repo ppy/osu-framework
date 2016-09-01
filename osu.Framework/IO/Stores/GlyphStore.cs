@@ -2,13 +2,12 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
-using System.Collections.Generic;
 
-namespace osu.Framework.Resources
+namespace osu.Framework.IO.Stores
 {
     public class GlyphStore : IResourceStore<byte[]>
     {
@@ -49,12 +48,6 @@ namespace osu.Framework.Resources
             Character c;
 
             //face.SetCharSize(0, default_size * scale, 0, 96);
-
-            if (!string.IsNullOrEmpty(assetName))
-            {
-                if (!name.StartsWith(assetName)) return null;
-                name = name.Substring(assetName.Length + 1);
-            }
 
             if (!font.Characters.TryGetValue(name[0], out c))
                 return null;

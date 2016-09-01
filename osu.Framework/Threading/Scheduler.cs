@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 
 namespace osu.Framework.Threading
