@@ -62,12 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             // Make sure we have renderbuffers available
             if (renderBufferCache[Format].Count == 0)
-            {
-                int newBuffer = GL.GenRenderbuffer();
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, newBuffer);
-
-                renderBufferCache[Format].Push(new RenderBufferInfo() { RenderBufferID = newBuffer, FrameBufferID = -1 });
-            }
+                renderBufferCache[Format].Push(new RenderBufferInfo() { RenderBufferID = GL.GenRenderbuffer(), FrameBufferID = -1 });
 
             // Get a renderbuffer from the cache
             info = renderBufferCache[Format].Pop();
