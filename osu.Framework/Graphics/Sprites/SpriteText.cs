@@ -25,20 +25,17 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
 
-        public string Font { get; }
-
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
         private float spaceWidth;
 
-        private static TextureStore centralStore;
+        private static TextureStore defaultFontStore;
 
         private TextureStore store;
 
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-            Font = @"Fonts/Exo2.0-Regular";
         }
 
         public override void Load()
@@ -47,10 +44,10 @@ namespace osu.Framework.Graphics.Sprites
 
             if (store == null)
             {
-                if (centralStore == null)
-                    centralStore = new TextureStore(new GlyphStore(Game.Resources, Font)) { ScaleAdjust = 0.16f };
+                if (defaultFontStore == null)
+                    defaultFontStore = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.16f };
 
-                store = centralStore;
+                store = defaultFontStore;
             }
 
             spaceWidth = getSprite('.')?.Width * 2 ?? 20;
