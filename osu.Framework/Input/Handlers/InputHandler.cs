@@ -13,7 +13,7 @@ namespace osu.Framework.Input.Handlers
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize();
+        public abstract bool Initialize(Game game);
 
         /// <summary>
         /// Used to clean up resources specific to this InputHandler. It gets called once and only after Initialize has been called and returned true.

@@ -57,6 +57,8 @@ namespace osu.Framework.Desktop.OS.Windows
 
         private void updateScreen()
         {
+            if (IsDisposed) return;
+
             Screen screen = Screen.FromHandle(Handle);
             if ((this.screen == null) || !this.screen.Equals(screen))
             {

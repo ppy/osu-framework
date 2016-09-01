@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             {
                 int newBuffer = GL.GenRenderbuffer();
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, newBuffer);
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, Game.Window.Width, Game.Window.Height);
+                //GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, Game.Window.Width, Game.Window.Height);
 
                 renderBufferCache[Format].Push(new RenderBufferInfo() { ID = newBuffer, LastFramebuffer = -1 });
             }

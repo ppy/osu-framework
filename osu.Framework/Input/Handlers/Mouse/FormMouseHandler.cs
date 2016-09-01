@@ -13,16 +13,6 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Form form;
         private int pendingWheel;
 
-        public FormMouseHandler(Form form)
-        {
-            this.form = form;
-            form.MouseDown += mouseDown;
-            form.MouseUp += mouseUp;
-            form.MouseWheel += mouseWheel;
-        }
-
-
-
         private void mouseWheel(object sender, MouseEventArgs e)
         {
             pendingWheel = e.Delta;
@@ -72,8 +62,12 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
         }
 
-        public override bool Initialize()
+        public override bool Initialize(Game game)
         {
+            form = game.Window.Form;
+            form.MouseDown += mouseDown;
+            form.MouseUp += mouseUp;
+            form.MouseWheel += mouseWheel;
             return true;
         }
 

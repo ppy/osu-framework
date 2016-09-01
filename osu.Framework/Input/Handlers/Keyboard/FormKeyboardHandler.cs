@@ -17,15 +17,6 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override int Priority => 0;
 
-        public FormKeyboardHandler(Form form)
-        {
-            this.form = form;
-            form.KeyPreview = true;
-            form.KeyDown += keyDown;
-            form.KeyUp += keyUp;
-            form.Deactivate += onDeactivate;
-        }
-
         private void onDeactivate(object sender, EventArgs e)
         {
             PressedKeys.Clear();
@@ -92,8 +83,14 @@ namespace osu.Framework.Input.Handlers.Keyboard
             form.KeyUp -= keyUp;
         }
 
-        public override bool Initialize()
+        public override bool Initialize(Game game)
         {
+            this.form = game.Window.Form;
+            form.KeyPreview = true;
+            form.KeyDown += keyDown;
+            form.KeyUp += keyUp;
+            form.Deactivate += onDeactivate;
+
             PressedKeys = new List<Key>();
             return true;
         }

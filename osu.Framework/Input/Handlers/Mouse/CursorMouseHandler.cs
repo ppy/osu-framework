@@ -17,8 +17,12 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Vector2 position = Vector2.One;
         private Point previousNativeMousePosition;
 
-        public override bool Initialize()
+        private Game game;
+
+        public override bool Initialize(Game game)
         {
+            this.game = game;
+
             previousNativeMousePosition = GetNativePosition();
             return true;
         }
@@ -27,17 +31,9 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
         }
 
-        public static void SetNativePosition(Point pos, bool force = false)
+        public Point GetNativePosition()
         {
-            //if (!force && !Game.Instance.IsActive)
-            //    return;
-
-            Cursor.Position = Game.Window.Form.PointToScreen(new Point(pos.X, pos.Y));
-        }
-
-        public static Point GetNativePosition()
-        {
-            return Game.Window.Form.PointToClient(Cursor.Position);
+            return game.Host.Window.Form.PointToClient(Cursor.Position);
         }
 
         public override void UpdateInput(bool isActive)
@@ -64,7 +60,7 @@ namespace osu.Framework.Input.Handlers.Mouse
             }
         }
 
-        public Vector2 Size => new Vector2(Game.Window.Width, Game.Window.Height);
+        public Vector2 Size => game.ActualSize;
 
         public bool? Left
         {

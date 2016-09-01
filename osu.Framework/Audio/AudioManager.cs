@@ -154,7 +154,7 @@ namespace osu.Framework.Audio
                 Bass.Free();
             }
 
-            if (!Bass.Init(newDeviceIndex, 44100, 0, Game.Window.Handle))
+            if (!Bass.Init(newDeviceIndex))
             {
                 //the new device didn't go as planned. we need another option.
 

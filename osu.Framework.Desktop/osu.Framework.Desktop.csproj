@@ -53,7 +53,6 @@
     <Compile Include="OS\Linux\LinuxGameHost.cs" />
     <Compile Include="OS\Linux\LinuxGameWindow.cs" />
     <Compile Include="OS\Windows\Native\Architecture.cs" />
-    <Compile Include="OS\Windows\Native\Desktop.cs" />
     <Compile Include="OS\Windows\Native\Execution.cs" />
     <Compile Include="OS\Windows\Native\Input.cs" />
     <Compile Include="OS\Windows\Native\Registry.cs" />
