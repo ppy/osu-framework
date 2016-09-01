@@ -49,12 +49,6 @@ namespace osu.Framework.IO.Stores
 
             //face.SetCharSize(0, default_size * scale, 0, 96);
 
-            if (!string.IsNullOrEmpty(assetName))
-            {
-                if (!name.StartsWith(assetName)) return null;
-                name = name.Substring(assetName.Length + 1);
-            }
-
             if (!font.Characters.TryGetValue(name[0], out c))
                 return null;
 

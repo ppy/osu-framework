@@ -126,6 +126,6 @@ namespace osu.Framework.Graphics.Sprites
 
         private Sprite getSprite(char c) => new Sprite(getTexture(c));
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
-        private string getTextureName(char c) => $@"{Font}-{c}";
+        private string getTextureName(char c) => $@"{c}";
     }
 }
