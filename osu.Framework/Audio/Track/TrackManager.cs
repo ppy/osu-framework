@@ -1,14 +1,6 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ManagedBass;
-using osu.Framework.Audio.Sample;
 using osu.Framework.Resources;
 
 namespace osu.Framework.Audio.Track
@@ -22,7 +14,7 @@ namespace osu.Framework.Audio.Track
             this.store = store;
         }
 
-        public AudioTrack GetTrack(string name)
+        public AudioTrack Get(string name)
         {
             AudioTrackBass track = new AudioTrackBass(store.GetStream(name));
             AddItem(track);
