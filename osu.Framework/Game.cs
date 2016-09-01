@@ -30,6 +30,9 @@ namespace osu.Framework
 
         public TextureStore Textures;
 
+        /// <summary>
+        /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
+        /// </summary>
         protected virtual string MainResourceFile => AppDomain.CurrentDomain.FriendlyName;
 
         protected int MaximumFramesPerSecond
