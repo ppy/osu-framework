@@ -7,6 +7,7 @@ using ManagedBass;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
 using osu.Framework.Configuration;
+using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Audio

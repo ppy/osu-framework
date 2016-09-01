@@ -11,6 +11,7 @@ using osu.Framework.Audio;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.IO.Stores;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
 namespace osu.Framework
