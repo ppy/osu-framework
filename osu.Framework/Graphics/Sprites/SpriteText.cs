@@ -1,7 +1,6 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
@@ -15,7 +14,14 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// The amount by which characters should overlap each other (negative character spacing).
         /// </summary>
-        public float SpacingOverlap;
+        public float SpacingOverlap
+        {
+            get { return Padding.X; }
+            set
+            {
+                Padding = new Vector2(value, 0);
+            }
+        }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
 
@@ -119,37 +125,8 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Texture getTexture(char c) => store?.Get(getTextureName(c));
         private Sprite getSprite(char c) => new Sprite(getTexture(c));
-
-        private string getTextureName(char c) => $@"{Font}-{getCharName(c)}";
-        private bool isSpecialChar(char c) => getCharName(c) != c.ToString();
-
-        private string getCharName(char c)
-        {
-            return c.ToString();
-
-            //switch (c)
-            //{
-            //    case ' ':
-            //        return null;
-            //    case ',':
-            //        return @"comma";
-            //    case '.':
-            //        return @"dot";
-            //    case '%':
-            //        return @"percent";
-            //    case '/':
-            //        return @"slash";
-            //    case '\\':
-            //        return @"fps";
-            //    case '=':
-            //        return @"ms";
-            //    case '+':
-            //        return @"hz";
-            //    default:
-            //        return c.ToString();
-            //}
-        }
+        private Texture getTexture(char c) => store?.Get(getTextureName(c));
+        private string getTextureName(char c) => $@"{Font}-{c}";
     }
 }
