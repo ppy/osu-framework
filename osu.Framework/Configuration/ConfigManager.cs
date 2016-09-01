@@ -44,7 +44,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public BindableInt Set(T lookup, int value)
+        public BindableInt Set(T lookup, int value, int? min = null, int? max = null)
         {
             BindableInt bindable = GetBindable<int>(lookup) as BindableInt;
 
@@ -57,6 +57,9 @@ namespace osu.Framework.Configuration
             {
                 bindable.Value = value;
             }
+
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }

@@ -1,6 +1,7 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics.ES20;
 using System;
 using System.Collections.Concurrent;
@@ -9,21 +10,19 @@ using System.Text;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    class RenderBuffer : IDisposable
+    public class RenderBuffer : IDisposable
     {
-        private static Dictionary<RenderbufferInternalFormat, ConcurrentStack<RenderBufferInfo>> renderBufferCache = new Dictionary<RenderbufferInternalFormat, ConcurrentStack<RenderBufferInfo>>();
+        private static Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>> renderBufferCache = new Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>>();
+
+        public Vector2 Size = Vector2.One;
+        public RenderbufferInternalFormat Format { get; }
 
         private RenderBufferInfo info;
         private bool isDisposed;
 
-        internal RenderbufferInternalFormat Format { get; }
-
-        internal RenderBuffer(RenderbufferInternalFormat format)
+        public RenderBuffer(RenderbufferInternalFormat format)
         {
-            this.Format = format;
-
-            info.ID = -1;
-            info.LastFramebuffer = -1;
+            Format = format;
         }
 
         #region Disposal
@@ -54,28 +53,32 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <param name="frameBuffer">The framebuffer this renderbuffer should be bound to.</param>
         internal void Bind(int frameBuffer)
         {
-            if (info.ID != -1)
+            // Check if we're already bound
+            if (info != null)
                 return;
 
             if (!renderBufferCache.ContainsKey(Format))
-                renderBufferCache[Format] = new ConcurrentStack<RenderBufferInfo>();
+                renderBufferCache[Format] = new Stack<RenderBufferInfo>();
 
             // Make sure we have renderbuffers available
             if (renderBufferCache[Format].Count == 0)
-            {
-                int newBuffer = GL.GenRenderbuffer();
-                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, newBuffer);
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, Game.Window.Width, Game.Window.Height);
-
-                renderBufferCache[Format].Push(new RenderBufferInfo() { ID = newBuffer, LastFramebuffer = -1 });
-            }
+                renderBufferCache[Format].Push(new RenderBufferInfo() { RenderBufferID = GL.GenRenderbuffer(), FrameBufferID = -1 });
 
             // Get a renderbuffer from the cache
-            renderBufferCache[Format].TryPop(out info);
+            info = renderBufferCache[Format].Pop();
+
+            // Check if we need to update the size
+            if (info.Size != Size)
+            {
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Format, (int)Math.Ceiling(Size.X), (int)Math.Ceiling(Size.Y));
+
+                info.Size = Size;
+            }
 
             // For performance reasons, we only need to re-bind the renderbuffer to
             // the framebuffer if it is not already attached to it
-            if (info.LastFramebuffer != frameBuffer)
+            if (info.FrameBufferID != frameBuffer)
             {
                 // Make sure the framebuffer we want to attach to is bound
                 int lastFrameBuffer = GLWrapper.BindFrameBuffer(frameBuffer);
@@ -83,22 +86,22 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.ID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.Rgb565:
                     case RenderbufferInternalFormat.Rgb5A1:
                     case RenderbufferInternalFormat.Rgba4:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.ID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.ID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
 
                 GLWrapper.BindFrameBuffer(lastFrameBuffer);
             }
 
-            info.LastFramebuffer = frameBuffer;
+            info.FrameBufferID = frameBuffer;
         }
 
         /// <summary>
@@ -107,15 +110,20 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         internal void Unbind()
         {
+            if (info == null)
+                return;
+
             // Return the renderbuffer to the cache
             renderBufferCache[Format].Push(info);
-            info.ID = -1;
+
+            info = null;
         }
 
-        private struct RenderBufferInfo
+        private class RenderBufferInfo
         {
-            public int ID;
-            public int LastFramebuffer;
+            public int RenderBufferID;
+            public int FrameBufferID;
+            public Vector2 Size;
         }
     }
 }

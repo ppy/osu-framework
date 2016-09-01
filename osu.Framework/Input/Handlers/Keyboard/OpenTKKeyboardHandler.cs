@@ -18,7 +18,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
         {
         }
 
-        public override bool Initialize()
+        public override bool Initialize(Game game)
         {
             PressedKeys = new List<Key>();
             return true;

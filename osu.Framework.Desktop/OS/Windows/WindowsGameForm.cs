@@ -17,7 +17,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         public event WndProcDelegate OnWndProc;
 
-        public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
+        public override bool IsMinimized => ClientSize.Width == 0 || ClientSize.Height == 0;
 
         private Screen screen;
 
@@ -57,6 +57,8 @@ namespace osu.Framework.Desktop.OS.Windows
 
         private void updateScreen()
         {
+            if (IsDisposed) return;
+
             Screen screen = Screen.FromHandle(Handle);
             if ((this.screen == null) || !this.screen.Equals(screen))
             {
