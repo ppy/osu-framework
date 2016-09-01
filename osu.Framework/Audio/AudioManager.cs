@@ -37,7 +37,7 @@ namespace osu.Framework.Audio
 
         private Scheduler scheduler = new Scheduler();
 
-        public AudioManager(IResourceStore<byte[]> trackStore, IResourceStore<byte[]> sampleStore)
+        public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             globalTrackManager = GetTrackManager(trackStore);
             globalSampleManager = GetSampleManager(sampleStore);
@@ -50,7 +50,7 @@ namespace osu.Framework.Audio
         private TrackManager globalTrackManager;
         private SampleManager globalSampleManager;
 
-        public TrackManager GetTrackManager(IResourceStore<byte[]> store = null)
+        public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager;
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Audio
             return tm;
         }
 
-        public SampleManager GetSampleManager(IResourceStore<byte[]> store = null)
+        public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager;
 
