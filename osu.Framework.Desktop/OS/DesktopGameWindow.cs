@@ -17,9 +17,13 @@ namespace osu.Framework.Desktop.OS
         public override bool IsMinimized => Form.IsMinimized;
         public override IntPtr Handle => Form.Handle;
 
+        private const int default_width = 1366;
+        private const int default_height = 768;
+
         internal DesktopGameWindow(GraphicsContextFlags flags)
         {
             Form = CreateGameForm(flags);
+            Form.ClientSize = new Size(default_width, default_height); // if no screen res is set the default will be used instead
             Form.ScreenChanged += delegate { OnScreenDeviceNameChanged(); };
             Form.ApplicationActivated += delegate { OnActivated(); };
             Form.ApplicationDeactivated += delegate { OnDeactivated(); };
