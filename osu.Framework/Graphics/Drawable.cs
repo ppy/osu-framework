@@ -842,7 +842,7 @@ namespace osu.Framework.Graphics
             List<ITransform> transformations = Transformations;
 
             foreach (ITransform t in transformations)
-                t.Apply(this);
+                if (t.IsAlive) t.Apply(this);
         }
 
         /// <summary>
