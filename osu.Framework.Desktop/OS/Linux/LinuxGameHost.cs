@@ -2,9 +2,9 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
 using osu.Framework.Framework;
+using osu.Framework.Input;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS.Linux
@@ -24,6 +24,9 @@ namespace osu.Framework.Desktop.OS.Linux
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
         }
+
+        private TextInputSource textInputBox;
+        public override TextInputSource TextInput => textInputBox ?? (textInputBox = window.CreateTextInput());
 
         protected override void OnActivated(object sender, EventArgs args)
         {
