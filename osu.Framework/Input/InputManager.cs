@@ -527,7 +527,10 @@ namespace osu.Framework.Input
             if (FocusedDrawable != null)
             {
                 if (args.Key == Key.Escape)
+                {
                     FocusedDrawable.TriggerFocusLost(state);
+                    return true;
+                }
                 else if (FocusedDrawable.TriggerKeyDown(state, args))
                     return true;
             }
