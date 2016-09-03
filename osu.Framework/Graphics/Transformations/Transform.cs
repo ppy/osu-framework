@@ -70,6 +70,8 @@ namespace osu.Framework.Graphics.Transformations
 
         public bool RemoveWhenNotAlive => Time > EndTime;
 
+        public bool IsLoaded => true;
+
         public virtual void Apply(Drawable d)
         {
             if (Time > EndTime && LoopCount != CurrentLoopCount)

@@ -13,7 +13,7 @@ namespace osu.Framework.Lists
         double LifetimeEnd { get; }
 
         bool IsAlive { get; }
-        bool LoadRequired { get; }
+        bool IsLoaded { get; }
         bool RemoveWhenNotAlive { get; }
 
         void Load();
