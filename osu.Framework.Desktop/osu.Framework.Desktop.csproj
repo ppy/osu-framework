@@ -52,6 +52,12 @@
     </Compile>
     <Compile Include="OS\Linux\LinuxGameHost.cs" />
     <Compile Include="OS\Linux\LinuxGameWindow.cs" />
+    <Compile Include="Input\BackingTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Input\ImeTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="OS\Windows\Native\Architecture.cs" />
     <Compile Include="OS\Windows\Native\Execution.cs" />
     <Compile Include="OS\Windows\Native\Input.cs" />

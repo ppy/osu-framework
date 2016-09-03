@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -49,6 +50,8 @@ namespace osu.Framework.Framework
                 base.Size = value;
             }
         }
+
+        public abstract TextInputSource TextInput { get; }
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {

@@ -3,8 +3,10 @@
 
 using System;
 using System.Drawing;
+using osu.Framework.Desktop.Input;
 using osu.Framework.Desktop.OS.Windows;
 using osu.Framework.Framework;
+using osu.Framework.Input;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS
@@ -43,5 +45,7 @@ namespace osu.Framework.Desktop.OS
         {
             Form.Text = title;
         }
+
+        internal TextInputSource CreateTextInput() => new BackingTextBox(Form);
     }
 }

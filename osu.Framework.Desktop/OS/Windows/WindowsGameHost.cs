@@ -8,8 +8,7 @@ using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
 using osu.Framework.Framework;
 using OpenTK.Graphics;
-using osu.Framework.Graphics;
-using OpenTK;
+using osu.Framework.Input;
 using GLControl = osu.Framework.Framework.GLControl;
 
 namespace osu.Framework.Desktop.OS.Windows
@@ -32,6 +31,9 @@ namespace osu.Framework.Desktop.OS.Windows
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
         }
+
+        private TextInputSource textInputBox;
+        public override TextInputSource TextInput => textInputBox ?? (textInputBox = window.CreateTextInput());
 
         protected override void OnActivated(object sender, EventArgs args)
         {
@@ -64,8 +66,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         [return: MarshalAs(UnmanagedType.Bool)]
         [SuppressUnmanagedCodeSecurity, DllImport("user32.dll", CharSet = CharSet.Auto)]
-        internal static extern bool PeekMessage(out MSG msg, IntPtr hWnd, uint messageFilterMin, uint messageFilterMax,
-            uint flags);
+        internal static extern bool PeekMessage(out MSG msg, IntPtr hWnd, uint messageFilterMin, uint messageFilterMax, uint flags);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct MSG
