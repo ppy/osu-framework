@@ -11,14 +11,6 @@ namespace osu.Framework.Graphics.Containers
 {
     public class MaskingContainer : Container
     {
-        protected override void PreDraw()
-        {
-            GLWrapper.PushScissor(ScreenSpaceDrawQuad.BoundingRectangle);
-        }
-
-        protected override void PostDraw()
-        {
-            GLWrapper.PopScissor();
-        }
+        protected override DrawNode BaseDrawNode => new MaskingContainerDrawNode(DrawInfo, ScreenSpaceDrawQuad);
     }
 }
