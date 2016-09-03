@@ -35,13 +35,13 @@ namespace osu.Framework.Graphics
 
         protected virtual IVertexBatch ActiveBatch => Parent?.ActiveBatch;
 
-        private List<ITransform> transformations = new List<ITransform>();
-        public List<ITransform> Transformations
+        private List<ITransform> transforms = new List<ITransform>();
+        public List<ITransform> Transforms
         {
             get
             {
                 ensureMainThread();
-                return transformations;
+                return transforms;
             }
         }
 
@@ -839,7 +839,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we should draw this drawable.</returns>
         private void updateTransformations()
         {
-            List<ITransform> transformations = Transformations;
+            List<ITransform> transformations = Transforms;
 
             foreach (ITransform t in transformations)
                 if (t.IsAlive) t.Apply(this);
@@ -955,7 +955,7 @@ namespace osu.Framework.Graphics
             thisNew.internalChildren = new LifetimeList<Drawable>(DepthComparer);
             Children.ForEach(c => thisNew.internalChildren.Add(c.Clone()));
 
-            thisNew.transformations = Transformations.Select(t => t.Clone()).ToList();
+            thisNew.transforms = Transforms.Select(t => t.Clone()).ToList();
 
             thisNew.drawInfoBacking.Invalidate();
             thisNew.boundingSizeBacking.Invalidate();
