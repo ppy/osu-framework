@@ -584,8 +584,6 @@ namespace osu.Framework.Graphics
                 child.DrawSubTree();
 
             PostDraw();
-
-            ActiveBatch?.Draw();
         }
 
         /// <summary>
