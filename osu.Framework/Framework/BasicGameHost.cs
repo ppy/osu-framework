@@ -74,7 +74,8 @@ namespace osu.Framework.Framework
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             UpdateSubTree();
-            DrawSubTree();
+
+            GenerateDrawNodeSubtree().DrawSubTree();
 
             Idle?.Invoke(this, EventArgs.Empty);
 

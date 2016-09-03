@@ -20,10 +20,16 @@ namespace osu.Framework.IO.Stores
         public byte[] Get(string name)
         {
             using (Stream input = GetStream(name))
-            using (MemoryStream ms = new MemoryStream())
             {
-                input.CopyTo(ms);
-                return ms.ToArray();
+                if (input == null)
+                    return null;
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+
+                    input.CopyTo(ms);
+                    return ms.ToArray();
+                }
             }
         }
 

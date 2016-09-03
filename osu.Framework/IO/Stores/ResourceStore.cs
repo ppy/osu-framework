@@ -85,13 +85,9 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    try
-                    {
-                        object result = store.Get(f);
-                        if (result != null)
-                            return (T)result;
-                    }
-                    catch { }
+                    object result = store.Get(f);
+                    if (result != null)
+                        return (T)result;
                 }
             }
 

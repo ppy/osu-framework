@@ -33,8 +33,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected virtual IVertexBatch ActiveBatch => Parent?.ActiveBatch;
-
         private List<ITransform> transformations = new List<ITransform>();
         public List<ITransform> Transformations
         {
@@ -312,19 +310,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float depth;
-        public float Depth
-        {
-            get { return depth; }
-            set
-            {
-                if (depth == value)
-                    return;
-                depth = value;
-
-                Parent?.depthChangeQueue.Enqueue(this);
-            }
-        }
+        public float Depth;
 
         protected virtual bool HasDefinedSize => true;
 
@@ -375,19 +361,11 @@ namespace osu.Framework.Graphics
 
         public virtual bool IsVisible => Alpha > 0.0001f && IsAlive && Parent?.IsVisible == true;
 
-        private BlendingFactorSrc blendingSrc = BlendingFactorSrc.SrcAlpha;
-        private BlendingFactorDest blendingDst = BlendingFactorDest.OneMinusSrcAlpha;
-
-        public virtual bool Additive
-        {
-            get { return blendingDst == BlendingFactorDest.One && blendingSrc == BlendingFactorSrc.SrcAlpha; }
-            set { blendingDst = value ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha; }
-        }
+        public bool? Additive;
 
         protected virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
-
         protected DrawInfo DrawInfo => drawInfoBacking.Refresh(delegate
         {
             DrawInfo di = BaseDrawInfo;
@@ -401,14 +379,14 @@ namespace osu.Framework.Graphics
             Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
             if (Parent == null)
-                di.ApplyTransform(di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
             else
-                Parent.DrawInfo.ApplyTransform(di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
             return di;
         });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo();
+        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
         protected virtual Quad DrawQuad
         {
@@ -429,11 +407,6 @@ namespace osu.Framework.Graphics
                 return new Quad(0, s.Y, s.X, -s.Y);
             }
         }
-
-        /// <summary>
-        /// A queue of children to have their depths re-sorted after their Drawable.Depth is modified.
-        /// </summary>
-        private Queue<Drawable> depthChangeQueue = new Queue<Drawable>();
 
         public Drawable Parent { get; private set; }
 
@@ -561,47 +534,6 @@ namespace osu.Framework.Graphics
             Invalidate();
         }
 
-        protected void DrawSubTree()
-        {
-            if (!IsVisible)
-                return;
-
-            // Pre-sort, covers the root drawable
-            updateDepthChanges();
-
-            PreDraw();
-
-            GLWrapper.SetBlend(blendingSrc, blendingDst);
-
-            // Draw this
-            Draw();
-
-            // Post-sort, in-case Draw() changed the child depths
-            updateDepthChanges();
-
-            // Draw children
-            foreach (Drawable child in internalChildren.Current)
-                child.DrawSubTree();
-
-            PostDraw();
-
-            ActiveBatch?.Draw();
-        }
-
-        /// <summary>
-        /// Executes before this drawable is drawn.
-        /// </summary>
-        protected virtual void PreDraw()
-        {
-        }
-
-        /// <summary>
-        /// Executes after this drawable and all of its children are drawn.
-        /// </summary>
-        protected virtual void PostDraw()
-        {
-        }
-
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private delegate Vector2 BoundsResult();
@@ -691,6 +623,18 @@ namespace osu.Framework.Graphics
             return boundingSizeBacking.Refresh(() => computeBoundingSize());
         }
 
+        internal DrawNode GenerateDrawNodeSubtree()
+        {
+            DrawNode node = BaseDrawNode;
+
+            foreach (Drawable child in internalChildren.Current)
+                node.Children.Add(child.GenerateDrawNodeSubtree());
+
+            return node;
+        }
+
+        protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
+
         protected void UpdateDrawInfoSubtree()
         {
             if (drawInfoBacking.IsValid)
@@ -720,21 +664,15 @@ namespace osu.Framework.Graphics
             Update();
             OnUpdate?.Invoke();
 
-            // This check is conservative in the sense, that autosize containers do not impose
-            // any masking on children. This is valid under the assumption, that autosize
-            // will always adjust its size such that it does not mask children away.
-            // todo: Fix for AlwaysDraw == false (never get to UpdateResult.Discard case below)
-            //if (IsMaskedOut())
-            //    return updateResult = UpdateResult.ShouldNotDraw;
-
-            updateDepthChanges();
-
             internalChildren.Update(Time);
 
             foreach (Drawable child in internalChildren.Current)
                 child.UpdateSubTree();
 
             UpdateLayout();
+
+            // Post-sort, if any child has changed
+            internalChildren.Sort();
         }
 
         /// <summary>
@@ -744,19 +682,12 @@ namespace osu.Framework.Graphics
         {
         }
 
-        protected virtual void Draw()
-        {
-        }
-
         protected virtual void Update()
         {
         }
 
         protected virtual Quad GetScreenSpaceQuad(Quad input)
         {
-            if (DrawInfo == null)
-                return new Quad(0, 0, 0, 0);
-
             return DrawInfo.Matrix * input;
         }
 
@@ -824,7 +755,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
-        public virtual bool LoadRequired => !loaded;
+        public virtual bool IsLoaded => loaded;
         private bool loaded;
 
         public virtual void Load()
@@ -894,17 +825,6 @@ namespace osu.Framework.Graphics
                 pos.Y = parentSize.Y - pos.Y;
 
             return pos;
-        }
-
-        private void updateDepthChanges()
-        {
-            while (depthChangeQueue.Count > 0)
-            {
-                Drawable childToResort = depthChangeQueue.Dequeue();
-
-                internalChildren.Remove(childToResort);
-                internalChildren.Add(childToResort);
-            }
         }
 
         ~Drawable()
@@ -1038,7 +958,6 @@ namespace osu.Framework.Graphics
     {
         public int Compare(Drawable x, Drawable y)
         {
-            if (x.Depth == y.Depth) return -1;
             return x.Depth.CompareTo(y.Depth);
         }
     }
