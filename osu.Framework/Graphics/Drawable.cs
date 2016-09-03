@@ -722,7 +722,7 @@ namespace osu.Framework.Graphics
             UpdateLayout();
 
             // Post-sort, if any child has changed
-            updateDepthChanges();
+            internalChildren.Sort();
         }
 
         /// <summary>
@@ -812,7 +812,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
-        public virtual bool LoadRequired => !loaded;
+        public virtual bool IsLoaded => loaded;
         private bool loaded;
 
         public virtual void Load()
@@ -882,17 +882,6 @@ namespace osu.Framework.Graphics
                 pos.Y = parentSize.Y - pos.Y;
 
             return pos;
-        }
-
-        private void updateDepthChanges()
-        {
-            while (depthChangeQueue.Count > 0)
-            {
-                Drawable childToResort = depthChangeQueue.Dequeue();
-
-                internalChildren.Remove(childToResort);
-                internalChildren.Add(childToResort);
-            }
         }
 
         ~Drawable()
@@ -1026,7 +1015,6 @@ namespace osu.Framework.Graphics
     {
         public int Compare(Drawable x, Drawable y)
         {
-            if (x.Depth == y.Depth) return -1;
             return x.Depth.CompareTo(y.Depth);
         }
     }

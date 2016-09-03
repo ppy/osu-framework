@@ -13,8 +13,6 @@ namespace osu.Framework.Lists
     {
         public delegate void ElementChangedHandler(T element);
 
-        private List<bool> lifeStatus = new List<bool>();
-
         private double lastTime;
 
         public LifetimeList(IComparer<T> comparer)
@@ -26,9 +24,9 @@ namespace osu.Framework.Lists
         {
             get
             {
-                for (int i = 0; i < base.Count; i++)
+                for (int i = 0; i < Count; i++)
                 {
-                    if (lifeStatus[i])
+                    if (this[i].IsAlive)
                         yield return base[i];
                 }
             }
@@ -36,28 +34,18 @@ namespace osu.Framework.Lists
 
         public void Update(double time)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0; i < Count; i++)
             {
-                bool isAlive = this[i].IsAlive;
+                var obj = this[i];
+                bool isAlive = obj.IsAlive;
 
-                if (lifeStatus[i] == isAlive)
-                    continue;
-
-                bool removed = false;
-
-                if (lifeStatus[i] && !isAlive)
+                if (isAlive)
                 {
-                    if (this[i].RemoveWhenNotAlive)
-                    {
-                        RemoveAt(i--);
-                        removed = true;
-                    }
+                    if (!obj.IsLoaded)
+                        obj.Load();
                 }
-                else if (this[i].LoadRequired)
-                    this[i].Load();
-
-                if (!removed)
-                    lifeStatus[i] = isAlive;
+                else if (this[i].RemoveWhenNotAlive)
+                    RemoveAt(i--);
             }
 
             lastTime = time;
@@ -65,37 +53,10 @@ namespace osu.Framework.Lists
 
         public override int Add(T item)
         {
-            int index = base.Add(item);
-            lifeStatus.Insert(index, item.IsAlive);
-
-            if (item.LoadRequired)
+            if (item.IsAlive && !item.IsLoaded)
                 item.Load();
 
-            return index;
-        }
-
-        public override void Clear()
-        {
-            base.Clear();
-            lifeStatus.Clear();
-        }
-
-        public override bool Remove(T item)
-        {
-            int index = base.IndexOf(item);
-            if (index < 0)
-                return false;
-
-            base.RemoveAt(index);
-            lifeStatus.RemoveAt(index);
-
-            return true;
-        }
-
-        public override void RemoveAt(int index)
-        {
-            base.RemoveAt(index);
-            lifeStatus.RemoveAt(index);
+            return base.Add(item);
         }
     }
 }

@@ -5,17 +5,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace osu.Framework.Lists
 {
     class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
     {
-        private IComparer<T> comparer;
+        public IComparer<T> Comparer { get; private set; }
 
         public SortedList(IComparer<T> comparer)
         {
-            this.comparer = comparer;
+            Comparer = comparer;
         }
         
         public bool IsFixedSize => ((IList)InternalList).IsFixedSize;
@@ -41,7 +42,7 @@ namespace osu.Framework.Lists
         /// <returns>The index of the first element larger than value.</returns>
         private int getAdditionIndex(T value)
         {
-            int index = BinarySearch(value, comparer);
+            int index = BinarySearch(value, Comparer);
             if (index < 0)
                 index = ~index;
 
@@ -49,7 +50,7 @@ namespace osu.Framework.Lists
             // when duplicates are involved, so let's move towards it
             for (; index < Count; index++)
             {
-                if (comparer.Compare(this[index], value) != 0)
+                if (Comparer.Compare(this[index], value) != 0)
                     break;
             }
 
@@ -69,6 +70,13 @@ namespace osu.Framework.Lists
         public virtual void RemoveAt(int index)
         {
             InternalList.RemoveAt(index);
+        }
+
+        public virtual void Sort()
+        {
+            // Default sort is not stable, but we want the
+            // order of elements with the same depth to be preserved
+            InternalList = InternalList.OrderBy(x => x, Comparer).ToList();
         }
     }
 }
