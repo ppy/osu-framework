@@ -18,11 +18,6 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool WrapTexture = false;
 
-        private QuadBatch<TexturedVertex2d> quadBatch = new QuadBatch<TexturedVertex2d>(1, 3);
-        protected override IVertexBatch ActiveBatch => quadBatch;
-
-        private static Shader shader;
-
         public Sprite(Texture texture)
         {
             Texture = texture;
@@ -43,23 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         }
         #endregion
 
-        protected override void Draw()
-        {
-            base.Draw();
-
-            if (Texture == null || Texture.IsDisposed)
-                return;
-
-            if (shader == null)
-                shader = Game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
-
-            shader.Bind();
-
-            Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, new RectangleF(0, 0, Texture.DisplayWidth, Texture.DisplayHeight), quadBatch);
-
-            shader.Unbind();
-        }
+        protected override DrawNode BaseDrawNode => new SpriteDrawNode(Game, DrawInfo, Texture, ScreenSpaceDrawQuad, WrapTexture);
 
         protected override bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
         {

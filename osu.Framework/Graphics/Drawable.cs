@@ -33,8 +33,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected virtual IVertexBatch ActiveBatch => Parent?.ActiveBatch;
-
         private List<ITransform> transformations = new List<ITransform>();
         public List<ITransform> Transformations
         {
@@ -536,39 +534,6 @@ namespace osu.Framework.Graphics
             Invalidate();
         }
 
-        protected void DrawSubTree()
-        {
-            if (!IsVisible)
-                return;
-
-            PreDraw();
-
-            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
-
-            // Draw this
-            Draw();
-
-            // Draw children
-            foreach (Drawable child in internalChildren.Current)
-                child.DrawSubTree();
-
-            PostDraw();
-        }
-
-        /// <summary>
-        /// Executes before this drawable is drawn.
-        /// </summary>
-        protected virtual void PreDraw()
-        {
-        }
-
-        /// <summary>
-        /// Executes after this drawable and all of its children are drawn.
-        /// </summary>
-        protected virtual void PostDraw()
-        {
-        }
-
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private delegate Vector2 BoundsResult();
@@ -658,6 +623,18 @@ namespace osu.Framework.Graphics
             return boundingSizeBacking.Refresh(() => computeBoundingSize());
         }
 
+        internal DrawNode GenerateDrawNodeSubtree()
+        {
+            DrawNode node = BaseDrawNode;
+
+            foreach (Drawable child in internalChildren.Current)
+                node.Children.Add(child.GenerateDrawNodeSubtree());
+
+            return node;
+        }
+
+        protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
+
         protected void UpdateDrawInfoSubtree()
         {
             if (drawInfoBacking.IsValid)
@@ -702,10 +679,6 @@ namespace osu.Framework.Graphics
         /// Perform any layout changes just before autosize is calculated.
         /// </summary>
         protected virtual void UpdateLayout()
-        {
-        }
-
-        protected virtual void Draw()
         {
         }
 

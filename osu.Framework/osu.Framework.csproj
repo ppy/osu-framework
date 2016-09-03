@@ -83,6 +83,11 @@
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
+    <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
+    <Compile Include="Graphics\Containers\MaskingContainerDrawNode.cs" />
+    <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
+    <Compile Include="Graphics\DrawNode.cs" />
+    <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />
     <Compile Include="Graphics\Transformations\TransformAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformColour.cs" />
