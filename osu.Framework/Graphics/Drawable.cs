@@ -312,19 +312,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float depth;
-        public float Depth
-        {
-            get { return depth; }
-            set
-            {
-                if (depth == value)
-                    return;
-                depth = value;
-
-                Parent?.depthChangeQueue.Enqueue(this);
-            }
-        }
+        public float Depth;
 
         protected virtual bool HasDefinedSize => true;
 
@@ -429,11 +417,6 @@ namespace osu.Framework.Graphics
                 return new Quad(0, s.Y, s.X, -s.Y);
             }
         }
-
-        /// <summary>
-        /// A queue of children to have their depths re-sorted after their Drawable.Depth is modified.
-        /// </summary>
-        private Queue<Drawable> depthChangeQueue = new Queue<Drawable>();
 
         public Drawable Parent { get; private set; }
 
@@ -565,8 +548,6 @@ namespace osu.Framework.Graphics
         {
             if (!IsVisible)
                 return;
-
-
 
             PreDraw();
 
