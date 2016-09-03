@@ -375,7 +375,6 @@ namespace osu.Framework.Graphics
         protected virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
-
         protected DrawInfo DrawInfo => drawInfoBacking.Refresh(delegate
         {
             DrawInfo di = BaseDrawInfo;
@@ -389,14 +388,14 @@ namespace osu.Framework.Graphics
             Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
             if (Parent == null)
-                di.ApplyTransform(di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
             else
-                Parent.DrawInfo.ApplyTransform(di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
 
             return di;
         });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo();
+        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
         protected virtual Quad DrawQuad
         {
@@ -723,9 +722,6 @@ namespace osu.Framework.Graphics
 
         protected virtual Quad GetScreenSpaceQuad(Quad input)
         {
-            if (DrawInfo == null)
-                return new Quad(0, 0, 0, 0);
-
             return DrawInfo.Matrix * input;
         }
 

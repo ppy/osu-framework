@@ -9,16 +9,17 @@ using osu.Framework.Extensions.MatrixExtensions;
 
 namespace osu.Framework.Graphics
 {
-    public class DrawInfo : IEquatable<DrawInfo>
+    public struct DrawInfo : IEquatable<DrawInfo>
     {
-        public Matrix3 Matrix = Matrix3.Identity;
-        public Matrix3 MatrixInverse => matrixInverse ?? (matrixInverse = Matrix.Inverted()).Value;
-        public Color4 Colour = Color4.White;
+        public Matrix3 Matrix;
+        public Matrix3 MatrixInverse;
+        public Color4 Colour;
 
-        private Matrix3? matrixInverse;
-
-        public DrawInfo()
+        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, Color4? colour = null)
         {
+            Matrix = matrix ?? Matrix3.Identity;
+            MatrixInverse = matrixInverse ?? Matrix3.Identity;
+            Colour = colour ?? Color4.White;
         }
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics
         /// <param name="origin">The center of rotation and scale.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="viewport">An optional new viewport size.</param>
-        public void ApplyTransform(DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null)
+        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null)
         {
             Matrix3 m = Matrix;
 
@@ -45,6 +46,7 @@ namespace osu.Framework.Graphics
                 m = m.TranslateTo(-origin);
 
             target.Matrix = m;
+            target.MatrixInverse = m.Inverted();
 
             target.Colour = Colour;
 
@@ -64,6 +66,7 @@ namespace osu.Framework.Graphics
         public void Copy(DrawInfo target)
         {
             target.Matrix = Matrix;
+            target.MatrixInverse = MatrixInverse;
             target.Colour = Colour;
         }
 
