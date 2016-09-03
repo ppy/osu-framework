@@ -363,14 +363,7 @@ namespace osu.Framework.Graphics
 
         public virtual bool IsVisible => Alpha > 0.0001f && IsAlive && Parent?.IsVisible == true;
 
-        private BlendingFactorSrc blendingSrc = BlendingFactorSrc.SrcAlpha;
-        private BlendingFactorDest blendingDst = BlendingFactorDest.OneMinusSrcAlpha;
-
-        public virtual bool Additive
-        {
-            get { return blendingDst == BlendingFactorDest.One && blendingSrc == BlendingFactorSrc.SrcAlpha; }
-            set { blendingDst = value ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha; }
-        }
+        public bool? Additive;
 
         protected virtual bool? PixelSnapping { get; set; }
 
@@ -388,9 +381,9 @@ namespace osu.Framework.Graphics
             Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
             if (Parent == null)
-                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
             else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour);
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
             return di;
         });
@@ -550,7 +543,7 @@ namespace osu.Framework.Graphics
 
             PreDraw();
 
-            GLWrapper.SetBlend(blendingSrc, blendingDst);
+            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
 
             // Draw this
             Draw();

@@ -82,6 +82,7 @@
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
+    <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />
     <Compile Include="Graphics\Transformations\TransformAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformColour.cs" />
