@@ -9,7 +9,7 @@ using System.Text;
 
 namespace osu.Framework.Lists
 {
-    class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
+    public class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
     {
         private IComparer<T> comparer;
 
@@ -69,6 +69,11 @@ namespace osu.Framework.Lists
         public virtual void RemoveAt(int index)
         {
             InternalList.RemoveAt(index);
+        }
+
+        internal void RemoveAll(Predicate<T> match)
+        {
+            InternalList.RemoveAll(match);
         }
     }
 }

@@ -35,8 +35,8 @@ namespace osu.Framework.Graphics
 
         protected virtual IVertexBatch ActiveBatch => Parent?.ActiveBatch;
 
-        private List<ITransform> transforms = new List<ITransform>();
-        public List<ITransform> Transforms
+        private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+        public LifetimeList<ITransform> Transforms
         {
             get
             {
@@ -834,15 +834,18 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Process updates to this drawable based on loaded transformations.
+        /// Process updates to this drawable based on loaded transforms.
         /// </summary>
         /// <returns>Whether we should draw this drawable.</returns>
-        private void updateTransformations()
+        private void updateTransforms()
         {
-            List<ITransform> transformations = Transforms;
+            var removed = transforms.Update(Time);
 
-            foreach (ITransform t in transformations)
-                if (t.IsAlive) t.Apply(this);
+            foreach (ITransform t in removed)
+                t.Apply(this); //make sure we apply one last time.
+
+            foreach (ITransform t in transforms.Current)
+                t.Apply(this);
         }
 
         /// <summary>
@@ -955,7 +958,8 @@ namespace osu.Framework.Graphics
             thisNew.internalChildren = new LifetimeList<Drawable>(DepthComparer);
             Children.ForEach(c => thisNew.internalChildren.Add(c.Clone()));
 
-            thisNew.transforms = Transforms.Select(t => t.Clone()).ToList();
+            thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+            Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
 
             thisNew.drawInfoBacking.Invalidate();
             thisNew.boundingSizeBacking.Invalidate();
@@ -1034,6 +1038,17 @@ namespace osu.Framework.Graphics
         Custom = 32,
     }
 
+    [Flags]
+    public enum InheritMode
+    {
+        None = 0,
+
+        X = 1 << 0,
+        Y = 1 << 1,
+
+        XY = X | Y
+    }
+
     public class DepthComparer : IComparer<Drawable>
     {
         public int Compare(Drawable x, Drawable y)
@@ -1050,16 +1065,5 @@ namespace osu.Framework.Graphics
             if (x.Depth == y.Depth) return 1;
             return x.Depth.CompareTo(y.Depth);
         }
-    }
-
-    [Flags]
-    public enum InheritMode
-    {
-        None = 0,
-
-        X = 1 << 0,
-        Y = 1 << 1,
-
-        XY = X | Y
     }
 }

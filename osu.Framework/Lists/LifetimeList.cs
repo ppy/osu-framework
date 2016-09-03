@@ -9,7 +9,7 @@ using System.Text;
 
 namespace osu.Framework.Lists
 {
-    class LifetimeList<T> : SortedList<T> where T : IHasLifetime
+    public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
         public delegate void ElementChangedHandler(T element);
 
@@ -34,11 +34,14 @@ namespace osu.Framework.Lists
             }
         }
 
-        public void Update(double time)
+        public IEnumerable<T> Update(double time)
         {
-            for (int i = 0; i < this.Count; i++)
+            List<T> removedObjects = new List<T>();
+
+            for (int i = 0; i < Count; i++)
             {
-                bool isAlive = this[i].IsAlive;
+                var obj = this[i];
+                bool isAlive = obj.IsAlive;
 
                 if (lifeStatus[i] == isAlive)
                     continue;
@@ -47,20 +50,23 @@ namespace osu.Framework.Lists
 
                 if (lifeStatus[i] && !isAlive)
                 {
-                    if (this[i].RemoveWhenNotAlive)
+                    if (obj.RemoveWhenNotAlive)
                     {
                         RemoveAt(i--);
+                        removedObjects.Add(obj);
                         removed = true;
                     }
                 }
-                else if (this[i].LoadRequired)
-                    this[i].Load();
+                else if (obj.LoadRequired)
+                    obj.Load();
 
                 if (!removed)
                     lifeStatus[i] = isAlive;
             }
 
             lastTime = time;
+
+            return removedObjects;
         }
 
         public override int Add(T item)
@@ -96,6 +102,11 @@ namespace osu.Framework.Lists
         {
             base.RemoveAt(index);
             lifeStatus.RemoveAt(index);
+        }
+
+        internal void RemoveAll(Predicate<T> match)
+        {
+            base.RemoveAll(match);
         }
     }
 }

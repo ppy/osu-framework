@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics
 
         public void ClearTransformations()
         {
-            Transforms.Clear();
+            transforms.Clear();
             DelayReset();
         }
 
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics
 
         public void Loop(int delay = 0)
         {
-            Transforms.ForEach(t =>
+            transforms.ForEach(t =>
             {
                 t.Loop(Math.Max(0, transformationDelay + delay - t.Duration));
             });
@@ -54,14 +54,14 @@ namespace osu.Framework.Graphics
         {
             //expiry should happen either at the end of the last transformation or using the current sequence delay (whichever is highest).
             double max = Time + transformationDelay;
-            foreach (ITransform t in Transforms)
+            foreach (ITransform t in transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (ITransform t in Transforms)
+                foreach (ITransform t in transforms)
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < Int32.MaxValue ? min : Int32.MinValue;
             }
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics
             if (change == 0)
                 return;
 
-            foreach (ITransform t in Transforms)
+            foreach (ITransform t in transforms)
             {
                 t.StartTime += change;
                 t.EndTime += change;
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics
             if (transformationDelay == 0)
             {
                 Alpha = 0;
-                Transforms.RemoveAll(t => t is TransformAlpha);
+                transforms.RemoveAll(t => t is TransformAlpha);
             }
 
             double startTime = Time + transformationDelay;
@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics
                 StartValue = 0,
                 EndValue = 1,
             };
-            Transforms.Add(tr);
+            transforms.Add(tr);
             return tr;
         }
 
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics
             if (transformationDelay == 0)
             {
                 Alpha = 1;
-                Transforms.RemoveAll(t => t is TransformAlpha);
+                transforms.RemoveAll(t => t is TransformAlpha);
             }
 
             double startTime = Time + transformationDelay;
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics
                 StartValue = 1,
                 EndValue = 0,
             };
-            Transforms.Add(tr);
+            transforms.Add(tr);
             return tr;
         }
 
@@ -156,12 +156,12 @@ namespace osu.Framework.Graphics
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
-                Transforms.RemoveAll(t => t.GetType() == type);
+                transforms.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
                     return this;
             }
             else
-                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
+                startValue = (transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            Transforms.Add(transform);
+            transforms.Add(transform);
 
             return this;
         }
@@ -238,12 +238,12 @@ namespace osu.Framework.Graphics
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
-                Transforms.RemoveAll(t => t.GetType() == type);
+                transforms.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
                     return this;
             }
             else
-                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
+                startValue = (transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            Transforms.Add(transform);
+            transforms.Add(transform);
 
             return this;
         }
@@ -282,7 +282,7 @@ namespace osu.Framework.Graphics
 
         public Drawable MoveToRelative(Vector2 offset, int duration, EasingTypes easing = EasingTypes.None)
         {
-            return MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
+            return MoveTo((transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
         #endregion
 
@@ -292,16 +292,16 @@ namespace osu.Framework.Graphics
             Color4 startValue = Colour;
             if (transformationDelay == 0)
             {
-                Transforms.RemoveAll(t => t is TransformColour);
+                transforms.RemoveAll(t => t is TransformColour);
                 if (startValue == newColour)
                     return this;
             }
             else
-                startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
+                startValue = (transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            transforms.Add(new TransformColour(Clock)
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -317,12 +317,12 @@ namespace osu.Framework.Graphics
         {
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
-            Transforms.RemoveAll(t => t is TransformColour);
+            Color4 startValue = (transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
+            transforms.RemoveAll(t => t is TransformColour);
 
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            transforms.Add(new TransformColour(Clock)
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
