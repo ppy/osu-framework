@@ -819,7 +819,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
-        public virtual bool RemoveWhenNotAlive => true;
+        public virtual bool RemoveWhenNotAlive => Time > LifetimeStart;
 
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
