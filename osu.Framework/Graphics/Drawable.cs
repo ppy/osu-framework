@@ -566,8 +566,7 @@ namespace osu.Framework.Graphics
             if (!IsVisible)
                 return;
 
-            // Pre-sort, covers the root drawable
-            updateDepthChanges();
+
 
             PreDraw();
 
@@ -575,9 +574,6 @@ namespace osu.Framework.Graphics
 
             // Draw this
             Draw();
-
-            // Post-sort, in-case Draw() changed the child depths
-            updateDepthChanges();
 
             // Draw children
             foreach (Drawable child in internalChildren.Current)
@@ -718,21 +714,15 @@ namespace osu.Framework.Graphics
             Update();
             OnUpdate?.Invoke();
 
-            // This check is conservative in the sense, that autosize containers do not impose
-            // any masking on children. This is valid under the assumption, that autosize
-            // will always adjust its size such that it does not mask children away.
-            // todo: Fix for AlwaysDraw == false (never get to UpdateResult.Discard case below)
-            //if (IsMaskedOut())
-            //    return updateResult = UpdateResult.ShouldNotDraw;
-
-            updateDepthChanges();
-
             internalChildren.Update(Time);
 
             foreach (Drawable child in internalChildren.Current)
                 child.UpdateSubTree();
 
             UpdateLayout();
+
+            // Post-sort, if any child has changed
+            updateDepthChanges();
         }
 
         /// <summary>
