@@ -8,10 +8,7 @@ using System.Linq;
 using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
 using osu.Framework.Cached;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Lists;
@@ -19,7 +16,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {
-    public partial class Drawable : IDisposable, IHasLifetime
+    public abstract partial class Drawable : IDisposable, IHasLifetime
     {
         public event Action OnUpdate;
 

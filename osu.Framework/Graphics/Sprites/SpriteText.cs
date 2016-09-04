@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Drawable s;
                     if (c == ' ')
-                        s = new Drawable() { Size = new Vector2(spaceWidth) };
+                        s = new Container() { Size = new Vector2(spaceWidth) };
                     else
                         s = getSprite(c);
 
