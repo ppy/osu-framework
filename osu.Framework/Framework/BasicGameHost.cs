@@ -37,12 +37,6 @@ namespace osu.Framework.Framework
 
         Thread updateThread;
 
-        public BasicGameHost()
-        {
-            updateThread = new Thread(updateLoop) { IsBackground = true };
-            updateThread.Start();
-        }
-
         public override Vector2 Size
         {
             get
@@ -111,6 +105,9 @@ namespace osu.Framework.Framework
             Window.ClientSizeChanged += delegate { Invalidate(); };
 
             GLControl.Initialize();
+
+            updateThread = new Thread(updateLoop) { IsBackground = true };
+            updateThread.Start();
 
             Exception error = null;
 
