@@ -37,9 +37,9 @@ namespace osu.Framework.Timing
         public double AverageFrameTime { get; private set; }
         public double AverageFPS { get; private set; }
 
-        private double AccumulatedSleepError;
+        private double accumulatedSleepError;
 
-        private void ThrottleFrameTime()
+        private void throttle()
         {
             double targetMilliseconds = minimumFrameTime;
             int timeToSleepFloored = 0;
@@ -55,13 +55,13 @@ namespace osu.Framework.Timing
 
                     Debug.Assert(timeToSleepFloored >= 0);
 
-                    AccumulatedSleepError += timeToSleep - timeToSleepFloored;
-                    int accumulatedSleepErrorCompensation = (int)Math.Round(AccumulatedSleepError);
+                    accumulatedSleepError += timeToSleep - timeToSleepFloored;
+                    int accumulatedSleepErrorCompensation = (int)Math.Round(accumulatedSleepError);
 
                     // Can't sleep a negative amount of time
                     accumulatedSleepErrorCompensation = Math.Max(accumulatedSleepErrorCompensation, -timeToSleepFloored);
 
-                    AccumulatedSleepError -= accumulatedSleepErrorCompensation;
+                    accumulatedSleepError -= accumulatedSleepErrorCompensation;
                     timeToSleepFloored += accumulatedSleepErrorCompensation;
 
                     // We don't want re-schedules with Thread.Sleep(0). We already have that case down below.
@@ -70,14 +70,14 @@ namespace osu.Framework.Timing
 
                     // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
                     double afterSleepTime = SourceTime;
-                    AccumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
+                    accumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
                     CurrentTime = afterSleepTime;
                 }
                 else
                 {
                     // We use the negative spareTime to compensate for framerate jitter slightly.
                     double spareTime = ElapsedFrameTime - targetMilliseconds;
-                    AccumulatedSleepError = -spareTime;
+                    accumulatedSleepError = -spareTime;
                 }
             }
 
@@ -90,7 +90,7 @@ namespace osu.Framework.Timing
         {
             base.ProcessFrame();
 
-            ThrottleFrameTime();
+            throttle();
 
             // Accumulate a sliding average over frame time and frames per second.
             double alpha = 0.05;
