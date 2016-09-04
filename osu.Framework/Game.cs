@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Timing;
 using System.Threading;
 using osu.Framework.Audio;
+using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Shaders;
@@ -79,6 +80,12 @@ namespace osu.Framework
             Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.2f };
 
             AddProcessingContainer(new UserInputManager());
+
+            Add(new PerformanceOverlay()
+            {
+                Anchor = Graphics.Anchor.BottomRight,
+                Origin = Graphics.Anchor.BottomRight,
+            });
         }
 
         protected override void Update()
