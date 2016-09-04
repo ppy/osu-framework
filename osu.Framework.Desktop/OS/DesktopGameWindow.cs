@@ -5,8 +5,8 @@ using System;
 using System.Drawing;
 using osu.Framework.Desktop.Input;
 using osu.Framework.Desktop.OS.Windows;
-using osu.Framework.Framework;
 using osu.Framework.Input;
+using osu.Framework.OS;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS

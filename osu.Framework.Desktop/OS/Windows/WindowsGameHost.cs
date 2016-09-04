@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
-using osu.Framework.Framework;
 using OpenTK.Graphics;
 using osu.Framework.Input;
-using GLControl = osu.Framework.Framework.GLControl;
+using osu.Framework.OS;
+using GLControl = osu.Framework.OS.GLControl;
 
 namespace osu.Framework.Desktop.OS.Windows
 {

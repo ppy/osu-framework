@@ -2,20 +2,12 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
-using System.Text;
 using System.Windows.Forms;
-using OpenTK.Graphics.ES20;
-using OpenTK.Graphics;
-using System.Drawing;
-using System.IO;
-using OpenTK;
-using System.Collections.Generic;
-using System.Threading;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.Logging;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
-namespace osu.Framework.Framework
+namespace osu.Framework.OS
 {
     public class GLControl : OpenTK.GLControl
     {

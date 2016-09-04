@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 
-namespace osu.Framework.Framework
+namespace osu.Framework.OS
 {
     public abstract class BasicGameWindow
     {

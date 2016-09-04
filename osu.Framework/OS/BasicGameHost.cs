@@ -12,7 +12,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace osu.Framework.Framework
+namespace osu.Framework.OS
 {
     public abstract class BasicGameHost : Container
     {
@@ -26,6 +26,11 @@ namespace osu.Framework.Framework
         public event EventHandler Idle;
 
         public override bool IsVisible => true;
+
+        internal Thread DrawThread => startupThread;
+        internal Thread UpdateThread => updateThread.IsAlive ? updateThread : startupThread;
+
+        private Thread startupThread = Thread.CurrentThread;
 
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };

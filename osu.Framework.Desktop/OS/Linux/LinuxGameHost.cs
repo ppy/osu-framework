@@ -3,8 +3,8 @@
 
 using System;
 using osu.Framework.Desktop.OS.Windows.Native;
-using osu.Framework.Framework;
 using osu.Framework.Input;
+using osu.Framework.OS;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS.Linux

@@ -3,7 +3,7 @@
 
 using osu.Framework.Desktop.OS.Linux;
 using osu.Framework.Desktop.OS.Windows;
-using osu.Framework.Framework;
+using osu.Framework.OS;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop

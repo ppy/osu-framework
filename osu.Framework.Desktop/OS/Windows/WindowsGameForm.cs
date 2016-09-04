@@ -4,7 +4,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using osu.Framework.Framework;
+using osu.Framework.OS;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS.Windows
