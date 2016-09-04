@@ -34,19 +34,14 @@ namespace osu.Framework.Timing
 
         }
 
-        public double AverageFrameTime;
-        public double AverageFPS;
-        private double AccumulatedSleepError;
+        public double AverageFrameTime { get; private set; }
+        public double AverageFPS { get; private set; }
 
-        public override void ProcessFrame()
+        private double accumulatedSleepError;
+
+        private void throttle()
         {
-            base.ProcessFrame();
-
-            double currentTime = CurrentTime;
-            double lastFrameTime = LastFrameTime;
-
             double targetMilliseconds = minimumFrameTime;
-
             int timeToSleepFloored = 0;
 
             //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
@@ -60,13 +55,13 @@ namespace osu.Framework.Timing
 
                     Debug.Assert(timeToSleepFloored >= 0);
 
-                    AccumulatedSleepError += timeToSleep - timeToSleepFloored;
-                    int accumulatedSleepErrorCompensation = (int)Math.Round(AccumulatedSleepError);
+                    accumulatedSleepError += timeToSleep - timeToSleepFloored;
+                    int accumulatedSleepErrorCompensation = (int)Math.Round(accumulatedSleepError);
 
                     // Can't sleep a negative amount of time
                     accumulatedSleepErrorCompensation = Math.Max(accumulatedSleepErrorCompensation, -timeToSleepFloored);
 
-                    AccumulatedSleepError -= accumulatedSleepErrorCompensation;
+                    accumulatedSleepError -= accumulatedSleepErrorCompensation;
                     timeToSleepFloored += accumulatedSleepErrorCompensation;
 
                     // We don't want re-schedules with Thread.Sleep(0). We already have that case down below.
@@ -75,23 +70,30 @@ namespace osu.Framework.Timing
 
                     // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
                     double afterSleepTime = SourceTime;
-                    AccumulatedSleepError += timeToSleepFloored - (afterSleepTime - currentTime);
+                    accumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
                     CurrentTime = afterSleepTime;
                 }
                 else
                 {
                     // We use the negative spareTime to compensate for framerate jitter slightly.
                     double spareTime = ElapsedFrameTime - targetMilliseconds;
-                    AccumulatedSleepError = -spareTime;
+                    accumulatedSleepError = -spareTime;
                 }
             }
 
             // Call the scheduler to give lower-priority background processes a chance to do stuff.
             if (timeToSleepFloored == 0)
                 Thread.Sleep(0);
+        }
 
+        public override void ProcessFrame()
+        {
+            base.ProcessFrame();
+
+            throttle();
+
+            // Accumulate a sliding average over frame time and frames per second.
             double alpha = 0.05;
-            //average frame time over the last 5 frames.
             AverageFrameTime = AverageFrameTime == 0 ? ElapsedFrameTime : (AverageFrameTime * (1 - alpha) + ElapsedFrameTime * alpha);
             AverageFPS = AverageFPS == 0 ? (1000 / ElapsedFrameTime) : (AverageFPS * (1 - alpha) + (1000 / ElapsedFrameTime) * alpha);
         }
