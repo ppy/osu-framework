@@ -20,7 +20,7 @@ namespace osu.Framework.Timing
             Source = source;
         }
 
-        public virtual double CurrentTime { get; private set;}
+        public virtual double CurrentTime { get; protected set;}
 
         public virtual double LastFrameTime { get; private set; }
 
