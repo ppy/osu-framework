@@ -36,15 +36,18 @@ namespace osu.Framework.Graphics.OpenGL
         private static Cached<int> maxTextureSizeBacking = new Cached<int>();
         public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
 
+        //todo: don't use scheduler
         private static Scheduler resetScheduler = new Scheduler();
 
         internal static void Schedule(Action del)
         {
+            //todo: don't use scheduler
             resetScheduler.Add(del);
         }
 
         internal static void Reset(Vector2 size)
         {
+            //todo: don't use scheduler
             resetScheduler.Update();
 
             lastBoundTexture = -1;
@@ -76,6 +79,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() => texture.Upload());
         }
 
@@ -318,6 +322,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (frameBuffer == -1 || !HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 GL.DeleteFramebuffer(frameBuffer);
@@ -332,6 +337,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 GL.DeleteBuffer(vboId);
@@ -346,6 +352,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 GL.DeleteTextures(ids.Length, ids);
@@ -360,6 +367,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 GL.DeleteProgram(shader);
@@ -374,6 +382,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 GL.DeleteShader(shaderPart);
@@ -386,6 +395,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (!HasContext) return;
 
+            //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
                 if (CurrentShader == shader) return;
