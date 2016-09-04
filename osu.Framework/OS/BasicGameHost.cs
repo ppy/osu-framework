@@ -2,15 +2,17 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace osu.Framework.Framework
+namespace osu.Framework.OS
 {
     public abstract class BasicGameHost : Container
     {
@@ -24,6 +26,23 @@ namespace osu.Framework.Framework
         public event EventHandler Idle;
 
         public override bool IsVisible => true;
+
+        private static Thread updateThread;
+        private static Thread startupThread = Thread.CurrentThread;
+
+        internal static Thread DrawThread => startupThread;
+        internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
+
+        internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
+        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };
+
+        protected override IFrameBasedClock Clock => UpdateClock;
+
+        protected int MaximumFramesPerSecond
+        {
+            get { return UpdateClock.MaximumUpdateHz; }
+            set { UpdateClock.MaximumUpdateHz = value; }
+        }
 
         public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
         {
@@ -68,18 +87,35 @@ namespace osu.Framework.Framework
             Exiting?.Invoke(this, EventArgs.Empty);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+            UpdateClock.ProcessFrame();
+        }
+
+        DrawNode pendingRootNode;
+
+        private void updateLoop()
+        {
+            while (true)
+            {
+                UpdateSubTree();
+                pendingRootNode = GenerateDrawNodeSubtree();
+            }
+        }
+
         protected virtual void OnIdle(object sender, EventArgs args)
         {
             GLWrapper.Reset(Size);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            UpdateSubTree();
-
-            GenerateDrawNodeSubtree().DrawSubTree();
-
-            Idle?.Invoke(this, EventArgs.Empty);
+            pendingRootNode?.DrawSubTree();
 
             GLControl.SwapBuffers();
+
+            DrawClock.ProcessFrame();
+
+            Idle?.Invoke(this, EventArgs.Empty);
         }
 
         private bool exitRequested;
@@ -93,6 +129,9 @@ namespace osu.Framework.Framework
             Window.ClientSizeChanged += delegate { Invalidate(); };
 
             GLControl.Initialize();
+
+            updateThread = new Thread(updateLoop) { IsBackground = true };
+            updateThread.Start();
 
             Exception error = null;
 

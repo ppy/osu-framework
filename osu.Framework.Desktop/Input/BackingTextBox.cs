@@ -5,8 +5,8 @@ using System;
 using System.Diagnostics;
 using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows;
-using osu.Framework.Framework;
 using osu.Framework.Input;
+using osu.Framework.OS;
 
 namespace osu.Framework.Desktop.Input
 {

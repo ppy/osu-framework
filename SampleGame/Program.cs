@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Desktop;
-using osu.Framework.Framework;
+using osu.Framework.OS;
 
 namespace osu.Desktop
 {

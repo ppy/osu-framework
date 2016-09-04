@@ -8,10 +8,8 @@ using System.Linq;
 using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
 using osu.Framework.Cached;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Lists;
@@ -19,7 +17,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {
-    public partial class Drawable : IDisposable, IHasLifetime
+    public abstract partial class Drawable : IDisposable, IHasLifetime
     {
         public event Action OnUpdate;
 
@@ -28,7 +26,7 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                ensureMainThread();
+                ThreadSafety.EnsureUpdateThread();
                 return internalChildren;
             }
         }
@@ -38,7 +36,7 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                ensureMainThread();
+                ThreadSafety.EnsureUpdateThread();
                 return transforms;
             }
         }
@@ -785,6 +783,8 @@ namespace osu.Framework.Graphics
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
         {
+            ThreadSafety.EnsureUpdateThread();
+
             if (affectsPosition && source != Parent && Parent?.ChildrenShouldInvalidate == true)
                 Parent.Invalidate(affectsPosition, affectsPosition, this);
 
@@ -855,8 +855,6 @@ namespace osu.Framework.Graphics
 
             Parent = null;
 
-            Clear();
-
             if (IsDisposable)
                 OnUpdate = null;
         }
@@ -890,21 +888,6 @@ namespace osu.Framework.Graphics
         protected Game Game;
 
         protected virtual bool ChildrenShouldInvalidate => false;
-
-        [Conditional("DEBUG")]
-        private void ensureMainThread()
-        {
-            //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
-            if (!Debugger.IsAttached) return;
-
-            //We can skip this check if this drawable isn't added to a rooted draw tree.
-            //This allows creating nested drawables on a different thread, then scheduling them to
-            //be added to a rooted tree for actual use.
-            if (Parent == null)
-                return;
-
-            Debug.Assert(Game.MainThread == Thread.CurrentThread);
-        }
     }
 
     /// <summary>

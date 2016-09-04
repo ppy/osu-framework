@@ -3,10 +3,9 @@
 
 using System;
 using System.Drawing;
-using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Framework
+namespace osu.Framework.OS
 {
     public abstract class BasicGameForm : GLControl
     {

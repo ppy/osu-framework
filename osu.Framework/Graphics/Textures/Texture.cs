@@ -126,9 +126,6 @@ namespace osu.Framework.Graphics.Textures
                 TextureGL.SetData(data, level, format);
             else
                 TextureGL.SetData(data, level);
-
-            //todo: remove if we can.
-            TextureGL.Upload();
         }
 
         public unsafe void SetData(Bitmap bitmap, int level = 0)
@@ -159,8 +156,8 @@ namespace osu.Framework.Graphics.Textures
             TextureGL.IsTransparent = isTransparent;
             if (!isTransparent)
                 SetData(data, level);
-
-            TextureGL.FreeBuffer(data);
+            else
+                TextureGL.FreeBuffer(data);
         }
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)

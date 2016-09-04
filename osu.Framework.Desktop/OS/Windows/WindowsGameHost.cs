@@ -6,17 +6,17 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
-using osu.Framework.Framework;
 using OpenTK.Graphics;
 using osu.Framework.Input;
-using GLControl = osu.Framework.Framework.GLControl;
+using osu.Framework.OS;
+using GLControl = osu.Framework.OS.GLControl;
 
 namespace osu.Framework.Desktop.OS.Windows
 {
     public class WindowsGameHost : BasicGameHost
     {
         public override BasicGameWindow Window => window;
-        public override GLControl GLControl => window.Form;
+        public override GLControl GLControl => window?.Form;
         public override bool IsActive => Window != null && GetForegroundWindow().Equals(Window.Handle);
 
         private WindowsGameWindow window;

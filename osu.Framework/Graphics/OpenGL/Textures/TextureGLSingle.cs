@@ -12,6 +12,7 @@ using OpenTK;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using System.Drawing;
+using osu.Framework.DebugUtils;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -219,9 +220,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override bool Upload()
         {
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
-            //Debug.Assert(Game.MainThread == Thread.CurrentThread);
-
-            //todo: thread safety via GLWrapper.
+            ThreadSafety.EnsureDrawThread();
 
             if (isDisposed)
                 return false;
@@ -262,8 +261,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(textureId);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.LinearMipmapLinear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
                             updateWrapMode();
                         }
@@ -293,8 +292,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     }
 
                     //todo: this should be scheduled so it doesn't run multiple times when first creating sprite atlases.
-                    GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-                    GL.GenerateMipmap(TextureTarget.Texture2D);
+                    //GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
+                    //GL.GenerateMipmap(TextureTarget.Texture2D);
                     return true;
                 }
                 finally

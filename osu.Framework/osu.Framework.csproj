@@ -81,6 +81,7 @@
     <Compile Include="Audio\Sample\AudioSampleBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
+    <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
@@ -131,9 +132,9 @@
     <Compile Include="Audio\Track\AudioTrackBass.cs" />
     <Compile Include="Audio\Track\AudioTrackVirtual.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Game.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Framework\BasicGameHost.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Framework\BasicGameWindow.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Framework\GLControl.cs">
+    <Compile Include="OS\BasicGameHost.cs" />
+    <Compile Include="OS\BasicGameWindow.cs" />
+    <Compile Include="OS\GLControl.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\LinearBatch.cs" />
@@ -219,7 +220,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Textures\TextureStore.cs" />
     <Compile Include="RuntimeInfo.cs" />
-    <Compile Include="Framework\BasicGameForm.cs">
+    <Compile Include="OS\BasicGameForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Threading\Scheduler.cs" />
