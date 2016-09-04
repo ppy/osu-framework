@@ -1,6 +1,7 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
@@ -36,6 +37,11 @@ namespace osu.Framework.Graphics.OpenGL
         public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
 
         private static Scheduler resetScheduler = new Scheduler();
+
+        internal static void Schedule(Action del)
+        {
+            resetScheduler.Add(del);
+        }
 
         internal static void Reset(Vector2 size)
         {

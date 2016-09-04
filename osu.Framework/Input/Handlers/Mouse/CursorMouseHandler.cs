@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
@@ -18,6 +19,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Point previousNativeMousePosition;
 
         private Game game;
+        private Point pos;
 
         public override bool Initialize(Game game)
         {
@@ -33,7 +35,10 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Point GetNativePosition()
         {
-            return Point.Empty;// game.Host.Window.Form.PointToClient(Cursor.Position);
+            //todo: we need to fix this.
+            GLWrapper.Schedule(() => { pos = game.Host.Window.Form.PointToClient(Cursor.Position); });
+
+            return pos;
         }
 
         public override void UpdateInput(bool isActive)
