@@ -40,8 +40,10 @@ namespace osu.Framework.Timing
         {
             double rawFrameTime = SourceTime - LastFrameTime;
 
+            double alpha = 0.2;
+
             //average frame time over the last 5 frames.
-            averageFrameTime = averageFrameTime == 0 ? rawFrameTime : (averageFrameTime * 4 + rawFrameTime) / 5;
+            averageFrameTime = averageFrameTime == 0 ? rawFrameTime : (averageFrameTime * (1 - alpha) + rawFrameTime * alpha);
 
             double sleepTime = Math.Max(0, minimumFrameTime - averageFrameTime);
             if (sleepTime > 0 || AlwaysSleep)
