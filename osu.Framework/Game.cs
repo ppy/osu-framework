@@ -22,10 +22,6 @@ namespace osu.Framework
 
         internal Scheduler Scheduler;
 
-        private ThrottledFrameClock clock = new ThrottledFrameClock();
-
-        protected override IFrameBasedClock Clock => clock;
-
         public ResourceStore<byte[]> Resources;
 
         public TextureStore Textures;
@@ -34,12 +30,6 @@ namespace osu.Framework
         /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
         /// </summary>
         protected virtual string MainResourceFile => AppDomain.CurrentDomain.FriendlyName;
-
-        protected int MaximumFramesPerSecond
-        {
-            get { return clock.MaximumUpdateHz; }
-            set { clock.MaximumUpdateHz = value; }
-        }
 
         internal static Thread MainThread;
 
@@ -97,7 +87,6 @@ namespace osu.Framework
 
         protected override void Update()
         {
-            clock.ProcessFrame();
             Scheduler.Update();
             Audio.Update();
 
@@ -168,7 +157,7 @@ namespace osu.Framework
 
         protected virtual void OnActivated()
         {
-            
+
         }
 
         protected virtual void OnDeactivated()

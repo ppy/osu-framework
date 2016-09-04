@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
@@ -25,6 +26,17 @@ namespace osu.Framework.Framework
         public event EventHandler Idle;
 
         public override bool IsVisible => true;
+
+        internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
+        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };
+
+        protected override IFrameBasedClock Clock => UpdateClock;
+
+        protected int MaximumFramesPerSecond
+        {
+            get { return UpdateClock.MaximumUpdateHz; }
+            set { UpdateClock.MaximumUpdateHz = value; }
+        }
 
         public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
         {
@@ -71,6 +83,12 @@ namespace osu.Framework.Framework
             Exiting?.Invoke(this, EventArgs.Empty);
         }
 
+        protected override void Update()
+        {
+            base.Update();
+            UpdateClock.ProcessFrame();
+        }
+
         DrawNode pendingRootNode;
 
         private void updateLoop()
@@ -90,6 +108,8 @@ namespace osu.Framework.Framework
             pendingRootNode?.DrawSubTree();
 
             GLControl.SwapBuffers();
+
+            DrawClock.ProcessFrame();
 
             Idle?.Invoke(this, EventArgs.Empty);
         }
