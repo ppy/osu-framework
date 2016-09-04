@@ -34,19 +34,14 @@ namespace osu.Framework.Timing
 
         }
 
-        public double AverageFrameTime;
-        public double AverageFPS;
+        public double AverageFrameTime { get; private set; }
+        public double AverageFPS { get; private set; }
+
         private double AccumulatedSleepError;
 
-        public override void ProcessFrame()
+        private void ThrottleFrameTime()
         {
-            base.ProcessFrame();
-
-            double currentTime = CurrentTime;
-            double lastFrameTime = LastFrameTime;
-
             double targetMilliseconds = minimumFrameTime;
-
             int timeToSleepFloored = 0;
 
             //If we are limiting to a specific rate, and not enough time has passed for the next frame to be accepted we should pause here.
@@ -75,7 +70,7 @@ namespace osu.Framework.Timing
 
                     // Sleep is not guaranteed to be an exact time. It only guaranteed to sleep AT LEAST the specified time. We also used some time to compute the above things, so this is also factored in here.
                     double afterSleepTime = SourceTime;
-                    AccumulatedSleepError += timeToSleepFloored - (afterSleepTime - currentTime);
+                    AccumulatedSleepError += timeToSleepFloored - (afterSleepTime - CurrentTime);
                     CurrentTime = afterSleepTime;
                 }
                 else
@@ -89,9 +84,16 @@ namespace osu.Framework.Timing
             // Call the scheduler to give lower-priority background processes a chance to do stuff.
             if (timeToSleepFloored == 0)
                 Thread.Sleep(0);
+        }
 
+        public override void ProcessFrame()
+        {
+            base.ProcessFrame();
+
+            ThrottleFrameTime();
+
+            // Accumulate a sliding average over frame time and frames per second.
             double alpha = 0.05;
-            //average frame time over the last 5 frames.
             AverageFrameTime = AverageFrameTime == 0 ? ElapsedFrameTime : (AverageFrameTime * (1 - alpha) + ElapsedFrameTime * alpha);
             AverageFPS = AverageFPS == 0 ? (1000 / ElapsedFrameTime) : (AverageFPS * (1 - alpha) + (1000 / ElapsedFrameTime) * alpha);
         }
