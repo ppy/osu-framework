@@ -9,7 +9,7 @@ using System.Text;
 
 namespace osu.Framework.Lists
 {
-    class LifetimeList<T> : SortedList<T> where T : IHasLifetime
+    public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
         public delegate void ElementChangedHandler(T element);
 
@@ -32,8 +32,10 @@ namespace osu.Framework.Lists
             }
         }
 
-        public void Update(double time)
+        public List<T> Update(double time)
         {
+            List<T> becameDead = new List<T>();
+
             for (int i = 0; i < Count; i++)
             {
                 var obj = this[i];
@@ -44,11 +46,18 @@ namespace osu.Framework.Lists
                     if (!obj.IsLoaded)
                         obj.Load();
                 }
-                else if (this[i].RemoveWhenNotAlive)
-                    RemoveAt(i--);
+                else
+                {
+                    if (obj.RemoveWhenNotAlive)
+                    {
+                        RemoveAt(i--);
+                        becameDead.Add(obj);
+                    }
+                }
             }
 
             lastTime = time;
+            return becameDead;
         }
 
         public override int Add(T item)

@@ -33,13 +33,13 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private List<ITransform> transformations = new List<ITransform>();
-        public List<ITransform> Transformations
+        private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+        public LifetimeList<ITransform> Transforms
         {
             get
             {
                 ensureMainThread();
-                return transformations;
+                return transforms;
             }
         }
 
@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics
             transformationDelay = 0;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transformations (and some better logic).
-            updateTransformations();
+            updateTransforms();
 
             if (!IsVisible)
                 return;
@@ -750,7 +750,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
-        public virtual bool RemoveWhenNotAlive => true;
+        public virtual bool RemoveWhenNotAlive => Time > LifetimeStart;
 
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
@@ -765,14 +765,17 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Process updates to this drawable based on loaded transformations.
+        /// Process updates to this drawable based on loaded transforms.
         /// </summary>
         /// <returns>Whether we should draw this drawable.</returns>
-        private void updateTransformations()
+        private void updateTransforms()
         {
-            List<ITransform> transformations = Transformations;
+            var removed = transforms.Update(Time);
 
-            foreach (ITransform t in transformations)
+            foreach (ITransform t in removed)
+                t.Apply(this); //make sure we apply one last time.
+
+            foreach (ITransform t in transforms.Current)
                 t.Apply(this);
         }
 
@@ -875,7 +878,8 @@ namespace osu.Framework.Graphics
             thisNew.internalChildren = new LifetimeList<Drawable>(DepthComparer);
             Children.ForEach(c => thisNew.internalChildren.Add(c.Clone()));
 
-            thisNew.transformations = Transformations.Select(t => t.Clone()).ToList();
+            thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+            Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
 
             thisNew.drawInfoBacking.Invalidate();
             thisNew.boundingSizeBacking.Invalidate();
@@ -954,6 +958,17 @@ namespace osu.Framework.Graphics
         Custom = 32,
     }
 
+    [Flags]
+    public enum InheritMode
+    {
+        None = 0,
+
+        X = 1 << 0,
+        Y = 1 << 1,
+
+        XY = X | Y
+    }
+
     public class DepthComparer : IComparer<Drawable>
     {
         public int Compare(Drawable x, Drawable y)
@@ -969,16 +984,5 @@ namespace osu.Framework.Graphics
             if (x.Depth == y.Depth) return 1;
             return x.Depth.CompareTo(y.Depth);
         }
-    }
-
-    [Flags]
-    public enum InheritMode
-    {
-        None = 0,
-
-        X = 1 << 0,
-        Y = 1 << 1,
-
-        XY = X | Y
     }
 }

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace osu.Framework.Lists
 {
-    interface IHasLifetime
+    public interface IHasLifetime
     {
         double LifetimeStart { get; }
         double LifetimeEnd { get; }

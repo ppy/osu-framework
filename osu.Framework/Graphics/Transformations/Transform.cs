@@ -4,10 +4,11 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Timing;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transformations
 {
-    public abstract class Transform<T> : ITransform, IComparable<Transform<T>>
+    public abstract class Transform<T> : ITransform
     {
         public double StartTime { get; set; }
         public double EndTime { get; set; }
@@ -61,6 +62,16 @@ namespace osu.Framework.Graphics.Transformations
 
         public abstract T CurrentValue { get; }
 
+        public double LifetimeStart => StartTime;
+
+        public double LifetimeEnd => EndTime;
+
+        public bool LoadRequired => false;
+
+        public bool RemoveWhenNotAlive => Time > EndTime;
+
+        public bool IsLoaded => true;
+
         public virtual void Apply(Drawable d)
         {
             if (Time > EndTime && LoopCount != CurrentLoopCount)
@@ -72,17 +83,14 @@ namespace osu.Framework.Graphics.Transformations
             }
         }
 
-        public int CompareTo(Transform<T> other)
-        {
-            int compare = StartTime.CompareTo(other.StartTime);
-            if (compare != 0) return compare;
-            compare = EndTime.CompareTo(other.EndTime);
-            return compare;
-        }
-
         public override string ToString()
         {
             return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(T));
+        }
+
+        public void Load()
+        {
+            return;
         }
     }
 }
