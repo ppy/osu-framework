@@ -156,8 +156,8 @@ namespace osu.Framework.Graphics.Textures
             TextureGL.IsTransparent = isTransparent;
             if (!isTransparent)
                 SetData(data, level);
-
-            TextureGL.FreeBuffer(data);
+            else
+                TextureGL.FreeBuffer(data);
         }
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)
