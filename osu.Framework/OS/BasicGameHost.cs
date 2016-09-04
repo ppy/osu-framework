@@ -27,10 +27,11 @@ namespace osu.Framework.OS
 
         public override bool IsVisible => true;
 
-        internal Thread DrawThread => startupThread;
-        internal Thread UpdateThread => updateThread.IsAlive ? updateThread : startupThread;
+        private static Thread updateThread;
+        private static Thread startupThread = Thread.CurrentThread;
 
-        private Thread startupThread = Thread.CurrentThread;
+        internal static Thread DrawThread => startupThread;
+        internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };
@@ -51,8 +52,6 @@ namespace osu.Framework.OS
 
             return base.Invalidate(affectsSize, affectsPosition, source);
         }
-
-        Thread updateThread;
 
         public override Vector2 Size
         {

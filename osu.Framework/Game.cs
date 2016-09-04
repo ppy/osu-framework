@@ -31,8 +31,6 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => AppDomain.CurrentDomain.FriendlyName;
 
-        internal static Thread MainThread;
-
         private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;
 
@@ -54,8 +52,6 @@ namespace osu.Framework
 
         public void SetHost(BasicGameHost host)
         {
-            MainThread = Thread.CurrentThread;
-
             this.host = host;
             host.Exiting += (sender, args) => { OnExiting(this, args); };
 

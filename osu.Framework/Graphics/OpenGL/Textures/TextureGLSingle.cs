@@ -12,6 +12,7 @@ using OpenTK;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using System.Drawing;
+using osu.Framework.DebugUtils;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -219,9 +220,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override bool Upload()
         {
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
-            Debug.Assert(Game.MainThread == Thread.CurrentThread);
-
-            //todo: thread safety via GLWrapper.
+            ThreadSafety.EnsureDrawThread();
 
             if (isDisposed)
                 return false;

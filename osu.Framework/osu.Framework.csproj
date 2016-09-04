@@ -81,6 +81,7 @@
     <Compile Include="Audio\Sample\AudioSampleBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
+    <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
