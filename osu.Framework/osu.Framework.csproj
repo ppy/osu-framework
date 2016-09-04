@@ -88,6 +88,8 @@
     <Compile Include="Graphics\Containers\MaskingContainerDrawNode.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
+    <Compile Include="Graphics\Performance\FpsDisplay.cs" />
+    <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />
     <Compile Include="Graphics\Transformations\TransformAlpha.cs" />
