@@ -33,7 +33,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Point GetNativePosition()
         {
-            return game.Host.Window.Form.PointToClient(Cursor.Position);
+            return Point.Empty;// game.Host.Window.Form.PointToClient(Cursor.Position);
         }
 
         public override void UpdateInput(bool isActive)

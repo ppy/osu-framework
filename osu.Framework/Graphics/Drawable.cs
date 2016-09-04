@@ -894,6 +894,8 @@ namespace osu.Framework.Graphics
         [Conditional("DEBUG")]
         private void ensureMainThread()
         {
+            return;
+
             //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
             if (!Debugger.IsAttached) return;
 

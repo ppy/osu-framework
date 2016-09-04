@@ -2,6 +2,7 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -32,6 +33,14 @@ namespace osu.Framework.Framework
                 Size = new Vector2(Window.Size.Width, Window.Size.Height);
 
             return base.Invalidate(affectsSize, affectsPosition, source);
+        }
+
+        Thread updateThread;
+
+        public BasicGameHost()
+        {
+            updateThread = new Thread(updateLoop) { IsBackground = true };
+            updateThread.Start();
         }
 
         public override Vector2 Size
@@ -68,18 +77,27 @@ namespace osu.Framework.Framework
             Exiting?.Invoke(this, EventArgs.Empty);
         }
 
+        DrawNode pendingRootNode;
+
+        private void updateLoop()
+        {
+            while (true)
+            {
+                UpdateSubTree();
+                pendingRootNode = GenerateDrawNodeSubtree();
+            }
+        }
+
         protected virtual void OnIdle(object sender, EventArgs args)
         {
             GLWrapper.Reset(Size);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            UpdateSubTree();
-
-            GenerateDrawNodeSubtree().DrawSubTree();
-
-            Idle?.Invoke(this, EventArgs.Empty);
+            pendingRootNode?.DrawSubTree();
 
             GLControl.SwapBuffers();
+
+            Idle?.Invoke(this, EventArgs.Empty);
         }
 
         private bool exitRequested;

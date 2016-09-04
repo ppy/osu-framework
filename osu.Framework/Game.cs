@@ -41,7 +41,7 @@ namespace osu.Framework
             set { clock.MaximumUpdateHz = value; }
         }
 
-        internal Thread MainThread;
+        internal static Thread MainThread;
 
         private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;

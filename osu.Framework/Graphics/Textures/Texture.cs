@@ -126,9 +126,6 @@ namespace osu.Framework.Graphics.Textures
                 TextureGL.SetData(data, level, format);
             else
                 TextureGL.SetData(data, level);
-
-            //todo: remove if we can.
-            TextureGL.Upload();
         }
 
         public unsafe void SetData(Bitmap bitmap, int level = 0)
