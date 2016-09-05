@@ -1,2 +1,15 @@
 language: csharp
 solution: osu-framework.sln
+mono:
+    - latest
+before_install:
+    - git submodule update --init --recursive
+install:
+    - nuget restore osu-framework.sln
+    - nuget install NUnit.Runners -Version 3.4.1 -OutputDirectory testrunner
+script:
+    - xbuild osu-framework.sln
+    - |
+        mono \
+            ./testrunner/NUnit.ConsoleRunner.3.4.1/tools/nunit3-console.exe \
+            ./osu.Framework.Tests/osu.Framework.Tests.csproj
