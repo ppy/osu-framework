@@ -28,9 +28,10 @@ namespace osu.Framework.OS
         public override bool IsVisible => true;
 
         private static Thread updateThread;
+        private static Thread drawThread;
         private static Thread startupThread = Thread.CurrentThread;
 
-        internal static Thread DrawThread => startupThread;
+        internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
@@ -104,17 +105,27 @@ namespace osu.Framework.OS
             }
         }
 
+        private void drawLoop()
+        {
+            GLControl.Initialize();
+
+            while (true)
+            {
+                GLWrapper.Reset(Size);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+                pendingRootNode?.DrawSubTree();
+
+                GLControl.SwapBuffers();
+
+                GLControl.Invalidate();
+
+                DrawClock.ProcessFrame();
+            }
+        }
+
         protected virtual void OnIdle(object sender, EventArgs args)
         {
-            GLWrapper.Reset(Size);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            pendingRootNode?.DrawSubTree();
-
-            GLControl.SwapBuffers();
-
-            DrawClock.ProcessFrame();
-
             Idle?.Invoke(this, EventArgs.Empty);
         }
 
@@ -128,7 +139,8 @@ namespace osu.Framework.OS
         {
             Window.ClientSizeChanged += delegate { Invalidate(); };
 
-            GLControl.Initialize();
+            drawThread = new Thread(drawLoop) { IsBackground = true };
+            drawThread.Start();
 
             updateThread = new Thread(updateLoop) { IsBackground = true };
             updateThread.Start();
