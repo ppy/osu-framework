@@ -35,8 +35,11 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Point GetNativePosition()
         {
-            //todo: we need to fix this.
-            GLWrapper.Schedule(() => { pos = game.Host.Window.Form.PointToClient(Cursor.Position); });
+            Point pos = Point.Empty;
+            game.Window.Form.Invoke((MethodInvoker)delegate
+            {
+                pos = game.Window.Form.PointToClient(Cursor.Position);
+            });
 
             return pos;
         }
