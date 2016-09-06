@@ -21,10 +21,10 @@ namespace osu.Framework.Graphics.Textures
             if (bitmap == null)
                 return null;
 
-            int usableWidth = Math.Min(GLWrapper.MaxTextureSize, bitmap.Width);
-            int usableHeight = Math.Min(GLWrapper.MaxTextureSize, bitmap.Height);
+            //int usableWidth = Math.Min(GLWrapper.MaxTextureSize, bitmap.Width);
+            //int usableHeight = Math.Min(GLWrapper.MaxTextureSize, bitmap.Height);
 
-            Texture tex = atlas == null ? new Texture(usableWidth, usableHeight) : atlas.Add(usableWidth, usableHeight);
+            Texture tex = atlas == null ? new Texture(bitmap.Width, bitmap.Height) : atlas.Add(bitmap.Width, bitmap.Height);
             tex.SetData(bitmap);
 
             return tex;
