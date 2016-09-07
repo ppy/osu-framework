@@ -1,0 +1,397 @@
+﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Drawables;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transformations;
+using osu.Framework.Input;
+using OpenTK;
+using OpenTK.Graphics;
+
+namespace osu.Framework.VisualTests.Tests
+{
+    class TestCaseAutosize : TestCase
+    {
+        internal override string Name => @"Autosize";
+        internal override string Description => @"Various scenarios which potentially challenge autosize calculations.";
+
+        private ToggleButton toggleDebugAutosize;
+
+        private Container testContainer;
+
+        public TestCaseAutosize()
+        {
+        }
+
+        internal override void Reset()
+        {
+            base.Reset();
+
+            toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
+
+            Add(new Box(Vector2.Zero, new Vector2(20, 2), 10, Color4.WhiteSmoke)
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+
+            Add(new Box(Vector2.Zero, new Vector2(2, 20), 10, Color4.WhiteSmoke)
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+
+            Add(testContainer = new LargeContainer());
+
+            for (int i = 1; i <= 6; i++)
+            {
+                int test = i;
+                AddButton($@"Test {i}", delegate
+                {
+                    loadTest(test);
+                });
+            }
+
+            loadTest(1);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+        }
+
+        private void reloadCallback()
+        {
+            loadTest(currentTest);
+        }
+
+        private int currentTest;
+        private void loadTest(int testType)
+        {
+            currentTest = testType;
+
+            testContainer.Clear();
+
+            InfofulBox box = null;
+
+            switch (currentTest)
+            {
+                case 1:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    });
+
+                    addCornerMarkers(box);
+
+                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    {
+                        //chameleon = true,
+                        Position = new Vector2(0, 0),
+                        Size = new Vector2(25, 25),
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre
+                    });
+
+                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                    {
+                        Size = new Vector2(250, 250),
+                        Alpha = 0.5f,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre
+                    });
+
+                    box.OnUpdate += delegate
+                    {
+                        box.Rotation += 0.05f;
+                    };
+                    break;
+                case 2:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    });
+
+                    addCornerMarkers(box, 5);
+
+
+                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                    {
+                        Alpha = 0.5f,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre
+                    });
+
+                    Drawable localBox = box;
+                    box.OnUpdate += delegate
+                    {
+                        localBox.Rotation += 0.05f;
+                    };
+
+                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    {
+                        //chameleon = true,
+                        Size = new Vector2(100, 100),
+                        Position = new Vector2(50, 50),
+                        Alpha = 0.5f,
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre
+                    });
+                    break;
+                case 3:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    });
+
+                    addCornerMarkers(box, 10, Color4.YellowGreen);
+
+                    for (int i = 0; i < 100; i++)
+                    {
+                        box.Add(box = new InfofulBox(RectangleF.Empty, 1, new Color4(253, 253, 253, 255))
+                        {
+                                Position = new Vector2(3, 3),
+                            Origin = Anchor.BottomRight,
+                            Anchor = Anchor.BottomRight
+                        });
+                    }
+
+                    addCornerMarkers(box, 2);
+
+                    box.Add(new InfofulBox(RectangleF.Empty, 1, Color4.SeaGreen)
+                    {
+                        //chameleon = true,
+                        Size = new Vector2(50, 50),
+                        Origin = Anchor.TopLeft,
+                        Anchor = Anchor.TopLeft
+                    });
+                    break;
+                case 4:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.CentreLeft
+                    });
+
+                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    {
+                        Position = new Vector2(5, 0),
+                        Size = new Vector2(300, 80),
+                        Origin = Anchor.TopLeft,
+                        Anchor = Anchor.TopLeft
+                    });
+
+                    box.Add(new SpriteText("Test CentreLeft line 1", 20, new Vector2(5, -20), 1, Color4.White)
+                    {
+                        Origin = Anchor.CentreLeft,
+                        Anchor = Anchor.CentreLeft
+                    });
+
+                    box.Add(new SpriteText("Test CentreLeft line 2", 20, new Vector2(5, 20), 1, Color4.White)
+                    {
+                        Origin = Anchor.CentreLeft,
+                        Anchor = Anchor.CentreLeft
+                    });
+                    break;
+                case 5:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.CentreLeft
+                    });
+
+                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    {
+                        Position = new Vector2(5, 0),
+                        Size = new Vector2(300, 80),
+                        Origin = Anchor.TopLeft,
+                        Anchor = Anchor.TopLeft
+                    });
+
+                    box.Add(new SpriteText("123,456,789=", @"fps", 1, Clocks.Game, new Vector2(5, -20), 1, Color4.White, true, SkinSource.Osu)
+                    {
+                        Origin = Anchor.CentreLeft,
+                        Anchor = Anchor.CentreLeft,
+                        Scale = 2f
+                    });
+
+                    box.Add(new SpriteText("123,456,789ms", 20, new Vector2(5, 20), 1, Color4.White)
+                    {
+                        Origin = Anchor.CentreLeft,
+                        Anchor = Anchor.CentreLeft
+                    });
+                    break;
+                case 6:
+                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    });
+
+                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    {
+                        Position = new Vector2(100, 100),
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.TopLeft
+                    });
+
+                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    {
+                        Position = new Vector2(100, 100),
+                        Size = new Vector2(100, 100),
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.TopLeft
+                    });
+                    break;
+
+            }
+
+#if DEBUG
+            if (toggleDebugAutosize.State)
+                testContainer.Children.FindAll(c => c.HasAutosizeChildren).ForEach(c => c.AutoSizeDebug = true);
+#endif
+        }
+
+        private void addCornerMarkers(InfofulBox box, int size = 50, Color4? colour = null)
+        {
+            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            {
+                //chameleon = true,
+                Size = new Vector2(size, size),
+                Origin = Anchor.TopLeft,
+                Anchor = Anchor.TopLeft,
+                AllowDrag = false
+            });
+
+            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            {
+                //chameleon = true,
+                Size = new Vector2(size, size),
+                Origin = Anchor.TopRight,
+                Anchor = Anchor.TopRight,
+                AllowDrag = false
+            });
+
+            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            {
+                //chameleon = true,
+                Size = new Vector2(size, size),
+                Origin = Anchor.BottomLeft,
+                Anchor = Anchor.BottomLeft,
+                AllowDrag = false
+            });
+
+            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            {
+                //chameleon = true,
+                Size = new Vector2(size, size),
+                Origin = Anchor.BottomRight,
+                Anchor = Anchor.BottomRight,
+                AllowDrag = false
+            });
+        }
+
+        public virtual void Initialize()
+        {
+            Game.LoadComplete();
+        }
+
+        bool firstUpdate = true;
+
+        protected override void Update()
+        {
+            base.Update();
+        }
+    }
+
+    class InfofulBox : Box
+    {
+        internal bool AllowDrag = true;
+
+        private SpriteText debugInfo;
+
+        internal bool chameleon = false;
+
+        internal void Add(Drawable d)
+        {
+            base.Add(d);
+        }
+
+        public InfofulBox(RectangleF rectangle, float depth, Color4 color) : base(rectangle, depth, color)
+        {
+            HandleInput = true;
+
+            debugInfo = new SpriteText(string.Empty, 10, Vector2.Zero, 0f, Color4.Black);
+            Add(debugInfo);
+        }
+
+        Vector2 dragStartPos;
+
+        protected override bool OnDrag(InputState state)
+        {
+            if (!AllowDrag) return false;
+
+            Vector2 newMousePos = state.Mouse.Position;
+            Position += newMousePos - dragStartPos;
+            dragStartPos = newMousePos;
+            return true;
+        }
+
+        protected override bool OnDragEnd(InputState state)
+        {
+            return true;
+        }
+
+        protected override bool OnDragStart(InputState state)
+        {
+            if (!AllowDrag) return false;
+
+            dragStartPos = state.Mouse.Position;
+            return true;
+        }
+
+        int lastSwitch = 0;
+
+        protected override void Update()
+        {
+
+            if (chameleon && Game.TimeInSeconds != lastSwitch)
+            {
+                lastSwitch = Game.TimeInSeconds;
+                switch (lastSwitch % 6)
+                {
+                    case 0:
+                        Anchor = (Anchor)((int)Anchor + 1);
+                        Origin = (Anchor)((int)Origin + 1);
+                        break;
+                    case 1:
+                        MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        break;
+                    case 2:
+                        MoveTo(new Vector2(200, 0), 800, EasingTypes.Out);
+                        break;
+                    case 3:
+                        MoveTo(new Vector2(200, 200), 800, EasingTypes.Out);
+                        break;
+                    case 4:
+                        MoveTo(new Vector2(0, 200), 800, EasingTypes.Out);
+                        break;
+                    case 5:
+                        MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        break;
+                }
+
+            }
+
+            base.Update();
+            debugInfo.Text = Game.Input.State.Keyboard.AltPressed ? ToString() : string.Empty;
+        }
+    }
+}

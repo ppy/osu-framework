@@ -1,12 +1,12 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+
 using System;
 using osu.Framework.Desktop;
 using osu.Framework.OS;
-using osu.Framework.VisualTests;
 
-namespace osu.Desktop
+namespace osu.Framework.VisualTests
 {
     public static class Program
     {

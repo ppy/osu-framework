@@ -85,8 +85,11 @@
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
+    <Compile Include="Graphics\Containers\ClickableContainer.cs" />
+    <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\MaskingContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
+    <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />

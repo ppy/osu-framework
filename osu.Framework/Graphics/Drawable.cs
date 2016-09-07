@@ -21,6 +21,8 @@ namespace osu.Framework.Graphics
     {
         public event Action OnUpdate;
 
+        internal event Action OnInvalidate;
+
         private LifetimeList<Drawable> internalChildren;
         public ReadOnlyList<Drawable> Children
         {
@@ -362,7 +364,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual bool IsVisible => Alpha > 0.0001f && IsAlive && Parent?.IsVisible == true;
+        public virtual bool IsVisible => Alpha > 0.0001f && Parent?.IsVisible == true;
 
         public bool? Additive;
 
