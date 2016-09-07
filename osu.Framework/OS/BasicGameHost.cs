@@ -23,7 +23,6 @@ namespace osu.Framework.OS
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event EventHandler Exiting;
-        public event EventHandler Idle;
 
         public override bool IsVisible => true;
 
@@ -124,11 +123,6 @@ namespace osu.Framework.OS
             }
         }
 
-        protected virtual void OnIdle(object sender, EventArgs args)
-        {
-            Idle?.Invoke(this, EventArgs.Empty);
-        }
-
         private bool exitRequested;
         private bool threadsRunning => (updateThread?.IsAlive ?? false) && (drawThread?.IsAlive ?? false);
 
@@ -170,7 +164,7 @@ namespace osu.Framework.OS
             {
                 Application.Idle -= OnApplicationIdle;
 
-                if (error == null || !(error is OutOfMemoryException))
+                if (!(error is OutOfMemoryException))
                     //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
                     OnExiting(this, null);
             }
@@ -180,8 +174,6 @@ namespace osu.Framework.OS
         {
             if (exitRequested && !threadsRunning)
                 Window.Close();
-            else
-                OnIdle(sender, e);
         }
 
         public void Load(Game game)
