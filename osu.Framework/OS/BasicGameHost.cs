@@ -141,10 +141,18 @@ namespace osu.Framework.OS
         {
             Window.ClientSizeChanged += delegate { Invalidate(); };
 
-            drawThread = new Thread(drawLoop) { IsBackground = true };
+            drawThread = new Thread(drawLoop)
+            {
+                Name = @"DrawThread",
+                IsBackground = true
+            };
             drawThread.Start();
 
-            updateThread = new Thread(updateLoop) { IsBackground = true };
+            updateThread = new Thread(updateLoop)
+            {
+                Name = @"UpdateThread",
+                IsBackground = true
+            };
             updateThread.Start();
 
             Exception error = null;
