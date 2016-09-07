@@ -32,11 +32,12 @@ namespace osu.Framework.OS
         {
             if (IsDisposed) return;
 
+            //a disposal could have happened since the check above, so the try-catch is here to ensure no exception is thrown..
             try
             {
                 Invoke((MethodInvoker)delegate { action(); });
             }
-            catch { };
+            catch { }
         }
 
         protected virtual void OnActivateApp(bool active)
