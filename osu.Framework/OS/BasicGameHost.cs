@@ -2,12 +2,14 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -36,38 +38,14 @@ namespace osu.Framework.OS
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };
 
+        private Scheduler updateScheduler;
+
         protected override IFrameBasedClock Clock => UpdateClock;
 
         protected int MaximumFramesPerSecond
         {
             get { return UpdateClock.MaximumUpdateHz; }
             set { UpdateClock.MaximumUpdateHz = value; }
-        }
-
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
-        {
-            //update out size based on the underlying window
-            if (!Window.IsMinimized)
-                Size = new Vector2(Window.Size.Width, Window.Size.Height);
-
-            return base.Invalidate(affectsSize, affectsPosition, source);
-        }
-
-        public override Vector2 Size
-        {
-            get
-            {
-                return base.Size;
-            }
-
-            set
-            {
-                //update the underlying window size based on our new set size.
-                //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                Window.Size = new System.Drawing.Size((int)value.X, (int)value.Y);
-
-                base.Size = value;
-            }
         }
 
         public abstract TextInputSource TextInput { get; }
@@ -89,6 +67,8 @@ namespace osu.Framework.OS
 
         protected override void Update()
         {
+            updateScheduler.Update();
+
             base.Update();
             UpdateClock.ProcessFrame();
         }
@@ -99,6 +79,7 @@ namespace osu.Framework.OS
         {
             while (!exitRequested)
             {
+
                 UpdateSubTree();
                 pendingRootNode = GenerateDrawNodeSubtree();
             }
@@ -133,8 +114,6 @@ namespace osu.Framework.OS
 
         public virtual void Run()
         {
-            Window.ClientSizeChanged += delegate { Invalidate(); };
-
             drawThread = new Thread(drawLoop)
             {
                 Name = @"DrawThread",
@@ -148,6 +127,10 @@ namespace osu.Framework.OS
                 IsBackground = true
             };
             updateThread.Start();
+
+            updateScheduler = new Scheduler(updateThread);
+
+            Window.ClientSizeChanged += window_ClientSizeChanged;
 
             Exception error = null;
 
@@ -167,6 +150,38 @@ namespace osu.Framework.OS
                 if (!(error is OutOfMemoryException))
                     //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
                     OnExiting(this, null);
+            }
+        }
+
+        private void window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            if (Window.IsMinimized) return;
+
+            Rectangle rect = Window.ClientBounds;
+            updateScheduler.Add(delegate
+            {
+                //set base.Size here to avoid the override below, which would cause a recursive loop.
+                base.Size = new Vector2(rect.Width, rect.Height);
+            });
+        }
+
+        public override Vector2 Size
+        {
+            get
+            {
+                return base.Size;
+            }
+
+            set
+            {
+                Window.Form.SafeInvoke(delegate
+                {
+                    //update the underlying window size based on our new set size.
+                    //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
+                    Window.Size = new Size((int)value.X, (int)value.Y);
+                });
+
+                base.Size = value;
             }
         }
 
