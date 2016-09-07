@@ -229,10 +229,14 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 size = Size;
-                if ((SizeMode & InheritMode.X) > 0)
-                    size.X *= Parent?.InheritableWidth ?? 1;
-                if ((SizeMode & InheritMode.Y) > 0)
-                    size.Y *= Parent?.InheritableHeight ?? 1;
+                if (SizeMode != InheritMode.None)
+                {
+                    Vector2 parent = Parent?.ActualSize ?? Vector2.One;
+                    if ((SizeMode & InheritMode.X) > 0)
+                        size.X *= parent.X;
+                    if ((SizeMode & InheritMode.Y) > 0)
+                        size.Y *= parent.Y;
+                }
 
                 return size;
             }
@@ -246,10 +250,14 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 pos = Position;
-                if ((PositionMode & InheritMode.X) > 0)
-                    pos.X *= Parent?.InheritableWidth ?? 1;
-                if ((PositionMode & InheritMode.Y) > 0)
-                    pos.Y *= Parent?.InheritableHeight ?? 1;
+                if (PositionMode != InheritMode.None)
+                {
+                    Vector2 parent = Parent?.ActualSize ?? Vector2.One;
+                    if ((PositionMode & InheritMode.X) > 0)
+                        pos.X *= parent.X;
+                    if ((PositionMode & InheritMode.Y) > 0)
+                        pos.Y *= parent.Y;
+                }
 
                 return pos;
             }
@@ -322,9 +330,6 @@ namespace osu.Framework.Graphics
             get { return Size.Y; }
             set { Size = new Vector2(Size.X, value); }
         }
-
-        internal virtual float InheritableWidth => ActualSize.X;
-        internal virtual float InheritableHeight => ActualSize.Y;
 
         protected virtual IFrameBasedClock Clock => clockBacking.Refresh(() => Parent?.Clock);
         private Cached<IFrameBasedClock> clockBacking = new Cached<IFrameBasedClock>();
