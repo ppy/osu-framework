@@ -2,12 +2,14 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -23,18 +25,20 @@ namespace osu.Framework.OS
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event EventHandler Exiting;
-        public event EventHandler Idle;
 
         public override bool IsVisible => true;
 
         private static Thread updateThread;
+        private static Thread drawThread;
         private static Thread startupThread = Thread.CurrentThread;
 
-        internal static Thread DrawThread => startupThread;
+        internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 60 };
+
+        private Scheduler updateScheduler;
 
         protected override IFrameBasedClock Clock => UpdateClock;
 
@@ -42,32 +46,6 @@ namespace osu.Framework.OS
         {
             get { return UpdateClock.MaximumUpdateHz; }
             set { UpdateClock.MaximumUpdateHz = value; }
-        }
-
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
-        {
-            //update out size based on the underlying window
-            if (!Window.IsMinimized)
-                Size = new Vector2(Window.Size.Width, Window.Size.Height);
-
-            return base.Invalidate(affectsSize, affectsPosition, source);
-        }
-
-        public override Vector2 Size
-        {
-            get
-            {
-                return base.Size;
-            }
-
-            set
-            {
-                //update the underlying window size based on our new set size.
-                //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                Window.Size = new System.Drawing.Size((int)value.X, (int)value.Y);
-
-                base.Size = value;
-            }
         }
 
         public abstract TextInputSource TextInput { get; }
@@ -89,6 +67,8 @@ namespace osu.Framework.OS
 
         protected override void Update()
         {
+            updateScheduler.Update();
+
             base.Update();
             UpdateClock.ProcessFrame();
         }
@@ -97,28 +77,36 @@ namespace osu.Framework.OS
 
         private void updateLoop()
         {
-            while (true)
+            while (!exitRequested)
             {
+
                 UpdateSubTree();
                 pendingRootNode = GenerateDrawNodeSubtree();
             }
         }
 
-        protected virtual void OnIdle(object sender, EventArgs args)
+        private void drawLoop()
         {
-            GLWrapper.Reset(Size);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GLControl.Initialize();
 
-            pendingRootNode?.DrawSubTree();
+            while (!exitRequested)
+            {
+                GLWrapper.Reset(Size);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GLControl.SwapBuffers();
+                pendingRootNode?.DrawSubTree();
 
-            DrawClock.ProcessFrame();
+                GLControl.SwapBuffers();
 
-            Idle?.Invoke(this, EventArgs.Empty);
+                GLControl.Invalidate();
+
+                DrawClock.ProcessFrame();
+            }
         }
 
         private bool exitRequested;
+        private bool threadsRunning => (updateThread?.IsAlive ?? false) && (drawThread?.IsAlive ?? false);
+
         public void Exit()
         {
             exitRequested = true;
@@ -126,12 +114,24 @@ namespace osu.Framework.OS
 
         public virtual void Run()
         {
-            Window.ClientSizeChanged += delegate { Invalidate(); };
+            drawThread = new Thread(drawLoop)
+            {
+                Name = @"DrawThread",
+                IsBackground = true
+            };
+            drawThread.Start();
 
-            GLControl.Initialize();
-
-            updateThread = new Thread(updateLoop) { IsBackground = true };
+            updateThread = new Thread(updateLoop)
+            {
+                Name = @"UpdateThread",
+                IsBackground = true
+            };
             updateThread.Start();
+
+            updateScheduler = new Scheduler(updateThread);
+
+            Window.ClientSizeChanged += window_ClientSizeChanged;
+            window_ClientSizeChanged(null, null);
 
             Exception error = null;
 
@@ -148,18 +148,48 @@ namespace osu.Framework.OS
             {
                 Application.Idle -= OnApplicationIdle;
 
-                if (error == null || !(error is OutOfMemoryException))
+                if (!(error is OutOfMemoryException))
                     //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
                     OnExiting(this, null);
             }
         }
 
+        private void window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            if (Window.IsMinimized) return;
+
+            Rectangle rect = Window.ClientBounds;
+            updateScheduler.Add(delegate
+            {
+                //set base.Size here to avoid the override below, which would cause a recursive loop.
+                base.Size = new Vector2(rect.Width, rect.Height);
+            });
+        }
+
+        public override Vector2 Size
+        {
+            get
+            {
+                return base.Size;
+            }
+
+            set
+            {
+                Window.Form.SafeInvoke(delegate
+                {
+                    //update the underlying window size based on our new set size.
+                    //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
+                    Window.Size = new Size((int)value.X, (int)value.Y);
+                });
+
+                base.Size = value;
+            }
+        }
+
         protected virtual void OnApplicationIdle(object sender, EventArgs e)
         {
-            if (exitRequested)
+            if (exitRequested && !threadsRunning)
                 Window.Close();
-            else
-                OnIdle(sender, e);
         }
 
         public void Load(Game game)

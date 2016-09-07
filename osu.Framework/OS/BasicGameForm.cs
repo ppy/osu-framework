@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Windows.Forms;
 using OpenTK.Graphics;
 
 namespace osu.Framework.OS
@@ -26,6 +27,18 @@ namespace osu.Framework.OS
         public abstract bool IsMinimized { get; }
 
         public abstract void CentreToScreen();
+
+        public void SafeInvoke(Action action)
+        {
+            if (IsDisposed) return;
+
+            //a disposal could have happened since the check above, so the try-catch is here to ensure no exception is thrown..
+            try
+            {
+                Invoke((MethodInvoker)delegate { action(); });
+            }
+            catch { }
+        }
 
         protected virtual void OnActivateApp(bool active)
         {

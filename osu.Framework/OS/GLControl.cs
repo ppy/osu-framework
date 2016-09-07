@@ -2,6 +2,7 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using osu.Framework.Logging;
 using OpenTK.Graphics;
@@ -21,8 +22,15 @@ namespace osu.Framework.OS
         {
         }
 
+        /// <summary>
+        /// Initialize this GLControl. Make sure this is called on the thread which will render stuff.
+        /// </summary>
         public void Initialize()
         {
+            //make sure our context is current on the correct frame.
+            Invoke((MethodInvoker)delegate { Context.MakeCurrent(null); });
+            MakeCurrent();
+
             string version = GL.GetString(StringName.Version);
             GLVersion = new Version(version.Split(' ')[0]);
             version = GL.GetString(StringName.ShadingLanguageVersion);
@@ -82,10 +90,22 @@ namespace osu.Framework.OS
             return false;
         }
 
-        public void Flush()
+        bool firstDraw = true;
+        protected override void OnPaint(PaintEventArgs e)
         {
-            GL.Flush();
-            GL.Finish();
+            //block call to base method to allow for threaded GL drawing.
+
+            if (firstDraw)
+            {
+                //avoid single white frame on startup.
+                e.Graphics.Clear(Color.Black);
+                firstDraw = false;
+            }
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            //block call to base method to allow for threaded GL drawing.
         }
     }
 }

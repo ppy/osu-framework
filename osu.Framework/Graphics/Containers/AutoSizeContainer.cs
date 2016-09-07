@@ -80,8 +80,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal override float InheritableWidth => HasDefinedSize ? ActualSize.X : Parent?.InheritableWidth ?? 0;
-        internal override float InheritableHeight => HasDefinedSize ? ActualSize.Y : Parent?.InheritableHeight ?? 0;
+        public override Vector2 ActualSize
+        {
+            get
+            {
+                if (HasDefinedSize)
+                    return base.ActualSize;
+
+                return Parent?.ActualSize ?? Vector2.Zero;
+            }
+        }
 
         protected override bool HasDefinedSize => !autoSizeUpdatePending;
 

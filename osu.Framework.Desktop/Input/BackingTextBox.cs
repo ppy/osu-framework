@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;
-using osu.Framework.Desktop.OS.Windows;
 using osu.Framework.Input;
 using osu.Framework.OS;
 
@@ -12,7 +11,7 @@ namespace osu.Framework.Desktop.Input
 {
     public class BackingTextBox : ImeTextBox, TextInputSource
     {
-        Form form;
+        BasicGameForm form;
 
         public BackingTextBox(BasicGameForm form)
         {
@@ -36,13 +35,16 @@ namespace osu.Framework.Desktop.Input
 
         public void Activate()
         {
-            Debug.Assert(!form.Controls.Contains(this));
+            form.SafeInvoke(() =>
+            {
+                Debug.Assert(!form.Controls.Contains(this));
 
-            if (form.ActiveControl != null)
-                form.ActiveControl.ImeMode = ImeMode.Off;
+                if (form.ActiveControl != null)
+                    form.ActiveControl.ImeMode = ImeMode.Off;
 
-            form.Controls.Add(this);
-            Focus();
+                form.Controls.Add(this);
+                Focus();
+            });
         }
 
         protected override void OnGotFocus(EventArgs e)
@@ -53,17 +55,25 @@ namespace osu.Framework.Desktop.Input
 
         public void Deactivate()
         {
-            ImeMode = ImeMode.Off;
-            form.Controls.Remove(this);
-            if (form.Controls.Count > 0)
-                form.Controls[form.Controls.Count - 1].Focus();
+            form.SafeInvoke(() =>
+            {
+                ImeMode = ImeMode.Off;
+                form.Controls.Remove(this);
+                if (form.Controls.Count > 0)
+                    form.Controls[form.Controls.Count - 1].Focus();
+            });
         }
 
         public string GetPendingText()
         {
-            string pending = Text;
-            Text = string.Empty;
-            return pending;
+            string pendingText = string.Empty;
+            form.SafeInvoke(() =>
+            {
+                pendingText = Text;
+                Text = string.Empty;
+            });
+
+            return pendingText;
         }
     }
 }

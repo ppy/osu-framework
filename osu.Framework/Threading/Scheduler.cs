@@ -23,9 +23,9 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler()
+        public Scheduler(Thread mainThread = null)
         {
-            mainThreadId = Thread.CurrentThread.ManagedThreadId;
+            mainThreadId = mainThread?.ManagedThreadId ?? Thread.CurrentThread.ManagedThreadId;
             timer.Start();
         }
 
