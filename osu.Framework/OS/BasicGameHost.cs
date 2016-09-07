@@ -98,7 +98,7 @@ namespace osu.Framework.OS
 
         private void updateLoop()
         {
-            while (true)
+            while (!exitRequested)
             {
                 UpdateSubTree();
                 pendingRootNode = GenerateDrawNodeSubtree();
@@ -109,7 +109,7 @@ namespace osu.Framework.OS
         {
             GLControl.Initialize();
 
-            while (true)
+            while (!exitRequested)
             {
                 GLWrapper.Reset(Size);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -130,6 +130,8 @@ namespace osu.Framework.OS
         }
 
         private bool exitRequested;
+        private bool threadsRunning => (updateThread?.IsAlive ?? false) && (drawThread?.IsAlive ?? false);
+
         public void Exit()
         {
             exitRequested = true;
@@ -168,7 +170,7 @@ namespace osu.Framework.OS
 
         protected virtual void OnApplicationIdle(object sender, EventArgs e)
         {
-            if (exitRequested)
+            if (exitRequested && !threadsRunning)
                 Window.Close();
             else
                 OnIdle(sender, e);
