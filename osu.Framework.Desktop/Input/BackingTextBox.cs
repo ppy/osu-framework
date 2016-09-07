@@ -11,7 +11,7 @@ namespace osu.Framework.Desktop.Input
 {
     public class BackingTextBox : ImeTextBox, TextInputSource
     {
-        Form form;
+        BasicGameForm form;
 
         public BackingTextBox(BasicGameForm form)
         {
@@ -35,7 +35,7 @@ namespace osu.Framework.Desktop.Input
 
         public void Activate()
         {
-            form.Invoke((MethodInvoker)delegate
+            form.SafeInvoke(() =>
             {
                 Debug.Assert(!form.Controls.Contains(this));
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Desktop.Input
 
         public void Deactivate()
         {
-            form.Invoke((MethodInvoker)delegate
+            form.SafeInvoke(() =>
             {
                 ImeMode = ImeMode.Off;
                 form.Controls.Remove(this);
@@ -67,7 +67,7 @@ namespace osu.Framework.Desktop.Input
         public string GetPendingText()
         {
             string pendingText = string.Empty;
-            Invoke((MethodInvoker)delegate
+            form.SafeInvoke(() =>
             {
                 pendingText = Text;
                 Text = string.Empty;

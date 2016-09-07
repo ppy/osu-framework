@@ -36,7 +36,8 @@ namespace osu.Framework.Input.Handlers.Mouse
         public Point GetNativePosition()
         {
             Point pos = Point.Empty;
-            game.Window.Form.Invoke((MethodInvoker)delegate
+
+            game.Window.Form.SafeInvoke(() =>
             {
                 pos = game.Window.Form.PointToClient(Cursor.Position);
             });

@@ -22,9 +22,14 @@ namespace osu.Framework.OS
         {
         }
 
+        /// <summary>
+        /// Initialize this GLControl. Make sure this is called on the thread which will render stuff.
+        /// </summary>
         public void Initialize()
         {
-            CreateContext();
+            //make sure our context is current on the correct frame.
+            Invoke((MethodInvoker)delegate { Context.MakeCurrent(null); });
+            MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
             GLVersion = new Version(version.Split(' ')[0]);
@@ -99,11 +104,6 @@ namespace osu.Framework.OS
         }
 
         protected override void OnPaintBackground(PaintEventArgs e)
-        {
-            //block call to base method to allow for threaded GL drawing.
-        }
-
-        protected override void OnHandleCreated(EventArgs e)
         {
             //block call to base method to allow for threaded GL drawing.
         }
