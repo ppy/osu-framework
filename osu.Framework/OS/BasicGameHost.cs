@@ -131,6 +131,7 @@ namespace osu.Framework.OS
             updateScheduler = new Scheduler(updateThread);
 
             Window.ClientSizeChanged += window_ClientSizeChanged;
+            window_ClientSizeChanged(null, null);
 
             Exception error = null;
 
