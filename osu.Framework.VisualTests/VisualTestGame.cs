@@ -48,15 +48,19 @@ namespace osu.Framework.VisualTests
                     Colour = Color4.Tomato
                 });
 
-                Add(text = new SpriteText());
+                Add(text = new SpriteText()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                });
 
                 box.RotateTo(360 * 10, 60000);
             }
 
             protected override void Update()
             {
-                text.Text = (num++).ToString();
                 base.Update();
+                text.Text = $@"frame count: {num++}";
             }
         }
     }
