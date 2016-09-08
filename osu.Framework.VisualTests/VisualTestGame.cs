@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
+using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -28,8 +29,11 @@ namespace osu.Framework.VisualTests
             Add(new CursorContainer());
         }
 
-        class SampleGame : Game
+        class SampleGame : LargeContainer
         {
+            SpriteText text;
+            int num = 0;
+
             public override void Load()
             {
                 base.Load();
@@ -44,7 +48,15 @@ namespace osu.Framework.VisualTests
                     Colour = Color4.Tomato
                 });
 
+                Add(text = new SpriteText());
+
                 box.RotateTo(360 * 10, 60000);
+            }
+
+            protected override void Update()
+            {
+                text.Text = (num++).ToString();
+                base.Update();
             }
         }
     }

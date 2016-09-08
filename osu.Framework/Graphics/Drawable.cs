@@ -732,6 +732,8 @@ namespace osu.Framework.Graphics
         {
             get
             {
+                if (Parent == null) return false;
+
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 

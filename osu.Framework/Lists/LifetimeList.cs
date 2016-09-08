@@ -39,9 +39,8 @@ namespace osu.Framework.Lists
             for (int i = 0; i < Count; i++)
             {
                 var obj = this[i];
-                bool isAlive = obj.IsAlive;
 
-                if (isAlive)
+                if (obj.IsAlive)
                 {
                     if (!obj.IsLoaded)
                         obj.Load();

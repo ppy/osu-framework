@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics
         }
 
 
-        private void visualise(Drawable d, FlowContainer container, int depth = 0)
+        private void visualise(Drawable d, FlowContainer container)
         {
             if (d == this) return;
 
@@ -101,19 +101,19 @@ namespace osu.Framework.Graphics
 
             drawables.ForEach(dd => dd.CheckExpiry());
             
-            VisualisedDrawable vd = drawables.Find(dd => dd.Drawable == d);
+            VisualisedDrawable vd = drawables.Find(dd => dd.Target == d);
             if (vd == null)
             {
-                vd = new VisualisedDrawable(d) { Depth = depth };
+                vd = new VisualisedDrawable(d);
                 container.Add(vd);
             }
 
-            d.Children.ForEach(c => { if (c.IsAlive) visualise(c, vd.Flow, depth++); });
+            d.Children.ForEach(c => visualise(c, vd.Flow));
         }
 
         class VisualisedDrawable : AutoSizeContainer
         {
-            public Drawable Drawable;
+            public Drawable Target;
 
             private SpriteText text;
             private Drawable previewBox;
@@ -133,12 +133,12 @@ namespace osu.Framework.Graphics
             {
                 base.Load();
 
-                Drawable.OnInvalidate += onInvalidate;
+                Target.OnInvalidate += onInvalidate;
 
-                AutoSizeContainer da = Drawable as AutoSizeContainer;
+                AutoSizeContainer da = Target as AutoSizeContainer;
                 if (da != null) da.OnAutoSize += onAutoSize;
 
-                FlowContainer df = Drawable as FlowContainer;
+                FlowContainer df = Target as FlowContainer;
                 if (df != null) df.OnLayout += onLayout;
 
                 activityAutosize = new Box()
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics
                     Alpha = 0
                 };
 
-                var sprite = Drawable as Sprite;
+                var sprite = Target as Sprite;
                 if (sprite != null)
                     previewBox = new Sprite(sprite.Texture);
                 else
@@ -181,7 +181,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = Drawable.Children.Count > 64 ? 0 : 1;
+                Flow.Alpha = Target.Children.Count > 64 ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
@@ -195,18 +195,7 @@ namespace osu.Framework.Graphics
 
             public VisualisedDrawable(Drawable d)
             {
-                Drawable = d;
-            }
-
-            protected override bool OnHover(InputState state)
-            {
-                //d.Pinpoint = false;
-                return true;
-            }
-
-            protected override void OnHoverLost(InputState state)
-            {
-                //d.Pinpoint = false;
+                Target = d;
             }
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
@@ -236,28 +225,30 @@ namespace osu.Framework.Graphics
 
             private void updateSpecifics()
             {
-                previewBox.Alpha = Math.Max(0.2f, Drawable.Alpha);
-                previewBox.Colour = Drawable.Colour;
-                text.Text = Drawable.ToString() + (!Flow.IsVisible ? $@" ({Drawable.Children.Count} hidden children)" : string.Empty);
+                previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
+                previewBox.Colour = Target.Colour;
+                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count} hidden children)" : string.Empty);
             }
 
             protected override void Update()
             {
                 text.Colour = !Flow.IsVisible ? Color4.LightBlue : Color4.White;
-                //text.BackgroundColour = Drawable.Pinpoint ? Color4.Purple : Color4.Transparent;
+                //text.BackgroundColour = Target.Pinpoint ? Color4.Purple : Color4.Transparent;
 
                 base.Update();
             }
 
             public bool CheckExpiry()
             {
-                if (!Drawable.IsAlive || Drawable.Parent == null)
+                if (!IsAlive) return true;
+
+                if (!Target.IsAlive)
                 {
                     Expire();
                     return true;
                 }
 
-                Alpha = Drawable.IsVisible ? 1 : 0.3f;
+                Alpha = Target.IsVisible ? 1 : 0.3f;
                 return false;
             }
         }
