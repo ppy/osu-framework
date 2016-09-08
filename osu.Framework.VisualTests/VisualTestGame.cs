@@ -3,6 +3,7 @@
 
 
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
 using OpenTK;
@@ -19,8 +20,10 @@ namespace osu.Framework.VisualTests
 
             SampleGame test = new SampleGame();
 
+            DrawVisualiser drawVis;
+
             Add(test);
-            Add(new DrawVisualiser(test));
+            Add(drawVis = new DrawVisualiser(test));
 
             Add(new CursorContainer());
         }

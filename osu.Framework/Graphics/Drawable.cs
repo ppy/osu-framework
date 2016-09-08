@@ -673,18 +673,6 @@ namespace osu.Framework.Graphics
 
             foreach (Drawable child in internalChildren.Current)
                 child.UpdateSubTree();
-
-            UpdateLayout();
-
-            // Post-sort, if any child has changed
-            internalChildren.Sort();
-        }
-
-        /// <summary>
-        /// Perform any layout changes just before autosize is calculated.
-        /// </summary>
-        protected virtual void UpdateLayout()
-        {
         }
 
         protected virtual void Update()
@@ -791,6 +779,8 @@ namespace osu.Framework.Graphics
         public virtual bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
         {
             ThreadSafety.EnsureUpdateThread();
+
+            OnInvalidate?.Invoke();
 
             if (affectsPosition && source != Parent && Parent?.ChildrenShouldInvalidate == true)
                 Parent.Invalidate(affectsPosition, affectsPosition, this);

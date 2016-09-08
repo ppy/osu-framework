@@ -2,12 +2,6 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using osu.Framework.Cached;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 
@@ -15,7 +9,9 @@ namespace osu.Framework.Graphics.Containers
 {
     public class AutoSizeContainer : Container
     {
-        protected bool RequireAutoSize => autoSizeUpdatePending;
+        protected bool RequireAutoSize => autoSizeUpdatePending && SizeMode != InheritMode.XY;
+
+        internal event Action OnAutoSize;
 
         private bool autoSizeUpdatePending;
 
@@ -77,6 +73,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 autoSizeUpdatePending = false;
+                OnAutoSize?.Invoke();
             }
         }
 
@@ -91,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override bool HasDefinedSize => !autoSizeUpdatePending;
+        protected override bool HasDefinedSize => !RequireAutoSize;
 
         protected override bool ChildrenShouldInvalidate => true;
     }

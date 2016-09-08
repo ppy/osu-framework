@@ -67,8 +67,9 @@ namespace osu.Framework.Graphics
                 Origin = Anchor.Centre
             });
 #else
-            Add(new SpriteText(@"DrawVisualiser only available in debug mode!")
+            Add(new SpriteText()
             {
+                Text = @"DrawVisualiser only available in debug mode!",
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             });
@@ -95,7 +96,7 @@ namespace osu.Framework.Graphics
             Remove(loadMessage);
             loadMessage = null;
 
-            scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 200, true);
+            scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 20, true);
 
             return true;
         }
@@ -113,7 +114,7 @@ namespace osu.Framework.Graphics
             var drawables = container.Children.ConvertAll<VisualisedDrawable>(o => o as VisualisedDrawable);
 
             drawables.ForEach(dd => dd.CheckExpiry());
-
+            
             VisualisedDrawable vd = drawables.Find(dd => dd.Drawable == d);
             if (vd == null)
             {
@@ -132,7 +133,9 @@ namespace osu.Framework.Graphics
             private Drawable previewBox;
             private Drawable activityInvalidate;
             private Drawable activityAutosize;
-            private Drawable activityFlow;
+            private Drawable activityLayout;
+
+            const int line_height = 12;
 
             public FlowContainer Flow = new FlowContainer()
             {
@@ -144,20 +147,27 @@ namespace osu.Framework.Graphics
             {
                 base.Load();
 
-                //Drawable.OnInvalidate += drawable_OnInvalidated;
+                Drawable.OnInvalidate += onInvalidate;
+                
+
+                AutoSizeContainer da = Drawable as AutoSizeContainer;
+                if (da != null) da.OnAutoSize += onAutoSize;
+
+                FlowContainer df = Drawable as FlowContainer;
+                if (df != null) df.OnLayout += onLayout;
 
                 activityAutosize = new Box()
                 {
                     Colour = Color4.Red,
-                    Size = new Vector2(2, 8),
+                    Size = new Vector2(2, line_height),
                     Position = new Vector2(0, 0),
                     Alpha = 0
                 };
 
-                activityFlow = new Box()
+                activityLayout = new Box()
                 {
                     Colour = Color4.Orange,
-                    Size = new Vector2(2, 8),
+                    Size = new Vector2(2, line_height),
                     Position = new Vector2(3, 0),
                     Alpha = 0
                 };
@@ -165,7 +175,7 @@ namespace osu.Framework.Graphics
                 activityInvalidate = new Box()
                 {
                     Colour = Color4.Yellow,
-                    Size = new Vector2(2, 8),
+                    Size = new Vector2(2, line_height),
                     Position = new Vector2(6, 0),
                     Alpha = 0
                 };
@@ -177,7 +187,7 @@ namespace osu.Framework.Graphics
                     previewBox = new Box() { Colour = Color4.White };
 
                 previewBox.Position = new Vector2(9, 0);
-                previewBox.Size = new Vector2(12, 12);
+                previewBox.Size = new Vector2(line_height, line_height);
 
                 text = new SpriteText()
                 {
@@ -189,7 +199,7 @@ namespace osu.Framework.Graphics
                 Flow.Alpha = Drawable.Children.Count > 64 ? 0 : 1;
 
                 Add(activityInvalidate);
-                Add(activityFlow);
+                Add(activityLayout);
                 Add(activityAutosize);
                 Add(previewBox);
                 Add(text);
@@ -221,19 +231,23 @@ namespace osu.Framework.Graphics
                 return true;
             }
 
-            //private void drawable_OnInvalidated(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
-            //{
-            //    if (Drawable.RequireAutoSize)
-            //        activityAutosize.FadeOutFromOne(1);
-            //    if (Drawable is FlowContainer && affectsSize)
-            //    {
-            //        //todo: this wrongly represents when flow actually happens (it's less often than you'd expect).
-            //        activityFlow.FadeOutFromOne(1);
-            //    }
-            //    activityInvalidate.FadeOutFromOne(1);
+            private void onAutoSize()
+            {
+                activityAutosize.FadeOutFromOne(1);
+                updateSpecifics();
+            }
 
-            //    updateSpecifics();
-            //}
+            private void onLayout()
+            {
+                activityLayout.FadeOutFromOne(1);
+                updateSpecifics();
+            }
+
+            private void onInvalidate()
+            {
+                activityInvalidate.FadeOutFromOne(1);
+                updateSpecifics();
+            }
 
             private void updateSpecifics()
             {
@@ -247,8 +261,6 @@ namespace osu.Framework.Graphics
                 text.Colour = !Flow.IsVisible ? Color4.LightBlue : Color4.White;
                 //text.BackgroundColour = Drawable.Pinpoint ? Color4.Purple : Color4.Transparent;
 
-                Alpha = Drawable.IsVisible ? 1 : 0.3f;
-
                 base.Update();
             }
 
@@ -260,6 +272,7 @@ namespace osu.Framework.Graphics
                     return true;
                 }
 
+                Alpha = Drawable.IsVisible ? 1 : 0.3f;
                 return false;
             }
         }

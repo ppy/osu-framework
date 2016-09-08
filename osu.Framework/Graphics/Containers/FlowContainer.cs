@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics.Containers
 {
     public class FlowContainer : AutoSizeContainer
     {
+        internal event Action OnLayout;
+
         public EasingTypes LayoutEasing;
         public int LayoutDuration = 0;
 
@@ -87,14 +89,16 @@ namespace osu.Framework.Graphics.Containers
             return base.Add(drawable);
         }
 
-        protected override void UpdateLayout()
+        internal override void UpdateSubTree()
         {
+            base.UpdateSubTree();
+
             if (!requiresLayout || (nextLayout > 0 && Time < nextLayout)) return;
+
+            OnLayout?.Invoke();
 
             lastLayout = Time;
             requiresLayout = false;
-
-            base.UpdateLayout();
 
             if (Children.Count == 0) return;
 
