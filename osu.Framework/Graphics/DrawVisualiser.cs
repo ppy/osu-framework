@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics
             Remove(loadMessage);
             loadMessage = null;
 
-            scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 20, true);
+            scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 200, true);
 
             return true;
         }
@@ -208,19 +208,16 @@ namespace osu.Framework.Graphics
             private void onAutoSize()
             {
                 activityAutosize.FadeOutFromOne(1);
-                updateSpecifics();
             }
 
             private void onLayout()
             {
                 activityLayout.FadeOutFromOne(1);
-                updateSpecifics();
             }
 
             private void onInvalidate()
             {
                 activityInvalidate.FadeOutFromOne(1);
-                updateSpecifics();
             }
 
             private void updateSpecifics()
