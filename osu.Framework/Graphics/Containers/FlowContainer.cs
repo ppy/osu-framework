@@ -144,6 +144,9 @@ namespace osu.Framework.Graphics.Containers
 
                 current.X += size.X;
             }
+
+            //todo: remove this temporary call (required to make autosize work properly).
+            base.UpdateSubTree();
         }
     }
 
