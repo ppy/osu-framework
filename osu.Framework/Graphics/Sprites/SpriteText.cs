@@ -1,6 +1,8 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
@@ -93,19 +95,33 @@ namespace osu.Framework.Graphics.Sprites
             refreshLayout();
         }
 
+        string lastText;
+
         private void refreshLayout()
         {
             internalSize.Refresh(delegate
             {
-                Clear();
+                //keep sprites which haven't changed since last layout.
+                List<Drawable> keepDrawables = new List<Drawable>();
+                int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
+                for (int i = 0; i < length; i++)
+                {
+                    if (lastText[i] != text[i]) break;
+                    keepDrawables.Add(Children[i]);
+                }
 
-                if (string.IsNullOrEmpty(text))
-                    return Vector2.Zero;
+                Clear();
 
                 foreach (char c in text)
                 {
                     Drawable s;
-                    if (c == ' ')
+
+                    if (keepDrawables.Count > 0)
+                    {
+                        s = keepDrawables[0];
+                        keepDrawables.RemoveAt(0);
+                    }
+                    else if (c == ' ')
                         s = new Container()
                         {
                             Size = new Vector2(spaceWidth),
@@ -117,6 +133,7 @@ namespace osu.Framework.Graphics.Sprites
                     Add(s);
                 }
 
+                lastText = text;
                 return Vector2.Zero;
             });
         }
