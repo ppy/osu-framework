@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.IO.Stores;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -105,7 +106,11 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Drawable s;
                     if (c == ' ')
-                        s = new Container() { Size = new Vector2(spaceWidth) };
+                        s = new Container()
+                        {
+                            Size = new Vector2(spaceWidth),
+                            Colour = Color4.Transparent
+                        };
                     else
                         s = getSprite(c);
 
