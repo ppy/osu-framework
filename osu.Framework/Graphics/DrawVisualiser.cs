@@ -45,20 +45,6 @@ namespace osu.Framework.Graphics
             Add(background);
             Add(scroll);
 
-            /*OnHover += delegate
-            {
-                FadeTo(1, 100);
-                return true;
-            };
-
-            OnHoverLost += delegate
-            {
-                if (!ContainsHoveredDrawable)
-                    FadeTo(0.2f, 100);
-                return true;
-            };
-            Alpha = 0.2f;*/
-
 #if DEBUG
             Add(loadMessage = new SpriteText()
             {
@@ -111,7 +97,7 @@ namespace osu.Framework.Graphics
         {
             if (d == this) return;
 
-            var drawables = container.Children.ConvertAll<VisualisedDrawable>(o => o as VisualisedDrawable);
+            var drawables = container.Children.ConvertAll(o => o as VisualisedDrawable);
 
             drawables.ForEach(dd => dd.CheckExpiry());
             
@@ -148,7 +134,6 @@ namespace osu.Framework.Graphics
                 base.Load();
 
                 Drawable.OnInvalidate += onInvalidate;
-                
 
                 AutoSizeContainer da = Drawable as AutoSizeContainer;
                 if (da != null) da.OnAutoSize += onAutoSize;
