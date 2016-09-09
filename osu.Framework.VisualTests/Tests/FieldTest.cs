@@ -52,9 +52,8 @@ namespace osu.Framework.VisualTests.Tests
             });
 
             //this is where the actual tests are loaded.
-            Add(testContainer = new Container()
+            Add(testContainer = new LargeContainer()
             {
-                SizeMode = InheritMode.XY,
                 Size = new Vector2(0.85f, 1),
                 PositionMode = InheritMode.XY,
                 Position = new Vector2(0.15f, 0),

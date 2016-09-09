@@ -40,8 +40,6 @@ namespace osu.Framework.Graphics
 
             scroll.Add(flow);
 
-            Size = new Vector2(0.3f, 1);
-
             Add(background);
             Add(scroll);
 
