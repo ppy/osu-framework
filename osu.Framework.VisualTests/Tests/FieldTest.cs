@@ -115,7 +115,7 @@ namespace osu.Framework.VisualTests.Tests
                 base.Load();
 
                 SizeMode = InheritMode.X;
-                Size = new Vector2(1, 80);
+                Size = new Vector2(1, 60);
 
                 Add(box = new Box()
                 {
@@ -123,24 +123,20 @@ namespace osu.Framework.VisualTests.Tests
                     Alpha = 0.2f
                 });
 
-                FlowContainer flow;
-                Add(flow = new FlowContainer()
-                {
-                    Direction = FlowDirection.VerticalOnly,
-                    SizeMode = InheritMode.X
-                });
-
-                flow.Add(new SpriteText()
+                Add(new SpriteText()
                 {
                     Text = test.Name,
                     SizeMode = InheritMode.X,
                     //TextBold = true
                 });
 
-                flow.Add(new SpriteText()
+                Add(new SpriteText()
                 {
                     Text = test.Description,
+                    ContentScale = new Vector2(0.8f),
                     SizeMode = InheritMode.X,
+                    Anchor = Anchor.BottomLeft,
+                    Origin = Anchor.BottomLeft
                 });
             }
 

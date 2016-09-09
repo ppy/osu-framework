@@ -88,6 +88,11 @@ namespace osu.Framework.Graphics
             }
         }
 
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        protected Vector2 ContentScale = Vector2.One;
+
         private Vector2 scale = Vector2.One;
 
         public Vector2 VectorScale
@@ -384,7 +389,7 @@ namespace osu.Framework.Graphics
             if (Parent == null)
                 di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
             else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
             return di;
         });
