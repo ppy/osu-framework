@@ -1,7 +1,6 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +12,7 @@ using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Input;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -22,29 +22,41 @@ namespace osu.Framework.VisualTests.Tests
         private Container leftFlowContainer;
         private Container leftScrollContainer;
         private TestCase loadedTest;
-        private Container testContainer;    
+        private Container testContainer;
 
         List<TestCase> testCases = new List<TestCase>();
 
-        public FieldTest() : base(0.2f)
+        public override void Load()
         {
-            Add(new BackButton(delegate { Game.ChangeMode(OsuModes.Menu); }));
+            base.Load();
 
-            Add(leftContainer = new Container() { SizeMode = InheritMode.XY Size = new Vector2(0.15f, 1) });
-            leftContainer.Add(new Box(Color4.DimGray) { SizeMode = InheritMode.XY});
-            leftContainer.Add(leftScrollContainer = new ScrollContainer()
+            Add(leftContainer = new Container()
             {
-                Depth = 2
+                SizeMode = InheritMode.XY,
+                Size = new Vector2(0.15f, 1)
             });
 
-            leftScrollContainer.Add(leftFlowContainer = new FlowContainer(FlowDirection.VerticalOnly) { Padding = new Vector2(0, 5) });
+            leftContainer.Add(new Box()
+            {
+                Colour = Color4.DimGray,
+                SizeMode = InheritMode.XY
+            });
+
+            leftContainer.Add(leftScrollContainer = new ScrollContainer());
+
+            leftScrollContainer.Add(leftFlowContainer = new FlowContainer()
+            {
+                SizeMode = InheritMode.XY,
+                Direction = FlowDirection.VerticalOnly,
+                Padding = new Vector2(0, 5)
+            });
 
             //this is where the actual tests are loaded.
             Add(testContainer = new Container()
             {
-                SizeMode = InheritMode.XY
+                SizeMode = InheritMode.XY,
                 Size = new Vector2(0.85f, 1),
-                PositionMode = PositionMode.Inherit,
+                PositionMode = InheritMode.XY,
                 Position = new Vector2(0.15f, 0),
             });
 
@@ -52,7 +64,7 @@ namespace osu.Framework.VisualTests.Tests
             testContainer.Size = new Vector2(0.6f, 1);
             Add(new DrawVisualiser(testContainer)
             {
-                PositionMode = PositionMode.Inherit,
+                PositionMode = InheritMode.XY,
                 Position = new Vector2(0.75f, 0),
                 Size = new Vector2(0.25f, 1)
             });
@@ -72,13 +84,9 @@ namespace osu.Framework.VisualTests.Tests
 
         private void addTest(TestCase testCase)
         {
-            TestCaseItem item = new TestCaseItem(testCase);
-            item.ObsoleteOnClick += delegate
-            {
-                loadTest(testCase);
-                return true;
-            };
-            leftFlowContainer.Add(item);
+            TestCaseButton button = new TestCaseButton(testCase);
+            button.Click += delegate { loadTest(testCase); };
+            leftFlowContainer.Add(button);
             testCases.Add(testCase);
         }
 
@@ -93,49 +101,65 @@ namespace osu.Framework.VisualTests.Tests
             testCase.Reset();
         }
 
-        class TestCaseItem : Container
+        class TestCaseButton : ClickableContainer
         {
             private Box box;
+            private TestCase test;
 
-            public TestCaseItem(TestCase test)
+            public TestCaseButton(TestCase test)
             {
-                Add(box = new Box(Color4.Gray)
-                {
-                    SizeMode = InheritMode.XY | InheritMode.FixedY,
-                    Size = new Vector2(1, 30),
-                    Depth = 0
-                });
-                Add(new SpriteText(test.Name, 9, Vector2.Zero, 1, Color4.White)
-                {
-                    TextBold = true
-                });
-
-                Add(new SpriteText(test.Description, 9, Vector2.Zero, 1, Color4.White, new Vector2(150, 0))
-                {
-                    Anchor = Anchor.BottomLeft,
-                    Origin = Anchor.BottomLeft,
-                });
-
-                box.ObsoleteOnHover += Box_OnHover;
-                box.ObsoleteOnHoverLost += Box_OnHoverLost;
-                box.ObsoleteOnMouseDown += Box_OnClick;
+                this.test = test;
             }
 
-            private bool Box_OnClick(object sender, EventArgs e)
+            public override void Load()
             {
-                box.FlashColour(Color4.White, 50);
-                return false;
+                base.Load();
+
+                SizeMode = InheritMode.X;
+                Size = new Vector2(1, 80);
+
+                Add(box = new Box()
+                {
+                    SizeMode = InheritMode.XY,
+                    Alpha = 0.2f
+                });
+
+                FlowContainer flow;
+                Add(flow = new FlowContainer()
+                {
+                    Direction = FlowDirection.VerticalOnly,
+                    SizeMode = InheritMode.X
+                });
+
+                flow.Add(new SpriteText()
+                {
+                    Text = test.Name,
+                    SizeMode = InheritMode.X
+                    //TextBold = true
+                });
+
+                flow.Add(new SpriteText()
+                {
+                    Text = test.Description,
+                    SizeMode = InheritMode.X,
+                });
             }
 
-            private bool Box_OnHoverLost(object sender, EventArgs e)
+            protected override bool OnHover(InputState state)
             {
-                box.FadeColour(Color4.Gray, 150);
+                box.FadeTo(0.4f, 150);
                 return true;
             }
 
-            private bool Box_OnHover(object sender, EventArgs e)
+            protected override void OnHoverLost(InputState state)
             {
-                box.FadeColour(Color4.LightGray, 150);
+                box.FadeTo(0.2f, 150);
+                base.OnHoverLost(state);
+            }
+
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            {
+                box.FlashColour(Color4.White, 50);
                 return true;
             }
         }

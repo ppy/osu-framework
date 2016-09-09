@@ -1,7 +1,6 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
@@ -23,24 +22,24 @@ namespace osu.Framework.VisualTests.Tests
 
         private Container testContainer;
 
-        public TestCaseAutosize()
-        {
-        }
-
         internal override void Reset()
         {
             base.Reset();
 
             toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
 
-            Add(new Box(Vector2.Zero, new Vector2(20, 2), 10, Color4.WhiteSmoke)
+            Add(new Box()
             {
+                Colour = Color4.WhiteSmoke,
+                Position = new Vector2(20, 2),
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             });
 
-            Add(new Box(Vector2.Zero, new Vector2(2, 20), 10, Color4.WhiteSmoke)
+            Add(new Box()
             {
+                Colour = Color4.WhiteSmoke,
+                Position = new Vector2(2, 20),
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             });
@@ -59,11 +58,6 @@ namespace osu.Framework.VisualTests.Tests
             loadTest(1);
         }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-        }
-
         private void reloadCallback()
         {
             loadTest(currentTest);
@@ -76,12 +70,12 @@ namespace osu.Framework.VisualTests.Tests
 
             testContainer.Clear();
 
-            InfofulBox box = null;
+            Container box = null;
 
             switch (currentTest)
             {
                 case 1:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
@@ -112,7 +106,7 @@ namespace osu.Framework.VisualTests.Tests
                     };
                     break;
                 case 2:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
@@ -121,8 +115,9 @@ namespace osu.Framework.VisualTests.Tests
                     addCornerMarkers(box, 5);
 
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                    box.Add(box = new InfofulBoxAutoSize()
                     {
+                        Colour = Color4.DarkSeaGreen,
                         Alpha = 0.5f,
                         Origin = Anchor.Centre,
                         Anchor = Anchor.Centre
@@ -145,7 +140,7 @@ namespace osu.Framework.VisualTests.Tests
                     });
                     break;
                 case 3:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
@@ -155,9 +150,10 @@ namespace osu.Framework.VisualTests.Tests
 
                     for (int i = 0; i < 100; i++)
                     {
-                        box.Add(box = new InfofulBox(RectangleF.Empty, 1, new Color4(253, 253, 253, 255))
+                        box.Add(box = new InfofulBoxAutoSize()
                         {
-                                Position = new Vector2(3, 3),
+                            Colour = new Color4(253, 253, 253, 255),
+                            Position = new Vector2(3, 3),
                             Origin = Anchor.BottomRight,
                             Anchor = Anchor.BottomRight
                         });
@@ -174,7 +170,7 @@ namespace osu.Framework.VisualTests.Tests
                     });
                     break;
                 case 4:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.CentreLeft
@@ -188,20 +184,24 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
 
-                    box.Add(new SpriteText("Test CentreLeft line 1", 20, new Vector2(5, -20), 1, Color4.White)
+                    box.Add(new SpriteText()
                     {
+                        Position = new Vector2(5, -20),
+                        Text = "Test CentreLeft line 1",
                         Origin = Anchor.CentreLeft,
                         Anchor = Anchor.CentreLeft
                     });
 
-                    box.Add(new SpriteText("Test CentreLeft line 2", 20, new Vector2(5, 20), 1, Color4.White)
+                    box.Add(new SpriteText()
                     {
+                        Position = new Vector2(5, 20),
+                        Text = "Test CentreLeft line 2",
                         Origin = Anchor.CentreLeft,
                         Anchor = Anchor.CentreLeft
                     });
                     break;
                 case 5:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.CentreLeft
@@ -215,28 +215,33 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
 
-                    box.Add(new SpriteText("123,456,789=", @"fps", 1, Clocks.Game, new Vector2(5, -20), 1, Color4.White, true, SkinSource.Osu)
+                    box.Add(new SpriteText()
                     {
+                        Position = new Vector2(5, -20),
+                        Text = "123,456,789=",
                         Origin = Anchor.CentreLeft,
                         Anchor = Anchor.CentreLeft,
                         Scale = 2f
                     });
 
-                    box.Add(new SpriteText("123,456,789ms", 20, new Vector2(5, 20), 1, Color4.White)
+                    box.Add(new SpriteText()
                     {
+                        Position = new Vector2(5, 20),
+                        Text = "123,456,789ms",
                         Origin = Anchor.CentreLeft,
                         Anchor = Anchor.CentreLeft
                     });
                     break;
                 case 6:
-                    testContainer.Add(box = new InfofulBox(RectangleF.Empty, 1, Color4.White)
+                    testContainer.Add(box = new InfofulBoxAutoSize()
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
                     });
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(box = new InfofulBoxAutoSize()
                     {
+                        Colour = Color4.OrangeRed,
                         Position = new Vector2(100, 100),
                         Origin = Anchor.Centre,
                         Anchor = Anchor.TopLeft
@@ -254,12 +259,12 @@ namespace osu.Framework.VisualTests.Tests
             }
 
 #if DEBUG
-            if (toggleDebugAutosize.State)
-                testContainer.Children.FindAll(c => c.HasAutosizeChildren).ForEach(c => c.AutoSizeDebug = true);
+            //if (toggleDebugAutosize.State)
+            //    testContainer.Children.FindAll(c => c.HasAutosizeChildren).ForEach(c => c.AutoSizeDebug = true);
 #endif
         }
 
-        private void addCornerMarkers(InfofulBox box, int size = 50, Color4? colour = null)
+        private void addCornerMarkers(Container box, int size = 50, Color4? colour = null)
         {
             box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
             {
@@ -297,21 +302,18 @@ namespace osu.Framework.VisualTests.Tests
                 AllowDrag = false
             });
         }
+    }
 
-        public virtual void Initialize()
+    class InfofulBoxAutoSize : AutoSizeContainer
+    {
+        public override void Load()
         {
-            Game.LoadComplete();
-        }
-
-        bool firstUpdate = true;
-
-        protected override void Update()
-        {
-            base.Update();
+            base.Load();
+            Add(new Box() { SizeMode = InheritMode.XY });
         }
     }
 
-    class InfofulBox : Box
+    class InfofulBox : Container
     {
         internal bool AllowDrag = true;
 
@@ -319,16 +321,23 @@ namespace osu.Framework.VisualTests.Tests
 
         internal bool chameleon = false;
 
-        internal void Add(Drawable d)
-        {
-            base.Add(d);
-        }
-
-        public InfofulBox(RectangleF rectangle, float depth, Color4 color) : base(rectangle, depth, color)
+        public InfofulBox(RectangleF rectangle, float depth, Color4 color)
         {
             HandleInput = true;
 
-            debugInfo = new SpriteText(string.Empty, 10, Vector2.Zero, 0f, Color4.Black);
+            Position = new Vector2(rectangle.X, rectangle.Y);
+            Size = new Vector2(rectangle.Width, rectangle.Height);
+            Depth = depth;
+            Colour = color;
+        }
+
+        public override void Load()
+        {
+            base.Load();
+
+            Add(new Box() { SizeMode = InheritMode.XY });
+
+            debugInfo = new SpriteText() { Colour = Color4.Black };
             Add(debugInfo);
         }
 
@@ -362,9 +371,9 @@ namespace osu.Framework.VisualTests.Tests
         protected override void Update()
         {
 
-            if (chameleon && Game.TimeInSeconds != lastSwitch)
+            if (chameleon && (int)Time / 1000 != lastSwitch)
             {
-                lastSwitch = Game.TimeInSeconds;
+                lastSwitch = (int)Time / 1000;
                 switch (lastSwitch % 6)
                 {
                     case 0:
@@ -391,7 +400,8 @@ namespace osu.Framework.VisualTests.Tests
             }
 
             base.Update();
-            debugInfo.Text = Game.Input.State.Keyboard.AltPressed ? ToString() : string.Empty;
+
+            //debugInfo.Text = ToString();
         }
     }
 }

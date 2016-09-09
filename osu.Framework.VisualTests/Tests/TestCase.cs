@@ -1,10 +1,10 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.UI;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -16,7 +16,11 @@ namespace osu.Framework.VisualTests.Tests
         internal virtual string Description => @"The base class for a test case";
         internal virtual int DisplayOrder => 0;
 
-        Container buttonsContainer = new FlowContainer(FlowDirection.VerticalOnly) { Padding = new Vector2(15, 5) };
+        Container buttonsContainer = new FlowContainer()
+        {
+            Direction = FlowDirection.VerticalOnly,
+            Padding = new Vector2(15, 5)
+        };
 
         internal virtual void Reset()
         {
@@ -30,16 +34,22 @@ namespace osu.Framework.VisualTests.Tests
 
         internal Button AddButton(string text, Action action)
         {
-            return buttonsContainer.Add(new Button(text, Vector2.Zero, new Vector2(100, 50), 0, Color4.LightBlue, delegate
+            Button b;
+            buttonsContainer.Add(b = new Button()
             {
-                action?.Invoke();
-                return true;
-            }, 12)) as Button;
+                Colour = Color4.LightBlue,
+                Size = new Vector2(100, 50),
+                Text = text
+            });
+
+            b.Click += action;
+
+            return b;
         }
 
         internal ToggleButton AddToggle(string text, Action action)
         {
-            return buttonsContainer.Add(new ToggleButton(text, Vector2.Zero, action)) as ToggleButton;
+            return buttonsContainer.Add(new ToggleButton(action) { Text = text }) as ToggleButton;
         }
     }
 
@@ -51,21 +61,21 @@ namespace osu.Framework.VisualTests.Tests
 
         internal bool State = false;
 
-        public ToggleButton(string text, Vector2 position, Action reloadCallback)
-            : base(text, position, new Vector2(100, 50), 0, offColour, clickAction, 12, false)
+        public ToggleButton(Action reloadCallback)
         {
+            Size = new Vector2(100, 50);
+            Colour = offColour;
+
+            Click += clickAction;
+
             this.reloadCallback = reloadCallback;
         }
 
-        private static bool clickAction(object sender, EventArgs e)
+        private void clickAction()
         {
-            ToggleButton tb = sender as ToggleButton;
-            Debug.Assert(tb != null);
-
-            tb.State = !tb.State;
-            tb.SetColour(tb.State ? onColour : offColour);
-            tb.reloadCallback?.Invoke();
-            return true;
+            State = !State;
+            Colour = State ? onColour : offColour;
+            reloadCallback?.Invoke();
         }
     }
 }

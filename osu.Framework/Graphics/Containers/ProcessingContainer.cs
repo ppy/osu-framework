@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
         /// Any .Add() calls will be redirected to this container.
         /// </summary>
         /// <param name="container">The container to be the new processing container.</param>
-        protected void AddProcessingContainer(Container container)
+        protected void AddProcessing(Container container)
         {
             Debug.Assert(container != null);
 

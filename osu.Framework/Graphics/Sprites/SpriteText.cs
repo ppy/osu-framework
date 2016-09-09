@@ -7,7 +7,6 @@ using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.IO.Stores;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
@@ -32,13 +31,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private static TextureStore defaultFontStore;
-
         private TextureStore store;
 
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
+
+            HandleInput = false;
         }
 
         public override void Load()
@@ -52,7 +51,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private string text;
-        public virtual string Text
+        public string Text
         {
             get { return text; }
             set

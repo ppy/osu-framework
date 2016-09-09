@@ -2,9 +2,6 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using OpenTK;
 using osu.Framework.Graphics.Transformations;
 
@@ -34,7 +31,6 @@ namespace osu.Framework.Graphics.Containers
                 requiresLayout = true;
             }
         }
-
 
         private double lastLayout;
         private bool requiresLayout = true;
@@ -89,9 +85,9 @@ namespace osu.Framework.Graphics.Containers
             return base.Add(drawable);
         }
 
-        internal override void UpdateSubTree()
+        internal override void UpdateLayout()
         {
-            base.UpdateSubTree();
+            base.UpdateLayout();
 
             if (!requiresLayout || (nextLayout > 0 && Time < nextLayout)) return;
 
@@ -107,12 +103,12 @@ namespace osu.Framework.Graphics.Containers
             Vector2 max = maximumSize;
             if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
             {
-                Drawable sDrawable = Parent;
-                while (sDrawable is AutoSizeContainer)
-                    sDrawable = sDrawable.Parent;
+                var actual = ActualSize;
 
-                if (sDrawable != null)
-                    max = sDrawable.ActualSize * sDrawable.VectorScale * sDrawable.Scale;
+                //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
+                //If we are inheriting then we need to use the parent size (our ActualSize).
+                max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : actual.X;
+                max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : actual.Y;
             }
 
             float rowMaxHeight = 0;
@@ -144,9 +140,6 @@ namespace osu.Framework.Graphics.Containers
 
                 current.X += size.X;
             }
-
-            //todo: remove this temporary call (required to make autosize work properly).
-            base.UpdateSubTree();
         }
     }
 

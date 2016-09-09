@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics
         {
             base.Load();
 
-            AddProcessingContainer(new MaskingContainer());
+            AddProcessing(new MaskingContainer());
 
             scroll.Add(flow);
 

@@ -2,24 +2,18 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
     public class ClickableContainer : Container
     {
-        public new event Func<bool> Click;
+        public event Action Click;
 
         protected override bool OnClick(InputState state)
         {
-            if (Click?.Invoke() == true)
-                return true;
-
-            return base.OnClick(state);
+            Click?.Invoke();
+            return true;
         }
     }
 }

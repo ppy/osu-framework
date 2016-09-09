@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.VisualTests.Tests;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -19,13 +20,7 @@ namespace osu.Framework.VisualTests
             base.Load();
             Host.Size = new Vector2(1366, 768);
 
-            SampleGame test = new SampleGame();
-
-            DrawVisualiser drawVis;
-
-            Add(test);
-            Add(drawVis = new DrawVisualiser(test));
-
+            Add(new FieldTest());
             Add(new CursorContainer());
         }
 

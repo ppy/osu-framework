@@ -23,13 +23,13 @@ namespace osu.Framework.Graphics
 
         internal event Action OnInvalidate;
 
-        private LifetimeList<Drawable> internalChildren;
-        public ReadOnlyList<Drawable> Children
+        private LifetimeList<Drawable> children;
+        internal ReadOnlyList<Drawable> Children
         {
             get
             {
                 ThreadSafety.EnsureUpdateThread();
-                return internalChildren;
+                return children;
             }
         }
 
@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics
         }
 
         private InheritMode sizeMode;
-        public InheritMode SizeMode
+        public virtual InheritMode SizeMode
         {
             get { return sizeMode; }
             set
@@ -419,7 +419,7 @@ namespace osu.Framework.Graphics
 
         public Drawable()
         {
-            internalChildren = new LifetimeList<Drawable>(DepthComparer);
+            children = new LifetimeList<Drawable>(DepthComparer);
         }
 
         /// <summary>
@@ -473,7 +473,7 @@ namespace osu.Framework.Graphics
 
             drawable.changeParent(this);
 
-            internalChildren.Add(drawable);
+            children.Add(drawable);
 
             Invalidate();
             return drawable;
@@ -490,7 +490,7 @@ namespace osu.Framework.Graphics
             if (p == null)
                 return false;
 
-            bool result = internalChildren.Remove(p);
+            bool result = children.Remove(p);
 
             Invalidate();
             p.Parent = null;
@@ -505,7 +505,7 @@ namespace osu.Framework.Graphics
 
         protected int RemoveAll(Predicate<Drawable> match, bool dispose = true)
         {
-            List<Drawable> toRemove = internalChildren.FindAll(match);
+            List<Drawable> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
                 Remove(toRemove[i]);
 
@@ -527,14 +527,14 @@ namespace osu.Framework.Graphics
 
         protected void Clear(bool dispose = true)
         {
-            foreach (Drawable t in Children)
+            foreach (Drawable t in children)
             {
                 if (dispose)
                     t.Dispose();
                 t.Parent = null;
             }
 
-            internalChildren.Clear();
+            children.Clear();
 
             Invalidate();
         }
@@ -632,7 +632,7 @@ namespace osu.Framework.Graphics
         {
             DrawNode node = BaseDrawNode;
 
-            foreach (Drawable child in internalChildren.Current)
+            foreach (Drawable child in children.Current)
                 node.Children.Add(child.GenerateDrawNodeSubtree());
 
             return node;
@@ -652,9 +652,14 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            foreach (Drawable child in internalChildren.Current)
+            foreach (Drawable child in children.Current)
                 child.UpdateDrawInfoSubtree();
         }
+
+        /// <summary>		
+        /// Perform any layout changes just before autosize is calculated.		
+        /// </summary>		
+        internal virtual void UpdateLayout() { }
 
         internal virtual void UpdateSubTree()
         {
@@ -669,10 +674,12 @@ namespace osu.Framework.Graphics
             Update();
             OnUpdate?.Invoke();
 
-            internalChildren.Update(Time);
+            children.Update(Time);
 
-            foreach (Drawable child in internalChildren.Current)
+            foreach (Drawable child in children.Current)
                 child.UpdateSubTree();
+
+            UpdateLayout();
         }
 
         protected virtual void Update()
@@ -712,7 +719,7 @@ namespace osu.Framework.Graphics
             Game = root;
             clockBacking.Invalidate();
 
-            Children.ForEach(c => c.changeRoot(root));
+            children.ForEach(c => c.changeRoot(root));
         }
 
         /// <summary>
@@ -797,9 +804,9 @@ namespace osu.Framework.Graphics
 
             if (alreadyInvalidated) return false;
 
-            if (Children != null)
+            if (children != null)
             {
-                foreach (var c in Children)
+                foreach (var c in children)
                 {
                     if (c == source) continue;
                     c.Invalidate(false, affectsPosition, this);
@@ -872,8 +879,8 @@ namespace osu.Framework.Graphics
         {
             Drawable thisNew = (Drawable)MemberwiseClone();
 
-            thisNew.internalChildren = new LifetimeList<Drawable>(DepthComparer);
-            Children.ForEach(c => thisNew.internalChildren.Add(c.Clone()));
+            thisNew.children = new LifetimeList<Drawable>(DepthComparer);
+            children.ForEach(c => thisNew.children.Add(c.Clone()));
 
             thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
             Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
