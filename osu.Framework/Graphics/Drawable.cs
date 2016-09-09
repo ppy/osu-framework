@@ -88,18 +88,19 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 vectorScale = Vector2.One;
+        private Vector2 scale = Vector2.One;
+
         public Vector2 VectorScale
         {
             get
             {
-                return vectorScale;
+                return scale;
             }
 
             set
             {
-                if (vectorScale == value) return;
-                vectorScale = value;
+                if (scale == value) return;
+                scale = value;
 
                 Invalidate();
             }
@@ -149,18 +150,17 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float scale = 1.0f;
         public float Scale
         {
-            get { return scale; }
+            get
+            {
+                Debug.Assert(scale.X == scale.Y);
+                return scale.X;
+            }
 
             set
             {
-                if (value == scale)
-                    return;
-                scale = value;
-
-                Invalidate();
+                VectorScale = new Vector2(value);
             }
         }
 
@@ -375,8 +375,6 @@ namespace osu.Framework.Graphics
         {
             DrawInfo di = BaseDrawInfo;
 
-            Vector2 scale = VectorScale * Scale;
-
             float alpha = Alpha;
             if (Colour.A > 0 && Colour.A < 1)
                 alpha *= Colour.A;
@@ -384,9 +382,9 @@ namespace osu.Framework.Graphics
             Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
             if (Parent == null)
-                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
             else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), scale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
             return di;
         });

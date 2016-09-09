@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!d.IsVisible) continue;
 
-                Vector2 size = d.ActualSize * d.VectorScale * d.Scale;
+                Vector2 size = d.ActualSize * d.VectorScale;
 
                 if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                 {

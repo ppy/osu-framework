@@ -133,7 +133,7 @@ namespace osu.Framework.VisualTests.Tests
                 flow.Add(new SpriteText()
                 {
                     Text = test.Name,
-                    SizeMode = InheritMode.X
+                    SizeMode = InheritMode.X,
                     //TextBold = true
                 });
 
