@@ -84,17 +84,18 @@ namespace osu.Framework.Threading
 
             foreach (Action v in runnable)
             {
+#if !DEBUG
                 try
                 {
+#endif
                     v.Invoke();
+#if !DEBUG
                 }
                 catch (Exception e)
                 {
                     Logger.Error(e, @"scheduled delegate");
-#if DEBUG
-                    throw;
-#endif
                 }
+#endif
             }
 
             return true;
@@ -156,7 +157,7 @@ namespace osu.Framework.Threading
             return true;
         }
 
-        #region IDisposable Support
+#region IDisposable Support
         private bool isDisposed = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -171,7 +172,7 @@ namespace osu.Framework.Threading
         {
             Dispose(true);
         }
-        #endregion
+#endregion
     }
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>

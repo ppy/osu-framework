@@ -2,9 +2,6 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using OpenTK;
 using osu.Framework.Graphics.Transformations;
 
@@ -12,6 +9,8 @@ namespace osu.Framework.Graphics.Containers
 {
     public class FlowContainer : AutoSizeContainer
     {
+        internal event Action OnLayout;
+
         public EasingTypes LayoutEasing;
         public int LayoutDuration = 0;
 
@@ -32,7 +31,6 @@ namespace osu.Framework.Graphics.Containers
                 requiresLayout = true;
             }
         }
-
 
         private double lastLayout;
         private bool requiresLayout = true;
@@ -87,14 +85,16 @@ namespace osu.Framework.Graphics.Containers
             return base.Add(drawable);
         }
 
-        protected override void UpdateLayout()
+        internal override void UpdateLayout()
         {
+            base.UpdateLayout();
+
             if (!requiresLayout || (nextLayout > 0 && Time < nextLayout)) return;
+
+            OnLayout?.Invoke();
 
             lastLayout = Time;
             requiresLayout = false;
-
-            base.UpdateLayout();
 
             if (Children.Count == 0) return;
 
@@ -103,12 +103,12 @@ namespace osu.Framework.Graphics.Containers
             Vector2 max = maximumSize;
             if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
             {
-                Drawable sDrawable = Parent;
-                while (sDrawable is AutoSizeContainer)
-                    sDrawable = sDrawable.Parent;
+                var actual = ActualSize;
 
-                if (sDrawable != null)
-                    max = sDrawable.ActualSize * sDrawable.VectorScale * sDrawable.Scale;
+                //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
+                //If we are inheriting then we need to use the parent size (our ActualSize).
+                max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : actual.X;
+                max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : actual.Y;
             }
 
             float rowMaxHeight = 0;
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!d.IsVisible) continue;
 
-                Vector2 size = d.ActualSize * d.VectorScale * d.Scale;
+                Vector2 size = d.ActualSize * d.Scale * ContentScale;
 
                 if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                 {
