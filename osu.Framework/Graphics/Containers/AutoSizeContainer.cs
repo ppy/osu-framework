@@ -15,12 +15,12 @@ namespace osu.Framework.Graphics.Containers
 
         private bool autoSizeUpdatePending;
 
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
         {
-            if (affectsSize)
+            if ((invalidation & Invalidation.ScreenSize) > 0)
                 autoSizeUpdatePending = true;
 
-            bool alreadyInvalidated = base.Invalidate(affectsSize, affectsPosition, source);
+            bool alreadyInvalidated = base.Invalidate(invalidation, source);
 
             return !alreadyInvalidated;
         }
@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
                     size = newSize;
 
                     // Once we have a better general implementation of "Invalidate()", then we can hopefully get rid of "InvalidateDrawInfoAndDrawQuad"
-                    //Invalidate();
+                    //Invalidate(Invalidation.ScreenPosition);
                     InvalidateDrawInfoAndDrawQuad();
                 }
 
@@ -108,6 +108,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 
-        protected override bool ChildrenShouldInvalidate => true;
+        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.Shape;
     }
 }

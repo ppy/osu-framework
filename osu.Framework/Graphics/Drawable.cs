@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics
                 if (colour == value) return;
                 colour = value;
 
-                Invalidate(false, false);
+                Invalidate(Invalidation.Color);
             }
         }
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidate(alpha == 0 || value == 0, alpha == 0 || value == 0);
+                Invalidate((alpha == 0 || value == 0) ? Invalidation.Visibility : Invalidation.None);
 
                 alpha = value;
             }
@@ -650,7 +650,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>		
+        /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
         internal virtual void UpdateLayout() { }
@@ -779,25 +779,32 @@ namespace osu.Framework.Graphics
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
-        public virtual bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
         {
+            if (invalidation == Invalidation.None)
+                return false;
+
             ThreadSafety.EnsureUpdateThread();
 
             OnInvalidate?.Invoke();
 
-            bool affectsParent = affectsSize || affectsPosition;
-            if (affectsParent && source != Parent && Parent?.ChildrenShouldInvalidate == true)
-                Parent.Invalidate(affectsParent, affectsParent, this);
+            if (Parent != null && source != Parent && (invalidation & Parent.ChildrenInvalidateParentMask) > 0)
+                Parent.Invalidate(Parent.ChildrenInvalidateParentMask, this);
 
             bool alreadyInvalidated = true;
 
-            if (affectsSize)
+            if ((invalidation & Invalidation.ScreenSize) > 0)
                 alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-            if (affectsSize || affectsPosition)
+            if ((invalidation & Invalidation.ScreenSize) > 0 || (invalidation & Invalidation.ScreenPosition) > 0)
             {
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
+            }
+
+            if ((invalidation & Invalidation.Visibility) > 0)
+            {
+                alreadyInvalidated &= !isVisibleBacking.Invalidate();
             }
 
             if (alreadyInvalidated) return false;
@@ -807,11 +814,11 @@ namespace osu.Framework.Graphics
                 foreach (var c in children)
                 {
                     if (c == source) continue;
-                    c.Invalidate(false, affectsPosition, this);
+                    c.Invalidate(invalidation, this);
                 }
             }
 
-            return true;
+            return !alreadyInvalidated;
         }
 
         protected Vector2 GetAnchoredPosition(Vector2 pos)
@@ -891,8 +898,29 @@ namespace osu.Framework.Graphics
 
         protected Game Game;
 
-        protected virtual bool ChildrenShouldInvalidate => false;
+        protected virtual Invalidation ChildrenInvalidateParentMask => Invalidation.None;
     }
+
+    /// <summary>
+    /// Specifies which type of properties are being invalidated.
+    /// </summary>
+    [Flags]
+    public enum Invalidation
+    {
+        // Individual types
+        ScreenPosition = 1 << 0,
+        ScreenSize     = 1 << 1,
+        Visibility     = 1 << 2,
+        Color          = 1 << 3,
+
+        // Combinations
+        Shape    = ScreenPosition | ScreenSize,
+        DrawInfo = Shape | Color,
+
+        // Meta
+        None = 0,
+        All  = Shape | Visibility | Color,
+    };
 
     /// <summary>
     /// General enum to specify an "anchor" or "origin" point from the standard 9 points on a rectangle.

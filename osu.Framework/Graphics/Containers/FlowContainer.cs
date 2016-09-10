@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Even if we aren't autosizing, we need to ensure invalidation.
         /// </summary>
-        protected override bool ChildrenShouldInvalidate => true;
+        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.Shape;
 
         private FlowDirection direction = FlowDirection.Full;
         public FlowDirection Direction
@@ -69,12 +69,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
         {
-            if (affectsSize)
+            if ((invalidation & Invalidation.ScreenSize) > 0)
                 requiresLayout = true;
 
-            return base.Invalidate(affectsSize, affectsPosition, source);
+            return base.Invalidate(invalidation, source);
         }
 
         public override Drawable Add(Drawable drawable)
