@@ -15,12 +15,12 @@ namespace osu.Framework.Graphics.Containers
 
         private bool autoSizeUpdatePending;
 
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (affectsSize)
+            if ((invalidation & Invalidation.ScreenSize) > 0)
                 autoSizeUpdatePending = true;
 
-            bool alreadyInvalidated = base.Invalidate(affectsSize, affectsPosition, source);
+            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
 
             return !alreadyInvalidated;
         }
@@ -73,17 +73,12 @@ namespace osu.Framework.Graphics.Containers
             if (RequireAutoSize)
             {
                 Vector2 b = GetBoundingSize(this);
-                Vector2 newSize = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
-                // TODO: Figure out why this if check introduces flickering.
-                //if (newSize != Size)
-                {
-                    size = newSize;
-
-                    // Once we have a better general implementation of "Invalidate()", then we can hopefully get rid of "InvalidateDrawInfoAndDrawQuad"
-                    //Invalidate();
-                    InvalidateDrawInfoAndDrawQuad();
-                }
+                // This triggers re-positioning of all children according.
+                // It is required even if Size does coincidentally not change, since children
+                // might still have moved.
+                Invalidate(Invalidation.ScreenPosition);
 
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
@@ -108,6 +103,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 
-        protected override bool ChildrenShouldInvalidate => true;
+        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.ScreenShape;
     }
 }
