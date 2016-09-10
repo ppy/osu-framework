@@ -311,36 +311,8 @@ namespace osu.Framework.VisualTests.Tests
             base.Load();
             Add(new Box() { SizeMode = InheritMode.XY });
         }
-    }
 
-    class InfofulBox : Container
-    {
         internal bool AllowDrag = true;
-
-        private SpriteText debugInfo;
-
-        internal bool chameleon = false;
-
-        public InfofulBox(RectangleF rectangle, float depth, Color4 color)
-        {
-            HandleInput = true;
-
-            Position = new Vector2(rectangle.X, rectangle.Y);
-            Size = new Vector2(rectangle.Width, rectangle.Height);
-            Depth = depth;
-            Colour = color;
-        }
-
-        public override void Load()
-        {
-            base.Load();
-
-            Add(new Box() { SizeMode = InheritMode.XY });
-
-            debugInfo = new SpriteText() { Colour = Color4.Black };
-            Add(debugInfo);
-        }
-
         Vector2 dragStartPos;
 
         protected override bool OnDrag(InputState state)
@@ -364,6 +336,59 @@ namespace osu.Framework.VisualTests.Tests
 
             dragStartPos = state.Mouse.Position;
             return true;
+        }
+    }
+
+    class InfofulBox : Container
+    {
+        private SpriteText debugInfo;
+
+        internal bool chameleon = false;
+
+        public InfofulBox(RectangleF rectangle, float depth, Color4 color)
+        {
+            HandleInput = true;
+
+            Position = new Vector2(rectangle.X, rectangle.Y);
+            Size = new Vector2(rectangle.Width, rectangle.Height);
+            Depth = depth;
+            Colour = color;
+        }
+
+        internal bool AllowDrag = true;
+        Vector2 dragStartPos;
+
+        protected override bool OnDrag(InputState state)
+        {
+            if (!AllowDrag) return false;
+
+            Vector2 newMousePos = state.Mouse.Position;
+            Position += newMousePos - dragStartPos;
+            dragStartPos = newMousePos;
+            return true;
+        }
+
+        protected override bool OnDragEnd(InputState state)
+        {
+            return true;
+        }
+
+        protected override bool OnDragStart(InputState state)
+        {
+            if (!AllowDrag) return false;
+
+            dragStartPos = state.Mouse.Position;
+            return true;
+        }
+
+        public override void Load()
+        {
+            base.Load();
+
+            Add(new Box() { SizeMode = InheritMode.XY });
+
+            debugInfo = new SpriteText() { Colour = Color4.Black };
+            Add(debugInfo);
         }
 
         int lastSwitch = 0;
