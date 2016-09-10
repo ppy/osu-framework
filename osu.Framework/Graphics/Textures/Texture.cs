@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Textures
 
             BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-            byte[] data = TextureGL.ReserveBuffer(width * height * 4);
+            byte[] data = TextureGL.TextureBufferStack.ReserveBuffer(width * height * 4);
 
             int bytesPerPixel = 4;
             byte* bDataPointer = (byte*)bData.Scan0;
@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.Textures
             if (!isTransparent)
                 SetData(data, level);
             else
-                TextureGL.FreeBuffer(data);
+                TextureGL.TextureBufferStack.FreeBuffer(data);
         }
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)
