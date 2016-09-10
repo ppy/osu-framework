@@ -103,7 +103,6 @@
     <Compile Include="Graphics\Transformations\TransformPositionX.cs" />
     <Compile Include="Graphics\Transformations\TransformPositionY.cs" />
     <Compile Include="Graphics\Transformations\TransformRotation.cs" />
-    <Compile Include="Graphics\Transformations\TransformScale.cs" />
     <Compile Include="Graphics\Transformations\TransformVector.cs" />
     <Compile Include="Graphics\Transformations\TransformScaleVector.cs" />
     <Compile Include="Graphics\UI\Button.cs" />

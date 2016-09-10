@@ -221,7 +221,7 @@ namespace osu.Framework.VisualTests.Tests
                         Text = "123,456,789=",
                         Origin = Anchor.CentreLeft,
                         Anchor = Anchor.CentreLeft,
-                        Scale = 2f
+                        Scale = new Vector2(2f)
                     });
 
                     box.Add(new SpriteText()

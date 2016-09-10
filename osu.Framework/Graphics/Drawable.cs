@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics
 
         private Vector2 scale = Vector2.One;
 
-        public Vector2 VectorScale
+        public Vector2 Scale
         {
             get
             {
@@ -152,20 +152,6 @@ namespace osu.Framework.Graphics
                 rotation = value;
 
                 Invalidate();
-            }
-        }
-
-        public float Scale
-        {
-            get
-            {
-                Debug.Assert(scale.X == scale.Y);
-                return scale.X;
-            }
-
-            set
-            {
-                VectorScale = new Vector2(value);
             }
         }
 
@@ -387,9 +373,9 @@ namespace osu.Framework.Graphics
             Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
             if (Parent == null)
-                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
             else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), VectorScale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
             return di;
         });

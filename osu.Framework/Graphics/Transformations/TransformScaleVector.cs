@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Transformations
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.VectorScale = CurrentValue;
+            d.Scale = CurrentValue;
         }
 
         public TransformScaleVector(IClock clock) : base(clock)

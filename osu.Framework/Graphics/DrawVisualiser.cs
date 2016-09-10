@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics
                 text = new SpriteText()
                 {
                     Position = new Vector2(24, -3),
-                    Scale = 0.9f,
+                    Scale = new Vector2(0.9f),
                     //FontFace = FontFace.FixedWidth
                 };
 
