@@ -14,6 +14,13 @@ namespace osu.Framework.OS
         public event EventHandler Deactivated;
         public event EventHandler Paint;
 
+        /// <summary>
+        /// Return value decides whether we should intercept and cancel this exit (if possible).
+        /// </summary>
+        public event Func<bool> ExitRequested;
+
+        public event Action Exited;
+
         public abstract Rectangle ClientBounds { get; }
         public abstract IntPtr Handle { get; }
         public abstract bool IsMinimized { get; }
@@ -57,6 +64,16 @@ namespace osu.Framework.OS
         protected void OnClientSizeChanged()
         {
             ClientSizeChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected void OnExited()
+        {
+            Exited?.Invoke();
+        }
+
+        protected bool OnExitRequested()
+        {
+            return ExitRequested?.Invoke() ?? false;
         }
 
         protected void OnDeactivated()

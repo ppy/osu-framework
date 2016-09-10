@@ -4,8 +4,6 @@
 using System;
 using System.Windows.Forms;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Timing;
-using System.Threading;
 using osu.Framework.Audio;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Textures;
@@ -37,7 +35,6 @@ namespace osu.Framework
 
         public BasicGameHost Host => host;
 
-        private bool exitRequested;
         private bool isActive;
 
         public AudioManager Audio;
@@ -54,7 +51,7 @@ namespace osu.Framework
         public void SetHost(BasicGameHost host)
         {
             this.host = host;
-            host.Exiting += (sender, args) => { OnExiting(this, args); };
+            host.ExitRequested += OnExiting;
 
             form.FormClosing += OnFormClosing;
             form.DragEnter += dragEnter;
@@ -168,8 +165,9 @@ namespace osu.Framework
         {
         }
 
-        protected virtual void OnExiting(object sender, EventArgs args)
+        protected virtual bool OnExiting()
         {
+            return false;
         }
 
         /// <summary>
