@@ -164,7 +164,12 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidate((alpha == 0 || value == 0) ? Invalidation.Visibility : Invalidation.None);
+                Invalidation i = Invalidation.Colour;
+                //we may have changed the visible state.
+                if (alpha == 0 || value == 0)
+                    i |= Invalidation.Visibility;
+
+                Invalidate(i);
 
                 alpha = value;
             }
