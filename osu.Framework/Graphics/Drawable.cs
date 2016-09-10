@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics
                 if (colour == value) return;
                 colour = value;
 
-                Invalidate(Invalidation.Color);
+                Invalidate(Invalidation.Colour);
             }
         }
 
@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics
                     return;
                 size = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics
                     return;
                 sizeMode = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics
                     return;
                 positionMode = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -305,7 +305,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -338,7 +338,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -465,7 +465,7 @@ namespace osu.Framework.Graphics
 
             children.Add(drawable);
 
-            Invalidate();
+            Invalidate(Invalidation.ScreenShape);
             return drawable;
         }
 
@@ -482,7 +482,7 @@ namespace osu.Framework.Graphics
 
             bool result = children.Remove(p);
 
-            Invalidate();
+            Invalidate(Invalidation.ScreenShape);
             p.Parent = null;
 
             if (dispose && p.IsDisposable)
@@ -526,14 +526,14 @@ namespace osu.Framework.Graphics
 
             children.Clear();
 
-            Invalidate();
+            Invalidate(Invalidation.ScreenShape);
         }
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private delegate Vector2 BoundsResult();
 
-        private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
+        protected Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
         internal Vector2 GetBoundingSize(Drawable calculateDrawable)
         {
             BoundsResult computeBoundingSize = () =>
@@ -629,26 +629,6 @@ namespace osu.Framework.Graphics
         }
 
         protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
-
-        // Once we have a better general implementation of "Invalidate", then we can hopefully get rid of "InvalidateDrawInfoAndDrawQuad"
-        protected void InvalidateDrawInfoAndDrawQuad()
-        {
-            if (drawInfoBacking.IsValid || screenSpaceDrawQuadBacking.IsValid)
-            {
-                //DrawInfo oldDrawInfo = DrawInfo;
-                //Quad oldScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
-
-                drawInfoBacking.Invalidate();
-                screenSpaceDrawQuadBacking.Invalidate();
-
-                // TODO: Figure out why this if statement breaks anchors.
-                //if (oldDrawInfo.Equals(DrawInfo) && oldScreenSpaceDrawQuad.Equals(ScreenSpaceDrawQuad))
-                //    return;
-
-                foreach (Drawable child in children.Current)
-                    child.InvalidateDrawInfoAndDrawQuad();
-            }
-        }
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
@@ -779,7 +759,7 @@ namespace osu.Framework.Graphics
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
-        public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null)
+        public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (invalidation == Invalidation.None)
                 return false;
@@ -788,33 +768,34 @@ namespace osu.Framework.Graphics
 
             OnInvalidate?.Invoke();
 
-            if (Parent != null && source != Parent && (invalidation & Parent.ChildrenInvalidateParentMask) > 0)
-                Parent.Invalidate(Parent.ChildrenInvalidateParentMask, this);
+            if (shallPropagate && Parent != null && source != Parent)
+                Parent.Invalidate(invalidation & Parent.ChildrenInvalidateParentMask, this, false);
 
             bool alreadyInvalidated = true;
 
             if ((invalidation & Invalidation.ScreenSize) > 0)
                 alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-            if ((invalidation & Invalidation.ScreenSize) > 0 || (invalidation & Invalidation.ScreenPosition) > 0)
-            {
-                alreadyInvalidated &= !drawInfoBacking.Invalidate();
+            // Either ScreenSize OR ScreenPosition
+            if ((invalidation & Invalidation.ScreenShape) > 0)
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-            }
+
+            // Either ScreenSize OR ScreenPosition OR Colour
+            if ((invalidation & Invalidation.ScreenShape) > 0 || (invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawInfoBacking.Invalidate();
 
             if ((invalidation & Invalidation.Visibility) > 0)
-            {
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
-            }
 
-            if (alreadyInvalidated) return false;
+            if (alreadyInvalidated || !shallPropagate)
+                return !alreadyInvalidated;
 
             if (children != null)
             {
                 foreach (var c in children)
                 {
                     if (c == source) continue;
-                    c.Invalidate(invalidation, this);
+                    c.Invalidate(invalidation & ~Invalidation.ScreenSize, this);
                 }
             }
 
@@ -911,15 +892,15 @@ namespace osu.Framework.Graphics
         ScreenPosition = 1 << 0,
         ScreenSize     = 1 << 1,
         Visibility     = 1 << 2,
-        Color          = 1 << 3,
+        Colour          = 1 << 3,
 
         // Combinations
-        Shape    = ScreenPosition | ScreenSize,
-        DrawInfo = Shape | Color,
+        ScreenShape    = ScreenPosition | ScreenSize,
+        DrawInfo = ScreenShape | Colour,
 
         // Meta
         None = 0,
-        All  = Shape | Visibility | Color,
+        All  = ScreenShape | Visibility | Colour,
     };
 
     /// <summary>
