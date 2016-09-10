@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate(false);
+                Invalidate();
             }
         }
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics
 
         public bool IsDisposable;
 
-        private Vector2 size = Vector2.One;
+        protected Vector2 size = Vector2.One;
         public virtual Vector2 Size
         {
             get { return size; }
@@ -355,7 +355,8 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual bool IsVisible => Alpha > 0.0001f && Parent?.IsVisible == true;
+        private Cached<bool> isVisibleBacking = new Cached<bool>();
+        public virtual bool IsVisible => isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
         public bool? Additive;
 
@@ -629,20 +630,24 @@ namespace osu.Framework.Graphics
 
         protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
 
-        protected void UpdateDrawInfoSubtree()
+        // Once we have a better general implementation of "Invalidate", then we can hopefully get rid of "InvalidateDrawInfoAndDrawQuad"
+        protected void InvalidateDrawInfoAndDrawQuad()
         {
-            if (drawInfoBacking.IsValid)
+            if (drawInfoBacking.IsValid || screenSpaceDrawQuadBacking.IsValid)
             {
-                DrawInfo oldDrawInfo = DrawInfo;
+                //DrawInfo oldDrawInfo = DrawInfo;
+                //Quad oldScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
 
                 drawInfoBacking.Invalidate();
+                screenSpaceDrawQuadBacking.Invalidate();
 
-                if (oldDrawInfo.Equals(DrawInfo))
-                    return;
+                // TODO: Figure out why this if statement breaks anchors.
+                //if (oldDrawInfo.Equals(DrawInfo) && oldScreenSpaceDrawQuad.Equals(ScreenSpaceDrawQuad))
+                //    return;
+
+                foreach (Drawable child in children.Current)
+                    child.InvalidateDrawInfoAndDrawQuad();
             }
-
-            foreach (Drawable child in children.Current)
-                child.UpdateDrawInfoSubtree();
         }
 
         /// <summary>		
@@ -780,16 +785,20 @@ namespace osu.Framework.Graphics
 
             OnInvalidate?.Invoke();
 
-            if (affectsPosition && source != Parent && Parent?.ChildrenShouldInvalidate == true)
-                Parent.Invalidate(affectsPosition, affectsPosition, this);
+            bool affectsParent = affectsSize || affectsPosition;
+            if (affectsParent && source != Parent && Parent?.ChildrenShouldInvalidate == true)
+                Parent.Invalidate(affectsParent, affectsParent, this);
 
             bool alreadyInvalidated = true;
 
-            //todo: some of these can be skipped depending on the invalidation type.
-            alreadyInvalidated &= !boundingSizeBacking.Invalidate();
-            alreadyInvalidated &= !drawInfoBacking.Invalidate();
-            alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-            alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+            if (affectsSize)
+                alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+
+            if (affectsSize || affectsPosition)
+            {
+                alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
+            }
 
             if (alreadyInvalidated) return false;
 

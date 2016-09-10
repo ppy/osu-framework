@@ -73,12 +73,16 @@ namespace osu.Framework.Graphics.Containers
             if (RequireAutoSize)
             {
                 Vector2 b = GetBoundingSize(this);
-                if (!HasDefinedSize || b != Size)
-                {
-                    Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+                Vector2 newSize = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
-                    Invalidate();
-                    UpdateDrawInfoSubtree();
+                // TODO: Figure out why this if check introduces flickering.
+                //if (newSize != Size)
+                {
+                    size = newSize;
+
+                    // Once we have a better general implementation of "Invalidate()", then we can hopefully get rid of "InvalidateDrawInfoAndDrawQuad"
+                    //Invalidate();
+                    InvalidateDrawInfoAndDrawQuad();
                 }
 
                 autoSizeUpdatePending = false;
