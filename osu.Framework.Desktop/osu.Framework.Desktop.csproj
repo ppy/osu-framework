@@ -62,6 +62,7 @@
     <Compile Include="OS\Windows\Native\Execution.cs" />
     <Compile Include="OS\Windows\Native\Input.cs" />
     <Compile Include="OS\Windows\Native\Registry.cs" />
+    <Compile Include="OS\Windows\TimePeriod.cs" />
     <Compile Include="OS\Windows\WindowsGameForm.cs">
       <SubType>Form</SubType>
     </Compile>

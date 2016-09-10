@@ -21,8 +21,12 @@ namespace osu.Framework.Desktop.OS.Windows
 
         private WindowsGameWindow window;
 
+        private TimePeriod timePeriod;
+
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
+            timePeriod = new TimePeriod(1);
+
             Architecture.SetIncludePath();
             window = new WindowsGameWindow(flags);
 
@@ -30,6 +34,12 @@ namespace osu.Framework.Desktop.OS.Windows
 
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            timePeriod.Dispose();
+            base.Dispose(isDisposing);
         }
 
         private TextInputSource textInputBox;
