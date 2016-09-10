@@ -164,7 +164,12 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidate((alpha == 0 || value == 0) ? Invalidation.Visibility : Invalidation.None);
+                Invalidation i = Invalidation.Colour;
+                //we may have changed the visible state.
+                if (alpha == 0 || value == 0)
+                    i |= Invalidation.Visibility;
+
+                Invalidate(i);
 
                 alpha = value;
             }
@@ -358,7 +363,20 @@ namespace osu.Framework.Graphics
         private Cached<bool> isVisibleBacking = new Cached<bool>();
         public virtual bool IsVisible => isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
-        public bool? Additive;
+        private bool? additive;
+        public bool? Additive
+        {
+            get { return additive; }
+
+            set
+            {
+                if (additive == value) return;
+
+                Invalidate(Invalidation.Colour);
+
+                additive = value;
+            }
+        }
 
         protected virtual bool? PixelSnapping { get; set; }
 
@@ -634,7 +652,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
-        internal virtual void UpdateLayout() { }
+        protected virtual void UpdateLayout() { }
 
         internal virtual void UpdateSubTree()
         {
