@@ -623,7 +623,8 @@ namespace osu.Framework.Graphics
             DrawNode node = BaseDrawNode;
 
             foreach (Drawable child in children.Current)
-                node.Children.Add(child.GenerateDrawNodeSubtree());
+                if (child.IsVisible)
+                    node.Children.Add(child.GenerateDrawNodeSubtree());
 
             return node;
         }
