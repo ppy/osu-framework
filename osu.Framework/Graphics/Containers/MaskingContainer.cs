@@ -4,7 +4,7 @@
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class MaskingContainer : Container
+    public class MaskingContainer : LargeContainer
     {
         protected override DrawNode BaseDrawNode => new MaskingContainerDrawNode(DrawInfo, ScreenSpaceDrawQuad);
     }
