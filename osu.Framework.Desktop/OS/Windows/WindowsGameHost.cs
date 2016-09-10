@@ -25,7 +25,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
-            timePeriod = new TimePeriod(1);
+            timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
             window = new WindowsGameWindow(flags);
@@ -47,12 +47,16 @@ namespace osu.Framework.Desktop.OS.Windows
 
         protected override void OnActivated(object sender, EventArgs args)
         {
+            timePeriod.Active = true;
+
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated(sender, args);
         }
 
         protected override void OnDeactivated(object sender, EventArgs args)
         {
+            timePeriod.Active = true;
+
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated(sender, args);
         }

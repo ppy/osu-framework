@@ -24,18 +24,41 @@ namespace osu.Framework.Desktop.OS.Windows
         internal static int MinimumPeriod => timeCapabilities.wPeriodMin;
         internal static int MaximumPeriod => timeCapabilities.wPeriodMax;
 
-        bool success;
+        bool canAdjust = MaximumPeriod > 0;
+
+        static TimePeriod()
+        {
+            timeGetDevCaps(ref timeCapabilities, Marshal.SizeOf(typeof(TIMECAPS)));
+        }
 
         internal TimePeriod(int period)
         {
             this.period = period;
+        }
 
-            try
+        bool active;
+
+        internal bool Active
+        {
+            get { return active; }
+            set
             {
-                success = MaximumPeriod > 0 || 0 == timeGetDevCaps(ref timeCapabilities, Marshal.SizeOf(typeof(TIMECAPS)));
-                success &= 0 == timeBeginPeriod(MathHelper.Clamp(period, MinimumPeriod, MaximumPeriod));
+                if (value == active || !canAdjust) return;
+                active = value;
+
+                try
+                {
+                    if (active)
+                    {
+                            canAdjust &= 0 == timeBeginPeriod(MathHelper.Clamp(period, MinimumPeriod, MaximumPeriod));
+                    }
+                    else
+                    {
+                            timeEndPeriod(period);
+                    }
+                }
+                catch { }
             }
-            catch { }
         }
 
         #region IDisposable Support
@@ -45,12 +68,7 @@ namespace osu.Framework.Desktop.OS.Windows
         {
             if (!disposedValue)
             {
-                try
-                {
-                    timeEndPeriod(period);
-                }
-                catch { }
-
+                Active = false;
                 disposedValue = true;
             }
         }
