@@ -363,7 +363,20 @@ namespace osu.Framework.Graphics
         private Cached<bool> isVisibleBacking = new Cached<bool>();
         public virtual bool IsVisible => isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
-        public bool? Additive;
+        private bool? additive;
+        public bool? Additive
+        {
+            get { return additive; }
+
+            set
+            {
+                if (additive == value) return;
+
+                Invalidate(Invalidation.Colour);
+
+                additive = value;
+            }
+        }
 
         protected virtual bool? PixelSnapping { get; set; }
 
