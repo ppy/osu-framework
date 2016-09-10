@@ -24,7 +24,8 @@ namespace osu.Framework.OS
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
-        public event EventHandler Exiting;
+        public event Func<bool> ExitRequested;
+        public event Action Exited;
 
         public override bool IsVisible => true;
 
@@ -60,9 +61,21 @@ namespace osu.Framework.OS
             Deactivated?.Invoke(this, EventArgs.Empty);
         }
 
-        protected virtual void OnExiting(object sender, EventArgs args)
+        protected virtual bool OnExitRequested()
         {
-            Exiting?.Invoke(this, EventArgs.Empty);
+            if (ExitRequested?.Invoke() == true)
+                return true;
+
+            exitRequested = true;
+            while (threadsRunning)
+                Thread.Sleep(1);
+
+            return false;
+        }
+
+        protected virtual void OnExited()
+        {
+            Exited?.Invoke();
         }
 
         protected override void Update()
@@ -133,6 +146,9 @@ namespace osu.Framework.OS
             Window.ClientSizeChanged += window_ClientSizeChanged;
             window_ClientSizeChanged(null, null);
 
+            Window.ExitRequested += OnExitRequested;
+            Window.Exited += OnExited;
+
             Exception error = null;
 
             try
@@ -148,9 +164,9 @@ namespace osu.Framework.OS
             {
                 Application.Idle -= OnApplicationIdle;
 
-                if (!(error is OutOfMemoryException))
-                    //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
-                    OnExiting(this, null);
+                //if (!(error is OutOfMemoryException))
+                //    //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
+                //    OnExiting();
             }
         }
 
@@ -188,7 +204,7 @@ namespace osu.Framework.OS
 
         protected virtual void OnApplicationIdle(object sender, EventArgs e)
         {
-            if (exitRequested && !threadsRunning)
+            if (exitRequested)
                 Window.Close();
         }
 

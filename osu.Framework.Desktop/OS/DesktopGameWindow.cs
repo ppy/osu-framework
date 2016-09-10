@@ -30,8 +30,14 @@ namespace osu.Framework.Desktop.OS
             Form.ApplicationActivated += delegate { OnActivated(); };
             Form.ApplicationDeactivated += delegate { OnDeactivated(); };
             Form.SizeChanged += delegate { OnClientSizeChanged(); };
-            Form.Closing += delegate { OnDeactivated(); };
             Form.Paint += delegate { OnPaint(); };
+            Form.FormClosing += Form_FormClosing;
+            Form.FormClosed += delegate { OnExited(); };
+        }
+
+        private void Form_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        {
+            e.Cancel = OnExitRequested();
         }
 
         protected abstract BasicGameForm CreateGameForm(GraphicsContextFlags flags);
