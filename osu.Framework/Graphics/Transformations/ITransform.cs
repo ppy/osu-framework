@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Transformations
     public interface ITransform : IHasLifetime
     {
         double Duration { get; }
-        bool IsAlive { get; }
+        //bool IsAlive { get; }
 
         double StartTime { get; set; }
         double EndTime { get; set; }

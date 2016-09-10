@@ -55,6 +55,6 @@ namespace osu.Framework.Graphics.Containers
             set { base.ContentScale = value; }
         }
 
-        public ReadOnlyList<Drawable> Children => base.Children;
+        public new ReadOnlyList<Drawable> Children => base.Children;
     }
 }
