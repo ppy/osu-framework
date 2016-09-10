@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
                 // This triggers re-positioning of all children according.
                 // It is required even if Size does coincidentally not change, since children
                 // might still have moved.
-                Invalidate(Invalidation.ScreenPosition);
+                Invalidate(Invalidation.ScreenShape);
 
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
