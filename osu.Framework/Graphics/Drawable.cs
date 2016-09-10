@@ -634,7 +634,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
-        internal virtual void UpdateLayout() { }
+        protected virtual void UpdateLayout() { }
 
         internal virtual void UpdateSubTree()
         {

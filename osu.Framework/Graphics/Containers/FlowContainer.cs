@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Containers
             return base.Add(drawable);
         }
 
-        internal override void UpdateLayout()
+        protected override void UpdateLayout()
         {
             base.UpdateLayout();
 
