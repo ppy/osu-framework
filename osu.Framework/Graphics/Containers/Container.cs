@@ -44,5 +44,14 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Clear(dispose);
         }
+
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        public new Vector2 ContentScale
+        {
+            get { return base.ContentScale; }
+            set { base.ContentScale = value; }
+        }
     }
 }

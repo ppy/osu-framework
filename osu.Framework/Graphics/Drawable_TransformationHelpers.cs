@@ -187,17 +187,6 @@ namespace osu.Framework.Graphics
             return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
         }
 
-        public Drawable ScaleTo(float newScale, double duration, EasingTypes easing = EasingTypes.None)
-        {
-            if (duration == 0)
-            {
-                Scale = newScale;
-                return this;
-            }
-
-            return transformFloatTo(Scale, newScale, duration, easing, new TransformScale(Clock));
-        }
-
         public Drawable RotateTo(float newRotation, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
@@ -258,15 +247,26 @@ namespace osu.Framework.Graphics
             return this;
         }
 
+        public Drawable ScaleTo(float newScale, double duration, EasingTypes easing = EasingTypes.None)
+        {
+            if (duration == 0)
+            {
+                Scale = new Vector2(newScale);
+                return this;
+            }
+
+            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScaleVector(Clock));
+        }
+
         public Drawable ScaleTo(Vector2 newScale, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (duration == 0)
             {
-                VectorScale = newScale;
+                Scale = newScale;
                 return this;
             }
 
-            return transformVectorTo(VectorScale, newScale, duration, easing, new TransformScaleVector(Clock));
+            return transformVectorTo(Scale, newScale, duration, easing, new TransformScaleVector(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration, EasingTypes easing = EasingTypes.None)

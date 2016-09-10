@@ -85,7 +85,11 @@
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
+    <Compile Include="Graphics\Containers\ClickableContainer.cs" />
+    <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\MaskingContainerDrawNode.cs" />
+    <Compile Include="Graphics\Cursor\CursorContainer.cs" />
+    <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureBufferStack.cs" />
@@ -101,9 +105,9 @@
     <Compile Include="Graphics\Transformations\TransformPositionX.cs" />
     <Compile Include="Graphics\Transformations\TransformPositionY.cs" />
     <Compile Include="Graphics\Transformations\TransformRotation.cs" />
-    <Compile Include="Graphics\Transformations\TransformScale.cs" />
     <Compile Include="Graphics\Transformations\TransformVector.cs" />
     <Compile Include="Graphics\Transformations\TransformScaleVector.cs" />
+    <Compile Include="Graphics\UI\Button.cs" />
     <Compile Include="Input\TextInputSource.cs" />
     <Compile Include="IO\File\FileSafety.cs" />
     <Compile Include="IO\Network\FileWebRequest.cs" />

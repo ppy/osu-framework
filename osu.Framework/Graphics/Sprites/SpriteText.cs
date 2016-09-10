@@ -1,11 +1,13 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.IO.Stores;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -29,13 +31,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private float spaceWidth;
 
-        private static TextureStore defaultFontStore;
-
         private TextureStore store;
 
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
+
+            HandleInput = false;
         }
 
         public override void Load()
@@ -49,7 +51,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private string text;
-        public virtual string Text
+        public string Text
         {
             get { return text; }
             set
@@ -92,26 +94,45 @@ namespace osu.Framework.Graphics.Sprites
             refreshLayout();
         }
 
+        string lastText;
+
         private void refreshLayout()
         {
             internalSize.Refresh(delegate
             {
-                Clear();
+                //keep sprites which haven't changed since last layout.
+                List<Drawable> keepDrawables = new List<Drawable>();
+                int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
+                for (int i = 0; i < length; i++)
+                {
+                    if (lastText[i] != text[i]) break;
+                    keepDrawables.Add(Children[i]);
+                }
 
-                if (string.IsNullOrEmpty(text))
-                    return Vector2.Zero;
+                Clear();
 
                 foreach (char c in text)
                 {
                     Drawable s;
-                    if (c == ' ')
-                        s = new Container() { Size = new Vector2(spaceWidth) };
+
+                    if (keepDrawables.Count > 0)
+                    {
+                        s = keepDrawables[0];
+                        keepDrawables.RemoveAt(0);
+                    }
+                    else if (c == ' ')
+                        s = new Container()
+                        {
+                            Size = new Vector2(spaceWidth),
+                            Colour = Color4.Transparent
+                        };
                     else
                         s = getSprite(c);
 
                     Add(s);
                 }
 
+                lastText = text;
                 return Vector2.Zero;
             });
         }

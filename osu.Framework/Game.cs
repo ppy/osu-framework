@@ -79,12 +79,13 @@ namespace osu.Framework
 
             Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 0.2f };
 
-            AddProcessingContainer(new UserInputManager());
+            AddProcessing(new UserInputManager());
 
             Add(new PerformanceOverlay()
             {
                 Anchor = Graphics.Anchor.BottomRight,
                 Origin = Graphics.Anchor.BottomRight,
+                Depth = float.MaxValue
             });
         }
 
