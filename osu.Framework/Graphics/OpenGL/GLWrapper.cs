@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
+            Debug.Assert(shaderStack.Count == 0);
+
             //todo: don't use scheduler
             resetScheduler.Update();
 
@@ -384,16 +386,35 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
-        public static int CurrentShader { get; private set; }
+        private static int currentShader;
 
-        public static void UseProgram(int shader)
+        private static Stack<int> shaderStack = new Stack<int>();
+
+        public static void UseProgram(int? shader)
         {
-            if (!HasContext || CurrentShader == shader) return;
+            if (!HasContext) return;
 
             ThreadSafety.EnsureDrawThread();
 
-            GL.UseProgram(shader);
-            CurrentShader = shader;
+            if (shader != null)
+            {
+                shaderStack.Push(shader.Value);
+            }
+            else
+            {
+                shaderStack.Pop();
+
+                //check if the stack is empty, and if so don't restore the previous shader.
+                if (shaderStack.Count == 0)
+                    return;
+            }
+
+            int s = shader ?? shaderStack.Peek();
+
+            if (currentShader == s) return;
+
+            GL.UseProgram(s);
+            currentShader = s;
         }
     }
 }
