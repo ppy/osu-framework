@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Cached;
@@ -480,10 +479,8 @@ namespace osu.Framework.Graphics
                 return null;
 
             drawable.changeParent(this);
-
             children.Add(drawable);
-
-            Invalidate(Invalidation.ScreenShape);
+            
             return drawable;
         }
 
@@ -499,8 +496,6 @@ namespace osu.Framework.Graphics
                 return false;
 
             bool result = children.Remove(p);
-
-            Invalidate(Invalidation.ScreenShape);
             p.Parent = null;
 
             if (dispose && p.IsDisposable)
@@ -654,6 +649,28 @@ namespace osu.Framework.Graphics
         /// </summary>		
         protected virtual void UpdateLayout() { }
 
+        /// <summary>
+        /// Updates the life status of children according to their IsAlive property.
+        /// </summary>
+        /// <returns>True iff the life status of at least one child changed.</returns>
+        protected virtual bool UpdateChildrenLife()
+        {
+            bool childChangedStatus = false;
+            foreach (Drawable child in children)
+            {
+                bool isAlive = child.IsAlive;
+                if (isAlive != child.wasAliveLastUpdate)
+                {
+                    child.wasAliveLastUpdate = isAlive;
+                    childChangedStatus = true;
+                }
+            }
+
+            children.Update(Time);
+
+            return childChangedStatus;
+        }
+
         internal virtual void UpdateSubTree()
         {
             transformationDelay = 0;
@@ -667,7 +684,7 @@ namespace osu.Framework.Graphics
             Update();
             OnUpdate?.Invoke();
 
-            children.Update(Time);
+            UpdateChildrenLife();
 
             foreach (Drawable child in children.Current)
                 child.UpdateSubTree();
@@ -742,6 +759,8 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private bool wasAliveLastUpdate = false;
+
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
@@ -814,7 +833,14 @@ namespace osu.Framework.Graphics
                 foreach (var c in children)
                 {
                     if (c == source) continue;
-                    c.Invalidate(invalidation & ~Invalidation.ScreenSize, this);
+
+                    Invalidation childInvalidation = invalidation;
+
+                    // Important TODO: Figure out why commenting out the following 2 lines--i.e. invalidating all choldren's size--breaks autosize.
+                    if (c.SizeMode == InheritMode.None)
+                        childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
+
+                    c.Invalidate(childInvalidation, this);
                 }
             }
 
