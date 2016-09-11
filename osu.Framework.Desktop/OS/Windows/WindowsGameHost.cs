@@ -61,11 +61,15 @@ namespace osu.Framework.Desktop.OS.Windows
             base.OnDeactivated(sender, args);
         }
 
-        protected override void OnApplicationIdle(object sender, EventArgs e)
+        protected override void OnApplicationIdle()
         {
-            MSG message;
-            while (!PeekMessage(out message, IntPtr.Zero, 0, 0, 0))
-                base.OnApplicationIdle(sender, e);
+            //MSG message;
+            //while (!PeekMessage(out message, IntPtr.Zero, 0, 0, 0))
+            //{
+            //    //handle message
+            //}
+
+            base.OnApplicationIdle();
         }
 
         public override void Run()

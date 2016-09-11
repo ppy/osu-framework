@@ -43,21 +43,12 @@ namespace osu.Framework.Graphics
             Add(background);
             Add(scroll);
 
-#if DEBUG
             Add(loadMessage = new SpriteText()
             {
                 Text = @"Click to load DrawVisualiser",
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             });
-#else
-            Add(new SpriteText()
-            {
-                Text = @"DrawVisualiser only available in debug mode!",
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
-#endif
         }
 
         public DrawVisualiser(Drawable target)
@@ -71,7 +62,6 @@ namespace osu.Framework.Graphics
             base.Dispose(isDisposing);
         }
 
-#if DEBUG
         protected override bool OnClick(InputState state)
         {
             if (loadMessage == null)
@@ -250,6 +240,5 @@ namespace osu.Framework.Graphics
                 return false;
             }
         }
-#endif
     }
 }
