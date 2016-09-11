@@ -14,11 +14,6 @@ namespace osu.Framework.Graphics.Containers
         public EasingTypes LayoutEasing;
         public int LayoutDuration = 0;
 
-        /// <summary>
-        /// Even if we aren't autosizing, we need to ensure invalidation.
-        /// </summary>
-        protected override Invalidation ChildrenInvalidateParentMask => (Invalidation.ScreenShape | Invalidation.Visibility);
-
         private FlowDirection direction = FlowDirection.Full;
         public FlowDirection Direction
         {

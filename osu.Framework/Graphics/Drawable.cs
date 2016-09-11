@@ -807,7 +807,7 @@ namespace osu.Framework.Graphics
             OnInvalidate?.Invoke();
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.Invalidate(invalidation & Parent.ChildrenInvalidateParentMask, this, false);
+                Parent.Invalidate(Parent.InvalidationEffectByChildren(invalidation), this, false);
 
             bool alreadyInvalidated = true;
 
@@ -924,7 +924,10 @@ namespace osu.Framework.Graphics
 
         protected Game Game;
 
-        protected virtual Invalidation ChildrenInvalidateParentMask => Invalidation.None;
+        protected virtual Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        {
+            return Invalidation.None;
+        }
     }
 
     /// <summary>
