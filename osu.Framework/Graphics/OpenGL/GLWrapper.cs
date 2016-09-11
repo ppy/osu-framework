@@ -74,8 +74,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() => texture.Upload());
         }
@@ -317,7 +315,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="frameBuffer">The framebuffer to delete.</param>
         internal static void DeleteFramebuffer(int frameBuffer)
         {
-            if (frameBuffer == -1 || !HasContext) return;
+            if (frameBuffer == -1) return;
 
             //todo: don't use scheduler
             resetScheduler.Add(() =>
@@ -332,8 +330,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="vboId">The buffer object to delete.</param>
         internal static void DeleteBuffer(int vboId)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -347,8 +343,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="ids">An array of textures to delete.</param>
         internal static void DeleteTextures(params int[] ids)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -362,8 +356,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="shader">The shader program to delete.</param>
         internal static void DeleteProgram(Shader shader)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -377,8 +369,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="shaderPart">The shader part to delete.</param>
         internal static void DeleteShader(ShaderPart shaderPart)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -392,8 +382,6 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void UseProgram(int? shader)
         {
-            if (!HasContext) return;
-
             ThreadSafety.EnsureDrawThread();
 
             if (shader != null)
