@@ -9,7 +9,9 @@ using osu.Framework.Cached;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Shaders;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.OpenGL.Textures;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
@@ -36,14 +38,7 @@ namespace osu.Framework.Graphics.OpenGL
         private static Cached<int> maxTextureSizeBacking = new Cached<int>();
         public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
 
-        //todo: don't use scheduler
         private static Scheduler resetScheduler = new Scheduler();
-
-        internal static void Schedule(Action del)
-        {
-            //todo: don't use scheduler
-            resetScheduler.Add(del);
-        }
 
         internal static void Reset(Vector2 size)
         {
@@ -393,16 +388,12 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static void UseProgram(int shader)
         {
-            if (!HasContext) return;
+            if (!HasContext || CurrentShader == shader) return;
 
-            //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                if (CurrentShader == shader) return;
+            ThreadSafety.EnsureDrawThread();
 
-                GL.UseProgram(shader);
-                CurrentShader = shader;
-            });
+            GL.UseProgram(shader);
+            CurrentShader = shader;
         }
     }
 }
