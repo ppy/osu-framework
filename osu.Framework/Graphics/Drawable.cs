@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics
 
         public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.Refresh(delegate
+        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking.Value : screenSpaceDrawQuadBacking.Refresh(delegate
         {
             Quad result = GetScreenSpaceQuad(DrawQuad);
 
@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics
             set { Size = new Vector2(Size.X, value); }
         }
 
-        protected virtual IFrameBasedClock Clock => clockBacking.Refresh(() => Parent?.Clock);
+        protected virtual IFrameBasedClock Clock => clockBacking.IsValid ? clockBacking.Value : clockBacking.Refresh(() => Parent?.Clock);
         private Cached<IFrameBasedClock> clockBacking = new Cached<IFrameBasedClock>();
 
         protected double Time => Clock?.CurrentTime ?? 0;
@@ -361,7 +361,7 @@ namespace osu.Framework.Graphics
         }
 
         private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
+        public virtual bool IsVisible => isVisibleBacking.IsValid ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
         private bool? additive;
         public bool? Additive
@@ -381,23 +381,23 @@ namespace osu.Framework.Graphics
         protected virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
-        protected DrawInfo DrawInfo => drawInfoBacking.Refresh(delegate
-        {
-            DrawInfo di = BaseDrawInfo;
+        protected DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+       {
+           DrawInfo di = BaseDrawInfo;
 
-            float alpha = Alpha;
-            if (Colour.A > 0 && Colour.A < 1)
-                alpha *= Colour.A;
+           float alpha = Alpha;
+           if (Colour.A > 0 && Colour.A < 1)
+               alpha *= Colour.A;
 
-            Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+           Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
-            if (Parent == null)
-                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
-            else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+           if (Parent == null)
+               di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+           else
+               Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
-            return di;
-        });
+           return di;
+       });
 
         protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
@@ -909,17 +909,17 @@ namespace osu.Framework.Graphics
     {
         // Individual types
         ScreenPosition = 1 << 0,
-        ScreenSize     = 1 << 1,
-        Visibility     = 1 << 2,
-        Colour          = 1 << 3,
+        ScreenSize = 1 << 1,
+        Visibility = 1 << 2,
+        Colour = 1 << 3,
 
         // Combinations
-        ScreenShape    = ScreenPosition | ScreenSize,
+        ScreenShape = ScreenPosition | ScreenSize,
         DrawInfo = ScreenShape | Colour,
 
         // Meta
         None = 0,
-        All  = ScreenShape | Visibility | Colour,
+        All = ScreenShape | Visibility | Colour,
     };
 
     /// <summary>
