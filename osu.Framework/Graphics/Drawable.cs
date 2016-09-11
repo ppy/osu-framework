@@ -473,7 +473,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual Drawable Add(Drawable drawable)
+        protected Drawable Add(Drawable drawable)
         {
             if (drawable == null)
                 return null;
@@ -490,7 +490,7 @@ namespace osu.Framework.Graphics
                 Add(d);
         }
 
-        protected virtual bool Remove(Drawable p, bool dispose = true)
+        protected bool Remove(Drawable p, bool dispose = true)
         {
             if (p == null)
                 return false;
@@ -937,11 +937,11 @@ namespace osu.Framework.Graphics
         ScreenPosition = 1 << 0,
         ScreenSize     = 1 << 1,
         Visibility     = 1 << 2,
-        Colour          = 1 << 3,
+        Colour         = 1 << 3,
 
         // Combinations
-        ScreenShape    = ScreenPosition | ScreenSize,
-        DrawInfo = ScreenShape | Colour,
+        ScreenShape = ScreenPosition | ScreenSize,
+        DrawInfo    = ScreenShape | Colour,
 
         // Meta
         None = 0,
