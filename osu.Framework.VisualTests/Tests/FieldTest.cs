@@ -59,7 +59,6 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(0.15f, 0),
             });
 
-#if DEBUG
             testContainer.Size = new Vector2(0.6f, 1);
             Add(new DrawVisualiser(testContainer)
             {
@@ -67,7 +66,6 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(0.75f, 0),
                 Size = new Vector2(0.25f, 1)
             });
-#endif
 
             List<TestCase> tests = new List<TestCase>();
 
