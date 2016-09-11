@@ -130,6 +130,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 
-        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.ScreenShape;
+        protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        {
+            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenShape)) > 0)
+                return Invalidation.ScreenShape;
+            else
+                return base.InvalidationEffectByChildren(childInvalidation);
+        }
     }
 }
