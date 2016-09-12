@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private static TextureBufferStack TextureBufferStack = new TextureBufferStack(10);
 
         public int Level;
-        public PixelFormat Format;
+        public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
         private bool shouldFreeBuffer;
