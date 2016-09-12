@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     class TextureGLSingle : TextureGL
     {
         private static VertexBatch<TexturedVertex2d> spriteBatch;
-        private Rectangle boundsToBeUploaded;
 
         private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
@@ -203,9 +202,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             IntPtr dataPointer;
             GCHandle? h0;
-
             TextureUpload upload;
-
             bool didUpload = false;
 
             while (uploadQueue.TryDequeue(out upload))
@@ -247,7 +244,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         else
                             GLWrapper.BindTexture(textureId);
 
-                        if (width == boundsToBeUploaded.Width && height == boundsToBeUploaded.Height || dataPointer == IntPtr.Zero)
+                        if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
@@ -258,7 +255,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
                             h1.Free();
 
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, boundsToBeUploaded.X, boundsToBeUploaded.Y, boundsToBeUploaded.Width, boundsToBeUploaded.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
+                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
                         }
                     }
                     // Just update content of the current texture
@@ -266,7 +263,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     {
                         GLWrapper.BindTexture(textureId);
                         int div = (int)Math.Pow(2, upload.Level);
-                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, boundsToBeUploaded.X / div, boundsToBeUploaded.Y / div, boundsToBeUploaded.Width / div, boundsToBeUploaded.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
+                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
                     }
                 }
                 finally
@@ -282,7 +279,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 GL.GenerateMipmap(TextureTarget.Texture2D);
             }
 
-            return true;
+            return didUpload;
         }
     }
 }
