@@ -18,6 +18,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
+        public static TextureBufferStack TextureBufferStack = new TextureBufferStack(10);
+
         public bool IsTransparent = false;
         public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
 
@@ -104,62 +106,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
             else
             {
-                data = ReserveBuffer(Width * Height * 4);
+                data = TextureBufferStack.ReserveBuffer(Width * Height * 4);
                 Marshal.Copy(dataPointer, data, 0, data.Length);
             }
 
             SetData(data, level, format);
-        }
-
-        private const int MAX_AMOUNT_DATA_BUFFERS = 10;
-        private static Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
-        private static HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
-
-        private static byte[] findFreeBuffer(int minimumLength)
-        {
-            byte[] buffer = null;
-
-            if (freeDataBuffers.Count > 0)
-                buffer = freeDataBuffers.Pop();
-
-            if (buffer == null || buffer.Length < minimumLength)
-                buffer = new byte[minimumLength];
-
-            if (usedDataBuffers.Count < MAX_AMOUNT_DATA_BUFFERS)
-                usedDataBuffers.Add(buffer);
-
-            return buffer;
-        }
-
-        private static void returnFreeBuffer(byte[] buffer)
-        {
-            if (usedDataBuffers.Remove(buffer))
-                // We are here if the element was successfully found and removed
-                freeDataBuffers.Push(buffer);
-        }
-
-        /// <summary>
-        /// Reserve a buffer from the texture buffer pool. This is used to avoid excessive amounts of heap allocations.
-        /// </summary>
-        /// <param name="minimumLength">The minimum length required of the reserved buffer.</param>
-        /// <returns>The reserved buffer.</returns>
-        public static byte[] ReserveBuffer(int minimumLength)
-        {
-            byte[] buffer;
-            lock (freeDataBuffers)
-                buffer = findFreeBuffer(minimumLength);
-
-            return buffer;
-        }
-
-        /// <summary>
-        /// Frees a previously reserved buffer for future reservations.
-        /// </summary>
-        /// <param name="buffer">The buffer to be freed. If the buffer has not previously been reserved then this method does nothing.</param>
-        public static void FreeBuffer(byte[] buffer)
-        {
-            lock (freeDataBuffers)
-                returnFreeBuffer(buffer);
         }
     }
 }

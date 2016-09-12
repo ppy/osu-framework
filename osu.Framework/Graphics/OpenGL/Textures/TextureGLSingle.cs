@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             lock (this)
             {
                 if (dataToBeUploaded != null)
-                    FreeBuffer(dataToBeUploaded);
+                    TextureBufferStack.FreeBuffer(dataToBeUploaded);
                 dataToBeUploaded = null;
             }
 
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             lock (this)
             {
                 if (dataToBeUploaded != null)
-                    FreeBuffer(dataToBeUploaded);
+                    TextureBufferStack.FreeBuffer(dataToBeUploaded);
 
                 formatToBeUploaded = format;
                 levelToBeUploaded = level;
@@ -302,7 +302,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         h0.Value.Free();
 
                     if (dataToBeUploaded != null)
-                        FreeBuffer(dataToBeUploaded);
+                        TextureBufferStack.FreeBuffer(dataToBeUploaded);
 
                     dataToBeUploaded = null;
                 }
