@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Cached;
@@ -52,7 +51,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate(false);
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -107,7 +106,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -121,7 +120,7 @@ namespace osu.Framework.Graphics
                 if (colour == value) return;
                 colour = value;
 
-                Invalidate(false, false);
+                Invalidate(Invalidation.Colour);
             }
         }
 
@@ -135,7 +134,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -151,7 +150,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -164,7 +163,12 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidate(alpha == 0 || value == 0, alpha == 0 || value == 0);
+                Invalidation i = Invalidation.Colour;
+                //we may have changed the visible state.
+                if (alpha == 0 || value == 0)
+                    i |= Invalidation.Visibility;
+
+                Invalidate(i);
 
                 alpha = value;
             }
@@ -172,7 +176,7 @@ namespace osu.Framework.Graphics
 
         public bool IsDisposable;
 
-        private Vector2 size = Vector2.One;
+        protected Vector2 size = Vector2.One;
         public virtual Vector2 Size
         {
             get { return size; }
@@ -182,7 +186,7 @@ namespace osu.Framework.Graphics
                     return;
                 size = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -196,7 +200,7 @@ namespace osu.Framework.Graphics
                     return;
                 sizeMode = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -210,7 +214,7 @@ namespace osu.Framework.Graphics
                     return;
                 positionMode = value;
 
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -258,7 +262,7 @@ namespace osu.Framework.Graphics
 
         public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.Refresh(delegate
+        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking.Value : screenSpaceDrawQuadBacking.Refresh(delegate
         {
             Quad result = GetScreenSpaceQuad(DrawQuad);
 
@@ -305,7 +309,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -324,7 +328,7 @@ namespace osu.Framework.Graphics
             set { Size = new Vector2(Size.X, value); }
         }
 
-        protected virtual IFrameBasedClock Clock => clockBacking.Refresh(() => Parent?.Clock);
+        protected virtual IFrameBasedClock Clock => clockBacking.IsValid ? clockBacking.Value : clockBacking.Refresh(() => Parent?.Clock);
         private Cached<IFrameBasedClock> clockBacking = new Cached<IFrameBasedClock>();
 
         protected double Time => Clock?.CurrentTime ?? 0;
@@ -338,7 +342,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
@@ -351,34 +355,48 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate();
+                Invalidate(Invalidation.ScreenShape);
             }
         }
 
-        public virtual bool IsVisible => Alpha > 0.0001f && Parent?.IsVisible == true;
+        private Cached<bool> isVisibleBacking = new Cached<bool>();
+        public virtual bool IsVisible => isVisibleBacking.IsValid ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
-        public bool? Additive;
+        private bool? additive;
+        public bool? Additive
+        {
+            get { return additive; }
+
+            set
+            {
+                if (additive == value) return;
+
+                Invalidate(Invalidation.Colour);
+
+                additive = value;
+            }
+        }
 
         protected virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
-        protected DrawInfo DrawInfo => drawInfoBacking.Refresh(delegate
-        {
-            DrawInfo di = BaseDrawInfo;
+        protected DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+       {
+           DrawInfo di = BaseDrawInfo;
 
-            float alpha = Alpha;
-            if (Colour.A > 0 && Colour.A < 1)
-                alpha *= Colour.A;
+           float alpha = Alpha;
+           if (Colour.A > 0 && Colour.A < 1)
+               alpha *= Colour.A;
 
-            Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+           Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
-            if (Parent == null)
-                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
-            else
-                Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+           if (Parent == null)
+               di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+           else
+               Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
-            return di;
-        });
+           return di;
+       });
 
         protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
@@ -461,10 +479,8 @@ namespace osu.Framework.Graphics
                 return null;
 
             drawable.changeParent(this);
-
             children.Add(drawable);
-
-            Invalidate();
+            
             return drawable;
         }
 
@@ -480,8 +496,6 @@ namespace osu.Framework.Graphics
                 return false;
 
             bool result = children.Remove(p);
-
-            Invalidate();
             p.Parent = null;
 
             if (dispose && p.IsDisposable)
@@ -525,14 +539,14 @@ namespace osu.Framework.Graphics
 
             children.Clear();
 
-            Invalidate();
+            Invalidate(Invalidation.ScreenShape);
         }
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private delegate Vector2 BoundsResult();
 
-        private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
+        protected Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
         internal Vector2 GetBoundingSize(Drawable calculateDrawable)
         {
             BoundsResult computeBoundingSize = () =>
@@ -622,33 +636,40 @@ namespace osu.Framework.Graphics
             DrawNode node = BaseDrawNode;
 
             foreach (Drawable child in children.Current)
-                node.Children.Add(child.GenerateDrawNodeSubtree());
+                if (child.IsVisible)
+                    node.Children.Add(child.GenerateDrawNodeSubtree());
 
             return node;
         }
 
         protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
 
-        protected void UpdateDrawInfoSubtree()
-        {
-            if (drawInfoBacking.IsValid)
-            {
-                DrawInfo oldDrawInfo = DrawInfo;
-
-                drawInfoBacking.Invalidate();
-
-                if (oldDrawInfo.Equals(DrawInfo))
-                    return;
-            }
-
-            foreach (Drawable child in children.Current)
-                child.UpdateDrawInfoSubtree();
-        }
-
-        /// <summary>		
+        /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
-        internal virtual void UpdateLayout() { }
+        protected virtual void UpdateLayout() { }
+
+        /// <summary>
+        /// Updates the life status of children according to their IsAlive property.
+        /// </summary>
+        /// <returns>True iff the life status of at least one child changed.</returns>
+        protected virtual bool UpdateChildrenLife()
+        {
+            bool childChangedStatus = false;
+            foreach (Drawable child in children)
+            {
+                bool isAlive = child.IsAlive;
+                if (isAlive != child.wasAliveLastUpdate)
+                {
+                    child.wasAliveLastUpdate = isAlive;
+                    childChangedStatus = true;
+                }
+            }
+
+            children.Update(Time);
+
+            return childChangedStatus;
+        }
 
         internal virtual void UpdateSubTree()
         {
@@ -663,7 +684,7 @@ namespace osu.Framework.Graphics
             Update();
             OnUpdate?.Invoke();
 
-            children.Update(Time);
+            UpdateChildrenLife();
 
             foreach (Drawable child in children.Current)
                 child.UpdateSubTree();
@@ -738,6 +759,8 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private bool wasAliveLastUpdate = false;
+
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
@@ -774,35 +797,54 @@ namespace osu.Framework.Graphics
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
         /// <returns>If the invalidate was actually necessary.</returns>
-        public virtual bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
+            if (invalidation == Invalidation.None)
+                return false;
+
             ThreadSafety.EnsureUpdateThread();
 
             OnInvalidate?.Invoke();
 
-            if (affectsPosition && source != Parent && Parent?.ChildrenShouldInvalidate == true)
-                Parent.Invalidate(affectsPosition, affectsPosition, this);
+            if (shallPropagate && Parent != null && source != Parent)
+                Parent.Invalidate(Parent.InvalidationEffectByChildren(invalidation), this, false);
 
             bool alreadyInvalidated = true;
 
-            //todo: some of these can be skipped depending on the invalidation type.
-            alreadyInvalidated &= !boundingSizeBacking.Invalidate();
-            alreadyInvalidated &= !drawInfoBacking.Invalidate();
-            alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-            alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+            if ((invalidation & Invalidation.ScreenSize) > 0)
+                alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-            if (alreadyInvalidated) return false;
+            // Either ScreenSize OR ScreenPosition
+            if ((invalidation & Invalidation.ScreenShape) > 0)
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
+
+            // Either ScreenSize OR ScreenPosition OR Colour
+            if ((invalidation & Invalidation.ScreenShape) > 0 || (invalidation & Invalidation.Colour) > 0)
+                alreadyInvalidated &= !drawInfoBacking.Invalidate();
+
+            if ((invalidation & Invalidation.Visibility) > 0)
+                alreadyInvalidated &= !isVisibleBacking.Invalidate();
+
+            if (alreadyInvalidated || !shallPropagate)
+                return !alreadyInvalidated;
 
             if (children != null)
             {
                 foreach (var c in children)
                 {
                     if (c == source) continue;
-                    c.Invalidate(false, affectsPosition, this);
+
+                    Invalidation childInvalidation = invalidation;
+
+                    // Important TODO: Figure out why commenting out the following 2 lines--i.e. invalidating all choldren's size--breaks autosize.
+                    if (c.SizeMode == InheritMode.None)
+                        childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
+
+                    c.Invalidate(childInvalidation, this);
                 }
             }
 
-            return true;
+            return !alreadyInvalidated;
         }
 
         protected Vector2 GetAnchoredPosition(Vector2 pos)
@@ -882,8 +924,32 @@ namespace osu.Framework.Graphics
 
         protected Game Game;
 
-        protected virtual bool ChildrenShouldInvalidate => false;
+        protected virtual Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        {
+            return Invalidation.None;
+        }
     }
+
+    /// <summary>
+    /// Specifies which type of properties are being invalidated.
+    /// </summary>
+    [Flags]
+    public enum Invalidation
+    {
+        // Individual types
+        ScreenPosition = 1 << 0,
+        ScreenSize = 1 << 1,
+        Visibility = 1 << 2,
+        Colour = 1 << 3,
+
+        // Combinations
+        ScreenShape = ScreenPosition | ScreenSize,
+        DrawInfo = ScreenShape | Colour,
+
+        // Meta
+        None = 0,
+        All = ScreenShape | Visibility | Colour,
+    };
 
     /// <summary>
     /// General enum to specify an "anchor" or "origin" point from the standard 9 points on a rectangle.

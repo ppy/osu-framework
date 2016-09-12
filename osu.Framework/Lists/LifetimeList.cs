@@ -34,7 +34,7 @@ namespace osu.Framework.Lists
 
         public List<T> Update(double time)
         {
-            List<T> becameDead = new List<T>();
+            List<T> removedObjects = new List<T>();
 
             for (int i = 0; i < Count; i++)
             {
@@ -50,13 +50,13 @@ namespace osu.Framework.Lists
                     if (obj.RemoveWhenNotAlive)
                     {
                         RemoveAt(i--);
-                        becameDead.Add(obj);
+                        removedObjects.Add(obj);
                     }
                 }
             }
 
             lastTime = time;
-            return becameDead;
+            return removedObjects;
         }
 
         public override int Add(T item)

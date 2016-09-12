@@ -15,12 +15,12 @@ namespace osu.Framework.Graphics.Containers
 
         private bool autoSizeUpdatePending;
 
-        public override bool Invalidate(bool affectsSize = true, bool affectsPosition = true, Drawable source = null)
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if (affectsSize)
+            if ((invalidation & Invalidation.ScreenSize) > 0)
                 autoSizeUpdatePending = true;
 
-            bool alreadyInvalidated = base.Invalidate(affectsSize, affectsPosition, source);
+            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
 
             return !alreadyInvalidated;
         }
@@ -66,6 +66,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            bool childChangedStatus = base.UpdateChildrenLife();
+            if (childChangedStatus)
+                Invalidate(Invalidation.ScreenShape);
+
+            return childChangedStatus;
+        }
+
         internal override void UpdateSubTree()
         {
             base.UpdateSubTree();
@@ -73,17 +82,34 @@ namespace osu.Framework.Graphics.Containers
             if (RequireAutoSize)
             {
                 Vector2 b = GetBoundingSize(this);
-                if (!HasDefinedSize || b != Size)
-                {
-                    Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
-                    Invalidate();
-                    UpdateDrawInfoSubtree();
-                }
+                // This triggers re-positioning of all children according.
+                // It is required even if Size does coincidentally not change, since children
+                // might still have moved.
+                Invalidate(Invalidation.ScreenShape);
 
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
             }
+        }
+
+        public override Drawable Add(Drawable drawable)
+        {
+            Drawable result = base.Add(drawable);
+            if (result != null)
+                Invalidate(Invalidation.ScreenShape);
+
+            return result;
+        }
+
+        public override bool Remove(Drawable p, bool dispose = true)
+        {
+            bool result = base.Remove(p, dispose);
+            if (result)
+                Invalidate(Invalidation.ScreenShape);
+
+            return result;
         }
 
         public override Vector2 ActualSize
@@ -104,6 +130,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 
-        protected override bool ChildrenShouldInvalidate => true;
+        protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        {
+            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenShape)) > 0)
+                return Invalidation.ScreenShape;
+            else
+                return base.InvalidationEffectByChildren(childInvalidation);
+        }
     }
 }

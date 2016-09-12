@@ -21,8 +21,12 @@ namespace osu.Framework.Desktop.OS.Windows
 
         private WindowsGameWindow window;
 
+        private TimePeriod timePeriod;
+
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
+            timePeriod = new TimePeriod(1) { Active = true };
+
             Architecture.SetIncludePath();
             window = new WindowsGameWindow(flags);
 
@@ -32,26 +36,40 @@ namespace osu.Framework.Desktop.OS.Windows
             Window.Deactivated += OnDeactivated;
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            timePeriod.Dispose();
+            base.Dispose(isDisposing);
+        }
+
         private TextInputSource textInputBox;
         public override TextInputSource TextInput => textInputBox ?? (textInputBox = window.CreateTextInput());
 
         protected override void OnActivated(object sender, EventArgs args)
         {
+            timePeriod.Active = true;
+
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
             base.OnActivated(sender, args);
         }
 
         protected override void OnDeactivated(object sender, EventArgs args)
         {
+            timePeriod.Active = true;
+
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated(sender, args);
         }
 
-        protected override void OnApplicationIdle(object sender, EventArgs e)
+        protected override void OnApplicationIdle()
         {
-            MSG message;
-            while (!PeekMessage(out message, IntPtr.Zero, 0, 0, 0))
-                base.OnApplicationIdle(sender, e);
+            //MSG message;
+            //while (!PeekMessage(out message, IntPtr.Zero, 0, 0, 0))
+            //{
+            //    //handle message
+            //}
+
+            base.OnApplicationIdle();
         }
 
         public override void Run()

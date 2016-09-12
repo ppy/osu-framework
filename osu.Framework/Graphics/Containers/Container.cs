@@ -7,6 +7,7 @@ using System.Text;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -53,5 +54,7 @@ namespace osu.Framework.Graphics.Containers
             get { return base.ContentScale; }
             set { base.ContentScale = value; }
         }
+
+        public ReadOnlyList<Drawable> Children => base.Children;
     }
 }
