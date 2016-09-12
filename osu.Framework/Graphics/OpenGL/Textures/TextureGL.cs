@@ -18,8 +18,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public static TextureBufferStack TextureBufferStack = new TextureBufferStack(10);
-
         public bool IsTransparent = false;
         public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
 
@@ -82,35 +80,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Uploads pending texture data to the GPU if it exists.
         /// </summary>
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
-        public abstract bool Upload();
+        internal abstract bool Upload();
 
-        /// <summary>
-        /// Load texture data from a raw byte array (BGRA 32bit format)
-        /// </summary>
-        public abstract void SetData(byte[] data, int level = 0, PixelFormat format = PixelFormat.Rgba);
+        public abstract void SetData(TextureUpload upload);
 
         /// <summary>
         /// Load texture data from a raw IntPtr location (BGRA 32bit format)
         /// </summary>
-        public void SetData(IntPtr dataPointer, int level = 0, PixelFormat format = 0)
+        public void SetData(IntPtr dataPointer, int level = 0, PixelFormat format = PixelFormat.Rgba)
         {
-            Debug.Assert(!isDisposed);
-
-            if (format == 0)
-                format = PixelFormat.Rgba;
-
-            byte[] data;
-            if (dataPointer == IntPtr.Zero)
+            TextureUpload upload = new TextureUpload(dataPointer == IntPtr.Zero ? 0 : Width * Height * 4)
             {
-                data = new byte[0];
-            }
-            else
-            {
-                data = TextureBufferStack.ReserveBuffer(Width * Height * 4);
-                Marshal.Copy(dataPointer, data, 0, data.Length);
-            }
+                Format = format,
+                Level = level,
+                Bounds = new Rectangle(0, 0, Width, Height)
+            };
 
-            SetData(data, level, format);
+            Marshal.Copy(dataPointer, upload.Data, 0, upload.Data.Length);
+
+            SetData(upload);
         }
     }
 }

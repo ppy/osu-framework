@@ -40,6 +40,17 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static Scheduler resetScheduler = new Scheduler();
 
+        static GLWrapper()
+        {
+            //force no thread set until we are actually on the draw thread.
+            resetScheduler.SetCurrentThread(null);
+        }
+
+        internal static void Initialize()
+        {
+            resetScheduler.SetCurrentThread();
+        }
+
         internal static void Reset(Vector2 size)
         {
             Debug.Assert(shaderStack.Count == 0);

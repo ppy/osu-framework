@@ -2,6 +2,8 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using OpenTK.Graphics.ES20;
@@ -22,16 +24,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private static VertexBatch<TexturedVertex2d> spriteBatch;
         private Rectangle boundsToBeUploaded;
 
-        private byte[] dataToBeUploaded = null;
+        private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
-        private int levelToBeUploaded;
 
         private TextureWrapMode internalWrapMode;
-        private PixelFormat formatToBeUploaded;
 
-        public override bool Loaded => textureId > 0 || dataToBeUploaded != null;
+        public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
         public TextureGLSingle(int width, int height)
         {
@@ -51,13 +51,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
-            lock (this)
-            {
-                if (dataToBeUploaded != null)
-                    TextureBufferStack.FreeBuffer(dataToBeUploaded);
-                dataToBeUploaded = null;
-            }
-
             int disposableId = textureId;
 
             if (disposableId <= 0)
@@ -108,7 +101,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 Debug.Assert(!isDisposed);
 
-                if (dataToBeUploaded != null)
+                if (uploadQueue.Count > 0)
                     Upload();
 
                 return textureId;
@@ -163,33 +156,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)internalWrapMode);
         }
 
-        public void SetData(byte[] data, Rectangle bounds, int level = 0, PixelFormat format = PixelFormat.Rgba)
+        public override void SetData(TextureUpload upload)
         {
             Debug.Assert(!isDisposed);
 
-            lock (this)
-            {
-                if (dataToBeUploaded != null)
-                    TextureBufferStack.FreeBuffer(dataToBeUploaded);
+            if (upload.Bounds == Rectangle.Empty)
+                upload.Bounds = new Rectangle(0, 0, width, height);
 
-                formatToBeUploaded = format;
-                levelToBeUploaded = level;
-                boundsToBeUploaded = bounds;
-                dataToBeUploaded = data;
-
-                IsTransparent = false;
-
-                GLWrapper.EnqueueTextureUpload(this);
-            }
-        }
-
-        /// <summary>
-        /// Load texture data from a raw byte array (BGRA 32bit format)
-        /// </summary>
-        public override void SetData(byte[] data, int level = 0, PixelFormat format = PixelFormat.Rgba)
-        {
-            Debug.Assert(!isDisposed);
-            SetData(data, new Rectangle(0, 0, width, height), level, format);
+            IsTransparent = false;
+            uploadQueue.Enqueue(upload);
+            GLWrapper.EnqueueTextureUpload(this);
         }
 
         public override bool Bind()
@@ -217,7 +193,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private static byte[] transparentBlack = new byte[0];
 
-        public override bool Upload()
+        internal override bool Upload()
         {
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
@@ -225,23 +201,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (isDisposed)
                 return false;
 
-            lock (this)
+            IntPtr dataPointer;
+            GCHandle? h0;
+
+            TextureUpload upload;
+
+            bool didUpload = false;
+
+            while (uploadQueue.TryDequeue(out upload))
             {
-                if (dataToBeUploaded == null)
-                    return false;
-
-                IntPtr dataPointer;
-                GCHandle? h0;
-
-                if (dataToBeUploaded.Length == 0)
+                if (upload.Data.Length == 0)
                 {
                     h0 = null;
                     dataPointer = IntPtr.Zero;
                 }
                 else
                 {
-                    h0 = GCHandle.Alloc(dataToBeUploaded, GCHandleType.Pinned);
+                    h0 = GCHandle.Alloc(upload.Data, GCHandleType.Pinned);
                     dataPointer = h0.Value.AddrOfPinnedObject();
+                    didUpload = true;
                 }
 
                 try
@@ -261,8 +239,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(textureId);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.LinearMipmapLinear);
 
                             updateWrapMode();
                         }
@@ -270,43 +248,41 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GLWrapper.BindTexture(textureId);
 
                         if (width == boundsToBeUploaded.Width && height == boundsToBeUploaded.Height || dataPointer == IntPtr.Zero)
-                            GL.TexImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, TextureComponentCount.Rgba, width, height, 0, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
+                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
                             if (transparentBlack.Length < width * height * 4)
                                 transparentBlack = new byte[width * height * 4]; // Default value is 0, exactly what we need.
 
                             GCHandle h1 = GCHandle.Alloc(transparentBlack, GCHandleType.Pinned);
-                            GL.TexImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, TextureComponentCount.Rgba, width, height, 0, formatToBeUploaded, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
+                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
                             h1.Free();
 
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, boundsToBeUploaded.X, boundsToBeUploaded.Y, boundsToBeUploaded.Width, boundsToBeUploaded.Height, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
+                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, boundsToBeUploaded.X, boundsToBeUploaded.Y, boundsToBeUploaded.Width, boundsToBeUploaded.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
                         }
                     }
                     // Just update content of the current texture
                     else if (dataPointer != IntPtr.Zero)
                     {
                         GLWrapper.BindTexture(textureId);
-                        int div = (int)Math.Pow(2, levelToBeUploaded);
-                        GL.TexSubImage2D(TextureTarget2d.Texture2D, levelToBeUploaded, boundsToBeUploaded.X / div, boundsToBeUploaded.Y / div, boundsToBeUploaded.Width / div, boundsToBeUploaded.Height / div, formatToBeUploaded, PixelType.UnsignedByte, dataPointer);
+                        int div = (int)Math.Pow(2, upload.Level);
+                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, boundsToBeUploaded.X / div, boundsToBeUploaded.Y / div, boundsToBeUploaded.Width / div, boundsToBeUploaded.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
                     }
-
-                    //todo: this should be scheduled so it doesn't run multiple times when first creating sprite atlases.
-                    //GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
-                    //GL.GenerateMipmap(TextureTarget.Texture2D);
-                    return true;
                 }
                 finally
                 {
                     if (h0.HasValue)
                         h0.Value.Free();
-
-                    if (dataToBeUploaded != null)
-                        TextureBufferStack.FreeBuffer(dataToBeUploaded);
-
-                    dataToBeUploaded = null;
                 }
             }
+
+            if (didUpload)
+            {
+                GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
+                GL.GenerateMipmap(TextureTarget.Texture2D);
+            }
+
+            return true;
         }
     }
 }

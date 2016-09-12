@@ -48,25 +48,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         /// <summary>
-        /// Load texture data from a raw byte array (BGRA 32bit format)
-        /// </summary>
-        public override void SetData(byte[] data, int level = 0, PixelFormat format = PixelFormat.Rgba)
-        {
-            lock (this)
-            {
-                formatToBeUploaded = format;
-                levelToBeUploaded = level;
-                dataToBeUploaded = data;
-            }
-        }
-
-        /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
         public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2d> spriteBatch = null)
         {
-            Upload();
-
             RectangleF actualBounds = bounds;
 
             if (textureRect.HasValue)
@@ -81,20 +66,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.Draw(vertexQuad, actualBounds, drawColour, spriteBatch);
         }
 
-        public override bool Upload()
+        internal override bool Upload()
         {
-            lock (this)
-            {
-                if (dataToBeUploaded != null)
-                {
-                    parent.SetData(dataToBeUploaded, bounds, levelToBeUploaded, formatToBeUploaded);
-                    parent.Upload();
-                    dataToBeUploaded = null;
-
-                    return true;
-                }
-            }
-
+            //no upload required; our parent does this.
             return false;
         }
 
@@ -104,6 +78,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             Upload();
             return parent.Bind();
+        }
+
+        public override void SetData(TextureUpload upload)
+        {
+            Debug.Assert(upload.Bounds.Width == bounds.Width && upload.Bounds.Height == bounds.Height);
+
+            upload.Bounds = bounds;
+
+            parent.SetData(upload);
         }
     }
 }

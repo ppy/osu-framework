@@ -101,6 +101,7 @@ namespace osu.Framework.OS
         private void drawLoop()
         {
             GLControl.Initialize();
+            GLWrapper.Initialize();
 
             while (!exitRequested)
             {

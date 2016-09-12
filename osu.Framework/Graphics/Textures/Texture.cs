@@ -117,15 +117,9 @@ namespace osu.Framework.Graphics.Textures
             return isTransparent;
         }
 
-        public void SetData(byte[] data, int level = 0, OpenTK.Graphics.ES20.PixelFormat format = 0)
+        public void SetData(TextureUpload upload)
         {
-            if (TextureGL == null)
-                return;
-
-            if (format != 0)
-                TextureGL.SetData(data, level, format);
-            else
-                TextureGL.SetData(data, level);
+            TextureGL?.SetData(upload);
         }
 
         public unsafe void SetData(Bitmap bitmap, int level = 0)
@@ -138,7 +132,14 @@ namespace osu.Framework.Graphics.Textures
 
             BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-            byte[] data = TextureGL.TextureBufferStack.ReserveBuffer(width * height * 4);
+            TextureUpload upload = new TextureUpload(width * height * 4)
+            {
+                Format = 0,
+                Level = level,
+                Bounds = new Rectangle(0, 0, Width, Height)
+            };
+
+            byte[] data = upload.Data;
 
             int bytesPerPixel = 4;
             byte* bDataPointer = (byte*)bData.Scan0;
@@ -154,10 +155,9 @@ namespace osu.Framework.Graphics.Textures
 
             bool isTransparent = bgraToRgba(data, width * height * 4);
             TextureGL.IsTransparent = isTransparent;
+
             if (!isTransparent)
-                SetData(data, level);
-            else
-                TextureGL.TextureBufferStack.FreeBuffer(data);
+                SetData(upload);
         }
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)
