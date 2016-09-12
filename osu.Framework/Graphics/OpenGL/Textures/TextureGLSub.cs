@@ -71,6 +71,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Debug.Assert(!isDisposed);
 
             Upload();
+
             return parent.Bind();
         }
 
