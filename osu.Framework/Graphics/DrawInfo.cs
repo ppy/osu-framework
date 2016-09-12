@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics
                 m = m.TranslateTo(-origin);
 
             target.Matrix = m;
-            target.MatrixInverse = m.Inverted();
+            target.MatrixInverse = m.FastInvert();
 
             target.Colour = Colour;
 
