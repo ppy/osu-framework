@@ -83,22 +83,5 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         internal abstract bool Upload();
 
         public abstract void SetData(TextureUpload upload);
-
-        /// <summary>
-        /// Load texture data from a raw IntPtr location (BGRA 32bit format)
-        /// </summary>
-        public void SetData(IntPtr dataPointer, int level = 0, PixelFormat format = PixelFormat.Rgba)
-        {
-            TextureUpload upload = new TextureUpload(dataPointer == IntPtr.Zero ? 0 : Width * Height * 4)
-            {
-                Format = format,
-                Level = level,
-                Bounds = new Rectangle(0, 0, Width, Height)
-            };
-
-            Marshal.Copy(dataPointer, upload.Data, 0, upload.Data.Length);
-
-            SetData(upload);
-        }
     }
 }
