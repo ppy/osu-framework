@@ -20,14 +20,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private TextureGLSingle parent;
         private Rectangle bounds;
 
-        private byte[] dataToBeUploaded = null;
-
-        private int levelToBeUploaded;
-
-        private PixelFormat formatToBeUploaded;
-
         public override int TextureId => parent.TextureId;
-        public override bool Loaded => parent.Loaded || dataToBeUploaded != null;
+        public override bool Loaded => parent.Loaded;
 
         public TextureGLSub(Rectangle bounds, TextureGLSingle parent)
         {
