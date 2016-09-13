@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// This is used for initializing power-of-two sized textures to transparent to avoid artifacts.
         /// </summary>
-        private static byte[] transparentBlack = new byte[0];
+        private static byte[] transparentBlack = new byte[2048 * 2048 * 4];
 
         internal override bool Upload()
         {
@@ -252,9 +252,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
-                            if (transparentBlack.Length < width * height * 4)
-                                transparentBlack = new byte[width * height * 4]; // Default value is 0, exactly what we need.
-
                             GCHandle h1 = GCHandle.Alloc(transparentBlack, GCHandleType.Pinned);
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
                             h1.Free();
