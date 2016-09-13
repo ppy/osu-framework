@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Textures
             TextureUpload upload = new TextureUpload(width * height * 4)
             {
                 Level = level,
-                Bounds = new Rectangle(0, 0, Width, Height)
+                Bounds = new Rectangle(0, 0, width, height)
             };
 
             byte[] data = upload.Data;
