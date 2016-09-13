@@ -200,6 +200,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             fixAlpha(transparentBlack);
         }
+
+        bool manualMipmaps;
+
         private static unsafe bool fixAlpha(byte[] data)
         {
             bool isTransparent = true;
@@ -294,7 +297,29 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     else if (dataPointer != IntPtr.Zero)
                     {
                         GLWrapper.BindTexture(textureId);
+
+                        if (!manualMipmaps && upload.Level > 0)
+                        {
+                            GCHandle h1 = GCHandle.Alloc(transparentBlack, GCHandleType.Pinned);
+
+                            //allocate mipmap levels
+                            int level = 1;
+                            int d = 2;
+
+                            while (width / d > 0)
+                            {
+                                GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width / d, height / d, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
+                                level++;
+                                d *= 2;
+                            }
+
+                            h1.Free();
+
+                            manualMipmaps = true;
+                        }
+
                         int div = (int)Math.Pow(2, upload.Level);
+
                         GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
                     }
                 }
@@ -305,7 +330,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            if (didUpload)
+            if (didUpload && !manualMipmaps)
             {
                 GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
                 GL.GenerateMipmap(TextureTarget.Texture2D);
