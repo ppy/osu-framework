@@ -272,7 +272,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             GLWrapper.BindTexture(textureId);
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.LinearMipmapLinear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
                             updateWrapMode();
                         }
@@ -284,7 +284,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         else
                         {
                             GCHandle h1 = GCHandle.Alloc(transparentBlack, GCHandleType.Pinned);
-                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
+                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
                             h1.Free();
 
                             GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
