@@ -196,6 +196,35 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private static byte[] transparentBlack = new byte[2048 * 2048 * 4];
 
+        static TextureGLSingle()
+        {
+            fixAlpha(transparentBlack);
+        }
+        private static unsafe bool fixAlpha(byte[] data)
+        {
+            bool isTransparent = true;
+
+            fixed (byte* dPtr = &data[0])
+            {
+                byte* sp = dPtr;
+                byte* ep = dPtr + data.Length;
+
+                while (sp < ep)
+                {
+                    if (*(sp + 3) == 0 && *(sp + 2) < 255)
+                    {
+                        *(sp + 0) = 255;
+                        *(sp + 1) = 255;
+                        *(sp + 2) = 255;
+                    }
+
+                    sp += 4;
+                }
+            }
+
+            return isTransparent;
+        }
+
         internal override bool Upload()
         {
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
@@ -218,6 +247,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
                 else
                 {
+                    fixAlpha(upload.Data);
+
                     h0 = GCHandle.Alloc(upload.Data, GCHandleType.Pinned);
                     dataPointer = h0.Value.AddrOfPinnedObject();
                     didUpload = true;
