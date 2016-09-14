@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
 using OpenTK.Graphics.ES20;
 using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 using System.Diagnostics;

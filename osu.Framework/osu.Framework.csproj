@@ -40,7 +40,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Magick.NET-Q16-AnyCPU, Version=7.0.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
-      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.7.0.3.1\lib\net40-client\Magick.NET-Q16-AnyCPU.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Magick.NET-Q16-AnyCPU.7.0.3.1\lib\net40-client\Magick.NET-Q16-AnyCPU.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ManagedBass, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
