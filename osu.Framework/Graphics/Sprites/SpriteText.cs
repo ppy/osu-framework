@@ -65,17 +65,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private float? constantWidth;
-        public bool TextFixedWidth
-        {
-            get { return constantWidth.HasValue; }
-            set
-            {
-                if (value)
-                    constantWidth = getSprite('5')?.Width + 1 ?? 20;
-                else
-                    constantWidth = null;
-            }
-        }
+        public bool FixedWidth;
 
         public override Vector2 Size
         {
@@ -100,6 +90,9 @@ namespace osu.Framework.Graphics.Sprites
         {
             internalSize.Refresh(delegate
             {
+                if (FixedWidth && !constantWidth.HasValue)
+                    constantWidth = getSprite('D').Width;
+
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
                 int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
@@ -111,23 +104,32 @@ namespace osu.Framework.Graphics.Sprites
 
                 Clear();
 
-                foreach (char c in text)
-                {
-                    Drawable s;
+                keepDrawables.ForEach(k => Add(k));
 
-                    if (keepDrawables.Count > 0)
-                    {
-                        s = keepDrawables[0];
-                        keepDrawables.RemoveAt(0);
-                    }
-                    else if (c == ' ')
+                for (int index = keepDrawables.Count; index < text.Length; index++)
+                {
+                    char c = text[index];
+
+                    Drawable s;
+                    if (c == ' ')
                         s = new Container()
                         {
-                            Size = new Vector2(spaceWidth),
+                            Size = new Vector2(constantWidth ?? spaceWidth),
                             Colour = Color4.Transparent
                         };
                     else
                         s = getSprite(c);
+
+                    if (FixedWidth)
+                    {
+                        var ctn = new Container() { Size = new Vector2(constantWidth.Value, s.Size.Y) };
+
+                        s.Anchor = Anchor.TopCentre;
+                        s.Origin = Anchor.TopCentre;
+
+                        ctn.Add(s);
+                        s = ctn;
+                    }
 
                     Add(s);
                 }

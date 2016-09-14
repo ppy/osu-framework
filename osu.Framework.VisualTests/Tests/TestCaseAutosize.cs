@@ -325,6 +325,9 @@ namespace osu.Framework.VisualTests.Tests
         public override void Load()
         {
             base.Load();
+
+            Masking = true;
+
             Add(new Box() { SizeMode = InheritMode.XY });
         }
 
