@@ -50,6 +50,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// </summary>
         private void unload()
         {
+            TextureUpload u;
+            while (uploadQueue.TryDequeue(out u))
+                u.Dispose();
+
             int disposableId = textureId;
 
             if (disposableId <= 0)
@@ -268,8 +272,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
                 finally
                 {
-                    if (h0.HasValue)
-                        h0.Value.Free();
+                    h0?.Free();
+                    upload?.Dispose();
                 }
             }
 
