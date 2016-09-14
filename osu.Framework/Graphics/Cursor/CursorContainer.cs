@@ -5,6 +5,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using OpenTK;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -16,6 +17,8 @@ namespace osu.Framework.Graphics.Cursor
         {
             Add(cursor = new Cursor());
         }
+
+        internal override bool Contains(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {

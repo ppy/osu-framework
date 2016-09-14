@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using OpenTK.Input;
-using Rectangle = System.Drawing.Rectangle;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Graphics;
