@@ -157,6 +157,8 @@ namespace osu.Framework.Graphics.Textures
 
             if (!isTransparent)
                 SetData(upload);
+            else
+                upload.Dispose();
         }
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)
