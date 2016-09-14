@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
@@ -16,6 +17,10 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class Container : Drawable
     {
+        public bool Masking;
+
+        protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.BoundingRectangle : (Rectangle?)null);
+
         public new virtual Drawable Add(Drawable drawable)
         {
             return base.Add(drawable);
