@@ -16,8 +16,8 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load();
 
-            Add(new FpsDisplay(@"Update", Game.Host.UpdateClock));
-            Add(new FpsDisplay(@"Draw", Game.Host.DrawClock));
+            Add(new FpsDisplay(@"UPD", Game.Host.UpdateClock));
+            Add(new FpsDisplay(@"DRW", Game.Host.DrawClock));
 
             Direction = FlowDirection.VerticalOnly;
         }

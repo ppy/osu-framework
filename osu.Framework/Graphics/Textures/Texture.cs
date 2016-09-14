@@ -165,8 +165,6 @@ namespace osu.Framework.Graphics.Textures
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
-            if (TextureGL == null) return;
-
             if (DpiScale != 1)
             {
                 texRect.Width *= DpiScale;
@@ -175,7 +173,7 @@ namespace osu.Framework.Graphics.Textures
                 texRect.Y *= DpiScale;
             }
 
-            TextureGL.Draw(vertexQuad, texRect, colour, spriteBatch);
+            TextureGL?.Draw(vertexQuad, texRect, colour, spriteBatch);
         }
     }
 }

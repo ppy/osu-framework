@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics
             var drawables = container.Children.ConvertAll(o => o as VisualisedDrawable);
 
             drawables.ForEach(dd => dd.CheckExpiry());
-            
+
             VisualisedDrawable vd = drawables.Find(dd => dd.Target == d);
             if (vd == null)
             {
@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics
 
                 var sprite = Target as Sprite;
                 if (sprite != null)
-                    previewBox = new Sprite(sprite.Texture);
+                    previewBox = new Sprite(sprite.Texture) { Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1) };
                 else
                     previewBox = new Box() { Colour = Color4.White };
 
