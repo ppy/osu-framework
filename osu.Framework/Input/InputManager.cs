@@ -40,7 +40,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The distance that must be moved before a drag begins.
         /// </summary>
-        private const float drag_start_distance = 5;
+        private const float drag_start_distance = 0;
 
         /// <summary>
         /// The distance that can be moved between MouseDown and MouseUp to consider a click valid to take action on.
