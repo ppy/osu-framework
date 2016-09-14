@@ -216,14 +216,21 @@ namespace osu.Framework.Logging
             if (hasLogDirectory.HasValue)
                 return;
 
-            try
+            if (logDirectory != null)
             {
-                hasLogDirectory = Directory.CreateDirectory(logDirectory) != null;
+                try
+                {
+                    Directory.CreateDirectory(logDirectory);
+                    hasLogDirectory = true;
+                }
+                catch
+                {
+                }
+
+                return;
             }
-            catch
-            {
-                hasLogDirectory = false;
-            }
+
+            hasLogDirectory = false;
         }
     }
 
