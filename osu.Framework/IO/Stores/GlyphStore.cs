@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
+using ImageMagick;
 
 namespace osu.Framework.IO.Stores
 {
@@ -18,7 +18,7 @@ namespace osu.Framework.IO.Stores
         ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        Dictionary<int, Bitmap> texturePages = new Dictionary<int, Bitmap>();
+        Dictionary<int, MagickImage> texturePages = new Dictionary<int, MagickImage>();
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
@@ -46,29 +46,28 @@ namespace osu.Framework.IO.Stores
         {
             Character c;
 
-            //face.SetCharSize(0, default_size * scale, 0, 96);
-
             if (!font.Characters.TryGetValue(name[0], out c))
                 return null;
 
-            Bitmap page = getTexturePage(c.TexturePage);
+            MagickImage page = getTexturePage(c.TexturePage);
 
-            Bitmap glyphTexture = new Bitmap(c.Bounds.Width + c.Offset.X, c.Bounds.Height + c.Offset.Y);
-            using (var g = System.Drawing.Graphics.FromImage(glyphTexture))
-                g.DrawImage(page, new Rectangle(c.Offset.X, c.Offset.Y, c.Bounds.Width, c.Bounds.Height), c.Bounds, GraphicsUnit.Pixel);
+            MagickImage glyph = new MagickImage(new MagickColor(65535, 65535, 65535, 0), c.Bounds.Width + c.Offset.X, c.Bounds.Height + c.Offset.Y);
 
-            ImageConverter converter = new ImageConverter();
-            return (byte[])converter.ConvertTo(glyphTexture, typeof(byte[]));
+            glyph.CopyPixels(page, new MagickGeometry(c.Bounds.X, c.Bounds.Y, c.Bounds.Width, c.Bounds.Height), c.Offset.X, c.Offset.Y);
+            glyph.RePage();
+
+            //todo: we can return MagickImage here instead of Bmp with a bit of refactoring.
+            return glyph.ToByteArray(MagickFormat.Bmp);
         }
 
-        private Bitmap getTexturePage(int texturePage)
+        private MagickImage getTexturePage(int texturePage)
         {
-            Bitmap t;
+            MagickImage t;
 
 
             if (!texturePages.TryGetValue(texturePage, out t))
             {
-                texturePages[texturePage] = t = new Bitmap(store.GetStream($@"{assetName}_{texturePage}.png"));
+                texturePages[texturePage] = t = new MagickImage(store.GetStream($@"{assetName}_{texturePage}.png"));
             }
 
             return t;
