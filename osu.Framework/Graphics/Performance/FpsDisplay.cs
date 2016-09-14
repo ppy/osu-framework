@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Performance
             Add(counter = new SpriteText()
             {
                 Text = @"...",
+                FixedWidth = true,
             });
         }
 
@@ -41,7 +42,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            counter.Text = $@"{name}: " + (1000 / clock.AverageFrameTime).ToString(@"0");
+            counter.Text = $@"{name}" + (1000 / clock.AverageFrameTime).ToString(@"0").PadLeft(4);
         }
     }
 }
