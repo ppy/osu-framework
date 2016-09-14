@@ -64,11 +64,8 @@ namespace osu.Framework.IO.Stores
         {
             MagickImage t;
 
-
             if (!texturePages.TryGetValue(texturePage, out t))
-            {
                 texturePages[texturePage] = t = new MagickImage(store.GetStream($@"{assetName}_{texturePage}.png"));
-            }
 
             return t;
         }

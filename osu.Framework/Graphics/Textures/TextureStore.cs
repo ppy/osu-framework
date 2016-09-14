@@ -48,7 +48,6 @@ namespace osu.Framework.Graphics.Textures
                 using (MagickImage mainImage = new MagickImage(s))
                 {
                     tex = atlas != null ? atlas.Add(mainImage.Width, mainImage.Height) : new Texture(mainImage.Width, mainImage.Height);
-
                     TextureUpload upload = new TextureUpload(mainImage.Width * mainImage.Height * 4);
                     mainImage.Write(new MemoryStream(upload.Data), MagickFormat.Rgba);
                     tex.SetData(upload);
