@@ -9,18 +9,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public class TextureUpload : IDisposable
     {
-        private static TextureBufferStack TextureBufferStack = new TextureBufferStack(10);
+        private static TextureBufferStack bufferStack = new TextureBufferStack(10);
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
-        private bool shouldFreeBuffer;
 
         public TextureUpload(int size)
         {
-            Data = TextureBufferStack.ReserveBuffer(size);
-            shouldFreeBuffer = true;
+            Data = bufferStack.ReserveBuffer(size);
         }
 
         public TextureUpload(byte[] data)
@@ -29,17 +27,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-        
+        private bool disposedValue = false;
 
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
-                if (shouldFreeBuffer)
-                {
-                    TextureBufferStack.FreeBuffer(Data);
-                }
+                bufferStack.FreeBuffer(Data);
                 disposedValue = true;
             }
         }
