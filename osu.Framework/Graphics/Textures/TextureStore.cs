@@ -56,11 +56,9 @@ namespace osu.Framework.Graphics.Textures
 
 
                 //load available mipmaps
-                int level = 1;
-                int div = 1;
+                //int level = 1;
+                //int div = 2;
 
-                //todo: figure why this results in corrupt output.
-                
                 //while (tex.Width / div > 0)
                 //{
                 //    s = base.GetStream($@"{name}/{div}");
