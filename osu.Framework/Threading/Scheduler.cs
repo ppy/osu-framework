@@ -25,7 +25,11 @@ namespace osu.Framework.Threading
         /// </summary>
         public Scheduler(Thread mainThread = null)
         {
-            mainThreadId = mainThread?.ManagedThreadId ?? Thread.CurrentThread.ManagedThreadId;
+            if (mainThread != null)
+                SetCurrentThread(mainThread);
+            else
+                SetCurrentThread();
+
             timer.Start();
         }
 
@@ -99,6 +103,16 @@ namespace osu.Framework.Threading
             }
 
             return true;
+        }
+
+        internal void SetCurrentThread(Thread thread)
+        {
+            mainThreadId = thread?.ManagedThreadId ?? -1;
+        }
+
+        internal void SetCurrentThread()
+        {
+            mainThreadId = Thread.CurrentThread.ManagedThreadId;
         }
 
         /// <summary>

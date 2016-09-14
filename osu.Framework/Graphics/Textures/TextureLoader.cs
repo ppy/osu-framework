@@ -2,6 +2,7 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Textures;
 using System;
 using System.Drawing;
 using System.IO;
@@ -60,6 +61,7 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The created texture.</returns>
         public static Texture FromBytes(byte[] data, TextureAtlas atlas = null)
         {
+            //todo: can be optimised with TextureUpload here to avoid allocations.
             if (data == null)
                 return null;
 
@@ -81,7 +83,8 @@ namespace osu.Framework.Graphics.Textures
                 return null;
 
             Texture tex = atlas == null ? new Texture(width, height) : atlas.Add(width, height);
-            tex.SetData(data);
+
+            tex.SetData(new TextureUpload(data));
             return tex;
         }
     }
