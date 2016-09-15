@@ -9,7 +9,9 @@ using osu.Framework.Cached;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Shaders;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.OpenGL.Textures;
 using Scheduler = osu.Framework.Threading.Scheduler;
 
@@ -36,17 +38,23 @@ namespace osu.Framework.Graphics.OpenGL
         private static Cached<int> maxTextureSizeBacking = new Cached<int>();
         public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
 
-        //todo: don't use scheduler
         private static Scheduler resetScheduler = new Scheduler();
 
-        internal static void Schedule(Action del)
+        static GLWrapper()
         {
-            //todo: don't use scheduler
-            resetScheduler.Add(del);
+            //force no thread set until we are actually on the draw thread.
+            resetScheduler.SetCurrentThread(null);
+        }
+
+        internal static void Initialize()
+        {
+            resetScheduler.SetCurrentThread();
         }
 
         internal static void Reset(Vector2 size)
         {
+            Debug.Assert(shaderStack.Count == 0);
+
             //todo: don't use scheduler
             resetScheduler.Update();
 
@@ -77,8 +85,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="texture">The texture to be uploaded.</param>
         public static void EnqueueTextureUpload(TextureGL texture)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() => texture.Upload());
         }
@@ -320,7 +326,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="frameBuffer">The framebuffer to delete.</param>
         internal static void DeleteFramebuffer(int frameBuffer)
         {
-            if (frameBuffer == -1 || !HasContext) return;
+            if (frameBuffer == -1) return;
 
             //todo: don't use scheduler
             resetScheduler.Add(() =>
@@ -335,8 +341,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="vboId">The buffer object to delete.</param>
         internal static void DeleteBuffer(int vboId)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -350,8 +354,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="ids">An array of textures to delete.</param>
         internal static void DeleteTextures(params int[] ids)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -365,8 +367,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="shader">The shader program to delete.</param>
         internal static void DeleteProgram(Shader shader)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -380,8 +380,6 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="shaderPart">The shader part to delete.</param>
         internal static void DeleteShader(ShaderPart shaderPart)
         {
-            if (!HasContext) return;
-
             //todo: don't use scheduler
             resetScheduler.Add(() =>
             {
@@ -389,20 +387,33 @@ namespace osu.Framework.Graphics.OpenGL
             });
         }
 
-        public static int CurrentShader { get; private set; }
+        private static int currentShader;
 
-        public static void UseProgram(int shader)
+        private static Stack<int> shaderStack = new Stack<int>();
+
+        public static void UseProgram(int? shader)
         {
-            if (!HasContext) return;
+            ThreadSafety.EnsureDrawThread();
 
-            //todo: don't use scheduler
-            resetScheduler.Add(() =>
+            if (shader != null)
             {
-                if (CurrentShader == shader) return;
+                shaderStack.Push(shader.Value);
+            }
+            else
+            {
+                shaderStack.Pop();
 
-                GL.UseProgram(shader);
-                CurrentShader = shader;
-            });
+                //check if the stack is empty, and if so don't restore the previous shader.
+                if (shaderStack.Count == 0)
+                    return;
+            }
+
+            int s = shader ?? shaderStack.Peek();
+
+            if (currentShader == s) return;
+
+            GL.UseProgram(s);
+            currentShader = s;
         }
     }
 }

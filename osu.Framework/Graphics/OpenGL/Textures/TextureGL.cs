@@ -80,86 +80,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// Uploads pending texture data to the GPU if it exists.
         /// </summary>
         /// <returns>Whether pending data existed and an upload has been performed.</returns>
-        public abstract bool Upload();
+        internal abstract bool Upload();
 
-        /// <summary>
-        /// Load texture data from a raw byte array (BGRA 32bit format)
-        /// </summary>
-        public abstract void SetData(byte[] data, int level = 0, PixelFormat format = PixelFormat.Rgba);
-
-        /// <summary>
-        /// Load texture data from a raw IntPtr location (BGRA 32bit format)
-        /// </summary>
-        public void SetData(IntPtr dataPointer, int level = 0, PixelFormat format = 0)
-        {
-            Debug.Assert(!isDisposed);
-
-            if (format == 0)
-                format = PixelFormat.Rgba;
-
-            byte[] data;
-            if (dataPointer == IntPtr.Zero)
-            {
-                data = new byte[0];
-            }
-            else
-            {
-                data = ReserveBuffer(Width * Height * 4);
-                Marshal.Copy(dataPointer, data, 0, data.Length);
-            }
-
-            SetData(data, level, format);
-        }
-
-        private const int MAX_AMOUNT_DATA_BUFFERS = 10;
-        private static Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
-        private static HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
-
-        private static byte[] findFreeBuffer(int minimumLength)
-        {
-            byte[] buffer = null;
-
-            if (freeDataBuffers.Count > 0)
-                buffer = freeDataBuffers.Pop();
-
-            if (buffer == null || buffer.Length < minimumLength)
-                buffer = new byte[minimumLength];
-
-            if (usedDataBuffers.Count < MAX_AMOUNT_DATA_BUFFERS)
-                usedDataBuffers.Add(buffer);
-
-            return buffer;
-        }
-
-        private static void returnFreeBuffer(byte[] buffer)
-        {
-            if (usedDataBuffers.Remove(buffer))
-                // We are here if the element was successfully found and removed
-                freeDataBuffers.Push(buffer);
-        }
-
-        /// <summary>
-        /// Reserve a buffer from the texture buffer pool. This is used to avoid excessive amounts of heap allocations.
-        /// </summary>
-        /// <param name="minimumLength">The minimum length required of the reserved buffer.</param>
-        /// <returns>The reserved buffer.</returns>
-        public static byte[] ReserveBuffer(int minimumLength)
-        {
-            byte[] buffer;
-            lock (freeDataBuffers)
-                buffer = findFreeBuffer(minimumLength);
-
-            return buffer;
-        }
-
-        /// <summary>
-        /// Frees a previously reserved buffer for future reservations.
-        /// </summary>
-        /// <param name="buffer">The buffer to be freed. If the buffer has not previously been reserved then this method does nothing.</param>
-        public static void FreeBuffer(byte[] buffer)
-        {
-            lock (freeDataBuffers)
-                returnFreeBuffer(buffer);
-        }
+        public abstract void SetData(TextureUpload upload);
     }
 }

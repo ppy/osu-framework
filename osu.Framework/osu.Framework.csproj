@@ -87,12 +87,15 @@
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
-    <Compile Include="Graphics\Containers\MaskingContainerDrawNode.cs" />
+    <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
     <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureBufferStack.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
+    <Compile Include="Graphics\Performance\FrameTimeDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />

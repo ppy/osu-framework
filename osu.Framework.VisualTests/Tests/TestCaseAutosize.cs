@@ -28,22 +28,6 @@ namespace osu.Framework.VisualTests.Tests
 
             toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
 
-            Add(new Box()
-            {
-                Colour = Color4.WhiteSmoke,
-                Position = new Vector2(20, 2),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
-
-            Add(new Box()
-            {
-                Colour = Color4.WhiteSmoke,
-                Position = new Vector2(2, 20),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
-
             Add(testContainer = new LargeContainer());
 
             for (int i = 1; i <= 6; i++)
@@ -56,6 +40,38 @@ namespace osu.Framework.VisualTests.Tests
             }
 
             loadTest(1);
+
+            Add(new Box()
+            {
+                Colour = Color4.Black,
+                Size = new Vector2(22, 4),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+
+            Add(new Box()
+            {
+                Colour = Color4.Black,
+                Size = new Vector2(4, 22),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+
+            Add(new Box()
+            {
+                Colour = Color4.WhiteSmoke,
+                Size = new Vector2(20, 2),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
+
+            Add(new Box()
+            {
+                Colour = Color4.WhiteSmoke,
+                Size = new Vector2(2, 20),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
         }
 
         private void reloadCallback()
@@ -309,6 +325,9 @@ namespace osu.Framework.VisualTests.Tests
         public override void Load()
         {
             base.Load();
+
+            Masking = true;
+
             Add(new Box() { SizeMode = InheritMode.XY });
         }
 

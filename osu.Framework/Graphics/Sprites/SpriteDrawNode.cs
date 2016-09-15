@@ -39,7 +39,8 @@ namespace osu.Framework.Graphics.Sprites
             shader.Bind();
 
             texture.TextureGL.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            texture.Draw(screenSpaceDrawQuad, DrawInfo.Colour, new RectangleF(0, 0, texture.DisplayWidth, texture.DisplayHeight));
+
+            texture.Draw(screenSpaceDrawQuad, DrawInfo.Colour);
 
             shader.Unbind();
         }

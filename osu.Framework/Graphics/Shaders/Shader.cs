@@ -22,11 +22,6 @@ namespace osu.Framework.Graphics.Shaders
         private string name;
         private int programID = -1;
 
-        /// <summary>
-        /// This is used when binding and unbinding to remember which shader was previously bound.
-        /// </summary>
-        private int previousShader;
-
         private static List<Shader> allShaders = new List<Shader>();
         private static Dictionary<string, object> globalProperties = new Dictionary<string, object>();
 
@@ -148,7 +143,6 @@ namespace osu.Framework.Graphics.Shaders
                 return;
 
             GLWrapper.UseProgram(this);
-            previousShader = GLWrapper.CurrentShader;
 
             foreach (var kvp in uniforms)
                 kvp.Value.Update();
@@ -161,7 +155,7 @@ namespace osu.Framework.Graphics.Shaders
             if (!IsBound)
                 return;
 
-            GLWrapper.UseProgram(previousShader);
+            GLWrapper.UseProgram(null);
 
             IsBound = false;
         }

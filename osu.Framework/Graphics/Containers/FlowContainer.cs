@@ -14,11 +14,6 @@ namespace osu.Framework.Graphics.Containers
         public EasingTypes LayoutEasing;
         public int LayoutDuration = 0;
 
-        /// <summary>
-        /// Even if we aren't autosizing, we need to ensure invalidation.
-        /// </summary>
-        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.ScreenShape;
-
         private FlowDirection direction = FlowDirection.Full;
         public FlowDirection Direction
         {
@@ -71,7 +66,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & (Invalidation.ScreenShape | Invalidation.Visibility)) > 0)
                 requiresLayout = true;
 
             return base.Invalidate(invalidation, source, shallPropagate);

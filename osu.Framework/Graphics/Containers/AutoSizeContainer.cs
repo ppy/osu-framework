@@ -66,6 +66,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            bool childChangedStatus = base.UpdateChildrenLife();
+            if (childChangedStatus)
+                Invalidate(Invalidation.ScreenShape);
+
+            return childChangedStatus;
+        }
+
         internal override void UpdateSubTree()
         {
             base.UpdateSubTree();
@@ -83,6 +92,24 @@ namespace osu.Framework.Graphics.Containers
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
             }
+        }
+
+        public override Drawable Add(Drawable drawable)
+        {
+            Drawable result = base.Add(drawable);
+            if (result != null)
+                Invalidate(Invalidation.ScreenShape);
+
+            return result;
+        }
+
+        public override bool Remove(Drawable p, bool dispose = true)
+        {
+            bool result = base.Remove(p, dispose);
+            if (result)
+                Invalidate(Invalidation.ScreenShape);
+
+            return result;
         }
 
         public override Vector2 ActualSize
@@ -103,6 +130,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 
-        protected override Invalidation ChildrenInvalidateParentMask => Invalidation.ScreenShape;
+        protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        {
+            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenShape)) > 0)
+                return Invalidation.ScreenShape;
+            else
+                return base.InvalidationEffectByChildren(childInvalidation);
+        }
     }
 }

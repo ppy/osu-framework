@@ -101,6 +101,7 @@ namespace osu.Framework.OS
         private void drawLoop()
         {
             GLControl.Initialize();
+            GLWrapper.Initialize();
 
             while (!exitRequested)
             {
@@ -153,7 +154,7 @@ namespace osu.Framework.OS
 
             try
             {
-                Application.Idle += OnApplicationIdle;
+                Application.Idle += delegate { OnApplicationIdle(); };
                 Application.Run(Window.Form);
             }
             catch (OutOfMemoryException e)
@@ -162,8 +163,6 @@ namespace osu.Framework.OS
             }
             finally
             {
-                Application.Idle -= OnApplicationIdle;
-
                 //if (!(error is OutOfMemoryException))
                 //    //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
                 //    OnExiting();
@@ -202,7 +201,7 @@ namespace osu.Framework.OS
             }
         }
 
-        protected virtual void OnApplicationIdle(object sender, EventArgs e)
+        protected virtual void OnApplicationIdle()
         {
             if (exitRequested)
                 Window.Close();

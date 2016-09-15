@@ -6,6 +6,10 @@ namespace osu.Framework.Graphics.Containers
 {
     public class MaskingContainer : LargeContainer
     {
-        protected override DrawNode BaseDrawNode => new MaskingContainerDrawNode(DrawInfo, ScreenSpaceDrawQuad);
+        public override void Load()
+        {
+            base.Load();
+            Masking = true;
+        }
     }
 }
