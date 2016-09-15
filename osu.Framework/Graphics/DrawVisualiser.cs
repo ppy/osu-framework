@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics
                 Target = d;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnClick(InputState state)
             {
                 Flow.Alpha = Flow.Alpha > 0 ? 0 : 1;
                 updateSpecifics();
