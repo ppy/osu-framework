@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
@@ -346,7 +347,7 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        private string text;
+        private string text = string.Empty;
         public virtual string Text
         {
             get
@@ -355,6 +356,8 @@ namespace osu.Framework.Graphics.UserInterface
             }
             set
             {
+                Debug.Assert(value != null);
+
                 if (value == text)
                     return;
 
