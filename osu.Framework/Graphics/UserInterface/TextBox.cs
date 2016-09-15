@@ -618,7 +618,7 @@ namespace osu.Framework.Graphics.UserInterface
         #region Native TextBox handling (winform specific)
         protected void UnbindInput()
         {
-            textInput?.Deactivate();
+            textInput?.Deactivate(this);
         }
 
         protected void BindInput()
@@ -638,7 +638,7 @@ namespace osu.Framework.Graphics.UserInterface
                 };
             }
 
-            textInput.Activate();
+            textInput.Activate(this);
         }
 
         private void onImeResult(string s)

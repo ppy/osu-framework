@@ -2,7 +2,9 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Input;
 using osu.Framework.OS;
@@ -33,18 +35,33 @@ namespace osu.Framework.Desktop.Input
             Debug.Print(s);
         }
 
-        public void Activate()
+        List<object> boundClasses = new List<object>();
+
+        public void Activate(object sender)
         {
-            form.SafeInvoke(() =>
+            lock (this)
             {
-                Debug.Assert(!form.Controls.Contains(this));
+                if (boundClasses.Contains(sender))
+                    return;
 
-                if (form.ActiveControl != null)
-                    form.ActiveControl.ImeMode = ImeMode.Off;
+                boundClasses.Add(sender);
 
-                form.Controls.Add(this);
-                Focus();
-            });
+                if (boundClasses.Count == 1)
+                {
+                    form.SafeInvoke(() =>
+                    {
+                        if (!form.Controls.Contains(this))
+                            form.Controls.Add(this);
+
+                        if (form.ActiveControl != null)
+                            form.ActiveControl.ImeMode = ImeMode.Off;
+
+                        Text = string.Empty;
+
+                        Focus();
+                    });
+                }
+            }
         }
 
         protected override void OnGotFocus(EventArgs e)
@@ -53,15 +70,26 @@ namespace osu.Framework.Desktop.Input
             ImeMode = ImeMode.On;
         }
 
-        public void Deactivate()
+        public void Deactivate(object sender)
         {
-            form.SafeInvoke(() =>
+            lock (this)
             {
-                ImeMode = ImeMode.Off;
-                form.Controls.Remove(this);
-                if (form.Controls.Count > 0)
-                    form.Controls[form.Controls.Count - 1].Focus();
-            });
+                if (!boundClasses.Contains(sender))
+                    return;
+
+                boundClasses.Remove(sender);
+
+                if (boundClasses.Count == 0)
+                {
+                    form.SafeInvoke(() =>
+                    {
+                        ImeMode = ImeMode.Off;
+                        form.Controls.Remove(this);
+                        if (form.Controls.Count > 0)
+                            form.Controls[form.Controls.Count - 1].Focus();
+                    });
+                }
+            }
         }
 
         public string GetPendingText()
