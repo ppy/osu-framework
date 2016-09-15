@@ -23,12 +23,18 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
         /// </summary>
-        public Scheduler(Thread mainThread = null)
+        public Scheduler()
         {
-            if (mainThread != null)
-                SetCurrentThread(mainThread);
-            else
-                SetCurrentThread();
+            SetCurrentThread();
+            timer.Start();
+        }
+
+        /// <summary>
+        /// The base thread is assumed to be the the thread on which the constructor is run.
+        /// </summary>
+        public Scheduler(Thread mainThread)
+        {
+            SetCurrentThread(mainThread);
 
             timer.Start();
         }
@@ -88,18 +94,8 @@ namespace osu.Framework.Threading
 
             foreach (Action v in runnable)
             {
-#if !DEBUG
-                try
-                {
-#endif
-                    v.Invoke();
-#if !DEBUG
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, @"scheduled delegate");
-                }
-#endif
+                //todo: error handling
+                v.Invoke();
             }
 
             return true;
@@ -171,7 +167,7 @@ namespace osu.Framework.Threading
             return true;
         }
 
-#region IDisposable Support
+        #region IDisposable Support
         private bool isDisposed = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -186,7 +182,7 @@ namespace osu.Framework.Threading
         {
             Dispose(true);
         }
-#endregion
+        #endregion
     }
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
