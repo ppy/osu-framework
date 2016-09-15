@@ -836,9 +836,8 @@ namespace osu.Framework.Graphics
 
                     Invalidation childInvalidation = invalidation;
 
-                    // Important TODO: Figure out why commenting out the following 2 lines--i.e. invalidating all choldren's size--breaks autosize.
-                    if (c.SizeMode == InheritMode.None)
-                        childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
+                    // Important TODO: Figure out why commenting out the following line -- i.e. invalidating all childrens' size -- breaks autosize.
+                    childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
 
                     c.Invalidate(childInvalidation, this);
                 }
