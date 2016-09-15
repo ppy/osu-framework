@@ -299,7 +299,7 @@ namespace osu.Framework.Graphics.UserInterface
                 textFlow.Add(ch = new SpriteText()
                 {
                     Text = c.ToString(),
-                    TextSize = Size.Y - 2,
+                    TextSize = Size.Y * 0.8f,
                     Depth = selectionLeft,
                 });
             }
