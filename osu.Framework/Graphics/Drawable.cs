@@ -480,7 +480,7 @@ namespace osu.Framework.Graphics
 
             drawable.changeParent(this);
             children.Add(drawable);
-            
+
             return drawable;
         }
 
