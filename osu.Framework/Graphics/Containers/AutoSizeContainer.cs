@@ -82,7 +82,8 @@ namespace osu.Framework.Graphics.Containers
             if (RequireAutoSize)
             {
                 Vector2 b = GetBoundingSize(this);
-                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+
+                size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
                 // This triggers re-positioning of all children according.
                 // It is required even if Size does coincidentally not change, since children
