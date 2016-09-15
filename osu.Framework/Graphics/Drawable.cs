@@ -778,6 +778,13 @@ namespace osu.Framework.Graphics
             Invalidate();
         }
 
+        private void updateTransformsOfType(Type specificType)
+        {
+            foreach (ITransform t in transforms.Current)
+                if (t.GetType() == specificType)
+                    t.Apply(this);
+        }
+
         /// <summary>
         /// Process updates to this drawable based on loaded transforms.
         /// </summary>
