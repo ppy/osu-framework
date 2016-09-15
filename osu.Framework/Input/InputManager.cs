@@ -366,6 +366,8 @@ namespace osu.Framework.Input
             }
         }
 
+        Drawable mouseDownDrawable;
+
         private void updateMouseEvents(InputState state)
         {
             MouseState mouse = state.Mouse;
@@ -382,7 +384,7 @@ namespace osu.Framework.Input
                 if (b.State != mouse.LastState?.ButtonStates.Find(c => c.Button == b.Button).State)
                 {
                     if (b.State)
-                        handleMouseDown(state, b.Button);
+                        mouseDownDrawable = handleMouseDown(state, b.Button);
                     else
                         handleMouseUp(state, b.Button);
                 }
@@ -429,6 +431,7 @@ namespace osu.Framework.Input
                 if (isValidClick)
                     handleMouseClick(state);
 
+                mouseDownDrawable = null;
                 mouse.PositionMouseDown = null;
 
                 if (isDragging)
@@ -439,14 +442,14 @@ namespace osu.Framework.Input
             }
         }
 
-        private bool handleMouseDown(InputState state, MouseButton button)
+        private Drawable handleMouseDown(InputState state, MouseButton button)
         {
             MouseDownEventArgs args = new MouseDownEventArgs()
             {
                 Button = button
             };
 
-            return mouseInputQueue.Any(target => target.TriggerMouseDown(state, args));
+            return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args));
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -466,6 +469,9 @@ namespace osu.Framework.Input
 
         private bool handleMouseClick(InputState state)
         {
+            if (mouseDownDrawable != null)
+                return mouseDownDrawable.TriggerClick(state) | mouseDownDrawable.TriggerFocus(state, true);
+
             if (mouseInputQueue.Any(target => target.TriggerClick(state) | target.TriggerFocus(state, true)))
                 return true;
 
