@@ -626,8 +626,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (textInput == null)
             {
                 textInput = Game.Host.TextInput;
-                textInput.OnNewImeComposition += onImeComposition;
-                textInput.OnNewImeResult += onImeResult;
+                textInput.OnNewImeComposition += delegate (string s) { textUpdateScheduler.Add(() => onImeComposition(s)); };
+                textInput.OnNewImeResult += delegate (string s) { textUpdateScheduler.Add(() => onImeResult(s)); };
             }
 
             textInput.Activate();
