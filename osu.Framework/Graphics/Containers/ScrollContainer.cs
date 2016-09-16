@@ -81,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            offset(-state.Mouse.PositionDelta.Y / Scale.Y, false, false);
+            offset(-GetLocalPosition(state.Mouse.PositionDelta).Y / Scale.Y, false, false);
             return base.OnDrag(state);
         }
 
@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                offsetDelegate(state.Mouse.PositionDelta.Y / Scale.Y, true, false);
+                offsetDelegate(Parent.GetLocalPosition(state.Mouse.PositionDelta).Y / Scale.Y, true, false);
                 return true;
             }
         }
