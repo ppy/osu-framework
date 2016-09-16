@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnDragEnd(InputState state)
         {
             //forces a clamped state to return to correct location.
-            offset(0);
+            offset(-GetLocalPosition(state.Mouse.PositionDelta).Y / Scale.Y * 10);
 
             return base.OnDragEnd(state);
         }
@@ -132,8 +132,8 @@ namespace osu.Framework.Graphics.Containers
         {
             float adjusted = (current + currentClamped) / 2;
 
-            scrollbar?.MoveToY(adjusted * scrollbar.Scale.Y, animated ? 200 : 0, EasingTypes.OutExpo);
-            content.MoveToY(-adjusted, animated ? 200 : 0, EasingTypes.OutExpo);
+            scrollbar?.MoveToY(adjusted * scrollbar.Scale.Y, animated ? 800 : 0, EasingTypes.OutExpo);
+            content.MoveToY(-adjusted, animated ? 800 : 0, EasingTypes.OutExpo);
         }
 
         private class ScrollBar : Container
