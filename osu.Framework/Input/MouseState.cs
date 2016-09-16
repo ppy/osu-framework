@@ -4,8 +4,7 @@
 using OpenTK;
 using OpenTK.Input;
 using osu.Framework.Lists;
-using System.Collections.Generic;
-using System.Linq;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Input
 {
@@ -33,9 +32,9 @@ namespace osu.Framework.Input
 
         public bool HasMainButtonPressed => LeftButton || RightButton;
 
-        public Vector2 PositionDelta => Position - (LastState?.Position ?? Vector2.Zero);
+        public Vector2 NativeDelta => NativePosition - (LastState?.NativePosition ?? Vector2.Zero);
 
-        public Vector2 Position;
+        public Vector2 NativePosition;
 
         public Vector2? PositionMouseDown;
 

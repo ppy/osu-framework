@@ -338,7 +338,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             if (!AllowDrag) return false;
 
-            Vector2 newMousePos = state.Mouse.Position;
+            Vector2 newMousePos = state.Mouse.NativePosition;
             Position += newMousePos - dragStartPos;
             dragStartPos = newMousePos;
             return true;
@@ -353,7 +353,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             if (!AllowDrag) return false;
 
-            dragStartPos = state.Mouse.Position;
+            dragStartPos = state.Mouse.NativePosition;
             return true;
         }
     }
@@ -381,7 +381,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             if (!AllowDrag) return false;
 
-            Vector2 newMousePos = state.Mouse.Position;
+            Vector2 newMousePos = state.Mouse.NativePosition;
             Position += newMousePos - dragStartPos;
             dragStartPos = newMousePos;
             return true;
@@ -396,7 +396,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             if (!AllowDrag) return false;
 
-            dragStartPos = state.Mouse.Position;
+            dragStartPos = state.Mouse.NativePosition;
             return true;
         }
 
