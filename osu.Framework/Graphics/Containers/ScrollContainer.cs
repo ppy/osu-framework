@@ -79,6 +79,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(InputState state) => true;
 
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            offset(0, false, false);
+            return base.OnMouseDown(state, args);
+        }
+
         protected override bool OnDrag(InputState state)
         {
             offset(-GetLocalPosition(state.Mouse.NativeDelta).Y / Scale.Y, false, false);
