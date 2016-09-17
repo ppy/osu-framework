@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Transformations
 
         protected IClock Clock;
 
-        protected double Time => Clock.CurrentTime;
+        protected double Time => Clock != null ? Clock.CurrentTime : 0;
 
         public bool IsAlive => Clock == null || (StartTime <= Clock.CurrentTime && EndTime >= Clock.CurrentTime);
 
