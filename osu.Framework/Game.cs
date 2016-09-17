@@ -84,35 +84,27 @@ namespace osu.Framework
             Add(userInputContainer = new UserInputManager()
             {
                 Children = new[] {
+                    new FlowContainer
+                    {
+                        Direction = Graphics.Containers.FlowDirection.VerticalOnly,
+                        Padding = new Vector2(10, 10),
+                        Anchor = Graphics.Anchor.BottomRight,
+                        Origin = Graphics.Anchor.BottomRight,
+                        Depth = float.MaxValue,
+
+                        Children = new[] {
+                            new FrameTimeDisplay(@"Update", host.UpdateMonitor),
+                            new FrameTimeDisplay(@"Draw", host.DrawMonitor)
+                        }
+                    },
                     new PerformanceOverlay()
                     {
+                        Position = new Vector2(5, 5),
                         Anchor = Graphics.Anchor.BottomRight,
                         Origin = Graphics.Anchor.BottomRight,
                         Depth = float.MaxValue
                     }
                 }
-            });
-
-            Add(new FlowContainer
-            {
-                Direction = Graphics.Containers.FlowDirection.VerticalOnly,
-                Padding = new OpenTK.Vector2(10, 10),
-                Anchor = Graphics.Anchor.BottomRight,
-                Origin = Graphics.Anchor.BottomRight,
-                Depth = float.MaxValue,
-
-                Children = new[] {
-                    new FrameTimeDisplay(@"Update", host.UpdateMonitor),
-                    new FrameTimeDisplay(@"Draw", host.DrawMonitor)
-                }
-            });
-
-            Add(new PerformanceOverlay()
-            {
-                Position = new Vector2(5, 5),
-                Anchor = Graphics.Anchor.BottomRight,
-                Origin = Graphics.Anchor.BottomRight,
-                Depth = float.MaxValue
             });
         }
 
