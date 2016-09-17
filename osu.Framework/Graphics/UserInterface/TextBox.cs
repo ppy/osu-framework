@@ -314,14 +314,13 @@ namespace osu.Framework.Graphics.UserInterface
         private void insertString(string text)
         {
             foreach (char c in text)
-            {
-                if (char.IsControl(c)) continue;
                 addCharacter(c);
-            }
         }
 
         private Drawable addCharacter(char c)
         {
+            if (char.IsControl(c)) return null;
+
             if (selectionLength > 0)
                 removeCharacterOrSelection();
 
