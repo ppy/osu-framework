@@ -21,6 +21,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.BoundingRectangle : (Rectangle?)null);
 
+        public new IEnumerable<Drawable> Children
+        {
+            get { return base.Children; }
+            set { base.Children = value; }
+        }
+
         public new virtual Drawable Add(Drawable drawable)
         {
             return base.Add(drawable);
@@ -58,35 +64,6 @@ namespace osu.Framework.Graphics.Containers
         {
             get { return base.ContentScale; }
             set { base.ContentScale = value; }
-        }
-
-        public ReadOnlyList<Drawable> Children => base.Children;
-
-        public IEnumerable<Drawable> Kids //todo: think of a better name
-        {
-            set
-            {
-                if (!IsLoaded)
-                    pendingChildren = value;
-                else
-                {
-                    Clear();
-                    Add(value);
-                }
-            }
-        }
-
-        private IEnumerable<Drawable> pendingChildren;
-
-        public override void Load()
-        {
-            base.Load();
-
-            if (pendingChildren != null)
-            {
-                Add(pendingChildren);
-                pendingChildren = null;
-            }
         }
     }
 }

@@ -87,6 +87,7 @@
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions\IEnumerableExtensions.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BoundsBypassContainer.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />

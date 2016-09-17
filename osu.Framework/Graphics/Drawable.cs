@@ -23,14 +23,23 @@ namespace osu.Framework.Graphics
         internal event Action OnInvalidate;
 
         private LifetimeList<Drawable> children;
-        internal LifetimeList<Drawable> Children
+        private IEnumerable<Drawable> pendingChildren;
+        internal IEnumerable<Drawable> Children
         {
-            get
+            get { return children; }
+            set
             {
-                ThreadSafety.EnsureUpdateThread();
-                return children;
+                if (!IsLoaded)
+                    pendingChildren = value;
+                else
+                {
+                    Clear();
+                    Add(value);
+                }
             }
         }
+
+        internal IEnumerable<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
         public LifetimeList<ITransform> Transforms
@@ -774,6 +783,12 @@ namespace osu.Framework.Graphics
 
         public virtual void Load()
         {
+            if (pendingChildren != null)
+            {
+                Add(pendingChildren);
+                pendingChildren = null;
+            }
+
             loaded = true;
             Invalidate();
         }

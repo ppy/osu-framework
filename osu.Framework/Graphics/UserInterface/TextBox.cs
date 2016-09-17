@@ -15,6 +15,8 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -170,9 +172,12 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return textFlow.Children[index].Position.X + textFlow.Position.X;
+                    return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
                 else
-                    return textFlow.Children[index - 1].Position.X + textFlow.Children[index - 1].Size.X + textFlow.Padding.X + textFlow.Position.X;
+                {
+                    var d = textFlow.Children.ElementAt(index - 1);
+                    return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
+                }
             }
             else
                 return 0;
@@ -248,16 +253,16 @@ namespace osu.Framework.Graphics.UserInterface
             if (sound)
                 Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
-            for (int i = 0; i < count; i++)
+            textFlow.Children.Skip(start).Take(count).ToList().ForEach(d =>
             {
-                Drawable d = textFlow.Children[start];
                 textFlow.Remove(d);
 
                 TextContainer.Add(d);
                 d.FadeOut(200);
                 d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
                 d.Expire();
-            }
+            });
+
             text = text.Remove(start, count);
 
             if (selectionLength > 0)
@@ -271,8 +276,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
-            for (int i = selectionLeft; i < text.Length; i++)
-                textFlow.Children[i].Depth = i + 1;
+            int i = selectionLeft;
+            foreach (Drawable dd in textFlow.Children.Skip(selectionLeft).Take(text.Length - selectionLeft))
+                dd.Depth = i + 1;
 
             Drawable ch;
 
