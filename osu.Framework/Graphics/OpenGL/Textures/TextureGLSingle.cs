@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// This is used for initializing power-of-two sized textures to transparent to avoid artifacts.
         /// </summary>
-        private static byte[] transparentWhite = new byte[2048 * 2048 * 4];
+        private static byte[] transparentWhite = new byte[GLWrapper.MaxTextureSize * GLWrapper.MaxTextureSize * 4];
 
         static TextureGLSingle()
         {

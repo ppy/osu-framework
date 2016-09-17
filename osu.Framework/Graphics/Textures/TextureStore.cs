@@ -7,6 +7,7 @@ using System.IO;
 using osu.Framework.IO.Stores;
 using ImageMagick;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -14,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
     {
         Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
 
-        private TextureAtlas atlas = new TextureAtlas(2048, 2048);
+        private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
 
         public float ScaleAdjust = 1;
 
