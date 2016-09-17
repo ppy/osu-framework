@@ -10,14 +10,12 @@ namespace osu.Framework.Extensions.MatrixExtensions
 {
     public static class MatrixExtensions
     {
-        public static Matrix3 TranslateTo(this Matrix3 m, Vector2 v)
+        public static void Translate(ref Matrix3 m, Vector2 v)
         {
             m.Row2 += m.Row0 * v.X + m.Row1 * v.Y;
-
-            return m;
         }
 
-        public static Matrix3 RotateTo(this Matrix3 m, float angle)
+        public static void Rotate(ref Matrix3 m, float angle)
         {
             // Convert to radians
             angle = angle / (180 / MathHelper.Pi);
@@ -27,13 +25,10 @@ namespace osu.Framework.Extensions.MatrixExtensions
             Vector3 temp = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
             m.Row0 = temp;
-
-            return m;
         }
 
-        public static Matrix3 FastInvert(this Matrix3 value)
+        public static void FastInvert(ref Matrix3 value)
         {
-            Matrix3 result = Matrix3.Zero;
             float d11 = value.M22 * value.M33 + value.M23 * -value.M32;
             float d12 = value.M21 * value.M33 + value.M23 * -value.M31;
             float d13 = value.M21 * value.M32 + value.M22 * -value.M31;
@@ -41,7 +36,10 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float det = value.M11 * d11 - value.M12 * d12 + value.M13 * d13;
 
             if (Math.Abs(det) == 0.0f)
-                return result;
+            {
+                value = Matrix3.Zero;
+                return;
+            }
 
             det = 1f / det;
 
@@ -53,19 +51,15 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float d32 = (value.M11 * value.M23) - (value.M13 * value.M21);
             float d33 = (value.M11 * value.M22) - (value.M12 * value.M21);
 
-            result.M11 = +d11 * det; result.M12 = -d21 * det; result.M13 = +d31 * det;
-            result.M21 = -d12 * det; result.M22 = +d22 * det; result.M23 = -d32 * det;
-            result.M31 = +d13 * det; result.M32 = -d23 * det; result.M33 = +d33 * det;
-
-            return result;
+            value.M11 = +d11 * det; value.M12 = -d21 * det; value.M13 = +d31 * det;
+            value.M21 = -d12 * det; value.M22 = +d22 * det; value.M23 = -d32 * det;
+            value.M31 = +d13 * det; value.M32 = -d23 * det; value.M33 = +d33 * det;
         }
 
-        public static Matrix3 ScaleTo(this Matrix3 m, Vector2 v)
+        public static void Scale(ref Matrix3 m, Vector2 v)
         {
             m.Row0 *= v.X;
             m.Row1 *= v.Y;
-
-            return m;
         }
     }
 }

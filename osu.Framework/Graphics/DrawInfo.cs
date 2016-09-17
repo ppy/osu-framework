@@ -37,19 +37,35 @@ namespace osu.Framework.Graphics
         /// <param name="viewport">An optional new viewport size.</param>
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
-            Matrix3 m = Matrix;
+            target.Matrix = Matrix;
+            target.MatrixInverse = MatrixInverse;
 
             if (translation != Vector2.Zero)
-                m = m.TranslateTo(translation);
-            if (rotation != 0)
-                m = m.RotateTo(rotation);
-            if (scale != Vector2.One)
-                m = m.ScaleTo(scale);
-            if (origin != Vector2.Zero)
-                m = m.TranslateTo(-origin);
+                MatrixExtensions.Translate(ref target.Matrix, translation);
 
-            target.Matrix = m;
-            target.MatrixInverse = m.FastInvert();
+            if (rotation != 0)
+                MatrixExtensions.Rotate(ref target.Matrix, rotation);
+
+            if (scale != Vector2.One)
+                MatrixExtensions.Scale(ref target.Matrix, scale);
+
+            if (origin != Vector2.Zero)
+            {
+                MatrixExtensions.Translate(ref target.Matrix, -origin);
+                MatrixExtensions.Translate(ref target.MatrixInverse, origin);
+            }
+
+            if (scale != Vector2.One)
+            {
+                Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
+                MatrixExtensions.Scale(ref target.MatrixInverse, inverseScale);
+            }
+
+            if (rotation != 0)
+                MatrixExtensions.Rotate(ref target.MatrixInverse, -rotation);
+
+            if (translation != Vector2.Zero)
+                MatrixExtensions.Translate(ref target.MatrixInverse, -translation);
 
             target.Colour = Colour;
 
