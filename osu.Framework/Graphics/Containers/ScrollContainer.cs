@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
 
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 updateSize();
 
             return true;

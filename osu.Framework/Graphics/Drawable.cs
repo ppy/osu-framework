@@ -818,7 +818,7 @@ namespace osu.Framework.Graphics
 
             bool alreadyInvalidated = true;
 
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
             // Either ScreenSize OR ScreenPosition
@@ -841,12 +841,7 @@ namespace osu.Framework.Graphics
                 {
                     if (c == source) continue;
 
-                    Invalidation childInvalidation = invalidation;
-
-                    // Important TODO: Figure out why commenting out the following line -- i.e. invalidating all childrens' size -- breaks autosize.
-                    childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
-
-                    c.Invalidate(childInvalidation, this);
+                    c.Invalidate(invalidation & ~Invalidation.SizeInParentSpace, this);
                 }
             }
 
@@ -944,12 +939,12 @@ namespace osu.Framework.Graphics
     {
         // Individual types
         ScreenPosition = 1 << 0,
-        ScreenSize = 1 << 1,
+        SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
 
         // Combinations
-        ScreenShape = ScreenPosition | ScreenSize,
+        ScreenShape = ScreenPosition | SizeInParentSpace,
         DrawInfo = ScreenShape | Colour,
 
         // Meta

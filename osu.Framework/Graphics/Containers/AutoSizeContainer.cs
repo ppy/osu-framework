@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 autoSizeUpdatePending = true;
 
             bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
