@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics
                     return;
                 size = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics
                     return;
                 sizeMode = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -223,7 +223,7 @@ namespace osu.Framework.Graphics
                     return;
                 positionMode = value;
 
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -318,7 +318,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
             }
         }
 
@@ -548,97 +548,72 @@ namespace osu.Framework.Graphics
 
             children.Clear();
 
-            Invalidate(Invalidation.ScreenShape);
+            Invalidate(Invalidation.ScreenSpaceQuad);
         }
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
-        private delegate Vector2 BoundsResult();
-
         protected Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
-        internal Vector2 GetBoundingSize(Drawable calculateDrawable)
+        internal Vector2 BoundingSize => boundingSizeBacking.Refresh(() =>
         {
-            BoundsResult computeBoundingSize = () =>
-            {
-                Quad drawQuad = DrawQuadForBounds;
+            //field will be none when the drawable isn't requesting auto-sizing
+            Quad q = Parent.DrawInfo.MatrixInverse * GetScreenSpaceQuad(DrawQuadForBounds);
+            Vector2 a = Parent == null ? Vector2.Zero : ((GetAnchoredPosition(Vector2.Zero) * Parent.DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse);
 
-                if (calculateDrawable == this)
-                    return drawQuad.BottomRight;
+            Vector2 bounds = new Vector2(0, 0);
 
-                //field will be none when the drawable isn't requesting auto-sizing
-                Quad q = calculateDrawable.DrawInfo.MatrixInverse * GetScreenSpaceQuad(drawQuad);
-                Vector2 a = Parent == null ? Vector2.Zero : (GetAnchoredPosition(Vector2.Zero) * Parent.DrawInfo.Matrix) * calculateDrawable.DrawInfo.MatrixInverse;
-
-                Vector2 bounds = new Vector2(0, 0);
-
-                // Without this, 0x0 objects (like FontText with no string) produce weird results.
-                // When all vertices of the quad are at the same location, then the object is effectively invisible.
-                // Thus we don't need its actual bounding box, but can just assume a size of 0.
-                if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
-                    return bounds;
-
-                foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
-                {
-                    // Compute the clipped offset depending on anchoring.
-                    Vector2 offset;
-
-                    if (Anchor == Anchor.CentreRight || Anchor == Anchor.TopRight || Anchor == Anchor.BottomRight)
-                        offset.X = a.X - p.X;
-                    else if (Anchor == Anchor.CentreLeft || Anchor == Anchor.TopLeft || Anchor == Anchor.BottomLeft)
-                        offset.X = p.X - a.X;
-                    else
-                        offset.X = Math.Abs(p.X - a.X);
-
-                    if (Anchor == Anchor.BottomCentre || Anchor == Anchor.BottomLeft || Anchor == Anchor.BottomRight)
-                        offset.Y = a.Y - p.Y;
-                    else if (Anchor == Anchor.TopCentre || Anchor == Anchor.TopLeft || Anchor == Anchor.TopRight)
-                        offset.Y = p.Y - a.Y;
-                    else
-                        offset.Y = Math.Abs(p.Y - a.Y);
-
-                    // Expand bounds according to clipped offset
-                    bounds.X = Math.Max(bounds.X, offset.X);
-                    bounds.Y = Math.Max(bounds.Y, offset.Y);
-                }
-
-                // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
-                // as the child's size.
-                switch (Anchor)
-                {
-                    case Anchor.TopCentre:
-                    case Anchor.Centre:
-                    case Anchor.BottomCentre:
-                        bounds.X *= 2;
-                        break;
-                }
-
-                switch (Anchor)
-                {
-                    case Anchor.CentreLeft:
-                    case Anchor.Centre:
-                    case Anchor.CentreRight:
-                        bounds.Y *= 2;
-                        break;
-                }
-
+            // Without this, 0x0 objects (like FontText with no string) produce weird results.
+            // When all vertices of the quad are at the same location, then the object is effectively invisible.
+            // Thus we don't need its actual bounding box, but can just assume a size of 0.
+            if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
                 return bounds;
-            };
 
-            Debug.Assert(calculateDrawable == this || (Parent != null && calculateDrawable == Parent), "We only ever request the bounding size in either our own coordinate frame, or in the parent's.");
+            foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
+            {
+                // Compute the clipped offset depending on anchoring.
+                Vector2 offset;
 
-            // There are exactly two types of bounding sizes ever requested:
-            //  1. The bounding size of oneself in order to update ones own autosize (called in UpdateSubTree)
-            //     This case is handled by the first branch of the following if statement. It doesn't need to be cached
-            //     since it's invoked at most once per frame.
-            //  2. The bounding size with respect to the first parent object up the hierarchy with an autosize setting.
-            //     This case is handled by the second branch of the following if statement. Caching it significantly
-            //     Increases performance, since it may be queried up to n times per frame where n is the depth of the
-            //     hierarchy.
+                if (Anchor == Anchor.CentreRight || Anchor == Anchor.TopRight || Anchor == Anchor.BottomRight)
+                    offset.X = a.X - p.X;
+                else if (Anchor == Anchor.CentreLeft || Anchor == Anchor.TopLeft || Anchor == Anchor.BottomLeft)
+                    offset.X = p.X - a.X;
+                else
+                    offset.X = Math.Abs(p.X - a.X);
 
-            if (calculateDrawable == this)
-                return computeBoundingSize();
-            return boundingSizeBacking.Refresh(() => computeBoundingSize());
-        }
+                if (Anchor == Anchor.BottomCentre || Anchor == Anchor.BottomLeft || Anchor == Anchor.BottomRight)
+                    offset.Y = a.Y - p.Y;
+                else if (Anchor == Anchor.TopCentre || Anchor == Anchor.TopLeft || Anchor == Anchor.TopRight)
+                    offset.Y = p.Y - a.Y;
+                else
+                    offset.Y = Math.Abs(p.Y - a.Y);
+
+                // Expand bounds according to clipped offset
+                bounds.X = Math.Max(bounds.X, offset.X);
+                bounds.Y = Math.Max(bounds.Y, offset.Y);
+            }
+
+            // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
+            // as the child's size.
+            switch (Anchor)
+            {
+                case Anchor.TopCentre:
+                case Anchor.Centre:
+                case Anchor.BottomCentre:
+                    bounds.X *= 2;
+                    break;
+            }
+
+            switch (Anchor)
+            {
+                case Anchor.CentreLeft:
+                case Anchor.Centre:
+                case Anchor.CentreRight:
+                    bounds.Y *= 2;
+                    break;
+            }
+
+            return bounds;
+        });
 
         internal DrawNode GenerateDrawNodeSubtree()
         {
@@ -837,11 +812,11 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
             // Either ScreenSize OR ScreenPosition
-            if ((invalidation & Invalidation.ScreenShape) > 0)
+            if ((invalidation & Invalidation.ScreenSpaceQuad) > 0)
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
 
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & Invalidation.ScreenShape) > 0 || (invalidation & Invalidation.Colour) > 0)
+            if ((invalidation & Invalidation.DrawInfo) > 0)
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
 
             if ((invalidation & Invalidation.Visibility) > 0)
@@ -854,9 +829,13 @@ namespace osu.Framework.Graphics
             {
                 foreach (var c in children)
                 {
-                    if (c == source) continue;
+                    Debug.Assert(c != source);
 
-                    c.Invalidate(invalidation & ~Invalidation.SizeInParentSpace, this);
+                    Invalidation childInvalidation = invalidation;
+                    //if (c.SizeMode == InheritMode.None)
+                        childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+
+                    c.Invalidate(childInvalidation, this);
                 }
             }
 
@@ -953,18 +932,18 @@ namespace osu.Framework.Graphics
     public enum Invalidation
     {
         // Individual types
-        ScreenPosition = 1 << 0,
+        Position = 1 << 0,
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
 
         // Combinations
-        ScreenShape = ScreenPosition | SizeInParentSpace,
-        DrawInfo = ScreenShape | Colour,
+        ScreenSpaceQuad = Position | SizeInParentSpace,
+        DrawInfo = ScreenSpaceQuad | Colour,
 
         // Meta
         None = 0,
-        All = ScreenShape | Visibility | Colour,
+        All = Position | SizeInParentSpace | Visibility | Colour,
     };
 
     /// <summary>
