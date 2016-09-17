@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -35,12 +36,12 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxInheritingSize = Vector2.One;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in Children)
+                foreach (Drawable c in CurrentChildren)
                 {
                     if (!c.IsVisible)
                         continue;
 
-                    Vector2 boundingSize = c.GetBoundingSize(this);
+                    Vector2 boundingSize = c.BoundingSize;
                     Vector2 inheritingSize = c.Size * c.Scale * ContentScale;
 
                     if ((c.SizeMode & InheritMode.X) == 0)
@@ -70,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool childChangedStatus = base.UpdateChildrenLife();
             if (childChangedStatus)
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
 
             return childChangedStatus;
         }
@@ -81,14 +82,14 @@ namespace osu.Framework.Graphics.Containers
 
             if (RequireAutoSize)
             {
-                Vector2 b = GetBoundingSize(this);
+                Vector2 b = DrawQuadForBounds.BottomRight;
 
                 size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
                 // This triggers re-positioning of all children according.
                 // It is required even if Size does coincidentally not change, since children
                 // might still have moved.
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
 
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
@@ -99,7 +100,7 @@ namespace osu.Framework.Graphics.Containers
         {
             Drawable result = base.Add(drawable);
             if (result != null)
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
 
             return result;
         }
@@ -108,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool result = base.Remove(p, dispose);
             if (result)
-                Invalidate(Invalidation.ScreenShape);
+                Invalidate(Invalidation.ScreenSpaceQuad);
 
             return result;
         }
@@ -133,10 +134,20 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
         {
-            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenShape)) > 0)
-                return Invalidation.ScreenShape;
+            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenSpaceQuad)) > 0)
+                return Invalidation.ScreenSpaceQuad;
             else
                 return base.InvalidationEffectByChildren(childInvalidation);
+        }
+
+        public virtual InheritMode SizeMode
+        {
+            get { return base.SizeMode; }
+            set
+            {
+                Debug.Assert(SizeMode != InheritMode.XY);
+                base.SizeMode = value;
+            }
         }
     }
 }
