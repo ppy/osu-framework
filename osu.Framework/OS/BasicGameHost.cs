@@ -39,7 +39,7 @@ namespace osu.Framework.OS
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
 
-        private Scheduler updateScheduler;
+        private Scheduler updateScheduler = new Scheduler(null); //null here to construct early but bind to thread late.
 
         protected override IFrameBasedClock Clock => UpdateClock;
 
@@ -142,7 +142,7 @@ namespace osu.Framework.OS
             };
             updateThread.Start();
 
-            updateScheduler = new Scheduler(updateThread);
+            updateScheduler.SetCurrentThread(updateThread);
 
             Window.ClientSizeChanged += window_ClientSizeChanged;
             window_ClientSizeChanged(null, null);
@@ -210,7 +210,7 @@ namespace osu.Framework.OS
         public void Load(Game game)
         {
             game.SetHost(this);
-            Add(game);
+            updateScheduler.Add(delegate { Add(game); });
         }
     }
 }

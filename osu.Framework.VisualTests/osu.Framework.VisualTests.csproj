@@ -48,6 +48,7 @@
     <Compile Include="Tests\FieldTest.cs" />
     <Compile Include="Tests\TestCase.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
+    <Compile Include="Tests\TestCaseTextBox.cs" />
     <Compile Include="VisualTestGame.cs" />
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
