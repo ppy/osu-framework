@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using osu.Framework.IO.Stores;
+using ImageMagick;
+using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -12,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
     {
         Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
 
-        private TextureAtlas atlas = new TextureAtlas(2048, 2048);
+        private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
 
         public float ScaleAdjust = 1;
 
@@ -29,44 +32,73 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new virtual Texture Get(string name)
         {
-            Texture tex;
+            Texture tex = null;
 
-            if (textureCache.TryGetValue(name, out tex))
-                tex = tex != null ? new Texture(tex.TextureGL) : null;
-            else
+            try
             {
-                textureCache[name] = tex = TextureLoader.FromBytes(base.Get(name), atlas);
+                if (textureCache.TryGetValue(name, out tex))
+                {
+                    //use existing TextureGL (but provide a new texture instance).
+                    tex = tex != null ? new Texture(tex.TextureGL) : null;
+                    return tex;
+                }
 
-                //tex.SetData(tex, );
-                //if (tex != null)
+                Stream s = base.GetStream($@"{name}");
+                if (s == null) return null;
+
+                using (MagickImage mainImage = new MagickImage(s))
+                {
+                    tex = atlas != null ? atlas.Add(mainImage.Width, mainImage.Height) : new Texture(mainImage.Width, mainImage.Height);
+                    TextureUpload upload = new TextureUpload(mainImage.Width * mainImage.Height * 4);
+                    mainImage.Write(new MemoryStream(upload.Data), MagickFormat.Rgba);
+                    tex.SetData(upload);
+                }
+
+
+                //load available mipmaps
+                //int level = 1;
+                //int div = 2;
+
+                //while (tex.Width / div > 0)
                 //{
-                //    //temporary test for availability of mipmap levels
-                //    int level = 1;
-                //    int div = 2;
+                //    s = base.GetStream($@"{name}/{div}");
 
-                //    while (tex.Width / div > 0)
+                //    if (s == null) break;
+
+                //    int w = tex.Width / div;
+                //    int h = tex.Height / div;
+
+                //    TextureUpload upload = new TextureUpload(w * h * 4)
                 //    {
-                //        byte[] by = base.Get($@"{name}/{div}");
+                //        Level = level
+                //    };
 
-                //        if (by == null) break;
+                //    using (MagickImage image = new MagickImage(s))
+                //    {
+                //        if (image.Width != w || image.Height != h)
+                //        {
+                //            image.Resize(new MagickGeometry($"{w}x{h}!"));
+                //        }
 
-                //        using (MemoryStream ms = new MemoryStream(by))
-                //        using (Bitmap b = (Bitmap)Image.FromStream(ms, false, false))
-                //        using (Bitmap b2 = new Bitmap(b, new Size(tex.Width / div, tex.Height / div)))
-                //            tex.SetData(b2, level);
-
-                //        level++;
-                //        div *= 2;
+                //        image.Write(new MemoryStream(upload.Data), MagickFormat.Rgba);
                 //    }
+
+                //    tex.SetData(upload);
+
+                //    level++;
+                //    div *= 2;
                 //}
-            }
 
-            if (tex != null && ScaleAdjust != 1)
+                textureCache[name] = tex;
+
+                return tex;
+            }
+            finally
             {
-                tex.DpiScale = 1 / ScaleAdjust;
+                if (tex != null && ScaleAdjust != 1)
+                    tex.DpiScale = 1 / ScaleAdjust;
             }
-
-            return tex;
         }
     }
 }
+

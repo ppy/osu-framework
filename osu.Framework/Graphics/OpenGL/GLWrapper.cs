@@ -35,20 +35,19 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static bool HasContext => GraphicsContext.CurrentContext != null;
 
-        private static Cached<int> maxTextureSizeBacking = new Cached<int>();
-        public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
+        public static int MaxTextureSize { get; private set; }
 
-        private static Scheduler resetScheduler = new Scheduler();
+        private static Scheduler resetScheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
-        static GLWrapper()
-        {
-            //force no thread set until we are actually on the draw thread.
-            resetScheduler.SetCurrentThread(null);
-        }
+        public static bool IsInitialized { get; private set; }
 
         internal static void Initialize()
         {
             resetScheduler.SetCurrentThread();
+
+            MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
+
+            IsInitialized = true;
         }
 
         internal static void Reset(Vector2 size)

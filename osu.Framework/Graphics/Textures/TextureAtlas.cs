@@ -59,14 +59,14 @@ namespace osu.Framework.Graphics.Textures
             foreach (Rectangle bounds in subTextureBounds)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                res.X = Math.Max(res.X, bounds.Right + 1);
+                res.X = Math.Max(res.X, bounds.Right + 4);
                 maxY = Math.Max(maxY, bounds.Bottom);
             }
 
             if (res.X + width > atlasWidth)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                currentY = maxY + 1;
+                currentY = maxY + 4;
                 subTextureBounds.Clear();
                 res = FindPosition(width, height);
             }

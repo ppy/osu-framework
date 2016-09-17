@@ -9,6 +9,8 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -21,14 +23,9 @@ namespace osu.Framework.Graphics
             Depth = 0
         };
 
-        ScrollContainer scroll = new ScrollContainer();
-
-        FlowContainer flow = new FlowContainer()
-        {
-            Direction = FlowDirection.VerticalOnly
-        };
-
+        FlowContainer flow;
         Drawable target;
+
         private ScheduledDelegate scheduledUpdater;
         private SpriteText loadMessage;
 
@@ -36,18 +33,20 @@ namespace osu.Framework.Graphics
         {
             base.Load();
 
-            AddProcessing(new MaskingContainer());
-
-            scroll.Add(flow);
-
-            Add(background);
-            Add(scroll);
-
-            Add(loadMessage = new SpriteText()
+            Add(new MaskingContainer
             {
-                Text = @"Click to load DrawVisualiser",
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
+                Children = new Drawable[]
+                {
+                    background,
+                    new ScrollContainer {
+                        Children = new [] { flow = new FlowContainer { Direction = FlowDirection.VerticalOnly } }
+                    },
+                    loadMessage = new SpriteText {
+                        Text = @"Click to load DrawVisualiser",
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    }
+                }
             });
         }
 
@@ -85,11 +84,11 @@ namespace osu.Framework.Graphics
         {
             if (d == this) return;
 
-            var drawables = container.Children.ConvertAll(o => o as VisualisedDrawable);
+            var drawables = container.Children.Cast<VisualisedDrawable>();
 
             drawables.ForEach(dd => dd.CheckExpiry());
 
-            VisualisedDrawable vd = drawables.Find(dd => dd.Target == d);
+            VisualisedDrawable vd = drawables.FirstOrDefault(dd => dd.Target == d);
             if (vd == null)
             {
                 vd = new VisualisedDrawable(d);
@@ -169,7 +168,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = Target.Children.Count > 64 ? 0 : 1;
+                Flow.Alpha = Target.Children.Skip(64).Any() ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
@@ -186,7 +185,7 @@ namespace osu.Framework.Graphics
                 Target = d;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnClick(InputState state)
             {
                 Flow.Alpha = Flow.Alpha > 0 ? 0 : 1;
                 updateSpecifics();
@@ -215,7 +214,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count} hidden children)" : string.Empty);
+                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count()} hidden children)" : string.Empty);
             }
 
             protected override void Update()

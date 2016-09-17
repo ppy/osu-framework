@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using OpenTK.Input;
-using Rectangle = System.Drawing.Rectangle;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Graphics;
@@ -43,7 +40,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The distance that must be moved before a drag begins.
         /// </summary>
-        private const float drag_start_distance = 5;
+        private const float drag_start_distance = 0;
 
         /// <summary>
         /// The distance that can be moved between MouseDown and MouseUp to consider a click valid to take action on.
@@ -158,17 +155,13 @@ namespace osu.Framework.Input
                 keyboardInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children)
+            foreach (Drawable child in current.CurrentChildren)
                 buildKeyboardInputQueue(child);
         }
 
         private void buildMouseInputQueue(InputState state, Drawable current)
         {
-            if (!current.HandleInput || !current.IsVisible)
-                return;
-
-            if (!current.Contains(state.Mouse.Position))
-                return;
+            if (!checkIsHoverable(current, state)) return;
 
             if (current != this)
             {
@@ -179,8 +172,19 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children)
+            foreach (Drawable child in current.CurrentChildren)
                 buildMouseInputQueue(state, child);
+        }
+
+        private bool checkIsHoverable(Drawable d, InputState state)
+        {
+            if (!d.HandleInput || !d.IsVisible)
+                return false;
+
+            if (!d.Contains(state.Mouse.NativePosition))
+                return false;
+
+            return true;
         }
 
         private void updateHoverEvents(InputState state)
@@ -319,10 +323,10 @@ namespace osu.Framework.Input
 
                 Quad q = ScreenSpaceInputQuad;
 
-                mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
+                mouse.NativePosition = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
             }
             else
-                mouse.Position = Vector2.Zero;
+                mouse.NativePosition = Vector2.Zero;
         }
 
         private void updateKeyboardEvents(InputState state)
@@ -369,11 +373,14 @@ namespace osu.Framework.Input
             }
         }
 
+        List<Drawable> mouseDownInputQueue;
+        Drawable mouseDownHandledDrawable;
+
         private void updateMouseEvents(InputState state)
         {
             MouseState mouse = state.Mouse;
 
-            if (mouse.Position != mouse.LastState?.Position)
+            if (mouse.NativePosition != mouse.LastState?.NativePosition)
             {
                 handleMouseMove(state);
                 if (isDragging)
@@ -402,7 +409,7 @@ namespace osu.Framework.Input
                 if (mouse.LastState?.HasMainButtonPressed != true)
                 {
                     //stuff which only happens once after the mousedown state
-                    state.Mouse.PositionMouseDown = state.Mouse.Position;
+                    state.Mouse.PositionMouseDown = state.Mouse.NativePosition;
                     LastActionTime = Time;
                     isValidClick = true;
 
@@ -418,13 +425,13 @@ namespace osu.Framework.Input
                     lastClickTime = Time;
                 }
 
-                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > drag_start_distance)
                 {
                     isDragging = true;
                     handleMouseDrag(state);
                 }
 
-                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_confirmation_distance)
+                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > click_confirmation_distance)
                     isValidClick = false;
             }
             else if (mouse.LastState?.HasMainButtonPressed == true)
@@ -432,6 +439,8 @@ namespace osu.Framework.Input
                 if (isValidClick)
                     handleMouseClick(state);
 
+                mouseDownHandledDrawable = null;
+                mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
 
                 if (isDragging)
@@ -449,7 +458,10 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            return mouseInputQueue.Any(target => target.TriggerMouseDown(state, args));
+            mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
+            mouseDownHandledDrawable = mouseInputQueue.Find(target => target.TriggerMouseDown(state, args));
+
+            return mouseDownHandledDrawable != null;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -459,7 +471,8 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            return mouseInputQueue.Any(target => target.TriggerMouseUp(state, args));
+            //extra check for IsAlive because we are using an outdated queue.
+            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsVisible && target.TriggerMouseUp(state, args));
         }
 
         private bool handleMouseMove(InputState state)
@@ -469,7 +482,11 @@ namespace osu.Framework.Input
 
         private bool handleMouseClick(InputState state)
         {
-            if (mouseInputQueue.Any(target => target.TriggerClick(state) | target.TriggerFocus(state, true)))
+            if (mouseDownHandledDrawable != null)
+                return checkIsHoverable(mouseDownHandledDrawable, state) && (mouseDownHandledDrawable.TriggerClick(state) | mouseDownHandledDrawable.TriggerFocus(state, true));
+
+            //extra check for IsAlive because we are using an outdated queue.
+            if (mouseDownInputQueue.Any(target => checkIsHoverable(target, state) && (target.TriggerClick(state) | target.TriggerFocus(state, true))))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();
@@ -568,7 +585,7 @@ namespace osu.Framework.Input
                     inputHandlers.Insert(index, handler);
 
                     //set the initial position to the current OsuGame position.
-                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
+                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.NativePosition);
                     return true;
                 }
             }

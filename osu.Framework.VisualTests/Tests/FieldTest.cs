@@ -46,8 +46,8 @@ namespace osu.Framework.VisualTests.Tests
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer()
             {
-                SizeMode = InheritMode.XY,
                 Direction = FlowDirection.VerticalOnly,
+                SizeMode = InheritMode.X,
                 Padding = new Vector2(0, 5)
             });
 
@@ -131,7 +131,7 @@ namespace osu.Framework.VisualTests.Tests
                 Add(new SpriteText()
                 {
                     Text = test.Description,
-                    ContentScale = new Vector2(0.8f),
+                    TextSize = 12,
                     SizeMode = InheritMode.X,
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft

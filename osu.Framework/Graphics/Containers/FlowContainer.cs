@@ -4,6 +4,7 @@
 using System;
 using OpenTK;
 using osu.Framework.Graphics.Transformations;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -91,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
             lastLayout = Time;
             requiresLayout = false;
 
-            if (Children.Count == 0) return;
+            if (Children.FirstOrDefault() == null) return;
 
             Vector2 current = new Vector2(Math.Max(0, Padding.X), Math.Max(0, Padding.Y));
 
@@ -109,23 +110,26 @@ namespace osu.Framework.Graphics.Containers
             float rowMaxHeight = 0;
             foreach (Drawable d in Children)
             {
-                if (!d.IsVisible) continue;
+                Vector2 size = Vector2.Zero;
 
-                Vector2 size = d.ActualSize * d.Scale * ContentScale;
-
-                if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                if (d.IsVisible)
                 {
-                    current.X = Math.Max(0, Padding.X);
-                    current.Y += rowMaxHeight;
+                    size = d.ActualSize * d.Scale * ContentScale;
 
-                    rowMaxHeight = 0;
+                    if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                    {
+                        current.X = Math.Max(0, Padding.X);
+                        current.Y += rowMaxHeight;
+
+                        rowMaxHeight = 0;
+                    }
+
+                    //todo: check this is correct
+                    if (size.X > 0) size.X = Math.Max(0, size.X + Padding.X);
+                    if (size.Y > 0) size.Y = Math.Max(0, size.Y + Padding.Y);
+
+                    if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
                 }
-
-                //todo: check this is correct
-                if (size.X > 0) size.X = Math.Max(0, size.X + Padding.X);
-                if (size.Y > 0) size.Y = Math.Max(0, size.Y + Padding.Y);
-
-                if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
 
                 if (current != d.Position)
                 {

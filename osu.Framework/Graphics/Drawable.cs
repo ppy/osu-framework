@@ -23,14 +23,23 @@ namespace osu.Framework.Graphics
         internal event Action OnInvalidate;
 
         private LifetimeList<Drawable> children;
-        internal ReadOnlyList<Drawable> Children
+        private IEnumerable<Drawable> pendingChildren;
+        internal IEnumerable<Drawable> Children
         {
-            get
+            get { return children; }
+            set
             {
-                ThreadSafety.EnsureUpdateThread();
-                return children;
+                if (!IsLoaded)
+                    pendingChildren = value;
+                else
+                {
+                    Clear();
+                    Add(value);
+                }
             }
         }
+
+        internal IEnumerable<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
         public LifetimeList<ITransform> Transforms
@@ -480,7 +489,7 @@ namespace osu.Framework.Graphics
 
             drawable.changeParent(this);
             children.Add(drawable);
-            
+
             return drawable;
         }
 
@@ -774,8 +783,21 @@ namespace osu.Framework.Graphics
 
         public virtual void Load()
         {
+            if (pendingChildren != null)
+            {
+                Add(pendingChildren);
+                pendingChildren = null;
+            }
+
             loaded = true;
             Invalidate();
+        }
+
+        private void updateTransformsOfType(Type specificType)
+        {
+            foreach (ITransform t in transforms.Current)
+                if (t.GetType() == specificType)
+                    t.Apply(this);
         }
 
         /// <summary>
@@ -811,7 +833,7 @@ namespace osu.Framework.Graphics
 
             bool alreadyInvalidated = true;
 
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
             // Either ScreenSize OR ScreenPosition
@@ -834,13 +856,7 @@ namespace osu.Framework.Graphics
                 {
                     if (c == source) continue;
 
-                    Invalidation childInvalidation = invalidation;
-
-                    // Important TODO: Figure out why commenting out the following 2 lines--i.e. invalidating all choldren's size--breaks autosize.
-                    if (c.SizeMode == InheritMode.None)
-                        childInvalidation = childInvalidation & ~Invalidation.ScreenSize;
-
-                    c.Invalidate(childInvalidation, this);
+                    c.Invalidate(invalidation & ~Invalidation.SizeInParentSpace, this);
                 }
             }
 
@@ -938,12 +954,12 @@ namespace osu.Framework.Graphics
     {
         // Individual types
         ScreenPosition = 1 << 0,
-        ScreenSize = 1 << 1,
+        SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
 
         // Combinations
-        ScreenShape = ScreenPosition | ScreenSize,
+        ScreenShape = ScreenPosition | SizeInParentSpace,
         DrawInfo = ScreenShape | Colour,
 
         // Meta

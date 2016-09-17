@@ -33,8 +33,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             if (!disposedValue)
             {
-                bufferStack.FreeBuffer(Data);
                 disposedValue = true;
+                bufferStack.FreeBuffer(Data);
             }
         }
 

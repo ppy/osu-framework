@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.UI;
+using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
 
