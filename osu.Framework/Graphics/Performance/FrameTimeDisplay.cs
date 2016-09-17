@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Performance
 
         private Sprite[] timeBars = new Sprite[2];
 
-        private AutoSizeContainer timeBarContainer = new AutoSizeContainer();
+        private AutoSizeContainer timeBarContainer;
 
         private byte[] textureData = new byte[HEIGHT * 4];
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        List<Drawable> legendSprites = new List<Drawable>();
+        FlowContainer legendSprites;
         List<Drawable> eventSprites = new List<Drawable>();
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
@@ -67,54 +67,56 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load();
 
-            for (int i = 0; i < timeBars.Length; ++i)
-            {
-                timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
-                timeBarContainer.Add(timeBars[i]);
-            }
-
             Add(new MaskingContainer
             {
                 Children = new Drawable[] {
-                    timeBarContainer,
+                    timeBarContainer = new AutoSizeContainer(),
+                    legendSprites = new FlowContainer {
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        Padding = new Vector2(5, 1),
+                        Children = new [] {
+                            new Box {
+                                SizeMode = InheritMode.XY,
+                                Colour = Color4.Gray,
+                                Alpha = 0.2f,
+                            }
+                        }
+                    },
+                    new SpriteText
+                    {
+                        Text = $@"{visible_range}ms",
+                        TextSize = 14
+                    },
                     new SpriteText
                     {
                         Text = @"0ms",
-                        TextSize = 18,
+                        TextSize = 14,
                         Anchor = Anchor.BottomLeft,
                         Origin = Anchor.BottomLeft
                     },
                 }
             });
 
-            //SpriteText text = new SpriteText((HEIGHT / scale) + @"ms", 18, new Vector2(0, 0), 1, true, Color4.White)
-            //{
-            //    ScaleToWindowRatio = false,
-            //    Anchor = Anchor.TopLeft,
-            //    Origin = Anchor.TopLeft
-            //};
+            for (int i = 0; i < timeBars.Length; ++i)
+            {
+                timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
+                timeBarContainer.Add(timeBars[i]);
+            }
 
-            //Add(text);
+            foreach (FrameTimeType t in Enum.GetValues(typeof(FrameTimeType)))
+            {
+                if (t >= FrameTimeType.Empty) continue;
 
-            //text.MeasureText();
-            //float x = text.lastMeasure.X;
-
-            //foreach (FrameTimeType t in Enum.GetValues(typeof(FrameTimeType)))
-            //{
-            //    if (t >= FrameTimeType.Empty) continue;
-
-            //    text = new SpriteText(t.ToString(), 27, new Vector2(x, 0), 1, true, getColour(t))
-            //    {
-            //        Alpha = 0,
-            //        ScaleToWindowRatio = false,
-            //        Anchor = Anchor.TopLeft,
-            //        Origin = Anchor.TopLeft
-            //    };
-            //    legendSprites.Add(text);
-
-            //    text.MeasureText();
-            //    x += text.lastMeasure.X;
-            //}
+                SpriteText text = new SpriteText()
+                {
+                    Colour = getColour(t),
+                    Text = t.ToString(),
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft
+                };
+                legendSprites.Add(text);
+            }
 
             //Add(legendSprites);
 
@@ -294,7 +296,7 @@ namespace osu.Framework.Graphics.Performance
     public class PerformanceMonitor
     {
         internal StopwatchClock clock = new StopwatchClock(true);
-        
+
         internal Stack<FrameTimeType> CurrentCollectionTypeStack = new Stack<FrameTimeType>();
 
         internal FrameStatistics currentFrame;
@@ -316,10 +318,10 @@ namespace osu.Framework.Graphics.Performance
         {
             //OsuGame.Scheduler.Add(delegate
             //{
-                if (!currentFrame.CollectedCounters.ContainsKey(type))
-                    currentFrame.CollectedCounters[type] = 1;
-                else
-                    currentFrame.CollectedCounters[type]++;
+            if (!currentFrame.CollectedCounters.ContainsKey(type))
+                currentFrame.CollectedCounters[type] = 1;
+            else
+                currentFrame.CollectedCounters[type]++;
             //});
         }
 
@@ -386,7 +388,7 @@ namespace osu.Framework.Graphics.Performance
 
             //check for dropped (stutter) frames
             //if (clock.ElapsedFrameTime > spikeTime)
-                //NewDroppedFrame();
+            //NewDroppedFrame();
 
             AverageFrameTime = decay * AverageFrameTime + (1 - decay) * clock.ElapsedFrameTime;
 

@@ -110,6 +110,8 @@ namespace osu.Framework.Graphics.Containers
             float rowMaxHeight = 0;
             foreach (Drawable d in Children)
             {
+                if (d.SizeMode != InheritMode.None) continue;
+
                 Vector2 size = Vector2.Zero;
 
                 if (d.IsVisible)
