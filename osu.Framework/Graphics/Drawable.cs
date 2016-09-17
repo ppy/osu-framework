@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics
         internal event Action OnInvalidate;
 
         private LifetimeList<Drawable> children;
-        internal ReadOnlyList<Drawable> Children
+        internal LifetimeList<Drawable> Children
         {
             get
             {

@@ -3,10 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using OpenTK.Input;
-using Rectangle = System.Drawing.Rectangle;
 using System.Linq;
 using OpenTK;
 using osu.Framework.Graphics;
@@ -158,17 +155,13 @@ namespace osu.Framework.Input
                 keyboardInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children)
+            foreach (Drawable child in current.Children.Current)
                 buildKeyboardInputQueue(child);
         }
 
         private void buildMouseInputQueue(InputState state, Drawable current)
         {
-            if (!current.HandleInput || !current.IsVisible)
-                return;
-
-            if (!current.Contains(state.Mouse.Position))
-                return;
+            if (!checkIsHoverable(current, state)) return;
 
             if (current != this)
             {
@@ -179,8 +172,19 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children)
+            foreach (Drawable child in current.Children.Current)
                 buildMouseInputQueue(state, child);
+        }
+
+        private bool checkIsHoverable(Drawable d, InputState state)
+        {
+            if (!d.HandleInput || !d.IsVisible)
+                return false;
+
+            if (!d.Contains(state.Mouse.Position))
+                return false;
+
+            return true;
         }
 
         private void updateHoverEvents(InputState state)
@@ -369,6 +373,9 @@ namespace osu.Framework.Input
             }
         }
 
+        List<Drawable> mouseDownInputQueue;
+        Drawable mouseDownHandledDrawable;
+
         private void updateMouseEvents(InputState state)
         {
             MouseState mouse = state.Mouse;
@@ -432,6 +439,8 @@ namespace osu.Framework.Input
                 if (isValidClick)
                     handleMouseClick(state);
 
+                mouseDownHandledDrawable = null;
+                mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
 
                 if (isDragging)
@@ -449,7 +458,10 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            return mouseInputQueue.Any(target => target.TriggerMouseDown(state, args));
+            mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
+            mouseDownHandledDrawable = mouseInputQueue.Find(target => target.TriggerMouseDown(state, args));
+
+            return mouseDownHandledDrawable != null;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -459,7 +471,8 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            return mouseInputQueue.Any(target => target.TriggerMouseUp(state, args));
+            //extra check for IsAlive because we are using an outdated queue.
+            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsVisible && target.TriggerMouseUp(state, args));
         }
 
         private bool handleMouseMove(InputState state)
@@ -469,7 +482,11 @@ namespace osu.Framework.Input
 
         private bool handleMouseClick(InputState state)
         {
-            if (mouseInputQueue.Any(target => target.TriggerClick(state) | target.TriggerFocus(state, true)))
+            if (mouseDownHandledDrawable != null)
+                return checkIsHoverable(mouseDownHandledDrawable, state) && (mouseDownHandledDrawable.TriggerClick(state) | mouseDownHandledDrawable.TriggerFocus(state, true));
+
+            //extra check for IsAlive because we are using an outdated queue.
+            if (mouseDownInputQueue.Any(target => checkIsHoverable(target, state) && (target.TriggerClick(state) | target.TriggerFocus(state, true))))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();

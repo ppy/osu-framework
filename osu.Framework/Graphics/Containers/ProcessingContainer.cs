@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public class ProcessingContainer : Container
     {
-        private Container processingContainer = new Container() { SizeMode = InheritMode.XY };
+        private Container processingContainer = new BoundsBypassContainer() { SizeMode = InheritMode.XY };
 
         public override void Load()
         {
