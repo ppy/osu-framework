@@ -109,7 +109,9 @@ namespace osu.Framework.Graphics.Containers
                 float rowMaxHeight = 0;
                 foreach (Drawable d in Children)
                 {
-                    if (d.SizeMode != InheritMode.None) continue;
+                    if (((int)direction & (int)d.SizeMode) > 0)
+                        //if the inheriting mode of the drawable shares the same directional value as our flow direction, we have to ignore it.
+                        continue;
 
                     Vector2 size = Vector2.Zero;
 
@@ -146,10 +148,12 @@ namespace osu.Framework.Graphics.Containers
         }
     }
 
+    [Flags]
     public enum FlowDirection
     {
-        VerticalOnly,
-        HorizontalOnly,
-        Full
+        HorizontalOnly = 1 << 0,
+        VerticalOnly = 1 << 1,
+
+        Full = HorizontalOnly | VerticalOnly
     }
 }
