@@ -155,7 +155,7 @@ namespace osu.Framework.Input
                 keyboardInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children.Current)
+            foreach (Drawable child in current.CurrentChildren)
                 buildKeyboardInputQueue(child);
         }
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            foreach (Drawable child in current.Children.Current)
+            foreach (Drawable child in current.CurrentChildren)
                 buildMouseInputQueue(state, child);
         }
 

@@ -15,6 +15,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Linq;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -170,9 +171,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return textFlow.Children[index].Position.X + textFlow.Position.X;
+                    return textFlow.Children.Skip(index).Take(1).Single().Position.X + textFlow.Position.X;
                 else
-                    return textFlow.Children[index - 1].Position.X + textFlow.Children[index - 1].Size.X + textFlow.Padding.X + textFlow.Position.X;
+                    return textFlow.Children.Skip(index - 1).Take(1).Sum(d => d.Position.X + d.Size.X) + textFlow.Padding.X + textFlow.Position.X;
             }
             else
                 return 0;
@@ -250,7 +251,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             for (int i = 0; i < count; i++)
             {
-                Drawable d = textFlow.Children[start];
+                Drawable d = textFlow.Children.Skip(start).Take(1).Single();
                 textFlow.Remove(d);
 
                 TextContainer.Add(d);
@@ -271,8 +272,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
-            for (int i = selectionLeft; i < text.Length; i++)
-                textFlow.Children[i].Depth = i + 1;
+            int i = selectionLeft;
+            foreach (Drawable dd in textFlow.Children.Skip(selectionLeft).Take(text.Length - selectionLeft))
+                dd.Depth = i + 1;
 
             Drawable ch;
 

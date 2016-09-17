@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
 using OpenTK.Graphics;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -106,11 +107,8 @@ namespace osu.Framework.Graphics.Sprites
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
                 int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
-                for (int i = 0; i < length; i++)
-                {
-                    if (lastText[i] != text[i]) break;
-                    keepDrawables.Add(Children[i]);
-                }
+
+                keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
 
                 Clear();
 

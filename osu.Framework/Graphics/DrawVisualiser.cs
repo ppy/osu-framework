@@ -9,6 +9,8 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -33,11 +35,11 @@ namespace osu.Framework.Graphics
 
             Add(new MaskingContainer
             {
-                Kids = new Drawable[]
+                Children = new Drawable[]
                 {
                     background,
                     new ScrollContainer {
-                        Kids = new [] { flow = new FlowContainer { Direction = FlowDirection.VerticalOnly } }
+                        Children = new [] { flow = new FlowContainer { Direction = FlowDirection.VerticalOnly } }
                     },
                     loadMessage = new SpriteText {
                         Text = @"Click to load DrawVisualiser",
@@ -82,11 +84,11 @@ namespace osu.Framework.Graphics
         {
             if (d == this) return;
 
-            var drawables = container.Children.ConvertAll(o => o as VisualisedDrawable);
+            var drawables = container.Children.Cast<VisualisedDrawable>();
 
             drawables.ForEach(dd => dd.CheckExpiry());
 
-            VisualisedDrawable vd = drawables.Find(dd => dd.Target == d);
+            VisualisedDrawable vd = drawables.FirstOrDefault(dd => dd.Target == d);
             if (vd == null)
             {
                 vd = new VisualisedDrawable(d);
@@ -166,7 +168,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = Target.Children.Count > 64 ? 0 : 1;
+                Flow.Alpha = Target.Children.Skip(64).Any() ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
@@ -212,7 +214,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count} hidden children)" : string.Empty);
+                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count()} hidden children)" : string.Empty);
             }
 
             protected override void Update()

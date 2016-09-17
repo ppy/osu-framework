@@ -8,6 +8,7 @@ using OpenTK.Graphics;
 using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Transformations;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics
 {

@@ -4,6 +4,7 @@
 using System;
 using OpenTK;
 using osu.Framework.Graphics.Transformations;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -91,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
             lastLayout = Time;
             requiresLayout = false;
 
-            if (Children.Count == 0) return;
+            if (Children.FirstOrDefault() == null) return;
 
             Vector2 current = new Vector2(Math.Max(0, Padding.X), Math.Max(0, Padding.Y));
 
