@@ -502,7 +502,7 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     case Key.V:
                         //the text is pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        //insertString(textInput.GetPendingText());
+                        insertString(textInput.GetPendingText());
                         return true;
                 }
 
@@ -573,10 +573,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (direction < 0)
-                    return input.LastIndexOf(' ', searchPos);
-                else
-                    return input.IndexOf(' ', searchPos);
+                for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
+                {
+                    if (char.IsSeparator(input[i]))
+                        return i;
+                }
             }
 
             return -1;
