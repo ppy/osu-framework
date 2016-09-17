@@ -108,17 +108,12 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (t >= FrameTimeType.Empty) continue;
 
-                SpriteText text = new SpriteText()
+                legendSprites.Add(new SpriteText()
                 {
                     Colour = getColour(t),
                     Text = t.ToString(),
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft
-                };
-                legendSprites.Add(text);
+                });
             }
-
-            //Add(legendSprites);
 
             //SetVisibleArea(new RectangleF(GameBase.WindowManager.Width - WIDTH, GameBase.WindowManager.Height - HEIGHT + 1, WIDTH + 1, HEIGHT));
 
