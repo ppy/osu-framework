@@ -46,8 +46,8 @@ namespace osu.Framework.VisualTests.Tests
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer()
             {
-                SizeMode = InheritMode.XY,
                 Direction = FlowDirection.VerticalOnly,
+                SizeMode = InheritMode.X,
                 Padding = new Vector2(0, 5)
             });
 

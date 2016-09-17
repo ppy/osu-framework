@@ -530,7 +530,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+            selectionEnd = getCharacterClosestTo(state.Mouse.NativePosition);
             if (selectionLength > 0)
                 TriggerFocus();
 
@@ -550,7 +550,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.NativePosition));
 
             int lastSeparator = findSeparatorIndex(text, hover, -1);
             int nextSeparator = findSeparatorIndex(text, hover, 1);
@@ -587,7 +587,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true) return true;
 
-            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.NativePosition);
 
             cursorAndLayout.Invalidate();
 

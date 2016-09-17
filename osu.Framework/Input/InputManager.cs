@@ -40,7 +40,7 @@ namespace osu.Framework.Input
         /// <summary>
         /// The distance that must be moved before a drag begins.
         /// </summary>
-        private const float drag_start_distance = 5;
+        private const float drag_start_distance = 0;
 
         /// <summary>
         /// The distance that can be moved between MouseDown and MouseUp to consider a click valid to take action on.
@@ -181,7 +181,7 @@ namespace osu.Framework.Input
             if (!d.HandleInput || !d.IsVisible)
                 return false;
 
-            if (!d.Contains(state.Mouse.Position))
+            if (!d.Contains(state.Mouse.NativePosition))
                 return false;
 
             return true;
@@ -323,10 +323,10 @@ namespace osu.Framework.Input
 
                 Quad q = ScreenSpaceInputQuad;
 
-                mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
+                mouse.NativePosition = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
             }
             else
-                mouse.Position = Vector2.Zero;
+                mouse.NativePosition = Vector2.Zero;
         }
 
         private void updateKeyboardEvents(InputState state)
@@ -380,7 +380,7 @@ namespace osu.Framework.Input
         {
             MouseState mouse = state.Mouse;
 
-            if (mouse.Position != mouse.LastState?.Position)
+            if (mouse.NativePosition != mouse.LastState?.NativePosition)
             {
                 handleMouseMove(state);
                 if (isDragging)
@@ -409,7 +409,7 @@ namespace osu.Framework.Input
                 if (mouse.LastState?.HasMainButtonPressed != true)
                 {
                     //stuff which only happens once after the mousedown state
-                    state.Mouse.PositionMouseDown = state.Mouse.Position;
+                    state.Mouse.PositionMouseDown = state.Mouse.NativePosition;
                     LastActionTime = Time;
                     isValidClick = true;
 
@@ -425,13 +425,13 @@ namespace osu.Framework.Input
                     lastClickTime = Time;
                 }
 
-                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > drag_start_distance)
                 {
                     isDragging = true;
                     handleMouseDrag(state);
                 }
 
-                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_confirmation_distance)
+                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > click_confirmation_distance)
                     isValidClick = false;
             }
             else if (mouse.LastState?.HasMainButtonPressed == true)
@@ -585,7 +585,7 @@ namespace osu.Framework.Input
                     inputHandlers.Insert(index, handler);
 
                     //set the initial position to the current OsuGame position.
-                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
+                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.NativePosition);
                     return true;
                 }
             }
