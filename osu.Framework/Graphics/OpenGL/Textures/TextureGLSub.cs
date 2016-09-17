@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(TextureUpload upload)
         {
-            Debug.Assert(upload.Bounds.Width == bounds.Width && upload.Bounds.Height == bounds.Height);
+            Debug.Assert(upload.Bounds.Width <= bounds.Width && upload.Bounds.Height <= bounds.Height);
 
             upload.Bounds = bounds;
 

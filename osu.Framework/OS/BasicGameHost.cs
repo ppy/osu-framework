@@ -90,6 +90,10 @@ namespace osu.Framework.OS
 
         private void updateLoop()
         {
+            //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
+            while (!GLWrapper.IsInitialized)
+                Thread.Sleep(1);
+
             while (!exitRequested)
             {
 

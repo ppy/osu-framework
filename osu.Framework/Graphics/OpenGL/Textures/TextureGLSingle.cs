@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
 using OpenTK.Graphics.ES20;
 using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 using System.Diagnostics;
@@ -27,6 +25,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int internalWidth;
         private int internalHeight;
+
+        private int clearFBO;
 
         private TextureWrapMode internalWrapMode;
 
@@ -191,10 +191,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return true;
         }
 
-        /// <summary>
-        /// This is used for initializing power-of-two sized textures to transparent to avoid artifacts.
-        /// </summary>
-        private static byte[] transparentBlack = new byte[0];
+        bool manualMipmaps;
 
         internal override bool Upload()
         {
@@ -241,7 +238,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             GLWrapper.BindTexture(textureId);
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.LinearMipmapLinear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
                             updateWrapMode();
                         }
@@ -252,12 +249,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
-                            if (transparentBlack.Length < width * height * 4)
-                                transparentBlack = new byte[width * height * 4]; // Default value is 0, exactly what we need.
-
-                            GCHandle h1 = GCHandle.Alloc(transparentBlack, GCHandleType.Pinned);
-                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, h1.AddrOfPinnedObject());
-                            h1.Free();
+                            initializeLevel(upload.Level, width, height);
 
                             GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
                         }
@@ -266,7 +258,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     else if (dataPointer != IntPtr.Zero)
                     {
                         GLWrapper.BindTexture(textureId);
+
+                        if (!manualMipmaps && upload.Level > 0)
+                        {
+                            //allocate mipmap levels
+                            int level = 1;
+                            int d = 2;
+
+                            while (width / d > 0)
+                            {
+                                initializeLevel(level, width / d, height / d);
+                                level++;
+                                d *= 2;
+                            }
+
+                            manualMipmaps = true;
+                        }
+
                         int div = (int)Math.Pow(2, upload.Level);
+
                         GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
                     }
                 }
@@ -277,13 +287,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 }
             }
 
-            if (didUpload)
+            if (didUpload && !manualMipmaps)
             {
                 GL.Hint(HintTarget.GenerateMipmapHint, HintMode.Nicest);
                 GL.GenerateMipmap(TextureTarget.Texture2D);
             }
 
             return didUpload;
+        }
+
+        private void initializeLevel(int level, int width, int height)
+        {
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+
+            if (clearFBO < 0)
+                clearFBO = GL.GenFramebuffer();
+
+            int lastFramebuffer = GLWrapper.BindFrameBuffer(clearFBO);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, TextureTarget.Texture2D, TextureId, 0);
+
+            GL.ClearColor(new Color4(255, 255, 255, 0));
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.ClearColor(new Color4(0, 0, 0, 0));
+
+            GLWrapper.BindFrameBuffer(lastFramebuffer);
         }
     }
 }
