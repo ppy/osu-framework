@@ -11,8 +11,6 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
-        public delegate void ElementChangedHandler(T element);
-
         private double lastTime;
 
         public LifetimeList(IComparer<T> comparer)

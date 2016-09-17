@@ -76,12 +76,5 @@ namespace osu.Framework.Lists
         {
             InternalList.RemoveAll(match);
         }
-
-        public virtual void Sort()
-        {
-            // Default sort is not stable, but we want the
-            // order of elements with the same depth to be preserved
-            InternalList = InternalList.OrderBy(x => x, Comparer).ToList();
-        }
     }
 }
