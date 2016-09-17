@@ -84,12 +84,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Vector2 b = DrawQuadForBounds.BottomRight;
 
-                size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
-
-                // This triggers re-positioning of all children according.
-                // It is required even if Size does coincidentally not change, since children
-                // might still have moved.
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
                 autoSizeUpdatePending = false;
                 OnAutoSize?.Invoke();
