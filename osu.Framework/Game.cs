@@ -105,6 +105,13 @@ namespace osu.Framework
                     new FrameTimeDisplay(@"Draw", host.DrawMonitor)
                 }
             });
+
+            Add(new PerformanceOverlay()
+            {
+                Anchor = Graphics.Anchor.BottomRight,
+                Origin = Graphics.Anchor.BottomRight,
+                Depth = float.MaxValue
+            });
         }
 
         protected override void Update()
