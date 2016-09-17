@@ -173,6 +173,11 @@ namespace osu.Framework.Graphics
             return screenSpacePos * DrawInfo.MatrixInverse;
         }
 
+        public virtual Vector2 GetLocalDelta(Vector2 delta)
+        {
+            return (Position * Parent.DrawInfo.Matrix + delta) * DrawInfo.MatrixInverse;
+        }
+
         internal virtual bool Contains(Vector2 screenSpacePos)
         {
             return ScreenSpaceInputQuad.Contains(screenSpacePos).HasValue;

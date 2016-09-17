@@ -38,13 +38,7 @@ namespace osu.Framework.Graphics.OpenGL
         private static Cached<int> maxTextureSizeBacking = new Cached<int>();
         public static int MaxTextureSize => maxTextureSizeBacking.Refresh(() => GL.GetInteger(GetPName.MaxTextureSize));
 
-        private static Scheduler resetScheduler = new Scheduler();
-
-        static GLWrapper()
-        {
-            //force no thread set until we are actually on the draw thread.
-            resetScheduler.SetCurrentThread(null);
-        }
+        private static Scheduler resetScheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
         internal static void Initialize()
         {

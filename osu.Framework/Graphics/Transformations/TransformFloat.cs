@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Transformations
             {
                 double time = Time;
                 if (time < StartTime) return StartValue;
-                if (time > EndTime) return EndValue;
+                if (time >= EndTime) return EndValue;
 
                 return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
             }

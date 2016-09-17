@@ -37,8 +37,18 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
 
+            TextSize = 14;
+
             HandleInput = false;
         }
+
+        public float TextSize
+        {
+            get { return ContentScale.X; }
+            set { ContentScale = new Vector2(value); }
+        }
+
+
 
         public override void Load()
         {

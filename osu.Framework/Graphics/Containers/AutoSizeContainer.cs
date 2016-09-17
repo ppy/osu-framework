@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & Invalidation.ScreenSize) > 0)
+            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 autoSizeUpdatePending = true;
 
             bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
@@ -82,7 +82,8 @@ namespace osu.Framework.Graphics.Containers
             if (RequireAutoSize)
             {
                 Vector2 b = GetBoundingSize(this);
-                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+
+                size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
                 // This triggers re-positioning of all children according.
                 // It is required even if Size does coincidentally not change, since children
@@ -112,21 +113,21 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        public override Vector2 ActualSize
-        {
-            get
-            {
-                if (HasDefinedSize)
-                    return base.ActualSize;
+        //public override Vector2 ActualSize
+        //{
+        //    get
+        //    {
+        //        if (HasDefinedSize)
+        //            return base.ActualSize;
 
-                if (SizeMode == InheritMode.None)
-                    return new Vector2(0);
+        //        if (SizeMode == InheritMode.None)
+        //            return new Vector2(0);
 
-                var actual = base.ActualSize;
+        //        var actual = base.ActualSize;
                 
-                return new Vector2((SizeMode & InheritMode.X) > 0 ? actual.X : 0, (SizeMode & InheritMode.Y) > 0 ? actual.Y : 0);
-            }
-        }
+        //        return new Vector2((SizeMode & InheritMode.X) > 0 ? actual.X : 0, (SizeMode & InheritMode.Y) > 0 ? actual.Y : 0);
+        //    }
+        //}
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 

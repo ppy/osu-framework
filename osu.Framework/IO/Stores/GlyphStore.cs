@@ -13,8 +13,6 @@ namespace osu.Framework.IO.Stores
     {
         private string assetName;
 
-        const float default_size = 96;
-
         ResourceStore<byte[]> store;
         private BitmapFont font;
 
@@ -29,6 +27,7 @@ namespace osu.Framework.IO.Stores
             {
                 font = new BitmapFont();
                 font.LoadText(store.GetStream($@"{assetName}.fnt"));
+                //ScaleAdjust = font.StretchedHeight;
             }
             catch
             {
