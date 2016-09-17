@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics
             FadeIn(0);
         }
 
-        public Drawable FadeIn(double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return FadeTo(1, duration, easing);
         }
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics
             return tr;
         }
 
-        public Drawable FadeOut(double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return FadeTo(0, duration, easing);
         }
@@ -181,22 +181,22 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public Drawable FadeTo(float newAlpha, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
         }
 
-        public Drawable RotateTo(float newRotation, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation(Clock));
         }
 
-        public Drawable MoveToX(float destination, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformFloatTo(Position.X, destination, duration, easing, new TransformPositionX(Clock));
         }
 
-        public Drawable MoveToY(float destination, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
         }
@@ -232,22 +232,22 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public Drawable ScaleTo(float newScale, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScaleVector(Clock));
         }
 
-        public Drawable ScaleTo(Vector2 newScale, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformVectorTo(Scale, newScale, duration, easing, new TransformScaleVector(Clock));
         }
 
-        public Drawable MoveTo(Vector2 newPosition, double duration, EasingTypes easing = EasingTypes.None)
+        public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return transformVectorTo(Position, newPosition, duration, easing, new TransformPosition(Clock));
         }
 
-        public Drawable MoveToRelative(Vector2 offset, int duration, EasingTypes easing = EasingTypes.None)
+        public Drawable MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
         {
             return MoveTo((transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
