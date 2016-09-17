@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
         //            return new Vector2(0);
 
         //        var actual = base.ActualSize;
-                
+
         //        return new Vector2((SizeMode & InheritMode.X) > 0 ? actual.X : 0, (SizeMode & InheritMode.Y) > 0 ? actual.Y : 0);
         //    }
         //}
