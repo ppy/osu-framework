@@ -552,13 +552,34 @@ namespace osu.Framework.Graphics.UserInterface
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
 
-            int lastSpace = text.LastIndexOf(' ', hover);
-            int nextSpace = text.IndexOf(' ', hover);
+            int lastSeparator = findSeparatorIndex(text, hover, -1);
+            int nextSeparator = findSeparatorIndex(text, hover, 1);
 
-            selectionStart = lastSpace >= 0 ? lastSpace + 1 : 0;
-            selectionEnd = nextSpace >= 0 ? nextSpace : text.Length;
+            selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
+            selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
             cursorAndLayout.Invalidate();
             return true;
+        }
+
+        private int findSeparatorIndex(string input, int searchPos, int direction)
+        {
+            if (char.IsLetterOrDigit(input[searchPos]))
+            {
+                for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
+                {
+                    if (!char.IsLetterOrDigit(input[i]))
+                        return i;
+                }
+            }
+            else
+            {
+                if (direction < 0)
+                    return input.LastIndexOf(' ', searchPos);
+                else
+                    return input.IndexOf(' ', searchPos);
+            }
+
+            return -1;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
