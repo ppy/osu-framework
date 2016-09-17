@@ -5,21 +5,22 @@ using System;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using System.Diagnostics;
+using osu.Framework.Cached;
 
 namespace osu.Framework.Graphics.Containers
 {
     public class AutoSizeContainer : Container
     {
-        protected bool RequireAutoSize => autoSizeUpdatePending && SizeMode != InheritMode.XY;
+        protected bool RequireAutoSize => SizeMode != InheritMode.XY && !autoSize.IsValid;
 
         internal event Action OnAutoSize;
 
-        private bool autoSizeUpdatePending;
+        private Cached<Vector2> autoSize = new Cached<Vector2>();
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                autoSizeUpdatePending = true;
+                autoSize.Invalidate();
 
             bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
 
@@ -80,15 +81,19 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateSubTree();
 
-            if (RequireAutoSize)
-            {
-                Vector2 b = DrawQuadForBounds.BottomRight;
+            if (!autoSize.IsValid)
+                autoSize.Refresh(delegate
+                {
+                    Vector2 b = DrawQuadForBounds.BottomRight;
 
-                Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+                    Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
 
-                autoSizeUpdatePending = false;
-                OnAutoSize?.Invoke();
-            }
+                    //note that this is called before autoSize becomes valid. may be something to consider down the line.
+                    //might work better to add an OnRefresh event in Cached<> and invoke there.
+                    OnAutoSize?.Invoke();
+
+                    return b;
+                });
         }
 
         public override Drawable Add(Drawable drawable)
