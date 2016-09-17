@@ -21,14 +21,9 @@ namespace osu.Framework.Graphics
             Depth = 0
         };
 
-        ScrollContainer scroll = new ScrollContainer();
-
-        FlowContainer flow = new FlowContainer()
-        {
-            Direction = FlowDirection.VerticalOnly
-        };
-
+        FlowContainer flow;
         Drawable target;
+
         private ScheduledDelegate scheduledUpdater;
         private SpriteText loadMessage;
 
@@ -36,18 +31,20 @@ namespace osu.Framework.Graphics
         {
             base.Load();
 
-            AddProcessing(new MaskingContainer());
-
-            scroll.Add(flow);
-
-            Add(background);
-            Add(scroll);
-
-            Add(loadMessage = new SpriteText()
+            Add(new MaskingContainer
             {
-                Text = @"Click to load DrawVisualiser",
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
+                Kids = new Drawable[]
+                {
+                    background,
+                    new ScrollContainer {
+                        Kids = new [] { flow = new FlowContainer { Direction = FlowDirection.VerticalOnly } }
+                    },
+                    loadMessage = new SpriteText {
+                        Text = @"Click to load DrawVisualiser",
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre
+                    }
+                }
             });
         }
 

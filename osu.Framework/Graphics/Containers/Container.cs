@@ -61,5 +61,32 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public ReadOnlyList<Drawable> Children => base.Children;
+
+        public IEnumerable<Drawable> Kids //todo: think of a better name
+        {
+            set
+            {
+                if (!IsLoaded)
+                    pendingChildren = value;
+                else
+                {
+                    Clear();
+                    Add(value);
+                }
+            }
+        }
+
+        private IEnumerable<Drawable> pendingChildren;
+
+        public override void Load()
+        {
+            base.Load();
+
+            if (pendingChildren != null)
+            {
+                Add(pendingChildren);
+                pendingChildren = null;
+            }
+        }
     }
 }
