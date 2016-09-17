@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.OS;
 using Scheduler = osu.Framework.Threading.Scheduler;
+using OpenTK;
 
 namespace osu.Framework
 {
@@ -108,6 +109,7 @@ namespace osu.Framework
 
             Add(new PerformanceOverlay()
             {
+                Position = new Vector2(5, 5),
                 Anchor = Graphics.Anchor.BottomRight,
                 Origin = Graphics.Anchor.BottomRight,
                 Depth = float.MaxValue
