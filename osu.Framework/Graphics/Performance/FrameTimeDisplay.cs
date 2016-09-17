@@ -86,12 +86,10 @@ namespace osu.Framework.Graphics.Performance
                     new SpriteText
                     {
                         Text = $@"{visible_range}ms",
-                        TextSize = 14
                     },
                     new SpriteText
                     {
                         Text = @"0ms",
-                        TextSize = 14,
                         Anchor = Anchor.BottomLeft,
                         Origin = Anchor.BottomLeft
                     },
