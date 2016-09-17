@@ -64,13 +64,13 @@ namespace osu.Framework.Input.Handlers.Keyboard
                 case Keys.Return: return Key.Enter;
                 case Keys.OemPeriod: return Key.Period;
                 case Keys.Oemcomma: return Key.Comma;
+                case Keys.OemMinus: return Key.Minus;
+                case Keys.OemBackslash: return Key.BackSlash;
+                case Keys.OemCloseBrackets: return Key.BracketRight;
+                case Keys.OemOpenBrackets: return Key.BracketLeft;
                 case Keys.Oem1: return Key.Semicolon;
                 case Keys.Oem7: return Key.Quote;
-                case Keys.OemOpenBrackets: return Key.BracketLeft;
-                case Keys.Oem6: return Key.BracketRight;
-
             }
-
 
             if (!Enum.TryParse(keyCode.ToString(), out key))
                 Debug.WriteLine($@"Failed to parse key {keyCode}");
