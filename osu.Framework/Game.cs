@@ -100,7 +100,7 @@ namespace osu.Framework
                 Origin = Graphics.Anchor.BottomRight,
                 Depth = float.MaxValue,
 
-                Kids = new[] {
+                Children = new[] {
                     new FrameTimeDisplay(@"Update", host.UpdateMonitor),
                     new FrameTimeDisplay(@"Draw", host.DrawMonitor)
                 }

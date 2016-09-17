@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Performance
 
             Add(new MaskingContainer
             {
-                Kids = new Drawable[] {
+                Children = new Drawable[] {
                     timeBarContainer,
                     new SpriteText
                     {
