@@ -3,14 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.PerformanceData;
+//using System.Diagnostics.PerformanceData;
 
 namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
         internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
+        //internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
         internal List<int> GarbageCollections = new List<int>();
     }
 

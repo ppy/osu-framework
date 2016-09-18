@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.PerformanceData;
+//using System.Diagnostics.PerformanceData;
 
 namespace osu.Framework.Statistics
 {
@@ -30,14 +30,14 @@ namespace osu.Framework.Statistics
 
         const int fps_calculation_interval = 250;
 
-        internal void ReportCount(CounterType type)
-        {
-            //todo: thread safety? Interlocked.Increment?
-            if (!currentFrame.CollectedCounters.ContainsKey(type))
-                currentFrame.CollectedCounters[type] = 1;
-            else
-                currentFrame.CollectedCounters[type]++;
-        }
+        //internal void ReportCount(CounterType type)
+        //{
+        //    //todo: thread safety? Interlocked.Increment?
+        //    if (!currentFrame.CollectedCounters.ContainsKey(type))
+        //        currentFrame.CollectedCounters[type] = 1;
+        //    else
+        //        currentFrame.CollectedCounters[type]++;
+        //}
 
         /// <summary>
         /// Start collecting a type of passing time.

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.PerformanceData;
 using System.Drawing;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
