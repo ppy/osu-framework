@@ -93,9 +93,11 @@ namespace osu.Framework.Graphics.Performance
             {
                 timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
                 timeBarContainer.Add(
-                    timeBarContainers[i] = new AutoSizeContainer
+                    timeBarContainers[i] = new Container
                     {
-                        Children = new [] { timeBars[i] }
+                        Children = new [] { timeBars[i] },
+                        Width = WIDTH,
+                        Height = HEIGHT,
                     }
                 );
             }
@@ -133,6 +135,7 @@ namespace osu.Framework.Graphics.Performance
         {
             Box b = new Box()
             {
+                Origin = Anchor.TopCentre,
                 Position = new Vector2(TimeBarX, 0),
                 Colour = garbageCollectColors[type],
                 Size = new Vector2(3, 3),
@@ -223,7 +226,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.Scheduler:
                     col = Color4.HotPink;
                     break;
-                case PerformanceCollectionType.BetweenFrames:
+                case PerformanceCollectionType.WndProc:
                     col = Color4.GhostWhite;
                     break;
                 case PerformanceCollectionType.Empty:

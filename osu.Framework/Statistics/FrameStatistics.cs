@@ -19,7 +19,7 @@ namespace osu.Framework.Statistics
         Update,
         Draw,
         SwapBuffer,
-        BetweenFrames,
+        WndProc,
         Debug,
         Sleep,
         Scheduler,

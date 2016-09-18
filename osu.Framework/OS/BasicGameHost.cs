@@ -38,11 +38,12 @@ namespace osu.Framework.OS
         internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
+        internal ThrottledFrameClock InputClock = new ThrottledFrameClock();
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
 
+        internal PerformanceMonitor InputMonitor = new PerformanceMonitor();
         internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
-
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
 
         private Scheduler updateScheduler = new Scheduler(null); //null here to construct early but bind to thread late.
@@ -232,8 +233,19 @@ namespace osu.Framework.OS
             }
         }
 
+
+        InvokeOnDisposal inputPerformanceCollectionPeriod;
         protected virtual void OnApplicationIdle()
         {
+            inputPerformanceCollectionPeriod?.Dispose();
+
+            InputMonitor.NewFrame(UpdateClock);
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                InputClock.ProcessFrame();
+
+            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+
             if (exitRequested)
                 Window.Close();
         }

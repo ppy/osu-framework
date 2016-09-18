@@ -93,6 +93,7 @@ namespace osu.Framework
                         Depth = float.MaxValue,
 
                         Children = new[] {
+                            new FrameTimeDisplay(@"Input", host.InputMonitor),
                             new FrameTimeDisplay(@"Update", host.UpdateMonitor),
                             new FrameTimeDisplay(@"Draw", host.DrawMonitor)
                         }
