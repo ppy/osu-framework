@@ -9,6 +9,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Timing;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -37,7 +38,6 @@ namespace osu.Framework.Graphics.Performance
         private byte[] textureData = new byte[HEIGHT * 4];
 
         private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
-        private int[] lastAmountGarbageCollects = new int[3];
         private PerformanceMonitor monitor;
 
         private int currentX = 0;
@@ -122,17 +122,17 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public void AddEvent(Color4 colour, float drawDepth)
+        public void AddEvent(int type)
         {
             Box b = new Box()
             {
-                Size = new Vector2((WIDTH - 1), 0),
-                Colour = colour,
-                Scale = new Vector2(3, 3),
+                Position =  new Vector2(currentX, 0),
+                Colour = garbageCollectColors[type],
+                Size = new Vector2(3, 3),
             };
 
             eventSprites.Add(b);
-            Add(b);
+            timeBarContainer.Add(b);
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -161,15 +161,8 @@ namespace osu.Framework.Graphics.Performance
             FrameStatistics frame;
             while (processFrames && monitor.PendingFrames.TryDequeue(out frame))
             {
-                for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
-                {
-                    int amountCollections = GC.CollectionCount(i);
-                    if (lastAmountGarbageCollects[i] != amountCollections)
-                    {
-                        lastAmountGarbageCollects[i] = amountCollections;
-                        AddEvent(garbageCollectColors[i], i);
-                    }
-                }
+                foreach (int gcLevel in frame.GarbageCollections)
+                    AddEvent(gcLevel);
 
                 Sprite timeBar = timeBars[TimeBarIndex];
 
@@ -183,22 +176,17 @@ namespace osu.Framework.Graphics.Performance
                     Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
                 });
 
-                timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
-                timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
+                if (processFrames)
+                {
+                    timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
+                    timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
+                }
 
                 currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-                for (int i = 0; i < eventSprites.Count; ++i)
-                {
-                    Drawable e = eventSprites[i];
-                    e.MoveToRelative(new Vector2(-1, 0));
-
-                    if (e.Position.X < -2)
-                    {
-                        e.FadeOut(0);
-                        eventSprites.RemoveAt(i--);
-                    }
-                }
+                foreach (Drawable e in timeBarContainer.Children)
+                    if (e.Position.X == TimeBarX)
+                        e.Expire();
             }
         }
 

@@ -76,6 +76,10 @@ namespace osu.Framework.Statistics
 
         public int TargetFrameRate;
 
+        private int[] lastAmountGarbageCollects = new int[3];
+
+        public bool HandleGC = false;
+
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.
         /// </summary>
@@ -83,7 +87,21 @@ namespace osu.Framework.Statistics
         {
             if (currentFrame != null)
                 PendingFrames.Enqueue(currentFrame);
+
             currentFrame = new FrameStatistics();
+
+            if (HandleGC)
+            {
+                for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
+                {
+                    int amountCollections = GC.CollectionCount(i);
+                    if (lastAmountGarbageCollects[i] != amountCollections)
+                    {
+                        lastAmountGarbageCollects[i] = amountCollections;
+                        currentFrame.GarbageCollections.Add(i);
+                    }
+                }
+            }
 
             //update framerate
             double decay = Math.Pow(0.05, clock.ElapsedFrameTime);
