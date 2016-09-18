@@ -13,16 +13,18 @@ using OpenTK;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using System.Collections.Concurrent;
+using osu.Framework.Input;
+using OpenTK.Input;
+using osu.Framework.Graphics.Transformations;
 
 namespace osu.Framework.Graphics.Performance
 {
     class FrameTimeDisplay : Container
     {
         static Vector2 padding = new Vector2(0, 0);
+
         const int WIDTH = 800;
         const int HEIGHT = 100;
-
-        //PerformanceMonitor monitor;
 
         const float visible_range = 20;
         const float scale = HEIGHT / visible_range;
@@ -111,9 +113,9 @@ namespace osu.Framework.Graphics.Performance
                     Colour = getColour(t),
                     Text = t.ToString(),
                 });
-            }
 
-            //SetVisibleArea(new RectangleF(GameBase.WindowManager.Width - WIDTH, GameBase.WindowManager.Height - HEIGHT + 1, WIDTH + 1, HEIGHT));
+                legendSprites.FadeOut(2000, EasingTypes.InExpo);
+            }
 
             // Initialize background
             for (int i = 0; i < WIDTH * timeBars.Length; ++i)
@@ -142,20 +144,34 @@ namespace osu.Framework.Graphics.Performance
             Add(b);
         }
 
+        private bool processFrames = true;
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (args.Key == Key.ControlLeft)
+            {
+                legendSprites.FadeIn(100);
+                processFrames = false;
+            }
+            return base.OnKeyDown(state, args);
+        }
+
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            if (args.Key == Key.ControlLeft)
+            {
+                legendSprites.FadeOut(100);
+                processFrames = true;
+            }
+            return base.OnKeyUp(state, args);
+        }
         protected override void Update()
         {
             base.Update();
 
-            //if (KeyboardHandler.ControlPressed)
-            //{
-            //    legendSprites.ForEach(s => s.Alpha = 1);
-            //    return;
-            //}
             FrameStatistics frame;
-            while (monitor.PendingFrames.TryDequeue(out frame))
+            while (processFrames && monitor.PendingFrames.TryDequeue(out frame))
             {
-                //legendSprites.ForEach(s => s.Alpha = 0);
-
                 for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
                 {
                     int amountCollections = GC.CollectionCount(i);
