@@ -13,7 +13,7 @@ namespace osu.Framework.Statistics
     {
         internal StopwatchClock clock = new StopwatchClock(true);
 
-        internal Stack<FrameTimeType> CurrentCollectionTypeStack = new Stack<FrameTimeType>();
+        internal Stack<PerformanceCollectionType> CurrentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
         internal FrameStatistics currentFrame;
 
@@ -42,17 +42,19 @@ namespace osu.Framework.Statistics
         /// <summary>
         /// Start collecting a type of passing time.
         /// </summary>
-        internal void BeginCollecting(FrameTimeType type)
+        internal InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
         {
             if (CurrentCollectionTypeStack.Count > 0)
             {
-                FrameTimeType t = CurrentCollectionTypeStack.Peek();
+                PerformanceCollectionType t = CurrentCollectionTypeStack.Peek();
 
                 if (!currentFrame.CollectedTimes.ContainsKey(t)) currentFrame.CollectedTimes[t] = 0;
                 currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
             }
 
             CurrentCollectionTypeStack.Push(type);
+
+            return new InvokeOnDisposal(() => EndCollecting(type));
         }
 
         private double consumeStopwatchElapsedTime()
@@ -66,7 +68,7 @@ namespace osu.Framework.Statistics
         /// End collecting a type of passing time (that was previously started).
         /// </summary>
         /// <param name="type"></param>
-        internal void EndCollecting(FrameTimeType type)
+        private void EndCollecting(PerformanceCollectionType type)
         {
             CurrentCollectionTypeStack.Pop();
 
@@ -78,7 +80,7 @@ namespace osu.Framework.Statistics
 
         private int[] lastAmountGarbageCollects = new int[3];
 
-        public bool HandleGC = false;
+        public bool HandleGC = true;
 
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.

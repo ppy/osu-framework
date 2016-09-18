@@ -41,7 +41,7 @@ namespace osu.Framework.OS
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
 
-        internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor() { HandleGC = true };
+        internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
 
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
 
@@ -96,24 +96,22 @@ namespace osu.Framework.OS
             {
                 UpdateMonitor.NewFrame(UpdateClock);
 
-                UpdateMonitor.BeginCollecting(FrameTimeType.Scheduler);
+                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+                {
+                    updateScheduler.Update();
+                }
 
-                updateScheduler.Update();
 
-                UpdateMonitor.EndCollecting(FrameTimeType.Scheduler);
+                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
+                {
+                    UpdateSubTree();
+                    pendingRootNode = GenerateDrawNodeSubtree();
+                }
 
-                UpdateMonitor.BeginCollecting(FrameTimeType.Update);
-
-                UpdateSubTree();
-                pendingRootNode = GenerateDrawNodeSubtree();
-
-                UpdateMonitor.EndCollecting(FrameTimeType.Update);
-
-                UpdateMonitor.BeginCollecting(FrameTimeType.Sleep);
-
-                UpdateClock.ProcessFrame();
-
-                UpdateMonitor.EndCollecting(FrameTimeType.Sleep);
+                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                {
+                    UpdateClock.ProcessFrame();
+                }
             }
         }
 
@@ -126,31 +124,27 @@ namespace osu.Framework.OS
             {
                 DrawMonitor.NewFrame(DrawClock);
 
-                DrawMonitor.BeginCollecting(FrameTimeType.Scheduler);
-                GLWrapper.Reset(Size);
-                DrawMonitor.EndCollecting(FrameTimeType.Scheduler);
+                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+                {
+                    GLWrapper.Reset(Size);
+                }
 
-                DrawMonitor.BeginCollecting(FrameTimeType.Draw);
+                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+                {
+                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                    pendingRootNode?.DrawSubTree();
+                }
 
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                {
+                    GLControl.SwapBuffers();
+                    GLControl.Invalidate();
+                }
 
-                pendingRootNode?.DrawSubTree();
-
-                DrawMonitor.EndCollecting(FrameTimeType.Draw);
-
-                DrawMonitor.BeginCollecting(FrameTimeType.SwapBuffer);
-
-                GLControl.SwapBuffers();
-
-                GLControl.Invalidate();
-
-                DrawMonitor.EndCollecting(FrameTimeType.SwapBuffer);
-
-                DrawMonitor.BeginCollecting(FrameTimeType.Sleep);
-
-                DrawClock.ProcessFrame();
-
-                DrawMonitor.EndCollecting(FrameTimeType.Sleep);
+                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                {
+                    DrawClock.ProcessFrame();
+                }
             }
         }
 

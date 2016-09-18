@@ -101,9 +101,9 @@ namespace osu.Framework.Graphics.Performance
                 );
             }
 
-            foreach (FrameTimeType t in Enum.GetValues(typeof(FrameTimeType)))
+            foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
             {
-                if (t >= FrameTimeType.Empty) continue;
+                if (t >= PerformanceCollectionType.Empty) continue;
 
                 legendSprites.Add(new SpriteText()
                 {
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Performance
                     Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
                 };
 
-                addArea(null, FrameTimeType.Empty, HEIGHT, upload.Data);
+                addArea(null, PerformanceCollectionType.Empty, HEIGHT, upload.Data);
                 timeBar.Texture.SetData(upload);
             }
         }
@@ -182,8 +182,8 @@ namespace osu.Framework.Graphics.Performance
 
                 int currentHeight = HEIGHT;
 
-                for (int i = 0; i <= (int)FrameTimeType.Empty; i++)
-                    currentHeight = addArea(frame, (FrameTimeType)i, currentHeight, upload.Data);
+                for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+                    currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
 
                 timeBar.Texture.SetData(upload);
 
@@ -197,37 +197,37 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private Color4 getColour(FrameTimeType type)
+        private Color4 getColour(PerformanceCollectionType type)
         {
             Color4 col = default(Color4);
 
             switch (type)
             {
                 default:
-                case FrameTimeType.Update:
+                case PerformanceCollectionType.Update:
                     col = Color4.YellowGreen;
                     break;
-                case FrameTimeType.Draw:
+                case PerformanceCollectionType.Draw:
                     col = Color4.BlueViolet;
                     break;
-                case FrameTimeType.SwapBuffer:
+                case PerformanceCollectionType.SwapBuffer:
                     col = Color4.Red;
                     break;
 #if DEBUG
-                case FrameTimeType.Debug:
+                case PerformanceCollectionType.Debug:
                     col = Color4.Yellow;
                     break;
 #endif
-                case FrameTimeType.Sleep:
+                case PerformanceCollectionType.Sleep:
                     col = Color4.DarkBlue;
                     break;
-                case FrameTimeType.Scheduler:
+                case PerformanceCollectionType.Scheduler:
                     col = Color4.HotPink;
                     break;
-                case FrameTimeType.BetweenFrames:
+                case PerformanceCollectionType.BetweenFrames:
                     col = Color4.GhostWhite;
                     break;
-                case FrameTimeType.Empty:
+                case PerformanceCollectionType.Empty:
                     col = new Color4(50, 40, 40, 180);
                     break;
             }
@@ -235,14 +235,14 @@ namespace osu.Framework.Graphics.Performance
             return col;
         }
 
-        private int addArea(FrameStatistics frame, FrameTimeType frameTimeType, int currentHeight, byte[] textureData)
+        private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData)
         {
             Debug.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
             double elapsedMilliseconds = 0;
             int drawHeight = 0;
 
-            if (frameTimeType == FrameTimeType.Empty)
+            if (frameTimeType == PerformanceCollectionType.Empty)
                 drawHeight = currentHeight;
             else if (frame.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
             {
@@ -261,7 +261,7 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index] = (byte)(255 * col.R);
                 textureData[index + 1] = (byte)(255 * col.G);
                 textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == FrameTimeType.Empty ? (col.A * (1 - (int)((i * 4) / HEIGHT) / 8f)) : col.A));
+                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - (int)((i * 4) / HEIGHT) / 8f)) : col.A));
                 currentHeight--;
             }
 

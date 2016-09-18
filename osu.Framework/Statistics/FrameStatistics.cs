@@ -9,12 +9,12 @@ namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
-        internal Dictionary<FrameTimeType, double> CollectedTimes = new Dictionary<FrameTimeType, double>();
+        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
         internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
         internal List<int> GarbageCollections = new List<int>();
     }
 
-    public enum FrameTimeType
+    public enum PerformanceCollectionType
     {
         Update,
         Draw,
