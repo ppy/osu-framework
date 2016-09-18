@@ -48,6 +48,7 @@
     <Compile Include="Tests\FieldTest.cs" />
     <Compile Include="Tests\TestCase.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
+    <Compile Include="Tests\TestCaseSpriteText.cs" />
     <Compile Include="Tests\TestCaseTextBox.cs" />
     <Compile Include="Tests\TestCaseScrollableFlow.cs" />
     <Compile Include="VisualTestGame.cs" />
