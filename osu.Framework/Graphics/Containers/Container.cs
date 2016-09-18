@@ -85,8 +85,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public new virtual Vector2 ChildrenScale
         {
-            get { return base.ContentScale; }
-            set { base.ContentScale = value; }
+            get { return base.ChildrenScale; }
+            set { base.ChildrenScale = value; }
         }
     }
 }
