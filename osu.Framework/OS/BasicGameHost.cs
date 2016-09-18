@@ -47,7 +47,7 @@ namespace osu.Framework.OS
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
 
         //null here to construct early but bind to thread late.
-        private Scheduler inputScheduler = new Scheduler(null);
+        internal Scheduler InputScheduler = new Scheduler(null);
         private Scheduler updateScheduler = new Scheduler(null);
 
         protected override IFrameBasedClock Clock => UpdateClock;
@@ -177,7 +177,7 @@ namespace osu.Framework.OS
             Window.ExitRequested += OnExitRequested;
             Window.Exited += OnExited;
 
-            inputScheduler.SetCurrentThread(Thread.CurrentThread);
+            InputScheduler.SetCurrentThread(Thread.CurrentThread);
 
             Exception error = null;
 
@@ -219,7 +219,7 @@ namespace osu.Framework.OS
 
             set
             {
-                Window.Form.SafeInvoke(delegate
+                InputScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
@@ -238,7 +238,7 @@ namespace osu.Framework.OS
             InputMonitor.NewFrame(InputClock);
 
             using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                inputScheduler.Update();
+                InputScheduler.Update();
 
             using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                 InputClock.ProcessFrame();
