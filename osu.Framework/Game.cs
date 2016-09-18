@@ -43,6 +43,10 @@ namespace osu.Framework
 
         public TextureStore Fonts;
 
+        private UserInputManager userInputContainer;
+
+        protected override Container AddTarget => userInputContainer;
+
         public Game()
         {
             Game = this;
@@ -76,13 +80,16 @@ namespace osu.Framework
 
             Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 1 / 100f };
 
-            AddProcessing(new UserInputManager());
-
-            Add(new PerformanceOverlay()
+            Add(userInputContainer = new UserInputManager()
             {
-                Anchor = Graphics.Anchor.BottomRight,
-                Origin = Graphics.Anchor.BottomRight,
-                Depth = float.MaxValue
+                Children = new[] {
+                    new PerformanceOverlay()
+                    {
+                        Anchor = Graphics.Anchor.BottomRight,
+                        Origin = Graphics.Anchor.BottomRight,
+                        Depth = float.MaxValue
+                    }
+                }
             });
         }
 

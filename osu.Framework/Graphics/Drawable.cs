@@ -554,7 +554,7 @@ namespace osu.Framework.Graphics
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         protected Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
-        internal Vector2 BoundingSize => boundingSizeBacking.Refresh(() =>
+        internal Vector2 BoundingSize => boundingSizeBacking.IsValid ? boundingSizeBacking.Value : boundingSizeBacking.Refresh(() =>
         {
             //field will be none when the drawable isn't requesting auto-sizing
             Quad q = Parent.DrawInfo.MatrixInverse * GetScreenSpaceQuad(DrawQuadForBounds);

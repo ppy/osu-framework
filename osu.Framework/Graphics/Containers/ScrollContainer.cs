@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Transformations;
 using OpenTK;
 using osu.Framework.Input;
 using OpenTK.Graphics;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
 
-        private AutoSizeContainer content;
+        private AutoSizeContainer content = new AutoSizeContainer();
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -44,14 +45,16 @@ namespace osu.Framework.Graphics.Containers
 
         private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
 
+        protected override Container AddTarget => content;
+
         public override void Load()
         {
             base.Load();
 
-            AddProcessing(content = new AutoSizeContainer());
-            content.OnAutoSize += contentAutoSize;
-
             AddTopLevel(scrollbar = new ScrollBar(offset));
+            Add(content);
+
+            content.OnAutoSize += contentAutoSize;
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)

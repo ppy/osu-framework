@@ -4,11 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics;
-using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -24,37 +20,64 @@ namespace osu.Framework.Graphics.Containers
         public new IEnumerable<Drawable> Children
         {
             get { return base.Children; }
-            set { base.Children = value; }
+            set
+            {
+                if (AddTarget == this)
+                    base.Children = value;
+                else
+                    AddTarget.Children = value;
+            }
         }
 
+        protected virtual Container AddTarget => this;
+
         public new virtual Drawable Add(Drawable drawable)
+        {
+            if (AddTarget == this || AddTarget == drawable)
+                return AddTopLevel(drawable);
+
+            return AddTarget.Add(drawable);
+        }
+
+        protected Drawable AddTopLevel(Drawable drawable)
         {
             return base.Add(drawable);
         }
 
         public new void Add(IEnumerable<Drawable> drawables)
         {
-            base.Add(drawables);
+            foreach (Drawable d in drawables)
+                Add(d);
         }
 
         public new virtual bool Remove(Drawable drawable, bool dispose = true)
         {
-            return base.Remove(drawable, dispose);
+            if (AddTarget == this)
+                return base.Remove(drawable, dispose);
+
+            return AddTarget.Remove(drawable, dispose);
         }
 
-        public new void Remove(IEnumerable<Drawable> drawables, bool dispose = true)
+        public new virtual void Remove(IEnumerable<Drawable> drawables, bool dispose = true)
         {
-            base.Remove(drawables);
+            foreach (Drawable d in drawables)
+                Remove(d, dispose);
         }
 
-        public int RemoveAll(Predicate<Drawable> match)
+        public virtual int RemoveAll(Predicate<Drawable> match)
         {
-            return base.RemoveAll(match);
+            if (AddTarget == this)
+                return base.RemoveAll(match);
+
+            return AddTarget.RemoveAll(match);
         }
 
         public new virtual void Clear(bool dispose = true)
         {
-            base.Clear(dispose);
+            if (AddTarget == this)
+                base.Clear(dispose);
+            else
+                AddTarget.Clear(dispose);
         }
 
         /// <summary>

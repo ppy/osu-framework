@@ -41,7 +41,7 @@ namespace osu.Framework.GameModes
                 return;
             modePushed = true;
 
-            AddTopLevel(mode);
+            Add(mode);
 
             mode.lastGameMode = this;
             mode.EnterTransition(this);
