@@ -13,9 +13,9 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Load()
         {
-            base.Load();
-
             AddTopLevel(processingContainer);
+
+            base.Load();
         }
 
         /// <summary>

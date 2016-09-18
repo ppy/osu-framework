@@ -1,255 +1,270 @@
-﻿using osu.Framework.Graphics.Containers;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using osu.Framework.Configuration;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Drawables;
+using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Timing;
+using System.Linq;
+using OpenTK;
+using OpenTK.Graphics;
+using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using System.Collections.Concurrent;
+using osu.Framework.Input;
+using OpenTK.Input;
+using osu.Framework.Graphics.Transformations;
+using osu.Framework.Statistics;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FrameTimeDisplay : MaskingContainer
+    class FrameTimeDisplay : Container
     {
-//        static Vector2 padding = new Vector2(0, 0);
-//        const int WIDTH = 800;
-//        const int HEIGHT = 100;
+        static Vector2 padding = new Vector2(0, 0);
 
-//        //PerformanceMonitor monitor;
+        const int WIDTH = 800;
+        const int HEIGHT = 100;
 
-//        const int visible_range = 20;
-//        const float scale = HEIGHT / visible_range;
+        const float visible_range = 20;
+        const float scale = HEIGHT / visible_range;
 
-//        private pSprite[] timeBars = new pSprite[2];
-//        private byte[] textureData = new byte[HEIGHT * 4];
+        private Sprite[] timeBars = new Sprite[2];
+        private Container[] timeBarContainers = new Container[2];
+        private TextureBufferStack textureBufferStack;
 
-//        private int currentX = 0;
-//        private int TimeBarIndex
-//        {
-//            get
-//            {
-//                return currentX / WIDTH;
-//            }
-//        }
+        private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
+        private PerformanceMonitor monitor;
 
-//        private int TimeBarX
-//        {
-//            get
-//            {
-//                return currentX % WIDTH;
-//            }
-//        }
+        private int currentX = 0;
 
-//        List<pSprite> legendSprites = new List<pSprite>();
-//        List<pSprite> eventSprites = new List<pSprite>();
+        private int TimeBarIndex => currentX / WIDTH;
+        private int TimeBarX => currentX % WIDTH;
 
-//        internal FrameTimeDisplay(PerformanceMonitor monitor)
-//            : base(true)
-//        {
-//            Initialize();
-//            GameBase.OnResolutionChange += Initialize;
+        private bool processFrames = true;
 
-//            this.monitor = monitor;
-//        }
+        FlowContainer legendSprites;
 
-//        internal void Initialize()
-//        {
-//            spriteManager.Clear();
-//            legendSprites.Clear();
+        public FrameTimeDisplay(string name, PerformanceMonitor monitor)
+        {
+            Size = new Vector2(WIDTH, HEIGHT);
+            this.monitor = monitor;
+            textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
+        }
 
-//            spriteManager.Add(new pText(@"0ms", 18 / GameBase.WindowManager.Ratio, new Vector2(0, HEIGHT / GameBase.WindowManager.Ratio), 1, true, Color.White)
-//            {
-//                ScaleToWindowRatio = false,
-//                Field = Fields.TopLeft,
-//                Origin = Origins.BottomLeft
-//            });
+        public override void Load()
+        {
+            base.Load();
 
-//            pText topText = new pText((HEIGHT / scale) + @"ms", 18 / GameBase.WindowManager.Ratio, new Vector2(0, 0), 1, true, Color.White)
-//            {
-//                ScaleToWindowRatio = false,
-//                Field = Fields.TopLeft,
-//                Origin = Origins.TopLeft
-//            };
+            Container timeBarContainer;
 
-//            spriteManager.Add(topText);
+            Add(new MaskingContainer
+            {
+                Children = new [] {
+                    timeBarContainer = new LargeContainer(),
+                    legendSprites = new FlowContainer {
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        Padding = new Vector2(5, 1),
+                        Children = new [] {
+                            new Box {
+                                SizeMode = InheritMode.XY,
+                                Colour = Color4.Gray,
+                                Alpha = 0.2f,
+                            }
+                        }
+                    },
+                    new SpriteText
+                    {
+                        Text = $@"{visible_range}ms",
+                    },
+                    new SpriteText
+                    {
+                        Text = @"0ms",
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.BottomLeft
+                    },
+                }
+            });
 
-//            topText.MeasureText();
-//            float x = topText.lastMeasure.X;
+            for (int i = 0; i < timeBars.Length; ++i)
+            {
+                timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
+                timeBarContainer.Add(
+                    timeBarContainers[i] = new AutoSizeContainer
+                    {
+                        Children = new [] { timeBars[i] }
+                    }
+                );
+            }
 
-//            foreach (FrameTimeType t in Enum.GetValues(typeof(FrameTimeType)))
-//            {
-//                if (t >= FrameTimeType.Empty) continue;
+            foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
+            {
+                if (t >= PerformanceCollectionType.Empty) continue;
 
-//                topText = new pText(t.ToString(), 27 / GameBase.WindowManager.Ratio, new Vector2(x / GameBase.WindowManager.Ratio, 0), 1, true, getColour(t))
-//                {
-//                    Alpha = 0,
-//                    ScaleToWindowRatio = false,
-//                    Field = Fields.TopLeft,
-//                    Origin = Origins.TopLeft
-//                };
-//                legendSprites.Add(topText);
+                legendSprites.Add(new SpriteText()
+                {
+                    Colour = getColour(t),
+                    Text = t.ToString(),
+                });
 
-//                topText.MeasureText();
-//                x += topText.lastMeasure.X;
-//            }
+                legendSprites.FadeOut(2000, EasingTypes.InExpo);
+            }
 
-//            spriteManager.Add(legendSprites);
+            // Initialize background
+            for (int i = 0; i < WIDTH * timeBars.Length; ++i)
+            {
+                currentX = i;
+                Sprite timeBar = timeBars[TimeBarIndex];
 
-//            ConfigManager.sFrameTimeDisplay.ValueChanged += delegate { spriteManager.Alpha = ConfigManager.sFrameTimeDisplay ? 1 : 0; };
+                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                {
+                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+                };
 
-//            for (int i = 0; i < timeBars.Length; ++i)
-//            {
-//                timeBars[i] = new pSprite(new pTexture(WIDTH, HEIGHT), Fields.TopLeft, Origins.TopLeft, Clocks.Game, new Vector2(0, 0))
-//                {
-//                    Depth = 0F,
-//                    AlwaysDraw = true,
-//                    ScaleToWindowRatio = false,
-//                };
+                addArea(null, PerformanceCollectionType.Empty, HEIGHT, upload.Data);
+                timeBar.Texture.SetData(upload);
+            }
+        }
 
-//                spriteManager.Add(timeBars[i]);
-//            }
+        public void AddEvent(int type)
+        {
+            Box b = new Box()
+            {
+                Position = new Vector2(TimeBarX, 0),
+                Colour = garbageCollectColors[type],
+                Size = new Vector2(3, 3),
+            };
 
-//            spriteManager.SetVisibleArea(new RectangleF(GameBase.WindowManager.Width - WIDTH, GameBase.WindowManager.Height - HEIGHT + 1, WIDTH + 1, HEIGHT) / GameBase.WindowManager.Ratio);
+            timeBarContainers[TimeBarIndex].Add(b);
+        }
 
-//            // Initialize background
-//            for (int i = 0; i < WIDTH * timeBars.Length; ++i)
-//            {
-//                currentX = i;
-//                pSprite timeBar = timeBars[TimeBarIndex];
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (args.Key == Key.ControlLeft)
+            {
+                legendSprites.FadeIn(100);
+                processFrames = false;
+            }
+            return base.OnKeyDown(state, args);
+        }
 
-//                addArea(FrameTimeType.Empty, HEIGHT);
-//                ((TextureGlSingle)timeBar.Texture.TextureGl).SetData(textureData, new Rectangle(TimeBarX, 0, 1, HEIGHT));
-//                timeBar.Texture.TextureGl.Upload();
-//            }
-//        }
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            if (args.Key == Key.ControlLeft)
+            {
+                legendSprites.FadeOut(100);
+                processFrames = true;
+            }
+            return base.OnKeyUp(state, args);
+        }
+        protected override void Update()
+        {
+            base.Update();
 
-//        internal void AddEvent(Color color, float drawDepth)
-//        {
-//            pSprite e = new pSprite(GameBase.WhitePixel, Fields.TopLeft, Origins.TopLeft, Clocks.Game, new Vector2((WIDTH - 1) / GameBase.WindowManager.Ratio, 0), 0.1f + drawDepth, true, color)
-//            {
-//                ScaleToWindowRatio = false,
-//                VectorScale = new Vector2(3, 3),
-//            };
+            FrameStatistics frame;
+            while (monitor.PendingFrames.TryDequeue(out frame))
+            {
+                if (!processFrames)
+                    continue;
 
-//            eventSprites.Add(e);
-//            spriteManager.Add(e);
-//        }
+                foreach (int gcLevel in frame.GarbageCollections)
+                    AddEvent(gcLevel);
 
+                Sprite timeBar = timeBars[TimeBarIndex];
+                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                {
+                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+                };
 
-//        private static Color[] garbageCollectColors = new Color[] { Color.Green, Color.Yellow, Color.Red };
-//        private int[] lastAmountGarbageCollects = new int[3];
+                int currentHeight = HEIGHT;
 
-//        internal override unsafe void Update()
-//        {
-//            base.Update();
+                for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+                    currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
 
-//            if (KeyboardHandler.ControlPressed)
-//            {
-//                legendSprites.ForEach(s => s.Alpha = 1);
-//                return;
-//            }
+                timeBar.Texture.SetData(upload);
 
-//            legendSprites.ForEach(s => s.Alpha = 0);
+                timeBarContainers[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
+                timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
+                currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-//            for (int i = 0; i < lastAmountGarbageCollects.Length; ++i)
-//            {
-//                int amountCollections = GC.CollectionCount(i);
-//                if (lastAmountGarbageCollects[i] != amountCollections)
-//                {
-//                    lastAmountGarbageCollects[i] = amountCollections;
-//                    AddEvent(garbageCollectColors[i], i);
-//                }
-//            }
+                foreach (Drawable e in timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].Children)
+                    if (e is Box && e.Position.X <= TimeBarX)
+                        e.Expire();
+            }
+        }
 
-//            pSprite timeBar = timeBars[TimeBarIndex];
+        private Color4 getColour(PerformanceCollectionType type)
+        {
+            Color4 col = default(Color4);
 
-//            int currentHeight = HEIGHT;
+            switch (type)
+            {
+                default:
+                case PerformanceCollectionType.Update:
+                    col = Color4.YellowGreen;
+                    break;
+                case PerformanceCollectionType.Draw:
+                    col = Color4.BlueViolet;
+                    break;
+                case PerformanceCollectionType.SwapBuffer:
+                    col = Color4.Red;
+                    break;
+#if DEBUG
+                case PerformanceCollectionType.Debug:
+                    col = Color4.Yellow;
+                    break;
+#endif
+                case PerformanceCollectionType.Sleep:
+                    col = Color4.DarkBlue;
+                    break;
+                case PerformanceCollectionType.Scheduler:
+                    col = Color4.HotPink;
+                    break;
+                case PerformanceCollectionType.BetweenFrames:
+                    col = Color4.GhostWhite;
+                    break;
+                case PerformanceCollectionType.Empty:
+                    col = new Color4(50, 40, 40, 180);
+                    break;
+            }
 
-//            for (int i = 0; i <= (int)FrameTimeType.Empty; i++)
-//                currentHeight = addArea((FrameTimeType)i, currentHeight);
+            return col;
+        }
 
-//            ((TextureGlSingle)timeBar.Texture.TextureGl).SetData(textureData, new Rectangle(TimeBarX, 0, 1, HEIGHT));
-//            timeBar.Texture.TextureGl.Upload();
+        private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData)
+        {
+            Debug.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
-//            timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX) / GameBase.WindowManager.Ratio, 0);
-//            timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX / GameBase.WindowManager.Ratio, 0);
+            double elapsedMilliseconds = 0;
+            int drawHeight = 0;
 
-//            currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+            if (frameTimeType == PerformanceCollectionType.Empty)
+                drawHeight = currentHeight;
+            else if (frame.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
+            {
+                drawHeight = (int)(elapsedMilliseconds * scale);
+            }
+            else
+                return currentHeight;
 
-//            for (int i = 0; i < eventSprites.Count; ++i)
-//            {
-//                pSprite e = eventSprites[i];
-//                e.Position.X -= 1 / GameBase.WindowManager.Ratio;
+            Color4 col = getColour(frameTimeType);
 
-//                if (e.Position.X < -2)
-//                {
-//                    e.AlwaysDraw = false;
-//                    e.FadeOut(0);
-//                    eventSprites.RemoveAt(i--);
-//                }
-//            }
-//        }
+            for (int i = currentHeight - 1; i >= 0; --i)
+            {
+                if (drawHeight-- == 0) break;
 
-//        private Color getColour(FrameTimeType type)
-//        {
-//            Color col = default(Color);
+                int index = i * 4;
+                textureData[index] = (byte)(255 * col.R);
+                textureData[index + 1] = (byte)(255 * col.G);
+                textureData[index + 2] = (byte)(255 * col.B);
+                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - (int)((i * 4) / HEIGHT) / 8f)) : col.A));
+                currentHeight--;
+            }
 
-//            switch (type)
-//            {
-//                default:
-//                case FrameTimeType.Update:
-//                    col = Color.YellowGreen;
-//                    break;
-//                case FrameTimeType.Draw:
-//                    col = Color.BlueViolet;
-//                    break;
-//                case FrameTimeType.SwapBuffer:
-//                    col = Color.Red;
-//                    break;
-//#if DEBUG
-//                case FrameTimeType.Debug:
-//                    col = Color.Yellow;
-//                    break;
-//#endif
-//                case FrameTimeType.Sleep:
-//                    col = Color.DarkBlue;
-//                    break;
-//                case FrameTimeType.Scheduler:
-//                    col = Color.HotPink;
-//                    break;
-//                case FrameTimeType.BetweenFrames:
-//                    col = Color.GhostWhite;
-//                    break;
-//                case FrameTimeType.Empty:
-//                    col = new Color(50, 40, 40, 180);
-//                    break;
-//            }
-
-//            return col;
-//        }
-
-//        private int addArea(FrameTimeType frameTimeType, int currentHeight)
-//        {
-//            double elapsedMilliseconds = 0;
-//            int drawHeight = 0;
-
-//            if (frameTimeType == FrameTimeType.Empty)
-//                drawHeight = currentHeight;
-//            else if (monitor.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
-//            {
-//                drawHeight = (int)(elapsedMilliseconds * scale);
-//            }
-//            else
-//                return currentHeight;
-
-//            Color col = getColour(frameTimeType);
-
-//            for (int i = currentHeight - 1; i >= 0; --i)
-//            {
-//                if (drawHeight-- == 0) break;
-
-//                int index = i * 4;
-//                textureData[index] = col.R;
-//                textureData[index + 1] = col.G;
-//                textureData[index + 2] = col.B;
-//                textureData[index + 3] = frameTimeType == FrameTimeType.Empty ? (byte)(col.A * (1 - (int)((i * 4) / HEIGHT) / 8f)) : col.A;
-//                currentHeight--;
-//            }
-
-//            return currentHeight;
-//        }
+            return currentHeight;
+        }
     }
 }

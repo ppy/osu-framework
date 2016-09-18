@@ -9,16 +9,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public class TextureUpload : IDisposable
     {
-        private static TextureBufferStack bufferStack = new TextureBufferStack(10);
+        private static TextureBufferStack globalBufferStack = new TextureBufferStack(10);
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
 
-        public TextureUpload(int size)
+        private TextureBufferStack bufferStack;
+
+        public TextureUpload(int size, TextureBufferStack bufferStack = null)
         {
-            Data = bufferStack.ReserveBuffer(size);
+            this.bufferStack = bufferStack == null ? globalBufferStack : bufferStack;
+            Data = this.bufferStack.ReserveBuffer(size);
         }
 
         public TextureUpload(byte[] data)
@@ -34,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!disposedValue)
             {
                 disposedValue = true;
-                bufferStack.FreeBuffer(Data);
+                bufferStack?.FreeBuffer(Data);
             }
         }
 

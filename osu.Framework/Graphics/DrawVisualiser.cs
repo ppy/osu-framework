@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
                 };
 
                 var sprite = Target as Sprite;
-                if (sprite != null)
+                if (sprite?.Texture != null)
                     previewBox = new Sprite(sprite.Texture) { Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1) };
                 else
                     previewBox = new Box() { Colour = Color4.White };

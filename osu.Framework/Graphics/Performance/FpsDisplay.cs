@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Performance
 
         public FpsDisplay(string name, ThrottledFrameClock clock)
         {
-            Position = new Vector2(5, 5);
             this.name = name;
             this.clock = clock;
         }

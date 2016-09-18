@@ -13,7 +13,7 @@ namespace osu.Framework.Cached
         /// <summary>
         /// How often this property is refreshed.
         /// </summary>
-        public readonly int RefreshInterval;
+        public int RefreshInterval;
 
         /// <summary>
         /// Whether we allow reads of stale values. If this is set to false, there may be a potential blocking delay when accessing the property.

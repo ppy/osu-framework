@@ -99,6 +99,8 @@ namespace osu.Framework.Graphics.Sprites
 
         private void refreshLayout()
         {
+            if (internalSize.IsValid) return;
+
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)

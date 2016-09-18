@@ -864,11 +864,7 @@ namespace osu.Framework.Graphics
 
         ~Drawable()
         {
-            if (Game != null)
-                //todo: check this scheduler call is actually required.
-                Game.Scheduler.Add(() => Dispose(false));
-            else
-                Dispose(false);
+            Dispose(false);
         }
 
         public void Dispose()

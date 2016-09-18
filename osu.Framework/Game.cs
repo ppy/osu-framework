@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.OS;
 using Scheduler = osu.Framework.Threading.Scheduler;
+using OpenTK;
 
 namespace osu.Framework
 {
@@ -83,8 +84,22 @@ namespace osu.Framework
             Add(userInputContainer = new UserInputManager()
             {
                 Children = new[] {
+                    new FlowContainer
+                    {
+                        Direction = Graphics.Containers.FlowDirection.VerticalOnly,
+                        Padding = new Vector2(10, 10),
+                        Anchor = Graphics.Anchor.BottomRight,
+                        Origin = Graphics.Anchor.BottomRight,
+                        Depth = float.MaxValue,
+
+                        Children = new[] {
+                            new FrameTimeDisplay(@"Update", host.UpdateMonitor),
+                            new FrameTimeDisplay(@"Draw", host.DrawMonitor)
+                        }
+                    },
                     new PerformanceOverlay()
                     {
+                        Position = new Vector2(5, 5),
                         Anchor = Graphics.Anchor.BottomRight,
                         Origin = Graphics.Anchor.BottomRight,
                         Depth = float.MaxValue
@@ -97,7 +112,6 @@ namespace osu.Framework
         {
             Scheduler.Update();
             Audio.Update();
-
             base.Update();
         }
 
