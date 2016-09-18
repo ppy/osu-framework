@@ -350,12 +350,17 @@ namespace osu.Framework.Input
                                   || k == Key.LAlt || k == Key.RAlt
                                   || k == Key.LShift || k == Key.RShift;
 
-                if (isModifier)
-                    continue;
+                LastActionTime = Time;
 
                 bool isRepetition = keyboard.LastState?.Keys.Contains(k) ?? false;
 
-                LastActionTime = Time;
+                if (isModifier)
+                {
+                    //modifiers shouldn't affect or report key repeat
+                    if (!isRepetition)
+                        handleKeyDown(state, k, false);
+                    continue;
+                }
 
                 if (isRepetition)
                 {
