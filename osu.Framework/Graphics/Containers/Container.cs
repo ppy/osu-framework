@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.BoundingRectangle : (Rectangle?)null);
 
-        public new IEnumerable<Drawable> Children
+        public override IEnumerable<Drawable> Children
         {
             get { return base.Children; }
             set
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual Container AddTarget => this;
 
-        public new virtual Drawable Add(Drawable drawable)
+        public override Drawable Add(Drawable drawable)
         {
             if (AddTarget == this || AddTarget == drawable)
                 return AddTopLevel(drawable);
@@ -44,13 +44,7 @@ namespace osu.Framework.Graphics.Containers
             return base.Add(drawable);
         }
 
-        public new void Add(IEnumerable<Drawable> drawables)
-        {
-            foreach (Drawable d in drawables)
-                Add(d);
-        }
-
-        public new virtual bool Remove(Drawable drawable, bool dispose = true)
+        public override bool Remove(Drawable drawable, bool dispose = true)
         {
             if (AddTarget == this)
                 return base.Remove(drawable, dispose);
@@ -58,35 +52,12 @@ namespace osu.Framework.Graphics.Containers
             return AddTarget.Remove(drawable, dispose);
         }
 
-        public new virtual void Remove(IEnumerable<Drawable> drawables, bool dispose = true)
-        {
-            foreach (Drawable d in drawables)
-                Remove(d, dispose);
-        }
-
-        public virtual int RemoveAll(Predicate<Drawable> match)
-        {
-            if (AddTarget == this)
-                return base.RemoveAll(match);
-
-            return AddTarget.RemoveAll(match);
-        }
-
-        public new virtual void Clear(bool dispose = true)
+        public override void Clear(bool dispose = true)
         {
             if (AddTarget == this)
                 base.Clear(dispose);
             else
                 AddTarget.Clear(dispose);
-        }
-
-        /// <summary>
-        /// Scale which is only applied to Children.
-        /// </summary>
-        public new virtual Vector2 ChildrenScale
-        {
-            get { return base.ChildrenScale; }
-            set { base.ChildrenScale = value; }
         }
     }
 }
