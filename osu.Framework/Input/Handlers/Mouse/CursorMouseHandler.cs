@@ -19,22 +19,21 @@ namespace osu.Framework.Input.Handlers.Mouse
         private Vector2 position = Vector2.One;
 
         private Game game;
-        private Point pos;
+
+        Point nativePosition;
 
         public override bool Initialize(Game game)
         {
             this.game = game;
 
-            game.Host.InputScheduler.Add(new ScheduledDelegate(update, 0, 0));
+            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate
+            {
+                nativePosition = game.Window.Form.PointToClient(Cursor.Position);
+            }, 0, 0));
+
             return true;
         }
 
-        Point nativePosition;
-
-        private void update()
-        {
-            nativePosition = game.Window.Form.PointToClient(Cursor.Position);
-        }
 
         public override void Dispose()
         {
