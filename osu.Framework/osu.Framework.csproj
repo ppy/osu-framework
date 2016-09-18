@@ -239,6 +239,8 @@
     <Compile Include="OS\BasicGameForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Statistics\FrameStatistics.cs" />
+    <Compile Include="Statistics\PerformanceMonitor.cs" />
     <Compile Include="Threading\Scheduler.cs" />
     <Compile Include="Threading\SleepHandle.cs" />
     <Compile Include="Threading\SleepScheduler.cs" />

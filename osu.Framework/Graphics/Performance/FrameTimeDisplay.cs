@@ -16,6 +16,7 @@ using System.Collections.Concurrent;
 using osu.Framework.Input;
 using OpenTK.Input;
 using osu.Framework.Graphics.Transformations;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -40,21 +41,11 @@ namespace osu.Framework.Graphics.Performance
         private PerformanceMonitor monitor;
 
         private int currentX = 0;
-        private int TimeBarIndex
-        {
-            get
-            {
-                return currentX / WIDTH;
-            }
-        }
 
-        private int TimeBarX
-        {
-            get
-            {
-                return currentX % WIDTH;
-            }
-        }
+        private int TimeBarIndex => currentX / WIDTH;
+        private int TimeBarX => currentX % WIDTH;
+
+        private bool processFrames = true;
 
         FlowContainer legendSprites;
         List<Drawable> eventSprites = new List<Drawable>();
@@ -143,8 +134,6 @@ namespace osu.Framework.Graphics.Performance
             eventSprites.Add(b);
             Add(b);
         }
-
-        private bool processFrames = true;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -280,131 +269,6 @@ namespace osu.Framework.Graphics.Performance
             }
 
             return currentHeight;
-        }
-    }
-
-    public enum FrameTimeType
-    {
-        Update,
-        Draw,
-        SwapBuffer,
-        BetweenFrames,
-        Debug,
-        Sleep,
-        Scheduler,
-        IPC,
-        Empty
-    }
-
-    public class FrameStatistics
-    {
-        internal Dictionary<FrameTimeType, double> CollectedTimes = new Dictionary<FrameTimeType, double>();
-        internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
-    }
-
-    public class PerformanceMonitor
-    {
-        internal StopwatchClock clock = new StopwatchClock(true);
-
-        internal Stack<FrameTimeType> CurrentCollectionTypeStack = new Stack<FrameTimeType>();
-
-        internal FrameStatistics currentFrame;
-
-        internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-
-        private double consumptionTime;
-
-        internal double FramesPerSecond;
-        internal double AverageFrameTime;
-
-        double timeUntilNextCalculation;
-        double timeSinceLastCalculation;
-        int framesSinceLastCalculation;
-
-        const int fps_calculation_interval = 250;
-
-        internal void ReportCount(CounterType type)
-        {
-            //OsuGame.Scheduler.Add(delegate
-            //{
-            if (!currentFrame.CollectedCounters.ContainsKey(type))
-                currentFrame.CollectedCounters[type] = 1;
-            else
-                currentFrame.CollectedCounters[type]++;
-            //});
-        }
-
-        /// <summary>
-        /// Start collecting a type of passing time.
-        /// </summary>
-        internal void BeginCollecting(FrameTimeType type)
-        {
-            if (CurrentCollectionTypeStack.Count > 0)
-            {
-                FrameTimeType t = CurrentCollectionTypeStack.Peek();
-
-                if (!currentFrame.CollectedTimes.ContainsKey(t)) currentFrame.CollectedTimes[t] = 0;
-                currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
-            }
-
-            CurrentCollectionTypeStack.Push(type);
-        }
-
-        private double consumeStopwatchElapsedTime()
-        {
-            double last = consumptionTime;
-            consumptionTime = clock.CurrentTime;
-            return consumptionTime - last;
-        }
-
-        /// <summary>
-        /// End collecting a type of passing time (that was previously started).
-        /// </summary>
-        /// <param name="type"></param>
-        internal void EndCollecting(FrameTimeType type)
-        {
-            CurrentCollectionTypeStack.Pop();
-
-            if (!currentFrame.CollectedTimes.ContainsKey(type)) currentFrame.CollectedTimes[type] = 0;
-            currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
-        }
-
-        public int TargetFrameRate;
-
-        /// <summary>
-        /// Resets all frame statistics. Run exactly once per frame.
-        /// </summary>
-        internal void NewFrame(IFrameBasedClock clock)
-        {
-            if (currentFrame != null)
-                PendingFrames.Enqueue(currentFrame);
-            currentFrame = new FrameStatistics();
-
-            //update framerate
-            double decay = Math.Pow(0.05, clock.ElapsedFrameTime);
-
-            framesSinceLastCalculation++;
-            timeUntilNextCalculation -= clock.ElapsedFrameTime;
-            timeSinceLastCalculation += clock.ElapsedFrameTime;
-
-            if (timeUntilNextCalculation <= 0)
-            {
-                timeUntilNextCalculation += fps_calculation_interval;
-
-                FramesPerSecond = framesSinceLastCalculation == 0 ? 0 : (int)Math.Ceiling(Math.Min(framesSinceLastCalculation * 1000f / timeSinceLastCalculation, TargetFrameRate));
-                timeSinceLastCalculation = framesSinceLastCalculation = 0;
-            }
-
-            //check for dropped (stutter) frames
-            //if (clock.ElapsedFrameTime > spikeTime)
-            //NewDroppedFrame();
-
-            AverageFrameTime = decay * AverageFrameTime + (1 - decay) * clock.ElapsedFrameTime;
-
-            //reset frame totals
-            CurrentCollectionTypeStack.Clear();
-            //backgroundMonitorStackTrace = null;
-            consumeStopwatchElapsedTime();
         }
     }
 }
