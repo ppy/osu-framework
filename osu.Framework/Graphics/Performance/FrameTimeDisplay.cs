@@ -45,11 +45,19 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        FlowContainer legendSprites;
+        public string Name
+        {
+            get;
+            private set;
+        }
+
+        FlowContainer legendContainer;
+        Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
-            Size = new Vector2(WIDTH, HEIGHT);
+            this.Name = name;
+            this.Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
             textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
         }
@@ -60,42 +68,53 @@ namespace osu.Framework.Graphics.Performance
 
             Container timeBarContainer;
 
-            Add(new MaskingContainer
-            {
-                Children = new [] {
-                    timeBarContainer = new LargeContainer(),
-                    legendSprites = new FlowContainer {
-                        Anchor = Anchor.TopRight,
-                        Origin = Anchor.TopRight,
-                        Padding = new Vector2(5, 1),
-                        Children = new [] {
-                            new Box {
-                                SizeMode = InheritMode.XY,
-                                Colour = Color4.Gray,
-                                Alpha = 0.2f,
+            Children = new Drawable[] {
+                new SpriteText
+                {
+                    Text = Name,
+                    Origin = Anchor.BottomCentre,
+                    Anchor = Anchor.CentreLeft,
+                    Rotation = -90,
+                },
+                new MaskingContainer
+                {
+                    Children = new [] {
+                        timeBarContainer = new LargeContainer(),
+                        legendContainer = new FlowContainer {
+                            Anchor = Anchor.TopRight,
+                            Origin = Anchor.TopRight,
+                            Padding = new Vector2(5, 1),
+                            Children = new [] {
+                                new Box {
+                                    SizeMode = InheritMode.XY,
+                                    Colour = Color4.Gray,
+                                    Alpha = 0.2f,
+                                }
                             }
-                        }
-                    },
-                    new SpriteText
-                    {
-                        Text = $@"{visible_range}ms",
-                    },
-                    new SpriteText
-                    {
-                        Text = @"0ms",
-                        Anchor = Anchor.BottomLeft,
-                        Origin = Anchor.BottomLeft
-                    },
-                }
-            });
+                        },
+                        new SpriteText
+                        {
+                            Text = $@"{visible_range}ms",
+                        },
+                        new SpriteText
+                        {
+                            Text = @"0ms",
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft
+                        },
+                    }
+                },
+            };
 
             for (int i = 0; i < timeBars.Length; ++i)
             {
                 timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
                 timeBarContainer.Add(
-                    timeBarContainers[i] = new AutoSizeContainer
+                    timeBarContainers[i] = new Container
                     {
-                        Children = new [] { timeBars[i] }
+                        Children = new [] { timeBars[i] },
+                        Width = WIDTH,
+                        Height = HEIGHT,
                     }
                 );
             }
@@ -104,13 +123,14 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (t >= PerformanceCollectionType.Empty) continue;
 
-                legendSprites.Add(new SpriteText()
+                legendContainer.Add(legendMapping[(int)t] = new SpriteText()
                 {
                     Colour = getColour(t),
                     Text = t.ToString(),
+                    Alpha = 0
                 });
 
-                legendSprites.FadeOut(2000, EasingTypes.InExpo);
+                legendContainer.FadeOut(2000, EasingTypes.InExpo);
             }
 
             // Initialize background
@@ -133,6 +153,7 @@ namespace osu.Framework.Graphics.Performance
         {
             Box b = new Box()
             {
+                Origin = Anchor.TopCentre,
                 Position = new Vector2(TimeBarX, 0),
                 Colour = garbageCollectColors[type],
                 Size = new Vector2(3, 3),
@@ -145,7 +166,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendSprites.FadeIn(100);
+                legendContainer.FadeIn(100);
                 processFrames = false;
             }
             return base.OnKeyDown(state, args);
@@ -155,7 +176,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendSprites.FadeOut(100);
+                legendContainer.FadeOut(100);
                 processFrames = true;
             }
             return base.OnKeyUp(state, args);
@@ -223,7 +244,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.Scheduler:
                     col = Color4.HotPink;
                     break;
-                case PerformanceCollectionType.BetweenFrames:
+                case PerformanceCollectionType.WndProc:
                     col = Color4.GhostWhite;
                     break;
                 case PerformanceCollectionType.Empty:
@@ -245,6 +266,7 @@ namespace osu.Framework.Graphics.Performance
                 drawHeight = currentHeight;
             else if (frame.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
             {
+                legendMapping[(int)frameTimeType].Alpha = 1;
                 drawHeight = (int)(elapsedMilliseconds * scale);
             }
             else

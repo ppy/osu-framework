@@ -38,18 +38,16 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
 
-            TextSize = 14;
+            TextSize = 19.2f;
 
             HandleInput = false;
         }
 
         public float TextSize
         {
-            get { return ContentScale.X; }
-            set { ContentScale = new Vector2(value); }
+            get { return ChildrenScale.X; }
+            set { ChildrenScale = new Vector2(value); }
         }
-
-
 
         public override void Load()
         {
@@ -85,6 +83,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (constantWidth.HasValue && !HasDefinedSize)
                     // We can determine the size even in the case autosize hasn't been run here, because we override autosize
                     refreshLayout();
+
                 return base.Size;
             }
         }
@@ -124,18 +123,22 @@ namespace osu.Framework.Graphics.Sprites
                     if (c == ' ')
                         s = new Container()
                         {
-                            Size = new Vector2(constantWidth ?? spaceWidth),
+                            Size = new Vector2(FixedWidth ? constantWidth.Value : spaceWidth),
                             Colour = Color4.Transparent
                         };
                     else
+                    {
                         s = getSprite(c);
 
-                    if (FixedWidth)
-                    {
-                        var ctn = new Container() { Size = new Vector2(constantWidth.Value, s.Size.Y) };
+                        var ctn = new Container() {
+                            Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
+                        };
 
-                        s.Anchor = Anchor.TopCentre;
-                        s.Origin = Anchor.TopCentre;
+                        if (FixedWidth)
+                        {
+                            s.Anchor = Anchor.TopCentre;
+                            s.Origin = Anchor.TopCentre;
+                        }
 
                         ctn.Add(s);
                         s = ctn;

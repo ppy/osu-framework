@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     Vector2 boundingSize = c.BoundingSize;
-                    Vector2 inheritingSize = c.Size * c.Scale * ContentScale;
+                    Vector2 inheritingSize = c.Size * c.Scale * ChildrenScale;
 
                     if ((c.SizeMode & InheritMode.X) == 0)
                         size.X = Math.Max(size.X, boundingSize.X);

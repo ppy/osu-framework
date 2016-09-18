@@ -305,7 +305,7 @@ namespace osu.Framework.Graphics.UserInterface
                 textFlow.Add(ch = new SpriteText()
                 {
                     Text = c.ToString(),
-                    TextSize = Size.Y * 0.8f,
+                    TextSize = Size.Y,
                     Depth = selectionLeft,
                 });
             }

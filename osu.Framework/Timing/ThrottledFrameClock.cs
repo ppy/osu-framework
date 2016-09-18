@@ -27,13 +27,6 @@ namespace osu.Framework.Timing
 
         private double minimumFrameTime => 1000d / MaximumUpdateHz;
 
-
-        public ThrottledFrameClock()
-            : base(new StopwatchClock(true))
-        {
-
-        }
-
         public double AverageFrameTime { get; private set; }
         public double AverageFPS { get; private set; }
 

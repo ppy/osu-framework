@@ -38,14 +38,17 @@ namespace osu.Framework.OS
         internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
+        internal FramedClock InputClock = new FramedClock();
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
 
+        internal PerformanceMonitor InputMonitor = new PerformanceMonitor();
         internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
-
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
 
-        private Scheduler updateScheduler = new Scheduler(null); //null here to construct early but bind to thread late.
+        //null here to construct early but bind to thread late.
+        private Scheduler inputScheduler = new Scheduler(null);
+        private Scheduler updateScheduler = new Scheduler(null);
 
         protected override IFrameBasedClock Clock => UpdateClock;
 
@@ -101,7 +104,6 @@ namespace osu.Framework.OS
                     updateScheduler.Update();
                 }
 
-
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
                 {
                     UpdateSubTree();
@@ -124,13 +126,9 @@ namespace osu.Framework.OS
             {
                 DrawMonitor.NewFrame(DrawClock);
 
-                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    GLWrapper.Reset(Size);
-                }
-
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
                 {
+                    GLWrapper.Reset(Size);
                     GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
                     pendingRootNode?.DrawSubTree();
                 }
@@ -142,9 +140,7 @@ namespace osu.Framework.OS
                 }
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
                     DrawClock.ProcessFrame();
-                }
             }
         }
 
@@ -180,6 +176,8 @@ namespace osu.Framework.OS
 
             Window.ExitRequested += OnExitRequested;
             Window.Exited += OnExited;
+
+            inputScheduler.SetCurrentThread(Thread.CurrentThread);
 
             Exception error = null;
 
@@ -232,8 +230,21 @@ namespace osu.Framework.OS
             }
         }
 
+        InvokeOnDisposal inputPerformanceCollectionPeriod;
         protected virtual void OnApplicationIdle()
         {
+            inputPerformanceCollectionPeriod?.Dispose();
+
+            InputMonitor.NewFrame(InputClock);
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+                inputScheduler.Update();
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                InputClock.ProcessFrame();
+
+            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+
             if (exitRequested)
                 Window.Close();
         }

@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics
 
         private LifetimeList<Drawable> children;
         private IEnumerable<Drawable> pendingChildren;
-        internal IEnumerable<Drawable> Children
+        public virtual IEnumerable<Drawable> Children
         {
             get { return children; }
             set
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        protected Vector2 ContentScale = Vector2.One;
+        protected Vector2 ChildrenScale = Vector2.One;
 
         private Vector2 scale = Vector2.One;
 
@@ -402,7 +402,7 @@ namespace osu.Framework.Graphics
            if (Parent == null)
                di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
            else
-               Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ContentScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+               Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
            return di;
        });
@@ -482,7 +482,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected Drawable Add(Drawable drawable)
+        public virtual Drawable Add(Drawable drawable)
         {
             if (drawable == null)
                 return null;
@@ -493,13 +493,13 @@ namespace osu.Framework.Graphics
             return drawable;
         }
 
-        protected void Add(IEnumerable<Drawable> collection)
+        public void Add(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
                 Add(d);
         }
 
-        protected bool Remove(Drawable p, bool dispose = true)
+        public virtual bool Remove(Drawable p, bool dispose = true)
         {
             if (p == null)
                 return false;
@@ -515,7 +515,7 @@ namespace osu.Framework.Graphics
             return result;
         }
 
-        protected int RemoveAll(Predicate<Drawable> match, bool dispose = true)
+        public int RemoveAll(Predicate<Drawable> match, bool dispose = true)
         {
             List<Drawable> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
@@ -524,7 +524,7 @@ namespace osu.Framework.Graphics
             return toRemove.Count;
         }
 
-        protected void Remove(IEnumerable<Drawable> range, bool dispose = true)
+        public void Remove(IEnumerable<Drawable> range, bool dispose = true)
         {
             if (range == null)
                 return;
@@ -537,7 +537,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected void Clear(bool dispose = true)
+        public virtual void Clear(bool dispose = true)
         {
             foreach (Drawable t in children)
             {
