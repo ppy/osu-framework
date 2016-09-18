@@ -15,6 +15,11 @@ namespace osu.Framework.Timing
     {
         public IClock Source { get; }
 
+        public FramedClock()
+            : this(new StopwatchClock(true))
+        {
+        }
+
         public FramedClock(IClock source)
         {
             Source = source;

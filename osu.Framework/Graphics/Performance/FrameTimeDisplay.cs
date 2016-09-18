@@ -45,11 +45,18 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
+        public string Name
+        {
+            get;
+            private set;
+        }
+
         FlowContainer legendSprites;
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
-            Size = new Vector2(WIDTH, HEIGHT);
+            this.Name = name;
+            this.Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
             textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
         }
