@@ -86,7 +86,9 @@ namespace osu.Framework.Graphics.Containers
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
 
-                    Size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+                    size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
+
+                    Invalidate(Invalidation.Position);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
                     //might work better to add an OnRefresh event in Cached<> and invoke there.

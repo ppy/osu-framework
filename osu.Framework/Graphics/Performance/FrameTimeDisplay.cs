@@ -18,6 +18,7 @@ using osu.Framework.Input;
 using OpenTK.Input;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Statistics;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -32,10 +33,8 @@ namespace osu.Framework.Graphics.Performance
         const float scale = HEIGHT / visible_range;
 
         private Sprite[] timeBars = new Sprite[2];
-
-        private AutoSizeContainer timeBarContainer;
-
-        private byte[] textureData = new byte[HEIGHT * 4];
+        private Container[] timeBarContainers = new Container[2];
+        private TextureBufferStack textureBufferStack;
 
         private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
@@ -48,22 +47,24 @@ namespace osu.Framework.Graphics.Performance
         private bool processFrames = true;
 
         FlowContainer legendSprites;
-        List<Drawable> eventSprites = new List<Drawable>();
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
             Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
+            textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
         }
 
         public override void Load()
         {
             base.Load();
 
+            Container timeBarContainer;
+
             Add(new MaskingContainer
             {
-                Children = new Drawable[] {
-                    timeBarContainer = new AutoSizeContainer(),
+                Children = new [] {
+                    timeBarContainer = new LargeContainer(),
                     legendSprites = new FlowContainer {
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
@@ -92,7 +93,12 @@ namespace osu.Framework.Graphics.Performance
             for (int i = 0; i < timeBars.Length; ++i)
             {
                 timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
-                timeBarContainer.Add(timeBars[i]);
+                timeBarContainer.Add(
+                    timeBarContainers[i] = new AutoSizeContainer
+                    {
+                        Children = new [] { timeBars[i] }
+                    }
+                );
             }
 
             foreach (FrameTimeType t in Enum.GetValues(typeof(FrameTimeType)))
@@ -114,11 +120,13 @@ namespace osu.Framework.Graphics.Performance
                 currentX = i;
                 Sprite timeBar = timeBars[TimeBarIndex];
 
-                addArea(null, FrameTimeType.Empty, HEIGHT);
-                timeBar.Texture.SetData(new TextureUpload(textureData)
+                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
                 {
                     Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                });
+                };
+
+                addArea(null, FrameTimeType.Empty, HEIGHT, upload.Data);
+                timeBar.Texture.SetData(upload);
             }
         }
 
@@ -126,13 +134,12 @@ namespace osu.Framework.Graphics.Performance
         {
             Box b = new Box()
             {
-                Position =  new Vector2(currentX, 0),
+                Position = new Vector2(TimeBarX, 0),
                 Colour = garbageCollectColors[type],
                 Size = new Vector2(3, 3),
             };
 
-            eventSprites.Add(b);
-            timeBarContainer.Add(b);
+            timeBarContainers[TimeBarIndex].Add(b);
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -159,33 +166,33 @@ namespace osu.Framework.Graphics.Performance
             base.Update();
 
             FrameStatistics frame;
-            while (processFrames && monitor.PendingFrames.TryDequeue(out frame))
+            while (monitor.PendingFrames.TryDequeue(out frame))
             {
+                if (!processFrames)
+                    continue;
+
                 foreach (int gcLevel in frame.GarbageCollections)
                     AddEvent(gcLevel);
 
                 Sprite timeBar = timeBars[TimeBarIndex];
+                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                {
+                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+                };
 
                 int currentHeight = HEIGHT;
 
                 for (int i = 0; i <= (int)FrameTimeType.Empty; i++)
-                    currentHeight = addArea(frame, (FrameTimeType)i, currentHeight);
+                    currentHeight = addArea(frame, (FrameTimeType)i, currentHeight, upload.Data);
 
-                timeBar.Texture.SetData(new TextureUpload(textureData)
-                {
-                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                });
+                timeBar.Texture.SetData(upload);
 
-                if (processFrames)
-                {
-                    timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
-                    timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
-                }
-
+                timeBarContainers[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
+                timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
                 currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-                foreach (Drawable e in timeBarContainer.Children)
-                    if (e.Position.X == TimeBarX)
+                foreach (Drawable e in timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].Children)
+                    if (e is Box && e.Position.X <= TimeBarX)
                         e.Expire();
             }
         }
@@ -228,8 +235,10 @@ namespace osu.Framework.Graphics.Performance
             return col;
         }
 
-        private int addArea(FrameStatistics frame, FrameTimeType frameTimeType, int currentHeight)
+        private int addArea(FrameStatistics frame, FrameTimeType frameTimeType, int currentHeight, byte[] textureData)
         {
+            Debug.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
+
             double elapsedMilliseconds = 0;
             int drawHeight = 0;
 

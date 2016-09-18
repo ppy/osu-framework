@@ -43,13 +43,10 @@ namespace osu.Framework.Lists
                     if (!obj.IsLoaded)
                         obj.Load();
                 }
-                else
+                else if (obj.RemoveWhenNotAlive)
                 {
-                    if (obj.RemoveWhenNotAlive)
-                    {
-                        RemoveAt(i--);
-                        removedObjects.Add(obj);
-                    }
+                    RemoveAt(i--);
+                    removedObjects.Add(obj);
                 }
             }
 
