@@ -32,6 +32,8 @@ namespace osu.Framework.Graphics.Transformations
 
         public Transform(IClock clock)
         {
+            Debug.Assert(clock != null, @"Transformation was added with a null clock. This can't be right");
+
             Clock = clock;
         }
 
