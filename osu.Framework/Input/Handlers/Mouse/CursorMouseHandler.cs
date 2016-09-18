@@ -9,6 +9,7 @@ using System.Text;
 using System.Windows.Forms;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -16,38 +17,31 @@ namespace osu.Framework.Input.Handlers.Mouse
     {
         private bool wasActive = false;
         private Vector2 position = Vector2.One;
-        private Point previousNativeMousePosition;
 
         private Game game;
-        private Point pos;
+
+        Point nativePosition;
 
         public override bool Initialize(Game game)
         {
             this.game = game;
 
-            previousNativeMousePosition = GetNativePosition();
+            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate
+            {
+                nativePosition = game.Window.Form.PointToClient(Cursor.Position);
+            }, 0, 0));
+
             return true;
         }
+
 
         public override void Dispose()
         {
         }
 
-        public Point GetNativePosition()
-        {
-            Point pos = Point.Empty;
-
-            game.Window.Form.SafeInvoke(() =>
-            {
-                pos = game.Window.Form.PointToClient(Cursor.Position);
-            });
-
-            return pos;
-        }
-
         public override void UpdateInput(bool isActive)
         {
-            Point nativeMousePosition = GetNativePosition();
+            Point nativeMousePosition = nativePosition;
 
             position.X = nativeMousePosition.X;
             position.Y = nativeMousePosition.Y;

@@ -17,6 +17,7 @@ namespace osu.Framework.Threading
     {
         private readonly Queue<Action> schedulerQueue = new Queue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
+        private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
         private Stopwatch timer = new Stopwatch();
 
@@ -81,6 +82,18 @@ namespace osu.Framework.Threading
                             timedTasks.AddInPlace(sd);
                         }
                     }
+
+                    for (int i = 0; i < perUpdateTasks.Count; i++)
+                    {
+                        ScheduledDelegate task = perUpdateTasks[i];
+                        if (task.Cancelled)
+                        {
+                            perUpdateTasks.RemoveAt(i--);
+                            continue;
+                        }
+
+                        schedulerQueue.Enqueue(task.RunTask);
+                    }
                 }
 
                 int c = schedulerQueue.Count;
@@ -134,7 +147,13 @@ namespace osu.Framework.Threading
 
         public virtual bool Add(ScheduledDelegate task)
         {
-            lock (timedTasks) timedTasks.AddInPlace(task);
+            lock (timedTasks)
+            {
+                if (task.RepeatInterval == 0)
+                    perUpdateTasks.Add(task);
+                else
+                    timedTasks.AddInPlace(task);
+            }
             return true;
         }
 
@@ -187,7 +206,7 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = 0)
+        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = -1)
         {
             WaitTime = waitTime;
             RepeatInterval = repeatInterval;
@@ -239,7 +258,7 @@ namespace osu.Framework.Threading
         public double WaitTime;
 
         /// <summary>
-        /// Time between repeats of this task. Zero value means no repeats.
+        /// Time between repeats of this task. -1 means no repeats.
         /// </summary>
         public double RepeatInterval;
 
