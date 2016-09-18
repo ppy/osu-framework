@@ -45,7 +45,9 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        FlowContainer legendSprites;
+        FlowContainer legendContainer;
+        Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
+
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
@@ -64,7 +66,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 Children = new [] {
                     timeBarContainer = new LargeContainer(),
-                    legendSprites = new FlowContainer {
+                    legendContainer = new FlowContainer {
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
                         Padding = new Vector2(5, 1),
@@ -106,13 +108,14 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (t >= PerformanceCollectionType.Empty) continue;
 
-                legendSprites.Add(new SpriteText()
+                legendContainer.Add(legendMapping[(int)t] = new SpriteText()
                 {
                     Colour = getColour(t),
                     Text = t.ToString(),
+                    Alpha = 0
                 });
 
-                legendSprites.FadeOut(2000, EasingTypes.InExpo);
+                legendContainer.FadeOut(2000, EasingTypes.InExpo);
             }
 
             // Initialize background
@@ -148,7 +151,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendSprites.FadeIn(100);
+                legendContainer.FadeIn(100);
                 processFrames = false;
             }
             return base.OnKeyDown(state, args);
@@ -158,7 +161,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendSprites.FadeOut(100);
+                legendContainer.FadeOut(100);
                 processFrames = true;
             }
             return base.OnKeyUp(state, args);
@@ -248,6 +251,7 @@ namespace osu.Framework.Graphics.Performance
                 drawHeight = currentHeight;
             else if (frame.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
             {
+                legendMapping[(int)frameTimeType].Alpha = 1;
                 drawHeight = (int)(elapsedMilliseconds * scale);
             }
             else
