@@ -131,7 +131,7 @@ namespace osu.Framework.VisualTests.Tests
                 Add(new SpriteText()
                 {
                     Text = test.Description,
-                    TextSize = 12,
+                    TextSize = 15,
                     SizeMode = InheritMode.X,
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft

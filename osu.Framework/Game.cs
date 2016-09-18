@@ -79,7 +79,7 @@ namespace osu.Framework
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
 
-            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 1 / 100f };
+            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 1 / 137f };
 
             Add(userInputContainer = new UserInputManager()
             {

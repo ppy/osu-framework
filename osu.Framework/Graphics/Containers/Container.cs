@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        public new Vector2 ChildrenScale
+        public new virtual Vector2 ChildrenScale
         {
             get { return base.ContentScale; }
             set { base.ContentScale = value; }

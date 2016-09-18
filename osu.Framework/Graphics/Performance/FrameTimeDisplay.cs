@@ -68,34 +68,43 @@ namespace osu.Framework.Graphics.Performance
 
             Container timeBarContainer;
 
-            Add(new MaskingContainer
-            {
-                Children = new [] {
-                    timeBarContainer = new LargeContainer(),
-                    legendContainer = new FlowContainer {
-                        Anchor = Anchor.TopRight,
-                        Origin = Anchor.TopRight,
-                        Padding = new Vector2(5, 1),
-                        Children = new [] {
-                            new Box {
-                                SizeMode = InheritMode.XY,
-                                Colour = Color4.Gray,
-                                Alpha = 0.2f,
+            Children = new Drawable[] {
+                new SpriteText
+                {
+                    Text = Name,
+                    Origin = Anchor.BottomCentre,
+                    Anchor = Anchor.CentreLeft,
+                    Rotation = -90,
+                },
+                new MaskingContainer
+                {
+                    Children = new [] {
+                        timeBarContainer = new LargeContainer(),
+                        legendContainer = new FlowContainer {
+                            Anchor = Anchor.TopRight,
+                            Origin = Anchor.TopRight,
+                            Padding = new Vector2(5, 1),
+                            Children = new [] {
+                                new Box {
+                                    SizeMode = InheritMode.XY,
+                                    Colour = Color4.Gray,
+                                    Alpha = 0.2f,
+                                }
                             }
-                        }
-                    },
-                    new SpriteText
-                    {
-                        Text = $@"{visible_range}ms",
-                    },
-                    new SpriteText
-                    {
-                        Text = @"0ms",
-                        Anchor = Anchor.BottomLeft,
-                        Origin = Anchor.BottomLeft
-                    },
-                }
-            });
+                        },
+                        new SpriteText
+                        {
+                            Text = $@"{visible_range}ms",
+                        },
+                        new SpriteText
+                        {
+                            Text = @"0ms",
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft
+                        },
+                    }
+                },
+            };
 
             for (int i = 0; i < timeBars.Length; ++i)
             {
