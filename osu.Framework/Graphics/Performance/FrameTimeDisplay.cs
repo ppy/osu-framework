@@ -145,7 +145,10 @@ namespace osu.Framework.Graphics.Performance
                 Height = HEIGHT;
 
                 Children = new[] {
-                    Sprite = new Sprite(new Texture(WIDTH, HEIGHT))
+                    Sprite = new Sprite
+                    {
+                        Texture = new Texture(WIDTH, HEIGHT)
+                    }
                 };
             }
 

@@ -17,15 +17,10 @@ namespace osu.Framework.Graphics.Sprites
     {
         public float HoverRadius;
 
-        public SpriteCircular(Texture texture, float radius = -1)
-            : base(texture)
-        {
-            HoverRadius = radius > 0 ? radius : texture.DisplayWidth / 2f;
-        }
-
         internal override bool Contains(Vector2 screenSpacePos)
         {
-            Vector2 screenHoverRadius = new Vector2(HoverRadius, HoverRadius) * DrawInfo.Matrix.ExtractScale().Xy;
+            float hoverRadius = HoverRadius > 0 ? HoverRadius : Texture.DisplayWidth / 2f;
+            Vector2 screenHoverRadius = new Vector2(hoverRadius, hoverRadius) * DrawInfo.Matrix.ExtractScale().Xy;
             return Vector2.DistanceSquared(screenSpacePos, ScreenSpaceDrawQuad.Centre) < Vector2.Dot(screenHoverRadius, screenHoverRadius);
         }
     }

@@ -8,11 +8,6 @@ namespace osu.Framework.Graphics.Sprites
 {
     class NativeScaleSprite : Sprite
     {
-        public NativeScaleSprite(Texture texture)
-            : base(texture)
-        {
-        }
-
         public override Vector2 ActualSize
         {
             get

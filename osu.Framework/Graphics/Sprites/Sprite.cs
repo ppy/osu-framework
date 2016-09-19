@@ -18,11 +18,6 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool WrapTexture = false;
 
-        public Sprite(Texture texture)
-        {
-            Texture = texture;
-        }
-
         #region Disposal
         protected override void Dispose(bool isDisposing)
         {
