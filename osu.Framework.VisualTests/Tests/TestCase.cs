@@ -68,12 +68,16 @@ namespace osu.Framework.VisualTests.Tests
 
         public ToggleButton(Action reloadCallback)
         {
+            this.reloadCallback = reloadCallback;
+        }
+
+        public override void Load()
+        {
+            base.Load();
+
             Size = new Vector2(100, 50);
             Colour = offColour;
-
             Click += clickAction;
-
-            this.reloadCallback = reloadCallback;
         }
 
         private void clickAction()
