@@ -23,14 +23,12 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private FlowContainer textFlow;
         private Box background;
-        protected Box cursor;
-        protected Container TextContainer;
+        private Box cursor;
+        private Container textContainer;
 
         public int? LengthLimit;
-        public bool ResetTextOnEdit;
-        public string textBeforeCommit;
 
-        public virtual bool AllowClipboardExport => true;
+        public bool AllowClipboardExport => true;
 
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
@@ -60,7 +58,7 @@ namespace osu.Framework.Graphics.UserInterface
                 SizeMode = InheritMode.XY,
             });
 
-            Add(TextContainer = new Container() { SizeMode = InheritMode.XY });
+            Add(textContainer = new Container() { SizeMode = InheritMode.XY });
 
             textFlow = new FlowContainer()
             {
@@ -75,8 +73,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Alpha = 0
             };
 
-            TextContainer.Add(cursor);
-            TextContainer.Add(textFlow);
+            textContainer.Add(cursor);
+            textContainer.Add(textFlow);
         }
 
         private void resetSelection()
@@ -130,7 +128,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.Width - Width));
 
-                TextContainer.MoveToX(TextContainerIconOffset - textContainerPosX, 300, EasingTypes.OutExpo);
+                textContainer.MoveToX(TextContainerIconOffset - textContainerPosX, 300, EasingTypes.OutExpo);
 
                 if (HasFocus)
                 {
@@ -256,7 +254,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 textFlow.Remove(d);
 
-                TextContainer.Add(d);
+                textContainer.Add(d);
                 d.FadeOut(200);
                 d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
                 d.Expire();
@@ -629,10 +627,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (ReadOnly) return false;
 
             BindInput();
-
-            textBeforeCommit = Text;
-            if (ResetTextOnEdit)
-                Text = string.Empty;
 
             background.ClearTransformations();
             background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
