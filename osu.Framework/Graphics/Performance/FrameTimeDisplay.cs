@@ -189,32 +189,34 @@ namespace osu.Framework.Graphics.Performance
             FrameStatistics frame;
             while (monitor.PendingFrames.TryDequeue(out frame))
             {
-                if (!processFrames)
-                    continue;
-
-                foreach (int gcLevel in frame.GarbageCollections)
-                    AddEvent(gcLevel);
-
-                Sprite timeBar = timeBars[TimeBarIndex];
-                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                if (processFrames)
                 {
-                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                };
+                    foreach (int gcLevel in frame.GarbageCollections)
+                        AddEvent(gcLevel);
 
-                int currentHeight = HEIGHT;
+                    Sprite timeBar = timeBars[TimeBarIndex];
+                    TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                    {
+                        Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+                    };
 
-                for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
-                    currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
+                    int currentHeight = HEIGHT;
 
-                timeBar.Texture.SetData(upload);
+                    for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+                        currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
 
-                timeBarContainers[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
-                timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
-                currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+                    timeBar.Texture.SetData(upload);
 
-                foreach (Drawable e in timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].Children)
-                    if (e is Box && e.Position.X <= TimeBarX)
-                        e.Expire();
+                    timeBarContainers[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
+                    timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
+                    currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+
+                    foreach (Drawable e in timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].Children)
+                        if (e is Box && e.Position.X <= TimeBarX)
+                            e.Expire();
+                }
+
+                monitor.FramesHeap.FreeObject(frame);
             }
         }
 

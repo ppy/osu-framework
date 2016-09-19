@@ -79,6 +79,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PolygonExtensions\IConvexPolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PolygonExtensions\IPolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
+    <Compile Include="Allocation\ObjectStack.cs" />
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
     <Compile Include="Audio\IHasCompletedState.cs" />
@@ -141,7 +142,7 @@
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteCircular.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
-    <Compile Include="Graphics\Drawables\PrefixTextureStore.cs" />
+    <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
     <Compile Include="Audio\Sample\AudioSample.cs" />
     <Compile Include="Audio\Track\AudioTrack.cs" />

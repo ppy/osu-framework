@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Allocation
 {
-    class InvokeOnDisposal : IDisposable
+    public class InvokeOnDisposal : IDisposable
     {
         private Action action;
 

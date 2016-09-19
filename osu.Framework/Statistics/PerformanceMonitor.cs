@@ -19,6 +19,7 @@ namespace osu.Framework.Statistics
         internal FrameStatistics currentFrame;
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
+        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
 
         private double consumptionTime;
 
@@ -91,7 +92,8 @@ namespace osu.Framework.Statistics
             if (currentFrame != null)
                 PendingFrames.Enqueue(currentFrame);
 
-            currentFrame = new FrameStatistics();
+            currentFrame = FramesHeap.ReserveObject();
+            currentFrame.Clear();
 
             if (HandleGC)
             {
