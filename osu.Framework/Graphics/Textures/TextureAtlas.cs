@@ -1,12 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
@@ -23,10 +20,7 @@ namespace osu.Framework.Graphics.Textures
 
         private bool IsFull
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
         public TextureAtlas(int width, int height)
@@ -76,7 +70,7 @@ namespace osu.Framework.Graphics.Textures
 
         internal Texture Add(int width, int height)
         {
-            lock(this)
+            lock (this)
             {
                 if (atlasTexture == null)
                     Reset();
@@ -84,10 +78,9 @@ namespace osu.Framework.Graphics.Textures
                 Point position = FindPosition(width, height);
                 Rectangle bounds = new Rectangle(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
-                
+
                 return new Texture(new TextureGLSub(bounds, atlasTexture));
             }
         }
-
     }
 }

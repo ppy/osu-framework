@@ -1,13 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using osu.Framework.IO.Stores;
 using ImageMagick;
-using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -19,7 +18,8 @@ namespace osu.Framework.Graphics.Textures
 
         public float ScaleAdjust = 1;
 
-        public TextureStore(IResourceStore<byte[]> store) : base(store)
+        public TextureStore(IResourceStore<byte[]> store)
+            : base(store)
         {
             AddExtension(@"png");
             AddExtension(@"jpg");
@@ -101,4 +101,3 @@ namespace osu.Framework.Graphics.Textures
         }
     }
 }
-

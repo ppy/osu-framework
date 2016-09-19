@@ -1,9 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Form = System.Windows.Forms.Form;
 using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
@@ -87,6 +86,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public override bool IsActive => true;
         public override int Priority { get; }
+
         public void SetPosition(Vector2 pos)
         {
         }

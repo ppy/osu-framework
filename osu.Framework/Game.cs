@@ -1,18 +1,20 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Windows.Forms;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Audio;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.OS;
-using Scheduler = osu.Framework.Threading.Scheduler;
+using osu.Framework.Threading;
 using OpenTK;
+using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
 {
@@ -50,10 +52,7 @@ namespace osu.Framework
         public bool ShowPerformanceOverlay
         {
             get { return performanceContainer.Alpha > 0; }
-            set
-            {
-                performanceContainer.FadeTo(value ? 1 : 0, 200);
-            }
+            set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
         }
 
         protected override Container AddTarget => userInputContainer;
@@ -93,21 +92,25 @@ namespace osu.Framework
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
 
-            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 1 / 100f };
+            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans"))
+            {
+                ScaleAdjust = 1 / 100f
+            };
 
             Add(userInputContainer = new UserInputManager()
             {
-                Children = new[] {
+                Children = new[]
+                {
                     performanceContainer = new FlowContainer
                     {
-                        Direction = Graphics.Containers.FlowDirection.VerticalOnly,
+                        Direction = FlowDirection.VerticalOnly,
                         Alpha = 0,
                         Padding = new Vector2(10, 10),
-                        Anchor = Graphics.Anchor.BottomRight,
-                        Origin = Graphics.Anchor.BottomRight,
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
                         Depth = float.MaxValue,
-
-                        Children = new[] {
+                        Children = new[]
+                        {
                             new FrameTimeDisplay(@"Input", host.InputMonitor),
                             new FrameTimeDisplay(@"Update", host.UpdateMonitor),
                             new FrameTimeDisplay(@"Draw", host.DrawMonitor)
@@ -116,8 +119,8 @@ namespace osu.Framework
                     new PerformanceOverlay()
                     {
                         Position = new Vector2(5, 5),
-                        Anchor = Graphics.Anchor.BottomRight,
-                        Origin = Graphics.Anchor.BottomRight,
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
                         Depth = float.MaxValue
                     }
                 }
@@ -195,7 +198,6 @@ namespace osu.Framework
 
         protected virtual void OnActivated()
         {
-
         }
 
         protected virtual void OnDeactivated()

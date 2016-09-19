@@ -1,7 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
@@ -9,8 +11,6 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -38,10 +38,18 @@ namespace osu.Framework.Graphics
                 Children = new Drawable[]
                 {
                     background,
-                    new ScrollContainer {
-                        Children = new [] { flow = new FlowContainer { Direction = FlowDirection.VerticalOnly } }
+                    new ScrollContainer
+                    {
+                        Children = new[]
+                        {
+                            flow = new FlowContainer
+                            {
+                                Direction = FlowDirection.VerticalOnly
+                            }
+                        }
                     },
-                    loadMessage = new SpriteText {
+                    loadMessage = new SpriteText
+                    {
                         Text = @"Click to load DrawVisualiser",
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre
@@ -160,7 +168,10 @@ namespace osu.Framework.Graphics
                         Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1)
                     };
                 else
-                    previewBox = new Box() { Colour = Color4.White };
+                    previewBox = new Box()
+                    {
+                        Colour = Color4.White
+                    };
 
                 previewBox.Position = new Vector2(9, 0);
                 previewBox.Size = new Vector2(line_height, line_height);

@@ -1,19 +1,18 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
-using osu.Framework.Cached;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Shaders;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using osu.Framework.DebugUtils;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
-using Scheduler = osu.Framework.Threading.Scheduler;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Threading;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -89,6 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static int[] lastBoundBuffers = new int[2];
+
         /// <summary>
         /// Bind an OpenGL buffer object.
         /// </summary>
@@ -107,6 +107,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static IVertexBatch lastActiveBatch;
+
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -121,6 +122,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static int lastBoundTexture = -1;
+
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
@@ -158,6 +160,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static int lastFrameBuffer = 0;
+
         /// <summary>
         /// Binds a framebuffer.
         /// </summary>
@@ -177,6 +180,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static Stack<Rectangle> viewportStack = new Stack<Rectangle>();
+
         /// <summary>
         /// Applies a new viewport rectangle.
         /// </summary>
@@ -230,6 +234,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static Stack<Rectangle> orthoStack = new Stack<Rectangle>();
+
         /// <summary>
         /// Applies a new orthographic projection rectangle.
         /// </summary>
@@ -328,10 +333,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (frameBuffer == -1) return;
 
             //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                GL.DeleteFramebuffer(frameBuffer);
-            });
+            resetScheduler.Add(() => { GL.DeleteFramebuffer(frameBuffer); });
         }
 
         /// <summary>
@@ -341,10 +343,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteBuffer(int vboId)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                GL.DeleteBuffer(vboId);
-            });
+            resetScheduler.Add(() => { GL.DeleteBuffer(vboId); });
         }
 
         /// <summary>
@@ -354,10 +353,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteTextures(params int[] ids)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                GL.DeleteTextures(ids.Length, ids);
-            });
+            resetScheduler.Add(() => { GL.DeleteTextures(ids.Length, ids); });
         }
 
         /// <summary>
@@ -367,10 +363,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteProgram(Shader shader)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                GL.DeleteProgram(shader);
-            });
+            resetScheduler.Add(() => { GL.DeleteProgram(shader); });
         }
 
         /// <summary>
@@ -380,10 +373,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteShader(ShaderPart shaderPart)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() =>
-            {
-                GL.DeleteShader(shaderPart);
-            });
+            resetScheduler.Add(() => { GL.DeleteShader(shaderPart); });
         }
 
         private static int currentShader;

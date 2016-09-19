@@ -1,17 +1,17 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
-using OpenTK.Input;
 using System.Linq;
-using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Lists;
-using osu.Framework.Input.Handlers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Input.Handlers;
+using osu.Framework.Lists;
 using osu.Framework.Timing;
+using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -288,26 +288,26 @@ namespace osu.Framework.Input
                 h.UpdateInput(currentCursorHandler == h);
 
                 mouse.ButtonStates.ForEach(b =>
-                {
-                    switch (b.Button)
-                    {
-                        case MouseButton.Left:
-                            b.State |= ch.Left ?? false;
-                            break;
-                        case MouseButton.Middle:
-                            b.State |= ch.Middle ?? false;
-                            break;
-                        case MouseButton.Right:
-                            b.State |= ch.Right ?? false;
-                            break;
-                        case MouseButton.Button1:
-                            b.State |= ch.Back ?? false;
-                            break;
-                        case MouseButton.Button2:
-                            b.State |= ch.Forward ?? false;
-                            break;
-                    }
-                });
+                     {
+                         switch (b.Button)
+                         {
+                             case MouseButton.Left:
+                                 b.State |= ch.Left ?? false;
+                                 break;
+                             case MouseButton.Middle:
+                                 b.State |= ch.Middle ?? false;
+                                 break;
+                             case MouseButton.Right:
+                                 b.State |= ch.Right ?? false;
+                                 break;
+                             case MouseButton.Button1:
+                                 b.State |= ch.Back ?? false;
+                                 break;
+                             case MouseButton.Button2:
+                                 b.State |= ch.Forward ?? false;
+                                 break;
+                         }
+                     });
 
                 mouse.WheelUp |= ch.WheelUp ?? false;
                 mouse.WheelDown |= ch.WheelDown ?? false;
@@ -339,10 +339,10 @@ namespace osu.Framework.Input
                 keyboardRepeatTime -= (Clock as FramedClock)?.ElapsedFrameTime ?? 0;
 
             keyboard.LastState?.Keys.ForEach(k =>
-            {
-                if (!keyboard.Keys.Contains(k))
-                    handleKeyUp(state, k);
-            });
+                    {
+                        if (!keyboard.Keys.Contains(k))
+                            handleKeyUp(state, k);
+                    });
 
             foreach (Key k in keyboard.Keys)
             {
@@ -562,7 +562,10 @@ namespace osu.Framework.Input
 
         private bool handleKeyUp(InputState state, Key key)
         {
-            KeyUpEventArgs args = new KeyUpEventArgs { Key = key };
+            KeyUpEventArgs args = new KeyUpEventArgs
+            {
+                Key = key
+            };
 
             if (FocusedDrawable?.TriggerKeyUp(state, args) ?? false)
                 return true;

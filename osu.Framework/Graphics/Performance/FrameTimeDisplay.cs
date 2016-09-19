@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Diagnostics;
@@ -40,11 +40,7 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
@@ -65,7 +61,8 @@ namespace osu.Framework.Graphics.Performance
             for (int i = 0; i < timeBars.Length; ++i)
                 timeBars[i] = new TimeBar();
 
-            Children = new Drawable[] {
+            Children = new Drawable[]
+            {
                 new SpriteText
                 {
                     Text = Name,
@@ -75,16 +72,21 @@ namespace osu.Framework.Graphics.Performance
                 },
                 new MaskingContainer
                 {
-                    Children = new Drawable[] {
-                        new LargeContainer {
+                    Children = new Drawable[]
+                    {
+                        new LargeContainer
+                        {
                             Children = timeBars
                         },
-                        legendContainer = new FlowContainer {
+                        legendContainer = new FlowContainer
+                        {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             Padding = new Vector2(5, 1),
-                            Children = new [] {
-                                new Box {
+                            Children = new[]
+                            {
+                                new Box
+                                {
                                     SizeMode = InheritMode.XY,
                                     Colour = Color4.Gray,
                                     Alpha = 0.2f
@@ -137,6 +139,7 @@ namespace osu.Framework.Graphics.Performance
         class TimeBar : Container
         {
             public Sprite Sprite;
+
             public override void Load()
             {
                 base.Load();
@@ -144,7 +147,8 @@ namespace osu.Framework.Graphics.Performance
                 Width = WIDTH;
                 Height = HEIGHT;
 
-                Children = new[] {
+                Children = new[]
+                {
                     Sprite = new Sprite
                     {
                         Texture = new Texture(WIDTH, HEIGHT)
@@ -187,6 +191,7 @@ namespace osu.Framework.Graphics.Performance
             }
             return base.OnKeyUp(state, args);
         }
+
         protected override void Update()
         {
             base.Update();

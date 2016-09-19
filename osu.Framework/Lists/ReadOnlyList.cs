@@ -1,10 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Lists
 {
@@ -20,7 +19,9 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Constructs a ReadOnlyList.
         /// </summary>
-        public ReadOnlyList() { }
+        public ReadOnlyList()
+        {
+        }
 
         /// <summary>
         /// Constructs a ReadOnlyList which wraps over an existing List.

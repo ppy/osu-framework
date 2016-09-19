@@ -1,8 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using ManagedBass;
 using System;
+using ManagedBass;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -19,7 +19,8 @@ namespace osu.Framework.Audio.Sample
 
         private bool freeWhenDone;
 
-        public AudioSampleBass(byte[] data) : this(Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default))
+        public AudioSampleBass(byte[] data)
+            : this(Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default))
         {
         }
 

@@ -1,13 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Transformations;
-using OpenTK;
 using osu.Framework.Input;
+using OpenTK;
 using OpenTK.Graphics;
-using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -18,10 +17,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool ScrollDraggerOnLeft
         {
-            get
-            {
-                return scrollbar.Anchor == Anchor.TopLeft;
-            }
+            get { return scrollbar.Anchor == Anchor.TopLeft; }
 
             set
             {
@@ -163,7 +159,10 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Load();
 
-                Add(box = new Box { SizeMode = InheritMode.XY });
+                Add(box = new Box
+                {
+                    SizeMode = InheritMode.XY
+                });
 
                 Anchor = Anchor.TopRight;
                 Origin = Anchor.TopRight;

@@ -1,14 +1,14 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
-using OpenTK;
-using osu.Framework.Graphics.Textures;
+using System.Linq;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Textures;
+using OpenTK;
 using OpenTK.Graphics;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -20,10 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         public float SpacingOverlap
         {
             get { return Padding.X; }
-            set
-            {
-                Padding = new Vector2(value, 0);
-            }
+            set { Padding = new Vector2(value, 0); }
         }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
@@ -60,6 +57,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private string text;
+
         public string Text
         {
             get { return text; }
@@ -165,7 +163,11 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Sprite getSprite(char c) => new Sprite { Texture = getTexture(c) };
+        private Sprite getSprite(char c) => new Sprite
+        {
+            Texture = getTexture(c)
+        };
+
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
         private string getTextureName(char c) => $@"{c}";
     }

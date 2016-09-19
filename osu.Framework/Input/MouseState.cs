@@ -1,10 +1,9 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Lists;
-using osu.Framework.Graphics;
 
 namespace osu.Framework.Input
 {
@@ -12,7 +11,7 @@ namespace osu.Framework.Input
     {
         public MouseState LastState;
 
-        public ReadOnlyList<ButtonState> ButtonStates = new ReadOnlyList<ButtonState>(new []
+        public ReadOnlyList<ButtonState> ButtonStates = new ReadOnlyList<ButtonState>(new[]
         {
             new ButtonState(MouseButton.Left),
             new ButtonState(MouseButton.Middle),

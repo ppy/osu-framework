@@ -1,20 +1,18 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES20;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using OpenTK.Graphics;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL
 {
     public static class Vertex
     {
         private static int amountEnabledAttributes = 0;
+
         public static void EnableAttributes(int amount)
         {
             if (amount == amountEnabledAttributes)
@@ -38,7 +36,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
     }
 
-    
+
     [StructLayout(LayoutKind.Sequential)]
     public struct UncolouredVertex2d : IEquatable<UncolouredVertex2d>
     {

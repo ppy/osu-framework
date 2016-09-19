@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Threading;
@@ -9,11 +9,13 @@ namespace osu.Framework.Threading
     public class SleepScheduler : Scheduler
     {
         private SleepHandle sleeper;
+
         public SleepScheduler(SleepHandle sleeper)
             : base()
         {
             this.sleeper = sleeper;
         }
+
         public override bool Add(Action d, bool forceDelayed = false)
         {
             if (!sleeper.IsSleeping || isMainThread)
@@ -32,6 +34,7 @@ namespace osu.Framework.Threading
 
             return false;
         }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

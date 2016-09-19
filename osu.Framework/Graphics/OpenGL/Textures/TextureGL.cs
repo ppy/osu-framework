@@ -1,18 +1,11 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using OpenTK.Graphics.ES20;
-using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Drawing;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Batches;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using osu.Framework.Graphics.Primitives;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -22,12 +15,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
 
         #region Disposal
+
         ~TextureGL()
         {
             Dispose(false);
         }
 
         protected bool isDisposed = false;
+
         protected virtual void Dispose(bool isDisposing)
         {
             isDisposed = true;
@@ -41,29 +36,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
 
-        public abstract bool Loaded
-        {
-            get;
-        }
+        public abstract bool Loaded { get; }
 
-        public abstract int TextureId
-        {
-            get;
-        }
+        public abstract int TextureId { get; }
 
-        public abstract int Height
-        {
-            get;
-            set;
-        }
+        public abstract int Height { get; set; }
 
-        public abstract int Width
-        {
-            get;
-            set;
-        }
+        public abstract int Width { get; set; }
 
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.

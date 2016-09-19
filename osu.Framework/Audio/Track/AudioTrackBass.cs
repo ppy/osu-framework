@@ -1,12 +1,11 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.Configuration;
 using osu.Framework.IO;
 using OpenTK;
 
@@ -60,7 +59,7 @@ namespace osu.Framework.Audio.Track
             {
                 activeStream = BassFx.TempoCreate(audioStreamPrefilter, BassFlags.Decode);
                 activeStream = BassFx.ReverseCreate(activeStream, 5f, BassFlags.Default);
-                
+
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
@@ -231,7 +230,6 @@ namespace osu.Framework.Audio.Track
                 }
 
                 return 0;
-
             }
 
             bool ac_Seek(long offset, IntPtr user)

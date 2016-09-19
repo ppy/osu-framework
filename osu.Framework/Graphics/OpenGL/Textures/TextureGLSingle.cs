@@ -1,18 +1,17 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
-using OpenTK.Graphics.ES20;
-using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 using System.Diagnostics;
-using OpenTK.Graphics;
-using OpenTK;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using System.Drawing;
-using osu.Framework.DebugUtils;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -39,6 +38,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         #region Disposal
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -63,9 +63,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             textureId = 0;
         }
+
         #endregion
 
         private int height;
+
         public override int Height
         {
             get
@@ -82,6 +84,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         private int width;
+
         public override int Width
         {
             get
@@ -98,6 +101,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         private int textureId;
+
         public override int TextureId
         {
             get
@@ -128,9 +132,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!Bind())
                 return;
 
-            RectangleF texRect = textureRect != null ?
-                new RectangleF(textureRect.Value.X, textureRect.Value.Y, textureRect.Value.Width, textureRect.Value.Height) :
-                new RectangleF(0, 0, Width, Height);
+            RectangleF texRect = textureRect != null
+                ? new RectangleF(textureRect.Value.X, textureRect.Value.Y, textureRect.Value.Width, textureRect.Value.Height)
+                : new RectangleF(0, 0, Width, Height);
 
             texRect.X /= width;
             texRect.Y /= height;
@@ -144,10 +148,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
-            spriteBatch.Add(new TexturedVertex2d() { Position = vertexQuad.BottomLeft, TexturePosition = new Vector2(texRect.Left, texRect.Bottom), Colour = drawColour });
-            spriteBatch.Add(new TexturedVertex2d() { Position = vertexQuad.BottomRight, TexturePosition = new Vector2(texRect.Right, texRect.Bottom), Colour = drawColour });
-            spriteBatch.Add(new TexturedVertex2d() { Position = vertexQuad.TopRight, TexturePosition = new Vector2(texRect.Right, texRect.Top), Colour = drawColour });
-            spriteBatch.Add(new TexturedVertex2d() { Position = vertexQuad.TopLeft, TexturePosition = new Vector2(texRect.Left, texRect.Top), Colour = drawColour });
+            spriteBatch.Add(new TexturedVertex2d()
+            {
+                Position = vertexQuad.BottomLeft,
+                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                Colour = drawColour
+            });
+            spriteBatch.Add(new TexturedVertex2d()
+            {
+                Position = vertexQuad.BottomRight,
+                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                Colour = drawColour
+            });
+            spriteBatch.Add(new TexturedVertex2d()
+            {
+                Position = vertexQuad.TopRight,
+                TexturePosition = new Vector2(texRect.Right, texRect.Top),
+                Colour = drawColour
+            });
+            spriteBatch.Add(new TexturedVertex2d()
+            {
+                Position = vertexQuad.TopLeft,
+                TexturePosition = new Vector2(texRect.Left, texRect.Top),
+                Colour = drawColour
+            });
         }
 
         private void updateWrapMode()
@@ -251,7 +275,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                         {
                             initializeLevel(upload.Level, width, height);
 
-                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte, dataPointer);
+                            GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X, upload.Bounds.Y, upload.Bounds.Width, upload.Bounds.Height, upload.Format, PixelType.UnsignedByte,
+                                dataPointer);
                         }
                     }
                     // Just update content of the current texture
@@ -277,7 +302,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                         int div = (int)Math.Pow(2, upload.Level);
 
-                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format, PixelType.UnsignedByte, dataPointer);
+                        GL.TexSubImage2D(TextureTarget2d.Texture2D, upload.Level, upload.Bounds.X / div, upload.Bounds.Y / div, upload.Bounds.Width / div, upload.Bounds.Height / div, upload.Format,
+                            PixelType.UnsignedByte, dataPointer);
                     }
                 }
                 finally

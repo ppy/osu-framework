@@ -1,10 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
+using System.Windows.Forms;
 using osu.Framework.Desktop.Input;
-using osu.Framework.Desktop.OS.Windows;
 using osu.Framework.Input;
 using osu.Framework.OS;
 using OpenTK.Graphics;
@@ -22,15 +22,9 @@ namespace osu.Framework.Desktop.OS
 
         public override Size Size
         {
-            get
-            {
-                return Form.ClientSize;
-            }
+            get { return Form.ClientSize; }
 
-            set
-            {
-                Form.ClientSize = value;
-            }
+            set { Form.ClientSize = value; }
         }
 
         protected abstract BasicGameForm CreateGameForm(GraphicsContextFlags flags);
@@ -48,7 +42,7 @@ namespace osu.Framework.Desktop.OS
             Form.FormClosed += delegate { OnExited(); };
         }
 
-        private void Form_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
+        private void Form_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = OnExitRequested();
         }

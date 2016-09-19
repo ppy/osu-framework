@@ -1,11 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Buffers;
 
 namespace osu.Framework.Graphics.Batches
 {
@@ -36,6 +36,7 @@ namespace osu.Framework.Graphics.Batches
         }
 
         #region Disposal
+
         ~VertexBatch()
         {
             Dispose(false);
@@ -53,6 +54,7 @@ namespace osu.Framework.Graphics.Batches
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
         }
+
         #endregion
 
         public void ResetCounters()

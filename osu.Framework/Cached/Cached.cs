@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using osu.Framework.Timing;
@@ -80,6 +80,7 @@ namespace osu.Framework.Cached
         }
 
         private T value;
+
         public T Value
         {
             get
@@ -90,10 +91,7 @@ namespace osu.Framework.Cached
                 return value;
             }
 
-            set
-            {
-                throw new Exception("Can't manually update value!");
-            }
+            set { throw new Exception("Can't manually update value!"); }
         }
     }
 }

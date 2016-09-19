@@ -1,13 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Cached;
-using osu.Framework.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using osu.Framework.Cached;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Audio
 {
@@ -20,16 +18,32 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Global volume of this component.
         /// </summary>
-        public readonly BindableDouble Volume = new BindableDouble(1) { MinValue = 0, MaxValue = 1 };
+        public readonly BindableDouble Volume = new BindableDouble(1)
+        {
+            MinValue = 0,
+            MaxValue = 1
+        };
 
-        protected readonly BindableDouble VolumeCalculated = new BindableDouble(1) { MinValue = 0, MaxValue = 1 };
+        protected readonly BindableDouble VolumeCalculated = new BindableDouble(1)
+        {
+            MinValue = 0,
+            MaxValue = 1
+        };
 
         /// <summary>
         /// Playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public readonly BindableDouble Balance = new BindableDouble(0) { MinValue = -1, MaxValue = 1 };
+        public readonly BindableDouble Balance = new BindableDouble(0)
+        {
+            MinValue = -1,
+            MaxValue = 1
+        };
 
-        protected readonly BindableDouble BalanceCalculated = new BindableDouble(0) { MinValue = -1, MaxValue = 1 };
+        protected readonly BindableDouble BalanceCalculated = new BindableDouble(0)
+        {
+            MinValue = -1,
+            MaxValue = 1
+        };
 
         /// <summary>
         /// Rate at which the component is played back (affects pitch). 1 is 100% playback speed, or default frequency.
@@ -89,7 +103,6 @@ namespace osu.Framework.Audio
                 case AdjustableProperty.Volume:
                     volumeAdjustments.Add(adjustBindable);
                     break;
-
             }
 
             adjustBindable.ValueChanged += InvalidateState;
@@ -118,6 +131,7 @@ namespace osu.Framework.Audio
         }
 
         #region IDisposable Support
+
         protected bool IsDisposed = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -143,6 +157,7 @@ namespace osu.Framework.Audio
         {
             Dispose(true);
         }
+
         #endregion
     }
 

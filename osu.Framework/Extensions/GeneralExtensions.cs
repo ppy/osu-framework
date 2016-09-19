@@ -1,8 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Security;
 using System.Text;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
+
 namespace osu.Framework.Extensions
 {
     /// <summary>
@@ -45,6 +47,7 @@ namespace osu.Framework.Extensions
             list.Insert(index, item);
             return index;
         }
+
         /// <summary>
         /// Adds the given item to the list according to the comparers sorting rules. Do not use on unsorted lists.
         /// </summary>
@@ -86,7 +89,7 @@ namespace osu.Framework.Extensions
             return !list.Where((t, i) => !t.Equals(list2[i])).Any();
         }
 
-        public static string ToResolutionString(this System.Drawing.Size size)
+        public static string ToResolutionString(this Size size)
         {
             return size.Width.ToString() + 'x' + size.Height.ToString();
         }

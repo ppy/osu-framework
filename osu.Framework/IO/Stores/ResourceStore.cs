@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,9 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Initializes a resource store with no stores.
         /// </summary>
-        public ResourceStore() { }
+        public ResourceStore()
+        {
+        }
 
         /// <summary>
         /// Initializes a resource store with a single store.
@@ -109,7 +111,9 @@ namespace osu.Framework.IO.Stores
                         if (result != null)
                             return result;
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -118,7 +122,10 @@ namespace osu.Framework.IO.Stores
 
         protected virtual List<string> GetFilenames(string name)
         {
-            List<string> filenames = new List<string>() { name };
+            List<string> filenames = new List<string>()
+            {
+                name
+            };
             //add file extension if it's missing.
             if (!name.Contains(@"."))
                 foreach (string ext in searchExtensions)

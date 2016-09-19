@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
@@ -10,7 +10,8 @@ namespace osu.Framework.OS
 {
     public abstract class BasicGameForm : GLControl
     {
-        public BasicGameForm(GraphicsContextFlags flags) : base(GraphicsMode.Default, 2, 0, flags)
+        public BasicGameForm(GraphicsContextFlags flags)
+            : base(GraphicsMode.Default, 2, 0, flags)
         {
         }
 
@@ -37,7 +38,9 @@ namespace osu.Framework.OS
             {
                 Invoke((MethodInvoker)delegate { action(); });
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         protected virtual void OnActivateApp(bool active)

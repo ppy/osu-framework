@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -33,10 +33,7 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 1; i <= 6; i++)
             {
                 int test = i;
-                AddButton($@"Test {i}", delegate
-                {
-                    loadTest(test);
-                });
+                AddButton($@"Test {i}", delegate { loadTest(test); });
             }
 
             loadTest(1);
@@ -80,6 +77,7 @@ namespace osu.Framework.VisualTests.Tests
         }
 
         private int currentTest;
+
         private void loadTest(int testType)
         {
             currentTest = testType;
@@ -116,10 +114,7 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.Centre
                     });
 
-                    box.OnUpdate += delegate
-                    {
-                        box.Rotation += 0.05f;
-                    };
+                    box.OnUpdate += delegate { box.Rotation += 0.05f; };
                     break;
                 case 2:
                     testContainer.Add(box = new InfofulBoxAutoSize()
@@ -140,10 +135,7 @@ namespace osu.Framework.VisualTests.Tests
                     });
 
                     Drawable localBox = box;
-                    box.OnUpdate += delegate
-                    {
-                        localBox.Rotation += 0.05f;
-                    };
+                    box.OnUpdate += delegate { localBox.Rotation += 0.05f; };
 
                     box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
                     {
@@ -271,7 +263,6 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
                     break;
-
             }
 
 #if DEBUG
@@ -328,7 +319,10 @@ namespace osu.Framework.VisualTests.Tests
 
             Masking = true;
 
-            Add(new Box() { SizeMode = InheritMode.XY });
+            Add(new Box()
+            {
+                SizeMode = InheritMode.XY
+            });
         }
 
         internal bool AllowDrag = true;
@@ -402,9 +396,15 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Load();
 
-            Add(new Box() { SizeMode = InheritMode.XY });
+            Add(new Box()
+            {
+                SizeMode = InheritMode.XY
+            });
 
-            debugInfo = new SpriteText() { Colour = Color4.Black };
+            debugInfo = new SpriteText()
+            {
+                Colour = Color4.Black
+            };
             Add(debugInfo);
         }
 
@@ -412,7 +412,6 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override void Update()
         {
-
             if (chameleon && (int)Time / 1000 != lastSwitch)
             {
                 lastSwitch = (int)Time / 1000;
@@ -438,7 +437,6 @@ namespace osu.Framework.VisualTests.Tests
                         MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
                         break;
                 }
-
             }
 
             base.Update();

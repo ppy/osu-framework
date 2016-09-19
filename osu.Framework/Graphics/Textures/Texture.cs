@@ -1,21 +1,16 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using OpenTK.Graphics;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
-using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.OpenGL.Textures;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Primitives;
+using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.Textures
@@ -44,6 +39,7 @@ namespace osu.Framework.Graphics.Textures
         }
 
         #region Disposal
+
         ~Texture()
         {
             Dispose(false);
@@ -68,6 +64,7 @@ namespace osu.Framework.Graphics.Textures
                 TextureGL = null;
             }
         }
+
         #endregion
 
         public int Width

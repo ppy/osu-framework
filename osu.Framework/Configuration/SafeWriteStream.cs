@@ -1,9 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.IO;
-using osu.Framework.IO;
 using osu.Framework.IO.File;
 
 namespace osu.Framework.Configuration
@@ -17,7 +16,8 @@ namespace osu.Framework.Configuration
         string finalFilename;
         string temporaryFilename => Name;
 
-        public SafeWriteStream(string filename) : base(filename + "." + DateTime.Now.Ticks, FileMode.Create)
+        public SafeWriteStream(string filename)
+            : base(filename + "." + DateTime.Now.Ticks, FileMode.Create)
         {
             finalFilename = filename;
         }
@@ -57,6 +57,7 @@ namespace osu.Framework.Configuration
         }
 
         bool isDisposed;
+
         protected override void Dispose(bool disposing)
         {
             if (isDisposed) return;

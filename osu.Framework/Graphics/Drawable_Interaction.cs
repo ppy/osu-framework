@@ -1,11 +1,11 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Input;
-using OpenTK;
-using osu.Framework.Lists;
 using osu.Framework.Input;
+using osu.Framework.Lists;
+using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics
 {
@@ -50,42 +50,49 @@ namespace osu.Framework.Graphics
         }
 
         public bool TriggerClick(InputState state = null) => OnClick(state);
+
         protected virtual bool OnClick(InputState state)
         {
             return false;
         }
 
         public bool TriggerDoubleClick(InputState state) => OnDoubleClick(state);
+
         protected virtual bool OnDoubleClick(InputState state)
         {
             return false;
         }
 
         public bool TriggerDragStart(InputState state) => OnDragStart(state);
+
         protected virtual bool OnDragStart(InputState state)
         {
             return false;
         }
 
         public bool TriggerDrag(InputState state) => OnDrag(state);
+
         protected virtual bool OnDrag(InputState state)
         {
             return false;
         }
 
         public bool TriggerDragEnd(InputState state) => OnDragEnd(state);
+
         protected virtual bool OnDragEnd(InputState state)
         {
             return false;
         }
 
         public bool TriggerWheelUp(InputState state) => OnWheelUp(state);
+
         protected virtual bool OnWheelUp(InputState state)
         {
             return false;
         }
 
         public bool TriggerWheelDown(InputState state) => OnWheelDown(state);
+
         protected virtual bool OnWheelDown(InputState state)
         {
             return false;
@@ -136,18 +143,21 @@ namespace osu.Framework.Graphics
         }
 
         public bool TriggerKeyDown(InputState state, KeyDownEventArgs args) => OnKeyDown(state, args);
+
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             return false;
         }
 
         public bool TriggerKeyUp(InputState state, KeyUpEventArgs args) => OnKeyUp(state, args);
+
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             return false;
         }
 
         public bool TriggerMouseMove(InputState state) => OnMouseMove(state);
+
         protected virtual bool OnMouseMove(InputState state)
         {
             return false;
@@ -191,8 +201,13 @@ namespace osu.Framework.Graphics
         public bool Repeat;
     }
 
-    public class MouseUpEventArgs : MouseEventArgs { }
-    public class MouseDownEventArgs : MouseEventArgs { }
+    public class MouseUpEventArgs : MouseEventArgs
+    {
+    }
+
+    public class MouseDownEventArgs : MouseEventArgs
+    {
+    }
 
     public class MouseEventArgs : EventArgs
     {
@@ -205,6 +220,8 @@ namespace osu.Framework.Graphics
     }
 
     public delegate bool MouseEventHandlerDelegate(object sender, InputState state);
+
     internal delegate bool KeyDownEventHandlerDelegate(object sender, KeyDownEventArgs e, InputState state);
+
     internal delegate bool KeyUpEventHandlerDelegate(object sender, KeyUpEventArgs e, InputState state);
 }

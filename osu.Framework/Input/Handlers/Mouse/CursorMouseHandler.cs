@@ -1,11 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using OpenTK;
 using osu.Framework.Threading;
+using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -21,10 +21,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             this.game = game;
 
-            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate
-            {
-                nativePosition = game.Window.Form.PointToClient(Cursor.Position);
-            }, 0, 0));
+            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate { nativePosition = game.Window.Form.PointToClient(Cursor.Position); }, 0, 0));
 
             return true;
         }
@@ -49,52 +46,34 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Vector2? Position
         {
-            get
-            {
-                return position;
-            }
+            get { return position; }
         }
 
         public Vector2 Size => game.ActualSize;
 
         public bool? Left
         {
-            get
-            {
-                return null;
-            }
+            get { return null; }
         }
 
         public bool? Right
         {
-            get
-            {
-                return null;
-            }
+            get { return null; }
         }
 
         public bool? Middle
         {
-            get
-            {
-                return null;
-            }
+            get { return null; }
         }
 
         public bool? Back
         {
-            get
-            {
-                return null;
-            }
+            get { return null; }
         }
 
         public bool? Forward
         {
-            get
-            {
-                return null;
-            }
+            get { return null; }
         }
 
         public bool? WheelUp { get; }
@@ -102,10 +81,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public List<Vector2> IntermediatePositions
         {
-            get
-            {
-                return new List<Vector2>();
-            }
+            get { return new List<Vector2>(); }
         }
 
         public bool Clamping { get; set; }
@@ -115,10 +91,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         /// </summary>
         public override bool IsActive
         {
-            get
-            {
-                return true;
-            }
+            get { return true; }
         }
 
         /// <summary>
@@ -126,10 +99,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         /// </summary>
         public override int Priority
         {
-            get
-            {
-                return 0;
-            }
+            get { return 0; }
         }
     }
 }

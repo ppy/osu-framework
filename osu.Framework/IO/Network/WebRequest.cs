@@ -1,5 +1,5 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -407,7 +407,6 @@ namespace osu.Framework.IO.Network
         /// </summary>
         protected virtual void PrePerform()
         {
-
         }
 
         private void beginRequestOutput()
@@ -462,7 +461,6 @@ namespace osu.Framework.IO.Network
 
                 while (true)
                 {
-
                     int read = internalResponseStream.Read(buffer, 0, buffer_size);
 
                     reportForwardProgress();
@@ -512,7 +510,7 @@ namespace osu.Framework.IO.Network
             Exception exc = null;
             bool completed = false;
 
-            Finished += delegate (WebRequest r, Exception e)
+            Finished += delegate(WebRequest r, Exception e)
             {
                 exc = e;
                 completed = true;
@@ -670,7 +668,9 @@ namespace osu.Framework.IO.Network
             {
                 if (request?.ServicePoint.BindIPEndPointDelegate != null) request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         #region Timeout Handling
@@ -700,6 +700,7 @@ namespace osu.Framework.IO.Network
         #endregion
 
         #region IDisposable Support
+
         private bool isDisposed;
 
         protected void Dispose(bool disposing)
@@ -720,6 +721,7 @@ namespace osu.Framework.IO.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
 
         #region Retry Logic
@@ -727,13 +729,11 @@ namespace osu.Framework.IO.Network
         private const int default_retry_count = 2;
 
         private int retryCount = default_retry_count;
+
         public int RetryCount
         {
             get { return retryCount; }
-            set
-            {
-                retriesRemaining = retryCount = value;
-            }
+            set { retriesRemaining = retryCount = value; }
         }
 
         private int retriesRemaining = default_retry_count;

@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.IO;
 using System.Security.AccessControl;
@@ -105,7 +105,6 @@ namespace osu.Framework.Desktop.OS.Windows.Native
             catch
             {
             }
-
         }
 
         // Adds an ACL entry on the specified directory for the specified account.
@@ -120,10 +119,10 @@ namespace osu.Framework.Desktop.OS.Windows.Native
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             // Add the FileSystemAccessRule to the security settings.
             dSecurity.AddAccessRule(new FileSystemAccessRule(Account,
-                                                             Rights,
-                                                             Inheritance,
-                                                             Propogation,
-                                                             ControlType));
+                Rights,
+                Inheritance,
+                Propogation,
+                ControlType));
             // Set the new access settings.
             dInfo.SetAccessControl(dSecurity);
         }

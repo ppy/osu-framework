@@ -1,8 +1,7 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
@@ -27,7 +26,10 @@ namespace osu.Framework.VisualTests.Tests
             Clear();
             buttonsContainer.Clear();
 
-            ScrollContainer scroll = new ScrollContainer() { Depth = 0 };
+            ScrollContainer scroll = new ScrollContainer()
+            {
+                Depth = 0
+            };
             scroll.Add(buttonsContainer);
             Add(scroll);
         }
@@ -49,7 +51,10 @@ namespace osu.Framework.VisualTests.Tests
 
         internal ToggleButton AddToggle(string text, Action action)
         {
-            return buttonsContainer.Add(new ToggleButton(action) { Text = text }) as ToggleButton;
+            return buttonsContainer.Add(new ToggleButton(action)
+            {
+                Text = text
+            }) as ToggleButton;
         }
     }
 

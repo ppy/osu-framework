@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -82,9 +82,9 @@ namespace osu.Framework.Desktop.Input
             public uint dwSelection;
             public uint dwPageStart;
             public uint dwPageSize;
+
             /// DWORD[1]
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1, ArraySubType = UnmanagedType.U4)]
-            public uint[] dwOffset;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1, ArraySubType = UnmanagedType.U4)] public uint[] dwOffset;
         }
 
         [SuppressUnmanagedCodeSecurity()]
@@ -182,7 +182,6 @@ namespace osu.Framework.Desktop.Input
                         case IMN_CLOSECANDIDATE:
                             Candidates.Clear();
                             return;
-
                     }
                     break;
             }

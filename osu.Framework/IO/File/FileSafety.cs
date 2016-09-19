@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Diagnostics;
@@ -44,10 +44,10 @@ namespace osu.Framework.IO.File
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             // Add the FileSystemAccessRule to the security settings.
             dSecurity.AddAccessRule(new FileSystemAccessRule(Account,
-                                                             Rights,
-                                                             Inheritance,
-                                                             Propogation,
-                                                             ControlType));
+                Rights,
+                Inheritance,
+                Propogation,
+                ControlType));
             // Set the new access settings.
             dInfo.SetAccessControl(dSecurity);
         }
@@ -139,7 +139,9 @@ namespace osu.Framework.IO.File
                 System.IO.File.Delete(filename);
                 return true;
             }
-            catch { }
+            catch
+            {
+            }
 
             string deathLocation = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             try
@@ -165,7 +167,9 @@ namespace osu.Framework.IO.File
                 System.IO.File.Delete(filename);
                 return true;
             }
-            catch { }
+            catch
+            {
+            }
 
             try
             {
@@ -179,7 +183,9 @@ namespace osu.Framework.IO.File
                 System.IO.File.Move(filename, CLEANUP_DIRECTORY + @"/" + Guid.NewGuid());
                 return true;
             }
-            catch { }
+            catch
+            {
+            }
 
             return false;
         }
@@ -216,7 +222,9 @@ namespace osu.Framework.IO.File
                     if ((new DirectoryInfo(dir).Attributes & FileAttributes.Hidden) > 0)
                         newDirectoryInfo.Attributes |= FileAttributes.Hidden;
                 }
-                catch { }
+                catch
+                {
+                }
 
                 RecursiveMove(dir, newSubDirectory);
             }
@@ -230,7 +238,9 @@ namespace osu.Framework.IO.File
                     if ((new DirectoryInfo(oldDirectory).Attributes & FileAttributes.Hidden) > 0)
                         newDirectoryInfo.Attributes |= FileAttributes.Hidden;
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             foreach (string file in Directory.GetFiles(oldDirectory))
@@ -244,10 +254,11 @@ namespace osu.Framework.IO.File
                     {
                         System.IO.File.Copy(file, newFile);
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                     System.IO.File.Delete(file);
                 }
-
             }
 
             Directory.Delete(oldDirectory, true);
@@ -258,65 +269,65 @@ namespace osu.Framework.IO.File
             return Path.GetExtension(filename).Trim('.').ToLower();
         }
 
-//        public static FileType GetFileType(string filename)
-//        {
-//            try
-//            {
-//                string ext = GetExtension(filename);
+        //        public static FileType GetFileType(string filename)
+        //        {
+        //            try
+        //            {
+        //                string ext = GetExtension(filename);
 
-//                switch (ext)
-//                {
-//                    case "osu":
-//                        return FileType.Beatmap;
-//                    case "rar":
-//                        return FileType.BeatmapPack;
-//                    case "osz":
-//                        return FileType.BeatmapPackage;
-//                    case "osz2":
-//                        return FileType.BeatmapPackage2;
-//                    case "db":
-//                        return FileType.Database;
-//                    case "zip":
-//                        return FileType.Zip;
-//#if P2P
-//                    case "osumagnet":
-//                        return FileType.OsuMagnet;
-//#endif
-//                    case "osc":
-//                        return FileType.OsuM; //osu!stream
-//                    case "ogg":
-//                    case "mp3":
-//                        return FileType.AudioTrack;
-//                    case "osr":
-//                        return FileType.Replay;
-//                    case "osk":
-//                        return FileType.Skin;
-//                    case "osb":
-//                        return FileType.Storyboard;
-//                    case "avi":
-//                    case "flv":
-//                    case "mpg":
-//                    case "wmv":
-//                    case "m4v":
-//                    case "mp4":
-//                        return FileType.Video;
-//                    case "jpg":
-//                    case "jpeg":
-//                    case "png":
-//                        return FileType.Image;
-//                    case "wav":
-//                        return FileType.AudioSample;
-//                    case "exe":
-//                        return FileType.Exe;
-//                    default:
-//                        return FileType.Unknown;
-//                }
-//            }
-//            catch
-//            {
-//                return FileType.Unknown;
-//            }
-//        }
+        //                switch (ext)
+        //                {
+        //                    case "osu":
+        //                        return FileType.Beatmap;
+        //                    case "rar":
+        //                        return FileType.BeatmapPack;
+        //                    case "osz":
+        //                        return FileType.BeatmapPackage;
+        //                    case "osz2":
+        //                        return FileType.BeatmapPackage2;
+        //                    case "db":
+        //                        return FileType.Database;
+        //                    case "zip":
+        //                        return FileType.Zip;
+        //#if P2P
+        //                    case "osumagnet":
+        //                        return FileType.OsuMagnet;
+        //#endif
+        //                    case "osc":
+        //                        return FileType.OsuM; //osu!stream
+        //                    case "ogg":
+        //                    case "mp3":
+        //                        return FileType.AudioTrack;
+        //                    case "osr":
+        //                        return FileType.Replay;
+        //                    case "osk":
+        //                        return FileType.Skin;
+        //                    case "osb":
+        //                        return FileType.Storyboard;
+        //                    case "avi":
+        //                    case "flv":
+        //                    case "mpg":
+        //                    case "wmv":
+        //                    case "m4v":
+        //                    case "mp4":
+        //                        return FileType.Video;
+        //                    case "jpg":
+        //                    case "jpeg":
+        //                    case "png":
+        //                        return FileType.Image;
+        //                    case "wav":
+        //                        return FileType.AudioSample;
+        //                    case "exe":
+        //                        return FileType.Exe;
+        //                    default:
+        //                        return FileType.Unknown;
+        //                }
+        //            }
+        //            catch
+        //            {
+        //                return FileType.Unknown;
+        //            }
+        //        }
 
         public static int GetMaxPathLength(string directory)
         {
@@ -374,13 +385,12 @@ namespace osu.Framework.IO.File
 
             try
             {
-
                 AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                                                   InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
-                                                   AccessControlType.Allow);
+                    InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
+                    AccessControlType.Allow);
                 AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                                                   InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                                                   PropagationFlags.InheritOnly, AccessControlType.Allow);
+                    InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+                    PropagationFlags.InheritOnly, AccessControlType.Allow);
 
                 RemoveReadOnlyRecursive(directory);
             }
