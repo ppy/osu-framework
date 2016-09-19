@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu.Framework.Statistics
+namespace osu.Framework.Allocation
 {
     class InvokeOnDisposal : IDisposable
     {

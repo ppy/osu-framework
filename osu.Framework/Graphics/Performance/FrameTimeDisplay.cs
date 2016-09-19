@@ -18,6 +18,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -33,7 +34,7 @@ namespace osu.Framework.Graphics.Performance
 
         private Sprite[] timeBars = new Sprite[2];
         private Container[] timeBarContainers = new Container[2];
-        private TextureBufferStack textureBufferStack;
+        private BufferStack textureBufferStack;
 
         private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
@@ -59,7 +60,7 @@ namespace osu.Framework.Graphics.Performance
             this.Name = name;
             this.Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
-            textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
+            textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
         }
 
         public override void Load()

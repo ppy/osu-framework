@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu.Framework.Graphics.OpenGL.Textures
+namespace osu.Framework.Allocation
 {
-    public class TextureBufferStack
+    public class BufferStack
     {
         private int maxAmountBuffers;
         private Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
         private HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
 
-        public TextureBufferStack(int maxAmountBuffers = 10)
+        public BufferStack(int maxAmountBuffers = 10)
         {
             this.maxAmountBuffers = maxAmountBuffers;
         }

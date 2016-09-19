@@ -98,7 +98,7 @@
     <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
-    <Compile Include="Graphics\OpenGL\Textures\TextureBufferStack.cs" />
+    <Compile Include="Allocation\BufferStack.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameTimeDisplay.cs" />
@@ -141,7 +141,7 @@
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteCircular.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
-    <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
+    <Compile Include="Graphics\Drawables\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
     <Compile Include="Audio\Sample\AudioSample.cs" />
     <Compile Include="Audio\Track\AudioTrack.cs" />
@@ -240,7 +240,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Statistics\FrameStatistics.cs" />
-    <Compile Include="Statistics\PerformanceCollectionPeriod.cs" />
+    <Compile Include="Allocation\InvokeOnDisposal.cs" />
     <Compile Include="Statistics\PerformanceMonitor.cs" />
     <Compile Include="Threading\Scheduler.cs" />
     <Compile Include="Threading\SleepHandle.cs" />
