@@ -1,6 +1,7 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Allocation;
 using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
@@ -18,6 +19,7 @@ namespace osu.Framework.Statistics
         internal FrameStatistics currentFrame;
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
+        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
 
         private double consumptionTime;
 
@@ -97,7 +99,8 @@ namespace osu.Framework.Statistics
                 }
             }
 
-            currentFrame = new FrameStatistics();
+            currentFrame = FramesHeap.ReserveObject();
+            currentFrame.Clear();
 
             if (HandleGC)
             {

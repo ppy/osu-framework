@@ -16,6 +16,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Statistics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.OS
 {

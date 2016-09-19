@@ -1,4 +1,7 @@
-﻿using System;
+﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Configuration;
@@ -18,6 +21,7 @@ using OpenTK.Input;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Statistics;
 using System.Diagnostics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -32,7 +36,7 @@ namespace osu.Framework.Graphics.Performance
         const float scale = HEIGHT / visible_range;
 
         private TimeBar[] timeBars = new TimeBar[2];
-        private TextureBufferStack textureBufferStack;
+        private BufferStack textureBufferStack;
 
         private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
@@ -58,7 +62,7 @@ namespace osu.Framework.Graphics.Performance
             this.Name = name;
             this.Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
-            textureBufferStack = new TextureBufferStack(timeBars.Length * WIDTH);
+            textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
         }
 
         public override void Load()
@@ -194,32 +198,34 @@ namespace osu.Framework.Graphics.Performance
             FrameStatistics frame;
             while (monitor.PendingFrames.TryDequeue(out frame))
             {
-                if (!processFrames)
-                    continue;
-
-                foreach (int gcLevel in frame.GarbageCollections)
-                    AddEvent(gcLevel);
-
-                TimeBar timeBar = timeBars[TimeBarIndex];
-                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                if (processFrames)
                 {
-                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                };
+                    foreach (int gcLevel in frame.GarbageCollections)
+                        AddEvent(gcLevel);
 
-                int currentHeight = HEIGHT;
+                    TimeBar timeBar = timeBars[TimeBarIndex];
+                    TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+                    {
+                        Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+                    };
 
-                for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
-                    currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
+                    int currentHeight = HEIGHT;
 
-                timeBar.Sprite.Texture.SetData(upload);
+                    for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+                        currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
 
-                timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
-                timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
-                currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+                    timeBar.Sprite.Texture.SetData(upload);
 
-                foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
-                    if (e is Box && e.Position.X <= TimeBarX)
-                        e.Expire();
+                    timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX));
+                    timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX);
+                    currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+
+                    foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
+                        if (e is Box && e.Position.X <= TimeBarX)
+                            e.Expire();
+                }
+
+                monitor.FramesHeap.FreeObject(frame);
             }
         }
 

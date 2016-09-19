@@ -12,6 +12,12 @@ namespace osu.Framework.Statistics
         internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
         //internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
         internal List<int> GarbageCollections = new List<int>();
+
+        internal void Clear()
+        {
+            CollectedTimes.Clear();
+            GarbageCollections.Clear();
+        }
     }
 
     public enum PerformanceCollectionType
