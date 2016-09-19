@@ -26,6 +26,8 @@ namespace osu.Framework.VisualTests.Tests
 
         List<TestCase> testCases = new List<TestCase>();
 
+        internal int TestCount => testCases.Count;
+
         public override void Load()
         {
             base.Load();
@@ -85,6 +87,11 @@ namespace osu.Framework.VisualTests.Tests
             button.Click += delegate { loadTest(testCase); };
             leftFlowContainer.Add(button);
             testCases.Add(testCase);
+        }
+
+        public void LoadTest(int testIndex)
+        {
+            loadTest(testCases[testIndex]);
         }
 
         private void loadTest(TestCase testCase = null)

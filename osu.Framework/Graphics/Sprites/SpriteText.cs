@@ -34,13 +34,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private TextureStore store;
 
+        public override bool HandleInput => false;
+
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
 
-            TextSize = 19.2f;
-
-            HandleInput = false;
+            TextSize = 20;
         }
 
         public float TextSize
@@ -120,17 +120,30 @@ namespace osu.Framework.Graphics.Sprites
                     char c = text[index];
 
                     Drawable s;
-                    if (c == ' ')
+
+                    if (char.IsWhiteSpace(c))
+                    {
+                        float width = FixedWidth ? constantWidth.Value : spaceWidth;
+
+                        switch ((int)c)
+                        {
+                            case 0x3000: //double-width space
+                                width *= 2;
+                                break;
+                        }
+
                         s = new Container()
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.Value : spaceWidth),
-                            Colour = Color4.Transparent
+                            Size = new Vector2(width),
+                            Colour = Color4.Transparent,
                         };
+                    }
                     else
                     {
                         s = getSprite(c);
 
-                        var ctn = new Container() {
+                        var ctn = new Container()
+                        {
                             Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
                         };
 

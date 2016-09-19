@@ -16,22 +16,24 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : ProcessingContainer
+    public class TextBox : Container
     {
         private FlowContainer textFlow;
         private Box background;
-        protected Box cursor;
-        protected Container TextContainer;
+        private Box cursor;
+        private Container textContainer;
 
         public int? LengthLimit;
-        public bool ResetTextOnEdit;
-        public string textBeforeCommit;
 
-        public virtual bool AllowClipboardExport => true;
+        public bool AllowClipboardExport => true;
+
+        /// <summary>
+        /// Should this TextBox accept arrow keys for navigation?
+        /// </summary>
+        public bool HandleLeftRightArrows = true;
 
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
@@ -39,13 +41,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
-        TextInputSource textInput;
+        private TextInputSource textInput;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
         public event OnCommitHandler OnCommit;
         public event OnCommitHandler OnChange;
-
-        public float SpaceWidth = 10;
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.UserInterface
                 SizeMode = InheritMode.XY,
             });
 
-            Add(TextContainer = new Container() { SizeMode = InheritMode.XY });
+            Add(textContainer = new Container() { SizeMode = InheritMode.XY });
 
             textFlow = new FlowContainer()
             {
@@ -76,8 +76,8 @@ namespace osu.Framework.Graphics.UserInterface
                 Alpha = 0
             };
 
-            TextContainer.Add(cursor);
-            TextContainer.Add(textFlow);
+            textContainer.Add(cursor);
+            textContainer.Add(textFlow);
         }
 
         private void resetSelection()
@@ -91,15 +91,14 @@ namespace osu.Framework.Graphics.UserInterface
             OnChange = null;
             OnCommit = null;
 
-            UnbindInput();
+            unbindInput();
 
             base.Dispose(disposing);
         }
 
         private float textContainerPosX;
-        protected virtual float TextContainerIconOffset => 0;
 
-        protected string TextAtLastLayout = string.Empty;
+        private string textAtLastLayout = string.Empty;
 
         protected override void UpdateLayout()
         {
@@ -131,7 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.Width - Width));
 
-                TextContainer.MoveToX(TextContainerIconOffset - textContainerPosX, 300, EasingTypes.OutExpo);
+                textContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
 
                 if (HasFocus)
                 {
@@ -160,8 +159,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                OnChange?.Invoke(this, TextAtLastLayout != text);
-                TextAtLastLayout = text;
+                OnChange?.Invoke(this, textAtLastLayout != text);
+                textAtLastLayout = text;
 
                 return cursorPos;
             });
@@ -197,8 +196,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             return i;
         }
-
-        public bool HandleLeftRightArrows = true;
 
         int selectionStart;
         int selectionEnd;
@@ -257,7 +254,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 textFlow.Remove(d);
 
-                TextContainer.Add(d);
+                textContainer.Add(d);
                 d.FadeOut(200);
                 d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
                 d.Expire();
@@ -282,33 +279,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch;
 
-            if (char.IsWhiteSpace(c))
+            textFlow.Add(ch = new SpriteText()
             {
-                float width = SpaceWidth / 2;
-
-                switch ((int)c)
-                {
-                    case 0x3000: //double-width space
-                        width = SpaceWidth;
-                        break;
-                }
-
-                textFlow.Add(ch = new Container()
-                {
-                    SizeMode = InheritMode.None,
-                    Size = new Vector2(width, SpaceWidth),
-                    Depth = selectionLeft
-                });
-            }
-            else
-            {
-                textFlow.Add(ch = new SpriteText()
-                {
-                    Text = c.ToString(),
-                    TextSize = Size.Y,
-                    Depth = selectionLeft,
-                });
-            }
+                Text = c.ToString(),
+                TextSize = Size.Y,
+                Depth = selectionLeft,
+            });
 
             return ch;
         }
@@ -316,10 +292,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
         /// </summary>
-        /// <param name="text"></param>
-        private void insertString(string text)
+        /// <param name="addText"></param>
+        private void insertString(string addText)
         {
-            foreach (char c in text)
+            if (string.IsNullOrEmpty(addText)) return;
+
+            foreach (char c in addText)
                 addCharacter(c);
         }
 
@@ -341,7 +319,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            ch.Position = new Vector2(0, SpaceWidth);
+            ch.Position = new Vector2(0, Size.Y);
             ch.MoveToY(0, 200, EasingTypes.OutExpo);
 
             text = text.Insert(selectionLeft, c.ToString());
@@ -508,14 +486,14 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     case Key.V:
                         //the text is pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        insertString(textInput.GetPendingText());
+                        insertString(textInput?.GetPendingText());
                         return true;
                 }
 
                 return false;
             }
 
-            string str = textInput.GetPendingText();
+            string str = textInput?.GetPendingText();
             if (!string.IsNullOrEmpty(str))
             {
                 if (state.Keyboard.ShiftPressed)
@@ -602,7 +580,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(InputState state)
         {
-            UnbindInput();
+            unbindInput();
 
             cursor.ClearTransformations();
             cursor.FadeOut(200);
@@ -629,11 +607,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ReadOnly) return false;
 
-            BindInput();
-
-            textBeforeCommit = Text;
-            if (ResetTextOnEdit)
-                Text = string.Empty;
+            bindInput();
 
             background.ClearTransformations();
             background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
@@ -643,12 +617,13 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         #region Native TextBox handling (winform specific)
-        protected void UnbindInput()
+
+        private void unbindInput()
         {
             textInput?.Deactivate(this);
         }
 
-        protected void BindInput()
+        private void bindInput()
         {
             if (textInput == null)
             {
@@ -673,7 +648,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                Game.Audio.Sample.Get($@"Keyboard/key-confirm")?.Play();
+                Game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
 
                 foreach (Drawable d in imeDrawables)
                 {
@@ -685,7 +660,7 @@ namespace osu.Framework.Graphics.UserInterface
             imeDrawables.Clear();
         }
 
-        List<Drawable> imeDrawables = new List<Drawable>();
+        private List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {
@@ -722,7 +697,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    Game.Audio.Sample.Get($@"Keyboard/key-delete")?.Play();
+                    Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 

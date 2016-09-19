@@ -304,7 +304,10 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 clearFBO = GL.GenFramebuffer();
 
             int lastFramebuffer = GLWrapper.BindFrameBuffer(clearFBO);
+#pragma warning disable 618
+            //todo: fix opentk obsolete attributes on impossible-to-replace functions.
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, TextureTarget.Texture2D, TextureId, 0);
+#pragma warning restore 618
 
             GL.ClearColor(new Color4(255, 255, 255, 0));
             GL.Clear(ClearBufferMask.ColorBufferBit);

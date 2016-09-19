@@ -1,13 +1,9 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 using osu.Framework.Threading;
 
@@ -15,7 +11,6 @@ namespace osu.Framework.Input.Handlers.Mouse
 {
     class CursorMouseHandler : InputHandler, ICursorInputHandler
     {
-        private bool wasActive = false;
         private Vector2 position = Vector2.One;
 
         private Game game;
@@ -50,9 +45,6 @@ namespace osu.Framework.Input.Handlers.Mouse
         public void SetPosition(Vector2 pos)
         {
             position = pos;
-
-            // This forces a windows cursor position reset which is important for non-raw input mouse to not snap back.
-            wasActive = false;
         }
 
         public Vector2? Position

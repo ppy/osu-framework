@@ -165,7 +165,7 @@ namespace osu.Framework.Threading
         /// <param name="repeat">Whether this task should repeat.</param>
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
-            ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : 0);
+            ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : -1);
 
             return Add(del) ? del : null;
         }
@@ -260,7 +260,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Time between repeats of this task. -1 means no repeats.
         /// </summary>
-        public double RepeatInterval;
+        public double RepeatInterval = -1;
 
         public int CompareTo(ScheduledDelegate other)
         {
@@ -277,7 +277,7 @@ namespace osu.Framework.Threading
 
         bool isDisposed;
 
-        public ThreadedScheduler(int runInterval = 50)
+        public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
             workerThread = new Thread(() =>
             {
@@ -287,7 +287,10 @@ namespace osu.Framework.Threading
                     Thread.Sleep(runInterval);
                 }
             })
-            { IsBackground = true };
+            {
+                IsBackground = true,
+                Name = threadName
+            };
 
             workerThread.Start();
         }

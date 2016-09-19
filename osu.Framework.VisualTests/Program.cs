@@ -11,10 +11,15 @@ namespace osu.Framework.VisualTests
     public static class Program
     {
         [STAThread]
-        public static void Main()
+        public static void Main(string[] args)
         {
+            bool benchmark = args.Length > 0 && args[0] == @"-benchmark";
+
             BasicGameHost host = Host.GetSuitableHost();
-            host.Load(new VisualTestGame());
+            if (benchmark)
+                host.Load(new Benchmark());
+            else
+                host.Load(new VisualTestGame());
             host.Run();
         }
     }

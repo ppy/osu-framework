@@ -90,7 +90,14 @@ namespace osu.Framework.Statistics
         internal void NewFrame(IFrameBasedClock clock)
         {
             if (currentFrame != null)
+            {
                 PendingFrames.Enqueue(currentFrame);
+                if (PendingFrames.Count > 100)
+                {
+                    FrameStatistics oldFrame;
+                    PendingFrames.TryDequeue(out oldFrame);
+                }
+            }
 
             currentFrame = FramesHeap.ReserveObject();
             currentFrame.Clear();
