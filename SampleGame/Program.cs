@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Desktop;
 using osu.Framework.OS;
 
-namespace osu.Desktop
+namespace SampleGame
 {
     public static class Program
     {
@@ -13,7 +13,7 @@ namespace osu.Desktop
         public static void Main()
         {
             BasicGameHost host = Host.GetSuitableHost();
-            host.Load(new SampleGame());
+            host.Load(new osu.Desktop.SampleGame());
             host.Run();
         }
     }

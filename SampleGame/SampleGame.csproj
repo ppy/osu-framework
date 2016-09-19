@@ -18,7 +18,7 @@
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
-    <StartupObject>osu.Desktop.Program</StartupObject>
+    <StartupObject>SampleGame.Program</StartupObject>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <SignAssembly>false</SignAssembly>
     <TargetZone>LocalIntranet</TargetZone>
