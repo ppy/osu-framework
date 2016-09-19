@@ -366,8 +366,6 @@ namespace osu.Framework.VisualTests.Tests
 
         public InfofulBox(RectangleF rectangle, float depth, Color4 color)
         {
-            HandleInput = true;
-
             Position = new Vector2(rectangle.X, rectangle.Y);
             Size = new Vector2(rectangle.Width, rectangle.Height);
             Depth = depth;

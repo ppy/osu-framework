@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        public bool HandleInput = true;
+        public virtual bool HandleInput => false;
 
         public virtual bool HasFocus => ourInputManager?.FocusedDrawable == this;
 

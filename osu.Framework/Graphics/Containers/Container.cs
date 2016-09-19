@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.BoundingRectangle : (Rectangle?)null);
 
+        public override bool HandleInput => true;
+
         public override IEnumerable<Drawable> Children
         {
             get { return base.Children; }

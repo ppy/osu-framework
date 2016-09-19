@@ -34,13 +34,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private TextureStore store;
 
+        public override bool HandleInput => false;
+
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
 
             TextSize = 20;
-
-            HandleInput = false;
         }
 
         public float TextSize
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Sprites
                         s = new Container()
                         {
                             Size = new Vector2(FixedWidth ? constantWidth.Value : spaceWidth),
-                            Colour = Color4.Transparent
+                            Colour = Color4.Transparent,
                         };
                     else
                     {
