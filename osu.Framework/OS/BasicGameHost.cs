@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
 using osu.Framework.Graphics;
@@ -167,6 +168,8 @@ namespace osu.Framework.OS
 
         public virtual void Run()
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
             drawThread = new Thread(drawLoop)
             {
                 Name = @"DrawThread",
