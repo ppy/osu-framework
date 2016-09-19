@@ -31,8 +31,7 @@ namespace osu.Framework.Graphics.Performance
         const float visible_range = 20;
         const float scale = HEIGHT / visible_range;
 
-        private Sprite[] timeBars = new Sprite[2];
-        private Container[] timeBarContainers = new Container[2];
+        private TimeBar[] timeBars = new TimeBar[2];
         private TextureBufferStack textureBufferStack;
 
         private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
@@ -66,7 +65,8 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load();
 
-            Container timeBarContainer;
+            for (int i = 0; i < timeBars.Length; ++i)
+                timeBars[i] = new TimeBar();
 
             Children = new Drawable[] {
                 new SpriteText
@@ -78,8 +78,10 @@ namespace osu.Framework.Graphics.Performance
                 },
                 new MaskingContainer
                 {
-                    Children = new [] {
-                        timeBarContainer = new LargeContainer(),
+                    Children = new Drawable[] {
+                        new LargeContainer {
+                            Children = timeBars
+                        },
                         legendContainer = new FlowContainer {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
@@ -106,18 +108,7 @@ namespace osu.Framework.Graphics.Performance
                 },
             };
 
-            for (int i = 0; i < timeBars.Length; ++i)
-            {
-                timeBars[i] = new Sprite(new Texture(WIDTH, HEIGHT));
-                timeBarContainer.Add(
-                    timeBarContainers[i] = new Container
-                    {
-                        Children = new [] { timeBars[i] },
-                        Width = WIDTH,
-                        Height = HEIGHT,
-                    }
-                );
-            }
+            
 
             foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
             {
@@ -137,7 +128,6 @@ namespace osu.Framework.Graphics.Performance
             for (int i = 0; i < WIDTH * timeBars.Length; ++i)
             {
                 currentX = i;
-                Sprite timeBar = timeBars[TimeBarIndex];
 
                 TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
                 {
@@ -145,8 +135,26 @@ namespace osu.Framework.Graphics.Performance
                 };
 
                 addArea(null, PerformanceCollectionType.Empty, HEIGHT, upload.Data);
-                timeBar.Texture.SetData(upload);
+                timeBars[TimeBarIndex].Sprite.Texture.SetData(upload);
             }
+        }
+
+        class TimeBar : Container
+        {
+            public Sprite Sprite;
+            public override void Load()
+            {
+                base.Load();
+
+                Width = WIDTH;
+                Height = HEIGHT;
+
+                Children = new[] {
+                    Sprite = new Sprite(new Texture(WIDTH, HEIGHT))
+                };
+            }
+
+            public override bool HandleInput => false;
         }
 
         public void AddEvent(int type)
@@ -159,7 +167,7 @@ namespace osu.Framework.Graphics.Performance
                 Size = new Vector2(3, 3),
             };
 
-            timeBarContainers[TimeBarIndex].Add(b);
+            timeBars[TimeBarIndex].Add(b);
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -194,7 +202,7 @@ namespace osu.Framework.Graphics.Performance
                 foreach (int gcLevel in frame.GarbageCollections)
                     AddEvent(gcLevel);
 
-                Sprite timeBar = timeBars[TimeBarIndex];
+                TimeBar timeBar = timeBars[TimeBarIndex];
                 TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
                 {
                     Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
@@ -205,13 +213,13 @@ namespace osu.Framework.Graphics.Performance
                 for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
                     currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
 
-                timeBar.Texture.SetData(upload);
+                timeBar.Sprite.Texture.SetData(upload);
 
-                timeBarContainers[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
-                timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
+                timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX), 0);
+                timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX, 0);
                 currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
-                foreach (Drawable e in timeBarContainers[(TimeBarIndex + 1) % timeBars.Length].Children)
+                foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
                     if (e is Box && e.Position.X <= TimeBarX)
                         e.Expire();
             }
