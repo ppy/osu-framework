@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             this.store = store;
 
-            TextSize = 19.2f;
+            TextSize = 20;
 
             HandleInput = false;
         }
