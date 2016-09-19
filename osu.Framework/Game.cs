@@ -53,7 +53,11 @@ namespace osu.Framework
             Game = this;
         }
 
-        public void SetHost(BasicGameHost host)
+        /// <summary>
+        /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
+        /// </summary>
+        /// <param name="host"></param>
+        public virtual void SetHost(BasicGameHost host)
         {
             this.host = host;
             host.ExitRequested += OnExiting;
