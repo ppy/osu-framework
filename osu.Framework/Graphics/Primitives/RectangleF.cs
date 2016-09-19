@@ -316,9 +316,9 @@ namespace osu.Framework.Graphics.Primitives
         public static RectangleF Intersect(RectangleF a, RectangleF b)
         {
             float x = Math.Max(a.X, b.X);
-            float num2 = Math.Min((float)(a.X + a.Width), (float)(b.X + b.Width));
+            float num2 = Math.Min(a.X + a.Width, b.X + b.Width);
             float y = Math.Max(a.Y, b.Y);
-            float num4 = Math.Min((float)(a.Y + a.Height), (float)(b.Y + b.Height));
+            float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
             if ((num2 >= x) && (num4 >= y))
             {
                 return new RectangleF(x, y, num2 - x, num4 - y);
@@ -354,9 +354,9 @@ namespace osu.Framework.Graphics.Primitives
         public static RectangleF Union(RectangleF a, RectangleF b)
         {
             float x = Math.Min(a.X, b.X);
-            float num2 = Math.Max((float)(a.X + a.Width), (float)(b.X + b.Width));
+            float num2 = Math.Max(a.X + a.Width, b.X + b.Width);
             float y = Math.Min(a.Y, b.Y);
-            float num4 = Math.Max((float)(a.Y + a.Height), (float)(b.Y + b.Height));
+            float num4 = Math.Max(a.Y + a.Height, b.Y + b.Height);
             return new RectangleF(x, y, num2 - x, num4 - y);
         }
 
@@ -386,7 +386,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>3</filterpriority>
         public static implicit operator RectangleF(Rectangle r)
         {
-            return new RectangleF((float)r.X, (float)r.Y, (float)r.Width, (float)r.Height);
+            return new RectangleF(r.X, r.Y, r.Width, r.Height);
         }
 
         /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleF"></see> to a human-readable string.</summary>
@@ -507,37 +507,32 @@ namespace osu.Framework.Graphics.Primitives
                     )
                         ? false
                         : true;
-                else /* s <= 0.0 */
-                    return
-                    (c * xQmax + s * yQmin < -xPdif
-                     || c * xQmin + s * yQmax > xPdif
-                     || c * yQmax - s * xQmax < -yPdif
-                     || c * yQmin - s * xQmin > yPdif
-                    )
-                        ? false
-                        : true;
+                return
+                (c * xQmax + s * yQmin < -xPdif
+                 || c * xQmin + s * yQmax > xPdif
+                 || c * yQmax - s * xQmax < -yPdif
+                 || c * yQmin - s * xQmin > yPdif
+                )
+                    ? false
+                    : true;
             }
-            else /* c <= 0.0 */
-            {
-                if (sPos)
-                    return
-                    (c * xQmin + s * yQmax < -xPdif
-                     || c * xQmax + s * yQmin > xPdif
-                     || c * yQmin - s * xQmin < -yPdif
-                     || c * yQmax - s * xQmax > yPdif
-                    )
-                        ? false
-                        : true;
-                else /* s <= 0.0 */
-                    return
-                    (c * xQmin + s * yQmin < -xPdif
-                     || c * xQmax + s * yQmax > xPdif
-                     || c * yQmin - s * xQmax < -yPdif
-                     || c * yQmax - s * xQmin > yPdif
-                    )
-                        ? false
-                        : true;
-            }
+            if (sPos)
+                return
+                (c * xQmin + s * yQmax < -xPdif
+                 || c * xQmax + s * yQmin > xPdif
+                 || c * yQmin - s * xQmin < -yPdif
+                 || c * yQmax - s * xQmax > yPdif
+                )
+                    ? false
+                    : true;
+            return
+            (c * xQmin + s * yQmin < -xPdif
+             || c * xQmax + s * yQmax > xPdif
+             || c * yQmin - s * xQmax < -yPdif
+             || c * yQmax - s * xQmin > yPdif
+            )
+                ? false
+                : true;
         }
     }
 }

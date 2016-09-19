@@ -25,7 +25,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer flow = new FlowContainer()
+            FlowContainer flow = new FlowContainer
             {
                 LayoutDuration = 100,
                 LayoutEasing = EasingTypes.Out,
@@ -39,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 if (Parent == null) return;
 
-                Box box = new Box()
+                Box box = new Box
                 {
                     Size = new Vector2(80, 80),
                     Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)

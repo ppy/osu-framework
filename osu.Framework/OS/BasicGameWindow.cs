@@ -28,10 +28,6 @@ namespace osu.Framework.OS
         public abstract IntPtr Handle { get; }
         public abstract bool IsMinimized { get; }
 
-        public BasicGameWindow()
-        {
-        }
-
         public abstract Size Size { get; set; }
 
         public abstract void Close();

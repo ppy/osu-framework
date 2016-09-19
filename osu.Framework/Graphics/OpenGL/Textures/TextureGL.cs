@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        protected bool isDisposed = false;
+        protected bool isDisposed;
 
         protected virtual void Dispose(bool isDisposing)
         {

@@ -121,7 +121,7 @@ namespace osu.Framework.IO.Stores
 
         protected virtual List<string> GetFilenames(string name)
         {
-            List<string> filenames = new List<string>()
+            List<string> filenames = new List<string>
             {
                 name
             };

@@ -42,13 +42,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Load();
 
-            Add(box = new Box()
+            Add(box = new Box
             {
                 SizeMode = InheritMode.XY,
                 Colour = backgroundColour
             });
 
-            Add(spriteText = new SpriteText()
+            Add(spriteText = new SpriteText
             {
                 Text = text,
                 Origin = Anchor.Centre,
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            var flash = new Box()
+            var flash = new Box
             {
                 SizeMode = InheritMode.XY
             };

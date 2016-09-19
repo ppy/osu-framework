@@ -148,25 +148,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
-            spriteBatch.Add(new TexturedVertex2d()
+            spriteBatch.Add(new TexturedVertex2d
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d()
+            spriteBatch.Add(new TexturedVertex2d
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d()
+            spriteBatch.Add(new TexturedVertex2d
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d()
+            spriteBatch.Add(new TexturedVertex2d
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),

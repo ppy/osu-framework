@@ -17,7 +17,7 @@ namespace osu.Desktop
 
             Box box;
 
-            Add(box = new Box()
+            Add(box = new Box
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,

@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             // Make sure we have renderbuffers available
             if (renderBufferCache[Format].Count == 0)
-                renderBufferCache[Format].Push(new RenderBufferInfo()
+                renderBufferCache[Format].Push(new RenderBufferInfo
                 {
                     RenderBufferID = GL.GenRenderbuffer(),
                     FrameBufferID = -1

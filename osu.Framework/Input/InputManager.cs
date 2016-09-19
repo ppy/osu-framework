@@ -458,7 +458,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseDown(InputState state, MouseButton button)
         {
-            MouseDownEventArgs args = new MouseDownEventArgs()
+            MouseDownEventArgs args = new MouseDownEventArgs
             {
                 Button = button
             };
@@ -471,7 +471,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseUp(InputState state, MouseButton button)
         {
-            MouseUpEventArgs args = new MouseUpEventArgs()
+            MouseUpEventArgs args = new MouseUpEventArgs
             {
                 Button = button
             };
@@ -553,7 +553,7 @@ namespace osu.Framework.Input
                     FocusedDrawable.TriggerFocusLost(state);
                     return true;
                 }
-                else if (FocusedDrawable.TriggerKeyDown(state, args))
+                if (FocusedDrawable.TriggerKeyDown(state, args))
                     return true;
             }
 

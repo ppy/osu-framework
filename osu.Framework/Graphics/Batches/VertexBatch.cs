@@ -18,9 +18,9 @@ namespace osu.Framework.Graphics.Batches
         private int changeBeginIndex = -1;
         private int changeEndIndex = -1;
 
-        private int currentVertexBuffer = 0;
-        private int currentVertex = 0;
-        private int lastVertex = 0;
+        private int currentVertexBuffer;
+        private int currentVertex;
+        private int lastVertex;
 
         private int fixedBufferAmount;
 

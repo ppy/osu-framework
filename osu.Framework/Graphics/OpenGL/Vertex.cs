@@ -11,13 +11,13 @@ namespace osu.Framework.Graphics.OpenGL
 {
     public static class Vertex
     {
-        private static int amountEnabledAttributes = 0;
+        private static int amountEnabledAttributes;
 
         public static void EnableAttributes(int amount)
         {
             if (amount == amountEnabledAttributes)
                 return;
-            else if (amount > amountEnabledAttributes)
+            if (amount > amountEnabledAttributes)
             {
                 for (int i = amountEnabledAttributes; i < amount; ++i)
                 {

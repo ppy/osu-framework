@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer textBoxes = new FlowContainer()
+            FlowContainer textBoxes = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
                 Padding = new Vector2(0, 50),
@@ -34,19 +34,19 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(textBoxes);
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
                 Size = new Vector2(100, 16),
             });
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
                 Text = @"Limited length",
                 Size = new Vector2(200, 20),
                 LengthLimit = 20
             });
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
                 Text = @"Box with some more text",
                 Size = new Vector2(500, 30),

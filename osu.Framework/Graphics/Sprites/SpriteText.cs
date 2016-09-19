@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Sprites
                                 break;
                         }
 
-                        s = new Container()
+                        s = new Container
                         {
                             Size = new Vector2(width),
                             Colour = Color4.Transparent,
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Sprites
                     {
                         s = getSprite(c);
 
-                        var ctn = new Container()
+                        var ctn = new Container
                         {
                             Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
                         };

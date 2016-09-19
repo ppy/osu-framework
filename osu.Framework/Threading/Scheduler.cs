@@ -187,7 +187,7 @@ namespace osu.Framework.Threading
 
         #region IDisposable Support
 
-        private bool isDisposed = false; // To detect redundant calls
+        private bool isDisposed; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {

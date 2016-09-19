@@ -33,22 +33,22 @@ namespace osu.Framework.Graphics.Drawables
 
             shader.Bind();
 
-            batch.Add(new Vertex2d()
+            batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = screenSpaceDrawQuad.BottomLeft
             });
-            batch.Add(new Vertex2d()
+            batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = screenSpaceDrawQuad.BottomRight
             });
-            batch.Add(new Vertex2d()
+            batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = screenSpaceDrawQuad.TopRight
             });
-            batch.Add(new Vertex2d()
+            batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = screenSpaceDrawQuad.TopLeft

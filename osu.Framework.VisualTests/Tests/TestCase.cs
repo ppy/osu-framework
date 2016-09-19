@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests.Tests
         internal virtual string Description => @"The base class for a test case";
         internal virtual int DisplayOrder => 0;
 
-        Container buttonsContainer = new FlowContainer()
+        Container buttonsContainer = new FlowContainer
         {
             Direction = FlowDirection.VerticalOnly,
             Padding = new Vector2(15, 5)
@@ -26,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
             Clear();
             buttonsContainer.Clear();
 
-            ScrollContainer scroll = new ScrollContainer()
+            ScrollContainer scroll = new ScrollContainer
             {
                 Depth = 0
             };
@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
         internal Button AddButton(string text, Action action)
         {
             Button b;
-            buttonsContainer.Add(b = new Button()
+            buttonsContainer.Add(b = new Button
             {
                 Colour = Color4.LightBlue,
                 Size = new Vector2(100, 50),
@@ -64,7 +64,7 @@ namespace osu.Framework.VisualTests.Tests
         private static Color4 offColour = Color4.Red;
         private static Color4 onColour = Color4.YellowGreen;
 
-        internal bool State = false;
+        internal bool State;
 
         public ToggleButton(Action reloadCallback)
         {

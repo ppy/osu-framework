@@ -56,23 +56,23 @@ namespace osu.Framework.Graphics.UserInterface
 
             Masking = true;
 
-            Add(background = new Box()
+            Add(background = new Box
             {
                 Colour = BackgroundUnfocused,
                 SizeMode = InheritMode.XY,
             });
 
-            Add(textContainer = new Container()
+            Add(textContainer = new Container
             {
                 SizeMode = InheritMode.XY
             });
 
-            textFlow = new FlowContainer()
+            textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
             };
 
-            cursor = new Box()
+            cursor = new Box
             {
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
@@ -176,14 +176,10 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (index < text.Length)
                     return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
-                else
-                {
-                    var d = textFlow.Children.ElementAt(index - 1);
-                    return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
-                }
+                var d = textFlow.Children.ElementAt(index - 1);
+                return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
             }
-            else
-                return 0;
+            return 0;
         }
 
         private int getCharacterClosestTo(Vector2 pos)
@@ -283,7 +279,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch;
 
-            textFlow.Add(ch = new SpriteText()
+            textFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
                 TextSize = Size.Y,

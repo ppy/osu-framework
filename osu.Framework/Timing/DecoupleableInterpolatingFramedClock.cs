@@ -99,14 +99,11 @@ namespace osu.Framework.Timing
                 decoupledStopwatch.Seek(adjustableSource?.CurrentTime ?? position);
                 return success;
             }
-            else
-            {
-                if (!success)
-                    //if we failed to seek then stop the source and use decoupled mode.
-                    adjustableSource?.Stop();
+            if (!success)
+                //if we failed to seek then stop the source and use decoupled mode.
+                adjustableSource?.Stop();
 
-                return decoupledStopwatch.Seek(position);
-            }
+            return decoupledStopwatch.Seek(position);
         }
     }
 }

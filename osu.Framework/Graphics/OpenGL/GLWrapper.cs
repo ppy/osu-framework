@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <returns>Whether an actual bind call was necessary. This value is false when repeatedly binding the same buffer.</returns>
         public static bool BindBuffer(BufferTarget target, int buffer)
         {
-            int bufferIndex = (int)(target - BufferTarget.ArrayBuffer);
+            int bufferIndex = target - BufferTarget.ArrayBuffer;
             if (lastBoundBuffers[bufferIndex] == buffer)
                 return false;
 
@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastDestBlend = dest;
         }
 
-        private static int lastFrameBuffer = 0;
+        private static int lastFrameBuffer;
 
         /// <summary>
         /// Binds a framebuffer.

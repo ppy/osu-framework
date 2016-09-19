@@ -497,7 +497,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// <summary>
     /// Enumeration containing the flags for raw mouse data.
     /// </summary>
-    [Flags()]
+    [Flags]
     internal enum RawMouseFlags
         : ushort
     {
@@ -520,7 +520,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// <summary>
     /// Enumeration containing the button data for raw mouse input.
     /// </summary>
-    [Flags()]
+    [Flags]
     internal enum RawMouseButtons
         : ushort
     {
@@ -634,7 +634,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     }
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
-    [Flags()]
+    [Flags]
     internal enum RawInputDeviceFlags
     {
         /// <summary>No flags.</summary>

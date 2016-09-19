@@ -27,8 +27,8 @@ namespace osu.Framework.Lists
             Debug.Assert(value != null);
             Debug.Assert(value is T);
 
-            int index = getAdditionIndex((T)value);
-            InternalList.Insert(index, (T)value);
+            int index = getAdditionIndex(value);
+            InternalList.Insert(index, value);
 
             return index;
         }

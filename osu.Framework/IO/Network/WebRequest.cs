@@ -564,16 +564,13 @@ namespace osu.Framework.IO.Network
                     perform();
                     return;
                 }
-                else
+                if (useFallbackPath == null && allowRetry && didGetIPv6IP)
                 {
-                    if (useFallbackPath == null && allowRetry && didGetIPv6IP)
-                    {
-                        useFallbackPath = true;
-                        logger.Add(@"---------------------- USING FALLBACK PATH! ---------------------");
-                    }
-
-                    logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (FAILED).");
+                    useFallbackPath = true;
+                    logger.Add(@"---------------------- USING FALLBACK PATH! ---------------------");
                 }
+
+                logger.Add($@"Request to {Url} ({address}) failed with {statusCode} (FAILED).");
             }
             else if (e == null)
             {

@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load();
 
-            Add(counter = new SpriteText()
+            Add(counter = new SpriteText
             {
                 Text = @"...",
                 FixedWidth = true,

@@ -138,8 +138,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenSpaceQuad)) > 0)
                 return Invalidation.ScreenSpaceQuad;
-            else
-                return base.InvalidationEffectByChildren(childInvalidation);
+            return base.InvalidationEffectByChildren(childInvalidation);
         }
 
         public override InheritMode SizeMode

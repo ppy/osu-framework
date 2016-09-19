@@ -97,7 +97,7 @@ namespace osu.Framework
                 ScaleAdjust = 1 / 100f
             };
 
-            Add(userInputContainer = new UserInputManager()
+            Add(userInputContainer = new UserInputManager
             {
                 Children = new[]
                 {
@@ -116,7 +116,7 @@ namespace osu.Framework
                             new FrameTimeDisplay(@"Draw", host.DrawMonitor)
                         }
                     },
-                    new PerformanceOverlay()
+                    new PerformanceOverlay
                     {
                         Position = new Vector2(5, 5),
                         Anchor = Anchor.BottomRight,

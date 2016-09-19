@@ -87,19 +87,19 @@ namespace osu.Framework.Desktop.Input
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1, ArraySubType = UnmanagedType.U4)] public uint[] dwOffset;
         }
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("Imm32.dll")]
         private static extern IntPtr ImmGetContext(IntPtr hWnd);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("imm32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int ImmGetCompositionString(IntPtr hIMC, int CompositionStringFlag, byte[] buffer, int bufferLength);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("Imm32.dll")]
         private static extern bool ImmReleaseContext(IntPtr hWnd, IntPtr hIMC);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("imm32.dll", CharSet = CharSet.Auto, EntryPoint = "ImmGetCandidateList")]
         public static extern uint ImmGetCandidateList(IntPtr hIMC, uint deIndex, IntPtr candidateList, uint dwBufLen);
 
@@ -146,7 +146,7 @@ namespace osu.Framework.Desktop.Input
                     return;
                 case WM_IME_NOTIFY:
 
-                    switch ((int)m.WParam.ToInt32())
+                    switch (m.WParam.ToInt32())
                     {
                         case IMN_PRIVATE:
                             return;

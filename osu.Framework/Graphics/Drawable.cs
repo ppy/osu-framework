@@ -772,7 +772,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private bool wasAliveLastUpdate = false;
+        private bool wasAliveLastUpdate;
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
@@ -927,8 +927,7 @@ namespace osu.Framework.Graphics
             shortClass = shortClass.Substring(shortClass.LastIndexOf('.') + 1);
             if (HasDefinedSize)
                 return $@"{shortClass} pos {Position} size {Size}";
-            else
-                return $@"{shortClass} pos {Position} size -uncalculated-";
+            return $@"{shortClass} pos {Position} size -uncalculated-";
         }
 
         public virtual Drawable Clone()
@@ -974,7 +973,7 @@ namespace osu.Framework.Graphics
         // Meta
         None = 0,
         All = Position | SizeInParentSpace | Visibility | Colour,
-    };
+    }
 
     /// <summary>
     /// General enum to specify an "anchor" or "origin" point from the standard 9 points on a rectangle.

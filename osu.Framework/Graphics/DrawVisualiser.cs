@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics
 {
     public class DrawVisualiser : LargeContainer
     {
-        Box background = new Box()
+        Box background = new Box
         {
             Colour = new Color4(30, 30, 30, 240),
             SizeMode = InheritMode.XY,
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics
 
             const int line_height = 12;
 
-            public FlowContainer Flow = new FlowContainer()
+            public FlowContainer Flow = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
                 Position = new Vector2(10, 14)
@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics
                 FlowContainer df = Target as FlowContainer;
                 if (df != null) df.OnLayout += onLayout;
 
-                activityAutosize = new Box()
+                activityAutosize = new Box
                 {
                     Colour = Color4.Red,
                     Size = new Vector2(2, line_height),
@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics
                     Alpha = 0
                 };
 
-                activityLayout = new Box()
+                activityLayout = new Box
                 {
                     Colour = Color4.Orange,
                     Size = new Vector2(2, line_height),
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics
                     Alpha = 0
                 };
 
-                activityInvalidate = new Box()
+                activityInvalidate = new Box
                 {
                     Colour = Color4.Yellow,
                     Size = new Vector2(2, line_height),
@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics
                         Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1)
                     };
                 else
-                    previewBox = new Box()
+                    previewBox = new Box
                     {
                         Colour = Color4.White
                     };
@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics
                 previewBox.Position = new Vector2(9, 0);
                 previewBox.Size = new Vector2(line_height, line_height);
 
-                text = new SpriteText()
+                text = new SpriteText
                 {
                     Position = new Vector2(24, -3),
                     Scale = new Vector2(0.9f),
@@ -229,7 +229,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target.ToString() + (!Flow.IsVisible ? $@" ({Target.Children.Count()} hidden children)" : string.Empty);
+                text.Text = Target + (!Flow.IsVisible ? $@" ({Target.Children.Count()} hidden children)" : string.Empty);
             }
 
             protected override void Update()

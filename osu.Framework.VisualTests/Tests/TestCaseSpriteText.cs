@@ -21,11 +21,11 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new ScrollContainer()
+                new ScrollContainer
                 {
                     Children = new[]
                     {
-                        flow = new FlowContainer()
+                        flow = new FlowContainer
                         {
                             Anchor = Anchor.TopLeft,
                             Direction = FlowDirection.VerticalOnly,
@@ -36,7 +36,7 @@ namespace osu.Framework.VisualTests.Tests
 
             for (int i = 1; i <= 200; i++)
             {
-                SpriteText text = new SpriteText()
+                SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
                     TextSize = i

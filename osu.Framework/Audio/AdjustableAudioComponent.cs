@@ -132,7 +132,7 @@ namespace osu.Framework.Audio
 
         #region IDisposable Support
 
-        protected bool IsDisposed = false; // To detect redundant calls
+        protected bool IsDisposed; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {

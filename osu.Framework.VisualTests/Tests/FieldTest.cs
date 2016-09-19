@@ -32,13 +32,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Load();
 
-            Add(leftContainer = new Container()
+            Add(leftContainer = new Container
             {
                 SizeMode = InheritMode.XY,
                 Size = new Vector2(0.15f, 1)
             });
 
-            leftContainer.Add(new Box()
+            leftContainer.Add(new Box
             {
                 Colour = Color4.DimGray,
                 SizeMode = InheritMode.XY
@@ -46,7 +46,7 @@ namespace osu.Framework.VisualTests.Tests
 
             leftContainer.Add(leftScrollContainer = new ScrollContainer());
 
-            leftScrollContainer.Add(leftFlowContainer = new FlowContainer()
+            leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
                 SizeMode = InheritMode.X,
@@ -54,7 +54,7 @@ namespace osu.Framework.VisualTests.Tests
             });
 
             //this is where the actual tests are loaded.
-            Add(testContainer = new LargeContainer()
+            Add(testContainer = new LargeContainer
             {
                 Size = new Vector2(0.85f, 1),
                 PositionMode = InheritMode.XY,
@@ -122,20 +122,20 @@ namespace osu.Framework.VisualTests.Tests
                 SizeMode = InheritMode.X;
                 Size = new Vector2(1, 60);
 
-                Add(box = new Box()
+                Add(box = new Box
                 {
                     SizeMode = InheritMode.XY,
                     Alpha = 0.2f
                 });
 
-                Add(new SpriteText()
+                Add(new SpriteText
                 {
                     Text = test.Name,
                     SizeMode = InheritMode.X,
                     //TextBold = true
                 });
 
-                Add(new SpriteText()
+                Add(new SpriteText
                 {
                     Text = test.Description,
                     TextSize = 15,

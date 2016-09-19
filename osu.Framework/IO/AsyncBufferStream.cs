@@ -111,7 +111,7 @@ namespace osu.Framework.IO
                     blockLoadedStatus[curr] = true;
                     last = curr;
 
-                    isLoaded |= blockLoadedStatus.All((bool loaded) => loaded);
+                    isLoaded |= blockLoadedStatus.All(loaded => loaded);
                 }
 
                 isLoaded = true;

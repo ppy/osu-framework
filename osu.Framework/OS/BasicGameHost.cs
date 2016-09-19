@@ -43,7 +43,7 @@ namespace osu.Framework.OS
         internal FramedClock InputClock = new FramedClock();
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
 
-        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock()
+        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock
         {
             MaximumUpdateHz = 144
         };

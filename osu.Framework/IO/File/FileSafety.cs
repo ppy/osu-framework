@@ -352,7 +352,7 @@ namespace osu.Framework.IO.File
 
         public static string CleanStoryboardFilename(string filename)
         {
-            return PathStandardise(filename.Trim(new[] { '"' }));
+            return PathStandardise(filename.Trim('"'));
         }
 
         //This is better than encoding as it doesn't check for origin specific data or remove invalid chars.

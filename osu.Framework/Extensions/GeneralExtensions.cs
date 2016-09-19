@@ -94,7 +94,7 @@ namespace osu.Framework.Extensions
 
         public static string ToResolutionString(this Size size)
         {
-            return size.Width.ToString() + 'x' + size.Height.ToString();
+            return size.Width.ToString() + 'x' + size.Height;
         }
 
         public static void WriteLineExplicit(this Stream s, string str = @"")

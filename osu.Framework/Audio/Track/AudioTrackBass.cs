@@ -43,15 +43,12 @@ namespace osu.Framework.Audio.Track
 
             if (data == null)
                 throw new Exception(@"Data couldn't be loaded!");
-            else
-            {
-                //encapsulate incoming stream with async buffer if it isn't already.
-                dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+            //encapsulate incoming stream with async buffer if it isn't already.
+            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                procs = new DataStreamFileProcedures(dataStream);
+            procs = new DataStreamFileProcedures(dataStream);
 
-                audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
-            }
+            audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
             if (Preview)
                 activeStream = audioStreamPrefilter;
@@ -109,14 +106,11 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelPause(activeStream);
                 return true;
             }
-            else
-            {
-                Bass.ChannelPlay(activeStream, false);
-                return false;
-            }
+            Bass.ChannelPlay(activeStream, false);
+            return false;
         }
 
-        int direction = 0;
+        int direction;
 
         private void setDirection(bool reverse)
         {
@@ -176,7 +170,7 @@ namespace osu.Framework.Audio.Track
 
             private AsyncBufferStream dataStream;
 
-            public FileProcedures BassProcedures => new FileProcedures()
+            public FileProcedures BassProcedures => new FileProcedures
             {
                 Close = ac_Close,
                 Length = ac_Length,

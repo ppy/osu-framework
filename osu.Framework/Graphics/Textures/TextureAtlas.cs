@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Textures
         private int atlasWidth;
         private int atlasHeight;
 
-        private int currentY = 0;
+        private int currentY;
 
         private bool IsFull
         {

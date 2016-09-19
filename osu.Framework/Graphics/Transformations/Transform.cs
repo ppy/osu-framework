@@ -90,7 +90,6 @@ namespace osu.Framework.Graphics.Transformations
 
         public void Load()
         {
-            return;
         }
     }
 }

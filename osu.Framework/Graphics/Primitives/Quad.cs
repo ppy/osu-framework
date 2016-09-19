@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2[] Vertices => new Vector2[] { TopLeft, TopRight, BottomRight, BottomLeft };
+        public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
         public Vector2[] AxisVertices => Vertices;
 
         public Vector2? Contains(Vector2 pos)

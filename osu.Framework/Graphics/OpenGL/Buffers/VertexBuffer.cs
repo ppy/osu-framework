@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool isDisposed = false;
+        protected bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {

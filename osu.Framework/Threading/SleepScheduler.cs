@@ -11,7 +11,6 @@ namespace osu.Framework.Threading
         private SleepHandle sleeper;
 
         public SleepScheduler(SleepHandle sleeper)
-            : base()
         {
             this.sleeper = sleeper;
         }
@@ -23,14 +22,13 @@ namespace osu.Framework.Threading
                 base.Add(d, forceDelayed);
                 return true;
             }
-            else
-                ThreadPool.QueueUserWorkItem(State =>
-                {
-                    if (sleeper.IsSleeping)
-                        sleeper.Invoke(d);
-                    else
-                        Add(d, forceDelayed);
-                });
+            ThreadPool.QueueUserWorkItem(State =>
+            {
+                if (sleeper.IsSleeping)
+                    sleeper.Invoke(d);
+                else
+                    Add(d, forceDelayed);
+            });
 
             return false;
         }
