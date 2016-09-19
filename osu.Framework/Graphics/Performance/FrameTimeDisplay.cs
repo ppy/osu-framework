@@ -2,33 +2,25 @@
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
-using osu.Framework.Configuration;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Timing;
-using System.Linq;
+using osu.Framework.Graphics.Transformations;
+using osu.Framework.Input;
+using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Graphics;
-using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using System.Collections.Concurrent;
-using osu.Framework.Input;
 using OpenTK.Input;
-using osu.Framework.Graphics.Transformations;
-using osu.Framework.Statistics;
-using System.Diagnostics;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Performance
 {
     class FrameTimeDisplay : Container
     {
-        static Vector2 padding = new Vector2(0, 0);
-
         const int WIDTH = 800;
         const int HEIGHT = 100;
 
@@ -38,10 +30,10 @@ namespace osu.Framework.Graphics.Performance
         private TimeBar[] timeBars = new TimeBar[2];
         private BufferStack textureBufferStack;
 
-        private static Color4[] garbageCollectColors = new Color4[] { Color4.Green, Color4.Yellow, Color4.Red };
+        private static Color4[] garbageCollectColors = { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
 
-        private int currentX = 0;
+        private int currentX;
 
         private int TimeBarIndex => currentX / WIDTH;
         private int TimeBarX => currentX % WIDTH;
@@ -59,8 +51,8 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
-            this.Name = name;
-            this.Size = new Vector2(WIDTH, HEIGHT);
+            Name = name;
+            Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
             textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
         }
@@ -78,7 +70,7 @@ namespace osu.Framework.Graphics.Performance
                     Text = Name,
                     Origin = Anchor.BottomCentre,
                     Anchor = Anchor.CentreLeft,
-                    Rotation = -90,
+                    Rotation = -90
                 },
                 new MaskingContainer
                 {
@@ -94,29 +86,29 @@ namespace osu.Framework.Graphics.Performance
                                 new Box {
                                     SizeMode = InheritMode.XY,
                                     Colour = Color4.Gray,
-                                    Alpha = 0.2f,
+                                    Alpha = 0.2f
                                 }
                             }
                         },
                         new SpriteText
                         {
-                            Text = $@"{visible_range}ms",
+                            Text = $@"{visible_range}ms"
                         },
                         new SpriteText
                         {
                             Text = @"0ms",
                             Anchor = Anchor.BottomLeft,
                             Origin = Anchor.BottomLeft
-                        },
+                        }
                     }
-                },
+                }
             };
 
             foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
             {
                 if (t >= PerformanceCollectionType.Empty) continue;
 
-                legendContainer.Add(legendMapping[(int)t] = new SpriteText()
+                legendContainer.Add(legendMapping[(int)t] = new SpriteText
                 {
                     Colour = getColour(t),
                     Text = t.ToString(),
@@ -159,14 +151,14 @@ namespace osu.Framework.Graphics.Performance
             public override bool HandleInput => false;
         }
 
-        public void AddEvent(int type)
+        private void addEvent(int type)
         {
-            Box b = new Box()
+            Box b = new Box
             {
                 Origin = Anchor.TopCentre,
                 Position = new Vector2(TimeBarX, 0),
                 Colour = garbageCollectColors[type],
-                Size = new Vector2(3, 3),
+                Size = new Vector2(3, 3)
             };
 
             timeBars[TimeBarIndex].Add(b);
@@ -201,7 +193,7 @@ namespace osu.Framework.Graphics.Performance
                 if (processFrames)
                 {
                     foreach (int gcLevel in frame.GarbageCollections)
-                        AddEvent(gcLevel);
+                        addEvent(gcLevel);
 
                     TimeBar timeBar = timeBars[TimeBarIndex];
                     TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
@@ -231,48 +223,36 @@ namespace osu.Framework.Graphics.Performance
 
         private Color4 getColour(PerformanceCollectionType type)
         {
-            Color4 col = default(Color4);
-
             switch (type)
             {
                 default:
                 case PerformanceCollectionType.Update:
-                    col = Color4.YellowGreen;
-                    break;
+                    return Color4.YellowGreen;
                 case PerformanceCollectionType.Draw:
-                    col = Color4.BlueViolet;
-                    break;
+                    return Color4.BlueViolet;
                 case PerformanceCollectionType.SwapBuffer:
-                    col = Color4.Red;
-                    break;
+                    return Color4.Red;
 #if DEBUG
                 case PerformanceCollectionType.Debug:
-                    col = Color4.Yellow;
-                    break;
+                    return Color4.Yellow;
 #endif
                 case PerformanceCollectionType.Sleep:
-                    col = Color4.DarkBlue;
-                    break;
+                    return Color4.DarkBlue;
                 case PerformanceCollectionType.Scheduler:
-                    col = Color4.HotPink;
-                    break;
+                    return Color4.HotPink;
                 case PerformanceCollectionType.WndProc:
-                    col = Color4.GhostWhite;
-                    break;
+                    return Color4.GhostWhite;
                 case PerformanceCollectionType.Empty:
-                    col = new Color4(50, 40, 40, 180);
-                    break;
+                    return new Color4(50, 40, 40, 180);
             }
-
-            return col;
         }
 
         private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData)
         {
             Debug.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
-            double elapsedMilliseconds = 0;
-            int drawHeight = 0;
+            double elapsedMilliseconds;
+            int drawHeight;
 
             if (frameTimeType == PerformanceCollectionType.Empty)
                 drawHeight = currentHeight;
@@ -294,7 +274,7 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index] = (byte)(255 * col.R);
                 textureData[index + 1] = (byte)(255 * col.G);
                 textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - (int)((i * 4) / HEIGHT) / 8f)) : col.A));
+                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4f / HEIGHT / 8f)) : col.A));
                 currentHeight--;
             }
 
