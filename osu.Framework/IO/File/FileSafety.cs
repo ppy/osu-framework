@@ -345,7 +345,7 @@ namespace osu.Framework.IO.File
         }
 
         //This is better than encoding as it doesn't check for origin specific data or remove invalid chars.
-        public unsafe static string rawBytesToString(byte[] encoded)
+        public static unsafe string rawBytesToString(byte[] encoded)
         {
             if (encoded.Length == 0)
                 return string.Empty;
