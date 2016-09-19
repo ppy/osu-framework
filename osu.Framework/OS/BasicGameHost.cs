@@ -22,7 +22,8 @@ namespace osu.Framework.OS
 {
     public abstract class BasicGameHost : Container
     {
-        public abstract BasicGameWindow Window { get; }
+        public BasicGameWindow Window;
+
         public abstract GLControl GLControl { get; }
         public abstract bool IsActive { get; }
 

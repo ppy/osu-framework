@@ -52,7 +52,6 @@ namespace osu.Framework.Graphics.Performance
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
             Name = name;
-            Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
             textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
         }
@@ -60,6 +59,8 @@ namespace osu.Framework.Graphics.Performance
         public override void Load()
         {
             base.Load();
+
+            Size = new Vector2(WIDTH, HEIGHT);
 
             for (int i = 0; i < timeBars.Length; ++i)
                 timeBars[i] = new TimeBar();

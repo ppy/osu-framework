@@ -13,8 +13,10 @@ namespace osu.Framework.Graphics.Cursor
     {
         private Cursor cursor;
 
-        public CursorContainer()
+        public override void Load()
         {
+            base.Load();
+
             Add(cursor = new Cursor());
         }
 

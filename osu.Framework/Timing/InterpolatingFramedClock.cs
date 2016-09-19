@@ -18,7 +18,7 @@ namespace osu.Framework.Timing
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
-        public virtual void ChangeSource(IClock source)
+        public void ChangeSource(IClock source)
         {
             SourceClock = new FramedClock(source);
             LastInterpolatedTime = 0;

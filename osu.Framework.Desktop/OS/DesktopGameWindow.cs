@@ -13,14 +13,27 @@ namespace osu.Framework.Desktop.OS
 {
     public abstract class DesktopGameWindow : BasicGameWindow
     {
-        public override BasicGameForm Form { get; }
-
         public override Rectangle ClientBounds => Form.ClientBounds;
         public override bool IsMinimized => Form.IsMinimized;
         public override IntPtr Handle => Form.Handle;
 
         private const int default_width = 1366;
         private const int default_height = 768;
+
+        public override Size Size
+        {
+            get
+            {
+                return Form.ClientSize;
+            }
+
+            set
+            {
+                Form.ClientSize = value;
+            }
+        }
+
+        protected abstract BasicGameForm CreateGameForm(GraphicsContextFlags flags);
 
         internal DesktopGameWindow(GraphicsContextFlags flags)
         {
@@ -39,8 +52,6 @@ namespace osu.Framework.Desktop.OS
         {
             e.Cancel = OnExitRequested();
         }
-
-        protected abstract BasicGameForm CreateGameForm(GraphicsContextFlags flags);
 
         public override void Close()
         {

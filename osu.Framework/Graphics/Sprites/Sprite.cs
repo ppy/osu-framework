@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Texture texture;
-        public virtual Texture Texture
+        public Texture Texture
         {
             get { return texture; }
             set

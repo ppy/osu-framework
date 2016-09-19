@@ -14,6 +14,9 @@ namespace osu.Framework.OS
         public event EventHandler Deactivated;
         public event EventHandler Paint;
 
+        //todo: remove the need for this.
+        public BasicGameForm Form { get; protected set; }
+
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
@@ -24,22 +27,10 @@ namespace osu.Framework.OS
         public abstract Rectangle ClientBounds { get; }
         public abstract IntPtr Handle { get; }
         public abstract bool IsMinimized { get; }
-        public abstract BasicGameForm Form { get; }
 
         public BasicGameWindow() { }
 
-        public Size Size
-        {
-            get
-            {
-                return Form.ClientSize;
-            }
-
-            set
-            {
-                Form.ClientSize = value;
-            }
-        }
+        public abstract Size Size { get; set; }
 
         public abstract void Close();
 

@@ -15,7 +15,6 @@ namespace osu.Framework.Desktop.OS.Windows
 {
     public class WindowsGameHost : BasicGameHost
     {
-        public override BasicGameWindow Window => window;
         public override GLControl GLControl => window?.Form;
         public override bool IsActive => Window != null && GetForegroundWindow().Equals(Window.Handle);
 
@@ -32,6 +31,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
             Application.EnableVisualStyles();
 
+            Window = window;
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
         }
