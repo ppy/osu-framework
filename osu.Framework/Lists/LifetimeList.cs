@@ -13,6 +13,8 @@ namespace osu.Framework.Lists
     {
         private double lastTime;
 
+        public event Action<T> OnRemoved;
+
         public LifetimeList(IComparer<T> comparer)
             : base(comparer)
         {
@@ -30,10 +32,8 @@ namespace osu.Framework.Lists
             }
         }
 
-        public List<T> Update(double time)
+        public void Update(double time)
         {
-            List<T> removedObjects = new List<T>();
-
             for (int i = 0; i < Count; i++)
             {
                 var obj = this[i];
@@ -46,12 +46,11 @@ namespace osu.Framework.Lists
                 else if (obj.RemoveWhenNotAlive)
                 {
                     RemoveAt(i--);
-                    removedObjects.Add(obj);
+                    OnRemoved?.Invoke(obj);
                 }
             }
 
             lastTime = time;
-            return removedObjects;
         }
 
         public override int Add(T item)

@@ -436,6 +436,8 @@ namespace osu.Framework.Graphics
         public Drawable()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
+
+            transforms.OnRemoved += transforms_OnRemoved;
         }
 
         /// <summary>
@@ -639,6 +641,8 @@ namespace osu.Framework.Graphics
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
+            if (children.Count == 0) return false;
+
             bool childChangedStatus = false;
             foreach (Drawable child in children)
             {
@@ -781,13 +785,17 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we should draw this drawable.</returns>
         private void updateTransforms()
         {
-            var removed = transforms.Update(Time);
+            if (transforms.Count == 0) return;
 
-            foreach (ITransform t in removed)
-                t.Apply(this); //make sure we apply one last time.
+            transforms.Update(Time);
 
             foreach (ITransform t in transforms.Current)
                 t.Apply(this);
+        }
+
+        private void transforms_OnRemoved(ITransform t)
+        {
+            t.Apply(this); //make sure we apply one last time.
         }
 
         /// <summary>
