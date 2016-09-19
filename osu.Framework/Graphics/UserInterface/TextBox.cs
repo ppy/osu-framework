@@ -42,8 +42,6 @@ namespace osu.Framework.Graphics.UserInterface
         public event OnCommitHandler OnCommit;
         public event OnCommitHandler OnChange;
 
-        public float SpaceWidth = 10;
-
         private Scheduler textUpdateScheduler = new Scheduler();
 
         public override void Load()
@@ -279,33 +277,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch;
 
-            if (char.IsWhiteSpace(c))
+            textFlow.Add(ch = new SpriteText()
             {
-                float width = SpaceWidth / 2;
-
-                switch ((int)c)
-                {
-                    case 0x3000: //double-width space
-                        width = SpaceWidth;
-                        break;
-                }
-
-                textFlow.Add(ch = new Container()
-                {
-                    SizeMode = InheritMode.None,
-                    Size = new Vector2(width, SpaceWidth),
-                    Depth = selectionLeft
-                });
-            }
-            else
-            {
-                textFlow.Add(ch = new SpriteText()
-                {
-                    Text = c.ToString(),
-                    TextSize = Size.Y,
-                    Depth = selectionLeft,
-                });
-            }
+                Text = c.ToString(),
+                TextSize = Size.Y,
+                Depth = selectionLeft,
+            });
 
             return ch;
         }
@@ -338,7 +315,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            ch.Position = new Vector2(0, SpaceWidth);
+            ch.Position = new Vector2(0, Size.Y);
             ch.MoveToY(0, 200, EasingTypes.OutExpo);
 
             text = text.Insert(selectionLeft, c.ToString());

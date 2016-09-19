@@ -120,17 +120,30 @@ namespace osu.Framework.Graphics.Sprites
                     char c = text[index];
 
                     Drawable s;
-                    if (c == ' ')
+
+                    if (char.IsWhiteSpace(c))
+                    {
+                        float width = FixedWidth ? constantWidth.Value : spaceWidth;
+
+                        switch ((int)c)
+                        {
+                            case 0x3000: //double-width space
+                                width *= 2;
+                                break;
+                        }
+
                         s = new Container()
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.Value : spaceWidth),
+                            Size = new Vector2(width),
                             Colour = Color4.Transparent,
                         };
+                    }
                     else
                     {
                         s = getSprite(c);
 
-                        var ctn = new Container() {
+                        var ctn = new Container()
+                        {
                             Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
                         };
 
