@@ -7,7 +7,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
-#pragma warning disable 618
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -84,6 +83,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 // Make sure the framebuffer we want to attach to is bound
                 int lastFrameBuffer = GLWrapper.BindFrameBuffer(frameBuffer);
 
+#pragma warning disable 618
+                //todo: fix opentk obsolete attributes on impossible-to-replace functions.
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
@@ -98,6 +99,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
+#pragma warning restore 618
 
                 GLWrapper.BindFrameBuffer(lastFrameBuffer);
             }

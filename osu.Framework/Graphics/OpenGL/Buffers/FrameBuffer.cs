@@ -7,7 +7,6 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using System;
 using System.Collections.Generic;
 using System.Text;
-#pragma warning disable 618
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -34,7 +33,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Bind();
 
+#pragma warning disable 618
+                //todo: fix opentk obsolete attributes on impossible-to-replace functions.
                 GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, TextureTarget.Texture2D, Texture.TextureId, 0);
+#pragma warning restore 618
                 GLWrapper.BindTexture(0);
 
                 Unbind();
