@@ -32,8 +32,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)

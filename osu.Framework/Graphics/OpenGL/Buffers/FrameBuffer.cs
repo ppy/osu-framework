@@ -48,8 +48,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;

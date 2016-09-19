@@ -44,8 +44,8 @@ namespace osu.Framework.Graphics.Batches
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected void Dispose(bool disposing)
