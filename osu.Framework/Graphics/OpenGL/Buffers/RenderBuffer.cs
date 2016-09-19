@@ -83,23 +83,20 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 // Make sure the framebuffer we want to attach to is bound
                 int lastFrameBuffer = GLWrapper.BindFrameBuffer(frameBuffer);
 
-#pragma warning disable 618
-                //todo: fix opentk obsolete attributes on impossible-to-replace functions.
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.Rgb565:
                     case RenderbufferInternalFormat.Rgb5A1:
                     case RenderbufferInternalFormat.Rgba4:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
-#pragma warning restore 618
 
                 GLWrapper.BindFrameBuffer(lastFrameBuffer);
             }
