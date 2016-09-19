@@ -21,8 +21,6 @@ namespace osu.Framework.OS
 
         public abstract event EventHandler ScreenChanged;
 
-        public event EventHandler UserResized;
-
         public abstract Rectangle ClientBounds { get; }
 
         public abstract bool IsMinimized { get; }

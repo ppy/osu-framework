@@ -31,6 +31,7 @@ namespace osu.Framework.Cached
         /// Create a new cached property.
         /// </summary>
         /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
+        /// <param name="clock">The clock which will be used to decide whether we need a refresh.</param>
         /// <param name="refreshInterval">How often we should refresh this property. Set to -1 to never update. Set to 0 for once per frame.</param>
         public Cached(PropertyUpdater updateDelegate = null, IClock clock = null, int refreshInterval = -1)
         {

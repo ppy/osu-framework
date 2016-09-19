@@ -8,7 +8,7 @@ namespace osu.Framework.Lists
 {
     /// <summary>
     /// An implementation of System.Collections.Generic.IReadOnlyList
-    /// with List&le;T&ge; methods.
+    /// with generic List methods.
     /// </summary>
     interface IReadOnlyList<T> : System.Collections.Generic.IReadOnlyList<T>
     {

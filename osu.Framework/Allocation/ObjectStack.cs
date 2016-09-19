@@ -36,7 +36,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Reserve an object from the pool. This is used to avoid excessive amounts of heap allocations.
         /// </summary>
-        /// <returns>The reserved buffer.</returns>
+        /// <returns>The reserved object.</returns>
         public T ReserveObject()
         {
             T o;
@@ -47,9 +47,9 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Frees a previously reserved buffer for future reservations.
+        /// Frees a previously reserved object for future reservations.
         /// </summary>
-        /// <param name="buffer">The buffer to be freed. If the buffer has not previously been reserved then this method does nothing.</param>
+        /// <param name="o">The object to be freed. If the object has not previously been reserved then this method does nothing.</param>
         public void FreeObject(T o)
         {
             lock (freeObjects)

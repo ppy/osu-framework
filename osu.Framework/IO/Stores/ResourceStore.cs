@@ -76,7 +76,6 @@ namespace osu.Framework.IO.Stores
         /// Retrieves an object from the store.
         /// </summary>
         /// <param name="name">The name of the object.</param>
-        /// <param name="reloadFunction">The function to call when the store reloads the object data.</param>
         /// <returns>The object.</returns>
         public virtual T Get(string name)
         {

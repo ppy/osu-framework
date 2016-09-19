@@ -13,6 +13,7 @@ namespace osu.Framework.IO.Stores
         /// Initializes a resource store with a single store.
         /// </summary>
         /// <param name="store">The store.</param>
+        /// <param name="ns">The namespace to add.</param>
         public NamespacedResourceStore(IResourceStore<T> store, string ns)
             : base(store)
         {

@@ -23,6 +23,7 @@ namespace osu.Framework.Extensions
         /// <summary>
         /// Searches for an element that matches the conditions defined by the specified predicate.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="match">The predicate that needs to be matched.</param>
         /// <param name="startIndex">The index to start conditional search.</param>
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
@@ -38,6 +39,7 @@ namespace osu.Framework.Extensions
         /// <summary>
         /// Adds the given item to the list according to standard sorting rules. Do not use on unsorted lists.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="item">The item that should be added.</param>
         /// <returns>The index in the list where the item was inserted.</returns>
         public static int AddInPlace<T>(this List<T> list, T item)
@@ -51,6 +53,7 @@ namespace osu.Framework.Extensions
         /// <summary>
         /// Adds the given item to the list according to the comparers sorting rules. Do not use on unsorted lists.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="item">The item that should be added.</param>
         /// <param name="comparer">The comparer that should be used for sorting.</param>
         /// <returns>The index in the list where the item was inserted.</returns>

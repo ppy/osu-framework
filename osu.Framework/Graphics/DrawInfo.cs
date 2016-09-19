@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="origin">The center of rotation and scale.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
-        /// <param name="viewport">An optional new viewport size.</param>
+        /// <param name="blending">An optional blending change.</param>
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;
