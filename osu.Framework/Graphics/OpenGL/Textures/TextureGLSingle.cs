@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Primitives;
 using System.Drawing;
 using osu.Framework.DebugUtils;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+#pragma warning disable 618
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {

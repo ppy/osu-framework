@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using System;
 using System.Collections.Generic;
 using System.Text;
+#pragma warning disable 618
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
