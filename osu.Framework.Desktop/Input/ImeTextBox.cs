@@ -53,7 +53,6 @@ namespace osu.Framework.Desktop.Input
 
         public bool ImeActive => imeActive;
 
-        internal double ImeDeactivateTime;
         internal List<string> Candidates = new List<string>();
 
         public ImeTextBox()

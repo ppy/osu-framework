@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
                 return base.InvalidationEffectByChildren(childInvalidation);
         }
 
-        public virtual InheritMode SizeMode
+        public override InheritMode SizeMode
         {
             get { return base.SizeMode; }
             set
