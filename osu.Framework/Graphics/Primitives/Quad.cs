@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Primitives
                                           new Vector2(rectangle.Right, rectangle.Bottom));
         }
 
-        public static Quad operator *(OpenTK.Matrix3 m, Quad r)
+        public static Quad operator *(Matrix3 m, Quad r)
         {
             return new Quad(
                 r.TopLeft * m,
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Primitives
                 r.BottomRight * m);
         }
 
-        public OpenTK.Matrix2 BasisTransform
+        public Matrix2 BasisTransform
         {
             get
             {
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Primitives
                 if (row1 != Vector2.Zero)
                     row1 /= row1.LengthSquared;
 
-                return new OpenTK.Matrix2(
+                return new Matrix2(
                     row0.X, row0.Y,
                     row1.X, row1.Y);
             }

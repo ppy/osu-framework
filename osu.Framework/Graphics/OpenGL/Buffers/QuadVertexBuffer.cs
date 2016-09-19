@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static QuadIndexData()
         {
-            GL.GenBuffers(1, out QuadIndexData.EboId);
+            GL.GenBuffers(1, out EboId);
         }
 
         public static readonly int EboId;

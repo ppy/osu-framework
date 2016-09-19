@@ -32,10 +32,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="x">The x-coordinate of the upper-left corner of the rectangle. </param>
         public RectangleF(float x, float y, float width, float height)
         {
-            this.X = x;
-            this.Y = y;
-            this.Width = width;
-            this.Height = height;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
         }
 
         /// <summary>Initializes a new instance of the <see cref="T:System.Drawing.RectangleF"></see> class with the specified location and size.</summary>

@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
                     return tex;
                 }
 
-                Stream s = base.GetStream($@"{name}");
+                Stream s = GetStream($@"{name}");
                 if (s == null) return null;
 
                 using (MagickImage mainImage = new MagickImage(s))

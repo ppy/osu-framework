@@ -192,14 +192,14 @@ namespace osu.Framework.Desktop.Input
 
         private string getIMEString(int type)
         {
-            IntPtr hIMC = ImmGetContext(this.Handle);
+            IntPtr hIMC = ImmGetContext(Handle);
 
             int sz = ImmGetCompositionString(hIMC, type, null, 0);
 
             byte[] str = new byte[sz];
 
             ImmGetCompositionString(hIMC, type, str, sz);
-            ImmReleaseContext(this.Handle, hIMC);
+            ImmReleaseContext(Handle, hIMC);
 
             return Encoding.Unicode.GetString(str);
         }

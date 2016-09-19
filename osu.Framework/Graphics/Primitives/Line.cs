@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Primitives
         public ColouredLine(Vector2 p1, Vector2 p2, Color4 color)
             : base(p1, p2)
         {
-            this.colour = color;
+            colour = color;
         }
     }
 
@@ -55,8 +55,8 @@ namespace osu.Framework.Graphics.Primitives
 
         public Line(Vector2 p1, Vector2 p2)
         {
-            this.StartPoint = p1;
-            this.EndPoint = p2;
+            StartPoint = p1;
+            EndPoint = p2;
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Primitives
 
         public object Clone()
         {
-            return this.MemberwiseClone();
+            return MemberwiseClone();
         }
     }
 }

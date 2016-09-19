@@ -40,8 +40,8 @@ namespace osu.Framework.Graphics.Shaders
         public UniformBase(Shader owner, string name, int uniformLocation, ActiveUniformType type)
         {
             this.owner = owner;
-            this.Name = name;
-            this.location = uniformLocation;
+            Name = name;
+            location = uniformLocation;
             this.type = type;
         }
 

@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Stride, positionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new UncolouredVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new UncolouredVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, Stride, colourOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new Vertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new Vertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TexturedVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, Stride, timeOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TimedTexturedVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TimedTexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -176,13 +176,13 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(4, 2, VertexAttribPointerType.Float, false, Stride, directionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new ParticleVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new ParticleVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct TexturedVertex3d : IEquatable<TexturedVertex3d>
     {
-        public OpenTK.Vector3 Position;
+        public Vector3 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
 
@@ -204,6 +204,6 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TexturedVertex3d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex3d());
     }
 }

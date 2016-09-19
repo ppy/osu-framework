@@ -28,7 +28,7 @@ namespace osu.Framework.Lists
         /// <param name="list">The list to wrap over.</param>
         public ReadOnlyList(List<T> list)
         {
-            this.InternalList.AddRange(list);
+            InternalList.AddRange(list);
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace osu.Framework.Lists
         /// <param name="collection">The collection to add to the list.</param>
         public ReadOnlyList(IEnumerable<T> collection)
         {
-            this.InternalList.AddRange(collection);
+            InternalList.AddRange(collection);
         }
 
         public T this[int index] => InternalList[index];

@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace osu.Framework.Threading
 {
-    public class SleepScheduler : Threading.Scheduler
+    public class SleepScheduler : Scheduler
     {
         private SleepHandle sleeper;
         public SleepScheduler(SleepHandle sleeper)

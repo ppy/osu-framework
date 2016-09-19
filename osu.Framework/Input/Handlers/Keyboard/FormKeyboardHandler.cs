@@ -85,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Keyboard
 
         public override bool Initialize(Game game)
         {
-            this.form = game.Window.Form;
+            form = game.Window.Form;
             form.KeyPreview = true;
             form.KeyDown += keyDown;
             form.KeyUp += keyUp;

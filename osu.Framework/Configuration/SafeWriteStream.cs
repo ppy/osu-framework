@@ -15,7 +15,7 @@ namespace osu.Framework.Configuration
         private bool aborted;
 
         string finalFilename;
-        string temporaryFilename => base.Name;
+        string temporaryFilename => Name;
 
         public SafeWriteStream(string filename) : base(filename + "." + DateTime.Now.Ticks, FileMode.Create)
         {

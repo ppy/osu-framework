@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static LinearIndexData()
         {
-            GL.GenBuffers(1, out LinearIndexData.EboId);
+            GL.GenBuffers(1, out EboId);
         }
 
         public static readonly int EboId;

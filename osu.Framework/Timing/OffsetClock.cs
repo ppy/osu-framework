@@ -21,7 +21,7 @@ namespace osu.Framework.Timing
 
         public OffsetClock(IClock source)
         {
-            this.Source = source;
+            Source = source;
         }
     }
 }

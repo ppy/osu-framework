@@ -31,8 +31,8 @@ namespace osu.Framework.Graphics.Textures
 
         public TextureAtlas(int width, int height)
         {
-            this.atlasWidth = width;
-            this.atlasHeight = height;
+            atlasWidth = width;
+            atlasHeight = height;
         }
 
         public void Reset()
