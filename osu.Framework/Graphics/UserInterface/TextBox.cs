@@ -16,11 +16,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : ProcessingContainer
+    public class TextBox : Container
     {
         private FlowContainer textFlow;
         private Box background;
