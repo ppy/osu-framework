@@ -118,6 +118,7 @@ namespace osu.Framework.Graphics
         /// Unfocuses this drawable.
         /// </summary>
         /// <param name="state">The input state.</param>
+        /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
         public void TriggerFocusLost(InputState state = null, bool isCallback = false)
         {
             if (!HasFocus)
