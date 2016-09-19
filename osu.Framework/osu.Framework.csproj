@@ -79,6 +79,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PolygonExtensions\IConvexPolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PolygonExtensions\IPolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
+    <Compile Include="Allocation\ObjectStack.cs" />
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
     <Compile Include="Audio\IHasCompletedState.cs" />
@@ -98,7 +99,7 @@
     <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
-    <Compile Include="Graphics\OpenGL\Textures\TextureBufferStack.cs" />
+    <Compile Include="Allocation\BufferStack.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameTimeDisplay.cs" />
@@ -240,7 +241,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Statistics\FrameStatistics.cs" />
-    <Compile Include="Statistics\PerformanceCollectionPeriod.cs" />
+    <Compile Include="Allocation\InvokeOnDisposal.cs" />
     <Compile Include="Statistics\PerformanceMonitor.cs" />
     <Compile Include="Threading\Scheduler.cs" />
     <Compile Include="Threading\SleepHandle.cs" />

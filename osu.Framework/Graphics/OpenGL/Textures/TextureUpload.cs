@@ -4,21 +4,22 @@
 using System;
 using System.Drawing;
 using OpenTK.Graphics.ES20;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public class TextureUpload : IDisposable
     {
-        private static TextureBufferStack globalBufferStack = new TextureBufferStack(10);
+        private static BufferStack globalBufferStack = new BufferStack(10);
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
 
-        private TextureBufferStack bufferStack;
+        private BufferStack bufferStack;
 
-        public TextureUpload(int size, TextureBufferStack bufferStack = null)
+        public TextureUpload(int size, BufferStack bufferStack = null)
         {
             this.bufferStack = bufferStack == null ? globalBufferStack : bufferStack;
             Data = this.bufferStack.ReserveBuffer(size);

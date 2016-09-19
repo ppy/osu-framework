@@ -1,18 +1,21 @@
-﻿using System;
+﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace osu.Framework.Graphics.OpenGL.Textures
+namespace osu.Framework.Allocation
 {
-    public class TextureBufferStack
+    public class BufferStack
     {
         private int maxAmountBuffers;
         private Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
         private HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
 
-        public TextureBufferStack(int maxAmountBuffers = 10)
+        public BufferStack(int maxAmountBuffers = 10)
         {
             this.maxAmountBuffers = maxAmountBuffers;
         }
