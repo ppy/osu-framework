@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Desktop;
 using osu.Framework.OS;
+using osu.Framework;
 
 namespace SampleGame
 {
@@ -12,9 +13,12 @@ namespace SampleGame
         [STAThread]
         public static void Main()
         {
-            BasicGameHost host = Host.GetSuitableHost();
-            host.Load(new osu.Desktop.SampleGame());
-            host.Run();
+            using (Game game = new osu.Desktop.SampleGame())
+            using (BasicGameHost host = Host.GetSuitableHost())
+            {
+                host.Load(game);
+                host.Run();
+            }
         }
     }
 }
