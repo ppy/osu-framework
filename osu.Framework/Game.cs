@@ -20,7 +20,7 @@ namespace osu.Framework
     {
         public BasicGameWindow Window => host?.Window;
 
-        internal Scheduler Scheduler;
+        internal protected Scheduler Scheduler;
 
         public ResourceStore<byte[]> Resources;
 
@@ -45,6 +45,16 @@ namespace osu.Framework
         public TextureStore Fonts;
 
         private UserInputManager userInputContainer;
+        private FlowContainer performanceContainer;
+
+        public bool ShowPerformanceOverlay
+        {
+            get { return performanceContainer.Alpha > 0; }
+            set
+            {
+                performanceContainer.FadeTo(value ? 1 : 0, 200);
+            }
+        }
 
         protected override Container AddTarget => userInputContainer;
 
@@ -88,9 +98,10 @@ namespace osu.Framework
             Add(userInputContainer = new UserInputManager()
             {
                 Children = new[] {
-                    new FlowContainer
+                    performanceContainer = new FlowContainer
                     {
                         Direction = Graphics.Containers.FlowDirection.VerticalOnly,
+                        Alpha = 0,
                         Padding = new Vector2(10, 10),
                         Anchor = Graphics.Anchor.BottomRight,
                         Origin = Graphics.Anchor.BottomRight,

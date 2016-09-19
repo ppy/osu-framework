@@ -42,6 +42,18 @@ namespace osu.Framework.OS
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
 
+        public int MaximumUpdateHz
+        {
+            get { return UpdateClock.MaximumUpdateHz; }
+            set { UpdateClock.MaximumUpdateHz = value; }
+        }
+
+        public int MaximumDrawHz
+        {
+            get { return DrawClock.MaximumUpdateHz; }
+            set { DrawClock.MaximumUpdateHz = value; }
+        }
+
         internal PerformanceMonitor InputMonitor = new PerformanceMonitor();
         internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();

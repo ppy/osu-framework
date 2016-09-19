@@ -108,8 +108,6 @@ namespace osu.Framework.Graphics.Performance
                 },
             };
 
-            
-
             foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
             {
                 if (t >= PerformanceCollectionType.Empty) continue;
