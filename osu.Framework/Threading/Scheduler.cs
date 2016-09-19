@@ -277,7 +277,7 @@ namespace osu.Framework.Threading
 
         bool isDisposed;
 
-        public ThreadedScheduler(int runInterval = 50)
+        public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
             workerThread = new Thread(() =>
             {
@@ -287,7 +287,10 @@ namespace osu.Framework.Threading
                     Thread.Sleep(runInterval);
                 }
             })
-            { IsBackground = true };
+            {
+                IsBackground = true,
+                Name = threadName
+            };
 
             workerThread.Start();
         }

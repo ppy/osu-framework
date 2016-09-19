@@ -207,7 +207,7 @@ namespace osu.Framework.Logging
 
         static List<string> filters = new List<string>();
         static Dictionary<LoggingTarget, Logger> staticLoggers = new Dictionary<LoggingTarget, Logger>();
-        static ThreadedScheduler backgroundScheduler = new ThreadedScheduler();
+        static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
         static bool? hasLogDirectory;
         static string logDirectory;
 
