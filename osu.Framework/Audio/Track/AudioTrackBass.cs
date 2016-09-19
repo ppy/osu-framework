@@ -47,8 +47,7 @@ namespace osu.Framework.Audio.Track
             else
             {
                 //encapsulate incoming stream with async buffer if it isn't already.
-                dataStream = data as AsyncBufferStream;
-                if (dataStream == null) dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
+                dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
                 procs = new DataStreamFileProcedures(dataStream);
 
