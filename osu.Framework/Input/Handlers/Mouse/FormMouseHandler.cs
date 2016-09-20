@@ -93,13 +93,13 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Vector2? Position { get; set; }
         public Vector2 Size { get; set; }
-        public bool? Left { get; set; }
-        public bool? Right { get; set; }
-        public bool? Middle { get; set; }
-        public bool? Back { get; set; }
-        public bool? Forward { get; set; }
-        public bool? WheelUp { get; set; }
-        public bool? WheelDown { get; set; }
+        public bool? Left { get; private set; }
+        public bool? Right { get; private set; }
+        public bool? Middle { get; private set; }
+        public bool? Back { get; private set; }
+        public bool? Forward { get; private set; }
+        public bool? WheelUp { get; private set; }
+        public bool? WheelDown { get; private set; }
         public List<Vector2> IntermediatePositions { get; }
         public bool Clamping { get; set; }
     }
