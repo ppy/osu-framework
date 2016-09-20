@@ -11,84 +11,84 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     internal static class Input
     {
         [DllImport("user32.dll")]
-        internal static extern bool RegisterTouchWindow(IntPtr hWnd, int flags);
+        public static extern bool RegisterTouchWindow(IntPtr hWnd, int flags);
 
         [DllImport(@"user32.dll")]
-        internal static extern int SetProp(IntPtr hWnd, string lpString, int hData);
+        public static extern int SetProp(IntPtr hWnd, string lpString, int hData);
 
         [DllImport(@"user32.dll")]
-        internal static extern int RemoveProp(IntPtr hWnd, string lpString);
+        public static extern int RemoveProp(IntPtr hWnd, string lpString);
 
         [DllImport("user32.dll")]
-        internal static extern int GetSystemMetrics(int nIndex);
+        public static extern int GetSystemMetrics(int nIndex);
 
         [DllImport("user32.dll")]
-        internal static extern bool RegisterRawInputDevices(
+        public static extern bool RegisterRawInputDevices(
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] RawInputDevice[] pRawInputDevices,
             int uiNumDevices,
             int cbSize);
 
         [DllImport("user32.dll")]
-        internal static extern bool GetTouchInputInfo(
+        public static extern bool GetTouchInputInfo(
             IntPtr hTouchInput,
             int uiNumDevices,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out] RawTouchInput[] pRawTouchInputs,
             int cbSize);
 
         [DllImport("user32.dll")]
-        internal static extern bool CloseTouchInputHandle(IntPtr hTouchInput);
+        public static extern bool CloseTouchInputHandle(IntPtr hTouchInput);
 
         [DllImport("user32.dll")]
-        internal static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInput pData, ref int pcbSize, int cbSizeHeader);
+        public static extern int GetRawInputData(IntPtr hRawInput, RawInputCommand uiCommand, out RawInput pData, ref int pcbSize, int cbSizeHeader);
 
         [DllImport("user32.dll")]
-        internal static extern bool GetPointerInfo(int pointerID, out RawPointerInput type);
+        public static extern bool GetPointerInfo(int pointerID, out RawPointerInput type);
 
-        internal const int SM_XVIRTUALSCREEN = 76;
-        internal const int SM_YVIRTUALSCREEN = 77;
+        public const int SM_XVIRTUALSCREEN = 76;
+        public const int SM_YVIRTUALSCREEN = 77;
 
-        internal const int SM_CXVIRTUALSCREEN = 78;
-        internal const int SM_CYVIRTUALSCREEN = 79;
+        public const int SM_CXVIRTUALSCREEN = 78;
+        public const int SM_CYVIRTUALSCREEN = 79;
 
-        internal const int WM_MOUSEACTIVATE = 0x21;
+        public const int WM_MOUSEACTIVATE = 0x21;
 
-        internal const int WM_NCPOINTERUPDATE = 0x0241;
-        internal const int WM_NCPOINTERDOWN = 0x0242;
-        internal const int WM_NCPOINTERUP = 0x0243;
-        internal const int WM_POINTERUPDATE = 0x0245;
-        internal const int WM_POINTERDOWN = 0x0246;
-        internal const int WM_POINTERUP = 0x0247;
-        internal const int WM_POINTERENTER = 0x0249;
-        internal const int WM_POINTERLEAVE = 0x024A;
-        internal const int WM_POINTERACTIVATE = 0x024B;
-        internal const int WM_POINTERCAPTURECHANGED = 0x024C;
-        internal const int WM_POINTERWHEEL = 0x024E;
-        internal const int WM_POINTERHWHEEL = 0x024F;
+        public const int WM_NCPOINTERUPDATE = 0x0241;
+        public const int WM_NCPOINTERDOWN = 0x0242;
+        public const int WM_NCPOINTERUP = 0x0243;
+        public const int WM_POINTERUPDATE = 0x0245;
+        public const int WM_POINTERDOWN = 0x0246;
+        public const int WM_POINTERUP = 0x0247;
+        public const int WM_POINTERENTER = 0x0249;
+        public const int WM_POINTERLEAVE = 0x024A;
+        public const int WM_POINTERACTIVATE = 0x024B;
+        public const int WM_POINTERCAPTURECHANGED = 0x024C;
+        public const int WM_POINTERWHEEL = 0x024E;
+        public const int WM_POINTERHWHEEL = 0x024F;
 
-        internal const int WM_INPUT = 0x00FF;
-        internal const int WM_TOUCH = 0x0240;
+        public const int WM_INPUT = 0x00FF;
+        public const int WM_TOUCH = 0x0240;
 
-        internal const int TWF_FINETOUCH = 0x00000001;
-        internal const int TWF_WANTPALM = 0x00000002;
+        public const int TWF_FINETOUCH = 0x00000001;
+        public const int TWF_WANTPALM = 0x00000002;
 
-        internal const int TABLET_DISABLE_PRESSANDHOLD = 0x00000001;
-        internal const int TABLET_DISABLE_PENTAPFEEDBACK = 0x00000008;
-        internal const int TABLET_DISABLE_PENBARRELFEEDBACK = 0x00000010;
-        internal const int TABLET_DISABLE_TOUCHUIFORCEON = 0x00000100;
-        internal const int TABLET_DISABLE_TOUCHUIFORCEOFF = 0x00000200;
-        internal const int TABLET_DISABLE_TOUCHSWITCH = 0x00008000;
-        internal const int TABLET_DISABLE_FLICKS = 0x00010000;
-        internal const int TABLET_ENABLE_FLICKSONCONTEXT = 0x00020000;
-        internal const int TABLET_ENABLE_FLICKLEARNINGMODE = 0x00040000;
-        internal const int TABLET_DISABLE_SMOOTHSCROLLING = 0x00080000;
-        internal const int TABLET_DISABLE_FLICKFALLBACKKEYS = 0x00100000;
-        internal const int TABLET_ENABLE_MULTITOUCHDATA = 0x01000000;
+        public const int TABLET_DISABLE_PRESSANDHOLD = 0x00000001;
+        public const int TABLET_DISABLE_PENTAPFEEDBACK = 0x00000008;
+        public const int TABLET_DISABLE_PENBARRELFEEDBACK = 0x00000010;
+        public const int TABLET_DISABLE_TOUCHUIFORCEON = 0x00000100;
+        public const int TABLET_DISABLE_TOUCHUIFORCEOFF = 0x00000200;
+        public const int TABLET_DISABLE_TOUCHSWITCH = 0x00008000;
+        public const int TABLET_DISABLE_FLICKS = 0x00010000;
+        public const int TABLET_ENABLE_FLICKSONCONTEXT = 0x00020000;
+        public const int TABLET_ENABLE_FLICKLEARNINGMODE = 0x00040000;
+        public const int TABLET_DISABLE_SMOOTHSCROLLING = 0x00080000;
+        public const int TABLET_DISABLE_FLICKFALLBACKKEYS = 0x00100000;
+        public const int TABLET_ENABLE_MULTITOUCHDATA = 0x01000000;
     }
 
     /// <summary>
     /// Enumeration containing pointer types.
     /// </summary>
-    internal enum RawPointerType : uint
+    public enum RawPointerType : uint
     {
         Generic = 0x00000001,
         Touch = 0x00000002,
@@ -97,7 +97,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         Touchpad = 0x00000005,
     }
 
-    internal enum RawPointerButtonType : uint
+    public enum RawPointerButtonType : uint
     {
         None = 0,
         FirstButtonDown,
@@ -116,7 +116,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Enumeration containing pointer flags.
     /// </summary>
     [Flags]
-    internal enum RawPointerFlags : uint
+    public enum RawPointerFlags : uint
     {
         /// <summary>
         /// Default.
@@ -230,88 +230,88 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Contains information about the state of a touch input
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RawPointerInput
+    public struct RawPointerInput
     {
-        internal RawPointerType Type;
-        internal int ID;
-        internal uint FrameID;
-        internal RawPointerFlags Flags;
-        internal IntPtr SourceDevice;
-        internal IntPtr TargetWindow;
-        internal Point PixelLocation;
-        internal Point HimetricLocation;
-        internal Point PixelLocationRaw;
-        internal Point HimetricLocationRaw;
-        internal int Time;
-        internal uint HistoryCount;
-        internal int InputData;
-        internal uint KeyStates;
-        internal ulong PerformanceCount;
-        internal RawPointerButtonType ButtonChangeType;
+        public RawPointerType Type;
+        public int ID;
+        public uint FrameID;
+        public RawPointerFlags Flags;
+        public IntPtr SourceDevice;
+        public IntPtr TargetWindow;
+        public Point PixelLocation;
+        public Point HimetricLocation;
+        public Point PixelLocationRaw;
+        public Point HimetricLocationRaw;
+        public int Time;
+        public uint HistoryCount;
+        public int InputData;
+        public uint KeyStates;
+        public ulong PerformanceCount;
+        public RawPointerButtonType ButtonChangeType;
     }
 
     /// <summary>
     /// Contains information about the state of a touch input
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RawTouchInput
+    public struct RawTouchInput
     {
         /// <summary>
         /// The x-coordinate (horizontal point) of the touch input. This member is indicated in hundredths of a pixel of physical screen coordinates.
         /// </summary>
-        internal int X;
+        public int X;
 
         /// <summary>
         /// The y-coordinate (vertical point) of the touch input. This member is indicated in hundredths of a pixel of physical screen coordinates.
         /// </summary>
-        internal int Y;
+        public int Y;
 
         /// <summary>
         /// A device handle for the source input device. Each device is given a unique provider at run time by the touch input provider.
         /// </summary>
-        internal IntPtr Source;
+        public IntPtr Source;
 
         /// <summary>
         /// A touch point identifier that distinguishes a particular touch input. This value stays consistent in a touch contact sequence from the point a contact comes down until it comes back up. An ID may be reused later for subsequent contacts.
         /// </summary>
-        internal int ID;
+        public int ID;
 
         /// <summary>
         /// A set of bit flags that specify various aspects of touch point press, release, and motion. The bits in this member can be any reasonable combination of the values in the Remarks section.
         /// </summary>
-        internal RawTouchFlags Flags;
+        public RawTouchFlags Flags;
 
         /// <summary>
         /// A set of bit flags that specify which of the optional fields in the structure contain valid values. The availability of valid information in the optional fields is device-specific. Applications should use an optional field value only when the corresponding bit is set in Mask..
         /// </summary>
-        internal RawTouchMaskFlags Mask;
+        public RawTouchMaskFlags Mask;
 
         /// <summary>
         /// The time stamp for the event, in milliseconds. The consuming application should note that the system performs no validation on this field; when the TOUCHINPUTMASKF_TIMEFROMSYSTEM flag is not set, the accuracy and sequencing of values in this field are completely dependent on the touch input provider.
         /// </summary>
-        internal int Time;
+        public int Time;
 
         /// <summary>
         /// An additional value associated with the touch event.
         /// </summary>
-        internal int ExtraInfo;
+        public int ExtraInfo;
 
         /// <summary>
         /// The width of the touch contact area in hundredths of a pixel in physical screen coordinates. This value is only valid if the Mask member has the TOUCHEVENTFMASK_CONTACTAREA flag set.
         /// </summary>
-        internal uint AreaWidth;
+        public uint AreaWidth;
 
         /// <summary>
         /// The height of the touch contact area in hundredths of a pixel in physical screen coordinates. This value is only valid if the Mask member has the TOUCHEVENTFMASK_CONTACTAREA flag set.
         /// </summary>
-        internal uint AreaHeight;
+        public uint AreaHeight;
     }
 
     /// <summary>
     /// Enumeration containing flags for raw touch input.
     /// </summary>
     [Flags]
-    internal enum RawTouchFlags : uint
+    public enum RawTouchFlags : uint
     {
         /// <summary>
         /// Movement has occurred. Cannot be combined with TOUCHEVENTF_DOWN. 
@@ -353,7 +353,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Enumeration containing mask flags for raw touch input.
     /// </summary>
     [Flags]
-    internal enum RawTouchMaskFlags : uint
+    public enum RawTouchMaskFlags : uint
     {
         /// <summary>
         /// AreaWidth and AreaHeight are valid. 
@@ -377,19 +377,19 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     struct RawInput
     {
-        internal RawInputHeader Header;
-        internal RawInputData Data;
+        public RawInputHeader Header;
+        public RawInputData Data;
 
-        internal static readonly int SizeInBytes =
+        public static readonly int SizeInBytes =
             BlittableValueType<RawInput>.Stride;
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    internal struct RawInputData
+    public struct RawInputData
     {
-        [FieldOffset(0)] internal RawMouse Mouse;
-        [FieldOffset(0)] internal RawKeyboard Keyboard;
-        [FieldOffset(0)] internal RawInputHid HID;
+        [FieldOffset(0)] public RawMouse Mouse;
+        [FieldOffset(0)] public RawKeyboard Keyboard;
+        [FieldOffset(0)] public RawInputHid HID;
     }
 
     //unused structs
@@ -397,32 +397,32 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Value type for raw input from a keyboard.
     /// </summary>    
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RawKeyboard
+    public struct RawKeyboard
     {
         /// <summary>Scan code for key depression.</summary>
-        internal short MakeCode;
+        public short MakeCode;
 
         /// <summary>Scan code information.</summary>
-        internal RawKeyboardFlags Flags;
+        public RawKeyboardFlags Flags;
 
         /// <summary>Reserved.</summary>
-        internal short Reserved;
+        public short Reserved;
 
         /// <summary>Virtual key code.</summary>
-        internal VirtualKeys VirtualKey;
+        public VirtualKeys VirtualKey;
 
         /// <summary>Corresponding window message.</summary>
-        internal WindowsMessages Message;
+        public WindowsMessages Message;
 
         /// <summary>Extra information.</summary>
-        internal int ExtraInformation;
+        public int ExtraInformation;
     }
 
     /// <summary>
     /// Enumeration containing flags for raw keyboard input.
     /// </summary>
     [Flags]
-    internal enum RawKeyboardFlags : ushort
+    public enum RawKeyboardFlags : ushort
     {
         /// <summary></summary>
         KeyMake = 0,
@@ -446,7 +446,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         TerminalServerVKPACKET = 0x20
     }
 
-    internal struct RawInputHid
+    public struct RawInputHid
     {
     }
 
@@ -454,51 +454,51 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Contains information about the state of the mouse.
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
-    internal struct RawMouse
+    public struct RawMouse
     {
         /// <summary>
         /// The mouse state.
         /// </summary>
-        [FieldOffset(0)] internal RawMouseFlags Flags;
+        [FieldOffset(0)] public RawMouseFlags Flags;
 
         /// <summary>
         /// Flags for the event.
         /// </summary>
-        [FieldOffset(4)] internal RawMouseButtons ButtonFlags;
+        [FieldOffset(4)] public RawMouseButtons ButtonFlags;
 
         /// <summary>
         /// If the mouse wheel is moved, this will contain the delta amount.
         /// </summary>
-        [FieldOffset(6)] internal short ButtonData;
+        [FieldOffset(6)] public short ButtonData;
 
         /// <summary>
         /// Raw button data.
         /// </summary>
-        [FieldOffset(8)] internal uint RawButtons;
+        [FieldOffset(8)] public uint RawButtons;
 
         /// <summary>
         /// The motion in the X direction. This is signed relative motion or
         /// absolute motion, depending on the value of usFlags.
         /// </summary>
-        [FieldOffset(12)] internal int LastX;
+        [FieldOffset(12)] public int LastX;
 
         /// <summary>
         /// The motion in the Y direction. This is signed relative motion or absolute motion,
         /// depending on the value of usFlags.
         /// </summary>
-        [FieldOffset(16)] internal int LastY;
+        [FieldOffset(16)] public int LastY;
 
         /// <summary>
         /// The device-specific additional information for the event.
         /// </summary>
-        [FieldOffset(20)] internal uint ExtraInformation;
+        [FieldOffset(20)] public uint ExtraInformation;
     }
 
     /// <summary>
     /// Enumeration containing the flags for raw mouse data.
     /// </summary>
     [Flags]
-    internal enum RawMouseFlags
+    public enum RawMouseFlags
         : ushort
     {
         /// <summary>Relative to the last position.</summary>
@@ -521,7 +521,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Enumeration containing the button data for raw mouse input.
     /// </summary>
     [Flags]
-    internal enum RawMouseButtons
+    public enum RawMouseButtons
         : ushort
     {
         /// <summary>No button.</summary>
@@ -564,7 +564,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// <summary>
     /// Enumeration contanining the command types to issue.
     /// </summary>
-    internal enum RawInputCommand
+    public enum RawInputCommand
     {
         /// <summary>
         /// Get input data.
@@ -580,7 +580,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// <summary>
     /// Enumeration containing the type device the raw input is coming from.
     /// </summary>
-    internal enum RawInputType
+    public enum RawInputType
     {
         /// <summary>
         /// Mouse input.
@@ -602,40 +602,40 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Value type for a raw input header.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RawInputHeader
+    public struct RawInputHeader
     {
         /// <summary>Type of device the input is coming from.</summary>
-        internal RawInputType Type;
+        public RawInputType Type;
 
         /// <summary>Size of the packet of data.</summary>
-        internal int Size;
+        public int Size;
 
         /// <summary>Handle to the device sending the data.</summary>
-        internal IntPtr Device;
+        public IntPtr Device;
 
         /// <summary>wParam from the window message.</summary>
-        internal IntPtr wParam;
+        public IntPtr wParam;
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct RawInputDevice
+    public struct RawInputDevice
     {
         /// <summary>Top level collection Usage page for the raw input device.</summary>
-        internal HIDUsagePage UsagePage;
+        public HIDUsagePage UsagePage;
 
         /// <summary>Top level collection Usage for the raw input device. </summary>
-        internal HIDUsage Usage;
+        public HIDUsage Usage;
 
         /// <summary>Mode flag that specifies how to interpret the information provided by UsagePage and Usage.</summary>
-        internal RawInputDeviceFlags Flags;
+        public RawInputDeviceFlags Flags;
 
         /// <summary>Handle to the target device. If NULL, it follows the keyboard focus.</summary>
-        internal IntPtr WindowHandle;
+        public IntPtr WindowHandle;
     }
 
     /// <summary>Enumeration containing flags for a raw input device.</summary>
     [Flags]
-    internal enum RawInputDeviceFlags
+    public enum RawInputDeviceFlags
     {
         /// <summary>No flags.</summary>
         None = 0,
@@ -668,7 +668,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// <summary>
     /// Enumeration for virtual keys.
     /// </summary>
-    internal enum VirtualKeys
+    public enum VirtualKeys
         : ushort
     {
         /// <summary></summary>
@@ -1260,7 +1260,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         OEMClear = 0xFE
     }
 
-    internal enum HIDUsage : ushort
+    public enum HIDUsage : ushort
     {
         Pointer = 0x01,
         Mouse = 0x02,
@@ -1413,7 +1413,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         SimulationThrottle = 0xBB
     }
 
-    internal enum HIDUsagePage : ushort
+    public enum HIDUsagePage : ushort
     {
         Undefined = 0x00,
         Generic = 0x01,
@@ -1450,7 +1450,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
     /// Defined in winuser.h from Windows SDK v6.1
     /// Documentation pulled from MSDN.
     /// </summary>
-    internal enum WindowsMessages : uint
+    public enum WindowsMessages : uint
     {
         /// <summary>
         /// The WM_NULL message performs no operation. An application sends the WM_NULL message if it wants to post a message that the recipient window will ignore.
@@ -2182,7 +2182,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         MBUTTONDBLCLK = 0x0209,
 
         /// <summary>
-        /// The WM_MOUSEWHEEL message is sent to the focus window when the mouse wheel is rotated. The DefWindowProc function propagates the message to the window's parent. There should be no internal forwarding of the message, since DefWindowProc propagates it up the parent chain until it finds a window that processes it.
+        /// The WM_MOUSEWHEEL message is sent to the focus window when the mouse wheel is rotated. The DefWindowProc function propagates the message to the window's parent. There should be no public forwarding of the message, since DefWindowProc propagates it up the parent chain until it finds a window that processes it.
         /// </summary>
         MOUSEWHEEL = 0x020A,
 
@@ -2202,7 +2202,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         XBUTTONDBLCLK = 0x020D,
 
         /// <summary>
-        /// The WM_MOUSEHWHEEL message is sent to the focus window when the mouse's horizontal scroll wheel is tilted or rotated. The DefWindowProc function propagates the message to the window's parent. There should be no internal forwarding of the message, since DefWindowProc propagates it up the parent chain until it finds a window that processes it.
+        /// The WM_MOUSEHWHEEL message is sent to the focus window when the mouse's horizontal scroll wheel is tilted or rotated. The DefWindowProc function propagates the message to the window's parent. There should be no public forwarding of the message, since DefWindowProc propagates it up the parent chain until it finds a window that processes it.
         /// </summary>
         MOUSEHWHEEL = 0x020E,
 
@@ -2577,7 +2577,7 @@ namespace osu.Framework.Desktop.OS.Windows.Native
         CPL_LAUNCHED = USER + 0x1001,
 
         /// <summary>
-        /// WM_SYSTIMER is a well-known yet still undocumented message. Windows uses WM_SYSTIMER for internal actions like scrolling.
+        /// WM_SYSTIMER is a well-known yet still undocumented message. Windows uses WM_SYSTIMER for public actions like scrolling.
         /// </summary>
         SYSTIMER = 0x118,
 
