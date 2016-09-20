@@ -187,9 +187,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="viewport">The viewport rectangle.</param>
         public static void PushViewport(Rectangle viewport)
         {
-            Rectangle actualRect = Rectangle.Empty;
-
-            actualRect = viewport;
+            var actualRect = viewport;
 
             if (actualRect.Width < 0)
             {

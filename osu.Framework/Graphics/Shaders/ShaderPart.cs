@@ -69,11 +69,11 @@ namespace osu.Framework.Graphics.Shaders
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-#if DEBUG
-                        byte[] rawData = null;
-                        if (File.Exists(includeName))
-                            rawData = File.ReadAllBytes(includeName);
-#endif
+//#if DEBUG
+//                        byte[] rawData = null;
+//                        if (File.Exists(includeName))
+//                            rawData = File.ReadAllBytes(includeName);
+//#endif
                         shaderCodes.Add(loadFile(manager.LoadRaw(includeName)));
                     }
                     else
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Shaders
             GL.ShaderSource(this, shaderCodes.Count, shaderCodes.ToArray(), codeLengths);
             GL.CompileShader(this);
 
-            int compileResult = 0;
+            int compileResult;
             GL.GetShader(this, ShaderParameter.CompileStatus, out compileResult);
             Compiled = compileResult == 1;
             string compileLog = GL.GetShaderInfoLog(this);

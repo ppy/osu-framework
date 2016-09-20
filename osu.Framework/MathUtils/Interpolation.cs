@@ -143,13 +143,14 @@ namespace osu.Framework.MathUtils
 
                     var p = duration * .3;
                     var a = change;
-                    var s = 1.70158;
+                    double s;
                     if (a < Math.Abs(change))
                     {
                         a = change;
                         s = p / 4;
                     }
-                    else s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
+                    else
+                            s = p / (2 * MathHelper.Pi) * Math.Asin(change / a);
                     return -(a * Math.Pow(2, 10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p)) + initial;
                 }
                 case EasingTypes.OutElastic:

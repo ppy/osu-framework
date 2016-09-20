@@ -543,7 +543,7 @@ namespace osu.Framework.IO.Network
                         if (hasExceededTimeout)
                         {
                             logger.Add($@"Timeout exceeded ({timeSinceLastAction} > {DEFAULT_TIMEOUT})");
-                            e = we = new WebException($"Timeout to {Url} ({address}) after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
+                            e = new WebException($"Timeout to {Url} ({address}) after {timeSinceLastAction / 1000} seconds idle (read {responseBytesRead} bytes).", WebExceptionStatus.Timeout);
                         }
                         break;
                     case HttpStatusCode.NotFound:

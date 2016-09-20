@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Shaders
 
             GL.LinkProgram(this);
 
-            int linkResult = 0;
+            int linkResult;
             GL.GetProgram(this, GetProgramParameterName.LinkStatus, out linkResult);
             string linkLog = GL.GetProgramInfoLog(this);
 
@@ -106,12 +106,12 @@ namespace osu.Framework.Graphics.Shaders
             if (Loaded)
             {
                 //Obtain all the shader uniforms
-                int uniformCount = 0;
+                int uniformCount;
                 GL.GetProgram(this, GetProgramParameterName.ActiveUniforms, out uniformCount);
                 for (int i = 0; i < uniformCount; i++)
                 {
-                    int size = 0;
-                    int length = 0;
+                    int size;
+                    int length;
                     ActiveUniformType type;
                     StringBuilder uniformName = new StringBuilder(100);
                     GL.GetActiveUniform(this, i, 100, out length, out size, out type, uniformName);

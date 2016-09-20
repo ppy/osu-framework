@@ -199,16 +199,13 @@ namespace osu.Framework.OS
 
             InputScheduler.SetCurrentThread(Thread.CurrentThread);
 
-            Exception error = null;
-
             try
             {
                 Application.Idle += delegate { OnApplicationIdle(); };
                 Application.Run(Window.Form);
             }
-            catch (OutOfMemoryException e)
+            catch (OutOfMemoryException)
             {
-                error = e;
             }
             finally
             {

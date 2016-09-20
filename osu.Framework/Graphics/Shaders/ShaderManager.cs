@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Shaders
             byte[] rawData = LoadRaw(name);
 
             part = new ShaderPart(name, rawData, type, this);
-            bool compiled = part.Compile();
+            part.Compile();
 
             //cache even on failure so we don't try and fail every time.
             partCache[name] = part;

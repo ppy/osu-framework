@@ -84,7 +84,7 @@ namespace osu.Framework.VisualTests.Tests
 
             testContainer.Clear();
 
-            Container box = null;
+            Container box;
 
             switch (currentTest)
             {
@@ -137,7 +137,7 @@ namespace osu.Framework.VisualTests.Tests
                     Drawable localBox = box;
                     box.OnUpdate += delegate { localBox.Rotation += 0.05f; };
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
                     {
                         //chameleon = true,
                         Size = new Vector2(100, 100),
@@ -255,7 +255,7 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
                     {
                         Position = new Vector2(100, 100),
                         Size = new Vector2(100, 100),
