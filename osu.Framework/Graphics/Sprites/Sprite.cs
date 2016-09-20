@@ -1,14 +1,10 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics.ES20;
-using OpenTK;
-using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Textures;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -18,12 +14,8 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool WrapTexture = false;
 
-        public Sprite(Texture texture)
-        {
-            Texture = texture;
-        }
-
         #region Disposal
+
         protected override void Dispose(bool isDisposing)
         {
             OnDispose?.Invoke(IsDisposable, null);
@@ -36,6 +28,7 @@ namespace osu.Framework.Graphics.Sprites
 
             base.Dispose(isDisposing);
         }
+
         #endregion
 
         protected override DrawNode BaseDrawNode => new SpriteDrawNode(Game, DrawInfo, Texture, ScreenSpaceDrawQuad, WrapTexture);
@@ -49,7 +42,8 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private Texture texture;
-        public virtual Texture Texture
+
+        public Texture Texture
         {
             get { return texture; }
             set

@@ -1,5 +1,5 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.Transformations
             d.Colour = CurrentValue;
         }
 
-        public TransformColour(IClock clock) : base(clock)
+        public TransformColour(IClock clock)
+            : base(clock)
         {
         }
     }

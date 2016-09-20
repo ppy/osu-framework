@@ -1,24 +1,25 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
+using osu.Framework.Allocation;
 using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public class TextureUpload : IDisposable
     {
-        private static TextureBufferStack globalBufferStack = new TextureBufferStack(10);
+        private static BufferStack globalBufferStack = new BufferStack(10);
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
 
-        private TextureBufferStack bufferStack;
+        private BufferStack bufferStack;
 
-        public TextureUpload(int size, TextureBufferStack bufferStack = null)
+        public TextureUpload(int size, BufferStack bufferStack = null)
         {
             this.bufferStack = bufferStack == null ? globalBufferStack : bufferStack;
             Data = this.bufferStack.ReserveBuffer(size);
@@ -30,7 +31,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+
+        private bool disposedValue;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -51,6 +53,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

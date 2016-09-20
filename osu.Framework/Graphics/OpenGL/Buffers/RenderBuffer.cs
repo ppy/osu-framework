@@ -1,12 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.ES20;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -26,6 +24,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         }
 
         #region Disposal
+
         ~RenderBuffer()
         {
             Dispose(false);
@@ -33,8 +32,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -45,6 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             Unbind();
         }
+
         #endregion
 
         /// <summary>
@@ -62,7 +62,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             // Make sure we have renderbuffers available
             if (renderBufferCache[Format].Count == 0)
-                renderBufferCache[Format].Push(new RenderBufferInfo() { RenderBufferID = GL.GenRenderbuffer(), FrameBufferID = -1 });
+                renderBufferCache[Format].Push(new RenderBufferInfo
+                {
+                    RenderBufferID = GL.GenRenderbuffer(),
+                    FrameBufferID = -1
+                });
 
             // Get a renderbuffer from the cache
             info = renderBufferCache[Format].Pop();
@@ -86,15 +90,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.Rgb565:
                     case RenderbufferInternalFormat.Rgb5A1:
                     case RenderbufferInternalFormat.Rgba4:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
 

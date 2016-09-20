@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Desktop.OS.Linux;
 using osu.Framework.Desktop.OS.Windows;
@@ -12,15 +12,11 @@ namespace osu.Framework.Desktop
     {
         public static BasicGameHost GetSuitableHost()
         {
-            BasicGameHost host = null;
-
             GraphicsContextFlags flags = GraphicsContextFlags.Default;
             if (RuntimeInfo.IsUnix)
-                host = new LinuxGameHost(flags);
+                return new LinuxGameHost(flags);
             else
-                host = new WindowsGameHost(flags);
-
-            return host;
+                return new WindowsGameHost(flags);
         }
     }
 }

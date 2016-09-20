@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -24,7 +24,6 @@ namespace osu.Framework.Configuration
 
         protected virtual void InitialiseDefaults()
         {
-
         }
 
         public BindableDouble Set(T lookup, double value)
@@ -68,7 +67,7 @@ namespace osu.Framework.Configuration
         {
             BindableBool bindable = GetBindable<bool>(lookup) as BindableBool;
 
-            if(bindable == null)
+            if (bindable == null)
             {
                 bindable = new BindableBool(value);
                 addBindable(lookup, bindable);
@@ -174,7 +173,8 @@ namespace osu.Framework.Configuration
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+
+        private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
@@ -196,6 +196,7 @@ namespace osu.Framework.Configuration
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

@@ -1,12 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using osu.Framework.IO;
 using osu.Framework.IO.File;
 using osu.Framework.Threading;
 
@@ -19,10 +18,7 @@ namespace osu.Framework.Logging
         /// </summary>
         public static string LogDirectory
         {
-            get
-            {
-                return logDirectory;
-            }
+            get { return logDirectory; }
             set
             {
                 logDirectory = value;
@@ -86,7 +82,9 @@ namespace osu.Framework.Logging
             {
                 GetLogger(target, true).Add(message, level);
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -173,7 +171,9 @@ namespace osu.Framework.Logging
                 {
                     File.AppendAllLines(Filename, lines);
                 }
-                catch { }
+                catch
+                {
+                }
             }, true);
         }
 
@@ -207,7 +207,7 @@ namespace osu.Framework.Logging
 
         static List<string> filters = new List<string>();
         static Dictionary<LoggingTarget, Logger> staticLoggers = new Dictionary<LoggingTarget, Logger>();
-        static ThreadedScheduler backgroundScheduler = new ThreadedScheduler();
+        static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
         static bool? hasLogDirectory;
         static string logDirectory;
 

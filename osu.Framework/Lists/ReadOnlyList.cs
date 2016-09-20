@@ -1,10 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Lists
 {
@@ -20,7 +19,9 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Constructs a ReadOnlyList.
         /// </summary>
-        public ReadOnlyList() { }
+        public ReadOnlyList()
+        {
+        }
 
         /// <summary>
         /// Constructs a ReadOnlyList which wraps over an existing List.
@@ -28,7 +29,7 @@ namespace osu.Framework.Lists
         /// <param name="list">The list to wrap over.</param>
         public ReadOnlyList(List<T> list)
         {
-            this.InternalList.AddRange(list);
+            InternalList.AddRange(list);
         }
 
         /// <summary>
@@ -37,7 +38,7 @@ namespace osu.Framework.Lists
         /// <param name="collection">The collection to add to the list.</param>
         public ReadOnlyList(IEnumerable<T> collection)
         {
-            this.InternalList.AddRange(collection);
+            InternalList.AddRange(collection);
         }
 
         public T this[int index] => InternalList[index];

@@ -1,10 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -16,6 +14,8 @@ namespace osu.Framework.Graphics.Containers
         public bool Masking;
 
         protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.AABB : (Rectangle?)null);
+
+        public override bool HandleInput => true;
 
         public override IEnumerable<Drawable> Children
         {

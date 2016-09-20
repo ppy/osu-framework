@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 
@@ -19,7 +19,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Initializes a resource store with a single store.
         /// </summary>
-        /// <param name="store">The store.</param>
+        /// <param name="stores">A collection of stores to add.</param>
         public CachedResourceStore(IResourceStore<T>[] stores)
             : base(stores)
         {
@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Stores
         /// <summary>
         /// Initializes a resource store with a collection of stores.
         /// </summary>
-        /// <param name="stores">The collection of stores.</param>
+        /// <param name="store">The store.</param>
         public CachedResourceStore(IResourceStore<T> store)
             : base(store)
         {
@@ -74,7 +74,6 @@ namespace osu.Framework.IO.Stores
         /// Retrieves an object from the store.
         /// </summary>
         /// <param name="name">The name of the object.</param>
-        /// <param name="reloadFunction">The function to call when the store reloads the object data.</param>
         /// <returns>The object.</returns>
         public override T Get(string name)
         {

@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -38,7 +38,7 @@ namespace osu.Framework.IO.Stores
         public byte[] Get(string name)
         {
             string[] parts = name.Split('/');
-            return Get(parts[0], parts.Length == 1 ? 1 : 1f / Int32.Parse(parts[1]));
+            return Get(parts[0], parts.Length == 1 ? 1 : 1f / int.Parse(parts[1]));
         }
 
         public byte[] Get(string name, float scale = 1)

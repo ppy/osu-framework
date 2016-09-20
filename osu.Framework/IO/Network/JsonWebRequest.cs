@@ -1,5 +1,5 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using Newtonsoft.Json;
@@ -12,7 +12,8 @@ namespace osu.Framework.IO.Network
     /// <typeparam name="T">the response format.</typeparam>
     public class JsonWebRequest<T> : WebRequest
     {
-        public JsonWebRequest(string url = null, params object[] args) : base(url, args)
+        public JsonWebRequest(string url = null, params object[] args)
+            : base(url, args)
         {
             base.Finished += finished;
         }

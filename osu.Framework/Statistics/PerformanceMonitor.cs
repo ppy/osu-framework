@@ -1,10 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using osu.Framework.Allocation;
+using osu.Framework.Timing;
+
 //using System.Diagnostics.PerformanceData;
 
 namespace osu.Framework.Statistics
@@ -18,6 +20,7 @@ namespace osu.Framework.Statistics
         internal FrameStatistics currentFrame;
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
+        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
 
         private double consumptionTime;
 
@@ -88,9 +91,17 @@ namespace osu.Framework.Statistics
         internal void NewFrame(IFrameBasedClock clock)
         {
             if (currentFrame != null)
+            {
                 PendingFrames.Enqueue(currentFrame);
+                if (PendingFrames.Count > 100)
+                {
+                    FrameStatistics oldFrame;
+                    PendingFrames.TryDequeue(out oldFrame);
+                }
+            }
 
-            currentFrame = new FrameStatistics();
+            currentFrame = FramesHeap.ReserveObject();
+            currentFrame.Clear();
 
             if (HandleGC)
             {

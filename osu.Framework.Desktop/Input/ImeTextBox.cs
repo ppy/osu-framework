@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -53,7 +53,6 @@ namespace osu.Framework.Desktop.Input
 
         public bool ImeActive => imeActive;
 
-        internal double ImeDeactivateTime;
         internal List<string> Candidates = new List<string>();
 
         public ImeTextBox()
@@ -83,24 +82,24 @@ namespace osu.Framework.Desktop.Input
             public uint dwSelection;
             public uint dwPageStart;
             public uint dwPageSize;
+
             /// DWORD[1]
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1, ArraySubType = UnmanagedType.U4)]
-            public uint[] dwOffset;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1, ArraySubType = UnmanagedType.U4)] public uint[] dwOffset;
         }
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("Imm32.dll")]
         private static extern IntPtr ImmGetContext(IntPtr hWnd);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("imm32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int ImmGetCompositionString(IntPtr hIMC, int CompositionStringFlag, byte[] buffer, int bufferLength);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("Imm32.dll")]
         private static extern bool ImmReleaseContext(IntPtr hWnd, IntPtr hIMC);
 
-        [SuppressUnmanagedCodeSecurity()]
+        [SuppressUnmanagedCodeSecurity]
         [DllImport("imm32.dll", CharSet = CharSet.Auto, EntryPoint = "ImmGetCandidateList")]
         public static extern uint ImmGetCandidateList(IntPtr hIMC, uint deIndex, IntPtr candidateList, uint dwBufLen);
 
@@ -147,7 +146,7 @@ namespace osu.Framework.Desktop.Input
                     return;
                 case WM_IME_NOTIFY:
 
-                    switch ((int)m.WParam.ToInt32())
+                    switch (m.WParam.ToInt32())
                     {
                         case IMN_PRIVATE:
                             return;
@@ -183,7 +182,6 @@ namespace osu.Framework.Desktop.Input
                         case IMN_CLOSECANDIDATE:
                             Candidates.Clear();
                             return;
-
                     }
                     break;
             }
@@ -193,14 +191,14 @@ namespace osu.Framework.Desktop.Input
 
         private string getIMEString(int type)
         {
-            IntPtr hIMC = ImmGetContext(this.Handle);
+            IntPtr hIMC = ImmGetContext(Handle);
 
             int sz = ImmGetCompositionString(hIMC, type, null, 0);
 
             byte[] str = new byte[sz];
 
             ImmGetCompositionString(hIMC, type, str, sz);
-            ImmReleaseContext(this.Handle, hIMC);
+            ImmReleaseContext(Handle, hIMC);
 
             return Encoding.Unicode.GetString(str);
         }

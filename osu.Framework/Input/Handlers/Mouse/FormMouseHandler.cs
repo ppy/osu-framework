@@ -1,9 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Form = System.Windows.Forms.Form;
 using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
@@ -86,21 +85,22 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
 
         public override bool IsActive => true;
-        public override int Priority { get; }
+        public override int Priority => 0;
+
         public void SetPosition(Vector2 pos)
         {
         }
 
         public Vector2? Position { get; set; }
         public Vector2 Size { get; set; }
-        public bool? Left { get; set; }
-        public bool? Right { get; set; }
-        public bool? Middle { get; set; }
-        public bool? Back { get; set; }
-        public bool? Forward { get; set; }
-        public bool? WheelUp { get; set; }
-        public bool? WheelDown { get; set; }
-        public List<Vector2> IntermediatePositions { get; }
+        public bool? Left { get; private set; }
+        public bool? Right { get; private set; }
+        public bool? Middle { get; private set; }
+        public bool? Back { get; private set; }
+        public bool? Forward { get; private set; }
+        public bool? WheelUp { get; private set; }
+        public bool? WheelDown { get; private set; }
+        public List<Vector2> IntermediatePositions => null;
         public bool Clamping { get; set; }
     }
 }

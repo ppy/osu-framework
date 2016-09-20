@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
@@ -14,6 +14,9 @@ namespace osu.Framework.OS
         public event EventHandler Deactivated;
         public event EventHandler Paint;
 
+        //todo: remove the need for this.
+        public BasicGameForm Form { get; protected set; }
+
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
@@ -24,26 +27,13 @@ namespace osu.Framework.OS
         public abstract Rectangle ClientBounds { get; }
         public abstract IntPtr Handle { get; }
         public abstract bool IsMinimized { get; }
-        public abstract BasicGameForm Form { get; }
 
-        public BasicGameWindow() { }
-
-        public Size Size
-        {
-            get
-            {
-                return Form.ClientSize;
-            }
-
-            set
-            {
-                Form.ClientSize = value;
-            }
-        }
+        public abstract Size Size { get; set; }
 
         public abstract void Close();
 
         private string title;
+
         public string Title
         {
             get { return title; }

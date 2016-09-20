@@ -1,6 +1,9 @@
-﻿using System;
-using OpenTK;
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
 using System.Runtime.InteropServices;
+using OpenTK;
 
 namespace osu.Framework.Desktop.OS.Windows
 {
@@ -50,19 +53,22 @@ namespace osu.Framework.Desktop.OS.Windows
                 {
                     if (active)
                     {
-                            canAdjust &= 0 == timeBeginPeriod(MathHelper.Clamp(period, MinimumPeriod, MaximumPeriod));
+                        canAdjust &= 0 == timeBeginPeriod(MathHelper.Clamp(period, MinimumPeriod, MaximumPeriod));
                     }
                     else
                     {
-                            timeEndPeriod(period);
+                        timeEndPeriod(period);
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+
+        private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
@@ -83,6 +89,7 @@ namespace osu.Framework.Desktop.OS.Windows
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
 
         [StructLayout(LayoutKind.Sequential)]

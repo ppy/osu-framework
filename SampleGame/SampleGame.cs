@@ -1,17 +1,13 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Drawables;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
 
-namespace osu.Desktop
+namespace SampleGame
 {
     class SampleGame : Game
     {
@@ -21,7 +17,7 @@ namespace osu.Desktop
 
             Box box;
 
-            Add(box = new Box()
+            Add(box = new Box
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,

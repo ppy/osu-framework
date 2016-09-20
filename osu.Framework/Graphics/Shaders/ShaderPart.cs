@@ -1,16 +1,13 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics.ES20;
-using osu.Framework.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using osu.Framework.Graphics.OpenGL;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -64,16 +61,19 @@ namespace osu.Framework.Graphics.Shaders
                 {
                     string line = sr.ReadLine();
 
+                    if (string.IsNullOrEmpty(line))
+                        continue;
+
                     Match includeMatch = includeRegex.Match(line);
                     if (includeMatch.Success)
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-                        byte[] rawData = null;
-#if DEBUG
-                        if (File.Exists(includeName))
-                            rawData = File.ReadAllBytes(includeName);
-#endif
+//#if DEBUG
+//                        byte[] rawData = null;
+//                        if (File.Exists(includeName))
+//                            rawData = File.ReadAllBytes(includeName);
+//#endif
                         shaderCodes.Add(loadFile(manager.LoadRaw(includeName)));
                     }
                     else
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Shaders
             GL.ShaderSource(this, shaderCodes.Count, shaderCodes.ToArray(), codeLengths);
             GL.CompileShader(this);
 
-            int compileResult = 0;
+            int compileResult;
             GL.GetShader(this, ShaderParameter.CompileStatus, out compileResult);
             Compiled = compileResult == 1;
             string compileLog = GL.GetShaderInfoLog(this);

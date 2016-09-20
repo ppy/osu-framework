@@ -1,11 +1,6 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
@@ -30,7 +25,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer flow = new FlowContainer()
+            FlowContainer flow = new FlowContainer
             {
                 LayoutDuration = 100,
                 LayoutEasing = EasingTypes.Out,
@@ -44,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 if (Parent == null) return;
 
-                Box box = new Box()
+                Box box = new Box
                 {
                     Size = new Vector2(80, 80),
                     Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)
@@ -56,8 +51,6 @@ namespace osu.Framework.VisualTests.Tests
                 box.Delay(RNG.Next(0, 20000));
                 box.FadeOutFromOne(4000);
                 box.Expire();
-
-                
             }, 100, true);
 
             scheduler.Add(boxCreator);

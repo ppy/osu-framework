@@ -1,10 +1,8 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Diagnostics;
 using osu.Framework.Timing;
-using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transformations
 {
@@ -32,6 +30,8 @@ namespace osu.Framework.Graphics.Transformations
 
         public Transform(IClock clock)
         {
+            Debug.Assert(clock != null, @"Transform must be constructed with a non-null clock.");
+
             Clock = clock;
         }
 
@@ -90,7 +90,6 @@ namespace osu.Framework.Graphics.Transformations
 
         public void Load()
         {
-            return;
         }
     }
 }

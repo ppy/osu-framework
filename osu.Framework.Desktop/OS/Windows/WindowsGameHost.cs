@@ -1,21 +1,21 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Windows.Forms;
 using osu.Framework.Desktop.OS.Windows.Native;
-using OpenTK.Graphics;
 using osu.Framework.Input;
 using osu.Framework.OS;
-using GLControl = osu.Framework.OS.GLControl;
+using OpenTK.Graphics;
+using NativeWindow = OpenTK.NativeWindow;
 
 namespace osu.Framework.Desktop.OS.Windows
 {
     public class WindowsGameHost : BasicGameHost
     {
-        public override BasicGameWindow Window => window;
         public override GLControl GLControl => window?.Form;
         public override bool IsActive => Window != null && GetForegroundWindow().Equals(Window.Handle);
 
@@ -25,13 +25,17 @@ namespace osu.Framework.Desktop.OS.Windows
 
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
-            timePeriod = new TimePeriod(1) { Active = true };
+            timePeriod = new TimePeriod(1)
+            {
+                Active = true
+            };
 
             Architecture.SetIncludePath();
             window = new WindowsGameWindow(flags);
 
             Application.EnableVisualStyles();
 
+            Window = window;
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
         }
@@ -74,7 +78,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         public override void Run()
         {
-            OpenTK.NativeWindow.OsuWindowHandle = window.Handle;
+            NativeWindow.OsuWindowHandle = window.Handle;
 
             base.Run();
         }
@@ -94,7 +98,7 @@ namespace osu.Framework.Desktop.OS.Windows
             public IntPtr wParam;
             public IntPtr lParam;
             public uint time;
-            public System.Drawing.Point p;
+            public Point p;
         }
 
         public enum WindowMessage : uint

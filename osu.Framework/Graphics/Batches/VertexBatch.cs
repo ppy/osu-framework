@@ -1,11 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.OpenGL.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Buffers;
 
 namespace osu.Framework.Graphics.Batches
 {
@@ -18,9 +18,9 @@ namespace osu.Framework.Graphics.Batches
         private int changeBeginIndex = -1;
         private int changeEndIndex = -1;
 
-        private int currentVertexBuffer = 0;
-        private int currentVertex = 0;
-        private int lastVertex = 0;
+        private int currentVertexBuffer;
+        private int currentVertex;
+        private int lastVertex;
 
         private int fixedBufferAmount;
 
@@ -36,6 +36,7 @@ namespace osu.Framework.Graphics.Batches
         }
 
         #region Disposal
+
         ~VertexBatch()
         {
             Dispose(false);
@@ -43,8 +44,8 @@ namespace osu.Framework.Graphics.Batches
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected void Dispose(bool disposing)
@@ -53,6 +54,7 @@ namespace osu.Framework.Graphics.Batches
                 foreach (VertexBuffer<T> vbo in VertexBuffers)
                     vbo.Dispose();
         }
+
         #endregion
 
         public void ResetCounters()

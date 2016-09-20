@@ -1,12 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics.ES20;
-using osu.Framework.Graphics.OpenGL.Textures;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using osu.Framework.Graphics.OpenGL.Textures;
+using OpenTK;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -33,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Bind();
 
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, TextureTarget.Texture2D, Texture.TextureId, 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
                 GLWrapper.BindTexture(0);
 
                 Unbind();
@@ -41,6 +40,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         }
 
         #region Disposal
+
         ~FrameBuffer()
         {
             Dispose(false);
@@ -48,11 +48,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;
+
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
@@ -64,9 +65,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GLWrapper.DeleteFramebuffer(frameBuffer);
             frameBuffer = -1;
         }
+
         #endregion
 
         private Vector2 size = Vector2.One;
+
         /// <summary>
         /// Sets the size of the texture of this framebuffer.
         /// </summary>

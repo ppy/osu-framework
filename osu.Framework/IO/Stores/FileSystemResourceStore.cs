@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.IO;
@@ -17,13 +17,17 @@ namespace osu.Framework.IO.Stores
         {
             this.directory = directory;
 
-            watcher = new FileSystemWatcher(directory) { EnableRaisingEvents = true };
+            watcher = new FileSystemWatcher(directory)
+            {
+                EnableRaisingEvents = true
+            };
             watcher.Renamed += watcherChanged;
             watcher.Changed += watcherChanged;
             watcher.Created += watcherChanged;
         }
 
         #region Disposal
+
         ~FileSystemResourceStore()
         {
             Dispose(false);
@@ -47,6 +51,7 @@ namespace osu.Framework.IO.Stores
 
             watcher.Dispose();
         }
+
         #endregion
 
         private void watcherChanged(object sender, FileSystemEventArgs e)

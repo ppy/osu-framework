@@ -1,11 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -13,8 +12,10 @@ namespace osu.Framework.Graphics.Cursor
     {
         private Cursor cursor;
 
-        public CursorContainer()
+        public override void Load()
         {
+            base.Load();
+
             Add(cursor = new Cursor());
         }
 

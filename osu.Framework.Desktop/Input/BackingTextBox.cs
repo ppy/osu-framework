@@ -1,10 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
+using System.Drawing;
 using System.Windows.Forms;
 using osu.Framework.Input;
 using osu.Framework.OS;
@@ -19,7 +19,7 @@ namespace osu.Framework.Desktop.Input
         {
             this.form = form;
 
-            Location = new System.Drawing.Point(-9999, -9999);
+            Location = new Point(-9999, -9999);
 
             OnNewImeComposition += Textbox_OnNewImeComposition;
             OnImeActivity += Textbox_OnImeActivity;

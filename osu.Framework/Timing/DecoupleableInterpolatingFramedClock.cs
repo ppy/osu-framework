@@ -1,7 +1,5 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
-
-using System;
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 namespace osu.Framework.Timing
 {
@@ -101,14 +99,11 @@ namespace osu.Framework.Timing
                 decoupledStopwatch.Seek(adjustableSource?.CurrentTime ?? position);
                 return success;
             }
-            else
-            {
-                if (!success)
-                    //if we failed to seek then stop the source and use decoupled mode.
-                    adjustableSource?.Stop();
+            if (!success)
+                //if we failed to seek then stop the source and use decoupled mode.
+                adjustableSource?.Stop();
 
-                return decoupledStopwatch.Seek(position);
-            }
+            return decoupledStopwatch.Seek(position);
         }
     }
 }

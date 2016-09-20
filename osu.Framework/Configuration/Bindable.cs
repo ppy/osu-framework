@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 
@@ -43,8 +43,8 @@ namespace osu.Framework.Configuration
         {
             if (s is T)
                 Value = (T)s;
-            else if (typeof(T).IsEnum)
-                Value = (T)Enum.Parse(typeof(T), s as string);
+            else if (typeof(T).IsEnum && s is string)
+                Value = (T)Enum.Parse(typeof(T), (string)s);
             else
                 return false;
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Configuration
 
         internal void TriggerChange()
         {
-            if (ValueChanged != null) ValueChanged(this, null);
+            ValueChanged?.Invoke(this, null);
         }
 
         public void UnbindAll()
@@ -62,6 +62,7 @@ namespace osu.Framework.Configuration
         }
 
         string description;
+
         public string Description
         {
             get { return description; }

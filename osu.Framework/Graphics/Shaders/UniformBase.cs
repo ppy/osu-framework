@@ -1,11 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
 using OpenTK.Graphics.ES20;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -14,6 +11,7 @@ namespace osu.Framework.Graphics.Shaders
         public string Name { get; }
 
         private object value;
+
         public object Value
         {
             get { return value; }
@@ -40,8 +38,8 @@ namespace osu.Framework.Graphics.Shaders
         public UniformBase(Shader owner, string name, int uniformLocation, ActiveUniformType type)
         {
             this.owner = owner;
-            this.Name = name;
-            this.location = uniformLocation;
+            Name = name;
+            location = uniformLocation;
             this.type = type;
         }
 
@@ -71,10 +69,10 @@ namespace osu.Framework.Graphics.Shaders
                     GL.Uniform2(location, (Vector2)Value);
                     break;
                 case ActiveUniformType.FloatMat2:
-                    {
-                        Matrix2 mat = (Matrix2)Value;
-                        GL.UniformMatrix2(location, false, ref mat);
-                    }
+                {
+                    Matrix2 mat = (Matrix2)Value;
+                    GL.UniformMatrix2(location, false, ref mat);
+                }
                     break;
                 case ActiveUniformType.BoolVec3:
                 case ActiveUniformType.IntVec3:
@@ -82,10 +80,10 @@ namespace osu.Framework.Graphics.Shaders
                     GL.Uniform3(location, (Vector3)Value);
                     break;
                 case ActiveUniformType.FloatMat3:
-                    {
-                        Matrix3 mat = (Matrix3)Value;
-                        GL.UniformMatrix3(location, false, ref mat);
-                    }
+                {
+                    Matrix3 mat = (Matrix3)Value;
+                    GL.UniformMatrix3(location, false, ref mat);
+                }
                     break;
                 case ActiveUniformType.BoolVec4:
                 case ActiveUniformType.IntVec4:
@@ -93,10 +91,10 @@ namespace osu.Framework.Graphics.Shaders
                     GL.Uniform4(location, (Vector4)Value);
                     break;
                 case ActiveUniformType.FloatMat4:
-                    {
-                        Matrix4 mat = (Matrix4)Value;
-                        GL.UniformMatrix4(location, false, ref mat);
-                    }
+                {
+                    Matrix4 mat = (Matrix4)Value;
+                    GL.UniformMatrix4(location, false, ref mat);
+                }
                     break;
                 case ActiveUniformType.Sampler2D:
                     GL.Uniform1(location, (int)Value);

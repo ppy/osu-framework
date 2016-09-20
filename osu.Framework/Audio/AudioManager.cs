@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
@@ -28,12 +28,20 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Volume of all samples played game-wide.
         /// </summary>
-        public readonly BindableDouble VolumeSample = new BindableDouble(1) { MinValue = 0, MaxValue = 1 };
+        public readonly BindableDouble VolumeSample = new BindableDouble(1)
+        {
+            MinValue = 0,
+            MaxValue = 1
+        };
 
         /// <summary>
         /// Volume of all tracks played game-wide.
         /// </summary>
-        public readonly BindableDouble VolumeTrack = new BindableDouble(1) { MinValue = 0, MaxValue = 1 };
+        public readonly BindableDouble VolumeTrack = new BindableDouble(1)
+        {
+            MinValue = 0,
+            MaxValue = 1
+        };
 
         private Scheduler scheduler = new Scheduler();
 

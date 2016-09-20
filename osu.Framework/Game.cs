@@ -1,18 +1,20 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Windows.Forms;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Audio;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
-using osu.Framework.Graphics.Shaders;
 using osu.Framework.IO.Stores;
 using osu.Framework.OS;
-using Scheduler = osu.Framework.Threading.Scheduler;
+using osu.Framework.Threading;
 using OpenTK;
+using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
 {
@@ -20,7 +22,7 @@ namespace osu.Framework
     {
         public BasicGameWindow Window => host?.Window;
 
-        internal Scheduler Scheduler;
+        protected internal Scheduler Scheduler;
 
         public ResourceStore<byte[]> Resources;
 
@@ -45,6 +47,13 @@ namespace osu.Framework
         public TextureStore Fonts;
 
         private UserInputManager userInputContainer;
+        private FlowContainer performanceContainer;
+
+        public bool ShowPerformanceOverlay
+        {
+            get { return performanceContainer.Alpha > 0; }
+            set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
+        }
 
         protected override Container AddTarget => userInputContainer;
 
@@ -53,7 +62,11 @@ namespace osu.Framework
             Game = this;
         }
 
-        public void SetHost(BasicGameHost host)
+        /// <summary>
+        /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
+        /// </summary>
+        /// <param name="host"></param>
+        public virtual void SetHost(BasicGameHost host)
         {
             this.host = host;
             host.ExitRequested += OnExiting;
@@ -73,36 +86,41 @@ namespace osu.Framework
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
 
-            Textures = Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
+            Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
 
             Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
 
-            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans")) { ScaleAdjust = 1 / 137f };
-
-            Add(userInputContainer = new UserInputManager()
+            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans"))
             {
-                Children = new[] {
-                    new FlowContainer
-                    {
-                        Direction = Graphics.Containers.FlowDirection.VerticalOnly,
-                        Padding = new Vector2(10, 10),
-                        Anchor = Graphics.Anchor.BottomRight,
-                        Origin = Graphics.Anchor.BottomRight,
-                        Depth = float.MaxValue,
+                ScaleAdjust = 1 / 100f
+            };
 
-                        Children = new[] {
+            Add(userInputContainer = new UserInputManager
+            {
+                Children = new[]
+                {
+                    performanceContainer = new FlowContainer
+                    {
+                        Direction = FlowDirection.VerticalOnly,
+                        Alpha = 0,
+                        Padding = new Vector2(10, 10),
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Depth = float.MaxValue,
+                        Children = new[]
+                        {
                             new FrameTimeDisplay(@"Input", host.InputMonitor),
                             new FrameTimeDisplay(@"Update", host.UpdateMonitor),
                             new FrameTimeDisplay(@"Draw", host.DrawMonitor)
                         }
                     },
-                    new PerformanceOverlay()
+                    new PerformanceOverlay
                     {
                         Position = new Vector2(5, 5),
-                        Anchor = Graphics.Anchor.BottomRight,
-                        Origin = Graphics.Anchor.BottomRight,
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
                         Depth = float.MaxValue
                     }
                 }
@@ -180,7 +198,6 @@ namespace osu.Framework
 
         protected virtual void OnActivated()
         {
-
         }
 
         protected virtual void OnDeactivated()

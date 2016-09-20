@@ -1,12 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using osu.Framework.Extensions;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Threading
 {
@@ -17,6 +16,7 @@ namespace osu.Framework.Threading
     {
         private readonly Queue<Action> schedulerQueue = new Queue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
+        private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
         private Stopwatch timer = new Stopwatch();
 
@@ -81,6 +81,18 @@ namespace osu.Framework.Threading
                             timedTasks.AddInPlace(sd);
                         }
                     }
+
+                    for (int i = 0; i < perUpdateTasks.Count; i++)
+                    {
+                        ScheduledDelegate task = perUpdateTasks[i];
+                        if (task.Cancelled)
+                        {
+                            perUpdateTasks.RemoveAt(i--);
+                            continue;
+                        }
+
+                        schedulerQueue.Enqueue(task.RunTask);
+                    }
                 }
 
                 int c = schedulerQueue.Count;
@@ -134,7 +146,13 @@ namespace osu.Framework.Threading
 
         public virtual bool Add(ScheduledDelegate task)
         {
-            lock (timedTasks) timedTasks.AddInPlace(task);
+            lock (timedTasks)
+            {
+                if (task.RepeatInterval == 0)
+                    perUpdateTasks.Add(task);
+                else
+                    timedTasks.AddInPlace(task);
+            }
             return true;
         }
 
@@ -146,7 +164,7 @@ namespace osu.Framework.Threading
         /// <param name="repeat">Whether this task should repeat.</param>
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
-            ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : 0);
+            ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : -1);
 
             return Add(del) ? del : null;
         }
@@ -168,7 +186,8 @@ namespace osu.Framework.Threading
         }
 
         #region IDisposable Support
-        private bool isDisposed = false; // To detect redundant calls
+
+        private bool isDisposed; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
@@ -182,12 +201,13 @@ namespace osu.Framework.Threading
         {
             Dispose(true);
         }
+
         #endregion
     }
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = 0)
+        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = -1)
         {
             WaitTime = waitTime;
             RepeatInterval = repeatInterval;
@@ -223,10 +243,7 @@ namespace osu.Framework.Threading
 
         public bool Completed;
 
-        public bool Cancelled
-        {
-            get; private set;
-        }
+        public bool Cancelled { get; private set; }
 
         public void Cancel()
         {
@@ -239,9 +256,9 @@ namespace osu.Framework.Threading
         public double WaitTime;
 
         /// <summary>
-        /// Time between repeats of this task. Zero value means no repeats.
+        /// Time between repeats of this task. -1 means no repeats.
         /// </summary>
-        public double RepeatInterval;
+        public double RepeatInterval = -1;
 
         public int CompareTo(ScheduledDelegate other)
         {
@@ -258,7 +275,7 @@ namespace osu.Framework.Threading
 
         bool isDisposed;
 
-        public ThreadedScheduler(int runInterval = 50)
+        public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
             workerThread = new Thread(() =>
             {
@@ -268,7 +285,10 @@ namespace osu.Framework.Threading
                     Thread.Sleep(runInterval);
                 }
             })
-            { IsBackground = true };
+            {
+                IsBackground = true,
+                Name = threadName
+            };
 
             workerThread.Start();
         }

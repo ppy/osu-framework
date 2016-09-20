@@ -1,14 +1,14 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
-using OpenTK;
-using osu.Framework.Graphics.Textures;
+using System.Linq;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Textures;
+using OpenTK;
 using OpenTK.Graphics;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -20,10 +20,7 @@ namespace osu.Framework.Graphics.Sprites
         public float SpacingOverlap
         {
             get { return Padding.X; }
-            set
-            {
-                Padding = new Vector2(value, 0);
-            }
+            set { Padding = new Vector2(value, 0); }
         }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
@@ -34,13 +31,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private TextureStore store;
 
+        public override bool HandleInput => false;
+
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
 
-            TextSize = 19.2f;
-
-            HandleInput = false;
+            TextSize = 20;
         }
 
         public float TextSize
@@ -60,6 +57,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private string text;
+
         public string Text
         {
             get { return text; }
@@ -120,17 +118,30 @@ namespace osu.Framework.Graphics.Sprites
                     char c = text[index];
 
                     Drawable s;
-                    if (c == ' ')
-                        s = new Container()
+
+                    if (char.IsWhiteSpace(c))
+                    {
+                        float width = FixedWidth ? constantWidth.Value : spaceWidth;
+
+                        switch ((int)c)
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.Value : spaceWidth),
-                            Colour = Color4.Transparent
+                            case 0x3000: //double-width space
+                                width *= 2;
+                                break;
+                        }
+
+                        s = new Container
+                        {
+                            Size = new Vector2(width),
+                            Colour = Color4.Transparent,
                         };
+                    }
                     else
                     {
                         s = getSprite(c);
 
-                        var ctn = new Container() {
+                        var ctn = new Container
+                        {
                             Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
                         };
 
@@ -152,7 +163,11 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Sprite getSprite(char c) => new Sprite(getTexture(c));
+        private Sprite getSprite(char c) => new Sprite
+        {
+            Texture = getTexture(c)
+        };
+
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
         private string getTextureName(char c) => $@"{c}";
     }

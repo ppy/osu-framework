@@ -1,26 +1,28 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
+using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using osu.Framework.Graphics.Performance;
-using osu.Framework.Statistics;
 
 namespace osu.Framework.OS
 {
     public abstract class BasicGameHost : Container
     {
-        public abstract BasicGameWindow Window { get; }
+        public BasicGameWindow Window;
+
         public abstract GLControl GLControl { get; }
         public abstract bool IsActive { get; }
 
@@ -40,14 +42,30 @@ namespace osu.Framework.OS
 
         internal FramedClock InputClock = new FramedClock();
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
-        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock() { MaximumUpdateHz = 144 };
+
+        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock
+        {
+            MaximumUpdateHz = 144
+        };
+
+        public int MaximumUpdateHz
+        {
+            get { return UpdateClock.MaximumUpdateHz; }
+            set { UpdateClock.MaximumUpdateHz = value; }
+        }
+
+        public int MaximumDrawHz
+        {
+            get { return DrawClock.MaximumUpdateHz; }
+            set { DrawClock.MaximumUpdateHz = value; }
+        }
 
         internal PerformanceMonitor InputMonitor = new PerformanceMonitor();
         internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
         internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
 
         //null here to construct early but bind to thread late.
-        private Scheduler inputScheduler = new Scheduler(null);
+        internal Scheduler InputScheduler = new Scheduler(null);
         private Scheduler updateScheduler = new Scheduler(null);
 
         protected override IFrameBasedClock Clock => UpdateClock;
@@ -155,6 +173,8 @@ namespace osu.Framework.OS
 
         public virtual void Run()
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+
             drawThread = new Thread(drawLoop)
             {
                 Name = @"DrawThread",
@@ -177,18 +197,15 @@ namespace osu.Framework.OS
             Window.ExitRequested += OnExitRequested;
             Window.Exited += OnExited;
 
-            inputScheduler.SetCurrentThread(Thread.CurrentThread);
-
-            Exception error = null;
+            InputScheduler.SetCurrentThread(Thread.CurrentThread);
 
             try
             {
                 Application.Idle += delegate { OnApplicationIdle(); };
                 Application.Run(Window.Form);
             }
-            catch (OutOfMemoryException e)
+            catch (OutOfMemoryException)
             {
-                error = e;
             }
             finally
             {
@@ -212,14 +229,11 @@ namespace osu.Framework.OS
 
         public override Vector2 Size
         {
-            get
-            {
-                return base.Size;
-            }
+            get { return base.Size; }
 
             set
             {
-                Window.Form.SafeInvoke(delegate
+                InputScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
@@ -231,6 +245,7 @@ namespace osu.Framework.OS
         }
 
         InvokeOnDisposal inputPerformanceCollectionPeriod;
+
         protected virtual void OnApplicationIdle()
         {
             inputPerformanceCollectionPeriod?.Dispose();
@@ -238,7 +253,7 @@ namespace osu.Framework.OS
             InputMonitor.NewFrame(InputClock);
 
             using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                inputScheduler.Update();
+                InputScheduler.Update();
 
             using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                 InputClock.ProcessFrame();
