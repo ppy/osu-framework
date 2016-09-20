@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;
-            target.MatrixInverse = MatrixInverse;
+            //target.MatrixInverse = Matrix3.Identity;
 
             if (translation != Vector2.Zero)
                 MatrixExtensions.Translate(ref target.Matrix, translation);
@@ -52,10 +52,10 @@ namespace osu.Framework.Graphics
             if (origin != Vector2.Zero)
             {
                 MatrixExtensions.Translate(ref target.Matrix, -origin);
-                MatrixExtensions.Translate(ref target.MatrixInverse, origin);
+                //MatrixExtensions.Translate(ref target.MatrixInverse, origin);
             }
 
-            if (scale != Vector2.One)
+            /*if (scale != Vector2.One)
             {
                 Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
                 MatrixExtensions.Scale(ref target.MatrixInverse, inverseScale);
@@ -66,6 +66,11 @@ namespace osu.Framework.Graphics
 
             if (translation != Vector2.Zero)
                 MatrixExtensions.Translate(ref target.MatrixInverse, -translation);
+
+            target.MatrixInverse = MatrixInverse * target.MatrixInverse;*/
+
+            target.MatrixInverse = target.Matrix;
+            MatrixExtensions.FastInvert(ref target.MatrixInverse);
 
             target.Colour = Colour;
 

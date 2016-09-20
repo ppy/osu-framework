@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Primitives
                                           new Vector2(rectangle.Right, rectangle.Bottom));
         }
 
-        public static Quad operator *(OpenTK.Matrix3 m, Quad r)
+        public static Quad operator *(Quad r, OpenTK.Matrix3 m)
         {
             return new Quad(
                 r.TopLeft * m,
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Primitives
         public float Width => Vector2.Distance(TopLeft, TopRight);
         public float Height => Vector2.Distance(TopLeft, BottomLeft);
 
-        public Quad BoundingQuad
+        public Quad AABBQuad // Axis Aligned Bounding Box
         {
             get
             {
@@ -98,14 +98,14 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Rectangle BoundingRectangle
+        public Rectangle AABB
         {
             get
             {
-                int xMin = (int)Math.Round(Math.Min(TopLeft.X, Math.Min(TopRight.X, Math.Min(BottomLeft.X, BottomRight.X))));
-                int xMax = (int)Math.Round(Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X))));
-                int yMin = (int)Math.Round(Math.Min(TopLeft.Y, Math.Min(TopRight.Y, Math.Min(BottomLeft.Y, BottomRight.Y))));
-                int yMax = (int)Math.Round(Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y))));
+                int xMin = (int)Math.Floor(Math.Min(TopLeft.X, Math.Min(TopRight.X, Math.Min(BottomLeft.X, BottomRight.X))));
+                int yMin = (int)Math.Floor(Math.Min(TopLeft.Y, Math.Min(TopRight.Y, Math.Min(BottomLeft.Y, BottomRight.Y))));
+                int xMax = (int)Math.Ceiling(Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X))));
+                int yMax = (int)Math.Ceiling(Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y))));
 
                 return new Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
             }

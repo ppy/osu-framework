@@ -557,8 +557,7 @@ namespace osu.Framework.Graphics
         internal Vector2 BoundingSize => boundingSizeBacking.IsValid ? boundingSizeBacking.Value : boundingSizeBacking.Refresh(() =>
         {
             //field will be none when the drawable isn't requesting auto-sizing
-            Quad q = Parent.DrawInfo.MatrixInverse * GetScreenSpaceQuad(DrawQuadForBounds);
-            Vector2 a = Parent == null ? Vector2.Zero : ((GetAnchoredPosition(Vector2.Zero) * Parent.DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse);
+            Quad q = GetScreenSpaceQuad(DrawQuadForBounds) * Parent.DrawInfo.MatrixInverse;
 
             Vector2 bounds = new Vector2(0, 0);
 
@@ -567,6 +566,8 @@ namespace osu.Framework.Graphics
             // Thus we don't need its actual bounding box, but can just assume a size of 0.
             if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
                 return bounds;
+
+            Vector2 a = GetAnchoredPosition(Vector2.Zero);
 
             foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
             {
@@ -682,12 +683,7 @@ namespace osu.Framework.Graphics
 
         protected virtual Quad GetScreenSpaceQuad(Quad input)
         {
-            return DrawInfo.Matrix * input;
-        }
-
-        public Quad GetSpaceQuadIn(Drawable parent)
-        {
-            return parent.DrawInfo.MatrixInverse * ScreenSpaceDrawQuad;
+            return input * DrawInfo.Matrix;
         }
 
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
