@@ -311,14 +311,14 @@ namespace osu.Framework.Graphics
                 Anchor origin = this.origin;
                 if (flipHorizontal)
                 {
-                    if ((origin & Anchor.x0) > 0)
+                    if ((origin & Anchor.x0) == 0)
                         origin = (origin & ~Anchor.x0) | Anchor.x2;
                     else if ((origin & Anchor.x2) > 0)
                         origin = (origin & ~Anchor.x2) | Anchor.x0;
                 }
                 if (flipVertical)
                 {
-                    if ((origin & Anchor.y0) > 0)
+                    if ((origin & Anchor.y0) == 0)
                         origin = (origin & ~Anchor.y0) | Anchor.y2;
                     else if ((origin & Anchor.y2) > 0)
                         origin = (origin & ~Anchor.y2) | Anchor.y0;
