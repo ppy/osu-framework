@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Drawables;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Desktop
+namespace SampleGame
 {
     class SampleGame : Game
     {
