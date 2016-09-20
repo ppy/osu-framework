@@ -1,13 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES20;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
-using System.Text;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -53,7 +50,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool isDisposed = false;
+        protected bool isDisposed;
+
         protected virtual void Dispose(bool disposing)
         {
             if (isDisposed)
@@ -105,10 +103,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             return vertexIndex;
         }
 
-        protected abstract BeginMode Type
-        {
-            get;
-        }
+        protected abstract BeginMode Type { get; }
 
         public void Draw()
         {

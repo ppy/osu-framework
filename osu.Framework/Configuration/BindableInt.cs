@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Globalization;
 
@@ -26,7 +26,8 @@ namespace osu.Framework.Configuration
             }
         }
 
-        public BindableInt(int value = 0) : base(value)
+        public BindableInt(int value = 0)
+            : base(value)
         {
         }
 

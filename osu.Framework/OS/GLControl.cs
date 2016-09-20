@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
@@ -56,12 +56,12 @@ namespace osu.Framework.OS
             GL.Enable(EnableCap.ScissorTest);
 
             Logger.Log($@"GL Initialized
-                        GL Version:                 { GL.GetString(StringName.Version)}
-                        GL Renderer:                { GL.GetString(StringName.Renderer)}
-                        GL Shader Language version: { GL.GetString(StringName.ShadingLanguageVersion)}
-                        GL Vendor:                  { GL.GetString(StringName.Vendor)}
-                        GL Extensions:              { GL.GetString(StringName.Extensions)}
-                        GL Context:                 { GraphicsMode}", LoggingTarget.Runtime, LogLevel.Important);
+                        GL Version:                 {GL.GetString(StringName.Version)}
+                        GL Renderer:                {GL.GetString(StringName.Renderer)}
+                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
+                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
+                        GL Extensions:              {GL.GetString(StringName.Extensions)}
+                        GL Context:                 {GraphicsMode}", LoggingTarget.Runtime, LogLevel.Important);
         }
 
         protected override void OnMouseEnter(EventArgs e)
@@ -85,12 +85,15 @@ namespace osu.Framework.OS
 
                 return SupportedExtensions.Contains(extensionName);
             }
-            catch { }
+            catch
+            {
+            }
 
             return false;
         }
 
         bool firstDraw = true;
+
         protected override void OnPaint(PaintEventArgs e)
         {
             //block call to base method to allow for threaded GL drawing.

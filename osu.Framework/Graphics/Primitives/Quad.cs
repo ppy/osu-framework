@@ -1,14 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
 using System.Drawing;
-using OpenTK;
 using osu.Framework.Extensions.PolygonExtensions;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -27,7 +23,8 @@ namespace osu.Framework.Graphics.Primitives
             BottomRight = bottomRight;
         }
 
-        public Quad(float x, float y, float width, float height) : this()
+        public Quad(float x, float y, float width, float height)
+            : this()
         {
             TopLeft = new Vector2(x, y);
             TopRight = new Vector2(x + width, y);
@@ -38,20 +35,20 @@ namespace osu.Framework.Graphics.Primitives
         public static Quad FromRectangle(RectangleF rectangle)
         {
             return new Quad(new Vector2(rectangle.Left, rectangle.Top),
-                                          new Vector2(rectangle.Right, rectangle.Top),
-                                          new Vector2(rectangle.Left, rectangle.Bottom),
-                                          new Vector2(rectangle.Right, rectangle.Bottom));
+                new Vector2(rectangle.Right, rectangle.Top),
+                new Vector2(rectangle.Left, rectangle.Bottom),
+                new Vector2(rectangle.Right, rectangle.Bottom));
         }
 
         public static Quad FromRectangle(Rectangle rectangle)
         {
             return new Quad(new Vector2(rectangle.Left, rectangle.Top),
-                                          new Vector2(rectangle.Right, rectangle.Top),
-                                          new Vector2(rectangle.Left, rectangle.Bottom),
-                                          new Vector2(rectangle.Right, rectangle.Bottom));
+                new Vector2(rectangle.Right, rectangle.Top),
+                new Vector2(rectangle.Left, rectangle.Bottom),
+                new Vector2(rectangle.Right, rectangle.Bottom));
         }
 
-        public static Quad operator *(OpenTK.Matrix3 m, Quad r)
+        public static Quad operator *(Matrix3 m, Quad r)
         {
             return new Quad(
                 r.TopLeft * m,
@@ -60,7 +57,7 @@ namespace osu.Framework.Graphics.Primitives
                 r.BottomRight * m);
         }
 
-        public OpenTK.Matrix2 BasisTransform
+        public Matrix2 BasisTransform
         {
             get
             {
@@ -73,7 +70,7 @@ namespace osu.Framework.Graphics.Primitives
                 if (row1 != Vector2.Zero)
                     row1 /= row1.LengthSquared;
 
-                return new OpenTK.Matrix2(
+                return new Matrix2(
                     row0.X, row0.Y,
                     row1.X, row1.Y);
             }
@@ -111,7 +108,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2[] Vertices => new Vector2[] { TopLeft, TopRight, BottomRight, BottomLeft };
+        public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
         public Vector2[] AxisVertices => Vertices;
 
         public Vector2? Contains(Vector2 pos)

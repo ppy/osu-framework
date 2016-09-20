@@ -1,18 +1,18 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Cached;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics
 
         private LifetimeList<Drawable> children;
         private IEnumerable<Drawable> pendingChildren;
+
         public virtual IEnumerable<Drawable> Children
         {
             get { return children; }
@@ -42,6 +43,7 @@ namespace osu.Framework.Graphics
         internal IEnumerable<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+
         public LifetimeList<ITransform> Transforms
         {
             get
@@ -52,6 +54,7 @@ namespace osu.Framework.Graphics
         }
 
         private Vector2 position;
+
         public Vector2 Position
         {
             get { return position; }
@@ -65,6 +68,7 @@ namespace osu.Framework.Graphics
         }
 
         private Vector2 customOrigin;
+
         public virtual Vector2 OriginPosition
         {
             get
@@ -105,10 +109,7 @@ namespace osu.Framework.Graphics
 
         public Vector2 Scale
         {
-            get
-            {
-                return scale;
-            }
+            get { return scale; }
 
             set
             {
@@ -120,6 +121,7 @@ namespace osu.Framework.Graphics
         }
 
         private Color4 colour = Color4.White;
+
         public Color4 Colour
         {
             get { return colour; }
@@ -134,6 +136,7 @@ namespace osu.Framework.Graphics
         }
 
         private Anchor anchor;
+
         public Anchor Anchor
         {
             get { return anchor; }
@@ -150,6 +153,7 @@ namespace osu.Framework.Graphics
         public virtual string ToolTip { get; set; }
 
         private float rotation;
+
         public float Rotation
         {
             get { return rotation; }
@@ -164,6 +168,7 @@ namespace osu.Framework.Graphics
         }
 
         private float alpha = 1.0f;
+
         public float Alpha
         {
             get { return alpha; }
@@ -186,6 +191,7 @@ namespace osu.Framework.Graphics
         public bool IsDisposable;
 
         protected Vector2 size = Vector2.One;
+
         public virtual Vector2 Size
         {
             get { return size; }
@@ -200,6 +206,7 @@ namespace osu.Framework.Graphics
         }
 
         private InheritMode sizeMode;
+
         public virtual InheritMode SizeMode
         {
             get { return sizeMode; }
@@ -214,6 +221,7 @@ namespace osu.Framework.Graphics
         }
 
         private InheritMode positionMode;
+
         public InheritMode PositionMode
         {
             get { return positionMode; }
@@ -271,46 +279,49 @@ namespace osu.Framework.Graphics
 
         public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking.Value : screenSpaceDrawQuadBacking.Refresh(delegate
-        {
-            Quad result = GetScreenSpaceQuad(DrawQuad);
 
-            //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
-            //{
-            //    Vector2 adjust = new Vector2(
-            //        (float)Math.Round(result.TopLeft.X) - result.TopLeft.X,
-            //        (float)Math.Round(result.TopLeft.Y) - result.TopLeft.Y
-            //        );
+        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid
+            ? screenSpaceDrawQuadBacking.Value
+            : screenSpaceDrawQuadBacking.Refresh(delegate
+            {
+                Quad result = GetScreenSpaceQuad(DrawQuad);
 
-            //    result.TopLeft += adjust;
-            //    result.TopRight += adjust;
-            //    result.BottomLeft += adjust;
-            //    result.BottomRight += adjust;
-            //}
+                //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
+                //{
+                //    Vector2 adjust = new Vector2(
+                //        (float)Math.Round(result.TopLeft.X) - result.TopLeft.X,
+                //        (float)Math.Round(result.TopLeft.Y) - result.TopLeft.Y
+                //        );
 
-            return result;
-        });
+                //    result.TopLeft += adjust;
+                //    result.TopRight += adjust;
+                //    result.BottomLeft += adjust;
+                //    result.BottomRight += adjust;
+                //}
+
+                return result;
+            });
 
         private Anchor origin;
+
         public virtual Anchor Origin
         {
             get
             {
                 Anchor origin = this.origin;
+
                 if (flipHorizontal)
                 {
-                    if ((origin & Anchor.x0) > 0)
-                        origin = (origin & ~Anchor.x0) | Anchor.x2;
-                    else if ((origin & Anchor.x2) > 0)
-                        origin = (origin & ~Anchor.x2) | Anchor.x0;
+                    Debug.Assert((origin & Anchor.x1) == 0, @"Can't flip with a centre origin set");
+                    origin ^= Anchor.x2;
                 }
+
                 if (flipVertical)
                 {
-                    if ((origin & Anchor.y0) > 0)
-                        origin = (origin & ~Anchor.y0) | Anchor.y2;
-                    else if ((origin & Anchor.y2) > 0)
-                        origin = (origin & ~Anchor.y2) | Anchor.y0;
+                    Debug.Assert((origin & Anchor.y1) == 0, @"Can't flip with a centre origin set");
+                    origin ^= Anchor.y2;
                 }
+
                 return origin;
             }
             set
@@ -331,6 +342,7 @@ namespace osu.Framework.Graphics
             get { return Size.X; }
             set { Size = new Vector2(value, Size.Y); }
         }
+
         public float Height
         {
             get { return Size.Y; }
@@ -343,6 +355,7 @@ namespace osu.Framework.Graphics
         protected double Time => Clock?.CurrentTime ?? 0;
 
         private bool flipVertical;
+
         public bool FlipVertical
         {
             get { return flipVertical; }
@@ -356,6 +369,7 @@ namespace osu.Framework.Graphics
         }
 
         private bool flipHorizontal;
+
         public bool FlipHorizontal
         {
             get { return flipHorizontal; }
@@ -372,6 +386,7 @@ namespace osu.Framework.Graphics
         public virtual bool IsVisible => isVisibleBacking.IsValid ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
         private bool? additive;
+
         public bool? Additive
         {
             get { return additive; }
@@ -389,23 +404,27 @@ namespace osu.Framework.Graphics
         protected virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
-        protected DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
-       {
-           DrawInfo di = BaseDrawInfo;
 
-           float alpha = Alpha;
-           if (Colour.A > 0 && Colour.A < 1)
-               alpha *= Colour.A;
+        protected DrawInfo DrawInfo => drawInfoBacking.IsValid
+            ? drawInfoBacking.Value
+            : drawInfoBacking.Refresh(delegate
+            {
+                DrawInfo di = BaseDrawInfo;
 
-           Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+                float alpha = Alpha;
+                if (Colour.A > 0 && Colour.A < 1)
+                    alpha *= Colour.A;
 
-           if (Parent == null)
-               di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
-           else
-               Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour, !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
-           return di;
-       });
+                if (Parent == null)
+                    di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                else
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour,
+                              !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+
+                return di;
+            });
 
         protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
@@ -429,11 +448,11 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Drawable Parent { get; private set; }
+        protected Drawable Parent { get; private set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
-        public Drawable()
+        protected Drawable()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
 
@@ -555,67 +574,70 @@ namespace osu.Framework.Graphics
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
-        protected Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
-        internal Vector2 BoundingSize => boundingSizeBacking.IsValid ? boundingSizeBacking.Value : boundingSizeBacking.Refresh(() =>
-        {
-            //field will be none when the drawable isn't requesting auto-sizing
-            Quad q = Parent.DrawInfo.MatrixInverse * GetScreenSpaceQuad(DrawQuadForBounds);
-            Vector2 a = Parent == null ? Vector2.Zero : ((GetAnchoredPosition(Vector2.Zero) * Parent.DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse);
+        private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
-            Vector2 bounds = new Vector2(0, 0);
+        internal Vector2 BoundingSize => boundingSizeBacking.IsValid
+            ? boundingSizeBacking.Value
+            : boundingSizeBacking.Refresh(() =>
+            {
+                //field will be none when the drawable isn't requesting auto-sizing
+                Quad q = Parent.DrawInfo.MatrixInverse * GetScreenSpaceQuad(DrawQuadForBounds);
+                Vector2 a = Parent == null ? Vector2.Zero : ((GetAnchoredPosition(Vector2.Zero) * Parent.DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse);
 
-            // Without this, 0x0 objects (like FontText with no string) produce weird results.
-            // When all vertices of the quad are at the same location, then the object is effectively invisible.
-            // Thus we don't need its actual bounding box, but can just assume a size of 0.
-            if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
+                Vector2 bounds = new Vector2(0, 0);
+
+                // Without this, 0x0 objects (like FontText with no string) produce weird results.
+                // When all vertices of the quad are at the same location, then the object is effectively invisible.
+                // Thus we don't need its actual bounding box, but can just assume a size of 0.
+                if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
+                    return bounds;
+
+                foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
+                {
+                    // Compute the clipped offset depending on anchoring.
+                    Vector2 offset;
+
+                    if (Anchor == Anchor.CentreRight || Anchor == Anchor.TopRight || Anchor == Anchor.BottomRight)
+                        offset.X = a.X - p.X;
+                    else if (Anchor == Anchor.CentreLeft || Anchor == Anchor.TopLeft || Anchor == Anchor.BottomLeft)
+                        offset.X = p.X - a.X;
+                    else
+                        offset.X = Math.Abs(p.X - a.X);
+
+                    if (Anchor == Anchor.BottomCentre || Anchor == Anchor.BottomLeft || Anchor == Anchor.BottomRight)
+                        offset.Y = a.Y - p.Y;
+                    else if (Anchor == Anchor.TopCentre || Anchor == Anchor.TopLeft || Anchor == Anchor.TopRight)
+                        offset.Y = p.Y - a.Y;
+                    else
+                        offset.Y = Math.Abs(p.Y - a.Y);
+
+                    // Expand bounds according to clipped offset
+                    bounds.X = Math.Max(bounds.X, offset.X);
+                    bounds.Y = Math.Max(bounds.Y, offset.Y);
+                }
+
+                // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
+                // as the child's size.
+                switch (Anchor)
+                {
+                    case Anchor.TopCentre:
+                    case Anchor.Centre:
+                    case Anchor.BottomCentre:
+                        bounds.X *= 2;
+                        break;
+                }
+
+                switch (Anchor)
+                {
+                    case Anchor.CentreLeft:
+                    case Anchor.Centre:
+                    case Anchor.CentreRight:
+                        bounds.Y *= 2;
+                        break;
+                }
+
                 return bounds;
-
-            foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
-            {
-                // Compute the clipped offset depending on anchoring.
-                Vector2 offset;
-
-                if (Anchor == Anchor.CentreRight || Anchor == Anchor.TopRight || Anchor == Anchor.BottomRight)
-                    offset.X = a.X - p.X;
-                else if (Anchor == Anchor.CentreLeft || Anchor == Anchor.TopLeft || Anchor == Anchor.BottomLeft)
-                    offset.X = p.X - a.X;
-                else
-                    offset.X = Math.Abs(p.X - a.X);
-
-                if (Anchor == Anchor.BottomCentre || Anchor == Anchor.BottomLeft || Anchor == Anchor.BottomRight)
-                    offset.Y = a.Y - p.Y;
-                else if (Anchor == Anchor.TopCentre || Anchor == Anchor.TopLeft || Anchor == Anchor.TopRight)
-                    offset.Y = p.Y - a.Y;
-                else
-                    offset.Y = Math.Abs(p.Y - a.Y);
-
-                // Expand bounds according to clipped offset
-                bounds.X = Math.Max(bounds.X, offset.X);
-                bounds.Y = Math.Max(bounds.Y, offset.Y);
-            }
-
-            // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
-            // as the child's size.
-            switch (Anchor)
-            {
-                case Anchor.TopCentre:
-                case Anchor.Centre:
-                case Anchor.BottomCentre:
-                    bounds.X *= 2;
-                    break;
-            }
-
-            switch (Anchor)
-            {
-                case Anchor.CentreLeft:
-                case Anchor.Centre:
-                case Anchor.CentreRight:
-                    bounds.Y *= 2;
-                    break;
-            }
-
-            return bounds;
-        });
+            });
 
         internal DrawNode GenerateDrawNodeSubtree()
         {
@@ -633,7 +655,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
-        protected virtual void UpdateLayout() { }
+        protected virtual void UpdateLayout()
+        {
+        }
 
         /// <summary>
         /// Updates the life status of children according to their IsAlive property.
@@ -747,7 +771,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private bool wasAliveLastUpdate = false;
+        private bool wasAliveLastUpdate;
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
@@ -758,6 +782,7 @@ namespace osu.Framework.Graphics
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
         public virtual bool IsLoaded => loaded;
+
         private bool loaded;
 
         public virtual void Load()
@@ -841,7 +866,7 @@ namespace osu.Framework.Graphics
 
                     Invalidation childInvalidation = invalidation;
                     //if (c.SizeMode == InheritMode.None)
-                        childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
                     c.Invalidate(childInvalidation, this);
                 }
@@ -901,8 +926,7 @@ namespace osu.Framework.Graphics
             shortClass = shortClass.Substring(shortClass.LastIndexOf('.') + 1);
             if (HasDefinedSize)
                 return $@"{shortClass} pos {Position} size {Size}";
-            else
-                return $@"{shortClass} pos {Position} size -uncalculated-";
+            return $@"{shortClass} pos {Position} size -uncalculated-";
         }
 
         public virtual Drawable Clone()
@@ -948,7 +972,7 @@ namespace osu.Framework.Graphics
         // Meta
         None = 0,
         All = Position | SizeInParentSpace | Visibility | Colour,
-    };
+    }
 
     /// <summary>
     /// General enum to specify an "anchor" or "origin" point from the standard 9 points on a rectangle.
@@ -973,10 +997,12 @@ namespace osu.Framework.Graphics
         /// The vertical counterpart is at "Top" position.
         /// </summary>
         y0 = 0,
+
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
         /// </summary>
         y1 = 1,
+
         /// <summary>
         /// The vertical counterpart is at "Bottom" position.
         /// </summary>
@@ -986,10 +1012,12 @@ namespace osu.Framework.Graphics
         /// The horizontal counterpart is at "Left" position.
         /// </summary>
         x0 = 0,
+
         /// <summary>
         /// The horizontal counterpart is at "Centre" position.
         /// </summary>
         x1 = 4,
+
         /// <summary>
         /// The horizontal counterpart is at "Right" position.
         /// </summary>

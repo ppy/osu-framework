@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 
@@ -21,6 +21,7 @@ namespace osu.Framework.MathUtils
         {
             return random.Next();
         }
+
         /// <summary>
         /// Returns a signed integer in the range [0,maxValue).
         /// </summary>
@@ -30,6 +31,7 @@ namespace osu.Framework.MathUtils
         {
             return random.Next(maxValue);
         }
+
         /// <summary>
         /// Returns a signed integer in the range [minValue,maxValue).
         /// </summary>
@@ -40,6 +42,7 @@ namespace osu.Framework.MathUtils
         {
             return random.Next(minValue, maxValue);
         }
+
         /// <summary>
         /// Returns a double-precision floating point number in the range [0,1).
         /// </summary>
@@ -48,6 +51,7 @@ namespace osu.Framework.MathUtils
         {
             return random.NextDouble();
         }
+
         /// <summary>
         /// Returns a double-precision floating point number in the range [0,maxValue).
         /// </summary>
@@ -60,6 +64,7 @@ namespace osu.Framework.MathUtils
 
             return random.NextDouble() * maxValue;
         }
+
         /// <summary>
         /// Returns a double-precision floating point number in the range [minValue,maxValue).
         /// </summary>
@@ -73,6 +78,7 @@ namespace osu.Framework.MathUtils
 
             return minValue + (random.NextDouble() * (maxValue - minValue));
         }
+
         /// <summary>
         /// Returns a single-precision floating point number in the range [0,1).
         /// </summary>
@@ -81,6 +87,7 @@ namespace osu.Framework.MathUtils
         {
             return (float)random.NextDouble();
         }
+
         /// <summary>
         /// Returns a single-precision floating point number in the range [0,maxValue).
         /// </summary>
@@ -93,6 +100,7 @@ namespace osu.Framework.MathUtils
 
             return NextSingle() * maxValue;
         }
+
         /// <summary>
         /// Returns a single-precision floating point number in the range [minValue,maxValue).
         /// </summary>
@@ -101,7 +109,7 @@ namespace osu.Framework.MathUtils
         /// <returns>A single-precision floating point number in the range [minValue,maxValue).</returns>
         public static float NextSingle(float minValue, float maxValue)
         {
-            if(minValue> maxValue)
+            if (minValue > maxValue)
                 throw new ArgumentOutOfRangeException("minValue" /* nameof(minValue) */, "The given minimum value must be less than or equal to the given maximum value.");
 
             return minValue + (NextSingle() * (maxValue - minValue));
@@ -125,6 +133,7 @@ namespace osu.Framework.MathUtils
         {
             random.NextBytes(buffer);
         }
+
         /// <summary>
         /// Creates a new byte array with the given length and fills it with random values.
         /// </summary>

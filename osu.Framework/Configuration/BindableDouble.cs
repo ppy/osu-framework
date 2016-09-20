@@ -1,7 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace osu.Framework.Configuration
@@ -30,7 +31,8 @@ namespace osu.Framework.Configuration
             }
         }
 
-        public BindableDouble(double value = 0) : base(value)
+        public BindableDouble(double value = 0)
+            : base(value)
         {
         }
 
@@ -46,7 +48,9 @@ namespace osu.Framework.Configuration
 
         public override bool Parse(object s)
         {
-            Value = double.Parse(s as string, NumberFormatInfo.InvariantInfo);
+            if (s == null) return false;
+
+            Value = double.Parse((string)s, NumberFormatInfo.InvariantInfo);
             return true;
         }
 

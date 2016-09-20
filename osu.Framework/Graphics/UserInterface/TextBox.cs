@@ -1,9 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
@@ -15,7 +16,6 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using System.Linq;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -44,6 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
         private TextInputSource textInput;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
+
         public event OnCommitHandler OnCommit;
         public event OnCommitHandler OnChange;
 
@@ -55,20 +56,23 @@ namespace osu.Framework.Graphics.UserInterface
 
             Masking = true;
 
-            Add(background = new Box()
+            Add(background = new Box
             {
                 Colour = BackgroundUnfocused,
                 SizeMode = InheritMode.XY,
             });
 
-            Add(textContainer = new Container() { SizeMode = InheritMode.XY });
+            Add(textContainer = new Container
+            {
+                SizeMode = InheritMode.XY
+            });
 
-            textFlow = new FlowContainer()
+            textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
             };
 
-            cursor = new Box()
+            cursor = new Box
             {
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
@@ -148,14 +152,14 @@ namespace osu.Framework.Graphics.UserInterface
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)
-                        {
-                            StartValue = 0.5f,
-                            EndValue = 0.2f,
-                            StartTime = Time,
-                            EndTime = Time + 500,
-                            Easing = EasingTypes.InOutSine,
-                            LoopCount = -1,
-                        });
+                              {
+                                  StartValue = 0.5f,
+                                  EndValue = 0.2f,
+                                  StartTime = Time,
+                                  EndTime = Time + 500,
+                                  Easing = EasingTypes.InOutSine,
+                                  LoopCount = -1,
+                              });
                     }
                 }
 
@@ -172,14 +176,10 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (index < text.Length)
                     return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
-                else
-                {
-                    var d = textFlow.Children.ElementAt(index - 1);
-                    return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
-                }
+                var d = textFlow.Children.ElementAt(index - 1);
+                return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
             }
-            else
-                return 0;
+            return 0;
         }
 
         private int getCharacterClosestTo(Vector2 pos)
@@ -251,14 +251,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
             textFlow.Children.Skip(start).Take(count).ToList().ForEach(d =>
-            {
-                textFlow.Remove(d);
+                    {
+                        textFlow.Remove(d);
 
-                textContainer.Add(d);
-                d.FadeOut(200);
-                d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
-                d.Expire();
-            });
+                        textContainer.Add(d);
+                        d.FadeOut(200);
+                        d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
+                        d.Expire();
+                    });
 
             text = text.Remove(start, count);
 
@@ -279,7 +279,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch;
 
-            textFlow.Add(ch = new SpriteText()
+            textFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
                 TextSize = Size.Y,
@@ -331,12 +331,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private string text = string.Empty;
+
         public virtual string Text
         {
-            get
-            {
-                return text;
-            }
+            get { return text; }
             set
             {
                 Debug.Assert(value != null);
@@ -381,42 +379,42 @@ namespace osu.Framework.Graphics.UserInterface
                     moveSelection(-text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Left:
+                {
+                    if (!HandleLeftRightArrows) return false;
+
+                    if (selectionEnd == 0) return true;
+
+                    int amount = 1;
+                    if (state.Keyboard.ControlPressed)
                     {
-                        if (!HandleLeftRightArrows) return false;
-
-                        if (selectionEnd == 0) return true;
-
-                        int amount = 1;
-                        if (state.Keyboard.ControlPressed)
-                        {
-                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                            if (lastSpace >= 0)
-                                amount = selectionEnd - lastSpace - 1;
-                            else
-                                amount = selectionEnd;
-                        }
-
-                        moveSelection(-amount, state.Keyboard.ShiftPressed);
+                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                        if (lastSpace >= 0)
+                            amount = selectionEnd - lastSpace - 1;
+                        else
+                            amount = selectionEnd;
                     }
+
+                    moveSelection(-amount, state.Keyboard.ShiftPressed);
+                }
                     return true;
                 case Key.Right:
+                {
+                    if (!HandleLeftRightArrows) return false;
+
+                    if (selectionEnd == text.Length) return true;
+
+                    int amount = 1;
+                    if (state.Keyboard.ControlPressed)
                     {
-                        if (!HandleLeftRightArrows) return false;
-
-                        if (selectionEnd == text.Length) return true;
-
-                        int amount = 1;
-                        if (state.Keyboard.ControlPressed)
-                        {
-                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
-                            if (nextSpace >= 0)
-                                amount = nextSpace - selectionEnd;
-                            else
-                                amount = text.Length - selectionEnd;
-                        }
-
-                        moveSelection(amount, state.Keyboard.ShiftPressed);
+                        int nextSpace = text.IndexOf(' ', selectionEnd + 1);
+                        if (nextSpace >= 0)
+                            amount = nextSpace - selectionEnd;
+                        else
+                            amount = text.Length - selectionEnd;
                     }
+
+                    moveSelection(amount, state.Keyboard.ShiftPressed);
+                }
 
                     return true;
                 case Key.Enter:
@@ -628,12 +626,12 @@ namespace osu.Framework.Graphics.UserInterface
             if (textInput == null)
             {
                 textInput = Game.Host.TextInput;
-                textInput.OnNewImeComposition += delegate (string s)
+                textInput.OnNewImeComposition += delegate(string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate (string s)
+                textInput.OnNewImeResult += delegate(string s)
                 {
                     textUpdateScheduler.Add(() => onImeResult(s));
                     cursorAndLayout.Invalidate();
@@ -715,6 +713,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
+
         #endregion
     }
 }

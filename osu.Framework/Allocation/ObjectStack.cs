@@ -1,11 +1,7 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Allocation
 {
@@ -23,7 +19,7 @@ namespace osu.Framework.Allocation
         private T findFreeObject()
         {
             T o = freeObjects.Count > 0 ? freeObjects.Pop() : new T();
-            
+
             if (usedObjects.Count < maxAmountObjects)
                 usedObjects.Add(o);
 
@@ -40,7 +36,7 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Reserve an object from the pool. This is used to avoid excessive amounts of heap allocations.
         /// </summary>
-        /// <returns>The reserved buffer.</returns>
+        /// <returns>The reserved object.</returns>
         public T ReserveObject()
         {
             T o;
@@ -51,9 +47,9 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Frees a previously reserved buffer for future reservations.
+        /// Frees a previously reserved object for future reservations.
         /// </summary>
-        /// <param name="buffer">The buffer to be freed. If the buffer has not previously been reserved then this method does nothing.</param>
+        /// <param name="o">The object to be freed. If the object has not previously been reserved then this method does nothing.</param>
         public void FreeObject(T o)
         {
             lock (freeObjects)

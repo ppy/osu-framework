@@ -1,25 +1,23 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES20;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using OpenTK.Graphics;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL
 {
     public static class Vertex
     {
-        private static int amountEnabledAttributes = 0;
+        private static int amountEnabledAttributes;
+
         public static void EnableAttributes(int amount)
         {
             if (amount == amountEnabledAttributes)
                 return;
-            else if (amount > amountEnabledAttributes)
+            if (amount > amountEnabledAttributes)
             {
                 for (int i = amountEnabledAttributes; i < amount; ++i)
                 {
@@ -38,7 +36,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
     }
 
-    
+
     [StructLayout(LayoutKind.Sequential)]
     public struct UncolouredVertex2d : IEquatable<UncolouredVertex2d>
     {
@@ -58,7 +56,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Stride, positionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new UncolouredVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new UncolouredVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -83,7 +81,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, Stride, colourOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new Vertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new Vertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -111,7 +109,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TexturedVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -142,7 +140,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, Stride, timeOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TimedTexturedVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TimedTexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -176,13 +174,13 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(4, 2, VertexAttribPointerType.Float, false, Stride, directionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new ParticleVertex2d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new ParticleVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct TexturedVertex3d : IEquatable<TexturedVertex3d>
     {
-        public OpenTK.Vector3 Position;
+        public Vector3 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
 
@@ -204,6 +202,6 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = OpenTK.BlittableValueType.StrideOf(new TexturedVertex3d());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex3d());
     }
 }

@@ -1,5 +1,5 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.IO;
@@ -22,7 +22,8 @@ namespace osu.Framework.IO.Network
             return new FileStream(Filename, FileMode.Create, FileAccess.Write, FileShare.Write, 32768);
         }
 
-        public FileWebRequest(string filename, string url) : base(url)
+        public FileWebRequest(string filename, string url)
+            : base(url)
         {
             Timeout *= 2;
             Filename = filename;

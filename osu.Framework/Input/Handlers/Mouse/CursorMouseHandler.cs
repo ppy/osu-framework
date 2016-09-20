@@ -1,11 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using OpenTK;
 using osu.Framework.Threading;
+using OpenTK;
 
 namespace osu.Framework.Input.Handlers.Mouse
 {
@@ -21,10 +21,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         {
             this.game = game;
 
-            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate
-            {
-                nativePosition = game.Window.Form.PointToClient(Cursor.Position);
-            }, 0, 0));
+            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate { nativePosition = game.Window.Form.PointToClient(Cursor.Position); }, 0, 0));
 
             return true;
         }
@@ -47,89 +44,35 @@ namespace osu.Framework.Input.Handlers.Mouse
             position = pos;
         }
 
-        public Vector2? Position
-        {
-            get
-            {
-                return position;
-            }
-        }
+        public Vector2? Position => position;
 
         public Vector2 Size => game.ActualSize;
 
-        public bool? Left
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool? Left => null;
 
-        public bool? Right
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool? Right => null;
 
-        public bool? Middle
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool? Middle => null;
 
-        public bool? Back
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool? Back => null;
 
-        public bool? Forward
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public bool? Forward => null;
 
-        public bool? WheelUp { get; }
-        public bool? WheelDown { get; }
+        public bool? WheelUp => null;
+        public bool? WheelDown => null;
 
-        public List<Vector2> IntermediatePositions
-        {
-            get
-            {
-                return new List<Vector2>();
-            }
-        }
+        public List<Vector2> IntermediatePositions => new List<Vector2>();
 
         public bool Clamping { get; set; }
 
         /// <summary>
         /// This input handler is always active, handling the cursor position if no other input handler does.
         /// </summary>
-        public override bool IsActive
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public override bool IsActive => true;
 
         /// <summary>
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
-        public override int Priority
-        {
-            get
-            {
-                return 0;
-            }
-        }
+        public override int Priority => 0;
     }
 }

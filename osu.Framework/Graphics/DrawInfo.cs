@@ -1,12 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework;
-using osu.Framework.Extensions.MatrixExtensions;
-using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics
 {
@@ -34,7 +32,7 @@ namespace osu.Framework.Graphics
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="origin">The center of rotation and scale.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
-        /// <param name="viewport">An optional new viewport size.</param>
+        /// <param name="blending">An optional blending change.</param>
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;

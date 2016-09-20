@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
@@ -15,6 +15,7 @@ namespace osu.Framework.Graphics.UserInterface
         private SpriteText spriteText;
 
         private string text;
+
         public string Text
         {
             get { return text; }
@@ -26,6 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 backgroundColour;
+
         public new Color4 Colour
         {
             get { return backgroundColour; }
@@ -40,13 +42,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Load();
 
-            Add(box = new Box()
+            Add(box = new Box
             {
                 SizeMode = InheritMode.XY,
                 Colour = backgroundColour
             });
 
-            Add(spriteText = new SpriteText()
+            Add(spriteText = new SpriteText
             {
                 Text = text,
                 Origin = Anchor.Centre,
@@ -56,7 +58,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            var flash = new Box() { SizeMode = InheritMode.XY };
+            var flash = new Box
+            {
+                SizeMode = InheritMode.XY
+            };
 
             Add(flash);
 

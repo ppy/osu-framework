@@ -1,16 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using OpenTK.Graphics.ES20;
-using PixelFormat = OpenTK.Graphics.ES20.PixelFormat;
 using System.Diagnostics;
 using System.Drawing;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Primitives;
+using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Graphics.OpenGL.Textures

@@ -1,10 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using OpenTK;
 
 namespace osu.Framework.Extensions.MatrixExtensions
 {
@@ -51,9 +49,15 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float d32 = (value.M11 * value.M23) - (value.M13 * value.M21);
             float d33 = (value.M11 * value.M22) - (value.M12 * value.M21);
 
-            value.M11 = +d11 * det; value.M12 = -d21 * det; value.M13 = +d31 * det;
-            value.M21 = -d12 * det; value.M22 = +d22 * det; value.M23 = -d32 * det;
-            value.M31 = +d13 * det; value.M32 = -d23 * det; value.M33 = +d33 * det;
+            value.M11 = +d11 * det;
+            value.M12 = -d21 * det;
+            value.M13 = +d31 * det;
+            value.M21 = -d12 * det;
+            value.M22 = +d22 * det;
+            value.M23 = -d32 * det;
+            value.M31 = +d13 * det;
+            value.M32 = -d23 * det;
+            value.M33 = +d33 * det;
         }
 
         public static void Scale(ref Matrix3 m, Vector2 v)

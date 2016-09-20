@@ -1,12 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using Rectangle = System.Drawing.Rectangle;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -32,10 +31,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="x">The x-coordinate of the upper-left corner of the rectangle. </param>
         public RectangleF(float x, float y, float width, float height)
         {
-            this.X = x;
-            this.Y = y;
-            this.Width = width;
-            this.Height = height;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
         }
 
         /// <summary>Initializes a new instance of the <see cref="T:System.Drawing.RectangleF"></see> class with the specified location and size.</summary>
@@ -152,7 +151,7 @@ namespace osu.Framework.Graphics.Primitives
             {
                 return false;
             }
-            RectangleF ef = (RectangleF) obj;
+            RectangleF ef = (RectangleF)obj;
             return ((((ef.X == X) && (ef.Y == Y)) && (ef.Width == Width)) && (ef.Height == Height));
         }
 
@@ -256,9 +255,9 @@ namespace osu.Framework.Graphics.Primitives
         {
             return
                 (int)
-                (((((uint) X) ^ ((((uint) Y) << 13) | (((uint) Y) >> 0x13))) ^
-                  ((((uint) Width) << 0x1a) | (((uint) Width) >> 6))) ^
-                 ((((uint) Height) << 7) | (((uint) Height) >> 0x19)));
+                (((((uint)X) ^ ((((uint)Y) << 13) | (((uint)Y) >> 0x13))) ^
+                  ((((uint)Width) << 0x1a) | (((uint)Width) >> 6))) ^
+                 ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
         }
 
         /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> structure by the specified amount.</summary>
@@ -270,8 +269,8 @@ namespace osu.Framework.Graphics.Primitives
         {
             X -= x;
             Y -= y;
-            Width += 2f*x;
-            Height += 2f*y;
+            Width += 2f * x;
+            Height += 2f * y;
         }
 
         /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> by the specified amount.</summary>
@@ -317,9 +316,9 @@ namespace osu.Framework.Graphics.Primitives
         public static RectangleF Intersect(RectangleF a, RectangleF b)
         {
             float x = Math.Max(a.X, b.X);
-            float num2 = Math.Min((float) (a.X + a.Width), (float) (b.X + b.Width));
+            float num2 = Math.Min(a.X + a.Width, b.X + b.Width);
             float y = Math.Max(a.Y, b.Y);
-            float num4 = Math.Min((float) (a.Y + a.Height), (float) (b.Y + b.Height));
+            float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
             if ((num2 >= x) && (num4 >= y))
             {
                 return new RectangleF(x, y, num2 - x, num4 - y);
@@ -355,9 +354,9 @@ namespace osu.Framework.Graphics.Primitives
         public static RectangleF Union(RectangleF a, RectangleF b)
         {
             float x = Math.Min(a.X, b.X);
-            float num2 = Math.Max((float) (a.X + a.Width), (float) (b.X + b.Width));
+            float num2 = Math.Max(a.X + a.Width, b.X + b.Width);
             float y = Math.Min(a.Y, b.Y);
-            float num4 = Math.Max((float) (a.Y + a.Height), (float) (b.Y + b.Height));
+            float num4 = Math.Max(a.Y + a.Height, b.Y + b.Height);
             return new RectangleF(x, y, num2 - x, num4 - y);
         }
 
@@ -387,7 +386,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>3</filterpriority>
         public static implicit operator RectangleF(Rectangle r)
         {
-            return new RectangleF((float) r.X, (float) r.Y, (float) r.Width, (float) r.Height);
+            return new RectangleF(r.X, r.Y, r.Width, r.Height);
         }
 
         /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleF"></see> to a human-readable string.</summary>
@@ -423,7 +422,8 @@ namespace osu.Framework.Graphics.Primitives
                 yQmax = (yQmin = rQ.Y) + rQ.Height;
 
                 return (xPmin > xQmax || xQmin > xPmax || yPmin > yQmax || yQmin > yPmax)
-                  ? false : true;
+                    ? false
+                    : true;
             }
 
             // Otherwise we need two trigonometric function calls
@@ -442,7 +442,7 @@ namespace osu.Framework.Graphics.Primitives
             yPdif = 0.5 * rP.Height;
 
             /* P rotates around the midpoint of its left side. */
-            xPctr = rP.X +  origin.X;
+            xPctr = rP.X + origin.X;
             yPctr = rP.Y + origin.Y;
             cxPdf = c * xPdif;
             sxPdf = s * xPdif;
@@ -460,33 +460,32 @@ namespace osu.Framework.Graphics.Primitives
                     xPmin = -(xPmax = cxPdf + syPdf);
                     yPmin = -(yPmax = cyPdf + sxPdf);
                 }
-                else  /* s <= 0.0 */
+                else /* s <= 0.0 */
                 {
                     xPmin = -(xPmax = cxPdf - syPdf);
                     yPmin = -(yPmax = cyPdf - sxPdf);
                 }
-            else  /* c <= 0.0 */
-                if (sPos)
-                {
-                    xPmax = -(xPmin = cxPdf - syPdf);
-                    yPmax = -(yPmin = cyPdf - sxPdf);
-                }
-                else  /* s <= 0.0 */
-                {
-                    xPmax = -(xPmin = cxPdf + syPdf);
-                    yPmax = -(yPmin = cyPdf + sxPdf);
-                }
-
-/*
-            if (InputManager.PressedKeys != null && OsuGame.Input.DontUseMeState.Keyboard.Keys.Contains(Keys.N))
+            else /* c <= 0.0 */ if (sPos)
             {
-                OsuGame.LineManager.DrawPoint(xPmin + xPctr, yPmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                OsuGame.LineManager.DrawPoint(xPmax + xPctr, yPmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-
-                OsuGame.LineManager.DrawPoint(xQmin + xPctr, yQmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                OsuGame.LineManager.DrawPoint(xQmax + xPctr, yQmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
+                xPmax = -(xPmin = cxPdf - syPdf);
+                yPmax = -(yPmin = cyPdf - sxPdf);
             }
-*/
+            else /* s <= 0.0 */
+            {
+                xPmax = -(xPmin = cxPdf + syPdf);
+                yPmax = -(yPmin = cyPdf + sxPdf);
+            }
+
+            /*
+                        if (InputManager.PressedKeys != null && OsuGame.Input.DontUseMeState.Keyboard.Keys.Contains(Keys.N))
+                        {
+                            OsuGame.LineManager.DrawPoint(xPmin + xPctr, yPmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
+                            OsuGame.LineManager.DrawPoint(xPmax + xPctr, yPmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
+            
+                            OsuGame.LineManager.DrawPoint(xQmin + xPctr, yQmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
+                            OsuGame.LineManager.DrawPoint(xQmax + xPctr, yQmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
+                        }
+            */
 
             /* Now perform the standard rectangle intersection test. */
             if (xPmin > xQmax || xQmin > xPmax || yPmin > yQmax || yQmin > yPmax)
@@ -501,36 +500,39 @@ namespace osu.Framework.Graphics.Primitives
             {
                 if (sPos)
                     return
-                      (c * xQmax + s * yQmax < -xPdif
-                      || c * xQmin + s * yQmin > xPdif
-                      || c * yQmax - s * xQmin < -yPdif
-                      || c * yQmin - s * xQmax > yPdif
-                      ) ? false : true;
-                else  /* s <= 0.0 */
-                    return
-                      (c * xQmax + s * yQmin < -xPdif
-                      || c * xQmin + s * yQmax > xPdif
-                      || c * yQmax - s * xQmax < -yPdif
-                      || c * yQmin - s * xQmin > yPdif
-                      ) ? false : true;
+                    (c * xQmax + s * yQmax < -xPdif
+                     || c * xQmin + s * yQmin > xPdif
+                     || c * yQmax - s * xQmin < -yPdif
+                     || c * yQmin - s * xQmax > yPdif
+                    )
+                        ? false
+                        : true;
+                return
+                (c * xQmax + s * yQmin < -xPdif
+                 || c * xQmin + s * yQmax > xPdif
+                 || c * yQmax - s * xQmax < -yPdif
+                 || c * yQmin - s * xQmin > yPdif
+                )
+                    ? false
+                    : true;
             }
-            else  /* c <= 0.0 */
-            {
-                if (sPos)
-                    return
-                      (c * xQmin + s * yQmax < -xPdif
-                      || c * xQmax + s * yQmin > xPdif
-                      || c * yQmin - s * xQmin < -yPdif
-                      || c * yQmax - s * xQmax > yPdif
-                      ) ? false : true;
-                else  /* s <= 0.0 */
-                    return
-                      (c * xQmin + s * yQmin < -xPdif
-                      || c * xQmax + s * yQmax > xPdif
-                      || c * yQmin - s * xQmax < -yPdif
-                      || c * yQmax - s * xQmin > yPdif
-                      ) ? false : true;
-            }
+            if (sPos)
+                return
+                (c * xQmin + s * yQmax < -xPdif
+                 || c * xQmax + s * yQmin > xPdif
+                 || c * yQmin - s * xQmin < -yPdif
+                 || c * yQmax - s * xQmax > yPdif
+                )
+                    ? false
+                    : true;
+            return
+            (c * xQmin + s * yQmin < -xPdif
+             || c * xQmax + s * yQmax > xPdif
+             || c * yQmin - s * xQmax < -yPdif
+             || c * yQmax - s * xQmin > yPdif
+            )
+                ? false
+                : true;
         }
     }
 }

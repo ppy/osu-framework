@@ -1,14 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenTK.Graphics;
 using System.Diagnostics;
-using OpenTK;
-using osu.Framework.Graphics.Transformations;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Transformations;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
@@ -41,10 +39,7 @@ namespace osu.Framework.Graphics
 
         public void Loop(int delay = 0)
         {
-            transforms.ForEach(t =>
-            {
-                t.Loop(Math.Max(0, transformationDelay + delay - t.Duration));
-            });
+            transforms.ForEach(t => { t.Loop(Math.Max(0, transformationDelay + delay - t.Duration)); });
         }
 
         /// <summary>
@@ -64,7 +59,7 @@ namespace osu.Framework.Graphics
                 double min = double.MaxValue;
                 foreach (ITransform t in transforms)
                     if (t.StartTime < min) min = t.StartTime;
-                LifetimeStart = min < Int32.MaxValue ? min : Int32.MinValue;
+                LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
 
             return this;
@@ -152,6 +147,7 @@ namespace osu.Framework.Graphics
         }
 
         #region Float-based helpers
+
         private Drawable transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
         {
             Type type = transform.GetType();
@@ -200,9 +196,11 @@ namespace osu.Framework.Graphics
         {
             return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
         }
+
         #endregion
 
         #region Vector2-based helpers
+
         private Drawable transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
             Type type = transform.GetType();
@@ -251,9 +249,11 @@ namespace osu.Framework.Graphics
         {
             return MoveTo((transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
+
         #endregion
 
         #region Color4-based helpers
+
         public Drawable FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
             Color4 startValue = Colour;
@@ -299,6 +299,7 @@ namespace osu.Framework.Graphics
 
             return this;
         }
+
         #endregion
     }
 }

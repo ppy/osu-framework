@@ -1,12 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using osu.Framework.Extensions;
-using osu.Framework.Logging;
 
 namespace osu.Framework.Threading
 {
@@ -187,7 +186,8 @@ namespace osu.Framework.Threading
         }
 
         #region IDisposable Support
-        private bool isDisposed = false; // To detect redundant calls
+
+        private bool isDisposed; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
@@ -201,6 +201,7 @@ namespace osu.Framework.Threading
         {
             Dispose(true);
         }
+
         #endregion
     }
 
@@ -242,10 +243,7 @@ namespace osu.Framework.Threading
 
         public bool Completed;
 
-        public bool Cancelled
-        {
-            get; private set;
-        }
+        public bool Cancelled { get; private set; }
 
         public void Cancel()
         {

@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Diagnostics;
@@ -40,11 +40,7 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
@@ -52,7 +48,6 @@ namespace osu.Framework.Graphics.Performance
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
             Name = name;
-            Size = new Vector2(WIDTH, HEIGHT);
             this.monitor = monitor;
             textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
         }
@@ -61,10 +56,13 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load();
 
+            Size = new Vector2(WIDTH, HEIGHT);
+
             for (int i = 0; i < timeBars.Length; ++i)
                 timeBars[i] = new TimeBar();
 
-            Children = new Drawable[] {
+            Children = new Drawable[]
+            {
                 new SpriteText
                 {
                     Text = Name,
@@ -74,16 +72,21 @@ namespace osu.Framework.Graphics.Performance
                 },
                 new MaskingContainer
                 {
-                    Children = new Drawable[] {
-                        new LargeContainer {
+                    Children = new Drawable[]
+                    {
+                        new LargeContainer
+                        {
                             Children = timeBars
                         },
-                        legendContainer = new FlowContainer {
+                        legendContainer = new FlowContainer
+                        {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             Padding = new Vector2(5, 1),
-                            Children = new [] {
-                                new Box {
+                            Children = new[]
+                            {
+                                new Box
+                                {
                                     SizeMode = InheritMode.XY,
                                     Colour = Color4.Gray,
                                     Alpha = 0.2f
@@ -136,6 +139,7 @@ namespace osu.Framework.Graphics.Performance
         class TimeBar : Container
         {
             public Sprite Sprite;
+
             public override void Load()
             {
                 base.Load();
@@ -143,8 +147,12 @@ namespace osu.Framework.Graphics.Performance
                 Width = WIDTH;
                 Height = HEIGHT;
 
-                Children = new[] {
-                    Sprite = new Sprite(new Texture(WIDTH, HEIGHT))
+                Children = new[]
+                {
+                    Sprite = new Sprite
+                    {
+                        Texture = new Texture(WIDTH, HEIGHT)
+                    }
                 };
             }
 
@@ -183,6 +191,7 @@ namespace osu.Framework.Graphics.Performance
             }
             return base.OnKeyUp(state, args);
         }
+
         protected override void Update()
         {
             base.Update();
@@ -274,7 +283,7 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index] = (byte)(255 * col.R);
                 textureData[index + 1] = (byte)(255 * col.G);
                 textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4f / HEIGHT / 8f)) : col.A));
+                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
                 currentHeight--;
             }
 

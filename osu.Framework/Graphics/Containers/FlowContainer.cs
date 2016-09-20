@@ -1,11 +1,11 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK;
-using osu.Framework.Graphics.Transformations;
 using System.Linq;
 using osu.Framework.Cached;
+using osu.Framework.Graphics.Transformations;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -14,6 +14,7 @@ namespace osu.Framework.Graphics.Containers
         internal event Action OnLayout;
 
         public EasingTypes LayoutEasing;
+
         public int LayoutDuration
         {
             get { return layout.RefreshInterval; }
@@ -21,6 +22,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private FlowDirection direction = FlowDirection.Full;
+
         public FlowDirection Direction
         {
             get { return direction; }
@@ -51,6 +53,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         Vector2 padding;
+
         public Vector2 Padding
         {
             get { return padding; }

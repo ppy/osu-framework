@@ -1,10 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using osu.Framework.Input.Handlers;
 using osu.Framework.Input.Handlers.Keyboard;
 using osu.Framework.Input.Handlers.Mouse;
+using OpenTK;
 
 namespace osu.Framework.Input
 {

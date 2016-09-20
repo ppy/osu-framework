@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using osu.Framework.Timing;
@@ -31,6 +31,7 @@ namespace osu.Framework.Cached
         /// Create a new cached property.
         /// </summary>
         /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
+        /// <param name="clock">The clock which will be used to decide whether we need a refresh.</param>
         /// <param name="refreshInterval">How often we should refresh this property. Set to -1 to never update. Set to 0 for once per frame.</param>
         public Cached(PropertyUpdater updateDelegate = null, IClock clock = null, int refreshInterval = -1)
         {
@@ -80,6 +81,7 @@ namespace osu.Framework.Cached
         }
 
         private T value;
+
         public T Value
         {
             get
@@ -90,10 +92,7 @@ namespace osu.Framework.Cached
                 return value;
             }
 
-            set
-            {
-                throw new Exception("Can't manually update value!");
-            }
+            set { throw new Exception("Can't manually update value!"); }
         }
     }
 }

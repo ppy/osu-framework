@@ -1,9 +1,7 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Input.Handlers
 {
@@ -25,7 +23,6 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         public virtual void OnResolutionChange()
         {
-
         }
 
         /// <summary>
@@ -37,18 +34,12 @@ namespace osu.Framework.Input.Handlers
         /// <summary>
         /// Indicates whether this InputHandler is currently delivering input by the user. When handling input the OsuGame uses the first InputHandler which is active.
         /// </summary>
-        public abstract bool IsActive
-        {
-            get;
-        }
+        public abstract bool IsActive { get; }
 
         /// <summary>
         /// Indicated how high of a priority this handler has. The active handler with the highest priority is controlling the cursor at any given time.
         /// </summary>
-        public abstract int Priority
-        {
-            get;
-        }
+        public abstract int Priority { get; }
     }
 
     public class InputHandlerComparer : IComparer<InputHandler>

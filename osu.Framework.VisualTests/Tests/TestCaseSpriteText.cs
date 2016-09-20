@@ -1,12 +1,9 @@
-﻿using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using osu.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -24,10 +21,11 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new ScrollContainer()
+                new ScrollContainer
                 {
-                    Children = new [] {
-                        flow = new FlowContainer()
+                    Children = new[]
+                    {
+                        flow = new FlowContainer
                         {
                             Anchor = Anchor.TopLeft,
                             Direction = FlowDirection.VerticalOnly,
@@ -38,7 +36,7 @@ namespace osu.Framework.VisualTests.Tests
 
             for (int i = 1; i <= 200; i++)
             {
-                SpriteText text = new SpriteText()
+                SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
                     TextSize = i

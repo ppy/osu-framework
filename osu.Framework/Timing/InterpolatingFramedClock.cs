@@ -1,9 +1,7 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Timing
 {
@@ -18,7 +16,7 @@ namespace osu.Framework.Timing
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
-        public virtual void ChangeSource(IClock source)
+        public void ChangeSource(IClock source)
         {
             SourceClock = new FramedClock(source);
             LastInterpolatedTime = 0;

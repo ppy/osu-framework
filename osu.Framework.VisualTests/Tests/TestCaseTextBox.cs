@@ -1,8 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 
@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer textBoxes = new FlowContainer()
+            FlowContainer textBoxes = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
                 Padding = new Vector2(0, 50),
@@ -34,19 +34,19 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(textBoxes);
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
-                Size = new Vector2(100,16),
+                Size = new Vector2(100, 16),
             });
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
                 Text = @"Limited length",
                 Size = new Vector2(200, 20),
                 LengthLimit = 20
             });
 
-            textBoxes.Add(tb = new TextBox()
+            textBoxes.Add(tb = new TextBox
             {
                 Text = @"Box with some more text",
                 Size = new Vector2(500, 30),

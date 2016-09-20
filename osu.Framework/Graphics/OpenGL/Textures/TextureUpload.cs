@@ -1,10 +1,10 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
-using OpenTK.Graphics.ES20;
 using osu.Framework.Allocation;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -31,7 +31,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         }
 
         #region IDisposable Support
-        private bool disposedValue = false;
+
+        private bool disposedValue;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -52,6 +53,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

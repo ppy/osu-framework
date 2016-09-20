@@ -1,12 +1,8 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES20;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -14,7 +10,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static LinearIndexData()
         {
-            GL.GenBuffers(1, out LinearIndexData.EboId);
+            GL.GenBuffers(1, out EboId);
         }
 
         public static readonly int EboId;

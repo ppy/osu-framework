@@ -1,12 +1,12 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics.ES20;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Shaders
             byte[] rawData = LoadRaw(name);
 
             part = new ShaderPart(name, rawData, type, this);
-            bool compiled = part.Compile();
+            part.Compile();
 
             //cache even on failure so we don't try and fail every time.
             partCache[name] = part;
@@ -106,26 +106,26 @@ namespace osu.Framework.Graphics.Shaders
                 Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
             }
 
-//#if DEBUG
-//            if (continuousCompilation)
-//            {
-//                Game.Scheduler.AddDelayed(delegate
-//                {
-//                    parts.Clear();
-//                    parts.Add(createShaderPart(vertex, ShaderType.VertexShader, true));
-//                    parts.Add(createShaderPart(fragment, ShaderType.FragmentShader, true));
-//                    shader.Compile(parts);
+            //#if DEBUG
+            //            if (continuousCompilation)
+            //            {
+            //                Game.Scheduler.AddDelayed(delegate
+            //                {
+            //                    parts.Clear();
+            //                    parts.Add(createShaderPart(vertex, ShaderType.VertexShader, true));
+            //                    parts.Add(createShaderPart(fragment, ShaderType.FragmentShader, true));
+            //                    shader.Compile(parts);
 
-//                    StringBuilder cLogContents = new StringBuilder();
-//                    cLogContents.AppendLine($@"Continuously loading shader {name}:");
-//                    cLogContents.Append(shader.Log);
-//                    cLogContents.AppendLine(@"Parts:");
-//                    foreach (ShaderPart p in parts)
-//                        cLogContents.Append(p.Log);
+            //                    StringBuilder cLogContents = new StringBuilder();
+            //                    cLogContents.AppendLine($@"Continuously loading shader {name}:");
+            //                    cLogContents.Append(shader.Log);
+            //                    cLogContents.AppendLine(@"Parts:");
+            //                    foreach (ShaderPart p in parts)
+            //                        cLogContents.Append(p.Log);
 
-//                }, 1000, true);
-//            }
-//#endif
+            //                }, 1000, true);
+            //            }
+            //#endif
 
             return shader;
         }

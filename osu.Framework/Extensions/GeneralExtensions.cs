@@ -1,8 +1,9 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Security;
 using System.Text;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
+
 namespace osu.Framework.Extensions
 {
     /// <summary>
@@ -21,6 +23,7 @@ namespace osu.Framework.Extensions
         /// <summary>
         /// Searches for an element that matches the conditions defined by the specified predicate.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="match">The predicate that needs to be matched.</param>
         /// <param name="startIndex">The index to start conditional search.</param>
         /// <returns>The matched item, or the default value for the type if no item was matched.</returns>
@@ -36,6 +39,7 @@ namespace osu.Framework.Extensions
         /// <summary>
         /// Adds the given item to the list according to standard sorting rules. Do not use on unsorted lists.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="item">The item that should be added.</param>
         /// <returns>The index in the list where the item was inserted.</returns>
         public static int AddInPlace<T>(this List<T> list, T item)
@@ -45,9 +49,11 @@ namespace osu.Framework.Extensions
             list.Insert(index, item);
             return index;
         }
+
         /// <summary>
         /// Adds the given item to the list according to the comparers sorting rules. Do not use on unsorted lists.
         /// </summary>
+        /// <param name="list">The list to take values</param>
         /// <param name="item">The item that should be added.</param>
         /// <param name="comparer">The comparer that should be used for sorting.</param>
         /// <returns>The index in the list where the item was inserted.</returns>
@@ -86,9 +92,9 @@ namespace osu.Framework.Extensions
             return !list.Where((t, i) => !t.Equals(list2[i])).Any();
         }
 
-        public static string ToResolutionString(this System.Drawing.Size size)
+        public static string ToResolutionString(this Size size)
         {
-            return size.Width.ToString() + 'x' + size.Height.ToString();
+            return size.Width.ToString() + 'x' + size.Height;
         }
 
         public static void WriteLineExplicit(this Stream s, string str = @"")

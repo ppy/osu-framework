@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Diagnostics;
@@ -15,6 +15,7 @@ namespace osu.Framework.IO
         const int block_size = 32768;
 
         #region Concurrent access
+
         readonly byte[] data;
 
         readonly bool[] blockLoadedStatus;
@@ -24,6 +25,7 @@ namespace osu.Framework.IO
 
         volatile int position;
         volatile int amountBytesToRead;
+
         #endregion
 
         readonly int blocksToReadAhead;
@@ -61,7 +63,10 @@ namespace osu.Framework.IO
             }
 
 
-            loadThread = new Thread(loadRequiredBlocks) { IsBackground = true };
+            loadThread = new Thread(loadRequiredBlocks)
+            {
+                IsBackground = true
+            };
             loadThread.Start();
         }
 
@@ -106,12 +111,14 @@ namespace osu.Framework.IO
                     blockLoadedStatus[curr] = true;
                     last = curr;
 
-                    isLoaded |= blockLoadedStatus.All((bool loaded) => loaded);
+                    isLoaded |= blockLoadedStatus.All(loaded => loaded);
                 }
 
                 isLoaded = true;
             }
-            catch (ThreadAbortException) { }
+            catch (ThreadAbortException)
+            {
+            }
 
             if (!isClosed) underlyingStream?.Close();
         }
@@ -162,15 +169,9 @@ namespace osu.Framework.IO
 
         public override long Position
         {
-            get
-            {
-                return position;
-            }
+            get { return position; }
 
-            set
-            {
-                position = MathHelper.Clamp((int)value, 0, data.Length);
-            }
+            set { position = MathHelper.Clamp((int)value, 0, data.Length); }
         }
 
         public override void Flush()

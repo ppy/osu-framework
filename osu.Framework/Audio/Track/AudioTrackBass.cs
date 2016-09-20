@@ -1,12 +1,11 @@
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.Configuration;
 using osu.Framework.IO;
 using OpenTK;
 
@@ -44,16 +43,12 @@ namespace osu.Framework.Audio.Track
 
             if (data == null)
                 throw new Exception(@"Data couldn't be loaded!");
-            else
-            {
-                //encapsulate incoming stream with async buffer if it isn't already.
-                dataStream = data as AsyncBufferStream;
-                if (dataStream == null) dataStream = new AsyncBufferStream(data, quick ? 8 : -1);
+            //encapsulate incoming stream with async buffer if it isn't already.
+            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                procs = new DataStreamFileProcedures(dataStream);
+            procs = new DataStreamFileProcedures(dataStream);
 
-                audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
-            }
+            audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
             if (Preview)
                 activeStream = audioStreamPrefilter;
@@ -61,7 +56,7 @@ namespace osu.Framework.Audio.Track
             {
                 activeStream = BassFx.TempoCreate(audioStreamPrefilter, BassFlags.Decode);
                 activeStream = BassFx.ReverseCreate(activeStream, 5f, BassFlags.Default);
-                
+
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
                 Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
@@ -111,14 +106,11 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelPause(activeStream);
                 return true;
             }
-            else
-            {
-                Bass.ChannelPlay(activeStream, false);
-                return false;
-            }
+            Bass.ChannelPlay(activeStream, false);
+            return false;
         }
 
-        int direction = 0;
+        int direction;
 
         private void setDirection(bool reverse)
         {
@@ -178,7 +170,7 @@ namespace osu.Framework.Audio.Track
 
             private AsyncBufferStream dataStream;
 
-            public FileProcedures BassProcedures => new FileProcedures()
+            public FileProcedures BassProcedures => new FileProcedures
             {
                 Close = ac_Close,
                 Length = ac_Length,
@@ -232,7 +224,6 @@ namespace osu.Framework.Audio.Track
                 }
 
                 return 0;
-
             }
 
             bool ac_Seek(long offset, IntPtr user)

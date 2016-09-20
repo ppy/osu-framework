@@ -1,5 +1,5 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Drawing;
@@ -12,7 +12,7 @@ namespace osu.Framework.Desktop.OS.Windows
     public class WindowsGameForm : BasicGameForm
     {
         public delegate void WndProcDelegate(ref Message m);
-        
+
         public override event EventHandler ScreenChanged;
 
         public event WndProcDelegate OnWndProc;
@@ -21,7 +21,8 @@ namespace osu.Framework.Desktop.OS.Windows
 
         private Screen screen;
 
-        internal WindowsGameForm(GraphicsContextFlags flags) : base(flags)
+        internal WindowsGameForm(GraphicsContextFlags flags)
+            : base(flags)
         {
             SuspendLayout();
             CausesValidation = false;
@@ -70,7 +71,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == (uint)WindowsGameHost.WindowMessage.ActivateApplication)	
+            if (m.Msg == (uint)WindowsGameHost.WindowMessage.ActivateApplication)
             {
                 bool active = m.WParam != IntPtr.Zero;
                 OnActivateApp(active);

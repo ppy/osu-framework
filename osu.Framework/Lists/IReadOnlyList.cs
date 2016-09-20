@@ -1,15 +1,14 @@
-﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace osu.Framework.Lists
 {
     /// <summary>
     /// An implementation of System.Collections.Generic.IReadOnlyList
-    /// with List&le;T&ge; methods.
+    /// with generic List methods.
     /// </summary>
     interface IReadOnlyList<T> : System.Collections.Generic.IReadOnlyList<T>
     {
