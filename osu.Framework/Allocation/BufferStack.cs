@@ -11,7 +11,7 @@ namespace osu.Framework.Allocation
         private Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
         private HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
 
-        public BufferStack(int maxAmountBuffers = 10)
+        public BufferStack(int maxAmountBuffers)
         {
             this.maxAmountBuffers = maxAmountBuffers;
         }
