@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace osu.Framework.Configuration
@@ -47,7 +48,9 @@ namespace osu.Framework.Configuration
 
         public override bool Parse(object s)
         {
-            Value = double.Parse(s as string, NumberFormatInfo.InvariantInfo);
+            if (s == null) return false;
+
+            Value = double.Parse((string)s, NumberFormatInfo.InvariantInfo);
             return true;
         }
 

@@ -188,7 +188,7 @@ namespace osu.Framework.IO.Network
 
             if (useFallbackPath != true && !UseExplicitIPv4Requests)
             {
-                req = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                req = (HttpWebRequest)System.Net.WebRequest.Create(url);
                 req.ServicePoint.BindIPEndPointDelegate += bindEndPoint;
             }
             else

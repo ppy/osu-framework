@@ -61,6 +61,9 @@ namespace osu.Framework.Graphics.Shaders
                 {
                     string line = sr.ReadLine();
 
+                    if (string.IsNullOrEmpty(line))
+                        continue;
+
                     Match includeMatch = includeRegex.Match(line);
                     if (includeMatch.Success)
                     {
