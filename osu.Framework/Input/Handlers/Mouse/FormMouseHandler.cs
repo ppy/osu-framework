@@ -85,7 +85,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         }
 
         public override bool IsActive => true;
-        public override int Priority { get; }
+        public override int Priority => 0;
 
         public void SetPosition(Vector2 pos)
         {
@@ -100,7 +100,7 @@ namespace osu.Framework.Input.Handlers.Mouse
         public bool? Forward { get; private set; }
         public bool? WheelUp { get; private set; }
         public bool? WheelDown { get; private set; }
-        public List<Vector2> IntermediatePositions { get; }
+        public List<Vector2> IntermediatePositions => null;
         public bool Clamping { get; set; }
     }
 }

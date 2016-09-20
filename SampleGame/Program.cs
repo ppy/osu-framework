@@ -13,7 +13,7 @@ namespace SampleGame
         [STAThread]
         public static void Main()
         {
-            using (Game game = new osu.Desktop.SampleGame())
+            using (Game game = new SampleGame())
             using (BasicGameHost host = Host.GetSuitableHost())
             {
                 host.Load(game);
