@@ -283,7 +283,7 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index] = (byte)(255 * col.R);
                 textureData[index + 1] = (byte)(255 * col.G);
                 textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4f / HEIGHT / 8f)) : col.A));
+                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
                 currentHeight--;
             }
 
