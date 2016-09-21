@@ -20,9 +20,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float cos = (float)Math.Cos(angle);
             float sin = (float)Math.Sin(angle);
 
-            Vector3 temp = m.Row0 * cos + m.Row1 * sin;
+            Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
-            m.Row0 = temp;
+            m.Row0 = row0;
         }
 
         public static void FastInvert(ref Matrix3 value)
