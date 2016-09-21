@@ -29,6 +29,9 @@ namespace osu.Framework.Graphics.UserInterface
         public int? LengthLimit;
 
         public bool AllowClipboardExport => true;
+        
+        private bool doubleClickDragging = false;
+        private Vector2 doubleClickWord;
 
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
@@ -536,13 +539,39 @@ namespace osu.Framework.Graphics.UserInterface
         {
             //if (textInput?.ImeActive == true) return true;
 
-            if (text.Length == 0) return true;
+            if (doubleClickDragging)
+            {
+                //select words at a time
+                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord.Y) 
+                {
+                    selectionEnd = text.IndexOf(' ', getCharacterClosestTo(state.Mouse.Position));
+                    if (selectionEnd < selectionStart)
+                        selectionEnd = text.Length;
+                    selectionStart = (int)doubleClickWord.X;
+                }
+                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord.X) 
+                {
+                    selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position))+1;
+                    selectionStart = (int)doubleClickWord.Y;
+                }
+                else
+                {
+                    //in the middle
+                    selectionStart = (int)doubleClickWord.X;
+                    selectionEnd = (int)doubleClickWord.Y;
+                }
+                cursorAndLayout.Invalidate();
+            }
+            else
+            {
+                if (text.Length == 0) return true;
 
-            selectionEnd = getCharacterClosestTo(state.Mouse.Position);
-            if (selectionLength > 0)
-                TriggerFocus();
+                selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+                if (selectionLength > 0)
+                    TriggerFocus();
 
-            cursorAndLayout.Invalidate();
+                cursorAndLayout.Invalidate();
+            }
             return true;
         }
 
@@ -553,18 +582,24 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected override bool OnDoubleClick(InputState state)
-        {
+        {   
             if (textInput?.ImeActive == true) return true;
 
             if (text.Length == 0) return true;
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            
+            doubleClickDragging = true;
 
             int lastSeparator = findSeparatorIndex(text, hover, -1);
             int nextSeparator = findSeparatorIndex(text, hover, 1);
 
             selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
             selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+
+            //in order to keep the home word selected
+            doubleClickWord = new Vector2(selectionStart,selectionEnd);
+
             cursorAndLayout.Invalidate();
             return true;
         }
@@ -599,6 +634,13 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
+            return true;
+        }
+
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        {
+            if (doubleClickDragging)
+                doubleClickDragging = false;
             return true;
         }
 
