@@ -12,8 +12,8 @@ namespace osu.Framework.Graphics.Sprites
         internal override bool Contains(Vector2 screenSpacePos)
         {
             float hoverRadius = HoverRadius > 0 ? HoverRadius : Texture.DisplayWidth / 2f;
-            Vector2 screenHoverRadius = new Vector2(hoverRadius, hoverRadius) * DrawInfo.Matrix.ExtractScale().Xy;
-            return Vector2.DistanceSquared(screenSpacePos, ScreenSpaceDrawQuad.Centre) < Vector2.Dot(screenHoverRadius, screenHoverRadius);
+            Vector2 localSpacePos = screenSpacePos * DrawInfo.MatrixInverse;
+            return Vector2.DistanceSquared(localSpacePos, DrawQuad.Centre) < hoverRadius * hoverRadius;
         }
     }
 }

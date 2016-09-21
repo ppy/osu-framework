@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     {
         public bool Masking;
 
-        protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.BoundingRectangle : (Rectangle?)null);
+        protected override DrawNode BaseDrawNode => new ContainerDrawNode(DrawInfo, Masking ? ScreenSpaceDrawQuad.AABB : (Rectangle?)null);
 
         public override bool HandleInput => true;
 
