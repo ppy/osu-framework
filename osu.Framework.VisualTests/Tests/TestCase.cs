@@ -11,7 +11,7 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCase : LargeContainer
     {
-        internal virtual string Name => @"Test Case";
+        public override string Name => @"Test Case";
         internal virtual string Description => @"The base class for a test case";
         internal virtual int DisplayOrder => 0;
 

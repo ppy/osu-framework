@@ -12,7 +12,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         private TextBox tb;
 
-        internal override string Name => @"TextBox";
+        public override string Name => @"TextBox";
 
         internal override string Description => @"Text entry evolved";
 
