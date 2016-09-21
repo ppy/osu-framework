@@ -91,6 +91,15 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
+        private void resetSelection(bool reset)
+        {
+            if (reset)
+            {
+                selectionStart = selectionEnd;
+                cursorAndLayout.Invalidate();
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             OnChange = null;
@@ -385,7 +394,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionEnd == 0)
                     {
-                        if (!state.Keyboard.ShiftPressed) resetSelection();
+                        //we only clear if you aren't holding shift
+                        resetSelection(!state.Keyboard.ShiftPressed);
                         return true;
                     }
 
@@ -395,22 +405,25 @@ namespace osu.Framework.Graphics.UserInterface
                         int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
                         if (lastSpace >= 0)
                         {
-                            if (!state.Keyboard.ShiftPressed)
-                                resetSelection();
+                            //if you have something selected and shift is not held down
+                            //A selection reset is required to select a word inside the current selection
+                            resetSelection(!state.Keyboard.ShiftPressed);
                             amount = (selectionEnd - lastSpace - 1);
-                        } else
+                        }
+                         else
                             amount = selectionEnd;
                     }
+
                     moveSelection(-amount, state.Keyboard.ShiftPressed);
+                    return true;
                 }
-                return true;
                 case Key.Right:
                 {
                     if (!HandleLeftRightArrows) return false;
 
                     if (selectionEnd == text.Length)
                     {
-                        if (!state.Keyboard.ShiftPressed) resetSelection();
+                        resetSelection(!state.Keyboard.ShiftPressed);
                         return true;
                     }
 
@@ -420,8 +433,7 @@ namespace osu.Framework.Graphics.UserInterface
                         int nextSpace = text.IndexOf(' ', selectionEnd + 1);
                         if (nextSpace >= 0)
                         {
-                            if (!state.Keyboard.ShiftPressed)
-                                resetSelection();
+                            resetSelection(!state.Keyboard.ShiftPressed);
                             amount = nextSpace - selectionEnd;
                         }
                         else
@@ -429,9 +441,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
 
                     moveSelection(amount, state.Keyboard.ShiftPressed);
-                }
-
-                return true;
+                    return true;
+                }    
                 case Key.Enter:
                     TriggerFocusLost(state);
                     return true;
