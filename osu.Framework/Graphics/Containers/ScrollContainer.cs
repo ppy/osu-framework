@@ -86,14 +86,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            offset(-GetLocalPosition(state.Mouse.NativeDelta).Y / Scale.Y, false, false);
+            offset(-state.Mouse.Delta.Y / Scale.Y, false, false);
             return base.OnDrag(state);
         }
 
         protected override bool OnDragEnd(InputState state)
         {
             //forces a clamped state to return to correct location.
-            offset(-GetLocalPosition(state.Mouse.NativeDelta).Y / Scale.Y * 10);
+            offset(-state.Mouse.Delta.Y / Scale.Y * 10);
 
             return base.OnDragEnd(state);
         }
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                offsetDelegate(GetLocalDelta(state.Mouse.NativeDelta).Y, true, false);
+                offsetDelegate(state.Mouse.Delta.Y, true, false);
                 return true;
             }
         }
