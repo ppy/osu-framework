@@ -6,13 +6,13 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public class KeyboardState
+    public class KeyboardState : IKeyboardState
     {
-        public KeyboardState LastState;
+        public IKeyboardState LastState;
 
-        public ReadOnlyList<Key> Keys = new ReadOnlyList<Key>();
+        public ReadOnlyList<Key> Keys { get; internal set; } = new ReadOnlyList<Key>();
 
-        public KeyboardState(KeyboardState last = null)
+        public KeyboardState(IKeyboardState last = null)
         {
             LastState = last;
         }

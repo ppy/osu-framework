@@ -6,6 +6,7 @@ using osu.Framework.Input;
 using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
+using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Graphics
 {
@@ -35,63 +36,63 @@ namespace osu.Framework.Graphics
         {
         }
 
-        public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null) => OnMouseDown(state, args);
+        public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null) => OnMouseDown(getLocalState(state), args);
 
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             return false;
         }
 
-        public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null) => OnMouseUp(state, args);
+        public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null) => OnMouseUp(getLocalState(state), args);
 
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             return false;
         }
 
-        public bool TriggerClick(InputState state = null) => OnClick(state);
+        public bool TriggerClick(InputState state = null) => OnClick(getLocalState(state));
 
         protected virtual bool OnClick(InputState state)
         {
             return false;
         }
 
-        public bool TriggerDoubleClick(InputState state) => OnDoubleClick(state);
+        public bool TriggerDoubleClick(InputState state) => OnDoubleClick(getLocalState(state));
 
         protected virtual bool OnDoubleClick(InputState state)
         {
             return false;
         }
 
-        public bool TriggerDragStart(InputState state) => OnDragStart(state);
+        public bool TriggerDragStart(InputState state) => OnDragStart(getLocalState(state));
 
         protected virtual bool OnDragStart(InputState state)
         {
             return false;
         }
 
-        public bool TriggerDrag(InputState state) => OnDrag(state);
+        public bool TriggerDrag(InputState state) => OnDrag(getLocalState(state));
 
         protected virtual bool OnDrag(InputState state)
         {
             return false;
         }
 
-        public bool TriggerDragEnd(InputState state) => OnDragEnd(state);
+        public bool TriggerDragEnd(InputState state) => OnDragEnd(getLocalState(state));
 
         protected virtual bool OnDragEnd(InputState state)
         {
             return false;
         }
 
-        public bool TriggerWheelUp(InputState state) => OnWheelUp(state);
+        public bool TriggerWheelUp(InputState state) => OnWheelUp(getLocalState(state));
 
         protected virtual bool OnWheelUp(InputState state)
         {
             return false;
         }
 
-        public bool TriggerWheelDown(InputState state) => OnWheelDown(state);
+        public bool TriggerWheelDown(InputState state) => OnWheelDown(getLocalState(state));
 
         protected virtual bool OnWheelDown(InputState state)
         {
@@ -142,21 +143,21 @@ namespace osu.Framework.Graphics
         {
         }
 
-        public bool TriggerKeyDown(InputState state, KeyDownEventArgs args) => OnKeyDown(state, args);
+        public bool TriggerKeyDown(InputState state, KeyDownEventArgs args) => OnKeyDown(getLocalState(state), args);
 
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             return false;
         }
 
-        public bool TriggerKeyUp(InputState state, KeyUpEventArgs args) => OnKeyUp(state, args);
+        public bool TriggerKeyUp(InputState state, KeyUpEventArgs args) => OnKeyUp(getLocalState(state), args);
 
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             return false;
         }
 
-        public bool TriggerMouseMove(InputState state) => OnMouseMove(state);
+        public bool TriggerMouseMove(InputState state) => OnMouseMove(getLocalState(state));
 
         protected virtual bool OnMouseMove(InputState state)
         {
@@ -179,12 +180,20 @@ namespace osu.Framework.Graphics
             return ScreenSpaceInputQuad.Contains(screenSpacePos);
         }
 
-        public virtual Vector2 GetLocalPosition(Vector2 screenSpacePos)
+        /// <summary>
+        /// Convert a position to the local coordinate system from either native or local to another drawable.
+        /// </summary>
+        /// <param name="screenSpacePos">The input position.</param>
+        /// <param name="relativeDrawable">The drawable which the input position is local to, or null for native.</param>
+        /// <returns>The output position.</returns>
+        internal Vector2 GetLocalPosition(Vector2 screenSpacePos, Drawable relativeDrawable = null)
         {
+            if (relativeDrawable != null)
+                screenSpacePos *= relativeDrawable.DrawInfo.Matrix;
             return screenSpacePos * DrawInfo.MatrixInverse;
         }
 
-        public virtual Vector2 GetLocalDelta(Vector2 delta)
+        internal Vector2 GetLocalDelta(Vector2 delta)
         {
             return (Position * Parent.DrawInfo.Matrix + delta) * DrawInfo.MatrixInverse;
         }
@@ -192,6 +201,39 @@ namespace osu.Framework.Graphics
         internal virtual bool Contains(Vector2 screenSpacePos)
         {
             return ScreenSpaceInputQuad.Contains(screenSpacePos).HasValue;
+        }
+
+        private InputState getLocalState(InputState state)
+        {
+            if (state == null) return null;
+
+            return new InputState
+            {
+                Keyboard = state.Keyboard,
+                Mouse = new LocalMouseState(state.Mouse, this)
+            };
+        }
+
+        private struct LocalMouseState : IMouseState
+        {
+            private readonly IMouseState state;
+            private readonly Drawable us;
+
+            public LocalMouseState(IMouseState state, Drawable us)
+            {
+                this.state = state;
+                this.us = us;
+            }
+
+            public bool BackButton => state.BackButton;
+            public bool ForwardButton => state.ForwardButton;
+            public Vector2 Delta => us.GetLocalDelta(state.Delta);
+            public Vector2 Position => us.GetLocalPosition(state.Position);
+            public Vector2? PositionMouseDown => state.PositionMouseDown == null ? (Vector2?)null : us.GetLocalPosition(state.PositionMouseDown.Value);
+            public bool HasMainButtonPressed => state.HasMainButtonPressed;
+            public bool LeftButton => state.LeftButton;
+            public bool MiddleButton => state.MiddleButton;
+            public bool RightButton => state.RightButton;
         }
     }
 

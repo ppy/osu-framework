@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnMouseMove(InputState state)
         {
-            cursor.Position = GetLocalPosition(state.Mouse.NativePosition);
+            cursor.Position = state.Mouse.Position;
             return base.OnMouseMove(state);
         }
 

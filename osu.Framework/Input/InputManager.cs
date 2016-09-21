@@ -109,8 +109,8 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            inputState.Keyboard.LastState = null;
-            inputState.Mouse.LastState = null;
+            //todo: move resetting to InputState level.
+            inputState.ResetLastStates();
 
             inputState = new InputState(inputState);
 
@@ -181,7 +181,7 @@ namespace osu.Framework.Input
             if (!d.HandleInput || !d.IsVisible)
                 return false;
 
-            if (!d.Contains(state.Mouse.NativePosition))
+            if (!d.Contains(state.Mouse.Position))
                 return false;
 
             return true;
@@ -247,6 +247,8 @@ namespace osu.Framework.Input
         {
             if (PassThrough) return;
 
+            KeyboardState keyboard = (KeyboardState)state.Keyboard;
+
             List<Key> keys = new List<Key>();
 
             foreach (InputHandler h in inputHandlers)
@@ -262,14 +264,14 @@ namespace osu.Framework.Input
                 keys.AddRange(kh.PressedKeys);
             }
 
-            state.Keyboard.Keys = new ReadOnlyList<Key>(keys);
+            keyboard.Keys = new ReadOnlyList<Key>(keys);
         }
 
         protected virtual void UpdateMouseState(InputState state)
         {
             if (PassThrough) return;
 
-            MouseState mouse = state.Mouse;
+            MouseState mouse = (MouseState)state.Mouse;
 
             currentCursorHandler = null;
 
@@ -323,15 +325,15 @@ namespace osu.Framework.Input
 
                 Quad q = ScreenSpaceInputQuad;
 
-                mouse.NativePosition = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
+                mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
             }
             else
-                mouse.NativePosition = Vector2.Zero;
+                mouse.Position = Vector2.Zero;
         }
 
         private void updateKeyboardEvents(InputState state)
         {
-            KeyboardState keyboard = state.Keyboard;
+            KeyboardState keyboard = (KeyboardState)state.Keyboard;
 
             if (keyboard.Keys.Count == 0)
                 keyboardRepeatTime = 0;
@@ -383,9 +385,9 @@ namespace osu.Framework.Input
 
         private void updateMouseEvents(InputState state)
         {
-            MouseState mouse = state.Mouse;
+            MouseState mouse = (MouseState)state.Mouse;
 
-            if (mouse.NativePosition != mouse.LastState?.NativePosition)
+            if (mouse.Position != mouse.LastState?.Position)
             {
                 handleMouseMove(state);
                 if (isDragging)
@@ -394,7 +396,7 @@ namespace osu.Framework.Input
 
             foreach (MouseState.ButtonState b in mouse.ButtonStates)
             {
-                if (b.State != mouse.LastState?.ButtonStates.Find(c => c.Button == b.Button).State)
+                if (b.State != (mouse.LastState as MouseState)?.ButtonStates.Find(c => c.Button == b.Button).State)
                 {
                     if (b.State)
                         handleMouseDown(state, b.Button);
@@ -414,7 +416,7 @@ namespace osu.Framework.Input
                 if (mouse.LastState?.HasMainButtonPressed != true)
                 {
                     //stuff which only happens once after the mousedown state
-                    state.Mouse.PositionMouseDown = state.Mouse.NativePosition;
+                    mouse.PositionMouseDown = state.Mouse.Position;
                     LastActionTime = Time;
                     isValidClick = true;
 
@@ -430,13 +432,13 @@ namespace osu.Framework.Input
                     lastClickTime = Time;
                 }
 
-                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > drag_start_distance)
+                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
                     handleMouseDrag(state);
                 }
 
-                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.NativePosition, mouse.NativePosition) > click_confirmation_distance)
+                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_confirmation_distance)
                     isValidClick = false;
             }
             else if (mouse.LastState?.HasMainButtonPressed == true)
@@ -593,7 +595,7 @@ namespace osu.Framework.Input
                     inputHandlers.Insert(index, handler);
 
                     //set the initial position to the current OsuGame position.
-                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.NativePosition);
+                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
                     return true;
                 }
             }

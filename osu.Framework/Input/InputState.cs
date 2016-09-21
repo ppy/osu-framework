@@ -7,13 +7,19 @@ namespace osu.Framework.Input
 {
     public class InputState : EventArgs
     {
-        public KeyboardState Keyboard;
-        public MouseState Mouse;
+        public IKeyboardState Keyboard;
+        public IMouseState Mouse;
 
         public InputState(InputState last = null)
         {
             Keyboard = new KeyboardState(last?.Keyboard);
             Mouse = new MouseState(last?.Mouse);
+        }
+
+        public void ResetLastStates()
+        {
+            ((KeyboardState)Keyboard).LastState = null;
+            ((MouseState)Mouse).LastState = null;
         }
     }
 }

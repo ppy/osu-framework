@@ -1,15 +1,16 @@
 // Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
-    public class MouseState
+    public class MouseState : IMouseState
     {
-        public MouseState LastState;
+        public IMouseState LastState;
 
         public ReadOnlyList<ButtonState> ButtonStates = new ReadOnlyList<ButtonState>(new[]
         {
@@ -31,13 +32,13 @@ namespace osu.Framework.Input
 
         public bool HasMainButtonPressed => LeftButton || RightButton;
 
-        public Vector2 NativeDelta => NativePosition - (LastState?.NativePosition ?? Vector2.Zero);
+        public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
 
-        public Vector2 NativePosition;
+        public Vector2 Position { get; internal set; }
 
-        public Vector2? PositionMouseDown;
+        public Vector2? PositionMouseDown { get; internal set; }
 
-        public MouseState(MouseState last = null)
+        public MouseState(IMouseState last = null)
         {
             LastState = last;
             PositionMouseDown = last?.PositionMouseDown;
