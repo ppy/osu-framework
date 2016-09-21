@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = textFlow.GetLocalPosition(pos);
+            pos = textFlow.GetLocalPosition(pos, this);
 
             int i = 0;
             foreach (Drawable d in textFlow.Children)
@@ -527,7 +527,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            selectionEnd = getCharacterClosestTo(state.Mouse.NativePosition);
+            selectionEnd = getCharacterClosestTo(state.Mouse.Position);
             if (selectionLength > 0)
                 TriggerFocus();
 
@@ -547,7 +547,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.NativePosition));
+            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
 
             int lastSeparator = findSeparatorIndex(text, hover, -1);
             int nextSeparator = findSeparatorIndex(text, hover, 1);
@@ -584,7 +584,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true) return true;
 
-            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.NativePosition);
+            selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
 
             cursorAndLayout.Invalidate();
 

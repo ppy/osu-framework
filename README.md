@@ -6,7 +6,14 @@ A game framework written with osu! in mind.
 # Requirements
 
 - A desktop platform which can compile .NET 4.5.
-- Visual Studio or MonoDevelop is recommended.
+- Visual Studio 2015 (community or otherwise) is recommended.
+
+# Objectives
+
+This framework is intended to take steps beyond what you would normally expect from a game framework. This means things like basic UI elements, text rendering, advanced input handling (textboxes) and performance overlays are provided out-of-the-box. Any of the osu! code that is deemed useful to other game projects will live in this framework project.
+
+- Anywhere we implement graphical components, they will be displayed with a generic design and will be derivable for further customisation.
+- Common elements used by games (texture caching, font loading) will be automatically initialised at runtime.
 
 # Contributing
 
