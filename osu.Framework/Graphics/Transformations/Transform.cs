@@ -26,7 +26,21 @@ namespace osu.Framework.Graphics.Transformations
 
         protected double Time => Clock.CurrentTime;
 
-        public bool IsAlive => Clock == null || (StartTime <= Clock.CurrentTime && (EndTime >= Clock.CurrentTime || LoopCount != CurrentLoopCount));
+        public bool IsAlive
+        {
+            get
+            {
+                if (Clock == null)
+                    //we could not be completely initialised yet.
+                    return true;
+
+                if (StartTime > Clock.CurrentTime)
+                    //we haven't yet reached the start of this transform.
+                    return false;
+
+                return EndTime >= Clock.CurrentTime || LoopCount != CurrentLoopCount;
+            }
+        }
 
         public Transform(IClock clock)
         {
