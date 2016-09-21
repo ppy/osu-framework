@@ -82,11 +82,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             textContainer.Add(cursor);
             textContainer.Add(textFlow);
+
         }
 
         private void resetSelection()
         {
-            selectionStart = selectionEnd = text.Length;
+            selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
         }
 
@@ -379,42 +380,56 @@ namespace osu.Framework.Graphics.UserInterface
                     moveSelection(-text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Left:
-                {
-                    if (!HandleLeftRightArrows) return false;
-
-                    if (selectionEnd == 0) return true;
-
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
                     {
-                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                        if (lastSpace >= 0)
-                            amount = selectionEnd - lastSpace - 1;
-                        else
-                            amount = selectionEnd;
-                    }
+                        if (!HandleLeftRightArrows) return false;
 
-                    moveSelection(-amount, state.Keyboard.ShiftPressed);
-                }
+                        if (selectionEnd == 0)
+                        {
+                            if (!state.Keyboard.ShiftPressed) resetSelection();
+                            return true;
+                        }
+
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                            if (lastSpace >= 0)
+                            {
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = (selectionEnd - lastSpace - 1);
+                            } else
+                                amount = selectionEnd;
+                        }
+                        moveSelection(-amount, state.Keyboard.ShiftPressed);
+                    }
                     return true;
                 case Key.Right:
-                {
-                    if (!HandleLeftRightArrows) return false;
-
-                    if (selectionEnd == text.Length) return true;
-
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
                     {
-                        int nextSpace = text.IndexOf(' ', selectionEnd + 1);
-                        if (nextSpace >= 0)
-                            amount = nextSpace - selectionEnd;
-                        else
-                            amount = text.Length - selectionEnd;
-                    }
+                        if (!HandleLeftRightArrows) return false;
 
-                    moveSelection(amount, state.Keyboard.ShiftPressed);
-                }
+                        if (selectionEnd == text.Length)
+                        {
+                            if (!state.Keyboard.ShiftPressed) resetSelection();
+                            return true;
+                        }
+
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
+                            if (nextSpace >= 0)
+                            {
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = nextSpace - selectionEnd;
+                            }
+                            else
+                                amount = text.Length - selectionEnd;
+                        }
+
+                        moveSelection(amount, state.Keyboard.ShiftPressed);
+                    }
 
                     return true;
                 case Key.Enter:
