@@ -30,12 +30,12 @@ namespace osu.Framework.Graphics.Transformations
         {
             get
             {
+                //we could not be completely initialised yet.
                 if (Clock == null)
-                    //we could not be completely initialised yet.
                     return true;
 
+                //we may not have reached the start of this transform yet.
                 if (StartTime > Clock.CurrentTime)
-                    //we haven't yet reached the start of this transform.
                     return false;
 
                 return EndTime >= Clock.CurrentTime || LoopCount != CurrentLoopCount;
