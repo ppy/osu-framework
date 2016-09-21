@@ -12,6 +12,7 @@ using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Input;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Input
 {
@@ -335,16 +336,16 @@ namespace osu.Framework.Input
         {
             KeyboardState keyboard = (KeyboardState)state.Keyboard;
 
-            if (keyboard.Keys.Count == 0)
+            if (!keyboard.Keys.Any())
                 keyboardRepeatTime = 0;
             else
                 keyboardRepeatTime -= (Clock as FramedClock)?.ElapsedFrameTime ?? 0;
 
             keyboard.LastState?.Keys.ForEach(k =>
-                    {
-                        if (!keyboard.Keys.Contains(k))
-                            handleKeyUp(state, k);
-                    });
+            {
+                if (!keyboard.Keys.Contains(k))
+                    handleKeyUp(state, k);
+            });
 
             foreach (Key k in keyboard.Keys)
             {

@@ -3,6 +3,8 @@
 
 using osu.Framework.Lists;
 using OpenTK.Input;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
@@ -10,15 +12,15 @@ namespace osu.Framework.Input
     {
         public IKeyboardState LastState;
 
-        public ReadOnlyList<Key> Keys { get; internal set; } = new ReadOnlyList<Key>();
+        public IEnumerable<Key> Keys { get; internal set; } = new Key[] { };
 
         public KeyboardState(IKeyboardState last = null)
         {
             LastState = last;
         }
 
-        public bool ControlPressed => Keys.Contains(Key.LControl) || Keys.Contains(Key.RControl);
-        public bool AltPressed => Keys.Contains(Key.LAlt) || Keys.Contains(Key.RAlt);
-        public bool ShiftPressed => Keys.Contains(Key.LShift) || Keys.Contains(Key.RShift);
+        public bool ControlPressed => Keys.Any(k => k == Key.LControl || k == Key.RControl);
+        public bool AltPressed => Keys.Any(k => k == Key.LAlt || k == Key.RAlt);
+        public bool ShiftPressed => Keys.Any(k => k == Key.LShift || k == Key.RShift);
     }
 }
