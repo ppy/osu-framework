@@ -85,22 +85,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             textContainer.Add(cursor);
             textContainer.Add(textFlow);
-
         }
 
         private void resetSelection()
         {
             selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
-        }
-
-        private void resetSelection(bool reset)
-        {
-            if (reset)
-            {
-                selectionStart = selectionEnd;
-                cursorAndLayout.Invalidate();
-            }
         }
 
         protected override void Dispose(bool disposing)
@@ -397,8 +387,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionEnd == 0)
                     {
-                        //we only clear if you aren't holding shift
-                        resetSelection(!state.Keyboard.ShiftPressed);
+                            //we only clear if you aren't holding shift
+                        if (!state.Keyboard.ShiftPressed)
+                            resetSelection();
                         return true;
                     }
 
@@ -410,7 +401,8 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             //if you have something selected and shift is not held down
                             //A selection reset is required to select a word inside the current selection
-                            resetSelection(!state.Keyboard.ShiftPressed);
+                            if(!state.Keyboard.ShiftPressed)
+                                resetSelection();
                             amount = (selectionEnd - lastSpace - 1);
                         }
                          else
@@ -426,7 +418,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionEnd == text.Length)
                     {
-                        resetSelection(!state.Keyboard.ShiftPressed);
+                        if (!state.Keyboard.ShiftPressed)
+                            resetSelection();
                         return true;
                     }
 
@@ -436,7 +429,8 @@ namespace osu.Framework.Graphics.UserInterface
                         int nextSpace = text.IndexOf(' ', selectionEnd + 1);
                         if (nextSpace >= 0)
                         {
-                            resetSelection(!state.Keyboard.ShiftPressed);
+                            if (!state.Keyboard.ShiftPressed)
+                                resetSelection();
                             amount = nextSpace - selectionEnd;
                         }
                         else
@@ -552,7 +546,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
                 else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
                 {
-                    selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position))+1;
+                    selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position)) + 1;
                     selectionStart = doubleClickWord[1];
                 }
                 else
@@ -583,7 +577,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected override bool OnDoubleClick(InputState state)
-        {   
+        {
             if (textInput?.ImeActive == true) return true;
 
             if (text.Length == 0) return true;
@@ -638,8 +632,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
-            if (doubleClickWord != null)
-                doubleClickWord = null;
+            doubleClickWord = null;
             return true;
         }
 
