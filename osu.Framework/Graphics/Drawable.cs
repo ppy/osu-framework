@@ -22,6 +22,11 @@ namespace osu.Framework.Graphics
 
         internal event Action OnInvalidate;
 
+        /// <summary>
+        /// A name used to identify this Drawable internally.
+        /// </summary>
+        public virtual string Name => null;
+
         private LifetimeList<Drawable> children;
         private IEnumerable<Drawable> pendingChildren;
 
@@ -920,6 +925,10 @@ namespace osu.Framework.Graphics
         {
             string shortClass = base.ToString();
             shortClass = shortClass.Substring(shortClass.LastIndexOf('.') + 1);
+
+            if (!string.IsNullOrEmpty(Name))
+                shortClass = $@"{Name} ({shortClass})";
+
             if (HasDefinedSize)
                 return $@"{shortClass} pos {Position} size {Size}";
             return $@"{shortClass} pos {Position} size -uncalculated-";
