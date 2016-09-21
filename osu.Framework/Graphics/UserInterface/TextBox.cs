@@ -403,7 +403,7 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                     moveSelection(-amount, state.Keyboard.ShiftPressed);
                 }
-                return true;
+                    return true;
                 case Key.Right:
                 {
                     if (!HandleLeftRightArrows) return false;
@@ -431,7 +431,7 @@ namespace osu.Framework.Graphics.UserInterface
                     moveSelection(amount, state.Keyboard.ShiftPressed);
                 }
 
-                return true;
+                    return true;
                 case Key.Enter:
                     TriggerFocusLost(state);
                     return true;
