@@ -29,9 +29,9 @@ namespace osu.Framework.Graphics.UserInterface
         public int? LengthLimit;
 
         public bool AllowClipboardExport => true;
-        
-        private bool doubleClickDragging = false;
-        private Vector2 doubleClickWord;
+
+        //represents the left/right selection coordinates of the word double clicked on when dragging
+        private int[] doubleClickWord = null;
 
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
@@ -540,26 +540,26 @@ namespace osu.Framework.Graphics.UserInterface
         {
             //if (textInput?.ImeActive == true) return true;
 
-            if (doubleClickDragging)
+            if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord.Y) 
+                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1]) 
                 {
                     selectionEnd = text.IndexOf(' ', getCharacterClosestTo(state.Mouse.Position));
                     if (selectionEnd < selectionStart)
                         selectionEnd = text.Length;
-                    selectionStart = (int)doubleClickWord.X;
+                    selectionStart = doubleClickWord[0];
                 }
-                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord.X) 
+                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
                 {
                     selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position))+1;
-                    selectionStart = (int)doubleClickWord.Y;
+                    selectionStart = doubleClickWord[1];
                 }
                 else
                 {
                     //in the middle
-                    selectionStart = (int)doubleClickWord.X;
-                    selectionEnd = (int)doubleClickWord.Y;
+                    selectionStart = doubleClickWord[0];
+                    selectionEnd = doubleClickWord[1];
                 }
                 cursorAndLayout.Invalidate();
             }
@@ -589,8 +589,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (text.Length == 0) return true;
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
-            
-            doubleClickDragging = true;
 
             int lastSeparator = findSeparatorIndex(text, hover, -1);
             int nextSeparator = findSeparatorIndex(text, hover, 1);
@@ -599,7 +597,7 @@ namespace osu.Framework.Graphics.UserInterface
             selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
 
             //in order to keep the home word selected
-            doubleClickWord = new Vector2(selectionStart,selectionEnd);
+            doubleClickWord = new int[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
             return true;
@@ -640,8 +638,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
-            if (doubleClickDragging)
-                doubleClickDragging = false;
+            if (doubleClickWord != null)
+                doubleClickWord = null;
             return true;
         }
 
