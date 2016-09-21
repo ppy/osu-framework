@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A name used to identify this Drawable internally.
         /// </summary>
-        public virtual string Name => null;
+        public virtual string Name => string.Empty;
 
         private LifetimeList<Drawable> children;
         private IEnumerable<Drawable> pendingChildren;
