@@ -692,7 +692,7 @@ namespace osu.Framework.Graphics
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            return children.Update(Time);
+            return children.Update();
         }
 
         internal virtual void UpdateSubTree()
@@ -818,7 +818,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms.Count == 0) return;
 
-            transforms.Update(Time);
+            transforms.Update();
 
             foreach (ITransform t in transforms.Current)
                 t.Apply(this);

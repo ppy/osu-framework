@@ -9,8 +9,6 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
-        private double lastTime;
-
         public event Action<T> OnRemoved;
 
         public LifetimeList(IComparer<T> comparer) : base(comparer)
@@ -21,11 +19,10 @@ namespace osu.Framework.Lists
         public List<T> Current { get; }
 
         /// <summary>
-        /// Update this LifetimeList with the provided time value.
+        /// Updates the life status of this LifetimeList's children.
         /// </summary>
-        /// <param name="time"></param>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update(double time)
+        public bool Update()
         {
             bool anyAliveChanged = false;
 
@@ -56,8 +53,7 @@ namespace osu.Framework.Lists
                     }
                 }
             }
-
-            lastTime = time;
+            
             return anyAliveChanged;
         }
 
