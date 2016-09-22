@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics
     {
         protected DrawInfo DrawInfo;
 
-        TripleBuffer<List<DrawNode>> childrenBuffer = new TripleBuffer<List<DrawNode>>();
+        TripleBuffer<List<DrawNode>> childrenBuffer;
 
         public DrawNode(DrawInfo drawInfo)
         {
@@ -30,14 +30,17 @@ namespace osu.Framework.Graphics
 
             Draw();
 
-            using (var buffer = childrenBuffer.ForRead())
+            if (childrenBuffer != null)
             {
-                var drawNodes = buffer?.Object;
-
-                if (drawNodes != null)
+                using (var buffer = childrenBuffer.ForRead())
                 {
-                    foreach (DrawNode child in drawNodes)
-                        child?.DrawSubTree();
+                    var drawNodes = buffer?.Object;
+
+                    if (drawNodes != null)
+                    {
+                        foreach (DrawNode child in drawNodes)
+                            child?.DrawSubTree();
+                    }
                 }
             }
 
@@ -59,6 +62,9 @@ namespace osu.Framework.Graphics
 
         public ObjectUsage<List<DrawNode>> BeginChildrenUpdate()
         {
+            if (childrenBuffer == null)
+                childrenBuffer = new TripleBuffer<List<DrawNode>>();
+
             return childrenBuffer.ForWrite();
         }
     }
