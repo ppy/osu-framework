@@ -16,7 +16,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         private ScheduledDelegate boxCreator;
 
-        internal override string Name => @"Scrollable Flow";
+        public override string Name => @"Scrollable Flow";
         internal override string Description => @"A flow container in a scroll container";
 
         Scheduler scheduler = new Scheduler();

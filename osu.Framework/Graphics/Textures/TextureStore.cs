@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Textures
 
         public float ScaleAdjust = 1;
 
-        public TextureStore(IResourceStore<byte[]> store)
+        public TextureStore(IResourceStore<byte[]> store = null)
             : base(store)
         {
             AddExtension(@"png");

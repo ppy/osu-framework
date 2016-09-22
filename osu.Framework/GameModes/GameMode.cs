@@ -7,8 +7,6 @@ namespace osu.Framework.GameModes
 {
     public class GameMode : LargeContainer
     {
-        public virtual string Name => @"Unknown";
-
         private GameMode lastGameMode;
 
         private bool modePushed;

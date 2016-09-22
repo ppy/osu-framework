@@ -40,10 +40,10 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        public string Name { get; private set; }
-
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
+
+        public override string Name { get; }
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
         {
