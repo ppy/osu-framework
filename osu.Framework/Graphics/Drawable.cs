@@ -647,7 +647,7 @@ namespace osu.Framework.Graphics
 
         internal DrawNode GenerateDrawNodeSubtree()
         {
-            DrawNode node = BaseDrawNode;
+            DrawNode node = CreateDrawNode();
 
             foreach (Drawable child in children.Current)
                 if (child.IsVisible)
@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics
             return node;
         }
 
-        protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
+        protected virtual DrawNode CreateDrawNode() => new DrawNode(DrawInfo);
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
