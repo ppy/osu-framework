@@ -30,6 +30,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool AllowClipboardExport => true;
 
+        //represents the left/right selection coordinates of the word double clicked on when dragging
+        private int[] doubleClickWord = null;
+
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
@@ -86,7 +89,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void resetSelection()
         {
-            selectionStart = selectionEnd = text.Length;
+            selectionStart = selectionEnd;
             cursorAndLayout.Invalidate();
         }
 
@@ -382,42 +385,63 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     if (!HandleLeftRightArrows) return false;
 
-                    if (selectionEnd == 0) return true;
+                    if (selectionEnd == 0)
+                    {
+                        //we only clear if you aren't holding shift
+                        if (!state.Keyboard.ShiftPressed)
+                            resetSelection();
+                        return true;
+                    }
 
                     int amount = 1;
                     if (state.Keyboard.ControlPressed)
                     {
                         int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
                         if (lastSpace >= 0)
-                            amount = selectionEnd - lastSpace - 1;
-                        else
+                        {
+                            //if you have something selected and shift is not held down
+                            //A selection reset is required to select a word inside the current selection
+                            if(!state.Keyboard.ShiftPressed)
+                                resetSelection();
+                            amount = (selectionEnd - lastSpace - 1);
+                        }
+                         else
                             amount = selectionEnd;
                     }
 
                     moveSelection(-amount, state.Keyboard.ShiftPressed);
-                }
                     return true;
+                }
                 case Key.Right:
                 {
                     if (!HandleLeftRightArrows) return false;
 
-                    if (selectionEnd == text.Length) return true;
+                    if (selectionEnd == text.Length)
+                    {
+                        if (!state.Keyboard.ShiftPressed)
+                            resetSelection();
+                        return true;
+                    }
 
                     int amount = 1;
                     if (state.Keyboard.ControlPressed)
                     {
                         int nextSpace = text.IndexOf(' ', selectionEnd + 1);
                         if (nextSpace >= 0)
+                        {
+                            if (!state.Keyboard.ShiftPressed)
+                                resetSelection();
                             amount = nextSpace - selectionEnd;
+                        }
                         else
                             amount = text.Length - selectionEnd;
                     }
 
                     moveSelection(amount, state.Keyboard.ShiftPressed);
-                }
-
                     return true;
+                }    
                 case Key.Enter:
+                    selectionStart = selectionEnd = 0;
                     TriggerFocusLost(state);
                     return true;
                 case Key.Delete:
@@ -510,13 +534,39 @@ namespace osu.Framework.Graphics.UserInterface
         {
             //if (textInput?.ImeActive == true) return true;
 
-            if (text.Length == 0) return true;
+            if (doubleClickWord != null)
+            {
+                //select words at a time
+                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1]) 
+                {
+                    selectionEnd = text.IndexOf(' ', getCharacterClosestTo(state.Mouse.Position));
+                    if (selectionEnd < selectionStart)
+                        selectionEnd = text.Length;
+                    selectionStart = doubleClickWord[0];
+                }
+                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
+                {
+                    selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position)) + 1;
+                    selectionStart = doubleClickWord[1];
+                }
+                else
+                {
+                    //in the middle
+                    selectionStart = doubleClickWord[0];
+                    selectionEnd = doubleClickWord[1];
+                }
+                cursorAndLayout.Invalidate();
+            }
+            else
+            {
+                if (text.Length == 0) return true;
 
-            selectionEnd = getCharacterClosestTo(state.Mouse.Position);
-            if (selectionLength > 0)
-                TriggerFocus();
+                selectionEnd = getCharacterClosestTo(state.Mouse.Position);
+                if (selectionLength > 0)
+                    TriggerFocus();
 
-            cursorAndLayout.Invalidate();
+                cursorAndLayout.Invalidate();
+            }
             return true;
         }
 
@@ -539,6 +589,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
             selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+
+            //in order to keep the home word selected
+            doubleClickWord = new int[] { selectionStart, selectionEnd };
+
             cursorAndLayout.Invalidate();
             return true;
         }
@@ -573,6 +627,12 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
+            return true;
+        }
+
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        {
+            doubleClickWord = null;
             return true;
         }
 
