@@ -645,11 +645,15 @@ namespace osu.Framework.Graphics
             });
 
 
-        private DrawNode n => drawNodeBacking.EnsureValid() ? drawNodeBacking.Value : drawNodeBacking.Refresh(CreateDrawNode);
+        private DrawNode drawNodeLatest => drawNodeBacking.EnsureValid() ? drawNodeBacking.Value : drawNodeBacking.Refresh(CreateDrawNode);
 
         internal DrawNode GenerateDrawNodeSubtree()
         {
-            DrawNode node = n;
+            DrawNode lastNode = drawNodeBacking.Value;
+            DrawNode node = drawNodeLatest;
+
+            if (lastNode != node)
+                node.ChildrenBuffer = lastNode?.ChildrenBuffer;
 
             if (children.Current.Count > 0)
             {

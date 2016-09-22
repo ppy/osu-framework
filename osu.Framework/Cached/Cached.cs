@@ -98,7 +98,7 @@ namespace osu.Framework.Cached
         {
             get
             {
-                if (isStale)
+                if (!AllowStaleReads && isStale)
                     MakeValidOrDefault();
 
                 return value;
