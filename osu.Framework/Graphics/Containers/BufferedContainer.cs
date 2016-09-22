@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
-        protected override DrawNode BaseDrawNode => new BufferedContainerDrawNode(DrawInfo, frameBuffer, ScreenSpaceDrawQuad, quadBatch, attachedFormats);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode(DrawInfo, frameBuffer, ScreenSpaceDrawQuad, quadBatch, attachedFormats);
 
         public BufferedContainer()
         {

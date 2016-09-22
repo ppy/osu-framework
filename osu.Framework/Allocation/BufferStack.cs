@@ -5,34 +5,34 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Allocation
 {
-    public class BufferStack
+    public class BufferStack<T>
     {
         private int maxAmountBuffers;
-        private Stack<byte[]> freeDataBuffers = new Stack<byte[]>();
-        private HashSet<byte[]> usedDataBuffers = new HashSet<byte[]>();
+        private Stack<T[]> freeDataBuffers = new Stack<T[]>();
+        private HashSet<T[]> usedDataBuffers = new HashSet<T[]>();
 
         public BufferStack(int maxAmountBuffers)
         {
             this.maxAmountBuffers = maxAmountBuffers;
         }
 
-        private byte[] findFreeBuffer(int minimumLength)
+        private T[] findFreeBuffer(int minimumLength)
         {
-            byte[] buffer = null;
+            T[] buffer = null;
 
             if (freeDataBuffers.Count > 0)
                 buffer = freeDataBuffers.Pop();
 
             if (buffer == null || buffer.Length < minimumLength)
-                buffer = new byte[minimumLength];
+                buffer = new T[minimumLength];
 
-            if (usedDataBuffers.Count < maxAmountBuffers)
-                usedDataBuffers.Add(buffer);
+            //if (usedDataBuffers.Count < maxAmountBuffers)
+              usedDataBuffers.Add(buffer);
 
             return buffer;
         }
 
-        private void returnFreeBuffer(byte[] buffer)
+        private void returnFreeBuffer(T[] buffer)
         {
             if (usedDataBuffers.Remove(buffer))
                 // We are here if the element was successfully found and removed
@@ -44,9 +44,9 @@ namespace osu.Framework.Allocation
         /// </summary>
         /// <param name="minimumLength">The minimum length required of the reserved buffer.</param>
         /// <returns>The reserved buffer.</returns>
-        public byte[] ReserveBuffer(int minimumLength)
+        public T[] ReserveBuffer(int minimumLength)
         {
-            byte[] buffer;
+            T[] buffer;
             lock (freeDataBuffers)
                 buffer = findFreeBuffer(minimumLength);
 
@@ -57,7 +57,7 @@ namespace osu.Framework.Allocation
         /// Frees a previously reserved buffer for future reservations.
         /// </summary>
         /// <param name="buffer">The buffer to be freed. If the buffer has not previously been reserved then this method does nothing.</param>
-        public void FreeBuffer(byte[] buffer)
+        public void FreeBuffer(T[] buffer)
         {
             lock (freeDataBuffers)
                 returnFreeBuffer(buffer);

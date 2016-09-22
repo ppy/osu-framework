@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
@@ -28,7 +29,7 @@ namespace osu.Framework.Graphics.Performance
         const float scale = HEIGHT / visible_range;
 
         private TimeBar[] timeBars = new TimeBar[2];
-        private BufferStack textureBufferStack;
+        private BufferStack<byte> textureBufferStack;
 
         private static Color4[] garbageCollectColors = { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
@@ -49,7 +50,7 @@ namespace osu.Framework.Graphics.Performance
         {
             Name = name;
             this.monitor = monitor;
-            textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
+            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
         public override void Load()
@@ -164,12 +165,18 @@ namespace osu.Framework.Graphics.Performance
             Box b = new Box
             {
                 Origin = Anchor.TopCentre,
-                Position = new Vector2(TimeBarX, 0),
+                Position = new Vector2(TimeBarX, type * 3),
                 Colour = garbageCollectColors[type],
                 Size = new Vector2(3, 3)
             };
 
             timeBars[TimeBarIndex].Add(b);
+
+            if (type < 2)
+            {
+                b.FadeOut(2000);
+                b.Expire();
+            }
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)

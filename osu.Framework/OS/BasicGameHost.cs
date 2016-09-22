@@ -41,11 +41,14 @@ namespace osu.Framework.OS
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
         internal FramedClock InputClock = new FramedClock();
-        internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
+        internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock()
+        {
+            MaximumUpdateHz = 10000
+        };
 
         internal ThrottledFrameClock DrawClock = new ThrottledFrameClock
         {
-            MaximumUpdateHz = 144
+            MaximumUpdateHz = 10000
         };
 
         public int MaximumUpdateHz

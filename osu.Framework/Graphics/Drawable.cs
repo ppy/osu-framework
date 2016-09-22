@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Cached;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
@@ -45,7 +46,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        internal IEnumerable<Drawable> CurrentChildren => children.Current;
+        internal List<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
 
@@ -645,18 +646,27 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
+
+
         internal DrawNode GenerateDrawNodeSubtree()
         {
-            DrawNode node = BaseDrawNode;
+            DrawNode node = drawNodeBacking.IsValid ? drawNodeBacking.Value : drawNodeBacking.Refresh(CreateDrawNode);
 
-            foreach (Drawable child in children.Current)
-                if (child.IsVisible)
-                    node.Children.Add(child.GenerateDrawNodeSubtree());
+            if (children.Current.Count > 0)
+            {
+                List<DrawNode> nc = node.BeginUpdate();
+                foreach (Drawable child in children.Current)
+                    if (child.IsVisible)
+                        nc.Add(child.GenerateDrawNodeSubtree());
+                node.EndUpdate(nc);
+            }
 
             return node;
         }
 
-        protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
+        Cached<DrawNode> drawNodeBacking = new Cached<DrawNode>();
+
+        protected virtual DrawNode CreateDrawNode() => new DrawNode(DrawInfo);
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
@@ -834,7 +844,10 @@ namespace osu.Framework.Graphics
 
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & Invalidation.DrawInfo) > 0)
+            {
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                alreadyInvalidated &= !drawNodeBacking.Invalidate();
+            }
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();

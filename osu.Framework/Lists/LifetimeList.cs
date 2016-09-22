@@ -13,14 +13,12 @@ namespace osu.Framework.Lists
 
         public event Action<T> OnRemoved;
 
-        List<T> current;
-
         public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
-            current = new List<T>();
+            Current = new List<T>();
         }
 
-        public List<T> Current => current;
+        public List<T> Current { get; }
 
         /// <summary>
         /// Update this LifetimeList with the provided time value.
@@ -37,9 +35,9 @@ namespace osu.Framework.Lists
 
                 if (obj.IsAlive)
                 {
-                    if (!current.Contains(obj))
+                    if (!Current.Contains(obj))
                     {
-                        current.Add(obj);
+                        Current.Add(obj);
                         anyAliveChanged = true;
                     }
 
@@ -48,7 +46,7 @@ namespace osu.Framework.Lists
                 }
                 else
                 {
-                    if (current.Remove(obj))
+                    if (Current.Remove(obj))
                         anyAliveChanged = true;
 
                     if (obj.RemoveWhenNotAlive)
@@ -74,7 +72,7 @@ namespace osu.Framework.Lists
         public new void Clear()
         {
             base.Clear();
-            current.Clear();
+            Current.Clear();
         }
     }
 }
