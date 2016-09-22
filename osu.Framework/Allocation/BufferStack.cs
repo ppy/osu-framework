@@ -26,7 +26,7 @@ namespace osu.Framework.Allocation
             if (buffer == null || buffer.Length < minimumLength)
                 buffer = new T[minimumLength];
 
-            //if (usedDataBuffers.Count < maxAmountBuffers)
+            if (usedDataBuffers.Count < maxAmountBuffers)
               usedDataBuffers.Add(buffer);
 
             return buffer;
