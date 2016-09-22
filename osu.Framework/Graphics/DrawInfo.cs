@@ -36,39 +36,35 @@ namespace osu.Framework.Graphics
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;
-            //target.MatrixInverse = Matrix3.Identity;
+            target.MatrixInverse = MatrixInverse;
 
             if (translation != Vector2.Zero)
-                MatrixExtensions.Translate(ref target.Matrix, translation);
+            {
+                MatrixExtensions.TranslateFromLeft(ref target.Matrix, translation);
+                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, -translation);
+            }
 
             if (rotation != 0)
-                MatrixExtensions.Rotate(ref target.Matrix, rotation);
+            {
+                MatrixExtensions.RotateFromLeft(ref target.Matrix, rotation);
+                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -rotation);
+            }
 
             if (scale != Vector2.One)
-                MatrixExtensions.Scale(ref target.Matrix, scale);
+            {
+                Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
+                MatrixExtensions.ScaleFromLeft(ref target.Matrix, scale);
+                MatrixExtensions.ScaleFromRight(ref target.MatrixInverse, inverseScale);
+            }
 
             if (origin != Vector2.Zero)
             {
-                MatrixExtensions.Translate(ref target.Matrix, -origin);
-                //MatrixExtensions.Translate(ref target.MatrixInverse, origin);
+                MatrixExtensions.TranslateFromLeft(ref target.Matrix, -origin);
+                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
             }
 
-            /*if (scale != Vector2.One)
-            {
-                Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
-                MatrixExtensions.Scale(ref target.MatrixInverse, inverseScale);
-            }
-
-            if (rotation != 0)
-                MatrixExtensions.Rotate(ref target.MatrixInverse, -rotation);
-
-            if (translation != Vector2.Zero)
-                MatrixExtensions.Translate(ref target.MatrixInverse, -translation);
-
-            target.MatrixInverse = MatrixInverse * target.MatrixInverse;*/
-
-            target.MatrixInverse = target.Matrix;
-            MatrixExtensions.FastInvert(ref target.MatrixInverse);
+            //target.MatrixInverse = target.Matrix;
+            //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 
             target.Colour = Colour;
 
