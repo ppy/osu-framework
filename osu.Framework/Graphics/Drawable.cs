@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        internal IEnumerable<Drawable> CurrentChildren => children.Current;
+        internal List<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
 
@@ -671,22 +671,7 @@ namespace osu.Framework.Graphics
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            if (children.Count == 0) return false;
-
-            bool childChangedStatus = false;
-            foreach (Drawable child in children)
-            {
-                bool isAlive = child.IsAlive;
-                if (isAlive != child.wasAliveLastUpdate)
-                {
-                    child.wasAliveLastUpdate = isAlive;
-                    childChangedStatus = true;
-                }
-            }
-
-            children.Update(Time);
-
-            return childChangedStatus;
+            return children.Update();
         }
 
         internal virtual void UpdateSubTree()
@@ -772,8 +757,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private bool wasAliveLastUpdate;
-
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
@@ -813,7 +796,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms.Count == 0) return;
 
-            transforms.Update(Time);
+            transforms.Update();
 
             foreach (ITransform t in transforms.Current)
                 t.Apply(this);

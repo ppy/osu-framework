@@ -8,54 +8,78 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
-        private double lastTime;
-
         public event Action<T> OnRemoved;
 
-        public LifetimeList(IComparer<T> comparer)
-            : base(comparer)
+        public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
+            Current = new List<T>();
         }
 
-        public IEnumerable<T> Current
-        {
-            get
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (this[i].IsAlive)
-                        yield return base[i];
-                }
-            }
-        }
+        public List<T> Current { get; }
 
-        public void Update(double time)
+        /// <summary>
+        /// Updates the life status of this LifetimeList's children.
+        /// </summary>
+        /// <returns>Whether any alive states were changed.</returns>
+        public bool Update()
         {
+            bool anyAliveChanged = false;
+
             for (int i = 0; i < Count; i++)
             {
                 var obj = this[i];
 
                 if (obj.IsAlive)
                 {
+                    if (!Current.Contains(obj))
+                    {
+                        Current.Add(obj);
+                        anyAliveChanged = true;
+                    }
+
                     if (!obj.IsLoaded)
                         obj.Load();
                 }
-                else if (obj.RemoveWhenNotAlive)
+                else
                 {
-                    RemoveAt(i--);
-                    OnRemoved?.Invoke(obj);
+                    if (Current.Remove(obj))
+                        anyAliveChanged = true;
+
+                    if (obj.RemoveWhenNotAlive)
+                    {
+                        RemoveAt(i--);
+                        OnRemoved?.Invoke(obj);
+                    }
                 }
             }
-
-            lastTime = time;
+            
+            return anyAliveChanged;
         }
 
-        public override int Add(T item)
+        public new int Add(T item)
         {
             if (item.IsAlive && !item.IsLoaded)
                 item.Load();
-
+            
             return base.Add(item);
+        }
+
+        public new bool Remove(T item)
+        {
+            Current.Remove(item);
+            return base.Remove(item);
+        }
+
+        public new int RemoveAll(Predicate<T> match)
+        {
+            Current.RemoveAll(match);
+            return base.RemoveAll(match);
+        }
+
+        public new void Clear()
+        {
+            Current.Clear();
+            base.Clear();
         }
     }
 }
