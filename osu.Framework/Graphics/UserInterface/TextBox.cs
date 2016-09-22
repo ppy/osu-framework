@@ -387,7 +387,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionEnd == 0)
                     {
-                            //we only clear if you aren't holding shift
+                        //we only clear if you aren't holding shift
                         if (!state.Keyboard.ShiftPressed)
                             resetSelection();
                         return true;
