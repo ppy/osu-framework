@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseAutosize : TestCase
     {
-        internal override string Name => @"Autosize";
+        public override string Name => @"Autosize";
         internal override string Description => @"Various scenarios which potentially challenge autosize calculations.";
 
         private ToggleButton toggleDebugAutosize;

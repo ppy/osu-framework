@@ -26,9 +26,10 @@ namespace osu.Framework.IO.Stores
         /// Initializes a resource store with a single store.
         /// </summary>
         /// <param name="store">The store.</param>
-        public ResourceStore(IResourceStore<T> store)
+        public ResourceStore(IResourceStore<T> store = null)
         {
-            AddStore(store);
+            if (store != null)
+                AddStore(store);
         }
 
         /// <summary>
