@@ -171,12 +171,6 @@ namespace osu.Framework.Graphics.Performance
             };
 
             timeBars[TimeBarIndex].Add(b);
-
-            if (type < 2)
-            {
-                b.FadeOut(2000);
-                b.Expire();
-            }
         }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
