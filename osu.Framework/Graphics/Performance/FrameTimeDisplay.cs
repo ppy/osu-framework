@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Performance
             Box b = new Box
             {
                 Origin = Anchor.TopCentre,
-                Position = new Vector2(TimeBarX, 0),
+                Position = new Vector2(TimeBarX, type * 3),
                 Colour = garbageCollectColors[type],
                 Size = new Vector2(3, 3)
             };
