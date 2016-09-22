@@ -69,10 +69,22 @@ namespace osu.Framework.Lists
             return base.Add(item);
         }
 
+        public new bool Remove(T item)
+        {
+            Current.Remove(item);
+            return base.Remove(item);
+        }
+
+        public new int RemoveAll(Predicate<T> match)
+        {
+            Current.RemoveAll(match);
+            return base.RemoveAll(match);
+        }
+
         public new void Clear()
         {
-            base.Clear();
             Current.Clear();
+            base.Clear();
         }
     }
 }
