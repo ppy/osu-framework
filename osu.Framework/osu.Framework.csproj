@@ -82,6 +82,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\PolygonExtensions\IPolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
     <Compile Include="Allocation\ObjectStack.cs" />
+    <Compile Include="Allocation\ObjectUsage.cs" />
+    <Compile Include="Allocation\TripleBuffer.cs" />
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
     <Compile Include="Audio\IHasCompletedState.cs" />
