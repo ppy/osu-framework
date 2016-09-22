@@ -128,6 +128,7 @@
     <Compile Include="IO\Network\JsonWebRequest.cs" />
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
+    <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\RNG.cs" />
     <Compile Include="Configuration\Bindable.cs" />
@@ -192,10 +193,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Transformations\EasingTypes.cs" />
     <Compile Include="Graphics\Transformations\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\IReadOnlyList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\ReadOnlyList.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lists\SortedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MathUtils\Interpolation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\DecoupleableInterpolatingFramedClock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Timing\FramedClock.cs" />

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ReadOnlyList<T>, IEnumerable<T>
+    public class SortedList<T> : List<T>
     {
         public IComparer<T> Comparer { get; private set; }
 
@@ -17,18 +17,13 @@ namespace osu.Framework.Lists
             Comparer = comparer;
         }
 
-        public bool IsFixedSize => ((IList)InternalList).IsFixedSize;
-        public bool IsReadOnly => ((IList)InternalList).IsReadOnly;
-        public bool IsSynchronized => ((IList)InternalList).IsSynchronized;
-        public object SyncRoot => ((IList)InternalList).SyncRoot;
-
-        public virtual int Add(T value)
+        public new int Add(T value)
         {
             Debug.Assert(value != null);
             Debug.Assert(value is T);
 
             int index = getAdditionIndex(value);
-            InternalList.Insert(index, value);
+            Insert(index, value);
 
             return index;
         }
@@ -53,26 +48,6 @@ namespace osu.Framework.Lists
             }
 
             return index;
-        }
-
-        public virtual void Clear()
-        {
-            InternalList.Clear();
-        }
-
-        public virtual bool Remove(T item)
-        {
-            return InternalList.Remove(item);
-        }
-
-        public virtual void RemoveAt(int index)
-        {
-            InternalList.RemoveAt(index);
-        }
-
-        internal void RemoveAll(Predicate<T> match)
-        {
-            InternalList.RemoveAll(match);
         }
     }
 }
