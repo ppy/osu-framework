@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Performance
         const float scale = HEIGHT / visible_range;
 
         private TimeBar[] timeBars = new TimeBar[2];
-        private BufferStack textureBufferStack;
+        private BufferStack<byte> textureBufferStack;
 
         private static Color4[] garbageCollectColors = { Color4.Green, Color4.Yellow, Color4.Red };
         private PerformanceMonitor monitor;
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Performance
         {
             Name = name;
             this.monitor = monitor;
-            textureBufferStack = new BufferStack(timeBars.Length * WIDTH);
+            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
         public override void Load()
