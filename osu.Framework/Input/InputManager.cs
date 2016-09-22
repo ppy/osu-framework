@@ -265,7 +265,7 @@ namespace osu.Framework.Input
                 keys.AddRange(kh.PressedKeys);
             }
 
-            keyboard.Keys = new ReadOnlyList<Key>(keys);
+            keyboard.Keys = new List<Key>(keys);
         }
 
         protected virtual void UpdateMouseState(InputState state)

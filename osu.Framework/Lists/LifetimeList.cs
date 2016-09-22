@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Extensions;
 
 namespace osu.Framework.Lists
 {
@@ -12,50 +13,68 @@ namespace osu.Framework.Lists
 
         public event Action<T> OnRemoved;
 
-        public LifetimeList(IComparer<T> comparer)
-            : base(comparer)
+        List<T> current;
+
+        public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
+            current = new List<T>();
         }
 
-        public IEnumerable<T> Current
-        {
-            get
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (this[i].IsAlive)
-                        yield return base[i];
-                }
-            }
-        }
+        public List<T> Current => current;
 
-        public void Update(double time)
+        /// <summary>
+        /// Update this LifetimeList with the provided time value.
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns>Whether any alive states were changed.</returns>
+        public bool Update(double time)
         {
+            bool anyAliveChanged = false;
+
             for (int i = 0; i < Count; i++)
             {
                 var obj = this[i];
 
                 if (obj.IsAlive)
                 {
+                    if (!current.Contains(obj))
+                    {
+                        current.Add(obj);
+                        anyAliveChanged = true;
+                    }
+
                     if (!obj.IsLoaded)
                         obj.Load();
                 }
-                else if (obj.RemoveWhenNotAlive)
+                else
                 {
-                    RemoveAt(i--);
-                    OnRemoved?.Invoke(obj);
+                    if (current.Remove(obj))
+                        anyAliveChanged = true;
+
+                    if (obj.RemoveWhenNotAlive)
+                    {
+                        RemoveAt(i--);
+                        OnRemoved?.Invoke(obj);
+                    }
                 }
             }
 
             lastTime = time;
+            return anyAliveChanged;
         }
 
-        public override int Add(T item)
+        public new int Add(T item)
         {
             if (item.IsAlive && !item.IsLoaded)
                 item.Load();
-
+            
             return base.Add(item);
+        }
+
+        public new void Clear()
+        {
+            base.Clear();
+            current.Clear();
         }
     }
 }
