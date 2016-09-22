@@ -79,13 +79,18 @@ namespace osu.Framework.Graphics
 
     public enum UsageType
     {
+        None,
         Read,
         Write
     }
 
     public class TripleBuffer<T>
     {
-        private List<ObjectUsage<T>> childLists = new List<ObjectUsage<T>>(3);
+        private ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
+
+        int read;
+        int write;
+        int lastWrite = -1;
 
         Action<ObjectUsage<T>, UsageType> finishDelegate;
 
@@ -94,12 +99,15 @@ namespace osu.Framework.Graphics
             switch (type)
             {
                 case UsageType.Read:
-                    lock (childLists)
-                        childLists.Add(obj);
+                    lock (buffers)
+                        buffers[read].Usage = UsageType.None;
                     break;
                 case UsageType.Write:
-                    lock (childLists)
-                        childLists.Insert(0, obj);
+                    lock (buffers)
+                    {
+                        buffers[write].Usage = UsageType.None;
+                        lastWrite = write;
+                    }
                     break;
             }
         }
@@ -111,36 +119,38 @@ namespace osu.Framework.Graphics
 
         public ObjectUsage<T> ForWrite()
         {
-            ObjectUsage<T> obj;
-            lock (childLists)
+            lock (buffers)
             {
-                if (childLists.Count < 2)
-                    obj = new ObjectUsage<T>() { Finish = finishDelegate };
+                while ((buffers[write]?.Usage == UsageType.Read) || write == lastWrite)
+                    write = (write + 1) % 3;
+
+                if (buffers[write] == null)
+                {
+                    buffers[write] = new ObjectUsage<T>
+                    {
+                        Finish = finishDelegate,
+                        Usage = UsageType.Write
+                    };
+                }
                 else
                 {
-                    obj = childLists.Last();
-                    childLists.RemoveAt(childLists.Count - 1);
+                    buffers[write].Usage = UsageType.Write;
                 }
-            }
 
-            obj.Usage = UsageType.Write;
-            return obj;
+                return buffers[write];
+            }
         }
 
         public ObjectUsage<T> ForRead()
         {
-            ObjectUsage<T> obj;
+            if (lastWrite < 0) return null;
 
-            lock (childLists)
+            lock (buffers)
             {
-                if (childLists.Count == 0) return null;
-
-                obj = childLists[0];
-                childLists.RemoveAt(0);
+                read = lastWrite;
+                buffers[read].Usage = UsageType.Read;
+                return buffers[read];
             }
-
-            obj.Usage = UsageType.Read;
-            return obj;
         }
     }
 }
