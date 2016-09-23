@@ -195,7 +195,8 @@ namespace osu.Framework.Graphics
 
         internal Vector2 GetLocalDelta(Vector2 delta)
         {
-            return (Position * Parent.DrawInfo.Matrix + delta) * DrawInfo.MatrixInverse;
+            Vector3 scale = DrawInfo.Matrix.ExtractScale();
+            return new Vector2(delta.X * scale.X, delta.Y * scale.Y);
         }
 
         internal virtual bool Contains(Vector2 screenSpacePos)

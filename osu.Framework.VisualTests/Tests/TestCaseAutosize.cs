@@ -326,15 +326,12 @@ namespace osu.Framework.VisualTests.Tests
         }
 
         internal bool AllowDrag = true;
-        Vector2 dragStartPos;
 
         protected override bool OnDrag(InputState state)
         {
             if (!AllowDrag) return false;
 
-            Vector2 newMousePos = state.Mouse.Position;
-            Position += newMousePos - dragStartPos;
-            dragStartPos = newMousePos;
+            Position += state.Mouse.Delta;
             return true;
         }
 
@@ -343,13 +340,7 @@ namespace osu.Framework.VisualTests.Tests
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
-        {
-            if (!AllowDrag) return false;
-
-            dragStartPos = state.Mouse.Position;
-            return true;
-        }
+        protected override bool OnDragStart(InputState state) => AllowDrag;
     }
 
     class InfofulBox : Container
@@ -367,15 +358,12 @@ namespace osu.Framework.VisualTests.Tests
         }
 
         internal bool AllowDrag = true;
-        Vector2 dragStartPos;
 
         protected override bool OnDrag(InputState state)
         {
             if (!AllowDrag) return false;
 
-            Vector2 newMousePos = state.Mouse.Position;
-            Position += newMousePos - dragStartPos;
-            dragStartPos = newMousePos;
+            Position += state.Mouse.Delta;
             return true;
         }
 
@@ -384,13 +372,7 @@ namespace osu.Framework.VisualTests.Tests
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
-        {
-            if (!AllowDrag) return false;
-
-            dragStartPos = state.Mouse.Position;
-            return true;
-        }
+        protected override bool OnDragStart(InputState state) => AllowDrag;
 
         public override void Load()
         {

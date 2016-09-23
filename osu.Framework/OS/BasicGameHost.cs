@@ -156,7 +156,7 @@ namespace osu.Framework.OS
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 {
                     GLControl.SwapBuffers();
-                    GLControl.Invalidate();
+                    //GLControl.Invalidate();
                 }
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
