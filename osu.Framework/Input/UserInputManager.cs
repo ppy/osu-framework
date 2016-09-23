@@ -9,7 +9,7 @@ namespace osu.Framework.Input
 {
     public class UserInputManager : InputManager
     {
-        internal override bool Contains(Vector2 screenSpacePos) => true;
+        public override bool Contains(Vector2 screenSpacePos) => true;
 
         public override void Load()
         {
