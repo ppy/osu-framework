@@ -673,9 +673,11 @@ namespace osu.Framework.Graphics
                     int j = 0;
                     for (int i = 0; i < current.Count; i++)
                     {
+                        if (!current[i].IsVisible) continue;
+
                         if (j < target.Count && target[j].Drawable == current[i])
                         {
-                            current[i].GenerateDrawNodeSubtree(target[i]);
+                            current[i].GenerateDrawNodeSubtree(target[j]);
                         }
                         else
                         {
