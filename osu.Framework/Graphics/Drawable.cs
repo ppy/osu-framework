@@ -725,7 +725,8 @@ namespace osu.Framework.Graphics
             Game = root;
             clockBacking.Invalidate();
 
-            children.ForEach(c => c.changeRoot(root));
+            foreach (Drawable c in children)
+                c.changeRoot(root);
         }
 
         /// <summary>
