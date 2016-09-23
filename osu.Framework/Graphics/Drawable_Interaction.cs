@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics
             return (Position * Parent.DrawInfo.Matrix + delta) * DrawInfo.MatrixInverse;
         }
 
-        internal virtual bool Contains(Vector2 screenSpacePos)
+        public virtual bool Contains(Vector2 screenSpacePos)
         {
             return ScreenSpaceInputQuad.Contains(screenSpacePos).HasValue;
         }
