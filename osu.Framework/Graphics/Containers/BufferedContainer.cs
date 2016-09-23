@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES20;
@@ -16,7 +17,19 @@ namespace osu.Framework.Graphics.Containers
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
-        protected override DrawNode BaseDrawNode => new BufferedContainerDrawNode(DrawInfo, frameBuffer, ScreenSpaceDrawQuad, quadBatch, attachedFormats);
+        protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
+
+        protected override void ApplyDrawNode(DrawNode node)
+        {
+            BufferedContainerDrawNode n = node as BufferedContainerDrawNode;
+
+            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.Batch = quadBatch;
+            n.FrameBuffer = frameBuffer;
+            n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
+
+            base.ApplyDrawNode(node);
+        }
 
         public BufferedContainer()
         {

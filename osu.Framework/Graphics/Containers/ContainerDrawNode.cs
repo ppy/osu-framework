@@ -8,27 +8,21 @@ namespace osu.Framework.Graphics.Containers
 {
     public class ContainerDrawNode : DrawNode
     {
-        private Rectangle? maskingRect;
-
-        public ContainerDrawNode(DrawInfo drawInfo, Rectangle? masking = null)
-            : base(drawInfo)
-        {
-            maskingRect = masking;
-        }
+        public Rectangle? MaskingRect;
 
         protected override void PreDraw()
         {
             base.PreDraw();
 
-            if (maskingRect != null)
-                GLWrapper.PushScissor(maskingRect);
+            if (MaskingRect != null)
+                GLWrapper.PushScissor(MaskingRect);
         }
 
         protected override void PostDraw()
         {
             base.PostDraw();
 
-            if (maskingRect != null)
+            if (MaskingRect != null)
                 GLWrapper.PopScissor();
         }
     }

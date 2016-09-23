@@ -191,8 +191,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds = new Rectangle(0, 0, width, height);
 
             IsTransparent = false;
+
+            bool requireUpload = uploadQueue.Count == 0;
             uploadQueue.Enqueue(upload);
-            GLWrapper.EnqueueTextureUpload(this);
+            if (requireUpload)
+                GLWrapper.EnqueueTextureUpload(this);
         }
 
         public override bool Bind()

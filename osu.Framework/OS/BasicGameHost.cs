@@ -105,7 +105,7 @@ namespace osu.Framework.OS
             Exited?.Invoke();
         }
 
-        DrawNode pendingRootNode;
+        TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
 
         private void updateLoop()
         {
@@ -125,7 +125,8 @@ namespace osu.Framework.OS
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
                 {
                     UpdateSubTree();
-                    pendingRootNode = GenerateDrawNodeSubtree();
+                    using (var buffer = drawRoots.Get(UsageType.Write))
+                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
                 }
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
@@ -148,7 +149,8 @@ namespace osu.Framework.OS
                 {
                     GLWrapper.Reset(Size);
                     GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                    pendingRootNode?.DrawSubTree();
+                    using (var buffer = drawRoots.Get(UsageType.Read))
+                        buffer?.Object?.DrawSubTree();
                 }
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))

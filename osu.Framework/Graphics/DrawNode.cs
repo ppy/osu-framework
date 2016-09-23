@@ -8,13 +8,10 @@ namespace osu.Framework.Graphics
 {
     public class DrawNode
     {
-        public List<DrawNode> Children = new List<DrawNode>();
+        public List<DrawNode> Children;
         public DrawInfo DrawInfo;
 
-        public DrawNode(DrawInfo drawInfo)
-        {
-            DrawInfo = drawInfo;
-        }
+        public Drawable Drawable;
 
         public void DrawSubTree()
         {
@@ -24,8 +21,9 @@ namespace osu.Framework.Graphics
 
             Draw();
 
-            foreach (DrawNode child in Children)
-                child.DrawSubTree();
+            if (Children != null)
+                foreach (DrawNode child in Children)
+                    child.DrawSubTree();
 
             PostDraw();
         }
