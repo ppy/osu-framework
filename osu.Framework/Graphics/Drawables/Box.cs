@@ -10,6 +10,17 @@ namespace osu.Framework.Graphics.Drawables
     {
         private QuadBatch<Vertex2d> quadBatch = new QuadBatch<Vertex2d>(1, 3);
 
-        protected override DrawNode CreateDrawNode() => new BoxDrawNode(DrawInfo, Game, ScreenSpaceDrawQuad, quadBatch);
+        protected override DrawNode CreateDrawNode() => new BoxDrawNode();
+
+        protected override void ApplyDrawNode(DrawNode node)
+        {
+            BoxDrawNode n = node as BoxDrawNode;
+
+            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.Batch = quadBatch;
+            n.Game = Game;
+
+            base.ApplyDrawNode(node);
+        }
     }
 }

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Cached;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
@@ -643,18 +644,77 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
-        internal DrawNode GenerateDrawNodeSubtree()
-        {
-            DrawNode node = CreateDrawNode();
 
-            foreach (Drawable child in children.Current)
-                if (child.IsVisible)
-                    node.Children.Add(child.GenerateDrawNodeSubtree());
+        private List<DrawNode> validDrawNodes = new List<DrawNode>();
+
+        internal DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        {
+            if (node == null)
+            {
+                //we don't have a previous node, so we need to initialise fresh.
+                node = CreateDrawNode();
+                node.Drawable = this;
+            }
+
+            if (!validDrawNodes.Contains(node))
+            {
+                //we need to update the node if it has been invalidated.
+                ApplyDrawNode(node);
+                validDrawNodes.Add(node);
+            }
+
+            if (children.Current.Count > 0)
+            {
+                if (node.Children != null)
+                {
+                    var current = children.Current;
+                    var target = node.Children;
+
+                    int j = 0;
+                    for (int i = 0; i < current.Count; i++)
+                    {
+                        if (j < target.Count && target[j].Drawable == current[i])
+                        {
+                            current[i].GenerateDrawNodeSubtree(target[i]);
+                        }
+                        else
+                        {
+                            if (j < target.Count)
+                                target.RemoveAt(j);
+                            target.Insert(j, current[i].GenerateDrawNodeSubtree());
+                        }
+
+                        j++;
+                    }
+
+                    if (j < target.Count)
+                        target.RemoveRange(j, target.Count - j);
+
+                }
+                else
+                {
+                    node.Children = new List<DrawNode>(children.Current.Count);
+
+                    foreach (Drawable child in children.Current)
+                        if (child.IsVisible)
+                            node.Children.Add(child.GenerateDrawNodeSubtree());
+                }
+            }
+            else
+            {
+                node.Children?.Clear();
+            }
 
             return node;
         }
 
-        protected virtual DrawNode CreateDrawNode() => new DrawNode(DrawInfo);
+        protected virtual void ApplyDrawNode(DrawNode node)
+        {
+            node.DrawInfo = DrawInfo;
+            node.Drawable = this;
+        }
+
+        protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
@@ -833,7 +893,10 @@ namespace osu.Framework.Graphics
 
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & Invalidation.DrawInfo) > 0)
+            {
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                validDrawNodes.Clear();
+            }
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();

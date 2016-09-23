@@ -12,35 +12,26 @@ namespace osu.Framework.Graphics.Sprites
     {
         private static Shader shader;
 
-        private Game game;
-        private Texture texture;
-        private Quad screenSpaceDrawQuad;
-        private bool wrapTexture;
-
-        public SpriteDrawNode(Game game, DrawInfo drawInfo, Texture texture, Quad screenSpaceDrawQuad, bool wrapTexture)
-            : base(drawInfo)
-        {
-            this.game = game;
-            this.texture = texture;
-            this.screenSpaceDrawQuad = screenSpaceDrawQuad;
-            this.wrapTexture = wrapTexture;
-        }
+        public Game Game;
+        public Texture Texture;
+        public Quad ScreenSpaceDrawQuad;
+        public bool WrapTexture;
 
         protected override void Draw()
         {
             base.Draw();
 
-            if (texture == null || texture.IsDisposed)
+            if (Texture == null || Texture.IsDisposed)
                 return;
 
             if (shader == null)
-                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
+                shader = Game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
 
             shader.Bind();
 
-            texture.TextureGL.WrapMode = wrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
+            Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
-            texture.Draw(screenSpaceDrawQuad, DrawInfo.Colour);
+            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour);
 
             shader.Unbind();
         }
