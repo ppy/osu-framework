@@ -14,9 +14,9 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.VisualTests.Tests
+namespace osu.Framework.GameModes.Testing
 {
-    class FieldTest : LargeContainer
+    public class TestBrowser : GameMode
     {
         private Container leftContainer;
         private Container leftFlowContainer;
@@ -26,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
 
         List<TestCase> testCases = new List<TestCase>();
 
-        internal int TestCount => testCases.Count;
+        public int TestCount => testCases.Count;
 
         public override void Load()
         {
@@ -71,7 +71,7 @@ namespace osu.Framework.VisualTests.Tests
 
             List<TestCase> tests = new List<TestCase>();
 
-            Assembly asm = Assembly.GetExecutingAssembly();
+            Assembly asm = Assembly.GetEntryAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
@@ -96,13 +96,17 @@ namespace osu.Framework.VisualTests.Tests
 
         private void loadTest(TestCase testCase = null)
         {
-            if (testCase == null) testCase = testCases[0];
+            if (testCase == null && testCases.Count > 0)
+                testCase = testCases[0];
 
             if (loadedTest != null)
                 testContainer.Remove(loadedTest);
 
-            testContainer.Add(loadedTest = testCase);
-            testCase.Reset();
+            if (testCase != null)
+            {
+                testContainer.Add(loadedTest = testCase);
+                testCase.Reset();
+            }
         }
 
         class TestCaseButton : ClickableContainer

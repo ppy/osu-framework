@@ -9,6 +9,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -17,11 +18,11 @@ namespace osu.Framework.VisualTests.Tests
         private ScheduledDelegate boxCreator;
 
         public override string Name => @"Scrollable Flow";
-        internal override string Description => @"A flow container in a scroll container";
+        public override string Description => @"A flow container in a scroll container";
 
         Scheduler scheduler = new Scheduler();
 
-        internal override void Reset()
+        public override void Reset()
         {
             base.Reset();
 

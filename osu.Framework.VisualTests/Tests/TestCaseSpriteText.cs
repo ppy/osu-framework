@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -11,9 +12,9 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Name => @"SpriteText";
 
-        internal override string Description => @"Test all sizes of text rendering";
+        public override string Description => @"Test all sizes of text rendering";
 
-        internal override void Reset()
+        public override void Reset()
         {
             base.Reset();
 

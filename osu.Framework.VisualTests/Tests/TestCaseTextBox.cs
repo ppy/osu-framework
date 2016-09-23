@@ -5,6 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
+using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -14,11 +15,11 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Name => @"TextBox";
 
-        internal override string Description => @"Text entry evolved";
+        public override string Description => @"Text entry evolved";
 
-        internal override int DisplayOrder => -1;
+        public override int DisplayOrder => -1;
 
-        internal override void Reset()
+        public override void Reset()
         {
             base.Reset();
 
