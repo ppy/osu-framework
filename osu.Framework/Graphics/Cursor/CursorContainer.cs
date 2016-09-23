@@ -12,6 +12,11 @@ namespace osu.Framework.Graphics.Cursor
     {
         private Cursor cursor;
 
+        public CursorContainer()
+        {
+            Depth = float.MaxValue;
+        }
+
         public override void Load()
         {
             base.Load();
