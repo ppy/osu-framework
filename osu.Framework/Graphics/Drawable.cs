@@ -654,7 +654,13 @@ namespace osu.Framework.Graphics
             return node;
         }
 
-        protected virtual DrawNode CreateDrawNode() => new DrawNode(DrawInfo);
+        protected virtual void ApplyDrawNode(DrawNode node)
+        {
+            node.DrawInfo = DrawInfo;
+            node.Drawable = this;
+        }
+
+        protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		

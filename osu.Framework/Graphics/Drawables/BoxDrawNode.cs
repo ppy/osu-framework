@@ -12,48 +12,40 @@ namespace osu.Framework.Graphics.Drawables
     {
         private static Shader shader;
 
-        private Game game;
-        private Quad screenSpaceDrawQuad;
-        private QuadBatch<Vertex2d> batch;
-
-        public BoxDrawNode(DrawInfo drawInfo, Game game, Quad screenSpaceDrawQuad, QuadBatch<Vertex2d> batch)
-            : base(drawInfo)
-        {
-            this.game = game;
-            this.screenSpaceDrawQuad = screenSpaceDrawQuad;
-            this.batch = batch;
-        }
+        public Game Game;
+        public Quad ScreenSpaceDrawQuad;
+        public QuadBatch<Vertex2d> Batch;
 
         protected override void Draw()
         {
             base.Draw();
 
             if (shader == null)
-                shader = game.Shaders.Load(VertexShader.Colour, FragmentShader.Colour);
+                shader = Game.Shaders.Load(VertexShader.Colour, FragmentShader.Colour);
 
             shader.Bind();
 
-            batch.Add(new Vertex2d
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
-                Position = screenSpaceDrawQuad.BottomLeft
+                Position = ScreenSpaceDrawQuad.BottomLeft
             });
-            batch.Add(new Vertex2d
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
-                Position = screenSpaceDrawQuad.BottomRight
+                Position = ScreenSpaceDrawQuad.BottomRight
             });
-            batch.Add(new Vertex2d
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
-                Position = screenSpaceDrawQuad.TopRight
+                Position = ScreenSpaceDrawQuad.TopRight
             });
-            batch.Add(new Vertex2d
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
-                Position = screenSpaceDrawQuad.TopLeft
+                Position = ScreenSpaceDrawQuad.TopLeft
             });
-            batch.Draw();
+            Batch.Draw();
 
             shader.Unbind();
         }
