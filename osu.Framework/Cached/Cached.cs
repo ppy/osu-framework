@@ -51,25 +51,37 @@ namespace osu.Framework.Cached
         /// <param name="providedDelegate"></param>
         public T Refresh(PropertyUpdater providedDelegate)
         {
-            if (isStale)
-            {
-                updateDelegate = updateDelegate ?? providedDelegate;
-                Refresh();
-            }
-
-            return value;
+            updateDelegate = updateDelegate ?? providedDelegate;
+            return MakeValidOrDefault();
         }
 
         /// <summary>
         /// Refresh this property.
         /// </summary>
-        public void Refresh()
+        public T MakeValidOrDefault()
         {
+            if (IsValid) return value;
+
+            if (!EnsureValid())
+                return default(T);
+
+            return value;
+        }
+
+        /// <summary>
+        /// Refresh using a cached delegate.
+        /// </summary>
+        /// <returns>Whether refreshing was possible.</returns>
+        public bool EnsureValid()
+        {
+            if (IsValid) return true;
+
             if (updateDelegate == null)
-                throw new Exception("No value cached and no update delegate prepared!");
+                return false;
 
             value = updateDelegate();
             lastUpdateTime = clock?.CurrentTime ?? 0;
+            return true;
         }
 
         public bool Invalidate()
@@ -86,8 +98,8 @@ namespace osu.Framework.Cached
         {
             get
             {
-                if (isStale)
-                    Refresh();
+                if (!AllowStaleReads && isStale)
+                    MakeValidOrDefault();
 
                 return value;
             }

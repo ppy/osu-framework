@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
@@ -12,7 +13,7 @@ namespace osu.Framework.Input
     {
         public IMouseState LastState;
 
-        public ReadOnlyList<ButtonState> ButtonStates = new ReadOnlyList<ButtonState>(new[]
+        public List<ButtonState> ButtonStates = new List<ButtonState>(new[]
         {
             new ButtonState(MouseButton.Left),
             new ButtonState(MouseButton.Middle),

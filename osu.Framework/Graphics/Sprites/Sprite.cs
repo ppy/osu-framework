@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Sprites
 
         #endregion
 
-        protected override DrawNode BaseDrawNode => new SpriteDrawNode(Game, DrawInfo, Texture, ScreenSpaceDrawQuad, WrapTexture);
+        protected override DrawNode CreateDrawNode() => new SpriteDrawNode(Game, DrawInfo, Texture, ScreenSpaceDrawQuad, WrapTexture);
 
         protected override bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
         {

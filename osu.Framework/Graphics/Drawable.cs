@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        internal IEnumerable<Drawable> CurrentChildren => children.Current;
+        internal List<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
 
@@ -285,7 +285,7 @@ namespace osu.Framework.Graphics
         public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid
+        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
@@ -354,7 +354,7 @@ namespace osu.Framework.Graphics
             set { Size = new Vector2(Size.X, value); }
         }
 
-        protected virtual IFrameBasedClock Clock => clockBacking.IsValid ? clockBacking.Value : clockBacking.Refresh(() => Parent?.Clock);
+        protected virtual IFrameBasedClock Clock => clockBacking.EnsureValid() ? clockBacking.Value : clockBacking.Refresh(() => Parent?.Clock);
         private Cached<IFrameBasedClock> clockBacking = new Cached<IFrameBasedClock>();
 
         protected double Time => Clock?.CurrentTime ?? 0;
@@ -388,7 +388,7 @@ namespace osu.Framework.Graphics
         }
 
         private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.IsValid ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
+        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
 
         private bool? additive;
 
@@ -410,9 +410,7 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected DrawInfo DrawInfo => drawInfoBacking.IsValid
-            ? drawInfoBacking.Value
-            : drawInfoBacking.Refresh(delegate
+        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = BaseDrawInfo;
 
@@ -581,7 +579,7 @@ namespace osu.Framework.Graphics
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
-        internal Vector2 BoundingSize => boundingSizeBacking.IsValid
+        internal Vector2 BoundingSize => boundingSizeBacking.EnsureValid()
             ? boundingSizeBacking.Value
             : boundingSizeBacking.Refresh(() =>
             {
@@ -647,7 +645,7 @@ namespace osu.Framework.Graphics
 
         internal DrawNode GenerateDrawNodeSubtree()
         {
-            DrawNode node = BaseDrawNode;
+            DrawNode node = CreateDrawNode();
 
             foreach (Drawable child in children.Current)
                 if (child.IsVisible)
@@ -656,7 +654,7 @@ namespace osu.Framework.Graphics
             return node;
         }
 
-        protected virtual DrawNode BaseDrawNode => new DrawNode(DrawInfo);
+        protected virtual DrawNode CreateDrawNode() => new DrawNode(DrawInfo);
 
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
@@ -671,22 +669,7 @@ namespace osu.Framework.Graphics
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            if (children.Count == 0) return false;
-
-            bool childChangedStatus = false;
-            foreach (Drawable child in children)
-            {
-                bool isAlive = child.IsAlive;
-                if (isAlive != child.wasAliveLastUpdate)
-                {
-                    child.wasAliveLastUpdate = isAlive;
-                    childChangedStatus = true;
-                }
-            }
-
-            children.Update(Time);
-
-            return childChangedStatus;
+            return children.Update();
         }
 
         internal virtual void UpdateSubTree()
@@ -742,7 +725,8 @@ namespace osu.Framework.Graphics
             Game = root;
             clockBacking.Invalidate();
 
-            children.ForEach(c => c.changeRoot(root));
+            foreach (Drawable c in children)
+                c.changeRoot(root);
         }
 
         /// <summary>
@@ -771,8 +755,6 @@ namespace osu.Framework.Graphics
                 return t >= LifetimeStart && t < LifetimeEnd;
             }
         }
-
-        private bool wasAliveLastUpdate;
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
@@ -813,7 +795,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms.Count == 0) return;
 
-            transforms.Update(Time);
+            transforms.Update();
 
             foreach (ITransform t in transforms.Current)
                 t.Apply(this);
