@@ -8,14 +8,17 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
+        private IComparer<T> comparer;
         public event Action<T> OnRemoved;
 
         public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
-            Current = new List<T>();
+            this.comparer = comparer;
+            Current = new SortedList<T>(comparer);
         }
 
-        public List<T> Current { get; }
+        public SortedList<T> Current { get; }
+        private List<bool> current = new List<bool>();
 
         /// <summary>
         /// Updates the life status of this LifetimeList's children.
@@ -31,9 +34,10 @@ namespace osu.Framework.Lists
 
                 if (obj.IsAlive)
                 {
-                    if (!Current.Contains(obj))
+                    if (!current[i])
                     {
                         Current.Add(obj);
+                        current[i] = true;
                         anyAliveChanged = true;
                     }
 
@@ -42,8 +46,12 @@ namespace osu.Framework.Lists
                 }
                 else
                 {
-                    if (Current.Remove(obj))
+                    if (current[i])
+                    {
+                        Current.Remove(obj);
+                        current[i] = false;
                         anyAliveChanged = true;
+                    }
 
                     if (obj.RemoveWhenNotAlive)
                     {
@@ -52,7 +60,7 @@ namespace osu.Framework.Lists
                     }
                 }
             }
-            
+
             return anyAliveChanged;
         }
 
@@ -60,25 +68,54 @@ namespace osu.Framework.Lists
         {
             if (item.IsAlive && !item.IsLoaded)
                 item.Load();
-            
-            return base.Add(item);
+
+            int i = base.Add(item);
+            current.Insert(i, false);
+
+            return i;
         }
 
         public new bool Remove(T item)
         {
+            int index = IndexOf(item);
+
+            if (index < 0) return false;
+
+            RemoveAt(index);
+
             Current.Remove(item);
-            return base.Remove(item);
+
+            return true;
+        }
+
+        public new void RemoveAt(int index)
+        {
+            current.RemoveAt(index);
+            base.RemoveAt(index);
         }
 
         public new int RemoveAll(Predicate<T> match)
         {
-            Current.RemoveAll(match);
-            return base.RemoveAll(match);
+            int count = 0;
+            int i;
+
+            while ((i = FindIndex(match)) >= 0)
+            {
+                if (current[i])
+                    Current.Remove(this[i]);
+
+                RemoveAt(i);
+
+                count++;
+            }
+
+            return count;
         }
 
         public new void Clear()
         {
             Current.Clear();
+            current.Clear();
             base.Clear();
         }
     }
