@@ -22,9 +22,7 @@ namespace osu.Framework.Graphics.Containers
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 autoSize.Invalidate();
 
-            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
-
-            return !alreadyInvalidated;
+            return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         protected override Quad DrawQuadForBounds
