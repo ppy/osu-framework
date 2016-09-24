@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics
                 container.Add(vd);
             }
 
-            d.Children.ForEach(c => visualise(c, vd.Flow));
+            (d as Container)?.Children.ForEach(c => visualise(c, vd.Flow));
         }
 
         class VisualisedDrawable : AutoSizeContainer
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = Target.Children.Skip(64).Any() ? 0 : 1;
+                Flow.Alpha = (Target as Container)?.Children.Skip(64).Any() == true ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
@@ -229,7 +229,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target + (!Flow.IsVisible ? $@" ({Target.Children.Count()} hidden children)" : string.Empty);
+                text.Text = Target + (!Flow.IsVisible ? $@" (({(Target as Container)?.Children.Count()} hidden children)" : string.Empty);
             }
 
             protected override void Update()
