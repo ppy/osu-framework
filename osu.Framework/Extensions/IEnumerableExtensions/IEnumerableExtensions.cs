@@ -16,6 +16,8 @@ namespace osu.Framework.Extensions.IEnumerableExtensions
         /// <param name="action">The action to be performed.</param>
         public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
         {
+            if (collection == null) return;
+
             foreach (var item in collection)
                 action(item);
         }

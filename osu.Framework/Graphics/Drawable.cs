@@ -48,13 +48,23 @@ namespace osu.Framework.Graphics
 
         internal List<Drawable> CurrentChildren => children.Current;
 
-        private LifetimeList<ITransform> transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+        private LifetimeList<ITransform> transforms;
 
+        /// <summary>
+        /// The list of transforms applied to this drawable. Initialised on first access.
+        /// </summary>
         public LifetimeList<ITransform> Transforms
         {
             get
             {
                 ThreadSafety.EnsureUpdateThread();
+
+                if (transforms == null)
+                {
+                    transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+                    transforms.OnRemoved += transforms_OnRemoved;
+                }
+
                 return transforms;
             }
         }
@@ -459,8 +469,6 @@ namespace osu.Framework.Graphics
         protected Drawable()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
-
-            transforms.OnRemoved += transforms_OnRemoved;
         }
 
         /// <summary>
@@ -844,7 +852,7 @@ namespace osu.Framework.Graphics
 
         private void updateTransformsOfType(Type specificType)
         {
-            foreach (ITransform t in transforms.Current)
+            foreach (ITransform t in Transforms.Current)
                 if (t.GetType() == specificType)
                     t.Apply(this);
         }
@@ -855,7 +863,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we should draw this drawable.</returns>
         private void updateTransforms()
         {
-            if (transforms.Count == 0) return;
+            if (transforms == null || transforms.Count == 0) return;
 
             transforms.Update();
 
@@ -988,8 +996,11 @@ namespace osu.Framework.Graphics
             thisNew.children = new LifetimeList<Drawable>(DepthComparer);
             children.ForEach(c => thisNew.children.Add(c.Clone()));
 
-            thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
-            Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
+            if (transforms != null)
+            {
+                thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
+                Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
+            }
 
             thisNew.drawInfoBacking.Invalidate();
             thisNew.boundingSizeBacking.Invalidate();
