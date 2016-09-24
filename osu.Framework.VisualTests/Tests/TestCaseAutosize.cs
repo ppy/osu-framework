@@ -10,19 +10,20 @@ using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseAutosize : TestCase
     {
         public override string Name => @"Autosize";
-        internal override string Description => @"Various scenarios which potentially challenge autosize calculations.";
+        public override string Description => @"Various scenarios which potentially challenge autosize calculations.";
 
         private ToggleButton toggleDebugAutosize;
 
         private Container testContainer;
 
-        internal override void Reset()
+        public override void Reset()
         {
             base.Reset();
 
@@ -325,7 +326,7 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        internal bool AllowDrag = true;
+        public bool AllowDrag = true;
 
         protected override bool OnDrag(InputState state)
         {
@@ -347,7 +348,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         private SpriteText debugInfo;
 
-        internal bool chameleon = false;
+        public bool chameleon = false;
 
         public InfofulBox(RectangleF rectangle, float depth, Color4 color)
         {
@@ -357,7 +358,7 @@ namespace osu.Framework.VisualTests.Tests
             Colour = color;
         }
 
-        internal bool AllowDrag = true;
+        public bool AllowDrag = true;
 
         protected override bool OnDrag(InputState state)
         {

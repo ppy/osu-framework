@@ -50,8 +50,6 @@
     <Compile Include="Benchmark.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\FieldTest.cs" />
-    <Compile Include="Tests\TestCase.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
     <Compile Include="Tests\TestCaseSpriteText.cs" />
     <Compile Include="Tests\TestCaseTextBox.cs" />

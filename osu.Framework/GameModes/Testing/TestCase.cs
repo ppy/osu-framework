@@ -7,13 +7,13 @@ using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
 
-namespace osu.Framework.VisualTests.Tests
+namespace osu.Framework.GameModes.Testing
 {
-    class TestCase : LargeContainer
+    public abstract class TestCase : LargeContainer
     {
         public override string Name => @"Test Case";
-        internal virtual string Description => @"The base class for a test case";
-        internal virtual int DisplayOrder => 0;
+        public virtual string Description => @"The base class for a test case";
+        public virtual int DisplayOrder => 0;
 
         Container buttonsContainer = new FlowContainer
         {
@@ -21,7 +21,7 @@ namespace osu.Framework.VisualTests.Tests
             Padding = new Vector2(15, 5)
         };
 
-        internal virtual void Reset()
+        public virtual void Reset()
         {
             Clear();
             buttonsContainer.Clear();
@@ -34,7 +34,7 @@ namespace osu.Framework.VisualTests.Tests
             Add(scroll);
         }
 
-        internal Button AddButton(string text, Action action)
+        public Button AddButton(string text, Action action)
         {
             Button b;
             buttonsContainer.Add(b = new Button
@@ -49,7 +49,7 @@ namespace osu.Framework.VisualTests.Tests
             return b;
         }
 
-        internal ToggleButton AddToggle(string text, Action action)
+        public ToggleButton AddToggle(string text, Action action)
         {
             return buttonsContainer.Add(new ToggleButton(action)
             {
@@ -58,13 +58,13 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    class ToggleButton : Button
+    public class ToggleButton : Button
     {
         private readonly Action reloadCallback;
         private static Color4 offColour = Color4.Red;
         private static Color4 onColour = Color4.YellowGreen;
 
-        internal bool State;
+        public bool State;
 
         public ToggleButton(Action reloadCallback)
         {
