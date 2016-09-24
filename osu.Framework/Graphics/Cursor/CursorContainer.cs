@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Cursor
             Add(cursor = new Cursor());
         }
 
-        internal override bool Contains(Vector2 screenSpacePos) => true;
+        public override bool Contains(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {

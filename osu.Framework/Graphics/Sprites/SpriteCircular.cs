@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Sprites
     {
         public float HoverRadius;
 
-        internal override bool Contains(Vector2 screenSpacePos)
+        public override bool Contains(Vector2 screenSpacePos)
         {
             float hoverRadius = HoverRadius > 0 ? HoverRadius : Texture.DisplayWidth / 2f;
             Vector2 localSpacePos = screenSpacePos * DrawInfo.MatrixInverse;

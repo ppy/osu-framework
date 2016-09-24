@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics
             return new Vector2(delta.X * scale.X, delta.Y * scale.Y);
         }
 
-        internal virtual bool Contains(Vector2 screenSpacePos)
+        public virtual bool Contains(Vector2 screenSpacePos)
         {
             return ScreenSpaceInputQuad.Contains(screenSpacePos).HasValue;
         }
