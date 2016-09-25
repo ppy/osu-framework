@@ -596,8 +596,11 @@ namespace osu.Framework.Graphics
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
-
-        internal virtual void UpdateSubTree()
+        /// <summary>
+        /// Updates this drawable, once every frame.
+        /// </summary>
+        /// <returns>False if the drawable should not be updated.</returns>
+        internal virtual bool UpdateSubTree()
         {
             transformationDelay = 0;
 
@@ -605,10 +608,11 @@ namespace osu.Framework.Graphics
             updateTransforms();
 
             if (!IsVisible)
-                return;
+                return false;
 
             Update();
             OnUpdate?.Invoke();
+            return true;
         }
 
         protected virtual void Update()

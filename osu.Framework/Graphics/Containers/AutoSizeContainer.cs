@@ -75,9 +75,9 @@ namespace osu.Framework.Graphics.Containers
             return childChangedStatus;
         }
 
-        internal override void UpdateSubTree()
+        internal override bool UpdateSubTree()
         {
-            base.UpdateSubTree();
+            if (!base.UpdateSubTree()) return false;
 
             if (!autoSize.IsValid)
                 autoSize.Refresh(delegate
@@ -94,6 +94,8 @@ namespace osu.Framework.Graphics.Containers
 
                     return b;
                 });
+
+            return true;
         }
 
         public override Drawable Add(Drawable drawable)

@@ -146,9 +146,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual Container AddTarget => this;
 
-        internal override void UpdateSubTree()
+        internal override bool UpdateSubTree()
         {
-            base.UpdateSubTree();
+            if (!base.UpdateSubTree()) return false;
 
             UpdateChildrenLife();
 
@@ -156,6 +156,7 @@ namespace osu.Framework.Graphics.Containers
                 child.UpdateSubTree();
 
             UpdateLayout();
+            return true;
         }
 
         public override void Load()
@@ -279,7 +280,10 @@ namespace osu.Framework.Graphics.Containers
 
         public override Drawable Delay(double duration, bool propagateChildren = false)
         {
+            if (duration == 0) return this;
+
             base.Delay(duration, propagateChildren);
+
             if (propagateChildren)
                 foreach (var c in children) c.Delay(duration, propagateChildren);
             return this;
