@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateLayout();
 
-            if (layout.IsValid) return;
+            if (layout.EnsureValid()) return;
 
             layout.Refresh(delegate
             {
