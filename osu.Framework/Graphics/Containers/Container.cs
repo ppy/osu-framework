@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.Containers
             return drawable;
         }
 
-        internal List<Drawable> CurrentChildren => children.Current;
+        internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
 
         protected virtual Container AddTarget => this;
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateChildrenLife();
 
-            foreach (Drawable child in children.Current)
+            foreach (Drawable child in children.AliveItems)
                 child.UpdateSubTree();
 
             UpdateLayout();
@@ -216,11 +216,11 @@ namespace osu.Framework.Graphics.Containers
         {
             node = base.GenerateDrawNodeSubtree(node);
 
-            if (children.Current.Count > 0)
+            if (children.AliveItems.Count > 0)
             {
                 if (node.Children != null)
                 {
-                    var current = children.Current;
+                    var current = children.AliveItems;
                     var target = node.Children;
 
                     int j = 0;
@@ -248,9 +248,9 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else
                 {
-                    node.Children = new List<DrawNode>(children.Current.Count);
+                    node.Children = new List<DrawNode>(children.AliveItems.Count);
 
-                    foreach (Drawable child in children.Current)
+                    foreach (Drawable child in children.AliveItems)
                         if (child.IsVisible)
                             node.Children.Add(child.GenerateDrawNodeSubtree());
                 }

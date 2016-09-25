@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxInheritingSize = Vector2.One;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in CurrentChildren)
+                foreach (Drawable c in AliveChildren)
                 {
                     if (!c.IsVisible)
                         continue;

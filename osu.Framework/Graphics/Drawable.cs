@@ -686,7 +686,7 @@ namespace osu.Framework.Graphics
 
         private void updateTransformsOfType(Type specificType)
         {
-            foreach (ITransform t in Transforms.Current)
+            foreach (ITransform t in Transforms.AliveItems)
                 if (t.GetType() == specificType)
                     t.Apply(this);
         }
@@ -701,7 +701,7 @@ namespace osu.Framework.Graphics
 
             transforms.Update();
 
-            foreach (ITransform t in transforms.Current)
+            foreach (ITransform t in transforms.AliveItems)
                 t.Apply(this);
         }
 
