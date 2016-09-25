@@ -111,7 +111,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 Clear();
 
-                keepDrawables.ForEach(k => Add(k));
+                foreach (var k in keepDrawables)
+                    Add(k);
 
                 for (int index = keepDrawables.Count; index < text.Length; index++)
                 {

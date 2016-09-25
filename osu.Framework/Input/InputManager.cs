@@ -291,27 +291,27 @@ namespace osu.Framework.Input
 
                 h.UpdateInput(currentCursorHandler == h);
 
-                mouse.ButtonStates.ForEach(b =>
-                     {
-                         switch (b.Button)
-                         {
-                             case MouseButton.Left:
-                                 b.State |= ch.Left ?? false;
-                                 break;
-                             case MouseButton.Middle:
-                                 b.State |= ch.Middle ?? false;
-                                 break;
-                             case MouseButton.Right:
-                                 b.State |= ch.Right ?? false;
-                                 break;
-                             case MouseButton.Button1:
-                                 b.State |= ch.Back ?? false;
-                                 break;
-                             case MouseButton.Button2:
-                                 b.State |= ch.Forward ?? false;
-                                 break;
-                         }
-                     });
+                foreach (var b in mouse.ButtonStates)
+                {
+                    switch (b.Button)
+                    {
+                        case MouseButton.Left:
+                            b.State |= ch.Left ?? false;
+                            break;
+                        case MouseButton.Middle:
+                            b.State |= ch.Middle ?? false;
+                            break;
+                        case MouseButton.Right:
+                            b.State |= ch.Right ?? false;
+                            break;
+                        case MouseButton.Button1:
+                            b.State |= ch.Back ?? false;
+                            break;
+                        case MouseButton.Button2:
+                            b.State |= ch.Forward ?? false;
+                            break;
+                    }
+                }
 
                 mouse.WheelUp |= ch.WheelUp ?? false;
                 mouse.WheelDown |= ch.WheelDown ?? false;
@@ -342,42 +342,45 @@ namespace osu.Framework.Input
             else
                 keyboardRepeatTime -= (Clock as FramedClock)?.ElapsedFrameTime ?? 0;
 
-            keyboard.LastState?.Keys.ForEach(k =>
+            if (keyboard.LastState != null)
             {
-                if (!keyboard.Keys.Contains(k))
-                    handleKeyUp(state, k);
-            });
-
-            foreach (Key k in keyboard.Keys)
-            {
-                bool isModifier = k == Key.LControl || k == Key.RControl
-                                  || k == Key.LAlt || k == Key.RAlt
-                                  || k == Key.LShift || k == Key.RShift;
-
-                LastActionTime = Time;
-
-                bool isRepetition = keyboard.LastState?.Keys.Contains(k) ?? false;
-
-                if (isModifier)
+                foreach (var k in keyboard.LastState.Keys)
                 {
-                    //modifiers shouldn't affect or report key repeat
-                    if (!isRepetition)
-                        handleKeyDown(state, k, false);
-                    continue;
+                    if (!keyboard.Keys.Contains(k))
+                        handleKeyUp(state, k);
                 }
 
-                if (isRepetition)
+                foreach (Key k in keyboard.Keys)
                 {
-                    if (keyboardRepeatTime <= 0)
+                    bool isModifier = k == Key.LControl || k == Key.RControl
+                                      || k == Key.LAlt || k == Key.RAlt
+                                      || k == Key.LShift || k == Key.RShift;
+
+                    LastActionTime = Time;
+
+                    bool isRepetition = keyboard.LastState.Keys.Contains(k);
+
+                    if (isModifier)
                     {
-                        keyboardRepeatTime += repeat_tick_rate;
-                        handleKeyDown(state, k, true);
+                        //modifiers shouldn't affect or report key repeat
+                        if (!isRepetition)
+                            handleKeyDown(state, k, false);
+                        continue;
                     }
-                }
-                else
-                {
-                    keyboardRepeatTime = repeat_initial_delay;
-                    handleKeyDown(state, k, false);
+
+                    if (isRepetition)
+                    {
+                        if (keyboardRepeatTime <= 0)
+                        {
+                            keyboardRepeatTime += repeat_tick_rate;
+                            handleKeyDown(state, k, true);
+                        }
+                    }
+                    else
+                    {
+                        keyboardRepeatTime = repeat_initial_delay;
+                        handleKeyDown(state, k, false);
+                    }
                 }
             }
         }

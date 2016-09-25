@@ -115,11 +115,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             // Bind framebuffer and all its renderbuffers
             lastFramebuffer = GLWrapper.BindFrameBuffer(frameBuffer);
-            attachedRenderBuffers.ForEach(r =>
+            foreach (var r in attachedRenderBuffers)
             {
                 r.Size = Size;
                 r.Bind(frameBuffer);
-            });
+            }
         }
 
         /// <summary>
@@ -131,7 +131,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 return;
 
             GLWrapper.BindFrameBuffer(lastFramebuffer);
-            attachedRenderBuffers.ForEach(r => r.Unbind());
+            foreach (var r in attachedRenderBuffers)
+                r.Unbind();
 
             lastFramebuffer = -1;
         }

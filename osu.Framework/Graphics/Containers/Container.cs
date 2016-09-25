@@ -267,14 +267,14 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Delay(duration, propagateChildren);
             if (propagateChildren)
-                children.ForEach(c => c.Delay(duration, propagateChildren));
+                foreach (var c in children) c.Delay(duration, propagateChildren);
             return this;
         }
 
         public override Drawable DelayReset()
         {
             base.DelayReset();
-            children.ForEach(c => c.DelayReset());
+            foreach (var c in children) c.DelayReset();
 
             return this;
         }

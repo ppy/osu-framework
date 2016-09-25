@@ -253,15 +253,15 @@ namespace osu.Framework.Graphics.UserInterface
             if (sound)
                 Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
-            textFlow.Children.Skip(start).Take(count).ToList().ForEach(d =>
-                    {
-                        textFlow.Remove(d);
+            foreach (var d in textFlow.Children.Skip(start).Take(count))
+            {
+                textFlow.Remove(d);
 
-                        textContainer.Add(d);
-                        d.FadeOut(200);
-                        d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
-                        d.Expire();
-                    });
+                textContainer.Add(d);
+                d.FadeOut(200);
+                d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
+                d.Expire();
+            }
 
             text = text.Remove(start, count);
 
