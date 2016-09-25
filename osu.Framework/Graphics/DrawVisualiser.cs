@@ -88,22 +88,27 @@ namespace osu.Framework.Graphics
         }
 
 
-        private void visualise(Drawable d, FlowContainer container)
+        private void visualise(Drawable d, FlowContainer visContainer)
         {
             if (d == this) return;
 
-            var drawables = container.Children.Cast<VisualisedDrawable>();
+            var drawables = visContainer.Children.Cast<VisualisedDrawable>();
 
-            drawables.ForEach(dd => dd.CheckExpiry());
+            foreach (var dd in drawables)
+                dd.CheckExpiry();
 
             VisualisedDrawable vd = drawables.FirstOrDefault(dd => dd.Target == d);
             if (vd == null)
             {
                 vd = new VisualisedDrawable(d);
-                container.Add(vd);
+                visContainer.Add(vd);
             }
 
-            (d as Container)?.Children.ForEach(c => visualise(c, vd.Flow));
+            Container dContainer = d as Container;
+            if (dContainer == null) return;
+
+            foreach (var c in dContainer.Children)
+                visualise(c, vd.Flow);
         }
 
         class VisualisedDrawable : AutoSizeContainer
