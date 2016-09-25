@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
         {
             List<Drawable> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
-                Remove(toRemove[i]);
+                Remove(toRemove[i], dispose);
 
             return toRemove.Count;
         }
