@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
+        LargeContainer overlayContainer;
+
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
 
@@ -63,13 +65,6 @@ namespace osu.Framework.Graphics.Performance
 
             Children = new Drawable[]
             {
-                new SpriteText
-                {
-                    Text = Name,
-                    Origin = Anchor.BottomCentre,
-                    Anchor = Anchor.CentreLeft,
-                    Rotation = -90
-                },
                 new MaskingContainer
                 {
                     Children = new Drawable[]
@@ -77,6 +72,19 @@ namespace osu.Framework.Graphics.Performance
                         new LargeContainer
                         {
                             Children = timeBars
+                        }
+                    }
+                },
+                overlayContainer = new LargeContainer
+                {
+                    Children = new []
+                    {
+                        new SpriteText
+                        {
+                            Text = Name,
+                            Origin = Anchor.BottomCentre,
+                            Anchor = Anchor.CentreLeft,
+                            Rotation = -90
                         },
                         legendContainer = new FlowContainer
                         {
@@ -117,9 +125,9 @@ namespace osu.Framework.Graphics.Performance
                     Text = t.ToString(),
                     Alpha = 0
                 });
-
-                legendContainer.FadeOut(2000, EasingTypes.InExpo);
             }
+
+            overlayContainer.FadeOut(2000, EasingTypes.InExpo);
 
             // Initialize background
             for (int i = 0; i < WIDTH * timeBars.Length; ++i)
@@ -176,7 +184,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendContainer.FadeIn(100);
+                overlayContainer.FadeIn(100);
                 processFrames = false;
             }
             return base.OnKeyDown(state, args);
@@ -186,7 +194,7 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendContainer.FadeOut(100);
+                overlayContainer.FadeOut(100);
                 processFrames = true;
             }
             return base.OnKeyUp(state, args);
