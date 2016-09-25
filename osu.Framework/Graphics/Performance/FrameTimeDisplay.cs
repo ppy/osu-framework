@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
                 case PerformanceCollectionType.Empty:
-                    return new Color4(50, 40, 40, 180);
+                    return new Color4(40, 40, 40, 150);
             }
         }
 
