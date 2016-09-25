@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Audio
@@ -23,13 +24,18 @@ namespace osu.Framework.Audio
         {
             base.Update();
 
-            ActiveItems.ForEach(s => s.Update());
+            for (int i = 0; i < ActiveItems.Count; i++)
+            {
+                var item = ActiveItems[i];
 
-            ActiveItems.FindAll(s => (s as IHasCompletedState)?.HasCompleted ?? false).ForEach(s =>
-                       {
-                           s.Dispose();
-                           ActiveItems.Remove(s);
-                       });
+                item.Update();
+
+                if ((item as IHasCompletedState)?.HasCompleted ?? false)
+                {
+                    item.Dispose();
+                    ActiveItems.RemoveAt(i--);
+                }
+            }
         }
     }
 }

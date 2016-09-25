@@ -14,10 +14,10 @@ namespace osu.Framework.Lists
         public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
             this.comparer = comparer;
-            Current = new SortedList<T>(comparer);
+            AliveItems = new SortedList<T>(comparer);
         }
 
-        public SortedList<T> Current { get; }
+        public SortedList<T> AliveItems { get; }
         private List<bool> current = new List<bool>();
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace osu.Framework.Lists
                 {
                     if (!current[i])
                     {
-                        Current.Add(obj);
+                        AliveItems.Add(obj);
                         current[i] = true;
                         anyAliveChanged = true;
                     }
@@ -48,7 +48,7 @@ namespace osu.Framework.Lists
                 {
                     if (current[i])
                     {
-                        Current.Remove(obj);
+                        AliveItems.Remove(obj);
                         current[i] = false;
                         anyAliveChanged = true;
                     }
@@ -83,7 +83,7 @@ namespace osu.Framework.Lists
 
             RemoveAt(index);
 
-            Current.Remove(item);
+            AliveItems.Remove(item);
 
             return true;
         }
@@ -102,7 +102,7 @@ namespace osu.Framework.Lists
             while ((i = FindIndex(match)) >= 0)
             {
                 if (current[i])
-                    Current.Remove(this[i]);
+                    AliveItems.Remove(this[i]);
 
                 RemoveAt(i);
 
@@ -114,7 +114,7 @@ namespace osu.Framework.Lists
 
         public new void Clear()
         {
-            Current.Clear();
+            AliveItems.Clear();
             current.Clear();
             base.Clear();
         }

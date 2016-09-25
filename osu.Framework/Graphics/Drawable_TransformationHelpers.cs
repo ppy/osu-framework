@@ -20,26 +20,24 @@ namespace osu.Framework.Graphics
             transforms?.Clear();
         }
 
-        public Drawable Delay(double duration, bool propagateChildren = false)
+        public virtual Drawable Delay(double duration, bool propagateChildren = false)
         {
             if (duration == 0) return this;
 
             transformationDelay += duration;
-            if (propagateChildren)
-                Children.ForEach(c => c.Delay(duration, propagateChildren));
             return this;
         }
 
-        public Drawable DelayReset()
+        public virtual Drawable DelayReset()
         {
             Delay(-transformationDelay);
-            Children.ForEach(c => c.DelayReset());
             return this;
         }
 
         public void Loop(int delay = 0)
         {
-            Transforms.ForEach(t => { t.Loop(Math.Max(0, transformationDelay + delay - t.Duration)); });
+            foreach (var t in Transforms)
+                t.Loop(Math.Max(0, transformationDelay + delay - t.Duration));
         }
 
         /// <summary>

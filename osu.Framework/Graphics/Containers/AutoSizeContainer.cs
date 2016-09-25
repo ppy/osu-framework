@@ -22,9 +22,7 @@ namespace osu.Framework.Graphics.Containers
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 autoSize.Invalidate();
 
-            bool alreadyInvalidated = base.Invalidate(invalidation, source, shallPropagate);
-
-            return !alreadyInvalidated;
+            return base.Invalidate(invalidation, source, shallPropagate);
         }
 
         protected override Quad DrawQuadForBounds
@@ -37,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxInheritingSize = Vector2.One;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in CurrentChildren)
+                foreach (Drawable c in AliveChildren)
                 {
                     if (!c.IsVisible)
                         continue;
@@ -77,9 +75,9 @@ namespace osu.Framework.Graphics.Containers
             return childChangedStatus;
         }
 
-        internal override void UpdateSubTree()
+        internal override bool UpdateSubTree()
         {
-            base.UpdateSubTree();
+            if (!base.UpdateSubTree()) return false;
 
             if (!autoSize.IsValid)
                 autoSize.Refresh(delegate
@@ -96,6 +94,8 @@ namespace osu.Framework.Graphics.Containers
 
                     return b;
                 });
+
+            return true;
         }
 
         public override Drawable Add(Drawable drawable)

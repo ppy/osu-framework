@@ -140,9 +140,12 @@ namespace osu.Framework.Audio
             {
                 if (disposing)
                 {
-                    volumeAdjustments.ForEach(d => d.ValueChanged -= InvalidateState);
-                    balanceAdjustments.ForEach(d => d.ValueChanged -= InvalidateState);
-                    frequencyAdjustments.ForEach(d => d.ValueChanged -= InvalidateState);
+                    foreach (var d in volumeAdjustments)
+                        d.ValueChanged -= InvalidateState;
+                    foreach (var d in balanceAdjustments)
+                        d.ValueChanged -= InvalidateState;
+                    foreach (var d in frequencyAdjustments)
+                        d.ValueChanged -= InvalidateState;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

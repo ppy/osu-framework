@@ -14,6 +14,7 @@ using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics
 {
@@ -27,26 +28,6 @@ namespace osu.Framework.Graphics
         /// A name used to identify this Drawable internally.
         /// </summary>
         public virtual string Name => string.Empty;
-
-        private LifetimeList<Drawable> children;
-        private IEnumerable<Drawable> pendingChildren;
-
-        public virtual IEnumerable<Drawable> Children
-        {
-            get { return children; }
-            set
-            {
-                if (!IsLoaded)
-                    pendingChildren = value;
-                else
-                {
-                    Clear();
-                    Add(value);
-                }
-            }
-        }
-
-        internal List<Drawable> CurrentChildren => children.Current;
 
         private LifetimeList<ITransform> transforms;
 
@@ -462,14 +443,9 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected Drawable Parent { get; private set; }
+        public Container Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
-
-        protected Drawable()
-        {
-            children = new LifetimeList<Drawable>(DepthComparer);
-        }
 
         /// <summary>
         /// Checks if this drawable is a child of parent regardless of nesting depth.
@@ -515,74 +491,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        public virtual Drawable Add(Drawable drawable)
-        {
-            if (drawable == null)
-                return null;
 
-            drawable.changeParent(this);
-            children.Add(drawable);
-
-            return drawable;
-        }
-
-        public void Add(IEnumerable<Drawable> collection)
-        {
-            foreach (Drawable d in collection)
-                Add(d);
-        }
-
-        public virtual bool Remove(Drawable p, bool dispose = true)
-        {
-            if (p == null)
-                return false;
-
-            bool result = children.Remove(p);
-            p.Parent = null;
-
-            if (dispose && p.IsDisposable)
-                p.Dispose();
-            else
-                p.Invalidate();
-
-            return result;
-        }
-
-        public int RemoveAll(Predicate<Drawable> match, bool dispose = true)
-        {
-            List<Drawable> toRemove = children.FindAll(match);
-            for (int i = 0; i < toRemove.Count; i++)
-                Remove(toRemove[i]);
-
-            return toRemove.Count;
-        }
-
-        public void Remove(IEnumerable<Drawable> range, bool dispose = true)
-        {
-            if (range == null)
-                return;
-
-            foreach (Drawable p in range)
-            {
-                if (p.IsDisposable)
-                    p.Dispose();
-                Remove(p);
-            }
-        }
-
-        public virtual void Clear(bool dispose = true)
-        {
-            foreach (Drawable t in children)
-            {
-                if (dispose)
-                    t.Dispose();
-                t.Parent = null;
-            }
-
-            children.Clear();
-
-            Invalidate(Invalidation.ScreenSpaceQuad);
-        }
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
@@ -655,7 +564,12 @@ namespace osu.Framework.Graphics
 
         private List<DrawNode> validDrawNodes = new List<DrawNode>();
 
-        internal DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        /// <summary>
+        /// Generates the DrawNode for ourselves.
+        /// </summary>
+        /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
+        /// <returns>A complete and updated DrawNode.</returns>
+        internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
         {
             if (node == null)
             {
@@ -671,50 +585,6 @@ namespace osu.Framework.Graphics
                 validDrawNodes.Add(node);
             }
 
-            if (children.Current.Count > 0)
-            {
-                if (node.Children != null)
-                {
-                    var current = children.Current;
-                    var target = node.Children;
-
-                    int j = 0;
-                    for (int i = 0; i < current.Count; i++)
-                    {
-                        if (!current[i].IsVisible) continue;
-
-                        if (j < target.Count && target[j].Drawable == current[i])
-                        {
-                            current[i].GenerateDrawNodeSubtree(target[j]);
-                        }
-                        else
-                        {
-                            if (j < target.Count)
-                                target.RemoveAt(j);
-                            target.Insert(j, current[i].GenerateDrawNodeSubtree());
-                        }
-
-                        j++;
-                    }
-
-                    if (j < target.Count)
-                        target.RemoveRange(j, target.Count - j);
-
-                }
-                else
-                {
-                    node.Children = new List<DrawNode>(children.Current.Count);
-
-                    foreach (Drawable child in children.Current)
-                        if (child.IsVisible)
-                            node.Children.Add(child.GenerateDrawNodeSubtree());
-                }
-            }
-            else
-            {
-                node.Children?.Clear();
-            }
-
             return node;
         }
 
@@ -727,22 +597,10 @@ namespace osu.Framework.Graphics
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
         /// <summary>
-        /// Perform any layout changes just before autosize is calculated.		
-        /// </summary>		
-        protected virtual void UpdateLayout()
-        {
-        }
-
-        /// <summary>
-        /// Updates the life status of children according to their IsAlive property.
+        /// Updates this drawable, once every frame.
         /// </summary>
-        /// <returns>True iff the life status of at least one child changed.</returns>
-        protected virtual bool UpdateChildrenLife()
-        {
-            return children.Update();
-        }
-
-        internal virtual void UpdateSubTree()
+        /// <returns>False if the drawable should not be updated.</returns>
+        internal virtual bool UpdateSubTree()
         {
             transformationDelay = 0;
 
@@ -750,17 +608,11 @@ namespace osu.Framework.Graphics
             updateTransforms();
 
             if (!IsVisible)
-                return;
+                return false;
 
             Update();
             OnUpdate?.Invoke();
-
-            UpdateChildrenLife();
-
-            foreach (Drawable child in children.Current)
-                child.UpdateSubTree();
-
-            UpdateLayout();
+            return true;
         }
 
         protected virtual void Update()
@@ -777,7 +629,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        private void changeParent(Drawable parent)
+        internal void ChangeParent(Container parent)
         {
             if (Parent == parent)
                 return;
@@ -785,18 +637,15 @@ namespace osu.Framework.Graphics
             Parent?.Remove(this, false);
             Parent = parent;
 
-            changeRoot(Parent?.Game);
+            ChangeRoot(Parent?.Game);
         }
 
-        private void changeRoot(Game root)
+        internal virtual void ChangeRoot(Game root)
         {
             if (root == null) return;
 
             Game = root;
             clockBacking.Invalidate();
-
-            foreach (Drawable c in children)
-                c.changeRoot(root);
         }
 
         /// <summary>
@@ -840,19 +689,13 @@ namespace osu.Framework.Graphics
 
         public virtual void Load()
         {
-            if (pendingChildren != null)
-            {
-                Add(pendingChildren);
-                pendingChildren = null;
-            }
-
             loaded = true;
             Invalidate();
         }
 
         private void updateTransformsOfType(Type specificType)
         {
-            foreach (ITransform t in Transforms.Current)
+            foreach (ITransform t in Transforms.AliveItems)
                 if (t.GetType() == specificType)
                     t.Apply(this);
         }
@@ -867,7 +710,7 @@ namespace osu.Framework.Graphics
 
             transforms.Update();
 
-            foreach (ITransform t in transforms.Current)
+            foreach (ITransform t in transforms.AliveItems)
                 t.Apply(this);
         }
 
@@ -910,23 +753,6 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
-
-            if (alreadyInvalidated || !shallPropagate)
-                return !alreadyInvalidated;
-
-            if (children != null)
-            {
-                foreach (var c in children)
-                {
-                    Debug.Assert(c != source);
-
-                    Invalidation childInvalidation = invalidation;
-                    //if (c.SizeMode == InheritMode.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
-
-                    c.Invalidate(childInvalidation, this);
-                }
-            }
 
             return !alreadyInvalidated;
         }
@@ -992,9 +818,6 @@ namespace osu.Framework.Graphics
         public virtual Drawable Clone()
         {
             Drawable thisNew = (Drawable)MemberwiseClone();
-
-            thisNew.children = new LifetimeList<Drawable>(DepthComparer);
-            children.ForEach(c => thisNew.children.Add(c.Clone()));
 
             if (transforms != null)
             {
