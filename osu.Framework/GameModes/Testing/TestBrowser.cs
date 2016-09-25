@@ -76,7 +76,8 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
-            foreach (var testCase in tests) addTest(testCase);
+            foreach (var testCase in tests)
+                addTest(testCase);
 
             loadTest();
         }
