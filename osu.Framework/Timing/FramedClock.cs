@@ -21,6 +21,8 @@ namespace osu.Framework.Timing
             Source = source;
         }
 
+        public double AverageFrameTime { get; private set; }
+
         public virtual double CurrentTime { get; protected set; }
 
         public virtual double LastFrameTime { get; private set; }
@@ -35,6 +37,10 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
+            // Accumulate a sliding average over frame time and frames per second.
+            double alpha = 0.02;
+            AverageFrameTime = AverageFrameTime == 0 ? ElapsedFrameTime : (AverageFrameTime * (1 - alpha) + ElapsedFrameTime * alpha);
+
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;
         }

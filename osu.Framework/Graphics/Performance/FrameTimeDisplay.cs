@@ -45,6 +45,8 @@ namespace osu.Framework.Graphics.Performance
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
 
+        private FpsDisplay fpsDisplay;
+
         public override string Name { get; }
 
         public FrameTimeDisplay(string name, PerformanceMonitor monitor)
@@ -74,6 +76,11 @@ namespace osu.Framework.Graphics.Performance
                             Children = timeBars
                         }
                     }
+                },
+                fpsDisplay = new FpsDisplay(monitor.Clock)
+                {
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
                 },
                 overlayContainer = new LargeContainer
                 {
@@ -185,6 +192,7 @@ namespace osu.Framework.Graphics.Performance
             if (args.Key == Key.ControlLeft)
             {
                 overlayContainer.FadeIn(100);
+                fpsDisplay.Counting = false;
                 processFrames = false;
             }
             return base.OnKeyDown(state, args);
@@ -195,6 +203,7 @@ namespace osu.Framework.Graphics.Performance
             if (args.Key == Key.ControlLeft)
             {
                 overlayContainer.FadeOut(100);
+                fpsDisplay.Counting = true;
                 processFrames = true;
             }
             return base.OnKeyUp(state, args);

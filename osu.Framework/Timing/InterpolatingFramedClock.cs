@@ -16,6 +16,8 @@ namespace osu.Framework.Timing
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
+        public double AverageFrameTime { get; private set; }
+
         public void ChangeSource(IClock source)
         {
             SourceClock = new FramedClock(source);
