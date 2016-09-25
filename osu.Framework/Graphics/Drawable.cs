@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics
         /// A name used to identify this Drawable internally.
         /// </summary>
         public virtual string Name => string.Empty;
-        
+
         private LifetimeList<ITransform> transforms;
 
         /// <summary>
@@ -491,7 +491,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        
+
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
@@ -749,9 +749,6 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
-
-            if (alreadyInvalidated || !shallPropagate)
-                return !alreadyInvalidated;
 
             return !alreadyInvalidated;
         }

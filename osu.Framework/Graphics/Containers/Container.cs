@@ -174,15 +174,18 @@ namespace osu.Framework.Graphics.Containers
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
 
-            foreach (var c in children)
+            if (shallPropagate)
             {
-                Debug.Assert(c != source);
+                foreach (var c in children)
+                {
+                    Debug.Assert(c != source);
 
-                Invalidation childInvalidation = invalidation;
-                //if (c.SizeMode == InheritMode.None)
-                childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    Invalidation childInvalidation = invalidation;
+                    //if (c.SizeMode == InheritMode.None)
+                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
-                c.Invalidate(childInvalidation, this);
+                    c.Invalidate(childInvalidation, this);
+                }
             }
 
             return true;
