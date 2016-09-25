@@ -97,11 +97,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// Scale which is only applied to Children.
-        /// </summary>
-        protected Vector2 ChildrenScale = Vector2.One;
-
         private Vector2 scale = Vector2.One;
 
         public Vector2 Scale

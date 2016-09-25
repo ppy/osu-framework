@@ -7,6 +7,7 @@ using System.Drawing;
 using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -56,6 +57,11 @@ namespace osu.Framework.Graphics.Containers
         {
             children = new LifetimeList<Drawable>(DepthComparer);
         }
+
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        internal Vector2 ChildrenScale = Vector2.One;
 
         public virtual Drawable Add(Drawable drawable)
         {
