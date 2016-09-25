@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(testContainer = new LargeContainer());
 
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i <= 7; i++)
             {
                 int test = i;
                 AddButton($@"Test {i}", delegate { loadTest(test); });
@@ -263,6 +263,50 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.Centre,
                         Anchor = Anchor.TopLeft
                     });
+                    break;
+                case 7:
+                    Container shrinkContainer;
+                    Container boxes;
+
+                    testContainer.Add(shrinkContainer = new LargeContainer
+                    {
+                        Size = new Vector2(0.5f, 1),
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                SizeMode = InheritMode.XY,
+                                Colour = Color4.AliceBlue,
+                                Alpha = 0.2f
+                            },
+                            boxes = new FlowContainer {
+                                //SizeMode = InheritMode.X, <- this fixes stuff!
+                                Padding = new Vector2(0, 10),
+                                Direction = FlowDirection.VerticalOnly,
+                            }
+                        }
+                    });
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        boxes.Add(new Box
+                        {
+                            SizeMode = InheritMode.X,
+                            Anchor = Anchor.TopCentre,
+                            Origin = Anchor.TopCentre,
+                            Size = new Vector2(0.9f, 40),
+                            Colour = Color4.AliceBlue,
+                            Alpha = 0.2f
+                        });
+                    }
+
+                    shrinkContainer.ScaleTo(new Vector2(1.5f, 1), 1000);
+                    shrinkContainer.Delay(1000);
+                    shrinkContainer.ScaleTo(new Vector2(1f, 1), 1000);
+                    shrinkContainer.Delay(1000);
+                    shrinkContainer.Loop();
                     break;
             }
 
