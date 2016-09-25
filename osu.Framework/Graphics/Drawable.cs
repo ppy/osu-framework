@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Drawable Parent { get; set; }
+        public Container Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
@@ -620,12 +620,12 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        internal void ChangeParent(Drawable parent)
+        internal void ChangeParent(Container parent)
         {
             if (Parent == parent)
                 return;
 
-            (Parent as Container)?.Remove(this, false);
+            Parent?.Remove(this, false);
             Parent = parent;
 
             ChangeRoot(Parent?.Game);
