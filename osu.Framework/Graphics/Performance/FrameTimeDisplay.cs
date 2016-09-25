@@ -284,6 +284,10 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index + 1] = (byte)(255 * col.G);
                 textureData[index + 2] = (byte)(255 * col.B);
                 textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
+
+                if ((float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range)
+                    textureData[index + 3] /= 6;
+
                 currentHeight--;
             }
 

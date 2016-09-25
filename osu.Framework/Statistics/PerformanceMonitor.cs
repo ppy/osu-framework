@@ -33,6 +33,15 @@ namespace osu.Framework.Statistics
 
         const int fps_calculation_interval = 250;
 
+        private IFrameBasedClock framedClock;
+
+        public double FrameAimTime => 1000 / (framedClock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
+
+        public PerformanceMonitor(IFrameBasedClock clock)
+        {
+            this.framedClock = clock;
+        }
+
         //internal void ReportCount(CounterType type)
         //{
         //    //todo: thread safety? Interlocked.Increment?
@@ -88,7 +97,7 @@ namespace osu.Framework.Statistics
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.
         /// </summary>
-        internal void NewFrame(IFrameBasedClock clock)
+        internal void NewFrame()
         {
             if (currentFrame != null)
             {
@@ -117,11 +126,11 @@ namespace osu.Framework.Statistics
             }
 
             //update framerate
-            double decay = Math.Pow(0.05, clock.ElapsedFrameTime);
+            double decay = Math.Pow(0.05, framedClock.ElapsedFrameTime);
 
             framesSinceLastCalculation++;
-            timeUntilNextCalculation -= clock.ElapsedFrameTime;
-            timeSinceLastCalculation += clock.ElapsedFrameTime;
+            timeUntilNextCalculation -= framedClock.ElapsedFrameTime;
+            timeSinceLastCalculation += framedClock.ElapsedFrameTime;
 
             if (timeUntilNextCalculation <= 0)
             {
@@ -132,10 +141,10 @@ namespace osu.Framework.Statistics
             }
 
             //check for dropped (stutter) frames
-            //if (clock.ElapsedFrameTime > spikeTime)
+            //if (framedClock.ElapsedFrameTime > spikeTime)
             //NewDroppedFrame();
 
-            AverageFrameTime = decay * AverageFrameTime + (1 - decay) * clock.ElapsedFrameTime;
+            AverageFrameTime = decay * AverageFrameTime + (1 - decay) * framedClock.ElapsedFrameTime;
 
             //reset frame totals
             CurrentCollectionTypeStack.Clear();

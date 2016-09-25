@@ -60,9 +60,9 @@ namespace osu.Framework.OS
             set { DrawClock.MaximumUpdateHz = value; }
         }
 
-        internal PerformanceMonitor InputMonitor = new PerformanceMonitor();
-        internal PerformanceMonitor UpdateMonitor = new PerformanceMonitor();
-        internal PerformanceMonitor DrawMonitor = new PerformanceMonitor();
+        internal PerformanceMonitor InputMonitor;
+        internal PerformanceMonitor UpdateMonitor;
+        internal PerformanceMonitor DrawMonitor;
 
         //null here to construct early but bind to thread late.
         internal Scheduler InputScheduler = new Scheduler(null);
@@ -77,6 +77,13 @@ namespace osu.Framework.OS
         }
 
         public abstract TextInputSource TextInput { get; }
+
+        public BasicGameHost()
+        {
+            InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
+            UpdateMonitor = new PerformanceMonitor(UpdateClock);
+            DrawMonitor = new PerformanceMonitor(DrawClock);
+        }
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
@@ -115,7 +122,7 @@ namespace osu.Framework.OS
 
             while (!exitRequested)
             {
-                UpdateMonitor.NewFrame(UpdateClock);
+                UpdateMonitor.NewFrame();
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 {
@@ -143,7 +150,7 @@ namespace osu.Framework.OS
 
             while (!exitRequested)
             {
-                DrawMonitor.NewFrame(DrawClock);
+                DrawMonitor.NewFrame();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
                 {
@@ -252,7 +259,7 @@ namespace osu.Framework.OS
         {
             inputPerformanceCollectionPeriod?.Dispose();
 
-            InputMonitor.NewFrame(InputClock);
+            InputMonitor.NewFrame();
 
             using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 InputScheduler.Update();
