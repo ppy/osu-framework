@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = (Target as Container)?.Children.Skip(64).Any() == true ? 0 : 1;
+                Flow.Alpha = (Target as Container)?.Children.Count() > 64 ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
