@@ -564,6 +564,11 @@ namespace osu.Framework.Graphics
 
         private List<DrawNode> validDrawNodes = new List<DrawNode>();
 
+        /// <summary>
+        /// Generates the DrawNode for ourselves.
+        /// </summary>
+        /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
+        /// <returns>A complete and updated DrawNode.</returns>
         internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
         {
             if (node == null)

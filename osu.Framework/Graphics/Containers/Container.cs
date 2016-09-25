@@ -228,6 +228,10 @@ namespace osu.Framework.Graphics.Containers
                     {
                         if (!current[i].IsVisible) continue;
 
+                        //todo: make this more efficient.
+                        //if (Game?.ScreenSpaceDrawQuad.Intersects(current[i].ScreenSpaceDrawQuad) == false)
+                        //    continue;
+
                         if (j < target.Count && target[j].Drawable == current[i])
                         {
                             current[i].GenerateDrawNodeSubtree(target[j]);
@@ -251,8 +255,15 @@ namespace osu.Framework.Graphics.Containers
                     node.Children = new List<DrawNode>(children.AliveItems.Count);
 
                     foreach (Drawable child in children.AliveItems)
-                        if (child.IsVisible)
-                            node.Children.Add(child.GenerateDrawNodeSubtree());
+                    {
+                        //if (Game?.ScreenSpaceDrawQuad.Intersects(child.ScreenSpaceDrawQuad) == false)
+                        //    continue;
+
+                        if (!child.IsVisible)
+                            continue;
+
+                        node.Children.Add(child.GenerateDrawNodeSubtree());
+                    }
                 }
             }
             else
