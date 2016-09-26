@@ -19,19 +19,12 @@ namespace osu.Framework.Statistics
 
         private FrameStatistics currentFrame;
 
+        private const int spikeTime = 100;
+
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
 
         private double consumptionTime;
-
-        internal double FramesPerSecond;
-        internal double AverageFrameTime;
-
-        double timeUntilNextCalculation;
-        double timeSinceLastCalculation;
-        int framesSinceLastCalculation;
-
-        const int fps_calculation_interval = 250;
 
         internal IFrameBasedClock Clock;
 
@@ -125,31 +118,21 @@ namespace osu.Framework.Statistics
                 }
             }
 
-            //update framerate
-            double decay = Math.Pow(0.05, Clock.ElapsedFrameTime);
-
-            framesSinceLastCalculation++;
-            timeUntilNextCalculation -= Clock.ElapsedFrameTime;
-            timeSinceLastCalculation += Clock.ElapsedFrameTime;
-
-            if (timeUntilNextCalculation <= 0)
-            {
-                timeUntilNextCalculation += fps_calculation_interval;
-
-                FramesPerSecond = framesSinceLastCalculation == 0 ? 0 : (int)Math.Ceiling(Math.Min(framesSinceLastCalculation * 1000f / timeSinceLastCalculation, TargetFrameRate));
-                timeSinceLastCalculation = framesSinceLastCalculation = 0;
-            }
-
             //check for dropped (stutter) frames
-            //if (framedClock.ElapsedFrameTime > spikeTime)
-            //NewDroppedFrame();
-
-            AverageFrameTime = decay * AverageFrameTime + (1 - decay) * Clock.ElapsedFrameTime;
+            if (Clock.ElapsedFrameTime > spikeTime)
+                NewDroppedFrame();
 
             //reset frame totals
             CurrentCollectionTypeStack.Clear();
             //backgroundMonitorStackTrace = null;
             consumeStopwatchElapsedTime();
         }
+
+        private void NewDroppedFrame()
+        {
+        }
+
+        internal double FramesPerSecond => Clock.FramesPerSecond;
+        internal double AverageFrameTime => Clock.AverageFrameTime;
     }
 }

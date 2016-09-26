@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Performance
         SpriteText counter;
 
         private IFrameBasedClock clock;
-        private double AverageFrameTime;
+        private double displayFPS;
 
         public bool Counting = true;
 
@@ -48,10 +48,10 @@ namespace osu.Framework.Graphics.Performance
             if (!Counting) return;
 
             // Accumulate a sliding average over frame time and frames per second.
-            double alpha = 0.01;
-            AverageFrameTime = AverageFrameTime == 0 ? clock.AverageFrameTime : (AverageFrameTime * (1 - alpha) + clock.AverageFrameTime * alpha);
+            double alpha = 0.02;
+            displayFPS = displayFPS == 0 ? clock.AverageFrameTime : (displayFPS * (1 - alpha) + clock.FramesPerSecond * alpha);
 
-            counter.Text = (1000 / AverageFrameTime).ToString(@"0");
+            counter.Text = displayFPS.ToString(@"0");
         }
     }
 }

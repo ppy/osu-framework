@@ -18,6 +18,8 @@ namespace osu.Framework.Timing
 
         public double AverageFrameTime { get; private set; }
 
+        public double FramesPerSecond { get; private set; }
+
         public void ChangeSource(IClock source)
         {
             SourceClock = new FramedClock(source);
