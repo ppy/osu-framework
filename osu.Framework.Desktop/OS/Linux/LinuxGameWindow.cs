@@ -3,6 +3,7 @@
 
 using osu.Framework.OS;
 using OpenTK.Graphics;
+using System;
 
 namespace osu.Framework.Desktop.OS.Linux
 {
@@ -11,6 +12,11 @@ namespace osu.Framework.Desktop.OS.Linux
         public LinuxGameWindow(GraphicsContextFlags flags)
             : base(flags)
         {
+            ExitRequested += () =>
+            {
+                Environment.Exit(0);
+                return true;
+            };
         }
 
         protected override BasicGameForm CreateGameForm(GraphicsContextFlags flags)
