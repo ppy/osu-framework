@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Performance
         const float visible_range = 20;
         const float scale = HEIGHT / visible_range;
 
+        const float alpha_when_inactive = 0.6f;
+
         private TimeBar[] timeBars = new TimeBar[2];
         private BufferStack<byte> textureBufferStack;
 
@@ -61,6 +63,7 @@ namespace osu.Framework.Graphics.Performance
             base.Load();
 
             Size = new Vector2(WIDTH, HEIGHT);
+            Alpha = alpha_when_inactive;
 
             for (int i = 0; i < timeBars.Length; ++i)
                 timeBars[i] = new TimeBar();
@@ -192,6 +195,7 @@ namespace osu.Framework.Graphics.Performance
             if (args.Key == Key.ControlLeft)
             {
                 overlayContainer.FadeIn(100);
+                FadeTo(1, 100);
                 fpsDisplay.Counting = false;
                 processFrames = false;
             }
@@ -203,6 +207,7 @@ namespace osu.Framework.Graphics.Performance
             if (args.Key == Key.ControlLeft)
             {
                 overlayContainer.FadeOut(100);
+                FadeTo(alpha_when_inactive, 100);
                 fpsDisplay.Counting = true;
                 processFrames = true;
             }
@@ -269,7 +274,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
                 case PerformanceCollectionType.Empty:
-                    return new Color4(40, 40, 40, 150);
+                    return new Color4(40, 40, 40, 180);
             }
         }
 
@@ -303,7 +308,7 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
 
                 if ((float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range)
-                    textureData[index + 3] /= 6;
+                    textureData[index + 3] /= 3;
 
                 currentHeight--;
             }
