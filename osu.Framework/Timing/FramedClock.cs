@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.MathUtils;
 using System;
 
 namespace osu.Framework.Timing
@@ -47,13 +48,6 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
-            //update framerate
-            double decay = Math.Pow(0.05, ElapsedFrameTime);
-
-            framesSinceLastCalculation++;
-            timeUntilNextCalculation -= ElapsedFrameTime;
-            timeSinceLastCalculation += ElapsedFrameTime;
-
             if (timeUntilNextCalculation <= 0)
             {
                 timeUntilNextCalculation += fps_calculation_interval;
@@ -65,7 +59,11 @@ namespace osu.Framework.Timing
                 timeSinceLastCalculation = framesSinceLastCalculation = 0;
             }
 
-            AverageFrameTime = decay * AverageFrameTime + (1 - decay) * ElapsedFrameTime;
+            framesSinceLastCalculation++;
+            timeUntilNextCalculation -= ElapsedFrameTime;
+            timeSinceLastCalculation += ElapsedFrameTime;
+
+            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, ElapsedFrameTime / 1000);
 
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;

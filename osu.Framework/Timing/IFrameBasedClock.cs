@@ -9,6 +9,9 @@ namespace osu.Framework.Timing
     /// </summary>
     public interface IFrameBasedClock : IClock
     {
+        /// <summary>
+        /// Elapsed time since last frame in milliseconds.
+        /// </summary>
         double ElapsedFrameTime { get; }
 
         double AverageFrameTime { get; }

@@ -11,9 +11,14 @@ namespace osu.Framework.MathUtils
 {
     public static class Interpolation
     {
-        public static float Lerp(float value1, float value2, float amount)
+        public static double Lerp(double start, double final, double amount)
         {
-            return value1 + (value2 - value1) * amount;
+            return start + (final - start) * amount;
+        }
+
+        public static double Damp(double start, double final, double smoothing, double deltaSeconds)
+        {
+            return Lerp(start, final, 1 - (float)Math.Pow(smoothing, deltaSeconds));
         }
 
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None)

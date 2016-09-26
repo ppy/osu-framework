@@ -1,11 +1,14 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.MathUtils;
 using osu.Framework.Timing;
+using System;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -47,9 +50,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            // Accumulate a sliding average over frame time and frames per second.
-            double alpha = 0.02;
-            displayFPS = displayFPS == 0 ? clock.AverageFrameTime : (displayFPS * (1 - alpha) + clock.FramesPerSecond * alpha);
+            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, Clock.ElapsedFrameTime / 1000);
 
             counter.Text = displayFPS.ToString(@"0");
         }
