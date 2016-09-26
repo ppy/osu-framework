@@ -88,66 +88,67 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateLayout();
 
-            if (layout.EnsureValid()) return;
-
-            layout.Refresh(delegate
+            if (!layout.EnsureValid())
             {
-                OnLayout?.Invoke();
-
-                if (Children.FirstOrDefault() == null) return Vector2.Zero;
-
-                Vector2 current = new Vector2(Math.Max(0, Padding.X), Math.Max(0, Padding.Y));
-
-                Vector2 max = maximumSize;
-                if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
+                layout.Refresh(delegate
                 {
-                    var actual = ActualSize;
+                    OnLayout?.Invoke();
 
-                    //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
-                    //If we are inheriting then we need to use the parent size (our ActualSize).
-                    max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : actual.X;
-                    max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : actual.Y;
-                }
+                    if (Children.FirstOrDefault() == null) return Vector2.Zero;
 
-                float rowMaxHeight = 0;
-                foreach (Drawable d in Children)
-                {
-                    if (((int)direction & (int)d.SizeMode) > 0)
-                        //if the inheriting mode of the drawable shares the same directional value as our flow direction, we have to ignore it.
-                        continue;
+                    Vector2 current = new Vector2(Math.Max(0, Padding.X), Math.Max(0, Padding.Y));
 
-                    Vector2 size = Vector2.Zero;
-
-                    if (d.IsVisible)
+                    Vector2 max = maximumSize;
+                    if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
                     {
-                        size = d.ActualSize * d.Scale * ChildrenScale;
+                        var actual = ActualSize;
 
-                        if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                        //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
+                        //If we are inheriting then we need to use the parent size (our ActualSize).
+                        max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : actual.X;
+                        max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : actual.Y;
+                    }
+
+                    float rowMaxHeight = 0;
+                    foreach (Drawable d in Children)
+                    {
+                        if (((int)direction & (int)d.SizeMode) > 0)
+                            //if the inheriting mode of the drawable shares the same directional value as our flow direction, we have to ignore it.
+                            continue;
+
+                        Vector2 size = Vector2.Zero;
+
+                        if (d.IsVisible)
                         {
-                            current.X = Math.Max(0, Padding.X);
-                            current.Y += rowMaxHeight;
+                            size = d.ActualSize * d.Scale * ChildrenScale;
 
-                            rowMaxHeight = 0;
+                            if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                            {
+                                current.X = Math.Max(0, Padding.X);
+                                current.Y += rowMaxHeight;
+
+                                rowMaxHeight = 0;
+                            }
+
+                            //todo: check this is correct
+                            if (size.X > 0) size.X = Math.Max(0, size.X + Padding.X);
+                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + Padding.Y);
+
+                            if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
                         }
 
-                        //todo: check this is correct
-                        if (size.X > 0) size.X = Math.Max(0, size.X + Padding.X);
-                        if (size.Y > 0) size.Y = Math.Max(0, size.Y + Padding.Y);
+                        if (current != d.Position)
+                        {
+                            d.MoveTo(current, LayoutDuration, LayoutEasing);
+                            d.UpdateSubTree();
+                        }
 
-                        if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
+                        current.X += size.X;
                     }
 
-                    if (current != d.Position)
-                    {
-                        d.MoveTo(current, LayoutDuration, LayoutEasing);
-                        d.UpdateSubTree();
-                    }
-
-                    current.X += size.X;
-                }
-
-                return current;
-            });
+                    return current;
+                });
+            }
         }
     }
 
