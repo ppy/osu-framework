@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using OpenTK;
 using OpenTK.Graphics;
+using System.Diagnostics;
 
 namespace osu.Framework.MathUtils
 {
@@ -16,9 +17,12 @@ namespace osu.Framework.MathUtils
             return start + (final - start) * amount;
         }
 
-        public static double Damp(double start, double final, double smoothing, double deltaSeconds)
+        public static double Damp(double start, double final, double smoothing, double delta)
         {
-            return Lerp(start, final, 1 - (float)Math.Pow(smoothing, deltaSeconds));
+            Debug.Assert(smoothing >= 0 && smoothing <= 1);
+            Debug.Assert(delta >= 0);
+
+            return Lerp(start, final, 1 - (float)Math.Pow(smoothing, delta));
         }
 
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
