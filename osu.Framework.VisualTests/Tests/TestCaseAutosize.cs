@@ -19,15 +19,13 @@ namespace osu.Framework.VisualTests.Tests
         public override string Name => @"Autosize";
         public override string Description => @"Various scenarios which potentially challenge autosize calculations.";
 
-        private ToggleButton toggleDebugAutosize;
-
         private Container testContainer;
 
         public override void Reset()
         {
             base.Reset();
 
-            toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
+            AddToggle(@"debug autosize", reloadCallback);
 
             Add(testContainer = new Container()
             {

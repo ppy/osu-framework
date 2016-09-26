@@ -1,22 +1,31 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
-using ImageMagick;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Drawing.Imaging;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Textures.Png;
 
 namespace osu.Framework.IO.Stores
 {
-    public class GlyphStore : IResourceStore<byte[]>
+    public class GlyphStore : IResourceStore<RawTexture>
     {
         private string assetName;
+
+        const float default_size = 96;
 
         ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        Dictionary<int, MagickImage> texturePages = new Dictionary<int, MagickImage>();
+        Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
 
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
         {
@@ -27,7 +36,6 @@ namespace osu.Framework.IO.Stores
             {
                 font = new BitmapFont();
                 font.LoadText(store.GetStream($@"{assetName}.fnt"));
-                //ScaleAdjust = font.StretchedHeight;
             }
             catch
             {
@@ -35,43 +43,71 @@ namespace osu.Framework.IO.Stores
             }
         }
 
-        public byte[] Get(string name)
+        public RawTexture Get(string name)
         {
-            string[] parts = name.Split('/');
-            return Get(parts[0], parts.Length == 1 ? 1 : 1f / int.Parse(parts[1]));
+            return Get(name, 1);
+            //string[] parts = name.Split('/');
+            //return Get(parts[0], parts.Length == 1 ? 1 : 1f / Int32.Parse(parts[1]));
         }
-
-        public byte[] Get(string name, float scale = 1)
+        
+        public RawTexture Get(string name, float scale = 1)
         {
             Character c;
 
             if (!font.Characters.TryGetValue(name[0], out c))
                 return null;
 
-            MagickImage page = getTexturePage(c.TexturePage);
+            var page = getTexturePage(c.TexturePage);
 
-            MagickImage glyph = new MagickImage(new MagickColor(65535, 65535, 65535, 0), c.Bounds.Width + c.Offset.X, c.Bounds.Height + c.Offset.Y);
+            var width = c.Bounds.Width + c.Offset.X;
+            var height = c.Bounds.Height + c.Offset.Y;
+            var length = width * height * 4;
+            var pixels = new byte[length];
+            
+            for (int y = 0; y < c.Bounds.Height; y++)
+            {
+                for (int x = 0; x < c.Bounds.Width; x++)
+                {
+                    int srci = (c.Bounds.Y + y) * page.Width * 4 + (c.Bounds.X + x) * 4;
+                    int desti = (c.Offset.Y + y) * width * 4 + (c.Offset.X + x) * 4;
+                    pixels[desti] = page.Pixels[srci];
+                    pixels[desti + 1] = page.Pixels[srci + 1];
+                    pixels[desti + 2] = page.Pixels[srci + 2];
+                    pixels[desti + 3] = page.Pixels[srci + 3];
+                }
+            }
 
-            glyph.CopyPixels(page, new MagickGeometry(c.Bounds.X, c.Bounds.Y, c.Bounds.Width, c.Bounds.Height), c.Offset.X, c.Offset.Y);
-            glyph.RePage();
-
-            //todo: we can return MagickImage here instead of Bmp with a bit of refactoring.
-            return glyph.ToByteArray(MagickFormat.Bmp);
+            return new RawTexture
+            {
+                Pixels = pixels,
+                PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba,
+                Width = width,
+                Height = height,
+            };
         }
 
-        private MagickImage getTexturePage(int texturePage)
+        private RawTexture getTexturePage(int texturePage)
         {
-            MagickImage t;
-
+            RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
-                texturePages[texturePage] = t = new MagickImage(store.GetStream($@"{assetName}_{texturePage}.png"));
-
+            {
+                t = new RawTexture();
+                using (var stream = store.GetStream($@"{assetName}_{texturePage}.png"))
+                {
+                    var reader = new PngReader();
+                    t.Pixels = reader.Read(stream);
+                    t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
+                    t.Width = reader.Width;
+                    t.Height = reader.Height;
+                }
+                texturePages[texturePage] = t;
+            }
             return t;
         }
 
         public Stream GetStream(string name)
         {
-            return new MemoryStream(Get(name));
+            throw new NotImplementedException();
         }
     }
 

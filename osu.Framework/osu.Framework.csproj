@@ -248,6 +248,10 @@
     <Compile Include="Threading\Scheduler.cs" />
     <Compile Include="Threading\SleepHandle.cs" />
     <Compile Include="Threading\SleepScheduler.cs" />
+    <Compile Include="Graphics\Textures\RawTexture.cs" />
+    <Compile Include="Graphics\Textures\Png\PngReader.cs" />
+    <Compile Include="Graphics\Textures\Png\PngCommon.cs" />
+    <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
@@ -273,6 +277,9 @@
     <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Graphics\Textures\Png\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
