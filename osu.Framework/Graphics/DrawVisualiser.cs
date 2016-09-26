@@ -24,7 +24,18 @@ namespace osu.Framework.Graphics
         };
 
         FlowContainer flow;
-        Drawable target;
+
+        private Drawable target;
+        public Drawable Target
+        {
+            get { return target; }
+            set
+            {
+                target = value;
+                flow.Clear();
+            }
+
+        }
 
         private ScheduledDelegate scheduledUpdater;
         private SpriteText loadMessage;
@@ -58,11 +69,6 @@ namespace osu.Framework.Graphics
             });
         }
 
-        public DrawVisualiser(Drawable target)
-        {
-            this.target = target;
-        }
-
         protected override void Dispose(bool isDisposing)
         {
             scheduledUpdater?.Cancel();
@@ -84,7 +90,9 @@ namespace osu.Framework.Graphics
 
         private void runUpdate()
         {
-            visualise(target, flow);
+            if (Target == null) return;
+
+            visualise(Target, flow);
         }
 
 
