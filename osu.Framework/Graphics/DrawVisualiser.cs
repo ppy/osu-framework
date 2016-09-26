@@ -242,7 +242,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target + (!Flow.IsVisible ? $@" (({(Target as Container)?.Children.Count()} hidden children)" : string.Empty);
+                text.Text = Target + (!Flow.IsVisible ? $@" ({(Target as Container)?.Children.Count()} children)" : string.Empty);
             }
 
             protected override void Update()

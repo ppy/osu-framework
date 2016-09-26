@@ -171,5 +171,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
         private string getTextureName(char c) => $@"{c}";
+
+        public override string ToString()
+        {
+            return $@"""{Text}"" " + base.ToString();
+        }
     }
 }
