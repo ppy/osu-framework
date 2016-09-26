@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = (Target as Container)?.Children.Count() > 64 ? 0 : 1;
+                Flow.Alpha = Target is SpriteText || (Target as Container)?.Children.Count() > 16 ? 0 : 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
