@@ -11,6 +11,8 @@ namespace osu.Framework.Timing
     {
         double ElapsedFrameTime { get; }
 
+        double AverageFrameTime { get; }
+
         /// <summary>
         /// Processes one frame. Generally should be run once per update loop.
         /// </summary>
