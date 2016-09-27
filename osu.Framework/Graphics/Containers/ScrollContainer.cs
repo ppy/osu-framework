@@ -26,7 +26,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
         private AutoSizeContainer content = new AutoSizeContainer();
         private ScrollBar scrollbar;
 
@@ -47,8 +46,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Load();
 
-            AddTopLevel(scrollbar = new ScrollBar(offset));
+            Masking = true;
+
             Add(content);
+            AddTopLevel(scrollbar = new ScrollBar(offset));
 
             content.OnAutoSize += contentAutoSize;
         }
