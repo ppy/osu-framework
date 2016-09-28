@@ -40,18 +40,29 @@ namespace osu.Framework.VisualTests.Tests
             {
                 if (Parent == null) return;
 
-                Box box = new Box
+                Box box;
+                Container container = new Container
                 {
                     Size = new Vector2(80, 80),
-                    Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)
+                    Children = new[] {
+                        box = new Box
+                        {
+                            SizeMode = InheritMode.XY,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)
+                        }
+                    }
                 };
 
-                flow.Add(box);
+                flow.Add(container);
 
-                box.FadeInFromZero(1000);
-                box.Delay(RNG.Next(0, 20000));
-                box.FadeOutFromOne(4000);
-                box.Expire();
+                container.FadeInFromZero(1000);
+                container.Delay(RNG.Next(0, 20000), true);
+                container.FadeOutFromOne(4000);
+                box.RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
+                box.ScaleTo(0.5f, 4000);
+                container.Expire();
             }, 100, true);
 
             scheduler.Add(boxCreator);
