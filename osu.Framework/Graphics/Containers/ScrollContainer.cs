@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Vertical size of available content (content.Size)
         /// </summary>
-        private float availableContent;
+        private float availableContent = -1;
 
         private float displayableContent => ActualSize.Y;
 
@@ -50,7 +50,6 @@ namespace osu.Framework.Graphics.Containers
 
             Add(content);
             AddTopLevel(scrollbar = new ScrollBar(offset));
-
             content.OnAutoSize += contentAutoSize;
         }
 
