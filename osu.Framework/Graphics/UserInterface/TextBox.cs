@@ -253,7 +253,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (sound)
                 Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
-            foreach (var d in textFlow.Children.Skip(start).Take(count).ToArray())
+            foreach (var d in textFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
                 textFlow.Remove(d);
 
