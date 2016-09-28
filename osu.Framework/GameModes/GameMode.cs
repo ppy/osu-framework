@@ -1,59 +1,100 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Diagnostics;
 using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.GameModes
 {
     public class GameMode : LargeContainer
     {
-        private GameMode lastGameMode;
+        private GameMode parentGameMode;
+        private GameMode childGameMode;
 
-        private bool modePushed;
+        protected ContentContainer Content = new ContentContainer();
+
+        protected override Container AddTarget => Content;
 
         /// <summary>
         /// Called when this GameMode is being entered.
         /// </summary>
-        /// <param name="last">The last GameMode.</param>
-        protected virtual void EnterTransition(GameMode last)
-        {
-            FadeInFromZero(200);
-        }
+        /// <param name="last">The next GameMode.</param>
+        /// <returns>The time after which the transition has finished running.</returns>
+        protected virtual double OnEntering(GameMode last) => 0;
 
         /// <summary>
         /// Called when this GameMode is exiting.
         /// </summary>
         /// <param name="next">The next GameMode.</param>
-        protected virtual void ExitTransition(GameMode next)
+        /// <returns>The time after which the transition has finished running.</returns>
+        protected virtual double OnExiting(GameMode next) => 0;
+
+        /// <summary>
+        /// Called when this GameMode is being returned to from a child exiting.
+        /// </summary>
+        /// <param name="last">The next GameMode.</param>
+        /// <returns>The time after which the transition has finished running.</returns>
+        protected virtual double OnResuming(GameMode last) => 0;
+
+        /// <summary>
+        /// Called when this GameMode is being left to a new child.
+        /// </summary>
+        /// <param name="next">The new GameMode</param>
+        /// <returns>The time after which the transition has finished running.</returns>
+        protected virtual double OnSuspending(GameMode next) => 0;
+
+        public override void Load()
         {
-            FadeOutFromOne(200);
+            base.Load();
+            AddTopLevel(Content);
         }
 
         /// <summary>
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        protected void PushMode(GameMode mode)
+        protected void Push(GameMode mode)
         {
-            if (modePushed)
-                return;
-            modePushed = true;
+            Debug.Assert(childGameMode == null);
 
-            Add(mode);
+            AddTopLevel(mode);
 
-            mode.lastGameMode = this;
-            mode.EnterTransition(this);
+            Content.LifetimeEnd = Time + mode.OnEntering(this);
+
+            startSuspend(mode);
         }
 
         /// <summary>
         /// Exits this GameMode.
         /// </summary>
-        protected void ExitMode()
+        protected void Exit()
         {
-            lastGameMode.modePushed = false;
+            Debug.Assert(parentGameMode != null);
 
-            ExitTransition(lastGameMode);
-            Delay(5000).Expire();
+            LifetimeEnd = Time + OnExiting(parentGameMode);
+
+            parentGameMode.startResume(this);
+            parentGameMode = null;
+        }
+
+        private void startResume(GameMode last)
+        {
+            childGameMode = null;
+            OnResuming(last);
+            Content.LifetimeEnd = double.MaxValue;
+        }
+
+        private void startSuspend(GameMode next)
+        {
+            OnSuspending(next);
+            childGameMode = next;
+            next.parentGameMode = this;
+        }
+
+        protected class ContentContainer : LargeContainer
+        {
+            public override bool HandleInput => LifetimeEnd == double.MaxValue;
+            public override bool RemoveWhenNotAlive => false;
         }
     }
 }

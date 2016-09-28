@@ -8,11 +8,11 @@ namespace osu.Framework.Graphics.Containers
 {
     public class ClickableContainer : Container
     {
-        public event Action Click;
+        public Action Action;
 
         protected override bool OnClick(InputState state)
         {
-            Click?.Invoke();
+            Action?.Invoke();
             return true;
         }
     }

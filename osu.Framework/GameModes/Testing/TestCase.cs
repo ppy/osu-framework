@@ -58,7 +58,7 @@ namespace osu.Framework.GameModes.Testing
                 Text = text
             });
 
-            b.Click += action;
+            b.Action += action;
 
             return b;
         }
@@ -91,7 +91,7 @@ namespace osu.Framework.GameModes.Testing
 
             Size = new Vector2(100, 50);
             Colour = offColour;
-            Click += clickAction;
+            Action += clickAction;
         }
 
         private void clickAction()
