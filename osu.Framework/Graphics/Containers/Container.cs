@@ -7,6 +7,7 @@ using System.Drawing;
 using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -56,6 +57,11 @@ namespace osu.Framework.Graphics.Containers
         {
             children = new LifetimeList<Drawable>(DepthComparer);
         }
+
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        internal Vector2 ChildrenScale = Vector2.One;
 
         public virtual Drawable Add(Drawable drawable)
         {
@@ -182,8 +188,8 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(c != source);
 
                     Invalidation childInvalidation = invalidation;
-                    //if (c.SizeMode == InheritMode.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    if (c.SizeMode == InheritMode.None)
+                        childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
                     c.Invalidate(childInvalidation, this);
                 }
@@ -206,7 +212,8 @@ namespace osu.Framework.Graphics.Containers
             base.ChangeRoot(root);
 
             foreach (Drawable c in children)
-                c.ChangeRoot(root);
+                //use Game here to make sure we respect any decisions base.ChangeRoot made.
+                c.ChangeRoot(Game);
         }
 
         /// <summary>

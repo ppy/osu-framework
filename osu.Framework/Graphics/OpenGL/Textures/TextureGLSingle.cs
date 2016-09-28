@@ -25,8 +25,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalWidth;
         private int internalHeight;
 
-        private int clearFBO;
-
         private TextureWrapMode internalWrapMode;
 
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
@@ -325,22 +323,36 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
+        //private static int clearFBO = -1;
+
         private void initializeLevel(int level, int width, int height)
         {
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            byte[] transparentWhite = new byte[width * height * 4];
+            int i = 0;
+            while ((i += 4) < transparentWhite.Length)
+            {
+                transparentWhite[i] = 255;
+                transparentWhite[i + 1] = 255;
+                transparentWhite[i + 2] = 255;
+            }
 
-            if (clearFBO < 0)
-                clearFBO = GL.GenFramebuffer();
+            GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
+            h0.Free();
 
-            int lastFramebuffer = GLWrapper.BindFrameBuffer(clearFBO);
-            //todo: fix opentk obsolete attributes on impossible-to-replace functions.
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, 0);
+            //todo: figure why FBO clear method doesn't work.
 
-            GL.ClearColor(new Color4(255, 255, 255, 0));
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-            GL.ClearColor(new Color4(0, 0, 0, 0));
+            //if (clearFBO < 0)
+            //    clearFBO = GL.GenFramebuffer();
 
-            GLWrapper.BindFrameBuffer(lastFramebuffer);
+            //int lastFramebuffer = GLWrapper.BindFrameBuffer(clearFBO);
+            //GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, 0);
+
+            //GL.ClearColor(new Color4(255, 255, 255, 0));
+            //GL.Clear(ClearBufferMask.ColorBufferBit);
+            //GL.ClearColor(new Color4(0, 0, 0, 0));
+
+            //GLWrapper.BindFrameBuffer(lastFramebuffer);
         }
     }
 }

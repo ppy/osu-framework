@@ -97,11 +97,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        /// <summary>
-        /// Scale which is only applied to Children.
-        /// </summary>
-        protected Vector2 ChildrenScale = Vector2.One;
-
         private Vector2 scale = Vector2.One;
 
         public Vector2 Scale
@@ -631,13 +626,14 @@ namespace osu.Framework.Graphics
 
         internal void ChangeParent(Container parent)
         {
-            if (Parent == parent)
-                return;
+            if (Parent != parent)
+            {
+                Parent?.Remove(this, false);
+                Parent = parent;
+            }
 
-            Parent?.Remove(this, false);
-            Parent = parent;
-
-            ChangeRoot(Parent?.Game);
+            if (Parent?.Game != Game)
+                ChangeRoot(Parent?.Game);
         }
 
         internal virtual void ChangeRoot(Game root)
@@ -661,11 +657,11 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public bool IsAlive
+        public virtual bool IsAlive
         {
             get
             {
-                if (Parent == null) return false;
+                if (Parent == null || Game == null) return false;
 
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;

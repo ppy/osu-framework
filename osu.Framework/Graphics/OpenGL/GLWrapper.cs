@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastDestBlend = dest;
         }
 
-        private static int lastFrameBuffer;
+        private static int lastFrameBuffer = -1;
 
         /// <summary>
         /// Binds a framebuffer.

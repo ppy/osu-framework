@@ -26,14 +26,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-
-        private AutoSizeContainer content = new AutoSizeContainer();
+        private AutoSizeContainer content = new AutoSizeContainer { SizeMode = InheritMode.X };
         private ScrollBar scrollbar;
 
         /// <summary>
         /// Vertical size of available content (content.Size)
         /// </summary>
-        private float availableContent;
+        private float availableContent = -1;
 
         private float displayableContent => ActualSize.Y;
 
@@ -47,9 +46,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Load();
 
-            AddTopLevel(scrollbar = new ScrollBar(offset));
-            Add(content);
+            Masking = true;
 
+            Add(content);
+            AddTopLevel(scrollbar = new ScrollBar(offset));
             content.OnAutoSize += contentAutoSize;
         }
 
