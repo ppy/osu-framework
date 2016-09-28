@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (SizeMode == InheritMode.XY) return base.DrawQuadForBounds;
 
-                Vector2 size = Vector2.Zero;
+                Vector2 maxBoundSize = Vector2.Zero;
                 Vector2 maxInheritingSize = Vector2.One;
 
                 // Find the maximum width/height of children
@@ -40,26 +40,26 @@ namespace osu.Framework.Graphics.Containers
                     if (!c.IsVisible)
                         continue;
 
-                    Vector2 boundingSize = c.BoundingSize;
+                    Vector2 cBound = c.BoundingSize;
                     Vector2 inheritingSize = c.Size * c.Scale * ChildrenScale;
 
                     if ((c.SizeMode & InheritMode.X) == 0)
-                        size.X = Math.Max(size.X, boundingSize.X);
+                        maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
                     else
                         maxInheritingSize.X = Math.Max(maxInheritingSize.X, inheritingSize.X);
 
                     if ((c.SizeMode & InheritMode.Y) == 0)
-                        size.Y = Math.Max(size.Y, boundingSize.Y);
+                        maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                     else
                         maxInheritingSize.Y = Math.Max(maxInheritingSize.Y, inheritingSize.Y);
                 }
 
                 if ((SizeMode & InheritMode.X) > 0)
-                    size.X = ActualSize.X;
+                    maxBoundSize.X = ActualSize.X;
                 if ((SizeMode & InheritMode.Y) > 0)
-                    size.Y = ActualSize.Y;
+                    maxBoundSize.Y = ActualSize.Y;
 
-                return new Quad(0, 0, size.X * maxInheritingSize.X, size.Y * maxInheritingSize.Y);
+                return new Quad(0, 0, maxBoundSize.X * maxInheritingSize.X, maxBoundSize.Y * maxInheritingSize.Y);
             }
         }
 
