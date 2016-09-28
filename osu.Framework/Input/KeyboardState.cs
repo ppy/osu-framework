@@ -22,5 +22,6 @@ namespace osu.Framework.Input
         public bool ControlPressed => Keys.Any(k => k == Key.LControl || k == Key.RControl);
         public bool AltPressed => Keys.Any(k => k == Key.LAlt || k == Key.RAlt);
         public bool ShiftPressed => Keys.Any(k => k == Key.LShift || k == Key.RShift);
+        public bool WinPressed => Keys.Any(k => k == Key.LWin || k == Key.RWin);
     }
 }

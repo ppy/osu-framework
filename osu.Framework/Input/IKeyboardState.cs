@@ -11,6 +11,7 @@ namespace osu.Framework.Input
         bool AltPressed { get; }
         bool ControlPressed { get; }
         bool ShiftPressed { get; }
+        bool WinPressed { get; }
 
         IEnumerable<Key> Keys { get; }
     }
