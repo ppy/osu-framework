@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private void refreshLayout()
         {
-            if (internalSize.IsValid) return;
+            if (internalSize.EnsureValid()) return;
 
             internalSize.Refresh(delegate
             {

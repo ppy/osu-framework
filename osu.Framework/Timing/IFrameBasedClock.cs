@@ -9,7 +9,13 @@ namespace osu.Framework.Timing
     /// </summary>
     public interface IFrameBasedClock : IClock
     {
+        /// <summary>
+        /// Elapsed time since last frame in milliseconds.
+        /// </summary>
         double ElapsedFrameTime { get; }
+
+        double AverageFrameTime { get; }
+        double FramesPerSecond { get; }
 
         /// <summary>
         /// Processes one frame. Generally should be run once per update loop.

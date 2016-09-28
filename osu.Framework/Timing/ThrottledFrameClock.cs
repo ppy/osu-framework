@@ -25,9 +25,6 @@ namespace osu.Framework.Timing
 
         private double minimumFrameTime => 1000d / MaximumUpdateHz;
 
-        public double AverageFrameTime { get; private set; }
-        public double AverageFPS { get; private set; }
-
         private double accumulatedSleepError;
 
         private void throttle()
@@ -82,11 +79,6 @@ namespace osu.Framework.Timing
             base.ProcessFrame();
 
             throttle();
-
-            // Accumulate a sliding average over frame time and frames per second.
-            double alpha = 0.02;
-            AverageFrameTime = AverageFrameTime == 0 ? ElapsedFrameTime : (AverageFrameTime * (1 - alpha) + ElapsedFrameTime * alpha);
-            AverageFPS = AverageFPS == 0 ? (1000 / ElapsedFrameTime) : (AverageFPS * (1 - alpha) + (1000 / ElapsedFrameTime) * alpha);
         }
     }
 }

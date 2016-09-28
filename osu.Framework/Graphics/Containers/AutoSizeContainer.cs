@@ -79,7 +79,8 @@ namespace osu.Framework.Graphics.Containers
         {
             if (!base.UpdateSubTree()) return false;
 
-            if (!autoSize.IsValid)
+            if (!autoSize.EnsureValid())
+            {
                 autoSize.Refresh(delegate
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
@@ -94,6 +95,7 @@ namespace osu.Framework.Graphics.Containers
 
                     return b;
                 });
+            }
 
             return true;
         }

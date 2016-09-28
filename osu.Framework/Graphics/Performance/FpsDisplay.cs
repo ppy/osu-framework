@@ -1,9 +1,14 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.MathUtils;
 using osu.Framework.Timing;
+using System;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -11,18 +16,26 @@ namespace osu.Framework.Graphics.Performance
     {
         SpriteText counter;
 
-        private readonly string name;
-        private ThrottledFrameClock clock;
+        private IFrameBasedClock clock;
+        private double displayFPS;
 
-        public FpsDisplay(string name, ThrottledFrameClock clock)
+        public bool Counting = true;
+
+        public FpsDisplay(IFrameBasedClock clock)
         {
-            this.name = name;
             this.clock = clock;
         }
 
         public override void Load()
         {
             base.Load();
+
+            Add(new Box
+            {
+                SizeMode = InheritMode.XY,
+                Colour = Color4.Black,
+                Alpha = 0.2f
+            });
 
             Add(counter = new SpriteText
             {
@@ -35,7 +48,11 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Update();
 
-            counter.Text = $@"{name}" + (1000 / clock.AverageFrameTime).ToString(@"0").PadLeft(4);
+            if (!Counting) return;
+
+            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, Clock.ElapsedFrameTime / 1000);
+
+            counter.Text = displayFPS.ToString(@"0");
         }
     }
 }

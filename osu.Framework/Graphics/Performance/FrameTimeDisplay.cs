@@ -27,6 +27,8 @@ namespace osu.Framework.Graphics.Performance
         const float visible_range = 20;
         const float scale = HEIGHT / visible_range;
 
+        const float alpha_when_inactive = 0.6f;
+
         private TimeBar[] timeBars = new TimeBar[2];
         private BufferStack<byte> textureBufferStack;
 
@@ -40,8 +42,12 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
+        LargeContainer overlayContainer;
+
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
+
+        private FpsDisplay fpsDisplay;
 
         public override string Name { get; }
 
@@ -57,19 +63,13 @@ namespace osu.Framework.Graphics.Performance
             base.Load();
 
             Size = new Vector2(WIDTH, HEIGHT);
+            Alpha = alpha_when_inactive;
 
             for (int i = 0; i < timeBars.Length; ++i)
                 timeBars[i] = new TimeBar();
 
             Children = new Drawable[]
             {
-                new SpriteText
-                {
-                    Text = Name,
-                    Origin = Anchor.BottomCentre,
-                    Anchor = Anchor.CentreLeft,
-                    Rotation = -90
-                },
                 new MaskingContainer
                 {
                     Children = new Drawable[]
@@ -77,6 +77,24 @@ namespace osu.Framework.Graphics.Performance
                         new LargeContainer
                         {
                             Children = timeBars
+                        }
+                    }
+                },
+                fpsDisplay = new FpsDisplay(monitor.Clock)
+                {
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                },
+                overlayContainer = new LargeContainer
+                {
+                    Children = new []
+                    {
+                        new SpriteText
+                        {
+                            Text = Name,
+                            Origin = Anchor.BottomCentre,
+                            Anchor = Anchor.CentreLeft,
+                            Rotation = -90
                         },
                         legendContainer = new FlowContainer
                         {
@@ -88,7 +106,7 @@ namespace osu.Framework.Graphics.Performance
                                 new Box
                                 {
                                     SizeMode = InheritMode.XY,
-                                    Colour = Color4.Gray,
+                                    Colour = Color4.Black,
                                     Alpha = 0.2f
                                 }
                             }
@@ -117,9 +135,9 @@ namespace osu.Framework.Graphics.Performance
                     Text = t.ToString(),
                     Alpha = 0
                 });
-
-                legendContainer.FadeOut(2000, EasingTypes.InExpo);
             }
+
+            overlayContainer.FadeOut(2000, EasingTypes.InExpo);
 
             // Initialize background
             for (int i = 0; i < WIDTH * timeBars.Length; ++i)
@@ -176,7 +194,9 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendContainer.FadeIn(100);
+                overlayContainer.FadeIn(100);
+                FadeTo(1, 100);
+                fpsDisplay.Counting = false;
                 processFrames = false;
             }
             return base.OnKeyDown(state, args);
@@ -186,7 +206,9 @@ namespace osu.Framework.Graphics.Performance
         {
             if (args.Key == Key.ControlLeft)
             {
-                legendContainer.FadeOut(100);
+                overlayContainer.FadeOut(100);
+                FadeTo(alpha_when_inactive, 100);
+                fpsDisplay.Counting = true;
                 processFrames = true;
             }
             return base.OnKeyUp(state, args);
@@ -252,7 +274,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
                 case PerformanceCollectionType.Empty:
-                    return new Color4(50, 40, 40, 180);
+                    return new Color4(0.1f, 0.1f, 0.1f, 1);
             }
         }
 
@@ -279,11 +301,20 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (drawHeight-- == 0) break;
 
+                bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range;
+
+                float brightnessAdjust = 1;
+                if (frameTimeType == PerformanceCollectionType.Empty)
+                    brightnessAdjust *= (1 - i * 4 / HEIGHT / 8f);
+                else if (acceptableRange)
+                    brightnessAdjust *= 0.8f;
+
                 int index = i * 4;
-                textureData[index] = (byte)(255 * col.R);
-                textureData[index + 1] = (byte)(255 * col.G);
-                textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
+                textureData[index] = (byte)(255 * col.R * brightnessAdjust);
+                textureData[index + 1] = (byte)(255 * col.G * brightnessAdjust);
+                textureData[index + 2] = (byte)(255 * col.B * brightnessAdjust);
+                textureData[index + 3] = 255;
+
                 currentHeight--;
             }
 

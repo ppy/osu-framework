@@ -101,24 +101,12 @@ namespace osu.Framework
             {
                 Children = new[]
                 {
-                    performanceContainer = new FlowContainer
+                    performanceContainer = new PerformanceOverlay
                     {
+                        Position = new Vector2(5, 5),
                         Direction = FlowDirection.VerticalOnly,
                         Alpha = 0,
                         Padding = new Vector2(10, 10),
-                        Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight,
-                        Depth = float.MaxValue,
-                        Children = new[]
-                        {
-                            new FrameTimeDisplay(@"Input", host.InputMonitor),
-                            new FrameTimeDisplay(@"Update", host.UpdateMonitor),
-                            new FrameTimeDisplay(@"Draw", host.DrawMonitor)
-                        }
-                    },
-                    new PerformanceOverlay
-                    {
-                        Position = new Vector2(5, 5),
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                         Depth = float.MaxValue

@@ -1,6 +1,9 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.MathUtils;
+using System;
+
 namespace osu.Framework.Timing
 {
     /// <summary>
@@ -21,6 +24,10 @@ namespace osu.Framework.Timing
             Source = source;
         }
 
+        public double AverageFrameTime { get; private set; }
+
+        public double FramesPerSecond { get; private set; }
+
         public virtual double CurrentTime { get; protected set; }
 
         public virtual double LastFrameTime { get; private set; }
@@ -33,8 +40,31 @@ namespace osu.Framework.Timing
 
         public bool IsRunning => Source?.IsRunning ?? false;
 
+        double timeUntilNextCalculation;
+        double timeSinceLastCalculation;
+        int framesSinceLastCalculation;
+
+        const int fps_calculation_interval = 250;
+
         public virtual void ProcessFrame()
         {
+            if (timeUntilNextCalculation <= 0)
+            {
+                timeUntilNextCalculation += fps_calculation_interval;
+
+                if (framesSinceLastCalculation == 0)
+                    FramesPerSecond = 0;
+                else
+                    FramesPerSecond = (int)Math.Ceiling(framesSinceLastCalculation * 1000f / timeSinceLastCalculation);
+                timeSinceLastCalculation = framesSinceLastCalculation = 0;
+            }
+
+            framesSinceLastCalculation++;
+            timeUntilNextCalculation -= ElapsedFrameTime;
+            timeSinceLastCalculation += ElapsedFrameTime;
+
+            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, ElapsedFrameTime / 1000);
+
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;
         }
