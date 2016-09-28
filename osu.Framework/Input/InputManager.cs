@@ -363,7 +363,8 @@ namespace osu.Framework.Input
                 {
                     bool isModifier = k == Key.LControl || k == Key.RControl
                                       || k == Key.LAlt || k == Key.RAlt
-                                      || k == Key.LShift || k == Key.RShift;
+                                      || k == Key.LShift || k == Key.RShift
+                                      || k == Key.LWin || k == Key.RWin;
 
                     LastActionTime = Time;
 
