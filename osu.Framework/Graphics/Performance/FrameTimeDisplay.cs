@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Performance
                                 new Box
                                 {
                                     SizeMode = InheritMode.XY,
-                                    Colour = Color4.Gray,
+                                    Colour = Color4.Black,
                                     Alpha = 0.2f
                                 }
                             }
@@ -274,7 +274,7 @@ namespace osu.Framework.Graphics.Performance
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
                 case PerformanceCollectionType.Empty:
-                    return new Color4(40, 40, 40, 180);
+                    return new Color4(0.1f, 0.1f, 0.1f, 1);
             }
         }
 
@@ -301,14 +301,19 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (drawHeight-- == 0) break;
 
-                int index = i * 4;
-                textureData[index] = (byte)(255 * col.R);
-                textureData[index + 1] = (byte)(255 * col.G);
-                textureData[index + 2] = (byte)(255 * col.B);
-                textureData[index + 3] = (byte)(255 * (frameTimeType == PerformanceCollectionType.Empty ? (col.A * (1 - i * 4 / HEIGHT / 8f)) : col.A));
+                bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range;
 
-                if ((float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range)
-                    textureData[index + 3] /= 3;
+                float brightnessAdjust = 1;
+                if (frameTimeType == PerformanceCollectionType.Empty)
+                    brightnessAdjust *= (1 - i * 4 / HEIGHT / 8f);
+                else if (acceptableRange)
+                    brightnessAdjust *= 0.8f;
+
+                int index = i * 4;
+                textureData[index] = (byte)(255 * col.R * brightnessAdjust);
+                textureData[index + 1] = (byte)(255 * col.G * brightnessAdjust);
+                textureData[index + 2] = (byte)(255 * col.B * brightnessAdjust);
+                textureData[index + 3] = 255;
 
                 currentHeight--;
             }
