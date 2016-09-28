@@ -188,8 +188,8 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(c != source);
 
                     Invalidation childInvalidation = invalidation;
-                    //if (c.SizeMode == InheritMode.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    if (c.SizeMode == InheritMode.None)
+                        childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
                     c.Invalidate(childInvalidation, this);
                 }
