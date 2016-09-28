@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content = new AutoSizeContainer();
+        private AutoSizeContainer content = new AutoSizeContainer { SizeMode = InheritMode.X };
         private ScrollBar scrollbar;
 
         /// <summary>

@@ -239,9 +239,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                if (!HasDefinedSize)
-                    return Parent?.ActualSize ?? Vector2.Zero;
-
                 Vector2 size = Size;
                 if (SizeMode != InheritMode.None)
                 {

@@ -54,9 +54,6 @@ namespace osu.Framework.Graphics.Containers
                         maxInheritingSize.Y = Math.Max(maxInheritingSize.Y, inheritingSize.Y);
                 }
 
-                if (size.X == 0) size.X = Parent?.ActualSize.X ?? 0;
-                if (size.Y == 0) size.Y = Parent?.ActualSize.Y ?? 0;
-
                 if ((SizeMode & InheritMode.X) > 0)
                     size.X = ActualSize.X;
                 if ((SizeMode & InheritMode.Y) > 0)
