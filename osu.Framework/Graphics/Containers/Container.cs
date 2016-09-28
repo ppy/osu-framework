@@ -212,7 +212,8 @@ namespace osu.Framework.Graphics.Containers
             base.ChangeRoot(root);
 
             foreach (Drawable c in children)
-                c.ChangeRoot(root);
+                //use Game here to make sure we respect any decisions base.ChangeRoot made.
+                c.ChangeRoot(Game);
         }
 
         /// <summary>

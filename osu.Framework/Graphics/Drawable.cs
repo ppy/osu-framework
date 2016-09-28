@@ -626,13 +626,14 @@ namespace osu.Framework.Graphics
 
         internal void ChangeParent(Container parent)
         {
-            if (Parent == parent)
-                return;
+            if (Parent != parent)
+            {
+                Parent?.Remove(this, false);
+                Parent = parent;
+            }
 
-            Parent?.Remove(this, false);
-            Parent = parent;
-
-            ChangeRoot(Parent?.Game);
+            if (Parent?.Game != Game)
+                ChangeRoot(Parent?.Game);
         }
 
         internal virtual void ChangeRoot(Game root)
@@ -656,7 +657,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public bool IsAlive
+        public virtual bool IsAlive
         {
             get
             {
