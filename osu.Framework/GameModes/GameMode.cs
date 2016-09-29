@@ -63,6 +63,10 @@ namespace osu.Framework.GameModes
         public override void Load()
         {
             base.Load();
+
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
+
             AddTopLevel(Content = new ContentContainer() { Depth = float.MinValue });
         }
 
