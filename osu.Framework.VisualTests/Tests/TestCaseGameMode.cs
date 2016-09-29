@@ -37,8 +37,11 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override double OnEntering(GameMode last)
             {
-                //only show the pop button if we are entered form another gamemode.
-                popButton.Alpha = 1;
+                if (last != null)
+                {
+                    //only show the pop button if we are entered form another gamemode.
+                    popButton.Alpha = 1;
+                }
 
                 Content.MoveTo(new Vector2(0, -ActualSize.Y));
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);

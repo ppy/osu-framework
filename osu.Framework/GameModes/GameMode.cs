@@ -68,6 +68,9 @@ namespace osu.Framework.GameModes
             Origin = Anchor.Centre;
 
             AddTopLevel(Content = new ContentContainer() { Depth = float.MinValue });
+
+            if (parentGameMode == null)
+                OnEntering(null);
         }
 
         /// <summary>
