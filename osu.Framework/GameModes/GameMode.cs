@@ -14,7 +14,7 @@ namespace osu.Framework.GameModes
         private GameMode parentGameMode;
         private GameMode childGameMode;
 
-        protected ContentContainer Content = new ContentContainer();
+        protected ContentContainer Content;
 
         protected override Container AddTarget => Content;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.GameModes
         public override void Load()
         {
             base.Load();
-            AddTopLevel(Content);
+            AddTopLevel(Content = new ContentContainer() { Depth = float.MinValue });
         }
 
         /// <summary>
