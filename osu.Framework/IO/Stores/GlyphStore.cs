@@ -63,6 +63,13 @@ namespace osu.Framework.IO.Stores
             var height = c.Bounds.Height + c.Offset.Y;
             var length = width * height * 4;
             var pixels = new byte[length];
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                pixels[i] = 255;
+                pixels[i + 1] = 255;
+                pixels[i + 2] = 255;
+                pixels[i + 3] = 0;
+            }
             
             for (int y = 0; y < c.Bounds.Height; y++)
             {
