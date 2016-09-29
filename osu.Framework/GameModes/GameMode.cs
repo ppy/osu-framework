@@ -2,7 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Diagnostics;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using OpenTK.Input;
 
 namespace osu.Framework.GameModes
 {
@@ -42,6 +45,20 @@ namespace osu.Framework.GameModes
         /// <param name="next">The new GameMode</param>
         /// <returns>The time after which the transition has finished running.</returns>
         protected virtual double OnSuspending(GameMode next) => 0;
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case Key.Escape:
+                    if (parentGameMode == null) return false;
+
+                    Exit();
+                    return true;
+            }
+
+            return base.OnKeyDown(state, args);
+        }
 
         public override void Load()
         {
