@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Cursor
 {
     public class CursorContainer : LargeContainer
     {
-        private Cursor cursor;
+        protected Drawable ActiveCursor;
 
         public CursorContainer()
         {
@@ -21,14 +21,16 @@ namespace osu.Framework.Graphics.Cursor
         {
             base.Load();
 
-            Add(cursor = new Cursor());
+            Add(ActiveCursor = CreateCursor());
         }
+
+        protected virtual Drawable CreateCursor() => new Cursor();
 
         public override bool Contains(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {
-            cursor.Position = state.Mouse.Position;
+            ActiveCursor.Position = state.Mouse.Position;
             return base.OnMouseMove(state);
         }
 
