@@ -87,7 +87,7 @@ namespace osu.Framework.GameModes.Testing
         private void addTest(TestCase testCase)
         {
             TestCaseButton button = new TestCaseButton(testCase);
-            button.Click += delegate { loadTest(testCase); };
+            button.Action += delegate { loadTest(testCase); };
             leftFlowContainer.Add(button);
             testCases.Add(testCase);
         }
