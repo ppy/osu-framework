@@ -41,10 +41,17 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture GetRaw(string name)
         {
-            var raw = rawStore.Get($@"{name}");
+            RawTexture raw = rawStore.Get($@"{name}");
             if (raw == null) return null;
+            
+            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
+            tex.SetData(new TextureUpload(raw.Pixels)
+            {
+                Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
+                Format = raw.PixelFormat,
+            });
 
-            return TextureLoader.FromRawBytes(raw.Pixels, raw.Width, raw.Height, atlas, raw.PixelFormat);
+            return tex;
         }
 
         private Texture GetBytes(string name)
