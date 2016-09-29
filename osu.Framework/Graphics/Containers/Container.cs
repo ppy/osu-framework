@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual void Clear(bool dispose = true)
         {
-            if (AddTarget != this)
+            if (AddTarget != null && AddTarget != this)
             {
                 AddTarget.Clear(dispose);
                 return;

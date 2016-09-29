@@ -807,8 +807,9 @@ namespace osu.Framework.Graphics
                 shortClass = $@"{Name} ({shortClass})";
 
             if (HasDefinedSize)
-                return $@"{shortClass} pos {Position} size {Size}";
-            return $@"{shortClass} pos {Position} size -uncalculated-";
+                return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) @ {Size.X:#,0}x{Size.Y:#,0}";
+            else
+                return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) size -uncalculated-";
         }
 
         public virtual Drawable Clone()

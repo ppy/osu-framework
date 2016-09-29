@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -15,23 +16,36 @@ namespace osu.Framework.GameModes.Testing
         public virtual string Description => @"The base class for a test case";
         public virtual int DisplayOrder => 0;
 
-        Container buttonsContainer = new FlowContainer
-        {
-            Direction = FlowDirection.VerticalOnly,
-            Padding = new Vector2(15, 5)
-        };
+        Container buttonsContainer;
+
+        public Container Contents;
+
+        protected override Container AddTarget => Contents;
 
         public virtual void Reset()
         {
-            Clear();
-            buttonsContainer.Clear();
 
-            ScrollContainer scroll = new ScrollContainer
+            if (Contents == null)
             {
-                Depth = 0
-            };
-            scroll.Add(buttonsContainer);
-            Add(scroll);
+                AddTopLevel(new ScrollContainer
+                {
+                    Children = new[]
+                    {
+                        buttonsContainer = new FlowContainer
+                        {
+                            Direction = FlowDirection.VerticalOnly,
+                            Padding = new Vector2(15, 5)
+                        }
+                    }
+                });
+
+                AddTopLevel(Contents = new LargeContainer());
+            }
+            else
+            {
+                Contents.Clear();
+                buttonsContainer.Clear();
+            }
         }
 
         public Button AddButton(string text, Action action)

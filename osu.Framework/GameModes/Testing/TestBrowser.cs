@@ -26,6 +26,8 @@ namespace osu.Framework.GameModes.Testing
 
         List<TestCase> testCases = new List<TestCase>();
 
+        private DrawVisualiser drawVis;
+
         public int TestCount => testCases.Count;
 
         public override void Load()
@@ -62,7 +64,7 @@ namespace osu.Framework.GameModes.Testing
             });
 
             testContainer.Size = new Vector2(0.6f, 1);
-            Add(new DrawVisualiser(testContainer)
+            Add(drawVis = new DrawVisualiser()
             {
                 PositionMode = InheritMode.XY,
                 Position = new Vector2(0.75f, 0),
@@ -107,6 +109,8 @@ namespace osu.Framework.GameModes.Testing
             {
                 testContainer.Add(loadedTest = testCase);
                 testCase.Reset();
+
+                drawVis.Target = testCase.Contents;
             }
         }
 

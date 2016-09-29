@@ -23,8 +23,25 @@ namespace osu.Framework.Graphics
             Depth = 0
         };
 
-        FlowContainer flow;
-        Drawable target;
+        ScrollContainer scroll;
+
+        private VisualisedDrawable targetVD;
+
+        private Drawable target;
+        public Drawable Target
+        {
+            get { return target; }
+            set
+            {
+                if (targetVD != null)
+                    scroll.Remove(targetVD);
+
+                target = value;
+                targetVD = new VisualisedDrawable(target);
+                scroll.Add(targetVD);
+            }
+
+        }
 
         private ScheduledDelegate scheduledUpdater;
         private SpriteText loadMessage;
@@ -38,15 +55,9 @@ namespace osu.Framework.Graphics
                 Children = new Drawable[]
                 {
                     background,
-                    new ScrollContainer
+                    scroll = new ScrollContainer()
                     {
-                        Children = new[]
-                        {
-                            flow = new FlowContainer
-                            {
-                                Direction = FlowDirection.VerticalOnly
-                            }
-                        }
+                        Alpha = 0
                     },
                     loadMessage = new SpriteText
                     {
@@ -56,11 +67,6 @@ namespace osu.Framework.Graphics
                     }
                 }
             });
-        }
-
-        public DrawVisualiser(Drawable target)
-        {
-            this.target = target;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -77,6 +83,8 @@ namespace osu.Framework.Graphics
             Remove(loadMessage);
             loadMessage = null;
 
+            scroll.FadeIn(500);
+
             scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 200, true);
 
             return true;
@@ -84,31 +92,40 @@ namespace osu.Framework.Graphics
 
         private void runUpdate()
         {
-            visualise(target, flow);
+            if (Target == null) return;
+
+            visualise(Target, targetVD);
         }
 
 
-        private void visualise(Drawable d, FlowContainer visContainer)
+        private void visualise(Drawable d, VisualisedDrawable vis)
         {
             if (d == this) return;
 
-            var drawables = visContainer.Children.Cast<VisualisedDrawable>();
+            vis.CheckExpiry();
 
+            var drawables = vis.Flow.Children.Cast<VisualisedDrawable>();
             foreach (var dd in drawables)
-                dd.CheckExpiry();
-
-            VisualisedDrawable vd = drawables.FirstOrDefault(dd => dd.Target == d);
-            if (vd == null)
             {
-                vd = new VisualisedDrawable(d);
-                visContainer.Add(vd);
+                if (!dd.CheckExpiry())
+                    visualise(dd.Target, dd);
             }
 
             Container dContainer = d as Container;
             if (dContainer == null) return;
 
             foreach (var c in dContainer.Children)
-                visualise(c, vd.Flow);
+            {
+                var dr = drawables.FirstOrDefault(x => x.Target == c);
+
+                if (dr == null)
+                {
+                    dr = new VisualisedDrawable(c);
+                    vis.Flow.Add(dr);
+                }
+
+                visualise(c, dr);
+            }
         }
 
         class VisualisedDrawable : AutoSizeContainer
@@ -188,7 +205,7 @@ namespace osu.Framework.Graphics
                     //FontFace = FontFace.FixedWidth
                 };
 
-                Flow.Alpha = (Target as Container)?.Children.Count() > 64 ? 0 : 1;
+                Flow.Alpha = 1;
 
                 Add(activityInvalidate);
                 Add(activityLayout);
@@ -234,7 +251,7 @@ namespace osu.Framework.Graphics
             {
                 previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
                 previewBox.Colour = Target.Colour;
-                text.Text = Target + (!Flow.IsVisible ? $@" (({(Target as Container)?.Children.Count()} hidden children)" : string.Empty);
+                text.Text = Target + (!Flow.IsVisible ? $@" ({(Target as Container)?.Children.Count()} children)" : string.Empty);
             }
 
             protected override void Update()
@@ -247,16 +264,16 @@ namespace osu.Framework.Graphics
 
             public bool CheckExpiry()
             {
-                if (!IsAlive) return true;
+                if (!IsAlive) return false;
 
-                if (!Target.IsAlive)
+                if (!Target.IsAlive || Target.Parent == null || Target.Alpha == 0)
                 {
                     Expire();
-                    return true;
+                    return false;
                 }
 
                 Alpha = Target.IsVisible ? 1 : 0.3f;
-                return false;
+                return true;
             }
         }
     }
