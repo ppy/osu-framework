@@ -63,24 +63,29 @@ namespace osu.Framework.IO.Stores
             var height = c.Bounds.Height + c.Offset.Y;
             var length = width * height * 4;
             var pixels = new byte[length];
-            for (int i = 0; i < pixels.Length; i += 4)
-            {
-                pixels[i] = 255;
-                pixels[i + 1] = 255;
-                pixels[i + 2] = 255;
-                pixels[i + 3] = 0;
-            }
             
-            for (int y = 0; y < c.Bounds.Height; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < c.Bounds.Width; x++)
+                for (int x = 0; x < width; x++)
                 {
-                    int srci = (c.Bounds.Y + y) * page.Width * 4 + (c.Bounds.X + x) * 4;
-                    int desti = (c.Offset.Y + y) * width * 4 + (c.Offset.X + x) * 4;
-                    pixels[desti] = page.Pixels[srci];
-                    pixels[desti + 1] = page.Pixels[srci + 1];
-                    pixels[desti + 2] = page.Pixels[srci + 2];
-                    pixels[desti + 3] = page.Pixels[srci + 3];
+                    int desti = y * width * 4 + x * 4;
+                    if (x >= c.Offset.X && y >= c.Offset.Y
+                        && x < c.Bounds.X && y < c.Bounds.Y)
+                    {
+                        int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
+                            + (c.Bounds.X + x - c.Offset.X) * 4;
+                        pixels[desti] = page.Pixels[srci];
+                        pixels[desti + 1] = page.Pixels[srci + 1];
+                        pixels[desti + 2] = page.Pixels[srci + 2];
+                        pixels[desti + 3] = page.Pixels[srci + 3];
+                    }
+                    else
+                    {
+                        pixels[desti] = 255;
+                        pixels[desti + 1] = 255;
+                        pixels[desti + 2] = 255;
+                        pixels[desti + 3] = 0;
+                    }
                 }
             }
 
