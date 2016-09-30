@@ -225,14 +225,14 @@ namespace osu.Framework.Graphics.Containers
 
         internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
         {
-            node = base.GenerateDrawNodeSubtree(node);
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(node) as ContainerDrawNode;
 
             if (children.AliveItems.Count > 0)
             {
-                if (node.Children != null)
+                if (cNode.Children != null)
                 {
                     var current = children.AliveItems;
-                    var target = node.Children;
+                    var target = cNode.Children;
 
                     int j = 0;
                     for (int i = 0; i < current.Count; i++)
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics.Containers
                 }
                 else
                 {
-                    node.Children = new List<DrawNode>(children.AliveItems.Count);
+                    cNode.Children = new List<DrawNode>(children.AliveItems.Count);
 
                     foreach (Drawable child in children.AliveItems)
                     {
@@ -273,16 +273,16 @@ namespace osu.Framework.Graphics.Containers
                         if (!child.IsVisible)
                             continue;
 
-                        node.Children.Add(child.GenerateDrawNodeSubtree());
+                        cNode.Children.Add(child.GenerateDrawNodeSubtree());
                     }
                 }
             }
             else
             {
-                node.Children?.Clear();
+                cNode.Children?.Clear();
             }
 
-            return node;
+            return cNode;
         }
 
         public override Drawable Delay(double duration, bool propagateChildren = false)
