@@ -22,7 +22,7 @@ namespace osu.Framework
     {
         public BasicGameWindow Window => host?.Window;
 
-        protected internal Scheduler Scheduler;
+        public Scheduler Scheduler;
 
         public ResourceStore<byte[]> Resources;
 
