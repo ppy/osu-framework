@@ -270,6 +270,7 @@
     <EmbeddedResource Include="Resources\Shaders\sh_Texture2D.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture3D.vs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
+    <None Include="Graphics\Textures\Png\LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />
