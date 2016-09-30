@@ -46,8 +46,6 @@ namespace osu.Framework.IO.Stores
         public RawTexture Get(string name)
         {
             return Get(name, 1);
-            //string[] parts = name.Split('/');
-            //return Get(parts[0], parts.Length == 1 ? 1 : 1f / Int32.Parse(parts[1]));
         }
         
         public RawTexture Get(string name, float scale = 1)
