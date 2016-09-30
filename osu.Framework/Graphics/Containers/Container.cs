@@ -292,7 +292,7 @@ namespace osu.Framework.Graphics.Containers
             base.Delay(duration, propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in children) c.Delay(duration, propagateChildren);
+                foreach (var c in children) c.Delay(duration, true);
             return this;
         }
 
