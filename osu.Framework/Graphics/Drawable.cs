@@ -733,22 +733,26 @@ namespace osu.Framework.Graphics
 
             bool alreadyInvalidated = true;
 
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                alreadyInvalidated &= !boundingSizeBacking.Invalidate();
-
-            // Either ScreenSize OR ScreenPosition
-            if ((invalidation & Invalidation.ScreenSpaceQuad) > 0)
-                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & Invalidation.DrawInfo) > 0)
+            if ((invalidation & (Invalidation.Position | Invalidation.Colour | Invalidation.SizeInParentSpace)) > 0)
             {
+                if ((invalidation & (Invalidation.Position | Invalidation.SizeInParentSpace)) > 0)
+                {
+                    if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                        alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+
+                    alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
+                }
+
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
                 validDrawNodes.Clear();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
+            {
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
+                validDrawNodes.Clear();
+            }
 
             return !alreadyInvalidated;
         }
