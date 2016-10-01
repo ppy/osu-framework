@@ -60,7 +60,7 @@ namespace osu.Framework
         public Game()
         {
             Game = this;
-            RelativeSizeAxes = Axis.Both;
+            RelativeSizeAxes = Axes.Both;
         }
 
         /// <summary>

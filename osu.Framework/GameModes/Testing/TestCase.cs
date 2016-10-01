@@ -24,7 +24,7 @@ namespace osu.Framework.GameModes.Testing
 
         public TestCase()
         {
-            RelativeSizeAxes = Axis.Both;
+            RelativeSizeAxes = Axes.Both;
             Masking = true;
         }
 
@@ -46,7 +46,7 @@ namespace osu.Framework.GameModes.Testing
 
                 AddTopLevel(Contents = new Container()
                 {
-                    RelativeSizeAxes = Axis.Both,
+                    RelativeSizeAxes = Axes.Both,
                 });
             }
             else

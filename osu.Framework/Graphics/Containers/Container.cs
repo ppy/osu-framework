@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Containers
                     Debug.Assert(c != source);
 
                     Invalidation childInvalidation = invalidation;
-                    if (c.RelativeSizeAxes == Axis.None)
+                    if (c.RelativeSizeAxes == Axes.None)
                         childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
                     c.Invalidate(childInvalidation, this);

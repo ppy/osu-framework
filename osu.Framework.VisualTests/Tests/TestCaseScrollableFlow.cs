@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
                 LayoutDuration = 100,
                 LayoutEasing = EasingTypes.Out,
                 Padding = new Vector2(1, 1),
-                RelativeSizeAxes = Axis.X
+                RelativeSizeAxes = Axes.X
             };
 
             boxCreator?.Cancel();
@@ -47,7 +47,7 @@ namespace osu.Framework.VisualTests.Tests
                     Children = new[] {
                         box = new Box
                         {
-                            RelativeSizeAxes = Axis.Both,
+                            RelativeSizeAxes = Axes.Both,
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Colour = new Color4(RNG.NextSingle(), RNG.NextSingle(), RNG.NextSingle(), 1)

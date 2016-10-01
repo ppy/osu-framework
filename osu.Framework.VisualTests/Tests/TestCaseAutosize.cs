@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(testContainer = new Container()
             {
-                RelativeSizeAxes = Axis.Both,
+                RelativeSizeAxes = Axes.Both,
             });
 
             for (int i = 1; i <= 7; i++)
@@ -273,7 +273,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     testContainer.Add(shrinkContainer = new Container
                     {
-                        RelativeSizeAxes = Axis.Both,
+                        RelativeSizeAxes = Axes.Both,
                         Size = new Vector2(0.5f, 1),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
@@ -281,12 +281,12 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             new Box
                             {
-                                RelativeSizeAxes = Axis.Both,
+                                RelativeSizeAxes = Axes.Both,
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
                             boxes = new FlowContainer {
-                                RelativeSizeAxes = Axis.X,
+                                RelativeSizeAxes = Axes.X,
                                 Padding = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -297,7 +297,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         boxes.Add(new Box
                         {
-                            RelativeSizeAxes = Axis.X,
+                            RelativeSizeAxes = Axes.X,
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
                             Size = new Vector2(0.9f, 40),
@@ -370,7 +370,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                RelativeSizeAxes = Axis.Both
+                RelativeSizeAxes = Axes.Both
             });
         }
 
@@ -429,7 +429,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                RelativeSizeAxes = Axis.Both
+                RelativeSizeAxes = Axes.Both
             });
 
             debugInfo = new SpriteText

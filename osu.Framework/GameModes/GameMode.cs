@@ -20,7 +20,7 @@ namespace osu.Framework.GameModes
 
         public GameMode()
         {
-            RelativeSizeAxes = Axis.Both;
+            RelativeSizeAxes = Axes.Both;
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace osu.Framework.GameModes
 
             public ContentContainer()
             {
-                RelativeSizeAxes = Axis.Both;
+                RelativeSizeAxes = Axes.Both;
             }
         }
     }
