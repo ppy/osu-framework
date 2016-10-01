@@ -101,12 +101,12 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
                     {
-                        var actual = ActualSize;
+                        var s = Size;
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : actual.X;
-                        max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : actual.Y;
+                        max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : s.X;
+                        max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : s.Y;
                     }
 
                     float rowMaxHeight = 0;
@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if (d.IsVisible)
                         {
-                            size = d.ActualSize * d.Scale * ChildrenScale;
+                            size = d.Size * d.Scale * ChildrenScale;
 
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {

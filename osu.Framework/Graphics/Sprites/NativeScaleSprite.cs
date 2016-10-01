@@ -7,13 +7,13 @@ namespace osu.Framework.Graphics.Sprites
 {
     class NativeScaleSprite : Sprite
     {
-        public override Vector2 ActualSize
+        public override Vector2 Size
         {
             get
             {
                 if (Texture == null) return Vector2.Zero;
                 Vector3 comp = DrawInfo.Matrix.ExtractScale();
-                return base.ActualSize * new Vector2(1 / comp.X, 1 / comp.Y);
+                return base.Size * new Vector2(1 / comp.X, 1 / comp.Y);
             }
         }
     }

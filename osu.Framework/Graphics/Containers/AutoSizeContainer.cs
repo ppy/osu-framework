@@ -32,7 +32,6 @@ namespace osu.Framework.Graphics.Containers
                 if (SizeMode == InheritMode.XY) return base.DrawQuadForBounds;
 
                 Vector2 maxBoundSize = Vector2.Zero;
-                Vector2 maxInheritingSize = Vector2.One;
 
                 // Find the maximum width/height of children
                 foreach (Drawable c in AliveChildren)
@@ -41,25 +40,24 @@ namespace osu.Framework.Graphics.Containers
                         continue;
 
                     Vector2 cBound = c.BoundingSize;
-                    Vector2 inheritingSize = c.Size * c.Scale * ChildrenScale;
 
                     if ((c.SizeMode & InheritMode.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
                     else
-                        maxInheritingSize.X = Math.Max(maxInheritingSize.X, inheritingSize.X);
+                        Debug.Assert(c.InternalSize.X <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
 
                     if ((c.SizeMode & InheritMode.Y) == 0)
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                     else
-                        maxInheritingSize.Y = Math.Max(maxInheritingSize.Y, inheritingSize.Y);
+                        Debug.Assert(c.InternalSize.Y <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
                 }
 
                 if ((SizeMode & InheritMode.X) > 0)
-                    maxBoundSize.X = ActualSize.X;
+                    maxBoundSize.X = Size.X;
                 if ((SizeMode & InheritMode.Y) > 0)
-                    maxBoundSize.Y = ActualSize.Y;
+                    maxBoundSize.Y = Size.Y;
 
-                return new Quad(0, 0, maxBoundSize.X * maxInheritingSize.X, maxBoundSize.Y * maxInheritingSize.Y);
+                return new Quad(0, 0, maxBoundSize.X, maxBoundSize.Y);
             }
         }
 
@@ -82,8 +80,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
 
-                    size = new Vector2((SizeMode & InheritMode.X) > 0 ? Size.X : b.X, (SizeMode & InheritMode.Y) > 0 ? Size.Y : b.Y);
-
+                    InternalSize = new Vector2((SizeMode & InheritMode.X) > 0 ? InternalSize.X : b.X, (SizeMode & InheritMode.Y) > 0 ? InternalSize.Y : b.Y);
                     Invalidate(Invalidation.Position);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.

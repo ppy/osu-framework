@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float availableContent = -1;
 
-        private float displayableContent => ActualSize.Y;
+        private float displayableContent => Size.Y;
 
         private float current;
 

@@ -78,14 +78,14 @@ namespace osu.Framework.Graphics
                 Vector2 origin = Vector2.Zero;
 
                 if ((Origin & Anchor.x1) > 0)
-                    origin.X += ActualSize.X / 2f;
+                    origin.X += Size.X / 2f;
                 else if ((Origin & Anchor.x2) > 0)
-                    origin.X += ActualSize.X;
+                    origin.X += Size.X;
 
                 if ((Origin & Anchor.y1) > 0)
-                    origin.Y += ActualSize.Y / 2f;
+                    origin.Y += Size.Y / 2f;
                 else if ((Origin & Anchor.y2) > 0)
-                    origin.Y += ActualSize.Y;
+                    origin.Y += Size.Y;
 
                 return origin;
             }
@@ -182,16 +182,53 @@ namespace osu.Framework.Graphics
 
         public bool IsDisposable;
 
-        protected Vector2 size = Vector2.One;
+        /// <summary>
+        /// The real pixel position of this drawable.
+        /// </summary>
+        public Vector2 ActualPosition
+        {
+            get
+            {
+                Vector2 pos = Position;
+                if (PositionMode != InheritMode.None)
+                {
+                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    if ((PositionMode & InheritMode.X) > 0)
+                        pos.X *= parent.X;
+                    if ((PositionMode & InheritMode.Y) > 0)
+                        pos.Y *= parent.Y;
+                }
 
+                return pos;
+            }
+        }
+
+        internal Vector2 InternalSize;
+
+        /// <summary>
+        /// The getter returns size of this drawable in its parent's space.
+        /// The setter accepts relative values in inheriting dimensions.
+        /// </summary>
         public virtual Vector2 Size
         {
-            get { return size; }
+            get
+            {
+                Vector2 size = InternalSize;
+                if (SizeMode != InheritMode.None)
+                {
+                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    if ((SizeMode & InheritMode.X) > 0)
+                        size.X = size.X * parent.X;
+                    if ((SizeMode & InheritMode.Y) > 0)
+                        size.Y = size.Y * parent.Y;
+                }
+
+                return size;
+            }
             set
             {
-                if (size == value)
-                    return;
-                size = value;
+                if (InternalSize == value) return;
+                InternalSize = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
@@ -206,6 +243,10 @@ namespace osu.Framework.Graphics
             {
                 if (value == sizeMode)
                     return;
+
+                if (InternalSize == Vector2.Zero)
+                    InternalSize = Vector2.One;
+
                 sizeMode = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
@@ -224,48 +265,6 @@ namespace osu.Framework.Graphics
                 positionMode = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
-            }
-        }
-
-        /// <summary>
-        /// The real pixel size of this drawable.
-        /// </summary>
-        public virtual Vector2 ActualSize
-        {
-            get
-            {
-                Vector2 size = Size;
-                if (SizeMode != InheritMode.None)
-                {
-                    Vector2 parent = Parent?.ActualSize ?? Vector2.One;
-                    if ((SizeMode & InheritMode.X) > 0)
-                        size.X *= parent.X;
-                    if ((SizeMode & InheritMode.Y) > 0)
-                        size.Y *= parent.Y;
-                }
-
-                return size;
-            }
-        }
-
-        /// <summary>
-        /// The real pixel position of this drawable.
-        /// </summary>
-        public Vector2 ActualPosition
-        {
-            get
-            {
-                Vector2 pos = Position;
-                if (PositionMode != InheritMode.None)
-                {
-                    Vector2 parent = Parent?.ActualSize ?? Vector2.One;
-                    if ((PositionMode & InheritMode.X) > 0)
-                        pos.X *= parent.X;
-                    if ((PositionMode & InheritMode.Y) > 0)
-                        pos.Y *= parent.Y;
-                }
-
-                return pos;
             }
         }
 
@@ -425,7 +424,7 @@ namespace osu.Framework.Graphics
                 if (!HasDefinedSize)
                     return new Quad();
 
-                Vector2 s = ActualSize;
+                Vector2 s = Size;
 
                 //most common use case gets a shortcut
                 if (!flipHorizontal && !flipVertical) return new Quad(0, 0, s.X, s.Y);
@@ -762,7 +761,7 @@ namespace osu.Framework.Graphics
             if (!HasDefinedSize || Anchor == Anchor.TopLeft)
                 return pos;
 
-            Vector2 parentSize = Parent?.ActualSize ?? Vector2.Zero;
+            Vector2 parentSize = Parent?.Size ?? Vector2.Zero;
 
             if ((Anchor & Anchor.x1) > 0)
                 pos.X += parentSize.X / 2f;

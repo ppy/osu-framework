@@ -46,7 +46,7 @@ namespace osu.Framework.Input.Handlers.Mouse
 
         public Vector2? Position => position;
 
-        public Vector2 Size => game.ActualSize;
+        public Vector2 Size => game.Size;
 
         public bool? Left => null;
 
