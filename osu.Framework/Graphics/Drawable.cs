@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 position;
+        internal Vector2 InternalPosition;
 
         /// <summary>
         /// The getter returns position of this drawable in its parent's space.
@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                Vector2 pos = position;
+                Vector2 pos = InternalPosition;
                 if (RelativePosition != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
@@ -89,8 +89,8 @@ namespace osu.Framework.Graphics
             }
             set
             {
-                if (position == value) return;
-                position = value;
+                if (InternalPosition == value) return;
+                InternalPosition = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
