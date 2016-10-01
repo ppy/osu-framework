@@ -50,11 +50,43 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private InheritMode positionMode;
+
+        public InheritMode PositionMode
+        {
+            get { return positionMode; }
+            set
+            {
+                if (value == positionMode)
+                    return;
+                positionMode = value;
+
+                Invalidate(Invalidation.ScreenSpaceQuad);
+            }
+        }
+
         private Vector2 position;
 
+        /// <summary>
+        /// The getter returns position of this drawable in its parent's space.
+        /// The setter accepts relative values in inheriting dimensions.
+        /// </summary>
         public Vector2 Position
         {
-            get { return position; }
+            get
+            {
+                Vector2 pos = position;
+                if (PositionMode != InheritMode.None)
+                {
+                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    if ((PositionMode & InheritMode.X) > 0)
+                        pos.X *= parent.X;
+                    if ((PositionMode & InheritMode.Y) > 0)
+                        pos.Y *= parent.Y;
+                }
+
+                return pos;
+            }
             set
             {
                 if (position == value) return;
@@ -182,27 +214,6 @@ namespace osu.Framework.Graphics
 
         public bool IsDisposable;
 
-        /// <summary>
-        /// The real pixel position of this drawable.
-        /// </summary>
-        public Vector2 ActualPosition
-        {
-            get
-            {
-                Vector2 pos = Position;
-                if (PositionMode != InheritMode.None)
-                {
-                    Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((PositionMode & InheritMode.X) > 0)
-                        pos.X *= parent.X;
-                    if ((PositionMode & InheritMode.Y) > 0)
-                        pos.Y *= parent.Y;
-                }
-
-                return pos;
-            }
-        }
-
         internal Vector2 InternalSize;
 
         /// <summary>
@@ -248,21 +259,6 @@ namespace osu.Framework.Graphics
                     InternalSize = Vector2.One;
 
                 sizeMode = value;
-
-                Invalidate(Invalidation.ScreenSpaceQuad);
-            }
-        }
-
-        private InheritMode positionMode;
-
-        public InheritMode PositionMode
-        {
-            get { return positionMode; }
-            set
-            {
-                if (value == positionMode)
-                    return;
-                positionMode = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
@@ -407,9 +403,9 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(ActualPosition), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;
