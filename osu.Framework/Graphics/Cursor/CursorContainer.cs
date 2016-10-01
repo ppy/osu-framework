@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Cursor
         public CursorContainer()
         {
             Depth = float.MaxValue;
-            RelativeSize = Axis.Both;
+            RelativeSizeAxes = Axis.Both;
         }
 
         public override void Load()

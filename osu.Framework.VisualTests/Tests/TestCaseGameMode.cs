@@ -74,7 +74,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     new Box
                     {
-                        RelativeSize = Axis.Both,
+                        RelativeSizeAxes = Axis.Both,
                         Size = new Vector2(1),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -94,7 +94,7 @@ namespace osu.Framework.VisualTests.Tests
                     popButton = new Button
                     {
                         Text = @"Pop",
-                        RelativeSize = Axis.Both,
+                        RelativeSizeAxes = Axis.Both,
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopLeft,
                         Origin = Anchor.TopLeft,
@@ -107,7 +107,7 @@ namespace osu.Framework.VisualTests.Tests
                     new Button
                     {
                         Text = @"Push",
-                        RelativeSize = Axis.Both,
+                        RelativeSizeAxes = Axis.Both,
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,

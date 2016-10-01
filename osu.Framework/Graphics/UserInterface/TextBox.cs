@@ -62,12 +62,12 @@ namespace osu.Framework.Graphics.UserInterface
             Add(background = new Box
             {
                 Colour = BackgroundUnfocused,
-                RelativeSize = Axis.Both,
+                RelativeSizeAxes = Axis.Both,
             });
 
             Add(textContainer = new Container
             {
-                RelativeSize = Axis.Both
+                RelativeSizeAxes = Axis.Both
             });
 
             textFlow = new FlowContainer
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
-                RelativeSize = Axis.Y,
+                RelativeSizeAxes = Axis.Y,
                 Alpha = 0
             };
 
@@ -127,10 +127,10 @@ namespace osu.Framework.Graphics.UserInterface
                 if (selectionLength > 0)
                     cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
 
-                float cursorRelativePositionInBox = (cursorPosEnd - textContainerPosX) / Width;
+                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / Width;
 
                 //we only want to reposition the view when the cursor reaches near the extremities.
-                if (cursorRelativePositionInBox < 0.1 || cursorRelativePositionInBox > 0.9)
+                if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
                 {
                     textContainerPosX = cursorPosEnd - Width / 2;
                 }

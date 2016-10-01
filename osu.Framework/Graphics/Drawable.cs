@@ -50,16 +50,16 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axis relativePosition;
+        private Axis relativePositionAxes;
 
-        public Axis RelativePosition
+        public Axis RelativePositionAxes
         {
-            get { return relativePosition; }
+            get { return relativePositionAxes; }
             set
             {
-                if (value == relativePosition)
+                if (value == relativePositionAxes)
                     return;
-                relativePosition = value;
+                relativePositionAxes = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
@@ -76,12 +76,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 pos = InternalPosition;
-                if (RelativePosition != Axis.None)
+                if (RelativePositionAxes != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativePosition & Axis.X) > 0)
+                    if ((RelativePositionAxes & Axis.X) > 0)
                         pos.X *= parent.X;
-                    if ((RelativePosition & Axis.Y) > 0)
+                    if ((RelativePositionAxes & Axis.Y) > 0)
                         pos.Y *= parent.Y;
                 }
 
@@ -225,12 +225,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 size = InternalSize;
-                if (RelativeSize != Axis.None)
+                if (RelativeSizeAxes != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativeSize & Axis.X) > 0)
+                    if ((RelativeSizeAxes & Axis.X) > 0)
                         size.X = size.X * parent.X;
-                    if ((RelativeSize & Axis.Y) > 0)
+                    if ((RelativeSizeAxes & Axis.Y) > 0)
                         size.Y = size.Y * parent.Y;
                 }
 
@@ -245,20 +245,20 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axis relativeSize;
+        private Axis relativeSizeAxes;
 
-        public virtual Axis RelativeSize
+        public virtual Axis RelativeSizeAxes
         {
-            get { return relativeSize; }
+            get { return relativeSizeAxes; }
             set
             {
-                if (value == relativeSize)
+                if (value == relativeSizeAxes)
                     return;
 
                 if (InternalSize == Vector2.Zero)
                     InternalSize = Vector2.One;
 
-                relativeSize = value;
+                relativeSizeAxes = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
