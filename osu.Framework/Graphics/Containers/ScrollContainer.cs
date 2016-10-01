@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateSize()
         {
-            scrollbar.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollbar?.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
         }
 
         private void updateScroll(bool animated = true)
