@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(box = new Box
             {
-                RelativeSize = Axis.Both,
+                RelativeSizeAxes = Axis.Both,
                 Colour = backgroundColour
             });
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var flash = new Box
             {
-                RelativeSize = Axis.Both
+                RelativeSizeAxes = Axis.Both
             };
 
             Add(flash);

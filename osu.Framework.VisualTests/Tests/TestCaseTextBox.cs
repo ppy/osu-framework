@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                 Padding = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
-                SizeMode = InheritMode.XY,
+                RelativeSizeAxes = Axis.Both,
                 Size = new Vector2(0.8f, 1)
             };
 

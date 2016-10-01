@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics
         Box background = new Box
         {
             Colour = new Color4(30, 30, 30, 240),
-            RelativeSize = Axis.Both,
+            RelativeSizeAxes = Axis.Both,
             Depth = 0
         };
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics
 
         public DrawVisualiser()
         {
-            RelativeSize = Axis.Both;
+            RelativeSizeAxes = Axis.Both;
         }
 
         private VisualisedDrawable targetVD;
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics
             Add(new Container
             {
                 Masking = true,
-                RelativeSize = Axis.Both,
+                RelativeSizeAxes = Axis.Both,
                 Children = new Drawable[]
                 {
                     background,
