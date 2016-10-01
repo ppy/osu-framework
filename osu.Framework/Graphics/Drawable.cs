@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics
                     return;
                 relativePositionAxes = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics
                 if (InternalPosition == value) return;
                 InternalPosition = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics
                 if (InternalSize == value) return;
                 InternalSize = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -316,7 +316,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -365,7 +365,7 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -846,10 +846,6 @@ namespace osu.Framework.Graphics
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
-
-        // Combinations
-        ScreenSpaceQuad = Position | SizeInParentSpace,
-        DrawInfo = ScreenSpaceQuad | Colour,
 
         // Meta
         None = 0,

@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
 
             children.Clear();
 
-            Invalidate(Invalidation.ScreenSpaceQuad);
+            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
         }
 
         protected Drawable AddTopLevel(Drawable drawable)

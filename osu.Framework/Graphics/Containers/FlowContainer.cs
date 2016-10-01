@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & (Invalidation.ScreenSpaceQuad | Invalidation.Visibility)) > 0)
+            if ((invalidation & (Invalidation.Position | Invalidation.SizeInParentSpace | Invalidation.Visibility)) > 0)
                 layout.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
