@@ -50,9 +50,9 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axis relativePositionAxes;
+        private Axes relativePositionAxes;
 
-        public Axis RelativePositionAxes
+        public Axes RelativePositionAxes
         {
             get { return relativePositionAxes; }
             set
@@ -76,12 +76,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 pos = InternalPosition;
-                if (RelativePositionAxes != Axis.None)
+                if (RelativePositionAxes != Axes.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativePositionAxes & Axis.X) > 0)
+                    if ((RelativePositionAxes & Axes.X) > 0)
                         pos.X *= parent.X;
-                    if ((RelativePositionAxes & Axis.Y) > 0)
+                    if ((RelativePositionAxes & Axes.Y) > 0)
                         pos.Y *= parent.Y;
                 }
 
@@ -225,12 +225,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 size = InternalSize;
-                if (RelativeSizeAxes != Axis.None)
+                if (RelativeSizeAxes != Axes.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativeSizeAxes & Axis.X) > 0)
+                    if ((RelativeSizeAxes & Axes.X) > 0)
                         size.X = size.X * parent.X;
-                    if ((RelativeSizeAxes & Axis.Y) > 0)
+                    if ((RelativeSizeAxes & Axes.Y) > 0)
                         size.Y = size.Y * parent.Y;
                 }
 
@@ -245,9 +245,9 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axis relativeSizeAxes;
+        private Axes relativeSizeAxes;
 
-        public virtual Axis RelativeSizeAxes
+        public virtual Axes RelativeSizeAxes
         {
             get { return relativeSizeAxes; }
             set
@@ -912,7 +912,7 @@ namespace osu.Framework.Graphics
     }
 
     [Flags]
-    public enum Axis
+    public enum Axes
     {
         None = 0,
 

@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content = new AutoSizeContainer { RelativeSizeAxes = Axis.X };
+        private AutoSizeContainer content = new AutoSizeContainer { RelativeSizeAxes = Axes.X };
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
 
         public ScrollContainer()
         {
-            RelativeSizeAxes = Axis.Both;
+            RelativeSizeAxes = Axes.Both;
         }
 
         public override void Load()
@@ -166,12 +166,12 @@ namespace osu.Framework.Graphics.Containers
 
                 Add(box = new Box
                 {
-                    RelativeSizeAxes = Axis.Both
+                    RelativeSizeAxes = Axes.Both
                 });
 
                 Anchor = Anchor.TopRight;
                 Origin = Anchor.TopRight;
-                RelativeSizeAxes = Axis.Y;
+                RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
             }

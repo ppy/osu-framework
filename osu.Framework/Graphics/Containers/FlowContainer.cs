@@ -105,8 +105,8 @@ namespace osu.Framework.Graphics.Containers
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (RelativeSizeAxes & Axis.X) == 0 ? float.MaxValue : s.X;
-                        max.Y = (RelativeSizeAxes & Axis.Y) == 0 ? float.MaxValue : s.Y;
+                        max.X = (RelativeSizeAxes & Axes.X) == 0 ? float.MaxValue : s.X;
+                        max.Y = (RelativeSizeAxes & Axes.Y) == 0 ? float.MaxValue : s.Y;
                     }
 
                     float rowMaxHeight = 0;

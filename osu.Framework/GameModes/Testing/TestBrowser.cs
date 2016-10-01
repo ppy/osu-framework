@@ -36,14 +36,14 @@ namespace osu.Framework.GameModes.Testing
 
             Add(leftContainer = new Container
             {
-                RelativeSizeAxes = Axis.Both,
+                RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.15f, 1)
             });
 
             leftContainer.Add(new Box
             {
                 Colour = Color4.DimGray,
-                RelativeSizeAxes = Axis.Both
+                RelativeSizeAxes = Axes.Both
             });
 
             leftContainer.Add(leftScrollContainer = new ScrollContainer());
@@ -51,25 +51,25 @@ namespace osu.Framework.GameModes.Testing
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
-                RelativeSizeAxes = Axis.X,
+                RelativeSizeAxes = Axes.X,
                 Padding = new Vector2(0, 5)
             });
 
             //this is where the actual tests are loaded.
             Add(testContainer = new Container
             {
-                RelativeSizeAxes = Axis.Both,
+                RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.85f, 1),
-                RelativePositionAxes = Axis.Both,
+                RelativePositionAxes = Axes.Both,
                 Position = new Vector2(0.15f, 0),
             });
 
             testContainer.Size = new Vector2(0.6f, 1);
             Add(drawVis = new DrawVisualiser()
             {
-                RelativePositionAxes = Axis.Both,
+                RelativePositionAxes = Axes.Both,
                 Position = new Vector2(0.75f, 0),
-                RelativeSizeAxes = Axis.Both,
+                RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.25f, 1)
             });
 
@@ -130,19 +130,19 @@ namespace osu.Framework.GameModes.Testing
             {
                 base.Load();
 
-                RelativeSizeAxes = Axis.X;
+                RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
 
                 Add(box = new Box
                 {
-                    RelativeSizeAxes = Axis.Both,
+                    RelativeSizeAxes = Axes.Both,
                     Alpha = 0.2f
                 });
 
                 Add(new SpriteText
                 {
                     Text = test.Name,
-                    RelativeSizeAxes = Axis.X,
+                    RelativeSizeAxes = Axes.X,
                     //TextBold = true
                 });
 
@@ -150,7 +150,7 @@ namespace osu.Framework.GameModes.Testing
                 {
                     Text = test.Description,
                     TextSize = 15,
-                    RelativeSizeAxes = Axis.X,
+                    RelativeSizeAxes = Axes.X,
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft
                 });
