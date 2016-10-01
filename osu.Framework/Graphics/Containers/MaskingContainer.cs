@@ -3,8 +3,13 @@
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class MaskingContainer : LargeContainer
+    public class MaskingContainer : Container
     {
+        public MaskingContainer()
+        {
+            SizeMode = InheritMode.XY;
+        }
+
         public override void Load()
         {
             base.Load();

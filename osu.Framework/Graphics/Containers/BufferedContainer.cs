@@ -10,7 +10,7 @@ using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BufferedContainer : LargeContainer
+    public class BufferedContainer : Container
     {
         private FrameBuffer frameBuffer;
         private QuadBatch<TexturedVertex2d> quadBatch = new QuadBatch<TexturedVertex2d>(1, 3);
@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Containers
         public BufferedContainer()
         {
             frameBuffer = new FrameBuffer();
+            SizeMode = InheritMode.XY;
         }
 
         public void Attach(RenderbufferInternalFormat format)

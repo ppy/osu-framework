@@ -18,7 +18,7 @@ using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
 {
-    public class Game : LargeContainer
+    public class Game : Container
     {
         public BasicGameWindow Window => host?.Window;
 
@@ -60,6 +60,7 @@ namespace osu.Framework
         public Game()
         {
             Game = this;
+            SizeMode = InheritMode.XY;
         }
 
         /// <summary>

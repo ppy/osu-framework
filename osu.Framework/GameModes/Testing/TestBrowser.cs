@@ -56,8 +56,9 @@ namespace osu.Framework.GameModes.Testing
             });
 
             //this is where the actual tests are loaded.
-            Add(testContainer = new LargeContainer
+            Add(testContainer = new Container
             {
+                SizeMode = InheritMode.XY,
                 Size = new Vector2(0.85f, 1),
                 PositionMode = InheritMode.XY,
                 Position = new Vector2(0.15f, 0),
@@ -68,6 +69,7 @@ namespace osu.Framework.GameModes.Testing
             {
                 PositionMode = InheritMode.XY,
                 Position = new Vector2(0.75f, 0),
+                SizeMode = InheritMode.XY,
                 Size = new Vector2(0.25f, 1)
             });
 

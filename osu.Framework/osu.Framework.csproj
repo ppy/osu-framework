@@ -211,7 +211,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Timing\ThrottledFrameClock.cs" />
     <Compile Include="Graphics\Batches\IVertexBatch.cs" />
     <Compile Include="Graphics\Containers\FlowContainer.cs" />
-    <Compile Include="Graphics\Containers\LargeContainer.cs" />
     <Compile Include="Graphics\Drawables\Box.cs" />
     <Compile Include="Graphics\Drawable_Interaction.cs" />
     <Compile Include="IO\Stores\CachedResourceStore.cs" />

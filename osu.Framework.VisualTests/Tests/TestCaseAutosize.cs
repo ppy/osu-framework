@@ -29,7 +29,10 @@ namespace osu.Framework.VisualTests.Tests
 
             toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
 
-            Add(testContainer = new LargeContainer());
+            Add(testContainer = new Container()
+            {
+                SizeMode = InheritMode.XY,
+            });
 
             for (int i = 1; i <= 7; i++)
             {
@@ -268,8 +271,9 @@ namespace osu.Framework.VisualTests.Tests
                     Container shrinkContainer;
                     Container boxes;
 
-                    testContainer.Add(shrinkContainer = new LargeContainer
+                    testContainer.Add(shrinkContainer = new Container
                     {
+                        SizeMode = InheritMode.XY,
                         Size = new Vector2(0.5f, 1),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,

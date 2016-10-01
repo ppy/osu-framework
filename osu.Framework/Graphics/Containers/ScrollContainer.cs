@@ -10,7 +10,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : LargeContainer
+    public class ScrollContainer : Container
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -41,6 +41,11 @@ namespace osu.Framework.Graphics.Containers
         private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
 
         protected override Container AddTarget => content;
+
+        public ScrollContainer()
+        {
+            SizeMode = InheritMode.XY;
+        }
 
         public override void Load()
         {

@@ -14,7 +14,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
-    public class DrawVisualiser : LargeContainer
+    public class DrawVisualiser : Container
     {
         Box background = new Box
         {
@@ -24,6 +24,11 @@ namespace osu.Framework.Graphics
         };
 
         ScrollContainer scroll;
+
+        public DrawVisualiser()
+        {
+            SizeMode = InheritMode.XY;
+        }
 
         private VisualisedDrawable targetVD;
 

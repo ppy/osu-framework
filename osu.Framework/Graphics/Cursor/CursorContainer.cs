@@ -8,13 +8,14 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : LargeContainer
+    public class CursorContainer : Container
     {
         protected Drawable ActiveCursor;
 
         public CursorContainer()
         {
             Depth = float.MaxValue;
+            SizeMode = InheritMode.XY;
         }
 
         public override void Load()

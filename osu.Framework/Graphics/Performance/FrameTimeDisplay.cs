@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        LargeContainer overlayContainer;
+        Container overlayContainer;
 
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
@@ -74,8 +74,9 @@ namespace osu.Framework.Graphics.Performance
                 {
                     Children = new Drawable[]
                     {
-                        new LargeContainer
+                        new Container
                         {
+                            SizeMode = InheritMode.XY,
                             Children = timeBars
                         }
                     }
@@ -85,8 +86,9 @@ namespace osu.Framework.Graphics.Performance
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                 },
-                overlayContainer = new LargeContainer
+                overlayContainer = new Container
                 {
+                    SizeMode = InheritMode.XY,
                     Children = new []
                     {
                         new SpriteText
