@@ -36,14 +36,14 @@ namespace osu.Framework.GameModes.Testing
 
             Add(leftContainer = new Container
             {
-                SizeMode = InheritMode.XY,
+                RelativeSize = Axis.Both,
                 Size = new Vector2(0.15f, 1)
             });
 
             leftContainer.Add(new Box
             {
                 Colour = Color4.DimGray,
-                SizeMode = InheritMode.XY
+                RelativeSize = Axis.Both
             });
 
             leftContainer.Add(leftScrollContainer = new ScrollContainer());
@@ -51,25 +51,25 @@ namespace osu.Framework.GameModes.Testing
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
-                SizeMode = InheritMode.X,
+                RelativeSize = Axis.X,
                 Padding = new Vector2(0, 5)
             });
 
             //this is where the actual tests are loaded.
             Add(testContainer = new Container
             {
-                SizeMode = InheritMode.XY,
+                RelativeSize = Axis.Both,
                 Size = new Vector2(0.85f, 1),
-                PositionMode = InheritMode.XY,
+                RelativePosition = Axis.Both,
                 Position = new Vector2(0.15f, 0),
             });
 
             testContainer.Size = new Vector2(0.6f, 1);
             Add(drawVis = new DrawVisualiser()
             {
-                PositionMode = InheritMode.XY,
+                RelativePosition = Axis.Both,
                 Position = new Vector2(0.75f, 0),
-                SizeMode = InheritMode.XY,
+                RelativeSize = Axis.Both,
                 Size = new Vector2(0.25f, 1)
             });
 
@@ -130,19 +130,19 @@ namespace osu.Framework.GameModes.Testing
             {
                 base.Load();
 
-                SizeMode = InheritMode.X;
+                RelativeSize = Axis.X;
                 Size = new Vector2(1, 60);
 
                 Add(box = new Box
                 {
-                    SizeMode = InheritMode.XY,
+                    RelativeSize = Axis.Both,
                     Alpha = 0.2f
                 });
 
                 Add(new SpriteText
                 {
                     Text = test.Name,
-                    SizeMode = InheritMode.X,
+                    RelativeSize = Axis.X,
                     //TextBold = true
                 });
 
@@ -150,7 +150,7 @@ namespace osu.Framework.GameModes.Testing
                 {
                     Text = test.Description,
                     TextSize = 15,
-                    SizeMode = InheritMode.X,
+                    RelativeSize = Axis.X,
                     Anchor = Anchor.BottomLeft,
                     Origin = Anchor.BottomLeft
                 });

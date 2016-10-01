@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public class AutoSizeContainer : Container
     {
-        protected bool RequireAutoSize => SizeMode != InheritMode.XY && !autoSize.IsValid;
+        protected bool RequireAutoSize => RelativeSize != Axis.Both && !autoSize.IsValid;
 
         internal event Action OnAutoSize;
 
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (SizeMode == InheritMode.XY) return base.DrawQuadForBounds;
+                if (RelativeSize == Axis.Both) return base.DrawQuadForBounds;
 
                 Vector2 maxBoundSize = Vector2.Zero;
 
@@ -41,20 +41,20 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.BoundingSize;
 
-                    if ((c.SizeMode & InheritMode.X) == 0)
+                    if ((c.RelativeSize & Axis.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
                     else
                         Debug.Assert(c.InternalSize.X <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
 
-                    if ((c.SizeMode & InheritMode.Y) == 0)
+                    if ((c.RelativeSize & Axis.Y) == 0)
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                     else
                         Debug.Assert(c.InternalSize.Y <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
                 }
 
-                if ((SizeMode & InheritMode.X) > 0)
+                if ((RelativeSize & Axis.X) > 0)
                     maxBoundSize.X = Size.X;
-                if ((SizeMode & InheritMode.Y) > 0)
+                if ((RelativeSize & Axis.Y) > 0)
                     maxBoundSize.Y = Size.Y;
 
                 return new Quad(0, 0, maxBoundSize.X, maxBoundSize.Y);
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
 
-                    InternalSize = new Vector2((SizeMode & InheritMode.X) > 0 ? InternalSize.X : b.X, (SizeMode & InheritMode.Y) > 0 ? InternalSize.Y : b.Y);
+                    InternalSize = new Vector2((RelativeSize & Axis.X) > 0 ? InternalSize.X : b.X, (RelativeSize & Axis.Y) > 0 ? InternalSize.Y : b.Y);
                     Invalidate(Invalidation.Position);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
@@ -137,13 +137,13 @@ namespace osu.Framework.Graphics.Containers
             return base.InvalidationEffectByChildren(childInvalidation);
         }
 
-        public override InheritMode SizeMode
+        public override Axis RelativeSize
         {
-            get { return base.SizeMode; }
+            get { return base.RelativeSize; }
             set
             {
-                Debug.Assert(SizeMode != InheritMode.XY);
-                base.SizeMode = value;
+                Debug.Assert(RelativeSize != Axis.Both);
+                base.RelativeSize = value;
             }
         }
     }
