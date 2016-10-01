@@ -50,7 +50,22 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 position;
+        private Axis relativePosition;
+
+        public Axis RelativePosition
+        {
+            get { return relativePosition; }
+            set
+            {
+                if (value == relativePosition)
+                    return;
+                relativePosition = value;
+
+                Invalidate(Invalidation.ScreenSpaceQuad);
+            }
+        }
+
+        internal Vector2 InternalPosition;
 
         /// <summary>
         /// The getter returns position of this drawable in its parent's space.
@@ -60,13 +75,13 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                Vector2 pos = position;
-                if (RelativeCoords != Axis.None)
+                Vector2 pos = InternalPosition;
+                if (RelativePosition != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativeCoords & Axis.X) > 0)
+                    if ((RelativePosition & Axis.X) > 0)
                         pos.X *= parent.X;
-                    if ((RelativeCoords & Axis.Y) > 0)
+                    if ((RelativePosition & Axis.Y) > 0)
                         pos.Y *= parent.Y;
                 }
 
@@ -74,8 +89,8 @@ namespace osu.Framework.Graphics
             }
             set
             {
-                if (position == value) return;
-                position = value;
+                if (InternalPosition == value) return;
+                InternalPosition = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
@@ -210,12 +225,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 size = InternalSize;
-                if (RelativeCoords != Axis.None)
+                if (RelativeSize != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((RelativeCoords & Axis.X) > 0)
+                    if ((RelativeSize & Axis.X) > 0)
                         size.X = size.X * parent.X;
-                    if ((RelativeCoords & Axis.Y) > 0)
+                    if ((RelativeSize & Axis.Y) > 0)
                         size.Y = size.Y * parent.Y;
                 }
 
@@ -230,20 +245,20 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axis relativeCoords;
+        private Axis relativeSize;
 
-        public virtual Axis RelativeCoords
+        public virtual Axis RelativeSize
         {
-            get { return relativeCoords; }
+            get { return relativeSize; }
             set
             {
-                if (value == relativeCoords)
+                if (value == relativeSize)
                     return;
 
                 if (InternalSize == Vector2.Zero)
                     InternalSize = Vector2.One;
 
-                relativeCoords = value;
+                relativeSize = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }

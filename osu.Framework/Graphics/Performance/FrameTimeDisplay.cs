@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Performance
                 new Container
                 {
                     Masking = true,
-                    RelativeCoords = Axis.Both,
+                    RelativeSize = Axis.Both,
                     Children = timeBars
                 },
                 fpsDisplay = new FpsDisplay(monitor.Clock)
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Performance
                 },
                 overlayContainer = new Container
                 {
-                    RelativeCoords = Axis.Both,
+                    RelativeSize = Axis.Both,
                     Children = new []
                     {
                         new SpriteText
@@ -102,7 +102,7 @@ namespace osu.Framework.Graphics.Performance
                             {
                                 new Box
                                 {
-                                    RelativeCoords = Axis.Both,
+                                    RelativeSize = Axis.Both,
                                     Colour = Color4.Black,
                                     Alpha = 0.2f
                                 }

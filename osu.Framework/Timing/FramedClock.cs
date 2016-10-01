@@ -30,7 +30,7 @@ namespace osu.Framework.Timing
 
         public virtual double CurrentTime { get; protected set; }
 
-        public virtual double LastFrameTime { get; private set; }
+        public virtual double LastFrameTime { get; protected set; }
 
         public double Rate => Source.Rate;
 

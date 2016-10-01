@@ -24,12 +24,12 @@ namespace osu.Framework.GameModes.Testing
 
         public TestCase()
         {
-            RelativeCoords = Axis.Both;
+            RelativeSize = Axis.Both;
+            Masking = true;
         }
 
         public virtual void Reset()
         {
-
             if (Contents == null)
             {
                 AddTopLevel(new ScrollContainer
@@ -46,7 +46,7 @@ namespace osu.Framework.GameModes.Testing
 
                 AddTopLevel(Contents = new Container()
                 {
-                    RelativeCoords = Axis.Both,
+                    RelativeSize = Axis.Both,
                 });
             }
             else

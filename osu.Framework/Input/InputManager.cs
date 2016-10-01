@@ -88,7 +88,7 @@ namespace osu.Framework.Input
 
         public InputManager()
         {
-            RelativeCoords = Axis.Both;
+            RelativeSize = Axis.Both;
         }
 
         internal void ChangeFocus(Drawable focus)

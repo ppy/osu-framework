@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Transformations
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.Position = new Vector2(d.Position.X, CurrentValue);
+            d.Position = new Vector2(d.InternalPosition.X, CurrentValue);
         }
 
         public TransformPositionY(IClock clock)

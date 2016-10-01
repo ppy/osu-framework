@@ -5,13 +5,24 @@ namespace osu.Framework.Timing
 {
     public class FramedOffsetClock : FramedClock
     {
-        public double Offset;
+        private double offset;
 
-        public override double CurrentTime => base.CurrentTime + Offset;
+        public override double CurrentTime => base.CurrentTime + offset;
+
+        public double Offset
+        {
+            get { return offset; }
+            set
+            {
+                LastFrameTime += value - offset;
+                offset = value;
+            }
+        }
 
         public FramedOffsetClock(IClock source)
             : base(source)
         {
+
         }
     }
 }
