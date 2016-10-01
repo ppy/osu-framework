@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics
         Box background = new Box
         {
             Colour = new Color4(30, 30, 30, 240),
-            RelativeCoords = Axis.Both,
+            SizeMode = InheritMode.XY,
             Depth = 0
         };
 
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics
 
         public DrawVisualiser()
         {
-            RelativeCoords = Axis.Both;
+            SizeMode = InheritMode.XY;
         }
 
         private VisualisedDrawable targetVD;
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics
             Add(new Container
             {
                 Masking = true,
-                RelativeCoords = Axis.Both,
+                SizeMode = InheritMode.XY,
                 Children = new Drawable[]
                 {
                     background,

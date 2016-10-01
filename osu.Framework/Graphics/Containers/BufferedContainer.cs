@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
         public BufferedContainer()
         {
             frameBuffer = new FrameBuffer();
-            RelativeCoords = Axis.Both;
+            SizeMode = InheritMode.XY;
         }
 
         public void Attach(RenderbufferInternalFormat format)

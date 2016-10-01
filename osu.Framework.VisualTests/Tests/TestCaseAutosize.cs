@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(testContainer = new Container()
             {
-                RelativeCoords = Axis.Both,
+                SizeMode = InheritMode.XY,
             });
 
             for (int i = 1; i <= 7; i++)
@@ -273,7 +273,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     testContainer.Add(shrinkContainer = new Container
                     {
-                        RelativeCoords = Axis.Both,
+                        SizeMode = InheritMode.XY,
                         Size = new Vector2(0.5f, 1),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
@@ -281,12 +281,12 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             new Box
                             {
-                                RelativeCoords = Axis.Both,
+                                SizeMode = InheritMode.XY,
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
                             boxes = new FlowContainer {
-                                RelativeCoords = Axis.X,
+                                SizeMode = InheritMode.X,
                                 Padding = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -297,7 +297,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         boxes.Add(new Box
                         {
-                            RelativeCoords = Axis.X,
+                            SizeMode = InheritMode.X,
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
                             Size = new Vector2(0.9f, 40),
@@ -370,7 +370,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                RelativeCoords = Axis.Both
+                SizeMode = InheritMode.XY
             });
         }
 
@@ -429,7 +429,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                RelativeCoords = Axis.Both
+                SizeMode = InheritMode.XY
             });
 
             debugInfo = new SpriteText

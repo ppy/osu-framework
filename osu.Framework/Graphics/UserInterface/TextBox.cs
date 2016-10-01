@@ -62,12 +62,12 @@ namespace osu.Framework.Graphics.UserInterface
             Add(background = new Box
             {
                 Colour = BackgroundUnfocused,
-                RelativeCoords = Axis.Both,
+                SizeMode = InheritMode.XY,
             });
 
             Add(textContainer = new Container
             {
-                RelativeCoords = Axis.Both
+                SizeMode = InheritMode.XY
             });
 
             textFlow = new FlowContainer
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
-                RelativeCoords = Axis.Y,
+                SizeMode = InheritMode.Y,
                 Alpha = 0
             };
 

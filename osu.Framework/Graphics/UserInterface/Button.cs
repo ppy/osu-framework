@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(box = new Box
             {
-                RelativeCoords = Axis.Both,
+                SizeMode = InheritMode.XY,
                 Colour = backgroundColour
             });
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var flash = new Box
             {
-                RelativeCoords = Axis.Both
+                SizeMode = InheritMode.XY
             };
 
             Add(flash);

@@ -60,7 +60,7 @@ namespace osu.Framework
         public Game()
         {
             Game = this;
-            RelativeCoords = Axis.Both;
+            SizeMode = InheritMode.XY;
         }
 
         /// <summary>

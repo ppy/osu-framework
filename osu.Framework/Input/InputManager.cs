@@ -88,7 +88,7 @@ namespace osu.Framework.Input
 
         public InputManager()
         {
-            RelativeCoords = Axis.Both;
+            SizeMode = InheritMode.XY;
         }
 
         internal void ChangeFocus(Drawable focus)
