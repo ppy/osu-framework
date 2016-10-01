@@ -43,20 +43,20 @@ namespace osu.Framework.VisualTests.Tests
                     popButton.Alpha = 1;
                 }
 
-                Content.MoveTo(new Vector2(0, -ActualSize.Y));
+                Content.MoveTo(new Vector2(0, -Size.Y));
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
                 return transition_time;
             }
 
             protected override double OnExiting(GameMode next)
             {
-                Content.MoveTo(new Vector2(0, -ActualSize.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, -Size.Y), transition_time, EasingTypes.OutQuint);
                 return transition_time;
             }
 
             protected override double OnSuspending(GameMode next)
             {
-                Content.MoveTo(new Vector2(0, ActualSize.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, Size.Y), transition_time, EasingTypes.OutQuint);
                 return transition_time;
             }
 
@@ -74,7 +74,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     new Box
                     {
-                        SizeMode = InheritMode.XY,
+                        RelativeCoords = Axis.Both,
                         Size = new Vector2(1),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
@@ -94,7 +94,7 @@ namespace osu.Framework.VisualTests.Tests
                     popButton = new Button
                     {
                         Text = @"Pop",
-                        SizeMode = InheritMode.XY,
+                        RelativeCoords = Axis.Both,
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopLeft,
                         Origin = Anchor.TopLeft,
@@ -107,7 +107,7 @@ namespace osu.Framework.VisualTests.Tests
                     new Button
                     {
                         Text = @"Push",
-                        SizeMode = InheritMode.XY,
+                        RelativeCoords = Axis.Both,
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,

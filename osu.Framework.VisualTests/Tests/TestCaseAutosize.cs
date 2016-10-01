@@ -29,7 +29,10 @@ namespace osu.Framework.VisualTests.Tests
 
             toggleDebugAutosize = AddToggle(@"debug autosize", reloadCallback);
 
-            Add(testContainer = new LargeContainer());
+            Add(testContainer = new Container()
+            {
+                RelativeCoords = Axis.Both,
+            });
 
             for (int i = 1; i <= 7; i++)
             {
@@ -268,8 +271,9 @@ namespace osu.Framework.VisualTests.Tests
                     Container shrinkContainer;
                     Container boxes;
 
-                    testContainer.Add(shrinkContainer = new LargeContainer
+                    testContainer.Add(shrinkContainer = new Container
                     {
+                        RelativeCoords = Axis.Both,
                         Size = new Vector2(0.5f, 1),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
@@ -277,12 +281,12 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             new Box
                             {
-                                SizeMode = InheritMode.XY,
+                                RelativeCoords = Axis.Both,
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
                             boxes = new FlowContainer {
-                                //SizeMode = InheritMode.X, <- this fixes stuff!
+                                RelativeCoords = Axis.X,
                                 Padding = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -293,7 +297,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         boxes.Add(new Box
                         {
-                            SizeMode = InheritMode.X,
+                            RelativeCoords = Axis.X,
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
                             Size = new Vector2(0.9f, 40),
@@ -366,7 +370,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                SizeMode = InheritMode.XY
+                RelativeCoords = Axis.Both
             });
         }
 
@@ -425,7 +429,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                SizeMode = InheritMode.XY
+                RelativeCoords = Axis.Both
             });
 
             debugInfo = new SpriteText

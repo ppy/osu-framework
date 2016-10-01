@@ -18,11 +18,11 @@ using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
 {
-    public class Game : LargeContainer
+    public class Game : Container
     {
         public BasicGameWindow Window => host?.Window;
 
-        protected internal Scheduler Scheduler;
+        public Scheduler Scheduler;
 
         public ResourceStore<byte[]> Resources;
 
@@ -60,6 +60,7 @@ namespace osu.Framework
         public Game()
         {
             Game = this;
+            RelativeCoords = Axis.Both;
         }
 
         /// <summary>

@@ -8,7 +8,6 @@ namespace osu.Framework.Graphics
 {
     public class DrawNode
     {
-        public List<DrawNode> Children;
         public DrawInfo DrawInfo;
 
         public Drawable Drawable;
@@ -20,10 +19,6 @@ namespace osu.Framework.Graphics
             GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
 
             Draw();
-
-            if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.DrawSubTree();
 
             PostDraw();
         }

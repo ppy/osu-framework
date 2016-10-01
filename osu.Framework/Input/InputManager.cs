@@ -16,7 +16,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : LargeContainer
+    public class InputManager : Container
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -85,6 +85,11 @@ namespace osu.Framework.Input
         private Drawable draggingDrawable;
         private List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
+
+        public InputManager()
+        {
+            RelativeCoords = Axis.Both;
+        }
 
         internal void ChangeFocus(Drawable focus)
         {

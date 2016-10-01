@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Performance
 
             Add(new Box
             {
-                SizeMode = InheritMode.XY,
+                RelativeCoords = Axis.Both,
                 Colour = Color4.Black,
                 Alpha = 0.2f
             });

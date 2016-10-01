@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        LargeContainer overlayContainer;
+        Container overlayContainer;
 
         FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
@@ -70,23 +70,20 @@ namespace osu.Framework.Graphics.Performance
 
             Children = new Drawable[]
             {
-                new MaskingContainer
+                new Container
                 {
-                    Children = new Drawable[]
-                    {
-                        new LargeContainer
-                        {
-                            Children = timeBars
-                        }
-                    }
+                    Masking = true,
+                    RelativeCoords = Axis.Both,
+                    Children = timeBars
                 },
                 fpsDisplay = new FpsDisplay(monitor.Clock)
                 {
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                 },
-                overlayContainer = new LargeContainer
+                overlayContainer = new Container
                 {
+                    RelativeCoords = Axis.Both,
                     Children = new []
                     {
                         new SpriteText
@@ -105,7 +102,7 @@ namespace osu.Framework.Graphics.Performance
                             {
                                 new Box
                                 {
-                                    SizeMode = InheritMode.XY,
+                                    RelativeCoords = Axis.Both,
                                     Colour = Color4.Black,
                                     Alpha = 0.2f
                                 }

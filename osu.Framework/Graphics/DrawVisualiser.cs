@@ -14,16 +14,21 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics
 {
-    public class DrawVisualiser : LargeContainer
+    public class DrawVisualiser : Container
     {
         Box background = new Box
         {
             Colour = new Color4(30, 30, 30, 240),
-            SizeMode = InheritMode.XY,
+            RelativeCoords = Axis.Both,
             Depth = 0
         };
 
         ScrollContainer scroll;
+
+        public DrawVisualiser()
+        {
+            RelativeCoords = Axis.Both;
+        }
 
         private VisualisedDrawable targetVD;
 
@@ -50,8 +55,10 @@ namespace osu.Framework.Graphics
         {
             base.Load();
 
-            Add(new MaskingContainer
+            Add(new Container
             {
+                Masking = true,
+                RelativeCoords = Axis.Both,
                 Children = new Drawable[]
                 {
                     background,

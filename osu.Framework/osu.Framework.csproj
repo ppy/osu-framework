@@ -167,7 +167,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\VertexBatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\BufferedContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\Container.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\MaskingContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable_TransformationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\DrawInfo.cs" />
@@ -211,7 +210,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Timing\ThrottledFrameClock.cs" />
     <Compile Include="Graphics\Batches\IVertexBatch.cs" />
     <Compile Include="Graphics\Containers\FlowContainer.cs" />
-    <Compile Include="Graphics\Containers\LargeContainer.cs" />
     <Compile Include="Graphics\Drawables\Box.cs" />
     <Compile Include="Graphics\Drawable_Interaction.cs" />
     <Compile Include="IO\Stores\CachedResourceStore.cs" />

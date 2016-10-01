@@ -10,7 +10,7 @@ using osu.Framework.Graphics;
 
 namespace osu.Framework.GameModes.Testing
 {
-    public abstract class TestCase : LargeContainer
+    public abstract class TestCase : Container
     {
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
@@ -21,6 +21,11 @@ namespace osu.Framework.GameModes.Testing
         public Container Contents;
 
         protected override Container AddTarget => Contents;
+
+        public TestCase()
+        {
+            RelativeCoords = Axis.Both;
+        }
 
         public virtual void Reset()
         {
@@ -39,7 +44,10 @@ namespace osu.Framework.GameModes.Testing
                     }
                 });
 
-                AddTopLevel(Contents = new LargeContainer());
+                AddTopLevel(Contents = new Container()
+                {
+                    RelativeCoords = Axis.Both,
+                });
             }
             else
             {

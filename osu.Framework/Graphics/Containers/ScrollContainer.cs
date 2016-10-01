@@ -10,7 +10,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : LargeContainer
+    public class ScrollContainer : Container
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content = new AutoSizeContainer { SizeMode = InheritMode.X };
+        private AutoSizeContainer content = new AutoSizeContainer { RelativeCoords = Axis.X };
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -34,13 +34,18 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float availableContent = -1;
 
-        private float displayableContent => ActualSize.Y;
+        private float displayableContent => Size.Y;
 
         private float current;
 
         private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
 
         protected override Container AddTarget => content;
+
+        public ScrollContainer()
+        {
+            RelativeCoords = Axis.Both;
+        }
 
         public override void Load()
         {
@@ -130,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateSize()
         {
-            scrollbar.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollbar?.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
         }
 
         private void updateScroll(bool animated = true)
@@ -161,12 +166,12 @@ namespace osu.Framework.Graphics.Containers
 
                 Add(box = new Box
                 {
-                    SizeMode = InheritMode.XY
+                    RelativeCoords = Axis.Both
                 });
 
                 Anchor = Anchor.TopRight;
                 Origin = Anchor.TopRight;
-                SizeMode = InheritMode.Y;
+                RelativeCoords = Axis.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
             }

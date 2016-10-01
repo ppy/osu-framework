@@ -9,7 +9,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.GameModes
 {
-    public class GameMode : LargeContainer
+    public class GameMode : Container
     {
         private GameMode parentGameMode;
         private GameMode childGameMode;
@@ -17,6 +17,11 @@ namespace osu.Framework.GameModes
         protected ContentContainer Content;
 
         protected override Container AddTarget => Content;
+
+        public GameMode()
+        {
+            RelativeCoords = Axis.Both;
+        }
 
         /// <summary>
         /// Called when this GameMode is being entered.
@@ -67,7 +72,12 @@ namespace osu.Framework.GameModes
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
 
-            AddTopLevel(Content = new ContentContainer() { Depth = float.MinValue });
+            AddTopLevel(Content = new ContentContainer()
+            {
+                Depth = float.MinValue,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
+            });
 
             if (parentGameMode == null)
                 OnEntering(null);
@@ -81,11 +91,12 @@ namespace osu.Framework.GameModes
         {
             Debug.Assert(childGameMode == null);
 
-            AddTopLevel(mode);
-
-            Content.LifetimeEnd = Time + mode.OnEntering(this);
-
             startSuspend(mode);
+
+            AddTopLevel(mode);
+            mode.OnEntering(this);
+            
+            Content.Expire();
         }
 
         /// <summary>
@@ -95,7 +106,9 @@ namespace osu.Framework.GameModes
         {
             Debug.Assert(parentGameMode != null);
 
-            LifetimeEnd = Time + OnExiting(parentGameMode);
+            OnExiting(parentGameMode);
+            Content.Expire();
+            LifetimeEnd = Content.LifetimeEnd;
 
             parentGameMode.startResume(this);
             parentGameMode = null;
@@ -111,14 +124,21 @@ namespace osu.Framework.GameModes
         private void startSuspend(GameMode next)
         {
             OnSuspending(next);
+            Content.Expire();
+
             childGameMode = next;
             next.parentGameMode = this;
         }
 
-        protected class ContentContainer : LargeContainer
+        protected class ContentContainer : Container
         {
             public override bool HandleInput => LifetimeEnd == double.MaxValue;
             public override bool RemoveWhenNotAlive => false;
+
+            public ContentContainer()
+            {
+                RelativeCoords = Axis.Both;
+            }
         }
     }
 }
