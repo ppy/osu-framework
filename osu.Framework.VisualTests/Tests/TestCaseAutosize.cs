@@ -282,7 +282,7 @@ namespace osu.Framework.VisualTests.Tests
                                 Alpha = 0.2f
                             },
                             boxes = new FlowContainer {
-                                //SizeMode = InheritMode.X, <- this fixes stuff!
+                                SizeMode = InheritMode.X,
                                 Padding = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
