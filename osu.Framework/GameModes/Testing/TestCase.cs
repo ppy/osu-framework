@@ -24,7 +24,7 @@ namespace osu.Framework.GameModes.Testing
 
         public TestCase()
         {
-            SizeMode = InheritMode.XY;
+            RelativeCoords = Axis.Both;
         }
 
         public virtual void Reset()
@@ -46,7 +46,7 @@ namespace osu.Framework.GameModes.Testing
 
                 AddTopLevel(Contents = new Container()
                 {
-                    SizeMode = InheritMode.XY,
+                    RelativeCoords = Axis.Both,
                 });
             }
             else

@@ -50,21 +50,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private InheritMode positionMode;
-
-        public InheritMode PositionMode
-        {
-            get { return positionMode; }
-            set
-            {
-                if (value == positionMode)
-                    return;
-                positionMode = value;
-
-                Invalidate(Invalidation.ScreenSpaceQuad);
-            }
-        }
-
         private Vector2 position;
 
         /// <summary>
@@ -76,12 +61,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 pos = position;
-                if (PositionMode != InheritMode.None)
+                if (RelativeCoords != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((PositionMode & InheritMode.X) > 0)
+                    if ((RelativeCoords & Axis.X) > 0)
                         pos.X *= parent.X;
-                    if ((PositionMode & InheritMode.Y) > 0)
+                    if ((RelativeCoords & Axis.Y) > 0)
                         pos.Y *= parent.Y;
                 }
 
@@ -225,12 +210,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 size = InternalSize;
-                if (SizeMode != InheritMode.None)
+                if (RelativeCoords != Axis.None)
                 {
                     Vector2 parent = Parent?.Size ?? Vector2.One;
-                    if ((SizeMode & InheritMode.X) > 0)
+                    if ((RelativeCoords & Axis.X) > 0)
                         size.X = size.X * parent.X;
-                    if ((SizeMode & InheritMode.Y) > 0)
+                    if ((RelativeCoords & Axis.Y) > 0)
                         size.Y = size.Y * parent.Y;
                 }
 
@@ -245,20 +230,20 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private InheritMode sizeMode;
+        private Axis relativeCoords;
 
-        public virtual InheritMode SizeMode
+        public virtual Axis RelativeCoords
         {
-            get { return sizeMode; }
+            get { return relativeCoords; }
             set
             {
-                if (value == sizeMode)
+                if (value == relativeCoords)
                     return;
 
                 if (InternalSize == Vector2.Zero)
                     InternalSize = Vector2.One;
 
-                sizeMode = value;
+                relativeCoords = value;
 
                 Invalidate(Invalidation.ScreenSpaceQuad);
             }
@@ -912,14 +897,14 @@ namespace osu.Framework.Graphics
     }
 
     [Flags]
-    public enum InheritMode
+    public enum Axis
     {
         None = 0,
 
         X = 1 << 0,
         Y = 1 << 1,
 
-        XY = X | Y
+        Both = X | Y
     }
 
     public class DepthComparer : IComparer<Drawable>

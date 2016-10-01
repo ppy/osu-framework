@@ -105,14 +105,14 @@ namespace osu.Framework.Graphics.Containers
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (SizeMode & InheritMode.X) == 0 ? float.MaxValue : s.X;
-                        max.Y = (SizeMode & InheritMode.Y) == 0 ? float.MaxValue : s.Y;
+                        max.X = (RelativeCoords & Axis.X) == 0 ? float.MaxValue : s.X;
+                        max.Y = (RelativeCoords & Axis.Y) == 0 ? float.MaxValue : s.Y;
                     }
 
                     float rowMaxHeight = 0;
                     foreach (Drawable d in Children)
                     {
-                        if (((int)direction & (int)d.SizeMode) > 0)
+                        if (((int)direction & (int)d.RelativeCoords) > 0)
                             //if the inheriting mode of the drawable shares the same directional value as our flow direction, we have to ignore it.
                             continue;
 
