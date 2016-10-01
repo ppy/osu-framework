@@ -70,16 +70,11 @@ namespace osu.Framework.Graphics.Performance
 
             Children = new Drawable[]
             {
-                new MaskingContainer
+                new Container
                 {
-                    Children = new Drawable[]
-                    {
-                        new Container
-                        {
-                            SizeMode = InheritMode.XY,
-                            Children = timeBars
-                        }
-                    }
+                    Masking = true,
+                    SizeMode = InheritMode.XY,
+                    Children = timeBars
                 },
                 fpsDisplay = new FpsDisplay(monitor.Clock)
                 {

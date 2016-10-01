@@ -167,7 +167,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\VertexBatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\BufferedContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\Container.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\MaskingContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable_TransformationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\DrawInfo.cs" />

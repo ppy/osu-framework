@@ -55,8 +55,10 @@ namespace osu.Framework.Graphics
         {
             base.Load();
 
-            Add(new MaskingContainer
+            Add(new Container
             {
+                Masking = true,
+                SizeMode = InheritMode.XY,
                 Children = new Drawable[]
                 {
                     background,
