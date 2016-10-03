@@ -8,12 +8,10 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
-        private IComparer<T> comparer;
         public event Action<T> OnRemoved;
 
         public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
-            this.comparer = comparer;
             AliveItems = new SortedList<T>(comparer);
         }
 

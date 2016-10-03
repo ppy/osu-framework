@@ -4,6 +4,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.OpenGL.Textures;
 
 namespace osu.Framework.Graphics.Textures
@@ -76,14 +77,16 @@ namespace osu.Framework.Graphics.Textures
         /// <param name="height">Height of the texture in pixels.</param>
         /// <param name="atlas">The atlas to add the texture to.</param>
         /// <returns>The created texture.</returns>
-        public static Texture FromRawBytes(byte[] data, int width, int height, TextureAtlas atlas = null)
+        public static Texture FromRawBytes(byte[] data, int width, int height, TextureAtlas atlas = null, PixelFormat format = PixelFormat.Rgba)
         {
             if (data == null)
                 return null;
 
             Texture tex = atlas == null ? new Texture(width, height) : atlas.Add(width, height);
 
-            tex.SetData(new TextureUpload(data));
+            var upload = new TextureUpload(data);
+            upload.Format = format;
+            tex.SetData(upload);
             return tex;
         }
     }

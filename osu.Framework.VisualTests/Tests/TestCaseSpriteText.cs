@@ -34,6 +34,19 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             };
+            
+            flow.Add(new SpriteText
+            {
+                Text = @"the quick red fox jumps over the lazy brown dog"
+            });
+            flow.Add(new SpriteText
+            {
+                Text = @"THE QUICK RED FOX JUMPS OVER THE LAZY BROWN DOG"
+            });
+            flow.Add(new SpriteText
+            {
+                Text = @"0123456789!@#$%^&*()_-+-[]{}.,<>;'\"
+            });
 
             for (int i = 1; i <= 200; i++)
             {

@@ -11,8 +11,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseTextBox : TestCase
     {
-        private TextBox tb;
-
         public override string Name => @"TextBox";
 
         public override string Description => @"Text entry evolved";
@@ -35,19 +33,19 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(textBoxes);
 
-            textBoxes.Add(tb = new TextBox
+            textBoxes.Add(new TextBox
             {
                 Size = new Vector2(100, 16),
             });
 
-            textBoxes.Add(tb = new TextBox
+            textBoxes.Add(new TextBox
             {
                 Text = @"Limited length",
                 Size = new Vector2(200, 20),
                 LengthLimit = 20
             });
 
-            textBoxes.Add(tb = new TextBox
+            textBoxes.Add(new TextBox
             {
                 Text = @"Box with some more text",
                 Size = new Vector2(500, 30),

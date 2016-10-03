@@ -1,16 +1,16 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
-using System.IO;
-using ImageMagick;
+using System.Drawing;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore : ResourceStore<byte[]>
+    public class TextureStore : ResourceStore<RawTexture>
     {
         Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
 
@@ -18,11 +18,25 @@ namespace osu.Framework.Graphics.Textures
 
         public float ScaleAdjust = 1;
 
-        public TextureStore(IResourceStore<byte[]> store = null)
-            : base(store)
+        public TextureStore(IResourceStore<RawTexture> store = null) : base(store)
         {
             AddExtension(@"png");
             AddExtension(@"jpg");
+        }
+
+        private Texture getTexture(string name)
+        {
+            RawTexture raw = base.Get($@"{name}");
+            if (raw == null) return null;
+            
+            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
+            tex.SetData(new TextureUpload(raw.Pixels)
+            {
+                Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
+                Format = raw.PixelFormat,
+            });
+
+            return tex;
         }
 
         /// <summary>
@@ -30,7 +44,7 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
-        public new virtual Texture Get(string name)
+        public virtual new Texture Get(string name)
         {
             Texture tex = null;
 
@@ -43,18 +57,8 @@ namespace osu.Framework.Graphics.Textures
                     return tex;
                 }
 
-                Stream s = GetStream($@"{name}");
-                if (s == null) return null;
-
-                using (MagickImage mainImage = new MagickImage(s))
-                {
-                    tex = atlas != null ? atlas.Add(mainImage.Width, mainImage.Height) : new Texture(mainImage.Width, mainImage.Height);
-                    TextureUpload upload = new TextureUpload(mainImage.Width * mainImage.Height * 4);
-                    mainImage.Write(new MemoryStream(upload.Data), MagickFormat.Rgba);
-                    tex.SetData(upload);
-                }
-
-
+                tex = getTexture(name);
+                    
                 //load available mipmaps
                 //int level = 1;
                 //int div = 2;

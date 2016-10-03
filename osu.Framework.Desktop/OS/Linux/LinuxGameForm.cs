@@ -11,7 +11,7 @@ namespace osu.Framework.Desktop.OS.Linux
 {
     public class LinuxGameForm : BasicGameForm
     {
-        public override bool IsMinimized => ClientSize.Width != 0 || ClientSize.Height == 0;
+        public override bool IsMinimized => ClientSize.Width == 0 || ClientSize.Height == 0;
 
         public override event EventHandler ScreenChanged;
 
