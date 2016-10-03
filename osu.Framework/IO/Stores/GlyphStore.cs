@@ -62,7 +62,7 @@ namespace osu.Framework.IO.Stores
                 {
                     int desti = y * width * 4 + x * 4;
                     if (x >= c.Offset.X && y >= c.Offset.Y
-                        && x < c.Bounds.X && y < c.Bounds.Y)
+                        && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
                     {
                         int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
                             + (c.Bounds.X + x - c.Offset.X) * 4;
