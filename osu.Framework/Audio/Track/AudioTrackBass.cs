@@ -42,7 +42,7 @@ namespace osu.Framework.Audio.Track
             BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
 
             if (data == null)
-                throw new Exception(@"Data couldn't be loaded!");
+                throw new ArgumentNullException(@"Data couldn't be loaded!");
             //encapsulate incoming stream with async buffer if it isn't already.
             dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
