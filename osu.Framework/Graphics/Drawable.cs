@@ -568,10 +568,11 @@ namespace osu.Framework.Graphics
                 node.Drawable = this;
             }
 
-            if (!validDrawNodes.Contains(node))
+            if (!node.IsValid)
             {
                 //we need to update the node if it has been invalidated.
                 ApplyDrawNode(node);
+                node.IsValid = true;
                 validDrawNodes.Add(node);
             }
 
@@ -740,12 +741,14 @@ namespace osu.Framework.Graphics
                 }
 
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                validDrawNodes.ForEach(n => n.IsValid = false);
                 validDrawNodes.Clear();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
             {
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
+                validDrawNodes.ForEach(n => n.IsValid = false);
                 validDrawNodes.Clear();
             }
 
