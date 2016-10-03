@@ -52,9 +52,9 @@ namespace osu.Framework.Graphics.Textures
                             {
                                 int desti = i * 4;
                                 int srci = y * pixels.Stride + x * 3;
-                                t.Pixels[desti] = p[srci];
+                                t.Pixels[desti] = p[srci + 2];
                                 t.Pixels[desti + 1] = p[srci + 1];
-                                t.Pixels[desti + 2] = p[srci + 2];
+                                t.Pixels[desti + 2] = p[srci + 0];
                                 t.Pixels[desti + 3] = 255;
                             }
                         }
