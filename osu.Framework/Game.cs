@@ -87,7 +87,7 @@ namespace osu.Framework
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
 
-            Textures = new TextureStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures"));
+            Textures = new TextureStore(new RawTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
 
             Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
 

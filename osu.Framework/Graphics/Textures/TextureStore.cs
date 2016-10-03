@@ -4,44 +4,29 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
-using ImageMagick;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Textures
 {
-    public class TextureStore
+    public class TextureStore : ResourceStore<RawTexture>
     {
         Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
 
         private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
-        
-        private IResourceStore<byte[]> byteStore;
-        private IResourceStore<RawTexture> rawStore;
 
         public float ScaleAdjust = 1;
 
-        public TextureStore(IResourceStore<byte[]> store = null)
+        public TextureStore(IResourceStore<RawTexture> store = null) : base(store)
         {
-            this.byteStore = store;
-            (store as ResourceStore<byte[]>)?.AddExtension(@"png");
-            (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
-        }
-        
-        public TextureStore(IResourceStore<RawTexture> store = null)
-        {
-            this.rawStore = store;
-            (store as ResourceStore<RawTexture>)?.AddExtension(@"png");
-            (store as ResourceStore<RawTexture>)?.AddExtension(@"jpg");
+            AddExtension(@"png");
+            AddExtension(@"jpg");
         }
 
-        private Texture GetRaw(string name)
+        private Texture GetTexture(string name)
         {
-            RawTexture raw = rawStore.Get($@"{name}");
+            RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
             
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
@@ -54,27 +39,12 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        private Texture GetBytes(string name)
-        {
-            Texture tex = null;
-            
-            Stream s = byteStore.GetStream($@"{name}");
-            if (s == null) return null;
-            
-            using (var image = (Bitmap)Image.FromStream(s))
-            {
-                tex = atlas != null ? atlas.Add(image.Width, image.Height) : new Texture(image.Width, image.Height);
-                tex.SetData(image);
-            }
-            return tex;
-        }
-
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
         /// </summary>
         /// <param name="name">The name of the texture.</param>
         /// <returns>The texture.</returns>
-        public virtual Texture Get(string name)
+        public virtual new Texture Get(string name)
         {
             Texture tex = null;
 
@@ -87,10 +57,7 @@ namespace osu.Framework.Graphics.Textures
                     return tex;
                 }
 
-                if (rawStore != null)
-                    tex = GetRaw(name);
-                else if (byteStore != null)
-                    tex = GetBytes(name);
+                tex = GetTexture(name);
                     
                 //load available mipmaps
                 //int level = 1;

@@ -9,14 +9,13 @@ namespace osu.Framework.Graphics.Textures
     {
         string Prefix;
 
-        public PrefixTextureStore(string prefix, IResourceStore<byte[]> stores)
+        public PrefixTextureStore(string prefix, IResourceStore<RawTexture> stores)
             : base(stores)
         {
             Prefix = prefix;
         }
 
         public override Texture Get(string name)
-
         {
             return base.Get($@"{Prefix}-{name}");
         }

@@ -252,6 +252,7 @@
     <Compile Include="Graphics\Textures\Png\PngReader.cs" />
     <Compile Include="Graphics\Textures\Png\PngCommon.cs" />
     <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
+    <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
