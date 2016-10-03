@@ -33,7 +33,7 @@ namespace osu.Framework.OS
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
-            var versionNumberSubstring = GetVersionNumberSubstring(version);
+            string versionNumberSubstring = GetVersionNumberSubstring(version);
             GLVersion = new Version(versionNumberSubstring);
             version = GL.GetString(StringName.ShadingLanguageVersion);
             if (!string.IsNullOrEmpty(version))
