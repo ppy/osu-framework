@@ -240,8 +240,8 @@ namespace osu.Framework.Graphics.Containers
                         if (!current[i].IsVisible) continue;
 
                         //todo: make this more efficient.
-                        //if (Game?.ScreenSpaceDrawQuad.Intersects(current[i].ScreenSpaceDrawQuad) == false)
-                        //    continue;
+                        if (Game?.ScreenSpaceDrawQuad.FastIntersects(current[i].ScreenSpaceDrawQuad) == false)
+                            continue;
 
                         if (j < target.Count && target[j].Drawable == current[i])
                         {
