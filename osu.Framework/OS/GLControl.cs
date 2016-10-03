@@ -68,8 +68,7 @@ namespace osu.Framework.OS
 
         private string GetVersionNumberSubstring(string version)
         {
-            var stringParts = version.Split(' ');
-            var result = stringParts.FirstOrDefault(s => char.IsDigit(s, 0));
+            string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
             throw new ArgumentException(nameof(version));
         }
