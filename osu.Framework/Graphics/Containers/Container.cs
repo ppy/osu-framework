@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
 
             children.Clear();
 
-            Invalidate(Invalidation.ScreenSpaceQuad);
+            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
         }
 
         protected Drawable AddTopLevel(Drawable drawable)
@@ -179,7 +179,10 @@ namespace osu.Framework.Graphics.Containers
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
+            {
+                //TODO: IMPORTANT: figure why propagation is failing here.
+                //return false;
+            }
 
             if (shallPropagate)
             {
@@ -240,8 +243,8 @@ namespace osu.Framework.Graphics.Containers
                         if (!current[i].IsVisible) continue;
 
                         //todo: make this more efficient.
-                        //if (Game?.ScreenSpaceDrawQuad.Intersects(current[i].ScreenSpaceDrawQuad) == false)
-                        //    continue;
+                        if (Game?.ScreenSpaceDrawQuad.FastIntersects(current[i].ScreenSpaceDrawQuad) == false)
+                            continue;
 
                         if (j < target.Count && target[j].Drawable == current[i])
                         {

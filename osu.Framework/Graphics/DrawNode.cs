@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics
 
         public Drawable Drawable;
 
+        internal bool IsValid;
+
         public void DrawSubTree()
         {
             PreDraw();

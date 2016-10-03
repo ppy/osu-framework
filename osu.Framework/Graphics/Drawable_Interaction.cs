@@ -171,16 +171,6 @@ namespace osu.Framework.Graphics
         internal bool Hovering;
 
         /// <summary>
-        /// Sometimes we need to know the position of the mouse inside the drawable.
-        /// </summary>
-        /// <param name="screenSpacePos">A position in screen space (user input device).</param>
-        /// <returns>The relative (0..1) position inside (or outside) the drawable.</returns>
-        internal virtual Vector2? GetContainedPosition(Vector2 screenSpacePos)
-        {
-            return ScreenSpaceInputQuad.Contains(screenSpacePos);
-        }
-
-        /// <summary>
         /// Convert a position to the local coordinate system from either native or local to another drawable.
         /// </summary>
         /// <param name="screenSpacePos">The input position.</param>
@@ -201,7 +191,7 @@ namespace osu.Framework.Graphics
 
         public virtual bool Contains(Vector2 screenSpacePos)
         {
-            return ScreenSpaceInputQuad.Contains(screenSpacePos).HasValue;
+            return ScreenSpaceInputQuad.Contains(screenSpacePos);
         }
 
         private InputState getLocalState(InputState state)

@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool childChangedStatus = base.UpdateChildrenLife();
             if (childChangedStatus)
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
 
             return childChangedStatus;
         }
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Containers
         {
             Drawable result = base.Add(drawable);
             if (result != null)
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
 
             return result;
         }
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool result = base.Remove(p, dispose);
             if (result)
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
 
             return result;
         }
@@ -132,8 +132,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
         {
-            if ((childInvalidation & (Invalidation.Visibility | Invalidation.ScreenSpaceQuad)) > 0)
-                return Invalidation.ScreenSpaceQuad;
+            if ((childInvalidation & (Invalidation.Visibility | Invalidation.Position | Invalidation.SizeInParentSpace)) > 0)
+                return Invalidation.Position | Invalidation.SizeInParentSpace;
             return base.InvalidationEffectByChildren(childInvalidation);
         }
 

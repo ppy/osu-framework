@@ -111,13 +111,11 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
         public Vector2[] AxisVertices => Vertices;
 
-        public Vector2? Contains(Vector2 pos)
+        public bool Contains(Vector2 pos)
         {
-            Vector2? result = new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos);
-            if (result.HasValue)
-                return Vector2.One - result.Value;
-
-            return new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
+            return
+                new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
+                new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
         }
 
         public bool Intersects(IConvexPolygon other)
@@ -129,5 +127,18 @@ namespace osu.Framework.Graphics.Primitives
         {
             return (this as IConvexPolygon).Intersects(other);
         }
+
+        public bool FastIntersects(Quad other)
+        {
+            //todo: this is actually pretty wrong!
+            return
+                Contains(other.TopLeft) ||
+                Contains(other.TopRight) ||
+                Contains(other.BottomLeft) ||
+                Contains(other.BottomRight) ||
+                (other.TopLeft.Y <= TopLeft.Y && other.TopRight.Y <= TopRight.Y && other.BottomLeft.Y >= BottomLeft.Y && other.BottomRight.Y >= BottomRight.Y) ||
+                (other.TopLeft.X <= TopLeft.X && other.BottomLeft.X <= BottomLeft.X && other.TopRight.X >= TopRight.X && other.BottomRight.X >= BottomRight.X);
+        }
     }
 }
+

@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
 
         public int LayoutDuration
         {
-            get { return layout.RefreshInterval; }
+            get { return Math.Max(0, layout.RefreshInterval); }
             set { layout.RefreshInterval = value; }
         }
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & (Invalidation.ScreenSpaceQuad | Invalidation.Visibility)) > 0)
+            if ((invalidation & (Invalidation.Position | Invalidation.SizeInParentSpace | Invalidation.Visibility)) > 0)
                 layout.Invalidate();
 
             return base.Invalidate(invalidation, source, shallPropagate);
@@ -138,10 +138,7 @@ namespace osu.Framework.Graphics.Containers
                         }
 
                         if (current != d.Position)
-                        {
                             d.MoveTo(current, LayoutDuration, LayoutEasing);
-                            d.UpdateSubTree();
-                        }
 
                         current.X += size.X;
                     }

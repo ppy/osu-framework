@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics
                     return;
                 relativePositionAxes = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics
                 if (InternalPosition == value) return;
                 InternalPosition = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics
                 if (InternalSize == value) return;
                 InternalSize = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -260,7 +260,7 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -316,7 +316,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -365,7 +365,7 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate(Invalidation.ScreenSpaceQuad);
+                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
@@ -552,7 +552,10 @@ namespace osu.Framework.Graphics
             });
 
 
-        private List<DrawNode> validDrawNodes = new List<DrawNode>();
+        /// <summary>
+        /// Contains all currently valid DrawNodes. Used to invalidate DrawNodes on a change.
+        /// </summary>
+        private List<DrawNode> validDrawNodes = new List<DrawNode>(3);
 
         /// <summary>
         /// Generates the DrawNode for ourselves.
@@ -568,10 +571,11 @@ namespace osu.Framework.Graphics
                 node.Drawable = this;
             }
 
-            if (!validDrawNodes.Contains(node))
+            if (!node.IsValid)
             {
                 //we need to update the node if it has been invalidated.
                 ApplyDrawNode(node);
+                node.IsValid = true;
                 validDrawNodes.Add(node);
             }
 
@@ -740,12 +744,15 @@ namespace osu.Framework.Graphics
                 }
 
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
-                validDrawNodes.Clear();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
-            {
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
+
+            if (!alreadyInvalidated)
+            {
+                foreach (DrawNode n in validDrawNodes)
+                    n.IsValid = false;
                 validDrawNodes.Clear();
             }
 
@@ -846,10 +853,6 @@ namespace osu.Framework.Graphics
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
-
-        // Combinations
-        ScreenSpaceQuad = Position | SizeInParentSpace,
-        DrawInfo = ScreenSpaceQuad | Colour,
 
         // Meta
         None = 0,
