@@ -552,7 +552,10 @@ namespace osu.Framework.Graphics
             });
 
 
-        private List<DrawNode> validDrawNodes = new List<DrawNode>();
+        /// <summary>
+        /// Contains all currently valid DrawNodes. Used to invalidate DrawNodes on a change.
+        /// </summary>
+        private List<DrawNode> validDrawNodes = new List<DrawNode>(3);
 
         /// <summary>
         /// Generates the DrawNode for ourselves.
@@ -741,14 +744,15 @@ namespace osu.Framework.Graphics
                 }
 
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
-                validDrawNodes.ForEach(n => n.IsValid = false);
-                validDrawNodes.Clear();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
-            {
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
-                validDrawNodes.ForEach(n => n.IsValid = false);
+
+            if (!alreadyInvalidated)
+            {
+                foreach (DrawNode n in validDrawNodes)
+                    n.IsValid = false;
                 validDrawNodes.Clear();
             }
 
