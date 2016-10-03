@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Textures
             AddExtension(@"jpg");
         }
 
-        private Texture GetTexture(string name)
+        private Texture getTexture(string name)
         {
             RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Textures
                     return tex;
                 }
 
-                tex = GetTexture(name);
+                tex = getTexture(name);
                     
                 //load available mipmaps
                 //int level = 1;

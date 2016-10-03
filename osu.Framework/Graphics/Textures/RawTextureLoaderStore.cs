@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Textures
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
         }
 
-        private RawTexture LoadPng(Stream stream)
+        private RawTexture loadPng(Stream stream)
         {
             RawTexture t = new RawTexture();
             var reader = new PngReader();
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Textures
             return t;
         }
 
-        private RawTexture LoadOther(Stream stream)
+        private RawTexture loadOther(Stream stream)
         {
             RawTexture t = new RawTexture();
             using (var bmp = (Bitmap)Image.FromStream(stream))
@@ -74,8 +74,8 @@ namespace osu.Framework.Graphics.Textures
             using (var stream = Store.GetStream(name))
             {
                 if (PngReader.IsPngImage(stream))
-                    return LoadPng(stream);
-                return LoadOther(stream);
+                    return loadPng(stream);
+                return loadOther(stream);
             }
         }
     }
