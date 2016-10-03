@@ -159,6 +159,8 @@ namespace osu.Framework.Graphics.Sprites
                     Add(s);
                 }
 
+                base.UpdateChildrenLife();
+
                 lastText = text;
                 return Vector2.Zero;
             });
@@ -175,6 +177,11 @@ namespace osu.Framework.Graphics.Sprites
         public override string ToString()
         {
             return $@"""{Text}"" " + base.ToString();
+        }
+
+        protected override bool UpdateChildrenLife()
+        {
+            return false;
         }
     }
 }
