@@ -502,7 +502,7 @@ namespace osu.Framework.IO.Network
             //else we should just destroy the response and no.
             response?.Close();
             response = null;
-            throw new Exception(@"SSL failures");
+            throw new WebException(@"SSL failures");
         }
 
         public virtual void BlockingPerform()

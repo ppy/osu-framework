@@ -104,7 +104,7 @@ namespace osu.Framework.Cached
                 return value;
             }
 
-            set { throw new Exception("Can't manually update value!"); }
+            set { throw new NotSupportedException("Can't manually update value!"); }
         }
     }
 }
