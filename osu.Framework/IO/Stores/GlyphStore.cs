@@ -1,16 +1,10 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
-//Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
-using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Drawing.Imaging;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Textures.Png;
 
@@ -55,12 +49,12 @@ namespace osu.Framework.IO.Stores
             if (!font.Characters.TryGetValue(name[0], out c))
                 return null;
 
-            var page = getTexturePage(c.TexturePage);
+            RawTexture page = getTexturePage(c.TexturePage);
 
-            var width = c.Bounds.Width + c.Offset.X;
-            var height = c.Bounds.Height + c.Offset.Y;
-            var length = width * height * 4;
-            var pixels = new byte[length];
+            int width = c.Bounds.Width + c.Offset.X;
+            int height = c.Bounds.Height + c.Offset.Y;
+            int length = width * height * 4;
+            byte[] pixels = new byte[length];
             
             for (int y = 0; y < height; y++)
             {

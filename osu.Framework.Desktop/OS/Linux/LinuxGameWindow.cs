@@ -12,11 +12,6 @@ namespace osu.Framework.Desktop.OS.Linux
         public LinuxGameWindow(GraphicsContextFlags flags)
             : base(flags)
         {
-            ExitRequested += () =>
-            {
-                Environment.Exit(0);
-                return true;
-            };
         }
 
         protected override BasicGameForm CreateGameForm(GraphicsContextFlags flags)
