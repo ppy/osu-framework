@@ -45,14 +45,18 @@ namespace osu.Framework.Graphics.Textures
                     unsafe
                     {
                         byte* p = (byte*)pixels.Scan0;
-                        for (int i = 0; i < bmp.Width * bmp.Height; i++)
+                        int i = 0;
+                        for (int y = 0; y < bmp.Height; y++)
                         {
-                            int desti = i * 4;
-                            int srci = i * 3;
-                            t.Pixels[desti] = p[srci];
-                            t.Pixels[desti + 1] = p[srci + 1];
-                            t.Pixels[desti + 2] = p[srci + 2];
-                            t.Pixels[desti + 3] = 255;
+                            for (int x = 0; x < bmp.Width; x++, i++)
+                            {
+                                int desti = i * 4;
+                                int srci = y * pixels.Stride + x * 3;
+                                t.Pixels[desti] = p[srci];
+                                t.Pixels[desti + 1] = p[srci + 1];
+                                t.Pixels[desti + 2] = p[srci + 2];
+                                t.Pixels[desti + 3] = 255;
+                            }
                         }
                     }
                 }
