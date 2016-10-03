@@ -59,7 +59,7 @@ namespace osu.Framework.Threading
             lock (locker)
             {
                 if (this.task != null)
-                    throw new Exception();
+                    throw new InvalidOperationException();
                 this.task = task;
                 //disrupt time handle
                 sleepTimeOut.Set();

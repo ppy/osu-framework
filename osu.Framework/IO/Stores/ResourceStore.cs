@@ -151,14 +151,6 @@ namespace osu.Framework.IO.Stores
             actionList[name] = onReload;
         }
 
-        public class ReloadAlreadyBoundException : Exception
-        {
-            public ReloadAlreadyBoundException(string resourceName)
-                : base($"A reload delegate is already bound to the resource '{resourceName}'.")
-            {
-            }
-        }
-
         /// <summary>
         /// Add a file extension to automatically append to any lookups on this store.
         /// </summary>
@@ -168,6 +160,14 @@ namespace osu.Framework.IO.Stores
 
             if (!searchExtensions.Contains(extension))
                 searchExtensions.Add(extension);
+        }
+    }
+
+    public sealed class ReloadAlreadyBoundException : Exception
+    {
+        public ReloadAlreadyBoundException(string resourceName)
+            : base($"A reload delegate is already bound to the resource '{resourceName}'.")
+        {
         }
     }
 }

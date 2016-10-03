@@ -31,7 +31,7 @@ namespace osu.Framework.IO.Stores
             }
             catch
             {
-                throw new Exception($@"Couldn't load font asset from {assetName}.");
+                throw new FontLoadException(assetName);
             }
         }
 
@@ -72,6 +72,14 @@ namespace osu.Framework.IO.Stores
         public Stream GetStream(string name)
         {
             return new MemoryStream(Get(name));
+        }
+    }
+
+    public sealed class FontLoadException : Exception
+    {
+        public FontLoadException(string assetName):
+            base($@"Couldn't load font asset from {assetName}.")
+        {
         }
     }
 }

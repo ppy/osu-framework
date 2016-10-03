@@ -3,6 +3,7 @@
 
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using osu.Framework.Logging;
 using OpenTK.Graphics;
@@ -32,13 +33,14 @@ namespace osu.Framework.OS
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
-            GLVersion = new Version(version.Split(' ')[0]);
+            string versionNumberSubstring = GetVersionNumberSubstring(version);
+            GLVersion = new Version(versionNumberSubstring);
             version = GL.GetString(StringName.ShadingLanguageVersion);
             if (!string.IsNullOrEmpty(version))
             {
                 try
                 {
-                    GLSLVersion = new Version(version.Split(' ')[0]);
+                    GLSLVersion = new Version(versionNumberSubstring);
                 }
                 catch (Exception e)
                 {
@@ -62,6 +64,13 @@ namespace osu.Framework.OS
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}
                         GL Context:                 {GraphicsMode}", LoggingTarget.Runtime, LogLevel.Important);
+        }
+
+        private string GetVersionNumberSubstring(string version)
+        {
+            string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
+            if (result != null) return result;
+            throw new ArgumentException(nameof(version));
         }
 
         protected override void OnMouseEnter(EventArgs e)
