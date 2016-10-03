@@ -179,7 +179,10 @@ namespace osu.Framework.Graphics.Containers
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
+            {
+                //TODO: IMPORTANT: figure why propagation is failing here.
+                //return false;
+            }
 
             if (shallPropagate)
             {
