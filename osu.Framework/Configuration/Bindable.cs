@@ -51,7 +51,7 @@ namespace osu.Framework.Configuration
             return true;
         }
 
-        internal void TriggerChange()
+        public void TriggerChange()
         {
             ValueChanged?.Invoke(this, null);
         }
