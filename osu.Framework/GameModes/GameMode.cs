@@ -11,8 +11,10 @@ namespace osu.Framework.GameModes
 {
     public class GameMode : Container
     {
-        private GameMode parentGameMode;
-        private GameMode childGameMode;
+        protected GameMode ParentGameMode;
+        protected GameMode ChildGameMode;
+
+        public bool IsCurrentGameMode => ChildGameMode == null;
 
         protected ContentContainer Content;
 
@@ -56,7 +58,7 @@ namespace osu.Framework.GameModes
             switch (args.Key)
             {
                 case Key.Escape:
-                    if (parentGameMode == null) return false;
+                    if (ParentGameMode == null) return false;
 
                     Exit();
                     return true;
@@ -79,7 +81,7 @@ namespace osu.Framework.GameModes
                 Origin = Anchor.Centre
             });
 
-            if (parentGameMode == null)
+            if (ParentGameMode == null)
                 OnEntering(null);
         }
 
@@ -89,7 +91,7 @@ namespace osu.Framework.GameModes
         /// <param name="mode">The new GameMode.</param>
         protected void Push(GameMode mode)
         {
-            Debug.Assert(childGameMode == null);
+            Debug.Assert(ChildGameMode == null);
 
             startSuspend(mode);
 
@@ -104,19 +106,19 @@ namespace osu.Framework.GameModes
         /// </summary>
         protected void Exit()
         {
-            Debug.Assert(parentGameMode != null);
+            Debug.Assert(ParentGameMode != null);
 
-            OnExiting(parentGameMode);
+            OnExiting(ParentGameMode);
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
-            parentGameMode.startResume(this);
-            parentGameMode = null;
+            ParentGameMode.startResume(this);
+            ParentGameMode = null;
         }
 
         private void startResume(GameMode last)
         {
-            childGameMode = null;
+            ChildGameMode = null;
             OnResuming(last);
             Content.LifetimeEnd = double.MaxValue;
         }
@@ -126,8 +128,24 @@ namespace osu.Framework.GameModes
             OnSuspending(next);
             Content.Expire();
 
-            childGameMode = next;
-            next.parentGameMode = this;
+            ChildGameMode = next;
+            next.ParentGameMode = this;
+        }
+
+        public void MakeCurrent()
+        {
+            if (IsCurrentGameMode) return;
+
+            //find deepest child
+            GameMode c = ChildGameMode;
+            while (c.ChildGameMode != null)
+                c = c.ChildGameMode;
+
+            //set deepest child's parent to us
+            c.ParentGameMode = this;
+
+            //exit child, making us current
+            c.Exit();
         }
 
         protected class ContentContainer : Container
