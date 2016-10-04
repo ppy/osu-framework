@@ -71,7 +71,7 @@ namespace osu.Framework.Configuration
 
         public override string ToString()
         {
-            return value.ToString();
+            return value?.ToString() ?? string.Empty;
         }
 
         internal void Reset()
