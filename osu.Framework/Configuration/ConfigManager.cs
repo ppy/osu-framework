@@ -169,6 +169,8 @@ namespace osu.Framework.Configuration
             {
                 return false;
             }
+
+            hasUnsavedChanges = false;
             return true;
         }
 
