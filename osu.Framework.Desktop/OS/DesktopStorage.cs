@@ -20,7 +20,7 @@ namespace osu.Framework.Desktop.OS
             return File.Open(path, FileMode.OpenOrCreate, mode);
         }
         
-        public override SQLiteConnection GetDb(string name)
+        public override SQLiteConnection GetDatabase(string name)
         {
             Directory.CreateDirectory(BasePath);
             return new SQLiteConnection(Path.Combine(BasePath, $@"{name}.db"));
