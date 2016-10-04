@@ -13,7 +13,7 @@ namespace osu.Framework.Desktop.OS.Windows
         {
             get
             {
-                var appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 return Path.Combine(appdata, BaseName);
             }
         }    }

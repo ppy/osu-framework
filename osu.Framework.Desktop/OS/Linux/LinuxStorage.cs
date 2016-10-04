@@ -13,13 +13,13 @@ namespace osu.Framework.Desktop.OS.Linux
         {
             get
             {
-                var home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                var xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                var paths = new[] {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+                string[] paths = {
                     Path.Combine(xdg ?? Path.Combine(home, ".local", "share"), BaseName),
                     Path.Combine(home, "." + BaseName)
                 };
-                foreach (var path in paths)
+                foreach (string path in paths)
                 {
                     if (Directory.Exists(path))
                         return path;
