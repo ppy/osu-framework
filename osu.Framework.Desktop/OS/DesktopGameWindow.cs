@@ -32,6 +32,7 @@ namespace osu.Framework.Desktop.OS
         internal DesktopGameWindow(GraphicsContextFlags flags)
         {
             Form = CreateGameForm(flags);
+            Form.StartPosition = FormStartPosition.CenterScreen;
             Form.ClientSize = new Size(default_width, default_height); // if no screen res is set the default will be used instead
             Form.ScreenChanged += delegate { OnScreenDeviceNameChanged(); };
             Form.ApplicationActivated += delegate { OnActivated(); };

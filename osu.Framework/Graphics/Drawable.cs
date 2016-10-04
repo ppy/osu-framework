@@ -174,8 +174,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual string ToolTip { get; set; }
-
         private float rotation;
 
         public float Rotation
