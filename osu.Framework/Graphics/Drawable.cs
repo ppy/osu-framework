@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
+        public virtual Quad ScreenSpaceInputQuad => screenSpaceDrawQuadBacking.Value;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
         public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
