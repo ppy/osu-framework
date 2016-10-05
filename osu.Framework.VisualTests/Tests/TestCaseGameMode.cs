@@ -35,7 +35,7 @@ namespace osu.Framework.VisualTests.Tests
 
             const int transition_time = 500;
 
-            protected override double OnEntering(GameMode last)
+            protected override void OnEntering(GameMode last)
             {
                 if (last != null)
                 {
@@ -45,25 +45,21 @@ namespace osu.Framework.VisualTests.Tests
 
                 Content.MoveTo(new Vector2(0, -Size.Y));
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
-                return transition_time;
             }
 
-            protected override double OnExiting(GameMode next)
+            protected override void OnExiting(GameMode next)
             {
                 Content.MoveTo(new Vector2(0, -Size.Y), transition_time, EasingTypes.OutQuint);
-                return transition_time;
             }
 
-            protected override double OnSuspending(GameMode next)
+            protected override void OnSuspending(GameMode next)
             {
                 Content.MoveTo(new Vector2(0, Size.Y), transition_time, EasingTypes.OutQuint);
-                return transition_time;
             }
 
-            protected override double OnResuming(GameMode last)
+            protected override void OnResuming(GameMode last)
             {
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
-                return transition_time;
             }
 
             public override void Load()
