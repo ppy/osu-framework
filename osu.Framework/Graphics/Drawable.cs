@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics
 
                 Invalidation i = Invalidation.Colour;
                 //we may have changed the visible state.
-                if (alpha < visibility_cutoff || value < visibility_cutoff)
+                if (alpha <= visibility_cutoff || value <= visibility_cutoff)
                     i |= Invalidation.Visibility;
 
                 Invalidate(i);
