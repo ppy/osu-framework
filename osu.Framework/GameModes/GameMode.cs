@@ -16,6 +16,11 @@ namespace osu.Framework.GameModes
 
         public bool IsCurrentGameMode => ChildGameMode == null;
 
+        /// <summary>
+        /// Identify whether we are to be displayed at the top level of a GameMode stack.
+        /// </summary>
+        protected virtual bool IsTopLevel => false;
+
         protected ContentContainer Content;
 
         protected override Container AddTarget => Content;
@@ -26,32 +31,32 @@ namespace osu.Framework.GameModes
         }
 
         /// <summary>
-        /// Called when this GameMode is being entered.
+        /// Called when this GameMode is being entered. Only happens once, ever.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
         /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual double OnEntering(GameMode last) => 0;
+        protected virtual void OnEntering(GameMode last) { }
 
         /// <summary>
-        /// Called when this GameMode is exiting.
+        /// Called when this GameMode is exiting. Only happens once, ever.
         /// </summary>
         /// <param name="next">The next GameMode.</param>
         /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual double OnExiting(GameMode next) => 0;
+        protected virtual void OnExiting(GameMode next) { }
 
         /// <summary>
         /// Called when this GameMode is being returned to from a child exiting.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
         /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual double OnResuming(GameMode last) => 0;
+        protected virtual void OnResuming(GameMode last) { }
 
         /// <summary>
         /// Called when this GameMode is being left to a new child.
         /// </summary>
         /// <param name="next">The new GameMode</param>
         /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual double OnSuspending(GameMode next) => 0;
+        protected virtual void OnSuspending(GameMode next) { }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -76,7 +81,6 @@ namespace osu.Framework.GameModes
 
             AddTopLevel(Content = new ContentContainer()
             {
-                Depth = float.MinValue,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre
             });
@@ -89,7 +93,7 @@ namespace osu.Framework.GameModes
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        protected void Push(GameMode mode)
+        public void Push(GameMode mode)
         {
             Debug.Assert(ChildGameMode == null);
 
@@ -97,14 +101,14 @@ namespace osu.Framework.GameModes
 
             AddTopLevel(mode);
             mode.OnEntering(this);
-            
+
             Content.Expire();
         }
 
         /// <summary>
         /// Exits this GameMode.
         /// </summary>
-        protected void Exit()
+        public void Exit()
         {
             Debug.Assert(ParentGameMode != null);
 
