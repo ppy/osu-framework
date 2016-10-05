@@ -151,7 +151,6 @@ namespace osu.Framework.Graphics
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
-                updateTransformsOfType(type);
                 Transforms.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
                     return this;
@@ -177,21 +176,25 @@ namespace osu.Framework.Graphics
 
         public Drawable FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformAlpha));
             return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
         }
 
         public Drawable RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformRotation));
             return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation(Clock));
         }
 
         public Drawable MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformPositionX));
             return transformFloatTo(Position.X, destination, duration, easing, new TransformPositionX(Clock));
         }
 
         public Drawable MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformPositionY));
             return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
         }
 
@@ -230,21 +233,25 @@ namespace osu.Framework.Graphics
 
         public Drawable ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformScaleVector));
             return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScaleVector(Clock));
         }
 
         public Drawable ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformScaleVector));
             return transformVectorTo(Scale, newScale, duration, easing, new TransformScaleVector(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformPosition));
             return transformVectorTo(Position, newPosition, duration, easing, new TransformPosition(Clock));
         }
 
         public Drawable MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            updateTransformsOfType(typeof(TransformPosition));
             return MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
 
@@ -254,15 +261,14 @@ namespace osu.Framework.Graphics
 
         public Drawable FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
-            Color4 startValue = Colour;
+            updateTransformsOfType(typeof(TransformColour));
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t is TransformColour);
                 if (startValue == newColour)
                     return this;
             }
-            else
-                startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
             double startTime = Time + transformationDelay;
 
