@@ -683,6 +683,7 @@ namespace osu.Framework.Graphics
         public virtual void Load()
         {
             loaded = true;
+            LifetimeStart = Time;
             Invalidate();
         }
 
@@ -927,7 +928,9 @@ namespace osu.Framework.Graphics
     {
         public int Compare(Drawable x, Drawable y)
         {
-            return x.Depth.CompareTo(y.Depth);
+            int i = x.Depth.CompareTo(y.Depth);
+            if (i != 0) return i;
+            return x.LifetimeStart.CompareTo(y.LifetimeStart);
         }
     }
 
