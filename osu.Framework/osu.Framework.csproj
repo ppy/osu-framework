@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -42,11 +42,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ManagedBass, Version=0.23.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ManagedBass.0.23.3\lib\net45\ManagedBass.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ManagedBass.0.24.0\lib\net45\ManagedBass.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ManagedBass.PInvoke, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ManagedBass.PInvoke.0.4.3\lib\net45\ManagedBass.PInvoke.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ManagedBass.PInvoke.0.5.0\lib\net45\ManagedBass.PInvoke.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -61,8 +61,8 @@
       <HintPath>$(SolutionDir)\packages\ppy.OpenTK.GLControl.1.1.2225.1\lib\net40\OpenTK.GLControl.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SmartThreadPool, Version=2.2.3.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\SmartThreadPool.dll.2.2.3\lib\SmartThreadPool.dll</HintPath>
+    <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
