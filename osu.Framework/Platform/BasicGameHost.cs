@@ -197,6 +197,9 @@ namespace osu.Framework.Platform
         public void Exit()
         {
             ExitRequested = true;
+            while (threadsRunning)
+                Thread.Sleep(1);
+            Window.Close();
         }
 
         public virtual void Run()
@@ -289,9 +292,6 @@ namespace osu.Framework.Platform
                 InputClock.ProcessFrame();
 
             inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-
-            if (ExitRequested)
-                Window.Close();
         }
 
         public override Drawable Add(Drawable drawable)
