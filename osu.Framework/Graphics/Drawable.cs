@@ -201,7 +201,7 @@ namespace osu.Framework.Graphics
 
                 Invalidation i = Invalidation.Colour;
                 //we may have changed the visible state.
-                if (alpha == 0 || value == 0)
+                if (alpha <= visibility_cutoff || value <= visibility_cutoff)
                     i |= Invalidation.Visibility;
 
                 Invalidate(i);
@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
+        public virtual Quad ScreenSpaceInputQuad => screenSpaceDrawQuadBacking.Value;
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
         public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
@@ -367,8 +367,10 @@ namespace osu.Framework.Graphics
             }
         }
 
+        const float visibility_cutoff = 0.0001f;
+
         private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > 0.0001f && Parent?.IsVisible == true);
+        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
 
         private bool? additive;
 
@@ -683,6 +685,7 @@ namespace osu.Framework.Graphics
         public virtual void Load()
         {
             loaded = true;
+            LifetimeStart = Time;
             Invalidate();
         }
 
@@ -927,7 +930,9 @@ namespace osu.Framework.Graphics
     {
         public int Compare(Drawable x, Drawable y)
         {
-            return x.Depth.CompareTo(y.Depth);
+            int i = x.Depth.CompareTo(y.Depth);
+            if (i != 0) return i;
+            return x.LifetimeStart.CompareTo(y.LifetimeStart);
         }
     }
 
