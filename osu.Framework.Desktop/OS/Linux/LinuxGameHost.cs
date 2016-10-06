@@ -22,7 +22,7 @@ namespace osu.Framework.Desktop.OS.Linux
         {
             //todo: figure why opentk input handlers aren't working.
             return new InputHandler[] {
-                new CursorMouseHandler(), //handles cursor position
+                new OpenTKMouseHandler(), //handles cursor position
                 new FormMouseHandler(),   //handles button states
                 new OpenTKKeyboardHandler(),
             };

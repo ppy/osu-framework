@@ -52,6 +52,7 @@
     <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\CursorMouseHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\FormMouseHandler.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKMouseHandler.cs" />
     <Compile Include="OS\DesktopGameHost.cs" />
     <Compile Include="OS\DesktopGameWindow.cs" />
     <Compile Include="OS\Linux\LinuxGameForm.cs">
