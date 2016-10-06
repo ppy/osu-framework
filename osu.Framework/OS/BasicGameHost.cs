@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime;
@@ -275,10 +276,14 @@ namespace osu.Framework.OS
                 Window.Close();
         }
 
-        public void Load(Game game)
+        public override Drawable Add(Drawable drawable)
         {
+            Game game = drawable as Game;
+            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
+
             game.SetHost(this);
-            updateScheduler.Add(delegate { Add(game); });
+            updateScheduler.Add(delegate { base.Add(game); });
+            return game;
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

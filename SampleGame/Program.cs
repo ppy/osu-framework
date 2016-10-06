@@ -16,7 +16,7 @@ namespace SampleGame
             using (Game game = new SampleGame())
             using (BasicGameHost host = Host.GetSuitableHost())
             {
-                host.Load(game);
+                host.Add(game);
                 host.Run();
             }
         }

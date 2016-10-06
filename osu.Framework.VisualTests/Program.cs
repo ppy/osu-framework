@@ -16,9 +16,9 @@ namespace osu.Framework.VisualTests
 
             BasicGameHost host = Host.GetSuitableHost();
             if (benchmark)
-                host.Load(new Benchmark());
+                host.Add(new Benchmark());
             else
-                host.Load(new VisualTestGame());
+                host.Add(new VisualTestGame());
             host.Run();
         }
     }
