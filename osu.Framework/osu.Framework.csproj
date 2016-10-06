@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -222,10 +222,6 @@
     <Compile Include="Input\Handlers\ICursorInputHandler.cs" />
     <Compile Include="Input\Handlers\IKeyboardInputHandler.cs" />
     <Compile Include="Input\Handlers\InputHandler.cs" />
-    <Compile Include="Input\Handlers\Keyboard\FormKeyboardHandler.cs" />
-    <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
-    <Compile Include="Input\Handlers\Mouse\CursorMouseHandler.cs" />
-    <Compile Include="Input\Handlers\Mouse\FormMouseHandler.cs" />
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Input\InputState.cs" />
     <Compile Include="Input\KeyboardState.cs" />

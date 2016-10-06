@@ -2,42 +2,45 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Windows.Forms;
+using osu.Framework.Desktop.Input.Handlers.Keyboard;
+using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.OS.Windows.Native;
-using osu.Framework.Input;
-using osu.Framework.OS;
+using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
 using NativeWindow = OpenTK.NativeWindow;
 
 namespace osu.Framework.Desktop.OS.Windows
 {
-    public class WindowsGameHost : BasicGameHost
+    public class WindowsGameHost : DesktopGameHost
     {
-        public override GLControl GLControl => window?.Form;
         public override bool IsActive => Window != null && GetForegroundWindow().Equals(Window.Handle);
-
-        private WindowsGameWindow window;
 
         private TimePeriod timePeriod;
 
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
-            timePeriod = new TimePeriod(1)
-            {
-                Active = true
-            };
+            timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
-            window = new WindowsGameWindow(flags);
 
-            Application.EnableVisualStyles();
-
-            Window = window;
+            Window = new WindowsGameWindow(flags);
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
+
+            Application.EnableVisualStyles();
+        }
+
+        public override IEnumerable<InputHandler> GetInputHandlers()
+        {
+            //todo: figure why opentk input handlers aren't working.
+            return new InputHandler[] {
+                new CursorMouseHandler(), //handles cursor position
+                new FormMouseHandler(),   //handles button states
+                new FormKeyboardHandler(),
+            };
         }
 
         protected override void Dispose(bool isDisposing)
@@ -45,9 +48,6 @@ namespace osu.Framework.Desktop.OS.Windows
             timePeriod.Dispose();
             base.Dispose(isDisposing);
         }
-
-        private TextInputSource textInputBox;
-        public override TextInputSource TextInput => textInputBox ?? (textInputBox = window.CreateTextInput());
 
         protected override void OnActivated(object sender, EventArgs args)
         {
@@ -59,87 +59,21 @@ namespace osu.Framework.Desktop.OS.Windows
 
         protected override void OnDeactivated(object sender, EventArgs args)
         {
-            timePeriod.Active = true;
+            timePeriod.Active = false;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated(sender, args);
         }
 
-        protected override void OnApplicationIdle()
-        {
-            //MSG message;
-            //while (!PeekMessage(out message, IntPtr.Zero, 0, 0, 0))
-            //{
-            //    //handle message
-            //}
-
-            base.OnApplicationIdle();
-        }
-
         public override void Run()
         {
-            NativeWindow.OsuWindowHandle = window.Handle;
+            //not sure this is still needed
+            NativeWindow.OsuWindowHandle = Window.Handle;
 
             base.Run();
         }
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
-
-        [return: MarshalAs(UnmanagedType.Bool)]
-        [SuppressUnmanagedCodeSecurity, DllImport("user32.dll", CharSet = CharSet.Auto)]
-        internal static extern bool PeekMessage(out MSG msg, IntPtr hWnd, uint messageFilterMin, uint messageFilterMax, uint flags);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct MSG
-        {
-            public IntPtr hWnd;
-            public WindowMessage msg;
-            public IntPtr wParam;
-            public IntPtr lParam;
-            public uint time;
-            public Point p;
-        }
-
-        public enum WindowMessage : uint
-        {
-            ActivateApplication = 0x1c,
-            Character = 0x102,
-            Close = 0x10,
-            Destroy = 2,
-            EnterMenuLoop = 0x211,
-            EnterSizeMove = 0x231,
-            ExitMenuLoop = 530,
-            ExitSizeMove = 0x232,
-            GetMinMax = 0x24,
-            KeyDown = 0x100,
-            KeyUp = 0x101,
-            LeftButtonDoubleClick = 0x203,
-            LeftButtonDown = 0x201,
-            LeftButtonUp = 0x202,
-            MiddleButtonDoubleClick = 0x209,
-            MiddleButtonDown = 0x207,
-            MiddleButtonUp = 520,
-            MouseFirst = 0x201,
-            MouseLast = 0x20d,
-            MouseMove = 0x200,
-            MouseWheel = 0x20a,
-            NonClientHitTest = 0x84,
-            Paint = 15,
-            PowerBroadcast = 0x218,
-            Quit = 0x12,
-            RightButtonDoubleClick = 0x206,
-            RightButtonDown = 0x204,
-            RightButtonUp = 0x205,
-            SetCursor = 0x20,
-            Size = 5,
-            SystemCharacter = 0x106,
-            SystemCommand = 0x112,
-            SystemKeyDown = 260,
-            SystemKeyUp = 0x105,
-            XButtonDoubleClick = 0x20d,
-            XButtonDown = 0x20b,
-            XButtonUp = 0x20c
-        }
     }
 }
