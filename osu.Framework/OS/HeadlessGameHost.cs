@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Input;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.OS
@@ -45,5 +47,7 @@ namespace osu.Framework.OS
                 }
             }
         }
+
+        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };
     }
 }
