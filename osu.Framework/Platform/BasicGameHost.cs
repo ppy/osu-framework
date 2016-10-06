@@ -199,7 +199,7 @@ namespace osu.Framework.Platform
             ExitRequested = true;
             while (threadsRunning)
                 Thread.Sleep(1);
-            Window.Close();
+            Window?.Close();
         }
 
         public virtual void Run()
