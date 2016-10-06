@@ -26,7 +26,7 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public BindableDouble Set(T lookup, double value)
+        public BindableDouble Set(T lookup, double value, double? min = null, double? max = null)
         {
             BindableDouble bindable = GetBindable<double>(lookup) as BindableDouble;
 
@@ -39,6 +39,9 @@ namespace osu.Framework.Configuration
             {
                 bindable.Value = value;
             }
+
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }
