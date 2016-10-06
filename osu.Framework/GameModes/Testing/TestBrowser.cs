@@ -30,6 +30,16 @@ namespace osu.Framework.GameModes.Testing
 
         public int TestCount => testCases.Count;
 
+        private List<TestCase> tests = new List<TestCase>();
+
+        public TestBrowser()
+        {
+            //we want to build the lists here because we're interested in the assembly we were *created* on.
+            Assembly asm = Assembly.GetCallingAssembly();
+            foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
+                tests.Add((TestCase)Activator.CreateInstance(type));
+        }
+
         public override void Load()
         {
             base.Load();
@@ -72,12 +82,6 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.25f, 1)
             });
-
-            List<TestCase> tests = new List<TestCase>();
-
-            Assembly asm = Assembly.GetCallingAssembly();
-            foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
-                tests.Add((TestCase)Activator.CreateInstance(type));
 
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
