@@ -72,7 +72,10 @@ namespace osu.Framework.Audio.Track
         {
             base.Update();
             if (Looping && !IsRunning && Length == CurrentTime)
+            {
+                Stop(); //required to avoid stack overflow.
                 Start();
+            }
         }
 
         /// <summary>
