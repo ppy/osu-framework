@@ -75,7 +75,7 @@ namespace osu.Framework.GameModes.Testing
 
             List<TestCase> tests = new List<TestCase>();
 
-            Assembly asm = Assembly.GetEntryAssembly();
+            Assembly asm = Assembly.GetCallingAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 

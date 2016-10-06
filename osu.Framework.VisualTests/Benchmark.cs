@@ -6,7 +6,7 @@ using osu.Framework.VisualTests.Tests;
 
 namespace osu.Framework.VisualTests
 {
-    class Benchmark : Game
+    public class Benchmark : Game
     {
         public override void Load()
         {
