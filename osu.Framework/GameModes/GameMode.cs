@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,18 +13,17 @@ namespace osu.Framework.GameModes
     public class GameMode : Container
     {
         protected GameMode ParentGameMode;
-        protected GameMode ChildGameMode;
+        public GameMode ChildGameMode;
 
         public bool IsCurrentGameMode => ChildGameMode == null;
-
-        /// <summary>
-        /// Identify whether we are to be displayed at the top level of a GameMode stack.
-        /// </summary>
-        protected virtual bool IsTopLevel => false;
 
         protected ContentContainer Content;
 
         protected override Container AddTarget => Content;
+
+        public event Action<GameMode> ModePushed;
+
+        public event Action<GameMode> Exited;
 
         public GameMode()
         {
@@ -102,7 +102,18 @@ namespace osu.Framework.GameModes
             AddTopLevel(mode);
             mode.OnEntering(this);
 
+            ModePushed?.Invoke(mode);
+
             Content.Expire();
+        }
+
+        private void startSuspend(GameMode next)
+        {
+            OnSuspending(next);
+            Content.Expire();
+
+            ChildGameMode = next;
+            next.ParentGameMode = this;
         }
 
         /// <summary>
@@ -117,7 +128,11 @@ namespace osu.Framework.GameModes
             LifetimeEnd = Content.LifetimeEnd;
 
             ParentGameMode.startResume(this);
+            Exited?.Invoke(ParentGameMode);
             ParentGameMode = null;
+
+            Exited = null;
+            ModePushed = null;
         }
 
         private void startResume(GameMode last)
@@ -127,14 +142,6 @@ namespace osu.Framework.GameModes
             Content.LifetimeEnd = double.MaxValue;
         }
 
-        private void startSuspend(GameMode next)
-        {
-            OnSuspending(next);
-            Content.Expire();
-
-            ChildGameMode = next;
-            next.ParentGameMode = this;
-        }
 
         public void MakeCurrent()
         {
