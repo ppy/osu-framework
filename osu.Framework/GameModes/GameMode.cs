@@ -17,7 +17,7 @@ namespace osu.Framework.GameModes
 
         public bool IsCurrentGameMode => ChildGameMode == null;
 
-        protected ContentContainer Content;
+        public Container Content;
 
         protected override Container AddTarget => Content;
 
@@ -28,6 +28,8 @@ namespace osu.Framework.GameModes
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
         }
 
         /// <summary>
@@ -75,9 +77,6 @@ namespace osu.Framework.GameModes
         public override void Load()
         {
             base.Load();
-
-            Anchor = Anchor.Centre;
-            Origin = Anchor.Centre;
 
             AddTopLevel(Content = new ContentContainer()
             {
