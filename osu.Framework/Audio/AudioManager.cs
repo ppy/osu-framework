@@ -59,7 +59,10 @@ namespace osu.Framework.Audio
             {
                 SetAudioDevice();
             }
-            catch { }
+            catch
+            {
+                return;
+            }
 
             scheduler.AddDelayed(checkAudioDeviceChanged, 1000, true);
         }
