@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using osu.Framework.Input;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input
 {

@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 using OpenTK;
 
-namespace osu.Framework.Desktop.OS.Windows
+namespace osu.Framework.Desktop.Platform.Windows
 {
     /// <summary>
     /// Set the windows multimedia timer to a specific accuracy.

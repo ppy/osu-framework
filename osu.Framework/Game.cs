@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;

@@ -7,7 +7,7 @@ using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Desktop.OS.Linux
+namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {

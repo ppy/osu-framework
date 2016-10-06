@@ -23,7 +23,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Cached;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {

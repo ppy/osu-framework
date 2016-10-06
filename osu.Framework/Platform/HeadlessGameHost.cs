@@ -7,7 +7,7 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     /// <summary>
     /// A GameHost which doesn't require a graphical or sound device.

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Desktop.OS.Linux;
-using osu.Framework.Desktop.OS.Windows;
-using osu.Framework.OS;
+using osu.Framework.Desktop.Platform.Linux;
+using osu.Framework.Desktop.Platform.Windows;
+using osu.Framework.Platform;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop

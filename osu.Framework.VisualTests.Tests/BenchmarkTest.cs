@@ -1,6 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 
 namespace osu.Framework.VisualTests.Tests
 {

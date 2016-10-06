@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 
-namespace osu.Framework.Desktop.OS
+namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {

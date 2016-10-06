@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using OpenTK.Graphics;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     public abstract class BasicGameForm : GLControl
     {

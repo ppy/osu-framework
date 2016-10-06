@@ -5,7 +5,7 @@ using System.IO;
 using System.Security.AccessControl;
 using Microsoft.Win32;
 
-namespace osu.Framework.Desktop.OS.Windows.Native
+namespace osu.Framework.Desktop.Platform.Windows.Native
 {
     public static class Registry
     {
