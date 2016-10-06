@@ -72,10 +72,11 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// Creates a texture from bytes laid out in BGRA format, row major.
         /// </summary>
-        /// <param name="data">The raw bytes containing the texture in BGRA format, row major.</param>
+        /// <param name="data">The raw bytes containing the texture in provided format, row major.</param>
         /// <param name="width">Width of the texture in pixels.</param>
         /// <param name="height">Height of the texture in pixels.</param>
         /// <param name="atlas">The atlas to add the texture to.</param>
+        /// <param name="format">The pixel format of the data.</param>
         /// <returns>The created texture.</returns>
         public static Texture FromRawBytes(byte[] data, int width, int height, TextureAtlas atlas = null, PixelFormat format = PixelFormat.Rgba)
         {
