@@ -39,6 +39,19 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
+        /// <summary>
+        /// Welds two bindables together such that they update each other and stay in sync.
+        /// </summary>
+        /// <param name="v">The foreign bindable to weld.</param>
+        /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
+        public void Weld(Bindable<T> v, bool transferValue = true)
+        {
+            if (transferValue) Value = v.Value;
+
+            ValueChanged += delegate { v.Value = Value; };
+            v.ValueChanged += delegate { Value = v.Value; };
+        }
+
         public virtual bool Parse(object s)
         {
             if (s is T)
