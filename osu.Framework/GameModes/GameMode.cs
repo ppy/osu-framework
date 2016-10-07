@@ -119,8 +119,6 @@ namespace osu.Framework.GameModes
         /// </summary>
         public void Exit()
         {
-            Debug.Assert(ParentGameMode != null);
-
             if (hasExited)
                 return;
 
