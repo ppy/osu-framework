@@ -47,9 +47,10 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            protected override void OnExiting(GameMode next)
+            protected override bool OnExiting(GameMode next)
             {
                 Content.MoveTo(new Vector2(0, -Size.Y), transition_time, EasingTypes.OutQuint);
+                return base.OnExiting(next);
             }
 
             protected override void OnSuspending(GameMode next)

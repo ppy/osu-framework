@@ -33,7 +33,7 @@ namespace osu.Framework.VisualTests
                 }, loadableCase * timePerTest);
             }
 
-            Scheduler.AddDelayed(Exit, f.TestCount * timePerTest);
+            Scheduler.AddDelayed(Host.Exit, f.TestCount * timePerTest);
         }
     }
 }
