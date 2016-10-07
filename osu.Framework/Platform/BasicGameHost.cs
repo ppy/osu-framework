@@ -104,17 +104,36 @@ namespace osu.Framework.Platform
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
-            Activated?.Invoke(this, EventArgs.Empty);
+            UpdateScheduler.Add(delegate
+            {
+                Activated?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         protected virtual void OnDeactivated(object sender, EventArgs args)
         {
-            Deactivated?.Invoke(this, EventArgs.Empty);
+            UpdateScheduler.Add(delegate
+            {
+                Deactivated?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         protected virtual bool OnExitRequested()
         {
-            if (Exiting?.Invoke() == true)
+            if (ExitRequested) return false;
+
+            bool? response = null;
+
+            UpdateScheduler.Add(delegate
+            {
+                response = Exiting?.Invoke() == true;
+            });
+
+            //wait for a potentially blocking response
+            while (!response.HasValue)
+                Thread.Sleep(1);
+
+            if (response.Value)
                 return true;
 
             ExitRequested = true;
