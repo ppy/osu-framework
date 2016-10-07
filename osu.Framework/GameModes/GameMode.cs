@@ -25,12 +25,16 @@ namespace osu.Framework.GameModes
 
         public event Action<GameMode> Exited;
 
+        private bool hasExited;
+
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
         }
+
+        public override bool HandleInput => !hasExited;
 
         /// <summary>
         /// Called when this GameMode is being entered. Only happens once, ever.
@@ -117,8 +121,13 @@ namespace osu.Framework.GameModes
         {
             Debug.Assert(ParentGameMode != null);
 
+            if (hasExited)
+                return;
+
             if (OnExiting(ParentGameMode))
                 return;
+
+            hasExited = true;
 
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
