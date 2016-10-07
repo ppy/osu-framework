@@ -6,7 +6,6 @@ using System;
 namespace osu.Framework.Configuration
 {
     public class Bindable<T> : IBindable
-        where T : IComparable
     {
         private T value;
 
@@ -21,7 +20,7 @@ namespace osu.Framework.Configuration
             get { return value; }
             set
             {
-                if (this.value?.CompareTo(value) == 0) return;
+                if (this.value?.Equals(value) == true) return;
 
                 this.value = value;
 
