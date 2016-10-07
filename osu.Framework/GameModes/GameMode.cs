@@ -65,8 +65,6 @@ namespace osu.Framework.GameModes
             switch (args.Key)
             {
                 case Key.Escape:
-                    if (ParentGameMode == null) return false;
-
                     Exit();
                     return true;
             }
@@ -126,7 +124,7 @@ namespace osu.Framework.GameModes
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
-            ParentGameMode.startResume(this);
+            ParentGameMode?.startResume(this);
             Exited?.Invoke(ParentGameMode);
             ParentGameMode = null;
 
