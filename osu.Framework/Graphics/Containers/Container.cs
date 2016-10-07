@@ -132,7 +132,12 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable t in children)
             {
                 if (dispose)
+                {
+                    //cascade disposal
+                    (t as Container)?.Clear();
+
                     t.Dispose();
+                }
                 t.Parent = null;
             }
 
