@@ -36,28 +36,25 @@ namespace osu.Framework.GameModes
         /// Called when this GameMode is being entered. Only happens once, ever.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnEntering(GameMode last) { }
 
         /// <summary>
         /// Called when this GameMode is exiting. Only happens once, ever.
         /// </summary>
         /// <param name="next">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual void OnExiting(GameMode next) { }
+        /// <returns>Return true to cancel the exit process.</returns>
+        protected virtual bool OnExiting(GameMode next) => false;
 
         /// <summary>
         /// Called when this GameMode is being returned to from a child exiting.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnResuming(GameMode last) { }
 
         /// <summary>
         /// Called when this GameMode is being left to a new child.
         /// </summary>
         /// <param name="next">The new GameMode</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnSuspending(GameMode next) { }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -120,7 +117,9 @@ namespace osu.Framework.GameModes
         {
             Debug.Assert(ParentGameMode != null);
 
-            OnExiting(ParentGameMode);
+            if (OnExiting(ParentGameMode))
+                return;
+
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
