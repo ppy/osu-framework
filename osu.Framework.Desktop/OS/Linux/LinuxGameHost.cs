@@ -20,7 +20,6 @@ namespace osu.Framework.Desktop.OS.Linux
 
         public override IEnumerable<InputHandler> GetInputHandlers()
         {
-            //todo: figure why opentk input handlers aren't working.
             return new InputHandler[] {
                 new OpenTKMouseHandler(), //handles cursor position
                 new FormMouseHandler(),   //handles button states
