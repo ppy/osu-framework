@@ -50,7 +50,10 @@ namespace osu.Framework.Desktop.Platform
 
         public override void Close()
         {
-            Form.Close();
+            Form.Invoke((MethodInvoker)delegate
+            {
+                Form.Close();
+            });
         }
 
         protected override void SetTitle(string title)
