@@ -1,8 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Input.Handlers.Keyboard;
-using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers;
 using OpenTK;
 
 namespace osu.Framework.Input
@@ -15,14 +14,11 @@ namespace osu.Framework.Input
         {
             base.Load();
 
-            //AddHandler(new TouchHandler());
-            //if (!RawDisctionary.sSkipTablet) AddHandler(new TabletHandler());
-            //AddHandler(new JoystickHandler());
-            //AddHandler(new RawMouseHandler());
-            AddHandler(new CursorMouseHandler());
-            AddHandler(new FormMouseHandler());
-            AddHandler(new FormKeyboardHandler());
-            AddHandler(new OpenTKKeyboardHandler());
+            if (Game?.Host != null)
+            {
+                foreach (InputHandler h in Game.Host.GetInputHandlers())
+                    AddHandler(h);
+            }
         }
     }
 }

@@ -4,10 +4,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Threading;
 using OpenTK;
 
-namespace osu.Framework.Input.Handlers.Mouse
+namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     class CursorMouseHandler : InputHandler, ICursorInputHandler
     {

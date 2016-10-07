@@ -1,42 +1,30 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using osu.Framework.Desktop.OS.Windows.Native;
-using osu.Framework.Input;
-using osu.Framework.OS;
+using System.Collections.Generic;
+using osu.Framework.Desktop.Input.Handlers.Keyboard;
+using osu.Framework.Desktop.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.OS.Linux
 {
-    public class LinuxGameHost : BasicGameHost
+    public class LinuxGameHost : DesktopGameHost
     {
-        public override GLControl GLControl => window.Form;
         public override bool IsActive => true; // TODO LINUX
-
-        private LinuxGameWindow window;
 
         internal LinuxGameHost(GraphicsContextFlags flags)
         {
-            window = new LinuxGameWindow(flags);
-
-            Window = window;
-            Window.Activated += OnActivated;
-            Window.Deactivated += OnDeactivated;
+            Window = new LinuxGameWindow(flags);
         }
 
-        private TextInputSource textInputBox;
-        public override TextInputSource TextInput => textInputBox ?? (textInputBox = window.CreateTextInput());
-
-        protected override void OnActivated(object sender, EventArgs args)
+        public override IEnumerable<InputHandler> GetInputHandlers()
         {
-            Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
-            base.OnActivated(sender, args);
-        }
-
-        protected override void OnDeactivated(object sender, EventArgs args)
-        {
-            base.OnDeactivated(sender, args);
+            return new InputHandler[] {
+                new OpenTKMouseHandler(), //handles cursor position
+                new FormMouseHandler(),   //handles button states
+                new OpenTKKeyboardHandler(),
+            };
         }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime;
 using System.Threading;
@@ -11,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
+using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
@@ -65,7 +67,7 @@ namespace osu.Framework.OS
         internal PerformanceMonitor DrawMonitor;
 
         //null here to construct early but bind to thread late.
-        internal Scheduler InputScheduler = new Scheduler(null);
+        public Scheduler InputScheduler = new Scheduler(null);
         private Scheduler updateScheduler = new Scheduler(null);
 
         protected override IFrameBasedClock Clock => UpdateClock;
@@ -278,5 +280,7 @@ namespace osu.Framework.OS
             game.SetHost(this);
             updateScheduler.Add(delegate { Add(game); });
         }
+
+        public abstract IEnumerable<InputHandler> GetInputHandlers();
     }
 }

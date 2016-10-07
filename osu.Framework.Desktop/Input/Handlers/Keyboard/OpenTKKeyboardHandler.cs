@@ -3,9 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Input.Handlers;
 using OpenTK.Input;
 
-namespace osu.Framework.Input.Handlers.Keyboard
+namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
     class OpenTKKeyboardHandler : InputHandler, IKeyboardInputHandler
     {

@@ -71,7 +71,7 @@ namespace osu.Framework.Desktop.OS.Windows
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == (uint)WindowsGameHost.WindowMessage.ActivateApplication)
+            if (m.Msg == 0x1c) //ActivateApplication
             {
                 bool active = m.WParam != IntPtr.Zero;
                 OnActivateApp(active);

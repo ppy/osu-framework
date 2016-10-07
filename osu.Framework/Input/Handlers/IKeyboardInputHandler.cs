@@ -6,7 +6,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Input.Handlers
 {
-    interface IKeyboardInputHandler
+    public interface IKeyboardInputHandler
     {
         List<Key> PressedKeys { get; }
     }
