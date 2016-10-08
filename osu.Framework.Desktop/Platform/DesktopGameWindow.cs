@@ -35,8 +35,8 @@ namespace osu.Framework.Desktop.Platform
             Form.StartPosition = FormStartPosition.CenterScreen;
             Form.ClientSize = new Size(default_width, default_height); // if no screen res is set the default will be used instead
             Form.ScreenChanged += delegate { OnScreenDeviceNameChanged(); };
-            Form.ApplicationActivated += delegate { OnActivated(); };
-            Form.ApplicationDeactivated += delegate { OnDeactivated(); };
+            Form.Activated += delegate { OnActivated(); };
+            Form.Deactivate += delegate { OnDeactivated(); };
             Form.SizeChanged += delegate { OnClientSizeChanged(); };
             Form.Paint += delegate { OnPaint(); };
             Form.FormClosing += Form_FormClosing;
