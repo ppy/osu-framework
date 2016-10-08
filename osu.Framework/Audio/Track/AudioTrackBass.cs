@@ -19,8 +19,6 @@ namespace osu.Framework.Audio.Track
 
         private AsyncBufferStream dataStream;
 
-        public bool Looping { get; }
-
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
@@ -34,10 +32,9 @@ namespace osu.Framework.Audio.Track
         //must keep a reference to this else it will be garbage collected early.
         private DataStreamFileProcedures procs;
 
-        public AudioTrackBass(Stream data, bool quick = false, bool loop = false)
+        public AudioTrackBass(Stream data, bool quick = false)
         {
             Preview = quick;
-            Looping = loop;
 
             BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
 
@@ -125,7 +122,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            Update();
+            Update(); //ensure state is valid.
             Bass.ChannelPlay(activeStream);
         }
 

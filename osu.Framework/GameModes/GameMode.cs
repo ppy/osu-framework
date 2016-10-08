@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Diagnostics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -12,50 +13,52 @@ namespace osu.Framework.GameModes
     public class GameMode : Container
     {
         protected GameMode ParentGameMode;
-        protected GameMode ChildGameMode;
+        public GameMode ChildGameMode;
 
         public bool IsCurrentGameMode => ChildGameMode == null;
 
-        /// <summary>
-        /// Identify whether we are to be displayed at the top level of a GameMode stack.
-        /// </summary>
-        protected virtual bool IsTopLevel => false;
-
-        protected ContentContainer Content;
+        public Container Content;
 
         protected override Container AddTarget => Content;
+
+        public event Action<GameMode> ModePushed;
+
+        public event Action<GameMode> Exited;
+
+        private bool hasExited;
 
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
         }
+
+        public override bool HandleInput => !hasExited;
 
         /// <summary>
         /// Called when this GameMode is being entered. Only happens once, ever.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnEntering(GameMode last) { }
 
         /// <summary>
         /// Called when this GameMode is exiting. Only happens once, ever.
         /// </summary>
         /// <param name="next">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
-        protected virtual void OnExiting(GameMode next) { }
+        /// <returns>Return true to cancel the exit process.</returns>
+        protected virtual bool OnExiting(GameMode next) => false;
 
         /// <summary>
         /// Called when this GameMode is being returned to from a child exiting.
         /// </summary>
         /// <param name="last">The next GameMode.</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnResuming(GameMode last) { }
 
         /// <summary>
         /// Called when this GameMode is being left to a new child.
         /// </summary>
         /// <param name="next">The new GameMode</param>
-        /// <returns>The time after which the transition has finished running.</returns>
         protected virtual void OnSuspending(GameMode next) { }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
@@ -63,8 +66,6 @@ namespace osu.Framework.GameModes
             switch (args.Key)
             {
                 case Key.Escape:
-                    if (ParentGameMode == null) return false;
-
                     Exit();
                     return true;
             }
@@ -75,9 +76,6 @@ namespace osu.Framework.GameModes
         public override void Load()
         {
             base.Load();
-
-            Anchor = Anchor.Centre;
-            Origin = Anchor.Centre;
 
             AddTopLevel(Content = new ContentContainer()
             {
@@ -102,29 +100,9 @@ namespace osu.Framework.GameModes
             AddTopLevel(mode);
             mode.OnEntering(this);
 
+            ModePushed?.Invoke(mode);
+
             Content.Expire();
-        }
-
-        /// <summary>
-        /// Exits this GameMode.
-        /// </summary>
-        public void Exit()
-        {
-            Debug.Assert(ParentGameMode != null);
-
-            OnExiting(ParentGameMode);
-            Content.Expire();
-            LifetimeEnd = Content.LifetimeEnd;
-
-            ParentGameMode.startResume(this);
-            ParentGameMode = null;
-        }
-
-        private void startResume(GameMode last)
-        {
-            ChildGameMode = null;
-            OnResuming(last);
-            Content.LifetimeEnd = double.MaxValue;
         }
 
         private void startSuspend(GameMode next)
@@ -135,6 +113,38 @@ namespace osu.Framework.GameModes
             ChildGameMode = next;
             next.ParentGameMode = this;
         }
+
+        /// <summary>
+        /// Exits this GameMode.
+        /// </summary>
+        public void Exit()
+        {
+            if (hasExited)
+                return;
+
+            if (OnExiting(ParentGameMode))
+                return;
+
+            hasExited = true;
+
+            Content.Expire();
+            LifetimeEnd = Content.LifetimeEnd;
+
+            ParentGameMode?.startResume(this);
+            Exited?.Invoke(ParentGameMode);
+            ParentGameMode = null;
+
+            Exited = null;
+            ModePushed = null;
+        }
+
+        private void startResume(GameMode last)
+        {
+            ChildGameMode = null;
+            OnResuming(last);
+            Content.LifetimeEnd = double.MaxValue;
+        }
+
 
         public void MakeCurrent()
         {

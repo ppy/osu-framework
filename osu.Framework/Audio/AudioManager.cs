@@ -55,7 +55,14 @@ namespace osu.Framework.Audio
             globalTrackManager = GetTrackManager(trackStore);
             globalSampleManager = GetSampleManager(sampleStore);
 
-            SetAudioDevice();
+            try
+            {
+                SetAudioDevice();
+            }
+            catch
+            {
+                return;
+            }
 
             scheduler.AddDelayed(checkAudioDeviceChanged, 1000, true);
         }

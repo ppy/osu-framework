@@ -20,6 +20,12 @@ namespace osu.Framework.Graphics.Transformations
 
         void Reverse();
         void Loop(double delay, int loopCount = -1);
+
+        /// <summary>
+        /// Shift this transform by the specified time value.
+        /// </summary>
+        /// <param name="offset">Time in milliseconds to shift the transform.</param>
+        void Shift(double offset);
     }
 
     public class TransformTimeComparer : IComparer<ITransform>

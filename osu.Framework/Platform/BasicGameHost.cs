@@ -2,8 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Reflection;
 using System.Runtime;
 using System.Threading;
 using System.Windows.Forms;
@@ -18,8 +21,9 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using osu.Framework.Cached;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
@@ -30,7 +34,7 @@ namespace osu.Framework.OS
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
-        public event Func<bool> ExitRequested;
+        public event Func<bool> Exiting;
         public event Action Exited;
 
         public override bool IsVisible => true;
@@ -68,7 +72,7 @@ namespace osu.Framework.OS
 
         //null here to construct early but bind to thread late.
         public Scheduler InputScheduler = new Scheduler(null);
-        private Scheduler updateScheduler = new Scheduler(null);
+        protected Scheduler UpdateScheduler = new Scheduler(null);
 
         protected override IFrameBasedClock Clock => UpdateClock;
 
@@ -80,29 +84,59 @@ namespace osu.Framework.OS
 
         public abstract TextInputSource TextInput { get; }
 
+        public Cached<string> fullPathBacking = new Cached<string>();
+        public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
+        {
+            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            UriBuilder uri = new UriBuilder(codeBase);
+            return Uri.UnescapeDataString(uri.Path);
+        });
+        
+
         public BasicGameHost()
         {
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
             UpdateMonitor = new PerformanceMonitor(UpdateClock);
             DrawMonitor = new PerformanceMonitor(DrawClock);
+
+            Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
         }
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
-            Activated?.Invoke(this, EventArgs.Empty);
+            UpdateScheduler.Add(delegate
+            {
+                Activated?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         protected virtual void OnDeactivated(object sender, EventArgs args)
         {
-            Deactivated?.Invoke(this, EventArgs.Empty);
+            UpdateScheduler.Add(delegate
+            {
+                Deactivated?.Invoke(this, EventArgs.Empty);
+            });
         }
 
         protected virtual bool OnExitRequested()
         {
-            if (ExitRequested?.Invoke() == true)
+            if (ExitRequested) return false;
+
+            bool? response = null;
+
+            UpdateScheduler.Add(delegate
+            {
+                response = Exiting?.Invoke() == true;
+            });
+
+            //wait for a potentially blocking response
+            while (!response.HasValue)
+                Thread.Sleep(1);
+
+            if (response.Value)
                 return true;
 
-            exitRequested = true;
+            ExitRequested = true;
             while (threadsRunning)
                 Thread.Sleep(1);
 
@@ -114,7 +148,7 @@ namespace osu.Framework.OS
             Exited?.Invoke();
         }
 
-        TripleBuffer<DrawNode> drawRoots = new TripleBuffer<DrawNode>();
+        protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
         private void updateLoop()
         {
@@ -122,19 +156,19 @@ namespace osu.Framework.OS
             while (!GLWrapper.IsInitialized)
                 Thread.Sleep(1);
 
-            while (!exitRequested)
+            while (!ExitRequested)
             {
                 UpdateMonitor.NewFrame();
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 {
-                    updateScheduler.Update();
+                    UpdateScheduler.Update();
                 }
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
                 {
                     UpdateSubTree();
-                    using (var buffer = drawRoots.Get(UsageType.Write))
+                    using (var buffer = DrawRoots.Get(UsageType.Write))
                         buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
                 }
 
@@ -147,39 +181,44 @@ namespace osu.Framework.OS
 
         private void drawLoop()
         {
-            GLControl.Initialize();
+            GLControl?.Initialize();
             GLWrapper.Initialize();
 
-            while (!exitRequested)
+            while (!ExitRequested)
             {
                 DrawMonitor.NewFrame();
 
-                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
-                {
-                    GLWrapper.Reset(Size);
-                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                    using (var buffer = drawRoots.Get(UsageType.Read))
-                        buffer?.Object?.DrawSubTree();
-                }
+                DrawFrame();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                {
-                    GLControl.SwapBuffers();
-                    //GLControl.Invalidate();
-                }
+                    GLControl?.SwapBuffers();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                     DrawClock.ProcessFrame();
             }
         }
 
-        private bool exitRequested;
+        protected virtual void DrawFrame()
+        {
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+            {
+                GLWrapper.Reset(Size);
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                using (var buffer = DrawRoots.Get(UsageType.Read))
+                    buffer?.Object?.DrawSubTree();
+            }
+        }
+
+        protected bool ExitRequested;
 
         private bool threadsRunning => (updateThread?.IsAlive ?? false) && (drawThread?.IsAlive ?? false);
 
         public void Exit()
         {
-            exitRequested = true;
+            ExitRequested = true;
+            while (threadsRunning)
+                Thread.Sleep(1);
+            Window?.Close();
         }
 
         public virtual void Run()
@@ -200,13 +239,15 @@ namespace osu.Framework.OS
             };
             updateThread.Start();
 
-            updateScheduler.SetCurrentThread(updateThread);
+            UpdateScheduler.SetCurrentThread(updateThread);
 
-            Window.ClientSizeChanged += window_ClientSizeChanged;
-            window_ClientSizeChanged(null, null);
-
-            Window.ExitRequested += OnExitRequested;
-            Window.Exited += OnExited;
+            if (Window != null)
+            {
+                Window.ClientSizeChanged += window_ClientSizeChanged;
+                Window.ExitRequested += OnExitRequested;
+                Window.Exited += OnExited;
+                window_ClientSizeChanged(null, null);
+            }
 
             InputScheduler.SetCurrentThread(Thread.CurrentThread);
 
@@ -231,7 +272,7 @@ namespace osu.Framework.OS
             if (Window.IsMinimized) return;
 
             Rectangle rect = Window.ClientBounds;
-            updateScheduler.Add(delegate
+            UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
                 base.Size = new Vector2(rect.Width, rect.Height);
@@ -270,15 +311,16 @@ namespace osu.Framework.OS
                 InputClock.ProcessFrame();
 
             inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-
-            if (exitRequested)
-                Window.Close();
         }
 
-        public void Load(Game game)
+        public override Drawable Add(Drawable drawable)
         {
+            Game game = drawable as Game;
+            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
+
             game.SetHost(this);
-            updateScheduler.Add(delegate { Add(game); });
+            UpdateScheduler.Add(delegate { base.Add(game); });
+            return game;
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

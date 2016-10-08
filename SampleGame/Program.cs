@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Desktop;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 using osu.Framework;
 
 namespace SampleGame
@@ -16,7 +16,7 @@ namespace SampleGame
             using (Game game = new SampleGame())
             using (BasicGameHost host = Host.GetSuitableHost())
             {
-                host.Load(game);
+                host.Add(game);
                 host.Run();
             }
         }

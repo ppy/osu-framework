@@ -7,12 +7,12 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
-using osu.Framework.Desktop.OS.Windows.Native;
+using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
 using NativeWindow = OpenTK.NativeWindow;
 
-namespace osu.Framework.Desktop.OS.Windows
+namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {

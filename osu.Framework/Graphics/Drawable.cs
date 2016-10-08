@@ -691,9 +691,13 @@ namespace osu.Framework.Graphics
 
         private void updateTransformsOfType(Type specificType)
         {
-            foreach (ITransform t in Transforms.AliveItems)
-                if (t.GetType() == specificType)
-                    t.Apply(this);
+            //For simplicity let's just update *all* transforms.
+            //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
+            updateTransforms();
+
+            //foreach (ITransform t in Transforms.AliveItems)
+            //    if (t.GetType() == specificType)
+            //        t.Apply(this);
         }
 
         /// <summary>

@@ -6,10 +6,10 @@ using System.Drawing;
 using System.Windows.Forms;
 using osu.Framework.Desktop.Input;
 using osu.Framework.Input;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Desktop.OS
+namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameWindow : BasicGameWindow
     {
@@ -50,7 +50,10 @@ namespace osu.Framework.Desktop.OS
 
         public override void Close()
         {
-            Form.Close();
+            Form.Invoke((MethodInvoker)delegate
+            {
+                Form.Close();
+            });
         }
 
         protected override void SetTitle(string title)

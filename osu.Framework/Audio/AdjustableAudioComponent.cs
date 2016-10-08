@@ -66,7 +66,10 @@ namespace osu.Framework.Audio
 
         protected void InvalidateState(object sender = null, EventArgs e = null)
         {
+            //todo: probably change the way invalidation works here to make more sense.
+            //added the explicit update to ensure values propagate instantly rather than at next update (which can be too late for newly played samples).
             componentState.Invalidate();
+            Update();
         }
 
         protected virtual void OnStateChanged(object sender, EventArgs e)

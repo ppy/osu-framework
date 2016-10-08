@@ -28,6 +28,26 @@ namespace osu.Framework.Graphics
             return this;
         }
 
+        /// <summary>
+        /// Flush all existing transformations, using the last available values (ignoring current clock time).
+        /// </summary>
+        public virtual void Flush(bool propagateChildren = false)
+        {
+            double maxTime = double.MinValue;
+            foreach (ITransform t in Transforms)
+                if (t.EndTime > maxTime)
+                    maxTime = t.EndTime;
+
+            double offset = Time - maxTime - 1;
+            foreach (ITransform t in Transforms)
+            {
+                t.Shift(offset);
+                t.Apply(this);
+            }
+
+            ClearTransformations();
+        }
+
         public virtual Drawable DelayReset()
         {
             Delay(-transformationDelay);

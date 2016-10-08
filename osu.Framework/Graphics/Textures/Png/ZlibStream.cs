@@ -5359,8 +5359,8 @@ namespace osu.Framework.Graphics.Textures.Png
         ///
         /// <para>
         ///   The <c>GZipStream</c> will use the default compression level. If you want
-        ///   to specify the compression level, see <see cref="GZipStream(Stream,
-        ///   CompressionMode, CompressionLevel, bool)"/>.
+        ///   to specify the compression level, see GZipStream(Stream,
+        ///   CompressionMode, CompressionLevel, bool)
         /// </para>
         ///
         /// <para>
@@ -8378,7 +8378,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// </summary>
         /// <remarks>
         ///   <para>
-        ///     Set this at any point before calling <see cref="Close()"/>.
+        ///     Set this at any point before calling Close()
         ///   </para>
         /// </remarks>
         internal bool LeaveOpen

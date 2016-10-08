@@ -9,7 +9,7 @@ using osu.Framework.Logging;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     public class GLControl : OpenTK.GLControl
     {

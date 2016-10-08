@@ -114,11 +114,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             foreach (Drawable p in range)
-            {
-                if (p.IsDisposable)
-                    p.Dispose();
-                Remove(p);
-            }
+                Remove(p, dispose);
         }
 
         public virtual void Clear(bool dispose = true)
@@ -132,7 +128,12 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable t in children)
             {
                 if (dispose)
+                {
+                    //cascade disposal
+                    (t as Container)?.Clear();
+
                     t.Dispose();
+                }
                 t.Parent = null;
             }
 
@@ -294,6 +295,14 @@ namespace osu.Framework.Graphics.Containers
             if (propagateChildren)
                 foreach (var c in children) c.Delay(duration, true);
             return this;
+        }
+
+        public override void Flush(bool propagateChildren = false)
+        {
+            base.Flush(propagateChildren);
+
+            if (propagateChildren)
+                foreach (var c in children) c.Flush(true);
         }
 
         public override Drawable DelayReset()

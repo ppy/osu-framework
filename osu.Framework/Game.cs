@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
@@ -31,7 +31,7 @@ namespace osu.Framework
         /// <summary>
         /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
         /// </summary>
-        protected virtual string MainResourceFile => AppDomain.CurrentDomain.FriendlyName;
+        protected virtual string MainResourceFile => Host.FullPath;
 
         private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;
@@ -70,11 +70,14 @@ namespace osu.Framework
         public virtual void SetHost(BasicGameHost host)
         {
             this.host = host;
-            host.ExitRequested += OnExiting;
+            host.Exiting += OnExiting;
 
-            form.FormClosing += OnFormClosing;
-            form.DragEnter += dragEnter;
-            form.DragDrop += dragDrop;
+            if (form != null)
+            {
+                form.FormClosing += OnFormClosing;
+                form.DragEnter += dragEnter;
+                form.DragDrop += dragDrop;
+            }
         }
 
         public override void Load()

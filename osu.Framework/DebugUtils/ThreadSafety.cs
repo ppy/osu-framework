@@ -3,7 +3,7 @@
 
 using System.Diagnostics;
 using System.Threading;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 
 namespace osu.Framework.DebugUtils
 {

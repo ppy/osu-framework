@@ -6,7 +6,6 @@ using System;
 namespace osu.Framework.Configuration
 {
     public class Bindable<T> : IBindable
-        where T : IComparable
     {
         private T value;
 
@@ -21,7 +20,7 @@ namespace osu.Framework.Configuration
             get { return value; }
             set
             {
-                if (this.value?.CompareTo(value) == 0) return;
+                if (this.value?.Equals(value) == true) return;
 
                 this.value = value;
 
@@ -37,6 +36,19 @@ namespace osu.Framework.Configuration
         public static implicit operator T(Bindable<T> value)
         {
             return value.Value;
+        }
+
+        /// <summary>
+        /// Welds two bindables together such that they update each other and stay in sync.
+        /// </summary>
+        /// <param name="v">The foreign bindable to weld.</param>
+        /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
+        public void Weld(Bindable<T> v, bool transferValue = true)
+        {
+            if (transferValue) Value = v.Value;
+
+            ValueChanged += delegate { v.Value = Value; };
+            v.ValueChanged += delegate { Value = v.Value; };
         }
 
         public virtual bool Parse(object s)

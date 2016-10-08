@@ -36,10 +36,9 @@ namespace osu.Framework.Audio.Sample
 
             if (!hasChannel)
             {
-                InvalidateState();
                 channel = Bass.SampleGetChannel(sample);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
-                Update();
+                InvalidateState();
             }
 
             return channel;

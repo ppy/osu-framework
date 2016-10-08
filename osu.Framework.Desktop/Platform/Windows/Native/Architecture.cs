@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace osu.Framework.Desktop.OS.Windows.Native
+namespace osu.Framework.Desktop.Platform.Windows.Native
 {
     internal static class Architecture
     {

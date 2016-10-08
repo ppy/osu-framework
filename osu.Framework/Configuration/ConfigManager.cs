@@ -26,7 +26,7 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public BindableDouble Set(T lookup, double value)
+        public BindableDouble Set(T lookup, double value, double? min = null, double? max = null)
         {
             BindableDouble bindable = GetBindable<double>(lookup) as BindableDouble;
 
@@ -39,6 +39,9 @@ namespace osu.Framework.Configuration
             {
                 bindable.Value = value;
             }
+
+            if (min.HasValue) bindable.MinValue = min.Value;
+            if (max.HasValue) bindable.MaxValue = max.Value;
 
             return bindable;
         }
@@ -80,7 +83,7 @@ namespace osu.Framework.Configuration
             return bindable;
         }
 
-        public Bindable<U> Set<U>(T lookup, U value) where U : IComparable
+        public Bindable<U> Set<U>(T lookup, U value)
         {
             Bindable<U> bindable = GetBindable<U>(lookup);
 
@@ -98,19 +101,19 @@ namespace osu.Framework.Configuration
             bindable.ValueChanged += delegate { hasUnsavedChanges = true; };
         }
 
-        private Bindable<U> set<U>(T lookup, U value) where U : IComparable
+        private Bindable<U> set<U>(T lookup, U value)
         {
             Bindable<U> bindable = new Bindable<U>(value);
             addBindable(lookup, bindable);
             return bindable;
         }
 
-        public U Get<U>(T lookup) where U : IComparable
+        public U Get<U>(T lookup)
         {
             return GetBindable<U>(lookup).Value;
         }
 
-        public Bindable<U> GetBindable<U>(T lookup) where U : IComparable
+        public Bindable<U> GetBindable<U>(T lookup)
         {
             IBindable obj;
 

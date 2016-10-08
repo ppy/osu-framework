@@ -4,10 +4,10 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Desktop.OS.Windows
+namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameForm : BasicGameForm
     {

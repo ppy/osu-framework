@@ -127,6 +127,7 @@
     <Compile Include="IO\Network\JsonWebRequest.cs" />
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
+    <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\RNG.cs" />
@@ -153,9 +154,9 @@
     <Compile Include="Audio\Track\AudioTrackBass.cs" />
     <Compile Include="Audio\Track\AudioTrackVirtual.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Game.cs" />
-    <Compile Include="OS\BasicGameHost.cs" />
-    <Compile Include="OS\BasicGameWindow.cs" />
-    <Compile Include="OS\GLControl.cs">
+    <Compile Include="Platform\BasicGameHost.cs" />
+    <Compile Include="Platform\BasicGameWindow.cs" />
+    <Compile Include="Platform\GLControl.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\LinearBatch.cs" />
@@ -228,10 +229,11 @@
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
     <Compile Include="IUpdateable.cs" />
+    <Compile Include="Platform\HeadlessGameHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Textures\TextureStore.cs" />
     <Compile Include="RuntimeInfo.cs" />
-    <Compile Include="OS\BasicGameForm.cs">
+    <Compile Include="Platform\BasicGameForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Statistics\FrameStatistics.cs" />

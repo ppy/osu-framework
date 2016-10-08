@@ -13,6 +13,8 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual bool IsDummyDevice => true;
 
+        public bool Looping { get; set; }
+
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
         /// </summary>
@@ -65,6 +67,16 @@ namespace osu.Framework.Audio.Track
         public virtual double Rate => Frequency * Tempo;
 
         public bool IsReversed => Rate < 0;
+
+        public override void Update()
+        {
+            base.Update();
+            if (Looping && !IsRunning && Length == CurrentTime)
+            {
+                Reset();
+                Start();
+            }
+        }
 
         /// <summary>
         /// todo: implement
