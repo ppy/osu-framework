@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Sprites
                 int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
 
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
-
+                Remove(keepDrawables, false);
                 Clear();
 
                 foreach (var k in keepDrawables)
