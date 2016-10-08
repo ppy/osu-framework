@@ -13,12 +13,12 @@ namespace osu.Framework.Desktop.Platform.Linux
     {
         public override bool IsActive => true; // TODO LINUX
 
-        internal LinuxGameHost(GraphicsContextFlags flags, string game)
+        internal LinuxGameHost(GraphicsContextFlags flags, string gameName)
         {
             Window = new LinuxGameWindow(flags);
             Window.Activated += OnActivated;
             Window.Deactivated += OnDeactivated;
-            Storage = new LinuxStorage(game);
+            Storage = new LinuxStorage(gameName);
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers()

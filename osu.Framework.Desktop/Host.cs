@@ -10,13 +10,13 @@ namespace osu.Framework.Desktop
 {
     public static class Host
     {
-        public static BasicGameHost GetSuitableHost(string game)
+        public static BasicGameHost GetSuitableHost(string gameName)
         {
             GraphicsContextFlags flags = GraphicsContextFlags.Default;
             if (RuntimeInfo.IsUnix)
-                return new LinuxGameHost(flags, game);
+                return new LinuxGameHost(flags, gameName);
             else
-                return new WindowsGameHost(flags, game);
+                return new WindowsGameHost(flags, gameName);
         }
     }
 }
