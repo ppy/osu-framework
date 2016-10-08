@@ -301,6 +301,14 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
+        public override void Flush(bool propagateChildren = false)
+        {
+            base.Flush(propagateChildren);
+
+            if (propagateChildren)
+                foreach (var c in children) c.Flush(true);
+        }
+
         public override Drawable DelayReset()
         {
             base.DelayReset();
