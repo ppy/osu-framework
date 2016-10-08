@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace osu.Framework.Desktop.OS.Linux
+namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxStorage : DesktopStorage
     {

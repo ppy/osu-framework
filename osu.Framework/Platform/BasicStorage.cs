@@ -2,7 +2,7 @@
 using System.IO;
 using SQLite;
 
-namespace osu.Framework.OS
+namespace osu.Framework.Platform
 {
     public abstract class BasicStorage
     {

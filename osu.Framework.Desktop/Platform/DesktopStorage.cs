@@ -1,9 +1,9 @@
 ﻿using System;
 using SQLite;
 using System.IO;
-using osu.Framework.OS;
+using osu.Framework.Platform;
 
-namespace osu.Framework.Desktop.OS
+namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopStorage : BasicStorage
     {

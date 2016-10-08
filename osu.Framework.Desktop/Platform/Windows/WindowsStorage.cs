@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace osu.Framework.Desktop.OS.Windows
+namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsStorage : DesktopStorage
     {
