@@ -60,6 +60,10 @@ namespace osu.Framework.Platform
             set { UpdateClock.MaximumUpdateHz = value; }
         }
 
+        public int ActiveUpdateHz { get; set; } = 1000;
+
+        public int InactiveUpdateHz { get; set; } = 100;
+
         public int MaximumDrawHz
         {
             get { return DrawClock.MaximumUpdateHz; }
@@ -91,7 +95,7 @@ namespace osu.Framework.Platform
             UriBuilder uri = new UriBuilder(codeBase);
             return Uri.UnescapeDataString(uri.Path);
         });
-        
+
 
         public BasicGameHost()
         {
@@ -104,6 +108,8 @@ namespace osu.Framework.Platform
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
+            UpdateClock.MaximumUpdateHz = ActiveUpdateHz;
+
             UpdateScheduler.Add(delegate
             {
                 Activated?.Invoke(this, EventArgs.Empty);
@@ -112,6 +118,8 @@ namespace osu.Framework.Platform
 
         protected virtual void OnDeactivated(object sender, EventArgs args)
         {
+            UpdateClock.MaximumUpdateHz = InactiveUpdateHz;
+
             UpdateScheduler.Add(delegate
             {
                 Deactivated?.Invoke(this, EventArgs.Empty);
