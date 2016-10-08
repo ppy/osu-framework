@@ -78,7 +78,6 @@ namespace osu.Framework.Graphics
 
         protected override void Dispose(bool isDisposing)
         {
-            scheduledUpdater?.Cancel();
             base.Dispose(isDisposing);
         }
 
@@ -92,7 +91,7 @@ namespace osu.Framework.Graphics
 
             scroll.FadeIn(500);
 
-            scheduledUpdater = Game.Scheduler.AddDelayed(runUpdate, 200, true);
+            scheduledUpdater = Scheduler.AddDelayed(runUpdate, 200, true);
 
             return true;
         }

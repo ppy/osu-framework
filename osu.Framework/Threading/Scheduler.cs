@@ -35,7 +35,6 @@ namespace osu.Framework.Threading
         public Scheduler(Thread mainThread)
         {
             SetCurrentThread(mainThread);
-
             timer.Start();
         }
 
