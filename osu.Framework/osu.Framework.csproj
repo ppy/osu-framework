@@ -94,6 +94,7 @@
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
+    <Compile Include="Graphics\Containers\PaddingContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />

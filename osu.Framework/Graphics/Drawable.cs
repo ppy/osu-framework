@@ -764,7 +764,7 @@ namespace osu.Framework.Graphics
             return !alreadyInvalidated;
         }
 
-        protected Vector2 GetAnchoredPosition(Vector2 pos)
+        protected virtual Vector2 GetAnchoredPosition(Vector2 pos)
         {
             if (!HasDefinedSize || Anchor == Anchor.TopLeft)
                 return pos;
