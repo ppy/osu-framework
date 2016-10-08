@@ -114,11 +114,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             foreach (Drawable p in range)
-            {
-                if (p.IsDisposable)
-                    p.Dispose();
-                Remove(p);
-            }
+                Remove(p, dispose);
         }
 
         public virtual void Clear(bool dispose = true)
