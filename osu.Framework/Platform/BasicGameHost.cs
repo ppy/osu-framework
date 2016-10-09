@@ -108,20 +108,18 @@ namespace osu.Framework.Platform
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
-            UpdateClock.MaximumUpdateHz = ActiveUpdateHz;
-
             UpdateScheduler.Add(delegate
             {
+                UpdateClock.MaximumUpdateHz = ActiveUpdateHz;
                 Activated?.Invoke(this, EventArgs.Empty);
             });
         }
 
         protected virtual void OnDeactivated(object sender, EventArgs args)
         {
-            UpdateClock.MaximumUpdateHz = InactiveUpdateHz;
-
             UpdateScheduler.Add(delegate
             {
+                UpdateClock.MaximumUpdateHz = InactiveUpdateHz;
                 Deactivated?.Invoke(this, EventArgs.Empty);
             });
         }
