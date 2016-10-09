@@ -16,6 +16,8 @@ namespace osu.Framework.Desktop.Platform.Linux
         internal LinuxGameHost(GraphicsContextFlags flags)
         {
             Window = new LinuxGameWindow(flags);
+            Window.Activated += OnActivated;
+            Window.Deactivated += OnDeactivated;
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers()
