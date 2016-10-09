@@ -22,8 +22,6 @@ namespace osu.Framework
     {
         public BasicGameWindow Window => host?.Window;
 
-        public Scheduler Scheduler;
-
         public ResourceStore<byte[]> Resources;
 
         public TextureStore Textures;
@@ -84,8 +82,6 @@ namespace osu.Framework
         {
             base.Load();
 
-            Scheduler = new Scheduler();
-
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
@@ -121,7 +117,6 @@ namespace osu.Framework
 
         protected override void Update()
         {
-            Scheduler.Update();
             Audio.Update();
             base.Update();
         }
@@ -219,8 +214,6 @@ namespace osu.Framework
         {
             base.Dispose(isDisposing);
 
-            Scheduler?.Dispose();
-            Scheduler = null;
             Audio?.Dispose();
             Audio = null;
         }

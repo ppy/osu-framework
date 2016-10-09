@@ -15,6 +15,8 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Threading;
+using System.Threading;
 
 namespace osu.Framework.Graphics
 {
@@ -28,6 +30,25 @@ namespace osu.Framework.Graphics
         /// A name used to identify this Drawable internally.
         /// </summary>
         public virtual string Name => string.Empty;
+
+        /// <summary>
+        /// A lazily-initialized scheduler used to schedule tasks to be invoked in future Update calls.
+        /// </summary>
+        private Scheduler scheduler = null;
+        private Thread mainThread = null;
+        protected Scheduler Scheduler
+        {
+            get
+            {
+                if (scheduler == null)
+                {
+                    Debug.Assert(mainThread != null);
+                    scheduler = new Scheduler(mainThread);
+                }
+
+                return scheduler;
+            }
+        }
 
         private LifetimeList<ITransform> transforms;
 
@@ -611,6 +632,7 @@ namespace osu.Framework.Graphics
 
         protected virtual void Update()
         {
+            scheduler?.Update();
         }
 
         protected virtual Quad GetScreenSpaceQuad(Quad input)
@@ -684,6 +706,7 @@ namespace osu.Framework.Graphics
 
         public virtual void Load()
         {
+            mainThread = Thread.CurrentThread;
             loaded = true;
             LifetimeStart = Time;
             Invalidate();
@@ -801,9 +824,12 @@ namespace osu.Framework.Graphics
         {
             if (isDisposed)
                 return;
+
             isDisposed = true;
 
             Parent = null;
+            scheduler?.Dispose();
+            scheduler = null;
 
             if (IsDisposable)
                 OnUpdate = null;
