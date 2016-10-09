@@ -17,9 +17,10 @@ namespace osu.Framework.GameModes
 
         public bool IsCurrentGameMode => ChildGameMode == null;
 
-        public Container Content;
+        private Container content;
+        private Container childModeContainer;
 
-        protected override Container AddTarget => Content;
+        protected override Container Content => content;
 
         public event Action<GameMode> ModePushed;
 
@@ -77,11 +78,20 @@ namespace osu.Framework.GameModes
         {
             base.Load();
 
-            AddTopLevel(Content = new ContentContainer()
+            InternalChildren = new[]
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre
-            });
+                content = new ContentContainer()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre
+                },
+                childModeContainer = new Container()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                },
+            };
 
             if (ParentGameMode == null)
                 OnEntering(null);
@@ -97,7 +107,7 @@ namespace osu.Framework.GameModes
 
             startSuspend(mode);
 
-            AddTopLevel(mode);
+            childModeContainer.Add(mode);
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);

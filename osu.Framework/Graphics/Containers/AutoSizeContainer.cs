@@ -94,13 +94,10 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public override Drawable Add(Drawable drawable)
+        public override void Add(Drawable drawable)
         {
-            Drawable result = base.Add(drawable);
-            if (result != null)
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
-
-            return result;
+            base.Add(drawable);
+            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
         }
 
         public override bool Remove(Drawable p, bool dispose = true)

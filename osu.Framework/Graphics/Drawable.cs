@@ -24,6 +24,11 @@ namespace osu.Framework.Graphics
     {
         public event Action OnUpdate;
 
+        /// <summary>
+        /// DO NOT USE THIS.
+        /// (Right now, this is required by the draw visualizer.
+        ///  Attempting to use this for anything else will likely result in bad behaviour.)
+        /// </summary>
         internal event Action OnInvalidate;
 
         /// <summary>

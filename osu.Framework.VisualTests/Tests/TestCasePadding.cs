@@ -69,16 +69,20 @@ namespace osu.Framework.VisualTests.Tests
 
             Container content;
 
-            protected override Container AddTarget => content;
+            protected override Container Content => content;
 
             public PaddedBox(Color4 colour)
             {
-                Children = new Drawable[]
+                InternalChildren = new Drawable[]
                 {
                     new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                         Colour = colour,
+                    },
+                    content = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
                     },
                     t1 = new SpriteText
                     {
@@ -103,13 +107,8 @@ namespace osu.Framework.VisualTests.Tests
                         Text = Padding.Left.ToString(),
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft
-                    },
+                    }
                 };
-
-                AddTopLevel(content = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                });
 
                 Masking = true;
             }

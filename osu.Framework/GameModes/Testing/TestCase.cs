@@ -18,9 +18,11 @@ namespace osu.Framework.GameModes.Testing
 
         Container buttonsContainer;
 
+        // TODO: Figure out how to make this private (e.g. through reflection).
+        //       Right now this is required for DrawVis to inspect the Drawable tree.
         public Container Contents;
 
-        protected override Container AddTarget => Contents;
+        protected override Container Content => Contents;
 
         public TestCase()
         {
@@ -32,22 +34,24 @@ namespace osu.Framework.GameModes.Testing
         {
             if (Contents == null)
             {
-                AddTopLevel(new ScrollContainer
+                InternalChildren = new Drawable[]
                 {
-                    Children = new[]
+                    new ScrollContainer
                     {
-                        buttonsContainer = new FlowContainer
+                        Children = new[]
                         {
-                            Direction = FlowDirection.VerticalOnly,
-                            Padding = new Vector2(15, 5)
+                            buttonsContainer = new FlowContainer
+                            {
+                                Direction = FlowDirection.VerticalOnly,
+                                Padding = new Vector2(15, 5)
+                            }
                         }
-                    }
-                });
-
-                AddTopLevel(Contents = new Container()
-                {
-                    RelativeSizeAxes = Axes.Both,
-                });
+                    },
+                    Contents = new Container()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
+                };
             }
             else
             {
@@ -71,12 +75,12 @@ namespace osu.Framework.GameModes.Testing
             return b;
         }
 
-        public ToggleButton AddToggle(string text, Action action)
+        public void AddToggle(string text, Action action)
         {
-            return buttonsContainer.Add(new ToggleButton(action)
+            buttonsContainer.Add(new ToggleButton(action)
             {
                 Text = text
-            }) as ToggleButton;
+            });
         }
     }
 

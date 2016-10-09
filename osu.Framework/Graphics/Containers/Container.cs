@@ -36,19 +36,41 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual IEnumerable<Drawable> Children
         {
+            get
+            {
+                if (Content != this)
+                    return Content.Children;
+                else
+                    return children;
+            }
+            set
+            {
+                if (Content != this)
+                    Content.Children = value;
+                else
+                {
+                    if (!IsLoaded)
+                        pendingChildren = value;
+                    else
+                    {
+                        Clear();
+                        AddInternal(value);
+                    }
+                }
+            }
+        }
+
+        protected virtual IEnumerable<Drawable> InternalChildren
+        {
             get { return children; }
             set
             {
-                if (AddTarget != null && AddTarget != this)
-                {
-                    AddTarget.Children = value;
-                }
-                else if (!IsLoaded)
+                if (!IsLoaded)
                     pendingChildren = value;
                 else
                 {
                     Clear();
-                    Add(value);
+                    AddInternal(value);
                 }
             }
         }
@@ -73,21 +95,51 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal virtual Vector2 ChildSize => Size;
 
-        public virtual Drawable Add(Drawable drawable)
+        /// <summary>
+        /// Add a Drawable to Content's children list, recursing until Content == this.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
+        public virtual void Add(Drawable drawable)
         {
-            if (drawable == null)
-                return null;
+            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
+            Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
-            if (AddTarget == this || AddTarget == drawable)
-                return AddTopLevel(drawable);
-
-            return AddTarget.Add(drawable);
+            if (Content == this)
+                AddInternal(drawable);
+            else
+                Content.Add(drawable);
         }
 
+        /// <summary>
+        /// Add a collection of Drawables to Content's children list, recursing until Content == this.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
         public void Add(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
                 Add(d);
+        }
+
+        /// <summary>
+        /// Add a Drawable to this container's Children list, disregarding the value of Content.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
+        private void AddInternal(Drawable drawable)
+        {
+            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
+
+            drawable.ChangeParent(this);
+            children.Add(drawable);
+        }
+
+        /// <summary>
+        /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
+        /// </summary>
+        /// <param name="drawable">The drawables to be added.</param>
+        private void AddInternal(IEnumerable<Drawable> collection)
+        {
+            foreach (Drawable d in collection)
+                AddInternal(d);
         }
 
         public virtual bool Remove(Drawable drawable, bool dispose = true)
@@ -95,8 +147,8 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == null)
                 return false;
 
-            if (AddTarget != this)
-                return AddTarget.Remove(drawable, dispose);
+            if (Content != this)
+                return Content.Remove(drawable, dispose);
 
             bool result = children.Remove(drawable);
             drawable.Parent = null;
@@ -129,9 +181,9 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual void Clear(bool dispose = true)
         {
-            if (AddTarget != null && AddTarget != this)
+            if (Content != null && Content != this)
             {
-                AddTarget.Clear(dispose);
+                Content.Clear(dispose);
                 return;
             }
 
@@ -152,16 +204,9 @@ namespace osu.Framework.Graphics.Containers
             Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
         }
 
-        protected Drawable AddTopLevel(Drawable drawable)
-        {
-            drawable.ChangeParent(this);
-            children.Add(drawable);
-            return drawable;
-        }
-
         internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
 
-        protected virtual Container AddTarget => this;
+        protected virtual Container Content => this;
 
         internal override bool UpdateSubTree()
         {
@@ -180,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (pendingChildren != null)
             {
-                Add(pendingChildren);
+                AddInternal(pendingChildren);
                 pendingChildren = null;
             }
 
