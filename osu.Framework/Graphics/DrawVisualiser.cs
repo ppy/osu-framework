@@ -237,19 +237,19 @@ namespace osu.Framework.Graphics
 
             private void onAutoSize()
             {
-                Scheduler.Add(() => activityAutosize.FadeOutFromOne(1), true);
+                Scheduler.Add(() => activityAutosize.FadeOutFromOne(1));
                 updateSpecifics();
             }
 
             private void onLayout()
             {
-                Scheduler.Add(() => activityLayout.FadeOutFromOne(1), true);
+                Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
                 updateSpecifics();
             }
 
             private void onInvalidate()
             {
-                Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1), true);
+                Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
                 updateSpecifics();
             }
 

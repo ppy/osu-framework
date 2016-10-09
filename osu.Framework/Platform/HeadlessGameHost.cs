@@ -15,7 +15,6 @@ namespace osu.Framework.Platform
     public class HeadlessGameHost : BasicGameHost
     {
         public override GLControl GLControl => null;
-        public override bool IsActive => true;
         public override TextInputSource TextInput => null;
 
         protected override void DrawFrame()

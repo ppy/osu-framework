@@ -44,7 +44,7 @@ namespace osu.Framework
 
         public TextureStore Fonts;
 
-        private UserInputManager userInputContainer;
+        private Container content;
         private FlowContainer performanceContainer;
 
         public bool ShowPerformanceOverlay
@@ -53,14 +53,14 @@ namespace osu.Framework
             set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
         }
 
-        protected override Container Content => userInputContainer;
+        protected override Container Content => content;
 
         public Game()
         {
             Game = this;
             RelativeSizeAxes = Axes.Both;
 
-            AddInternal(userInputContainer = new UserInputManager
+            AddInternal(new UserInputManager
             {
                 Children = new[]
                 {
@@ -73,7 +73,13 @@ namespace osu.Framework
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                         Depth = float.MaxValue
-                    }
+                    },
+                    content = new Container
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Both,
+                    },
                 }
             });
         }

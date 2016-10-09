@@ -15,7 +15,7 @@ namespace osu.Framework.Threading
             this.sleeper = sleeper;
         }
 
-        public override bool Add(Action d, bool forceDelayed = false)
+        public override bool Add(Action d, bool forceDelayed = true)
         {
             if (!sleeper.IsSleeping || isMainThread)
             {

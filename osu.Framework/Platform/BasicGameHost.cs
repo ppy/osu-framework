@@ -30,7 +30,38 @@ namespace osu.Framework.Platform
         public BasicGameWindow Window;
 
         public abstract GLControl GLControl { get; }
-        public abstract bool IsActive { get; }
+
+        private bool isActive;
+        public bool IsActive
+        {
+            get
+            {
+                return isActive;
+            }
+
+            protected set
+            {
+                if (isActive == value)
+                    return;
+
+                isActive = value;
+
+                if (isActive)
+                {
+                    MaximumUpdateHz = ActiveUpdateHz;
+                    MaximumDrawHz = ActiveDrawHz;
+
+                    Activated?.Invoke(this, EventArgs.Empty);
+                }
+                else
+                {
+                    MaximumUpdateHz = InactiveUpdateHz;
+                    MaximumDrawHz = InactiveDrawHz;
+
+                    Deactivated?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
@@ -47,12 +78,40 @@ namespace osu.Framework.Platform
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
         internal FramedClock InputClock = new FramedClock();
+
         internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
 
-        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock
+        private int activeUpdateHz = 1000;
+        public int ActiveUpdateHz
         {
-            MaximumUpdateHz = 144
-        };
+            get
+            {
+                return activeUpdateHz;
+            }
+
+            set
+            {
+                activeUpdateHz = value;
+                if (IsActive)
+                    MaximumUpdateHz = activeUpdateHz;
+            }
+        }
+
+        private int inactiveUpdateHz = 30;
+        public int InactiveUpdateHz
+        {
+            get
+            {
+                return inactiveUpdateHz;
+            }
+
+            set
+            {
+                inactiveUpdateHz = value;
+                if (!IsActive)
+                    MaximumUpdateHz = inactiveUpdateHz;
+            }
+        }
 
         public int MaximumUpdateHz
         {
@@ -60,9 +119,39 @@ namespace osu.Framework.Platform
             set { UpdateClock.MaximumUpdateHz = value; }
         }
 
-        public int ActiveUpdateHz { get; set; } = 1000;
+        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock();
 
-        public int InactiveUpdateHz { get; set; } = 100;
+        private int activeDrawHz = 144;
+        public int ActiveDrawHz
+        {
+            get
+            {
+                return activeDrawHz;
+            }
+
+            set
+            {
+                activeDrawHz = value;
+                if (IsActive)
+                    MaximumDrawHz = activeDrawHz;
+            }
+        }
+
+        private int inactiveDrawHz = 30;
+        public int InactiveDrawHz
+        {
+            get
+            {
+                return inactiveDrawHz;
+            }
+
+            set
+            {
+                inactiveDrawHz = value;
+                if (!IsActive)
+                    MaximumDrawHz = inactiveDrawHz;
+            }
+        }
 
         public int MaximumDrawHz
         {
@@ -104,25 +193,23 @@ namespace osu.Framework.Platform
             DrawMonitor = new PerformanceMonitor(DrawClock);
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
+
+            IsActive = true;
         }
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
-            UpdateClock.MaximumUpdateHz = ActiveUpdateHz;
-
             UpdateScheduler.Add(delegate
             {
-                Activated?.Invoke(this, EventArgs.Empty);
+                IsActive = true;
             });
         }
 
         protected virtual void OnDeactivated(object sender, EventArgs args)
         {
-            UpdateClock.MaximumUpdateHz = InactiveUpdateHz;
-
             UpdateScheduler.Add(delegate
             {
-                Deactivated?.Invoke(this, EventArgs.Empty);
+                IsActive = false;
             });
         }
 
@@ -208,10 +295,14 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
-            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
                 GLWrapper.Reset(Size);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+            {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                     buffer?.Object?.DrawSubTree();
             }

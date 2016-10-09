@@ -256,6 +256,8 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.HotPink;
                 case PerformanceCollectionType.WndProc:
                     return Color4.GhostWhite;
+                case PerformanceCollectionType.GLReset:
+                    return Color4.Cyan;
                 case PerformanceCollectionType.Empty:
                     return new Color4(0.1f, 0.1f, 0.1f, 1);
             }

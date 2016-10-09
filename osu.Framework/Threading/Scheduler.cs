@@ -126,7 +126,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>Whether we could run without scheduling</returns>
-        public virtual bool Add(Action task, bool forceScheduled = false)
+        public virtual bool Add(Action task, bool forceScheduled = true)
         {
             if (!forceScheduled && isMainThread)
             {

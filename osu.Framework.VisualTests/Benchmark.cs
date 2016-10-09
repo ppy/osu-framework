@@ -15,6 +15,12 @@ namespace osu.Framework.VisualTests
         {
             base.Load();
 
+            Host.ActiveDrawHz = int.MaxValue;
+            Host.ActiveUpdateHz = int.MaxValue;
+
+            Host.InactiveDrawHz = int.MaxValue;
+            Host.InactiveUpdateHz = int.MaxValue;
+
             Host.MaximumDrawHz = int.MaxValue;
             Host.MaximumUpdateHz = int.MaxValue;
 

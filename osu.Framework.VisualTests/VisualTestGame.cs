@@ -2,20 +2,27 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 
 namespace osu.Framework.VisualTests
 {
     class VisualTestGame : Game
     {
+        public VisualTestGame()
+        {
+            Children = new Drawable[]
+            {
+                new TestBrowser(),
+                new CursorContainer(),
+            };
+        }
+
         public override void Load()
         {
             base.Load();
 
-            Add(new TestBrowser());
-
             ShowPerformanceOverlay = true;
-            Add(new CursorContainer());
         }
     }
 }

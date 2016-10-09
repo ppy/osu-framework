@@ -30,6 +30,7 @@ namespace osu.Framework.Statistics
         Sleep,
         Scheduler,
         IPC,
-        Empty
+        GLReset,
+        Empty,
     }
 }
