@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
         /// Add a Drawable to this container's Children list, disregarding the value of Content.
         /// </summary>
         /// <param name="drawable">The drawable to be added.</param>
-        private void AddInternal(Drawable drawable)
+        protected void AddInternal(Drawable drawable)
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
@@ -136,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
         /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
         /// </summary>
         /// <param name="drawable">The drawables to be added.</param>
-        private void AddInternal(IEnumerable<Drawable> collection)
+        protected void AddInternal(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
                 AddInternal(d);
