@@ -80,10 +80,6 @@ namespace osu.Framework.VisualTests.Tests
                         RelativeSizeAxes = Axes.Both,
                         Colour = colour,
                     },
-                    content = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                    },
                     t1 = new SpriteText
                     {
                         Text = Padding.Top.ToString(),
@@ -109,6 +105,11 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.CentreLeft
                     },
                 };
+
+                AddTopLevel(content = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                });
 
                 Masking = true;
             }
