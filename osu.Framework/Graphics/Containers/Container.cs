@@ -63,6 +63,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!IsLoaded)
                 {
+                    Debug.Assert(pendingChildren.Count == 0, "Can not overwrite existing pending children.");
+                    Clear();
                     pendingChildren.AddRange(value);
                 }
                 else
