@@ -102,7 +102,9 @@ namespace osu.Framework.Graphics.Shaders
             int compileResult;
             GL.GetShader(this, ShaderParameter.CompileStatus, out compileResult);
             Compiled = compileResult == 1;
+#if DEBUG
             string compileLog = GL.GetShaderInfoLog(this);
+#endif
 
             if (!Compiled)
                 Dispose(true);
