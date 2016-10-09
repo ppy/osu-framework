@@ -11,8 +11,6 @@ namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        public override bool IsActive => true; // TODO LINUX
-
         internal LinuxGameHost(GraphicsContextFlags flags)
         {
             Window = new LinuxGameWindow(flags);

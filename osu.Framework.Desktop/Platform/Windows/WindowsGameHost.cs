@@ -16,12 +16,12 @@ namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {
-        public override bool IsActive => Window != null && GetForegroundWindow().Equals(Window.Handle);
-
         private TimePeriod timePeriod;
 
         internal WindowsGameHost(GraphicsContextFlags flags)
         {
+            IsActive = Window != null && GetForegroundWindow().Equals(Window.Handle);
+
             timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
