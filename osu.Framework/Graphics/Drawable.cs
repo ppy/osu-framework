@@ -712,6 +712,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loads this drawable. This function is guaranteed to be called once and
         /// in a top-down fashion--i.e. after Parent.Load() has been called.
+        /// Note, that base.Load() may implicitly call childrens'
+        /// load functions, and thus should be called _after_ objects which
+        /// children depend on have been loaded.
         /// </summary>
         public virtual void Load()
         {

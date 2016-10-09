@@ -97,8 +97,6 @@ namespace osu.Framework
 
         public override void Load()
         {
-            base.Load();
-
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
@@ -113,6 +111,8 @@ namespace osu.Framework
             {
                 ScaleAdjust = 1 / 100f
             };
+
+            base.Load();
         }
 
         protected override void Update()
