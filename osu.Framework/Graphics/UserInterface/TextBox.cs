@@ -356,7 +356,7 @@ namespace osu.Framework.Graphics.UserInterface
                         addCharacter(c);
 
                     selectionStart = MathHelper.Clamp(startBefore, 0, text.Length);
-                }, true);
+                });
 
                 cursorAndLayout.Invalidate();
             }

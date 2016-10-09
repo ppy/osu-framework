@@ -174,7 +174,7 @@ namespace osu.Framework.Logging
                 catch
                 {
                 }
-            }, true);
+            });
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace osu.Framework.Logging
                     FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
                 else
                     FileSafety.FileDelete(Filename);
-            }, true);
+            });
 
             addHeader();
         }
