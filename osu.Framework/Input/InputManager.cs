@@ -13,6 +13,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Input;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
@@ -53,6 +54,8 @@ namespace osu.Framework.Input
         /// </summary>
         public double LastActionTime;
 
+        protected BasicGameHost Host;
+
         public Drawable FocusedDrawable;
 
         private readonly List<InputHandler> inputHandlers = new List<InputHandler>();
@@ -66,6 +69,9 @@ namespace osu.Framework.Input
         private bool isValidClick;
 
         private ICursorInputHandler currentCursorHandler;
+
+        //hopefully we can remove this once we fix silly invalidation caching logic.
+        public override Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
 
         /// <summary>
         /// The input state from the previous frame.
@@ -604,7 +610,7 @@ namespace osu.Framework.Input
         {
             try
             {
-                if (handler.Initialize(Game))
+                if (handler.Initialize(Host))
                 {
                     int index = inputHandlers.BinarySearch(handler, new InputHandlerComparer());
                     if (index < 0)

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
 using OpenTK.Input;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
@@ -18,7 +19,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
         {
         }
 
-        public override bool Initialize(Game game)
+        public override bool Initialize(BasicGameHost host)
         {
             PressedKeys = new List<Key>();
             return true;

@@ -6,6 +6,7 @@ using System.Drawing;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Threading;
 using OpenTK;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
@@ -13,20 +14,20 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private Vector2 position = Vector2.One;
 
-        private Game game;
+        private BasicGameHost host;
 
         Point nativePosition;
 
-        public override bool Initialize(Game game)
+        public override bool Initialize(BasicGameHost host)
         {
-            this.game = game;
+            this.host = host;
 
-            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate
+            host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
                 //this can probably be run in UpdateInput, and improved a lot.
                 //we can also use this for button states.
                 var state = OpenTK.Input.Mouse.GetCursorState();
-                nativePosition = game.Window.Form.PointToClient(new Point(state.X, state.Y));
+                nativePosition = host.Window.Form.PointToClient(new Point(state.X, state.Y));
             }, 0, 0));
 
             return true;
@@ -52,7 +53,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public Vector2? Position => position;
 
-        public Vector2 Size => game.Size;
+        public Vector2 Size => host.Size;
 
         public bool? Left => null;
 

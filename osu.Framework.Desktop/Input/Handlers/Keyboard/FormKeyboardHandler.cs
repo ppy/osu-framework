@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using osu.Framework.Input.Handlers;
 using OpenTK.Input;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
@@ -106,9 +107,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
             form.KeyUp -= keyUp;
         }
 
-        public override bool Initialize(Game game)
+        public override bool Initialize(BasicGameHost host)
         {
-            form = game.Window.Form;
+            form = host.Window.Form;
 
             form.KeyPreview = true;
             form.KeyDown += keyDown;

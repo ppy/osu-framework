@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Threading;
 using OpenTK;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
@@ -14,15 +15,17 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private Vector2 position = Vector2.One;
 
-        private Game game;
-
         Point nativePosition;
 
-        public override bool Initialize(Game game)
-        {
-            this.game = game;
+        BasicGameHost host;
 
-            game.Host.InputScheduler.Add(new ScheduledDelegate(delegate { nativePosition = game.Window.Form.PointToClient(Cursor.Position); }, 0, 0));
+        public override bool Initialize(BasicGameHost host)
+        {
+            this.host = host;
+            host.InputScheduler.Add(new ScheduledDelegate(delegate
+            {
+                nativePosition = host.Window.Form.PointToClient(Cursor.Position);
+            }, 0, 0));
 
             return true;
         }
@@ -47,7 +50,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public Vector2? Position => position;
 
-        public Vector2 Size => game.Size;
+        public Vector2 Size => host.Size;
 
         public bool? Left => null;
 

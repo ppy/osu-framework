@@ -22,6 +22,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Cached;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Platform
 {
@@ -185,6 +186,9 @@ namespace osu.Framework.Platform
             return Uri.UnescapeDataString(uri.Path);
         });
 
+        private UserInputManager inputManager;
+
+        protected override Container Content => inputManager;
 
         public BasicGameHost()
         {
@@ -195,6 +199,8 @@ namespace osu.Framework.Platform
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
             IsActive = true;
+
+            AddInternal(inputManager = new UserInputManager(this));
         }
 
         protected virtual void OnActivated(object sender, EventArgs args)
@@ -418,7 +424,11 @@ namespace osu.Framework.Platform
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
-            UpdateScheduler.Add(delegate { AddInternal(game); Load(); });
+            UpdateScheduler.Add(delegate
+            {
+                Load();
+                base.Add(game);
+            });
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
