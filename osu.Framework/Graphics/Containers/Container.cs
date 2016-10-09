@@ -45,6 +45,7 @@ namespace osu.Framework.Graphics.Containers
                 else
                     return children;
             }
+
             set
             {
                 if (Content != this)
@@ -56,12 +57,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual IEnumerable<Drawable> InternalChildren
         {
-            get { return children; }
+            get { return IsLoaded ? children : pendingChildren; }
+
             set
             {
                 if (!IsLoaded)
                 {
-                    pendingChildren.Clear();
                     pendingChildren.AddRange(value);
                 }
                 else
