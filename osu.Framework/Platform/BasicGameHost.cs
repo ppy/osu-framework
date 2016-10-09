@@ -208,10 +208,14 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
-            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
                 GLWrapper.Reset(Size);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
+
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
+            {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                     buffer?.Object?.DrawSubTree();
             }
