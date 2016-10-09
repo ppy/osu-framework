@@ -36,6 +36,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual string Name => string.Empty;
 
+        static long creationIDCounter;
+        internal long CreationID;
+
+        public Drawable()
+        {
+            CreationID = Interlocked.Increment(ref creationIDCounter);
+        }
+
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future Update calls.
         /// </summary>
@@ -974,16 +982,7 @@ namespace osu.Framework.Graphics
         {
             int i = x.Depth.CompareTo(y.Depth);
             if (i != 0) return i;
-            return x.LifetimeStart.CompareTo(y.LifetimeStart);
-        }
-    }
-
-    public class DepthComparerReverse : IComparer<Drawable>
-    {
-        public int Compare(Drawable x, Drawable y)
-        {
-            if (x.Depth == y.Depth) return 1;
-            return x.Depth.CompareTo(y.Depth);
+            return x.CreationID.CompareTo(y.CreationID);
         }
     }
 }
