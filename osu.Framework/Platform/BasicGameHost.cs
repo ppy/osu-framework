@@ -327,7 +327,7 @@ namespace osu.Framework.Platform
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
-            UpdateScheduler.Add(delegate { base.Add(game); Load(); });
+            UpdateScheduler.Add(delegate { AddInternal(game); Load(); });
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

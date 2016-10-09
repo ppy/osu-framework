@@ -46,11 +46,11 @@ namespace osu.Framework.Graphics.Containers
         {
             RelativeSizeAxes = Axes.Both;
 
-            InternalChildren = new Drawable[]
+            AddInternal(new Drawable[]
             {
                 content = new AutoSizeContainer { RelativeSizeAxes = Axes.X },
                 scrollbar = new ScrollBar(offset),
-            };
+            });
         }
 
         public override void Load()

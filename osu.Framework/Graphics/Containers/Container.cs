@@ -32,7 +32,9 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleInput => true;
 
         private LifetimeList<Drawable> children;
-        private IEnumerable<Drawable> pendingChildren;
+
+        private List<Drawable> pendingChildrenInternal;
+        private List<Drawable> pendingChildren => pendingChildrenInternal == null ? (pendingChildrenInternal = new List<Drawable>()) : pendingChildrenInternal;
 
         public virtual IEnumerable<Drawable> Children
         {
@@ -48,15 +50,7 @@ namespace osu.Framework.Graphics.Containers
                 if (Content != this)
                     Content.Children = value;
                 else
-                {
-                    if (!IsLoaded)
-                        pendingChildren = value;
-                    else
-                    {
-                        Clear();
-                        AddInternal(value);
-                    }
-                }
+                    InternalChildren = value;
             }
         }
 
@@ -66,7 +60,10 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if (!IsLoaded)
-                    pendingChildren = value;
+                {
+                    pendingChildren.Clear();
+                    pendingChildren.AddRange(value);
+                }
                 else
                 {
                     Clear();
@@ -101,6 +98,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(Drawable drawable)
         {
+            Debug.Assert(IsLoaded, "Can not add children before Container is loaded.");
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
             Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
@@ -129,7 +127,11 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
             drawable.ChangeParent(this);
-            children.Add(drawable);
+            
+            if (!IsLoaded)
+                pendingChildren.Add(drawable);
+            else
+                children.Add(drawable);
         }
 
         /// <summary>
@@ -223,13 +225,13 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Load()
         {
-            if (pendingChildren != null)
+            base.Load();
+
+            if (pendingChildrenInternal != null)
             {
                 AddInternal(pendingChildren);
-                pendingChildren = null;
+                pendingChildrenInternal = null;
             }
-
-            base.Load();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)

@@ -24,23 +24,24 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer flow = new FlowContainer
+            FlowContainer flow;
+
+            Children = new []
             {
-                LayoutDuration = 100,
-                LayoutEasing = EasingTypes.Out,
-                Padding = new Vector2(1, 1),
-                RelativeSizeAxes = Axes.X
+                new ScrollContainer
+                {
+                    Children = new []
+                    {
+                        flow = new FlowContainer
+                        {
+                            LayoutDuration = 100,
+                            LayoutEasing = EasingTypes.Out,
+                            Padding = new Vector2(1, 1),
+                            RelativeSizeAxes = Axes.X
+                        },
+                    },
+                },
             };
-
-/*
-            Children = new Drawable[]
-            {
-                scrolling = new ScrollContainer(),
-
-            };*/
-            ScrollContainer scrolling = new ScrollContainer();
-            scrolling.Add(flow);
-            Add(scrolling);
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate
@@ -73,11 +74,6 @@ namespace osu.Framework.VisualTests.Tests
             }, 100, true);
 
             Scheduler.Add(boxCreator);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
         }
     }
 }

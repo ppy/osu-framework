@@ -141,18 +141,18 @@ namespace osu.Framework.Graphics.Sprites
                     {
                         s = getSprite(c);
 
-                        var ctn = new Container
-                        {
-                            Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
-                        };
-
                         if (FixedWidth)
                         {
                             s.Anchor = Anchor.TopCentre;
                             s.Origin = Anchor.TopCentre;
                         }
 
-                        ctn.Add(s);
+                        var ctn = new Container
+                        {
+                            Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
+                            Children = new[] { s }
+                        };
+
                         s = ctn;
                     }
 

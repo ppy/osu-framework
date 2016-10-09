@@ -73,7 +73,7 @@ namespace osu.Framework.VisualTests.Tests
 
             public PaddedBox(Color4 colour)
             {
-                InternalChildren = new Drawable[]
+                AddInternal(new Drawable[]
                 {
                     new Box
                     {
@@ -108,7 +108,7 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft
                     }
-                };
+                });
 
                 Masking = true;
             }

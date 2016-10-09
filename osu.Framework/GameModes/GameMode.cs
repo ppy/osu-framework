@@ -78,7 +78,7 @@ namespace osu.Framework.GameModes
         {
             base.Load();
 
-            InternalChildren = new[]
+            AddInternal(new[]
             {
                 content = new ContentContainer()
                 {
@@ -91,7 +91,7 @@ namespace osu.Framework.GameModes
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
-            };
+            });
 
             if (ParentGameMode == null)
                 OnEntering(null);

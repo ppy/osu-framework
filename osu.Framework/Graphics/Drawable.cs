@@ -709,6 +709,10 @@ namespace osu.Framework.Graphics
 
         private bool loaded;
 
+        /// <summary>
+        /// Loads this drawable. This function is guaranteed to be called once and
+        /// in a top-down fashion--i.e. after Parent.Load() has been called.
+        /// </summary>
         public virtual void Load()
         {
             mainThread = Thread.CurrentThread;
