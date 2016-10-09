@@ -61,7 +61,17 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        internal Vector2 ChildrenScale = Vector2.One;
+        internal Vector2 ChildScale = Vector2.One;
+
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        internal virtual Vector2 ChildOffset => Vector2.Zero;
+
+        /// <summary>
+        /// The Size (coordinate space) revealed to Children.
+        /// </summary>
+        internal virtual Vector2 ChildSize => Size;
 
         public virtual Drawable Add(Drawable drawable)
         {

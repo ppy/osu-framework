@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics
                 Vector2 size = InternalSize;
                 if (RelativeSizeAxes != Axes.None)
                 {
-                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    Vector2 parent = Parent?.ChildSize ?? Vector2.One;
                     if ((RelativeSizeAxes & Axes.X) > 0)
                         size.X = size.X * parent.X;
                     if ((RelativeSizeAxes & Axes.Y) > 0)
@@ -405,7 +405,7 @@ namespace osu.Framework.Graphics
                 if (Parent == null)
                     di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;
@@ -769,7 +769,7 @@ namespace osu.Framework.Graphics
             if (!HasDefinedSize || Anchor == Anchor.TopLeft)
                 return pos;
 
-            Vector2 parentSize = Parent?.Size ?? Vector2.Zero;
+            Vector2 parentSize = Parent?.ChildSize ?? Vector2.Zero;
 
             if ((Anchor & Anchor.x1) > 0)
                 pos.X += parentSize.X / 2f;

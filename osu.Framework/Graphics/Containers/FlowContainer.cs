@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if (d.IsVisible)
                         {
-                            size = d.Size * d.Scale * ChildrenScale;
+                            size = d.Size * d.Scale * ChildScale;
 
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {

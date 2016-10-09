@@ -42,8 +42,8 @@ namespace osu.Framework.Graphics.Sprites
 
         public float TextSize
         {
-            get { return ChildrenScale.X; }
-            set { ChildrenScale = new Vector2(value); }
+            get { return ChildScale.X; }
+            set { ChildScale = new Vector2(value); }
         }
 
         public override void Load()
