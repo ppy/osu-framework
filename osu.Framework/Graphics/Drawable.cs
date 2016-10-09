@@ -24,6 +24,11 @@ namespace osu.Framework.Graphics
     {
         public event Action OnUpdate;
 
+        /// <summary>
+        /// DO NOT USE THIS.
+        /// (Right now, this is required by the draw visualizer.
+        ///  Attempting to use this for anything else will likely result in bad behaviour.)
+        /// </summary>
         internal event Action OnInvalidate;
 
         /// <summary>
@@ -246,7 +251,7 @@ namespace osu.Framework.Graphics
                 Vector2 size = InternalSize;
                 if (RelativeSizeAxes != Axes.None)
                 {
-                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    Vector2 parent = Parent?.ChildSize ?? Vector2.One;
                     if ((RelativeSizeAxes & Axes.X) > 0)
                         size.X = size.X * parent.X;
                     if ((RelativeSizeAxes & Axes.Y) > 0)
@@ -426,7 +431,7 @@ namespace osu.Framework.Graphics
                 if (Parent == null)
                     di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale * Parent.ChildrenScale, Rotation, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;
@@ -704,6 +709,13 @@ namespace osu.Framework.Graphics
 
         private bool loaded;
 
+        /// <summary>
+        /// Loads this drawable. This function is guaranteed to be called once and
+        /// in a top-down fashion--i.e. after Parent.Load() has been called.
+        /// Note, that base.Load() may implicitly call childrens'
+        /// load functions, and thus should be called _after_ objects which
+        /// children depend on have been loaded.
+        /// </summary>
         public virtual void Load()
         {
             mainThread = Thread.CurrentThread;
@@ -787,12 +799,12 @@ namespace osu.Framework.Graphics
             return !alreadyInvalidated;
         }
 
-        protected Vector2 GetAnchoredPosition(Vector2 pos)
+        protected virtual Vector2 GetAnchoredPosition(Vector2 pos)
         {
             if (!HasDefinedSize || Anchor == Anchor.TopLeft)
                 return pos;
 
-            Vector2 parentSize = Parent?.Size ?? Vector2.Zero;
+            Vector2 parentSize = Parent?.ChildSize ?? Vector2.Zero;
 
             if ((Anchor & Anchor.x1) > 0)
                 pos.X += parentSize.X / 2f;

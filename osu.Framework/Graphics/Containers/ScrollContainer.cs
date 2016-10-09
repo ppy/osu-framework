@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content = new AutoSizeContainer { RelativeSizeAxes = Axes.X };
+        private AutoSizeContainer content;
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -40,11 +40,17 @@ namespace osu.Framework.Graphics.Containers
 
         private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
 
-        protected override Container AddTarget => content;
+        protected override Container Content => content;
 
         public ScrollContainer()
         {
             RelativeSizeAxes = Axes.Both;
+
+            AddInternal(new Drawable[]
+            {
+                content = new AutoSizeContainer { RelativeSizeAxes = Axes.X },
+                scrollbar = new ScrollBar(offset),
+            });
         }
 
         public override void Load()
@@ -53,8 +59,6 @@ namespace osu.Framework.Graphics.Containers
 
             Masking = true;
 
-            Add(content);
-            AddTopLevel(scrollbar = new ScrollBar(offset));
             content.OnAutoSize += contentAutoSize;
         }
 
@@ -62,9 +66,6 @@ namespace osu.Framework.Graphics.Containers
         {
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
-
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                updateSize();
 
             return true;
         }

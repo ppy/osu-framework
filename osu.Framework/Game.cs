@@ -53,12 +53,29 @@ namespace osu.Framework
             set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
         }
 
-        protected override Container AddTarget => userInputContainer;
+        protected override Container Content => userInputContainer;
 
         public Game()
         {
             Game = this;
             RelativeSizeAxes = Axes.Both;
+
+            AddInternal(userInputContainer = new UserInputManager
+            {
+                Children = new[]
+                {
+                    performanceContainer = new PerformanceOverlay
+                    {
+                        Position = new Vector2(5, 5),
+                        Direction = FlowDirection.VerticalOnly,
+                        Alpha = 0,
+                        Padding = new Vector2(10, 10),
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                        Depth = float.MaxValue
+                    }
+                }
+            });
         }
 
         /// <summary>
@@ -80,8 +97,6 @@ namespace osu.Framework
 
         public override void Load()
         {
-            base.Load();
-
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
@@ -97,22 +112,7 @@ namespace osu.Framework
                 ScaleAdjust = 1 / 100f
             };
 
-            Add(userInputContainer = new UserInputManager
-            {
-                Children = new[]
-                {
-                    performanceContainer = new PerformanceOverlay
-                    {
-                        Position = new Vector2(5, 5),
-                        Direction = FlowDirection.VerticalOnly,
-                        Alpha = 0,
-                        Padding = new Vector2(10, 10),
-                        Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight,
-                        Depth = float.MaxValue
-                    }
-                }
-            });
+            base.Load();
         }
 
         protected override void Update()

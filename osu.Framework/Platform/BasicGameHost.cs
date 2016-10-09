@@ -321,14 +321,13 @@ namespace osu.Framework.Platform
             inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
-        public override Drawable Add(Drawable drawable)
+        public override void Add(Drawable drawable)
         {
             Game game = drawable as Game;
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
-            UpdateScheduler.Add(delegate { base.Add(game); });
-            return game;
+            UpdateScheduler.Add(delegate { AddInternal(game); Load(); });
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

@@ -20,23 +20,31 @@ namespace osu.Framework.VisualTests.Tests
         public override string Name => @"Scrollable Flow";
         public override string Description => @"A flow container in a scroll container";
 
-        Scheduler scheduler = new Scheduler();
-
         public override void Reset()
         {
             base.Reset();
 
-            FlowContainer flow = new FlowContainer
+            FlowContainer flow;
+
+            Children = new []
             {
-                LayoutDuration = 100,
-                LayoutEasing = EasingTypes.Out,
-                Padding = new Vector2(1, 1),
-                RelativeSizeAxes = Axes.X
+                new ScrollContainer
+                {
+                    Children = new []
+                    {
+                        flow = new FlowContainer
+                        {
+                            LayoutDuration = 100,
+                            LayoutEasing = EasingTypes.Out,
+                            Padding = new Vector2(1, 1),
+                            RelativeSizeAxes = Axes.X
+                        },
+                    },
+                },
             };
 
             boxCreator?.Cancel();
-
-            boxCreator = scheduler.AddDelayed(delegate
+            boxCreator = Scheduler.AddDelayed(delegate
             {
                 if (Parent == null) return;
 
@@ -65,17 +73,7 @@ namespace osu.Framework.VisualTests.Tests
                 container.Expire();
             }, 100, true);
 
-            scheduler.Add(boxCreator);
-
-            ScrollContainer scrolling = new ScrollContainer();
-            scrolling.Add(flow);
-            Add(scrolling);
-        }
-
-        protected override void Update()
-        {
-            scheduler.Update();
-            base.Update();
+            Scheduler.Add(boxCreator);
         }
     }
 }

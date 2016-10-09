@@ -32,23 +32,42 @@ namespace osu.Framework.Graphics.Containers
         public override bool HandleInput => true;
 
         private LifetimeList<Drawable> children;
-        private IEnumerable<Drawable> pendingChildren;
+
+        private List<Drawable> pendingChildrenInternal;
+        private List<Drawable> pendingChildren => pendingChildrenInternal == null ? (pendingChildrenInternal = new List<Drawable>()) : pendingChildrenInternal;
 
         public virtual IEnumerable<Drawable> Children
+        {
+            get
+            {
+                if (Content != this)
+                    return Content.Children;
+                else
+                    return children;
+            }
+            set
+            {
+                if (Content != this)
+                    Content.Children = value;
+                else
+                    InternalChildren = value;
+            }
+        }
+
+        protected virtual IEnumerable<Drawable> InternalChildren
         {
             get { return children; }
             set
             {
-                if (AddTarget != null && AddTarget != this)
+                if (!IsLoaded)
                 {
-                    AddTarget.Children = value;
+                    pendingChildren.Clear();
+                    pendingChildren.AddRange(value);
                 }
-                else if (!IsLoaded)
-                    pendingChildren = value;
                 else
                 {
                     Clear();
-                    Add(value);
+                    AddInternal(value);
                 }
             }
         }
@@ -61,23 +80,68 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        internal Vector2 ChildrenScale = Vector2.One;
+        internal Vector2 ChildScale = Vector2.One;
 
-        public virtual Drawable Add(Drawable drawable)
+        /// <summary>
+        /// Scale which is only applied to Children.
+        /// </summary>
+        internal virtual Vector2 ChildOffset => Vector2.Zero;
+
+        /// <summary>
+        /// The Size (coordinate space) revealed to Children.
+        /// </summary>
+        internal virtual Vector2 ChildSize => Size;
+
+        /// <summary>
+        /// Add a Drawable to Content's children list, recursing until Content == this.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
+        public virtual void Add(Drawable drawable)
         {
-            if (drawable == null)
-                return null;
+            Debug.Assert(IsLoaded, "Can not add children before Container is loaded.");
+            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
+            Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
-            if (AddTarget == this || AddTarget == drawable)
-                return AddTopLevel(drawable);
-
-            return AddTarget.Add(drawable);
+            if (Content == this)
+                AddInternal(drawable);
+            else
+                Content.Add(drawable);
         }
 
+        /// <summary>
+        /// Add a collection of Drawables to Content's children list, recursing until Content == this.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
         public void Add(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
                 Add(d);
+        }
+
+        /// <summary>
+        /// Add a Drawable to this container's Children list, disregarding the value of Content.
+        /// </summary>
+        /// <param name="drawable">The drawable to be added.</param>
+        protected void AddInternal(Drawable drawable)
+        {
+            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
+
+            drawable.ChangeParent(this);
+            
+            if (!IsLoaded)
+                pendingChildren.Add(drawable);
+            else
+                children.Add(drawable);
+        }
+
+        /// <summary>
+        /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
+        /// </summary>
+        /// <param name="drawable">The drawables to be added.</param>
+        protected void AddInternal(IEnumerable<Drawable> collection)
+        {
+            foreach (Drawable d in collection)
+                AddInternal(d);
         }
 
         public virtual bool Remove(Drawable drawable, bool dispose = true)
@@ -85,8 +149,8 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == null)
                 return false;
 
-            if (AddTarget != this)
-                return AddTarget.Remove(drawable, dispose);
+            if (Content != this)
+                return Content.Remove(drawable, dispose);
 
             bool result = children.Remove(drawable);
             drawable.Parent = null;
@@ -119,9 +183,9 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual void Clear(bool dispose = true)
         {
-            if (AddTarget != null && AddTarget != this)
+            if (Content != null && Content != this)
             {
-                AddTarget.Clear(dispose);
+                Content.Clear(dispose);
                 return;
             }
 
@@ -142,16 +206,9 @@ namespace osu.Framework.Graphics.Containers
             Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
         }
 
-        protected Drawable AddTopLevel(Drawable drawable)
-        {
-            drawable.ChangeParent(this);
-            children.Add(drawable);
-            return drawable;
-        }
-
         internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
 
-        protected virtual Container AddTarget => this;
+        protected virtual Container Content => this;
 
         internal override bool UpdateSubTree()
         {
@@ -168,13 +225,13 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Load()
         {
-            if (pendingChildren != null)
-            {
-                Add(pendingChildren);
-                pendingChildren = null;
-            }
-
             base.Load();
+
+            if (pendingChildrenInternal != null)
+            {
+                AddInternal(pendingChildren);
+                pendingChildrenInternal = null;
+            }
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)

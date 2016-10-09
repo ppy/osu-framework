@@ -16,6 +16,7 @@ using osu.Framework.Statistics;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -56,11 +57,6 @@ namespace osu.Framework.Graphics.Performance
             Name = name;
             this.monitor = monitor;
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
-        }
-
-        public override void Load()
-        {
-            base.Load();
 
             Size = new Vector2(WIDTH, HEIGHT);
             Alpha = alpha_when_inactive;
@@ -98,15 +94,12 @@ namespace osu.Framework.Graphics.Performance
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
                             Padding = new Vector2(5, 1),
-                            Children = new[]
+                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
                             {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
-                                    Alpha = 0.2f
-                                }
-                            }
+                                Colour = getColour(t),
+                                Text = t.ToString(),
+                                Alpha = 0
+                            },
                         },
                         new SpriteText
                         {
@@ -121,18 +114,11 @@ namespace osu.Framework.Graphics.Performance
                     }
                 }
             };
+        }
 
-            foreach (PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)))
-            {
-                if (t >= PerformanceCollectionType.Empty) continue;
-
-                legendContainer.Add(legendMapping[(int)t] = new SpriteText
-                {
-                    Colour = getColour(t),
-                    Text = t.ToString(),
-                    Alpha = 0
-                });
-            }
+        public override void Load()
+        {
+            base.Load();
 
             overlayContainer.FadeOut(2000, EasingTypes.InExpo);
 

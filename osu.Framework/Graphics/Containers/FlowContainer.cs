@@ -74,12 +74,11 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        public override Drawable Add(Drawable drawable)
+        public override void Add(Drawable drawable)
         {
             //let's force an instant re-flow on adding a new drawable for now.
             layout.Invalidate();
-
-            return base.Add(drawable);
+            base.Add(drawable);
         }
 
         private Cached<Vector2> layout = new Cached<Vector2>();
@@ -120,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if (d.IsVisible)
                         {
-                            size = d.Size * d.Scale * ChildrenScale;
+                            size = d.Size * d.Scale * ChildScale;
 
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {

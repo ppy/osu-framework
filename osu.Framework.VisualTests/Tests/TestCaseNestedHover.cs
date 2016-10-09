@@ -60,11 +60,14 @@ namespace osu.Framework.VisualTests.Tests
                 this.hoveredColour = hoveredColour;
                 this.propagateHover = propagateHover;
 
-                Add(box = new Box()
+                Children = new Drawable[]
                 {
-                    Colour = normalColour,
-                    RelativeSizeAxes = Axes.Both
-                });
+                    box = new Box()
+                    {
+                        Colour = normalColour,
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
             }
 
             protected override bool OnHover(InputState state)
