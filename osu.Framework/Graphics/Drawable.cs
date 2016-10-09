@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         private Scheduler scheduler = null;
         private Thread mainThread = null;
-        public Scheduler Scheduler
+        protected Scheduler Scheduler
         {
             get
             {
