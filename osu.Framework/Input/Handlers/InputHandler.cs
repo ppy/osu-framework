@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Platform;
 using System.Collections.Generic;
 
 namespace osu.Framework.Input.Handlers
@@ -11,7 +12,7 @@ namespace osu.Framework.Input.Handlers
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize(Game game);
+        public abstract bool Initialize(BasicGameHost host);
 
         /// <summary>
         /// Used to clean up resources specific to this InputHandler. It gets called once and only after Initialize has been called and returned true.

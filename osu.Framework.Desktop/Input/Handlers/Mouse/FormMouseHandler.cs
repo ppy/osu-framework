@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using osu.Framework.Input.Handlers;
 using OpenTK;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
@@ -62,9 +63,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             }
         }
 
-        public override bool Initialize(Game game)
+        public override bool Initialize(BasicGameHost host)
         {
-            form = game.Window.Form;
+            form = host.Window.Form;
             form.MouseDown += mouseDown;
             form.MouseUp += mouseUp;
             form.MouseWheel += mouseWheel;

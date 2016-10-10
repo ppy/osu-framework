@@ -60,26 +60,23 @@ namespace osu.Framework
             Game = this;
             RelativeSizeAxes = Axes.Both;
 
-            AddInternal(new UserInputManager
+            AddInternal(new Drawable[]
             {
-                Children = new[]
+                performanceContainer = new PerformanceOverlay
                 {
-                    performanceContainer = new PerformanceOverlay
-                    {
-                        Position = new Vector2(5, 5),
-                        Direction = FlowDirection.VerticalOnly,
-                        Alpha = 0,
-                        Padding = new Vector2(10, 10),
-                        Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight,
-                        Depth = float.MaxValue
-                    },
-                    content = new Container
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        RelativeSizeAxes = Axes.Both,
-                    },
+                    Position = new Vector2(5, 5),
+                    Direction = FlowDirection.VerticalOnly,
+                    Alpha = 0,
+                    Padding = new Vector2(10, 10),
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                    Depth = float.MaxValue
+                },
+                content = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
                 }
             });
         }

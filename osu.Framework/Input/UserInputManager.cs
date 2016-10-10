@@ -3,6 +3,8 @@
 
 using osu.Framework.Input.Handlers;
 using OpenTK;
+using System.Collections.Generic;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
@@ -10,13 +12,18 @@ namespace osu.Framework.Input
     {
         public override bool Contains(Vector2 screenSpacePos) => true;
 
+        public UserInputManager(BasicGameHost host)
+        {
+            Host = host;
+        }
+
         public override void Load()
         {
             base.Load();
 
-            if (Game?.Host != null)
+            if (Host != null)
             {
-                foreach (InputHandler h in Game.Host.GetInputHandlers())
+                foreach (InputHandler h in Host.GetInputHandlers())
                     AddHandler(h);
             }
         }
