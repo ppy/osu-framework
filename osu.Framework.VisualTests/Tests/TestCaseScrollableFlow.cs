@@ -36,7 +36,8 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             LayoutDuration = 100,
                             LayoutEasing = EasingTypes.Out,
-                            Padding = new Vector2(1, 1),
+                            Spacing = new Vector2(1, 1),
+							Position = new Vector2(5, 5),
                             RelativeSizeAxes = Axes.X
                         },
                     },
