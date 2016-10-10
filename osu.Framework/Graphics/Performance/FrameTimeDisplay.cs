@@ -45,7 +45,6 @@ namespace osu.Framework.Graphics.Performance
 
         Container overlayContainer;
 
-        FlowContainer legendContainer;
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
 
         private FpsDisplay fpsDisplay;
@@ -89,7 +88,7 @@ namespace osu.Framework.Graphics.Performance
                             Anchor = Anchor.CentreLeft,
                             Rotation = -90
                         },
-                        legendContainer = new FlowContainer
+                        new FlowContainer
                         {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,

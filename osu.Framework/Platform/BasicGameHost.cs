@@ -69,6 +69,8 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
+        public virtual BasicStorage Storage { get; protected set; }
+
         public override bool IsVisible => true;
 
         private static Thread updateThread;

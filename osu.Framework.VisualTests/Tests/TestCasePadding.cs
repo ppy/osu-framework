@@ -25,9 +25,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Container box;
-
-            Add(box = new AutoSizeContainer
+            Add(new AutoSizeContainer
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -58,8 +56,6 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             });
-
-            //box.OnUpdate += delegate { box.Rotation += 0.05f; };
         }
 
 
