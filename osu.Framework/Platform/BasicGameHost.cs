@@ -426,8 +426,8 @@ namespace osu.Framework.Platform
             game.SetHost(this);
             UpdateScheduler.Add(delegate
             {
+                Children = new[] { game };
                 Load();
-                base.Add(game);
             });
         }
 
