@@ -102,12 +102,9 @@ namespace osu.Framework.Graphics.Shaders
             int compileResult;
             GL.GetShader(this, ShaderParameter.CompileStatus, out compileResult);
             Compiled = compileResult == 1;
-            string compileLog = GL.GetShaderInfoLog(this);
-
-            if (!Compiled)
-                Dispose(true);
 
 #if DEBUG
+            string compileLog = GL.GetShaderInfoLog(this);
             Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
             Log.AppendLine(string.Format("\tCompiled: {0}", Compiled));
             if (!Compiled)
@@ -116,6 +113,9 @@ namespace osu.Framework.Graphics.Shaders
                 Log.AppendLine('\t' + compileLog);
             }
 #endif
+
+            if (!Compiled)
+                Dispose(true);
 
             return Compiled;
         }
