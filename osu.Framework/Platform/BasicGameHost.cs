@@ -23,6 +23,8 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Primitives;
+using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Platform
 {
@@ -63,11 +65,25 @@ namespace osu.Framework.Platform
                 }
             }
         }
+        
+        public bool IsPrimaryInstance { get; protected set; }
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
+        
+        protected internal event Action<JToken> MessageReceived;
+
+        protected void OnMessageReceived(JToken message)
+        {
+            MessageReceived?.Invoke(message);
+        }
+
+        protected internal virtual Task SendMessage(JToken message)
+        {
+            throw new NotImplementedException("This platform does not implement IPC.");
+        }
 
         public virtual BasicStorage Storage { get; protected set; }
 

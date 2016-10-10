@@ -261,6 +261,7 @@
     <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\BasicStorage.cs" />
+    <Compile Include="Platform\IPCHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
