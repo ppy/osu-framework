@@ -48,7 +48,6 @@ namespace osu.Framework.Graphics
 
         }
 
-        private ScheduledDelegate scheduledUpdater;
         private SpriteText loadMessage;
 
         public override void Load()
@@ -91,7 +90,7 @@ namespace osu.Framework.Graphics
 
             scroll.FadeIn(500);
 
-            scheduledUpdater = Scheduler.AddDelayed(runUpdate, 200, true);
+            Scheduler.AddDelayed(runUpdate, 200, true);
 
             return true;
         }
