@@ -33,6 +33,9 @@ namespace osu.Framework.Graphics.Containers
 
         private LifetimeList<Drawable> children;
 
+        //todo: reference only used for screen bounds checking. we can probably remove this somehow.
+        private BaseGame game;
+
         private List<Drawable> pendingChildrenInternal;
         private List<Drawable> pendingChildren => pendingChildrenInternal == null ? (pendingChildrenInternal = new List<Drawable>()) : pendingChildrenInternal;
 
@@ -78,6 +81,7 @@ namespace osu.Framework.Graphics.Containers
         public Container()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
+            children.LoadRequested += loadChild;
         }
 
         /// <summary>
@@ -226,15 +230,22 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
+
+            this.game = game;
 
             if (pendingChildrenInternal != null)
             {
                 AddInternal(pendingChildren);
                 pendingChildrenInternal = null;
             }
+        }
+
+        private void loadChild(Drawable obj)
+        {
+            obj.Load(game);
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -268,15 +279,6 @@ namespace osu.Framework.Graphics.Containers
             return children.Update();
         }
 
-        internal override void ChangeRoot(Game root)
-        {
-            base.ChangeRoot(root);
-
-            foreach (Drawable c in children)
-                //use Game here to make sure we respect any decisions base.ChangeRoot made.
-                c.ChangeRoot(Game);
-        }
-
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
@@ -301,7 +303,7 @@ namespace osu.Framework.Graphics.Containers
                         if (!current[i].IsVisible) continue;
 
                         //todo: make this more efficient.
-                        if (Game?.ScreenSpaceDrawQuad.FastIntersects(current[i].ScreenSpaceDrawQuad) == false)
+                        if (game?.ScreenSpaceDrawQuad.FastIntersects(current[i].ScreenSpaceDrawQuad) == false)
                             continue;
 
                         if (j < target.Count && target[j].Drawable == current[i])

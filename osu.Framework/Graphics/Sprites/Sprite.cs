@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -33,6 +34,17 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
 
+        private static Shader shader;
+
+        public override void Load(BaseGame game)
+        {
+            base.Load(game);
+
+            //todo: make this better.
+            if (shader == null)
+                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
+        }
+
         protected override void ApplyDrawNode(DrawNode node)
         {
             SpriteDrawNode n = node as SpriteDrawNode;
@@ -40,7 +52,7 @@ namespace osu.Framework.Graphics.Sprites
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
-            n.Game = Game;
+            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }

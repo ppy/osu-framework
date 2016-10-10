@@ -115,9 +115,9 @@ namespace osu.Framework.Graphics.Performance
             };
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             overlayContainer.FadeOut(2000, EasingTypes.InExpo);
 
@@ -140,9 +140,9 @@ namespace osu.Framework.Graphics.Performance
         {
             public Sprite Sprite;
 
-            public override void Load()
+            public override void Load(BaseGame game)
             {
-                base.Load();
+                base.Load(game);
 
                 Width = WIDTH;
                 Height = HEIGHT;

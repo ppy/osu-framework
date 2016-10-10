@@ -50,9 +50,9 @@ namespace osu.Framework.Graphics
 
         private SpriteText loadMessage;
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Add(new Container
             {
@@ -151,9 +151,9 @@ namespace osu.Framework.Graphics
                 Position = new Vector2(10, 14)
             };
 
-            public override void Load()
+            public override void Load(BaseGame game)
             {
-                base.Load();
+                base.Load(game);
 
                 Target.OnInvalidate += onInvalidate;
 

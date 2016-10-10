@@ -11,7 +11,5 @@ namespace osu.Framework.Lists
         bool IsAlive { get; }
         bool IsLoaded { get; }
         bool RemoveWhenNotAlive { get; }
-
-        void Load();
     }
 }

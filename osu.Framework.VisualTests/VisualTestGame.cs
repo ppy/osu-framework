@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Cursor;
 
 namespace osu.Framework.VisualTests
 {
-    class VisualTestGame : Game
+    class VisualTestGame : BaseGame
     {
         public VisualTestGame()
         {
@@ -18,9 +18,9 @@ namespace osu.Framework.VisualTests
             };
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             ShowPerformanceOverlay = true;
         }

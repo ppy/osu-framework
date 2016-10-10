@@ -10,9 +10,7 @@ namespace osu.Framework.Graphics.Drawables
 {
     public class BoxDrawNode : DrawNode
     {
-        private static Shader shader;
-
-        public Game Game;
+        public Shader Shader;
         public Quad ScreenSpaceDrawQuad;
         public QuadBatch<Vertex2d> Batch;
 
@@ -20,10 +18,9 @@ namespace osu.Framework.Graphics.Drawables
         {
             base.Draw();
 
-            if (shader == null)
-                shader = Game.Shaders.Load(VertexShader.Colour, FragmentShader.Colour);
+            if (!Shader.Loaded) Shader.Compile();
 
-            shader.Bind();
+            Shader.Bind();
 
             Batch.Add(new Vertex2d
             {
@@ -47,7 +44,7 @@ namespace osu.Framework.Graphics.Drawables
             });
             Batch.Draw();
 
-            shader.Unbind();
+            Shader.Unbind();
         }
     }
 }

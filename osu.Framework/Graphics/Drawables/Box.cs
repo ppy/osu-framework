@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Drawables
 {
@@ -12,15 +13,25 @@ namespace osu.Framework.Graphics.Drawables
 
         protected override DrawNode CreateDrawNode() => new BoxDrawNode();
 
+        private static Shader shader;
+
         protected override void ApplyDrawNode(DrawNode node)
         {
             BoxDrawNode n = node as BoxDrawNode;
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.Shader = shader;
             n.Batch = quadBatch;
-            n.Game = Game;
 
             base.ApplyDrawNode(node);
+        }
+
+        public override void Load(BaseGame game)
+        {
+            base.Load(game);
+
+            if (shader == null)
+                shader = game.Shaders.Load(VertexShader.Colour, FragmentShader.Colour);
         }
     }
 }

@@ -8,7 +8,9 @@ namespace osu.Framework.Lists
 {
     public class LifetimeList<T> : SortedList<T> where T : IHasLifetime
     {
-        public event Action<T> OnRemoved;
+        public event Action<T> Removed;
+
+        public event Action<T> LoadRequested;
 
         public LifetimeList(IComparer<T> comparer) : base(comparer)
         {
@@ -28,33 +30,33 @@ namespace osu.Framework.Lists
 
             for (int i = 0; i < Count; i++)
             {
-                var obj = this[i];
+                var item = this[i];
 
-                if (obj.IsAlive)
+                if (item.IsAlive)
                 {
                     if (!current[i])
                     {
-                        AliveItems.Add(obj);
+                        AliveItems.Add(item);
                         current[i] = true;
                         anyAliveChanged = true;
                     }
 
-                    if (!obj.IsLoaded)
-                        obj.Load();
+                    if (!item.IsLoaded)
+                        LoadRequested?.Invoke(item);
                 }
                 else
                 {
                     if (current[i])
                     {
-                        AliveItems.Remove(obj);
+                        AliveItems.Remove(item);
                         current[i] = false;
                         anyAliveChanged = true;
                     }
 
-                    if (obj.RemoveWhenNotAlive)
+                    if (item.RemoveWhenNotAlive)
                     {
                         RemoveAt(i--);
-                        OnRemoved?.Invoke(obj);
+                        Removed?.Invoke(item);
                     }
                 }
             }
@@ -65,7 +67,7 @@ namespace osu.Framework.Lists
         public new int Add(T item)
         {
             if (item.IsAlive && !item.IsLoaded)
-                item.Load();
+                LoadRequested?.Invoke(item);
 
             int i = base.Add(item);
             current.Insert(i, false);

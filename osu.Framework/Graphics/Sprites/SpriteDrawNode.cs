@@ -10,9 +10,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteDrawNode : DrawNode
     {
-        private static Shader shader;
-
-        public Game Game;
+        public Shader Shader;
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
@@ -24,16 +22,15 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            if (shader == null)
-                shader = Game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
+            if (!Shader.Loaded) Shader.Compile();
 
-            shader.Bind();
+            Shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
 
             Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour);
 
-            shader.Unbind();
+            Shader.Unbind();
         }
     }
 }

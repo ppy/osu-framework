@@ -166,7 +166,7 @@
     <Compile Include="Audio\Track\AudioTrack.cs" />
     <Compile Include="Audio\Track\AudioTrackBass.cs" />
     <Compile Include="Audio\Track\AudioTrackVirtual.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Game.cs" />
+    <Compile Include="BaseGame.cs" />
     <Compile Include="Platform\BasicGameHost.cs" />
     <Compile Include="Platform\BasicGameWindow.cs" />
     <Compile Include="Platform\GLControl.cs">

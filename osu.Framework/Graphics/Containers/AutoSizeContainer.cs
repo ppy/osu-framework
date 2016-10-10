@@ -41,15 +41,11 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.BoundingSize;
 
-                    if ((c.RelativeSizeAxes & Axes.X) == 0)
+                    if ((c.RelativeSizeAxes & Axes.X) == 0 && (c.RelativePositionAxes & Axes.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
-                    else
-                        Debug.Assert(c.InternalSize.X <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
 
-                    if ((c.RelativeSizeAxes & Axes.Y) == 0)
+                    if ((c.RelativeSizeAxes & Axes.Y) == 0 && (c.RelativePositionAxes & Axes.Y) == 0)
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
-                    else
-                        Debug.Assert(c.InternalSize.Y <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
                 }
 
                 if ((RelativeSizeAxes & Axes.X) > 0)
