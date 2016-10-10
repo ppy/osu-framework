@@ -80,6 +80,21 @@ namespace osu.Framework.Graphics.Containers
             children = new LifetimeList<Drawable>(DepthComparer);
         }
 
+		private Padding padding;
+		public Padding Padding
+		{
+			get { return padding; }
+			set
+			{
+				if (padding.Equals(value)) return;
+
+				padding = value;
+
+				Invalidate(Invalidation.Position);
+			}
+		}
+
+
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
@@ -88,12 +103,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildOffset => Vector2.Zero;
+		internal virtual Vector2 ChildOffset => Vector2.Zero + new Vector2(Padding.Left, Padding.Top);
 
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => Size;
+        internal virtual Vector2 ChildSize => Size - new Vector2(Padding.Left + Padding.Right, Padding.Top + Padding.Bottom);
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
@@ -373,4 +388,29 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
     }
+
+
+	public struct Padding : IEquatable<Padding>
+	{
+		public float Top;
+		public float Left;
+		public float Bottom;
+		public float Right;
+
+		public Padding(float allSides)
+		{
+			Top = Left = Bottom = Right = allSides;
+		}
+
+		public int CompareTo(object obj)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool Equals(Padding other)
+		{
+			return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
+		}
+	}
+
 }

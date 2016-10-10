@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Performance
                         {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
-                            Padding = new Vector2(5, 1),
+                            ElementPadding = new Vector2(5, 1),
                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
                             {
                                 Colour = getColour(t),

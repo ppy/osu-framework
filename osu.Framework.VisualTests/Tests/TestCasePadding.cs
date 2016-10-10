@@ -59,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
         }
 
 
-        class PaddedBox : PaddingContainer
+        class PaddedBox : Container
         {
             private SpriteText t1, t2, t3, t4;
 

@@ -62,7 +62,7 @@ namespace osu.Framework.GameModes.Testing
             {
                 Direction = FlowDirection.VerticalOnly,
                 RelativeSizeAxes = Axes.X,
-                Padding = new Vector2(0, 5)
+                ElementPadding = new Vector2(0, 5)
             });
 
             //this is where the actual tests are loaded.

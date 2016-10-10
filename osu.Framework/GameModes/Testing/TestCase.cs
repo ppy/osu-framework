@@ -43,7 +43,7 @@ namespace osu.Framework.GameModes.Testing
                             buttonsContainer = new FlowContainer
                             {
                                 Direction = FlowDirection.VerticalOnly,
-                                Padding = new Vector2(15, 5)
+                                ElementPadding = new Vector2(15, 5)
                             }
                         }
                     },
