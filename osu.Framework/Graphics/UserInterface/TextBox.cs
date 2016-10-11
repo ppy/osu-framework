@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursor = new Box
             {
+                Depth = float.MinValue,
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
                 RelativeSizeAxes = Axes.Y,
