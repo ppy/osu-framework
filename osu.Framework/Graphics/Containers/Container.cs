@@ -8,6 +8,7 @@ using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
 using OpenTK;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -104,6 +105,33 @@ namespace osu.Framework.Graphics.Containers
         /// Offset which is only applied to Children.
         /// </summary>
 		internal virtual Vector2 ChildOffset => Vector2.Zero + new Vector2(Padding.Left, Padding.Top);
+        /// <summary>
+        /// Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
+        /// </summary>
+        protected override Quad DrawQuadForBounds => base.DrawQuad;
+
+        /// <summary>
+        /// Custom DrawQuad implementation excludes Margin/Padding.
+        /// </summary>
+        protected override Quad DrawQuad
+        {
+            get
+            {
+                if (!HasDefinedSize)
+                    return new Quad();
+
+                Vector2 s = ChildSize;
+
+                //most common use case gets a shortcut
+                if (!FlipHorizontal && !FlipVertical) return new Quad(ChildOffset.X, ChildOffset.Y, s.X, s.Y);
+
+                if (FlipHorizontal && FlipVertical)
+                    return new Quad(s.X, s.Y, -s.X, -s.Y);
+                if (FlipHorizontal)
+                    return new Quad(s.X, 0, -s.X, s.Y);
+                return new Quad(0, s.Y, s.X, -s.Y);
+            }
+        }
 
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
