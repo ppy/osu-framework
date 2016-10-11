@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (textSize == value) return;
 
                 textSize = value;
-                Invalidate(Invalidation.Position);
+                Invalidate(Invalidation.SizeInParentSpace);
             }
         }
 
