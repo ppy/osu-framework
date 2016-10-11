@@ -36,14 +36,22 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-
-            TextSize = 20;
         }
+
+        internal override Vector2 ChildScale => new Vector2(TextSize);
+
+        private float textSize = 20;
 
         public float TextSize
         {
-            get { return ChildScale.X; }
-            set { ChildScale = new Vector2(value); }
+            get { return textSize; }
+            set
+            {
+                if (textSize == value) return;
+
+                textSize = value;
+                Invalidate(Invalidation.Position);
+            }
         }
 
         public override void Load()
