@@ -7,12 +7,12 @@ using Newtonsoft.Json.Linq;
 
 namespace osu.Framework.Platform
 {
-    public class IPCHost<T>
+    public class IPCChannel<T>
     {
         private BasicGameHost host;
         public event Action<T> MessageReceived;
     
-        public IPCHost(BasicGameHost host)
+        public IPCChannel(BasicGameHost host)
         {
             this.host = host;
             this.host.MessageReceived += HandleMessage;

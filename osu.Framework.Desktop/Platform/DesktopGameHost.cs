@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,6 +26,7 @@ namespace osu.Framework.Desktop.Platform
         
         private readonly int ipcPort = 45356;
         private TcpListener listener;
+        private CancellationTokenSource cancelListener;
         
         public override void Load()
         {
@@ -33,10 +35,12 @@ namespace osu.Framework.Desktop.Platform
             {
                 listener.Start();
                 IsPrimaryInstance = true;
-                runIPCServer();
+                cancelListener = new CancellationTokenSource();
+                Task.Run(() => runIPCServer(cancelListener.Token));
             }
             catch (SocketException ex)
             {
+                listener = null;
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     IsPrimaryInstance = false;
                 else
@@ -45,21 +49,28 @@ namespace osu.Framework.Desktop.Platform
             base.Load();
         }
         
-        private async void runIPCServer()
+        private async Task runIPCServer(CancellationToken token)
         {
             IsPrimaryInstance = true;
             while (true)
             {
-                using (var client = await listener.AcceptTcpClientAsync())
-                using (var stream = client.GetStream())
+                using (var client = await Task.Run(() => listener.AcceptTcpClientAsync(), token))
                 {
-                    byte[] header = new byte[sizeof(int)];
-                    await stream.ReadAsync(header, 0, sizeof(int));
-                    int len = BitConverter.ToInt32(header, 0);
-                    byte[] data = new byte[len];
-                    await stream.ReadAsync(data, 0, len);
-                    var str = Encoding.UTF8.GetString(data);
-                    OnMessageReceived(JToken.Parse(str));
+                    if (token.IsCancellationRequested)
+                    {
+                        listener.Stop();
+                        return;
+                    }
+                    using (var stream = client.GetStream())
+                    {
+                        byte[] header = new byte[sizeof(int)];
+                        await stream.ReadAsync(header, 0, sizeof(int));
+                        int len = BitConverter.ToInt32(header, 0);
+                        byte[] data = new byte[len];
+                        await stream.ReadAsync(data, 0, len);
+                        var str = Encoding.UTF8.GetString(data);
+                        OnMessageReceived(JToken.Parse(str));
+                    }
                 }
             }
         }
@@ -79,6 +90,13 @@ namespace osu.Framework.Desktop.Platform
                     await stream.FlushAsync();
                 }
             }
+        }
+        
+        protected override void Dispose(bool isDisposing)
+        {
+            if (isDisposing && listener != null)
+                cancelListener.Cancel();
+            base.Dispose(isDisposing);
         }
     }
 }

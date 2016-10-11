@@ -47,7 +47,7 @@ namespace osu.Framework.Statistics
         /// <summary>
         /// Start collecting a type of passing time.
         /// </summary>
-        internal InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
+        public InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
         {
             if (CurrentCollectionTypeStack.Count > 0)
             {
@@ -90,7 +90,7 @@ namespace osu.Framework.Statistics
         /// <summary>
         /// Resets all frame statistics. Run exactly once per frame.
         /// </summary>
-        internal void NewFrame()
+        public void NewFrame()
         {
             if (currentFrame != null)
             {

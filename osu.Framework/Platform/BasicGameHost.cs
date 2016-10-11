@@ -98,7 +98,7 @@ namespace osu.Framework.Platform
 
         internal FramedClock InputClock = new FramedClock();
 
-        internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
+        protected internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
 
         private int activeUpdateHz = 1000;
         public int ActiveUpdateHz
@@ -178,9 +178,9 @@ namespace osu.Framework.Platform
             set { DrawClock.MaximumUpdateHz = value; }
         }
 
-        internal PerformanceMonitor InputMonitor;
-        internal PerformanceMonitor UpdateMonitor;
-        internal PerformanceMonitor DrawMonitor;
+        protected internal PerformanceMonitor InputMonitor;
+        protected internal PerformanceMonitor UpdateMonitor;
+        protected internal PerformanceMonitor DrawMonitor;
 
         //null here to construct early but bind to thread late.
         public Scheduler InputScheduler = new Scheduler(null);

@@ -273,7 +273,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual Container Content => this;
 
-        internal override bool UpdateSubTree()
+        protected internal override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
@@ -342,7 +342,7 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        protected internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
         {
             ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(node) as ContainerDrawNode;
 

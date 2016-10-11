@@ -242,7 +242,6 @@
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
     <Compile Include="IUpdateable.cs" />
-    <Compile Include="Platform\HeadlessGameHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Textures\TextureStore.cs" />
     <Compile Include="RuntimeInfo.cs" />
@@ -261,7 +260,7 @@
     <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\BasicStorage.cs" />
-    <Compile Include="Platform\IPCHost.cs" />
+    <Compile Include="Platform\IPCChannel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
