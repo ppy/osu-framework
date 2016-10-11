@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
     
                 foreach (Drawable c in children)
-                    c.Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                    c.Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace, this);
             }
         }
 
