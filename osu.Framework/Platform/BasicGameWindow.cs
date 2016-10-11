@@ -9,14 +9,11 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameWindow : GameWindow
     {
-        public BasicGameWindow() : this(640, 480)
-        {
-        }
-
         public BasicGameWindow(int width, int height) : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested();
             Closed += (sender, e) => Exited();
+            Cursor = MouseCursor.Empty;
         }
 
         /// <summary>

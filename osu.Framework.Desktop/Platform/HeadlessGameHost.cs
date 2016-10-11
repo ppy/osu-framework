@@ -15,8 +15,6 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public override TextInputSource TextInput => null;
-
         protected override void DrawFrame()
         {
             //we can't draw.

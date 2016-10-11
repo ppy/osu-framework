@@ -45,8 +45,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
-        private TextInputSource textInput;
-
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
         public event OnCommitHandler OnCommit;
@@ -102,8 +100,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             OnChange = null;
             OnCommit = null;
-
-            unbindInput();
 
             base.Dispose(disposing);
         }
@@ -217,8 +213,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
-            if (textInput?.ImeActive == true) return;
-
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
@@ -374,8 +368,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (!HasFocus)
                 return false;
 
-            if (textInput?.ImeActive == true) return true;
-
             switch (args.Key)
             {
                 case Key.Tab:
@@ -512,27 +504,21 @@ namespace osu.Framework.Graphics.UserInterface
                         removeCharacterOrSelection();
                         return true;
                     case Key.V:
-                        //the text is pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        insertString(textInput?.GetPendingText());
+                        // TODO: clipboard
                         return true;
                 }
 
                 return false;
             }
 
-            string str = textInput?.GetPendingText();
-            if (!string.IsNullOrEmpty(str))
-            {
-                if (state.Keyboard.ShiftPressed)
-                    game.Audio.Sample.Get(@"Keyboard/key-caps")?.Play();
-                else
-                    game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-                insertString(str);
-
-                return true;
-            }
-
             return false;
+        }
+        
+        protected override bool OnCharacterInput(char c)
+        {
+            Game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            insertString(c.ToString());
+            return true;
         }
 
         protected override bool OnDrag(InputState state)
@@ -583,8 +569,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(InputState state)
         {
-            if (textInput?.ImeActive == true) return true;
-
             if (text.Length == 0) return true;
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
@@ -617,8 +601,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            if (textInput?.ImeActive == true) return true;
-
             selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
 
             cursorAndLayout.Invalidate();
@@ -634,8 +616,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(InputState state)
         {
-            unbindInput();
-
             cursor.ClearTransformations();
             cursor.FadeOut(200);
 
@@ -661,115 +641,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ReadOnly) return false;
 
-            bindInput();
-
             background.ClearTransformations();
             background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
             return true;
         }
-
-        #region Native TextBox handling (winform specific)
-
-        private void unbindInput()
-        {
-            textInput?.Deactivate(this);
-        }
-
-        private void bindInput()
-        {
-            if (textInput == null)
-            {
-                textInput = game.Host.TextInput;
-                textInput.OnNewImeComposition += delegate(string s)
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += delegate(string s)
-                {
-                    textUpdateScheduler.Add(() => onImeResult(s));
-                    cursorAndLayout.Invalidate();
-                };
-            }
-
-            textInput.Activate(this);
-        }
-
-        private void onImeResult(string s)
-        {
-            //we only succeeded if there is pending data in the textbox
-            if (imeDrawables.Count > 0)
-            {
-                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-
-                foreach (Drawable d in imeDrawables)
-                {
-                    d.Colour = Color4.White;
-                    d.FadeTo(1, 200, EasingTypes.Out);
-                }
-            }
-
-            imeDrawables.Clear();
-        }
-
-        private List<Drawable> imeDrawables = new List<Drawable>();
-
-        private void onImeComposition(string s)
-        {
-            //search for unchanged characters..
-            int matchCount = 0;
-            bool matching = true;
-            bool didDelete = false;
-
-            int searchStart = text.Length - imeDrawables.Count;
-
-            //we want to keep processing to the end of the longest string (the current displayed or the new composition).
-            int maxLength = Math.Max(imeDrawables.Count, s.Length);
-
-            for (int i = 0; i < maxLength; i++)
-            {
-                if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
-                {
-                    matchCount = i + 1;
-                    continue;
-                }
-
-                matching = false;
-
-                if (matchCount < imeDrawables.Count)
-                {
-                    //if we are no longer matching, we want to remove all further characters.
-                    removeCharacterOrSelection(false);
-                    imeDrawables.RemoveAt(matchCount);
-                    didDelete = true;
-                }
-            }
-
-            if (matchCount == s.Length)
-            {
-                //in the case of backspacing (or a NOP), we can exit early here.
-                if (didDelete)
-                    game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
-                return;
-            }
-
-            //add any new or changed characters
-            for (int i = matchCount; i < s.Length; i++)
-            {
-                Drawable dr = addCharacter(s[i]);
-                if (dr != null)
-                {
-                    dr.Colour = Color4.Aqua;
-                    dr.Alpha = 0.6f;
-                    imeDrawables.Add(dr);
-                }
-            }
-
-            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-        }
-
-        #endregion
     }
 }
