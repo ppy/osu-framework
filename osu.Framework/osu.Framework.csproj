@@ -261,6 +261,7 @@
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\BasicStorage.cs" />
     <Compile Include="Platform\IPCChannel.cs" />
+    <Compile Include="Platform\IPCMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">

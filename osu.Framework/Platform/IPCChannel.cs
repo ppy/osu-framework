@@ -19,18 +19,18 @@ namespace osu.Framework.Platform
         }
         public async Task SendMessage(T message)
         {
-            var json = new JObject();
-            json["Type"] = typeof(T).FullName;
-            json["Value"] = JToken.Parse(JsonConvert.SerializeObject(message));
-            await host.SendMessage(json);
+            var msg = new IPCMessage
+            {
+                Type = typeof(T).AssemblyQualifiedName,
+                Value = message,
+            };
+            await host.SendMessage(msg);
         }
-        private void HandleMessage(JToken message)
+        private void HandleMessage(IPCMessage message)
         {
-            if (message["Type"].Value<string>() != typeof(T).FullName)
+            if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
-            var val = message["Value"];
-            var obj = JsonConvert.DeserializeObject<T>(val.ToString());
-            MessageReceived?.Invoke(obj);
+            MessageReceived?.Invoke((T)message.Value);
         }
     }
 }

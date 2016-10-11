@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -36,8 +37,15 @@ namespace osu.Framework.Desktop.Tests.Platform
                     Assert.AreEqual("example", message.Bar);
                 };
                 await clientChannel.SendMessage(new Foobar { Bar = "example" });
-                Thread.Sleep(10); // hacky, yes. This gives the server code time to process the message
-                Assert.IsTrue(messageReceived);
+                var watch = new Stopwatch();
+                while (!messageReceived)
+                {
+                    // hacky, yes. This gives the server code time to process the message
+                    Thread.Sleep(1);
+                    if (watch.Elapsed.TotalSeconds > 1)
+                        Assert.Fail();
+                }
+                Assert.Pass();
             }
         }
     }

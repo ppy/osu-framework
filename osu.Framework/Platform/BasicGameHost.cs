@@ -73,14 +73,14 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
         
-        protected internal event Action<JToken> MessageReceived;
+        protected internal event Action<IPCMessage> MessageReceived;
 
-        protected void OnMessageReceived(JToken message)
+        protected void OnMessageReceived(IPCMessage message)
         {
             MessageReceived?.Invoke(message);
         }
 
-        protected internal virtual Task SendMessage(JToken message)
+        protected internal virtual Task SendMessage(IPCMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }

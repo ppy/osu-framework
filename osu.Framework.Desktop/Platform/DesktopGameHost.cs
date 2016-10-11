@@ -69,20 +69,28 @@ namespace osu.Framework.Desktop.Platform
                         byte[] data = new byte[len];
                         await stream.ReadAsync(data, 0, len);
                         var str = Encoding.UTF8.GetString(data);
-                        OnMessageReceived(JToken.Parse(str));
+                        var json = JToken.Parse(str);
+                        var type = Type.GetType(json["Type"].Value<string>());
+                        var msg = new IPCMessage
+                        {
+                            Type = type.AssemblyQualifiedName,
+                            Value = JsonConvert.DeserializeObject(
+                                json["Value"].ToString(), type),
+                        };
+                        OnMessageReceived(msg);
                     }
                 }
             }
         }
         
-        protected override async Task SendMessage(JToken message)
+        protected override async Task SendMessage(IPCMessage message)
         {
             using (var client = new TcpClient())
             {
                 await client.ConnectAsync(IPAddress.Loopback, ipcPort);
                 using (var stream = client.GetStream())
                 {
-                    var str = message.ToString(Formatting.None);
+                    var str = JsonConvert.SerializeObject(message, Formatting.None);
                     byte[] header = BitConverter.GetBytes(str.Length);
                     await stream.WriteAsync(header, 0, header.Length);
                     byte[] data = Encoding.UTF8.GetBytes(str);
