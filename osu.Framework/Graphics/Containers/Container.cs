@@ -90,8 +90,9 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-
-                Invalidate(Invalidation.Position);
+    
+                foreach (Drawable c in children)
+                    c.Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
             }
         }
 
