@@ -52,8 +52,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-		Vector2 spacing;
-
+        /// <summary>
+        /// Pixel spacing added between our Children
+        /// </summary>
+        Vector2 spacing;
         public Vector2 Spacing
         {
             get { return spacing; }
@@ -95,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (Children.FirstOrDefault() == null) return Vector2.Zero;
 
-					Vector2 current = new Vector2(0, 0);
+                    Vector2 current = new Vector2(0, 0);
 
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
@@ -121,10 +123,11 @@ namespace osu.Framework.Graphics.Containers
                         {
                             size = d.Size * d.Scale * ChildScale;
 
+                            //We've exceeded our allowed width, move to a new row
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {
-								current.X = 0; //We use this for the above conditional, then discard
-								current.Y += rowMaxHeight;
+                                current.X = 0;
+                                current.Y += rowMaxHeight;
 
                                 rowMaxHeight = 0;
                             }

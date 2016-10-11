@@ -32,13 +32,20 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Children = new []
                     {
-                        flow = new FlowContainer
+                        new PaddingContainer
                         {
-                            LayoutDuration = 100,
-                            LayoutEasing = EasingTypes.Out,
-                            Spacing = new Vector2(1, 1),
-							Position = new Vector2(5, 5),
-                            RelativeSizeAxes = Axes.X
+                            Padding = new Padding(5),
+                            RelativeSizeAxes = Axes.X,
+                            Children = new Drawable[]
+                            {
+                                flow = new FlowContainer
+                                {
+                                    LayoutDuration = 100,
+                                    LayoutEasing = EasingTypes.Out,
+                                    Spacing = new Vector2(1, 1),
+                                    RelativeSizeAxes = Axes.X
+                                }
+                            }
                         },
                     },
                 },
