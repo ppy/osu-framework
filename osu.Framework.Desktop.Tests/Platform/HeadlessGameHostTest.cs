@@ -18,28 +18,27 @@ namespace osu.Framework.Desktop.Tests.Platform
         [Test]
         public async Task TestIPC()
         {
-            var server = new HeadlessGameHost();
-            server.Load();
-            var client = new HeadlessGameHost();
-            client.Load();
-
-            Assert.IsTrue(server.IsPrimaryInstance);
-            Assert.IsFalse(client.IsPrimaryInstance);
-            
-            var serverChannel = new IPCChannel<Foobar>(server);
-            var clientChannel = new IPCChannel<Foobar>(client);
-            bool messageReceived = false;
-            serverChannel.MessageReceived += message =>
+            using (var server = new HeadlessGameHost())
+            using (var client = new HeadlessGameHost())
             {
-                messageReceived = true;
-                Assert.AreEqual("example", message.Bar);
-            };
-            await clientChannel.SendMessage(new Foobar { Bar = "example" });
-            Thread.Sleep(10); // hacky, yes. This gives the server code time to process the message
-            Assert.IsTrue(messageReceived);
+                server.Load();
+                client.Load();
 
-            server.Dispose();
-            client.Dispose();
+                Assert.IsTrue(server.IsPrimaryInstance);
+                Assert.IsFalse(client.IsPrimaryInstance);
+
+                var serverChannel = new IPCChannel<Foobar>(server);
+                var clientChannel = new IPCChannel<Foobar>(client);
+                bool messageReceived = false;
+                serverChannel.MessageReceived += message =>
+                {
+                    messageReceived = true;
+                    Assert.AreEqual("example", message.Bar);
+                };
+                await clientChannel.SendMessage(new Foobar { Bar = "example" });
+                Thread.Sleep(10); // hacky, yes. This gives the server code time to process the message
+                Assert.IsTrue(messageReceived);
+            }
         }
     }
 }
