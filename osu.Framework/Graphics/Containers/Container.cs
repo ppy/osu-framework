@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => Size - new Vector2(Padding.Left + Padding.Right, Padding.Top + Padding.Bottom);
+        internal virtual Vector2 ChildSize => Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
@@ -396,6 +396,10 @@ namespace osu.Framework.Graphics.Containers
 		public float Left;
 		public float Bottom;
 		public float Right;
+
+        public float TotalHorizontal => Left + Right;
+
+        public float TotalVertical => Top + Bottom;
 
 		public Padding(float allSides)
 		{
