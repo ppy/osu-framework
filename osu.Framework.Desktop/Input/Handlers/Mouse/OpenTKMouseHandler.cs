@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Threading;
 using OpenTK;
 using osu.Framework.Platform;
 using OpenTK.Input;
@@ -35,7 +34,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             state = OpenTK.Input.Mouse.GetState();
             var cursorState = OpenTK.Input.Mouse.GetCursorState();
             wheelDiff = state.Wheel - previousState.Wheel;
-            position = new Vector2(cursorState.X - host.Window.Bounds.X, cursorState.Y - host.Window.Bounds.X);
+            var point = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
+            position = new Vector2(point.X, point.Y);
             previousState = state;
         }
 
