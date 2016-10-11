@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Desktop.Input;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -19,9 +20,6 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {
-        private TextInputSource textInputBox;
-        public override TextInputSource TextInput => textInputBox ?? (textInputBox = ((DesktopGameWindow)Window).CreateTextInput());
-
         public bool ListenForIpc = true;
 
         private TcpIpcProvider IpcProvider;

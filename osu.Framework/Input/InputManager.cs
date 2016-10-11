@@ -596,6 +596,13 @@ namespace osu.Framework.Input
             return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
         }
 
+        private bool handleCharacterInput(char c)
+        {
+            if (FocusedDrawable?.TriggerCharacterInput(c) ?? false)
+                return true;
+            return false;
+        }
+
         public InputHandler GetHandler(Type handlerType)
         {
             return inputHandlers.Find(h => h.GetType() == handlerType);
@@ -617,6 +624,9 @@ namespace osu.Framework.Input
 
                     //set the initial position to the current OsuGame position.
                     (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
+
+                    if (handler is IKeyboardInputHandler)
+                        (handler as IKeyboardInputHandler).CharacterInput += c => handleCharacterInput(c);
                     return true;
                 }
             }

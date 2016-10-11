@@ -192,8 +192,6 @@ namespace osu.Framework.Platform
             set { UpdateClock.MaximumUpdateHz = value; }
         }
 
-        public abstract TextInputSource TextInput { get; }
-
         public Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {

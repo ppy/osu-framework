@@ -158,6 +158,13 @@ namespace osu.Framework.Graphics
         {
             return false;
         }
+        
+        public bool TriggerCharacterInput(char c) => OnCharacterInput(c);
+
+        protected virtual bool OnCharacterInput(char c)
+        {
+            return false;
+        }
 
         public bool TriggerMouseMove(InputState state) => OnMouseMove(getLocalState(state));
 
