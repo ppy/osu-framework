@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildOffset => Vector2.Zero + new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+        internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
         /// <summary>
         /// Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
