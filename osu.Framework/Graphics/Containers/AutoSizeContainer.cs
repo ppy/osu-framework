@@ -105,22 +105,6 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        //public override Vector2 ActualSize
-        //{
-        //    get
-        //    {
-        //        if (HasDefinedSize)
-        //            return base.ActualSize;
-
-        //        if (SizeMode == InheritMode.None)
-        //            return new Vector2(0);
-
-        //        var actual = base.ActualSize;
-
-        //        return new Vector2((SizeMode & InheritMode.X) > 0 ? actual.X : 0, (SizeMode & InheritMode.Y) > 0 ? actual.Y : 0);
-        //    }
-        //}
-
         protected override bool HasDefinedSize => !RequireAutoSize;
 
         protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
