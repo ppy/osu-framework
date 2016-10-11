@@ -13,9 +13,14 @@ namespace osu.Framework.Desktop.Platform.Linux
     {
         internal LinuxGameHost(GraphicsContextFlags flags, string gameName)
         {
-            Window = new LinuxGameWindow(flags);
-            Window.Activated += OnActivated;
-            Window.Deactivated += OnDeactivated;
+            Window = new DesktopGameWindow();
+            Window.WindowStateChanged += (sender, e) =>
+            {
+                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                    OnActivated(sender, e);
+                else
+                    OnDeactivated(sender, e);
+            };
             Storage = new LinuxStorage(gameName);
         }
 
@@ -23,7 +28,6 @@ namespace osu.Framework.Desktop.Platform.Linux
         {
             return new InputHandler[] {
                 new OpenTKMouseHandler(), //handles cursor position
-                new FormMouseHandler(),   //handles button states
                 new OpenTKKeyboardHandler(),
             };
         }

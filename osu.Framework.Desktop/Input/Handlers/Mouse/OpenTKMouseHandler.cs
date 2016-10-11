@@ -7,66 +7,59 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Threading;
 using OpenTK;
 using osu.Framework.Platform;
+using OpenTK.Input;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     class OpenTKMouseHandler : InputHandler, ICursorInputHandler
     {
-        private Vector2 position = Vector2.One;
-
         private BasicGameHost host;
 
-        Point nativePosition;
-
-        public override bool Initialize(BasicGameHost host)
-        {
-            this.host = host;
-
-            host.InputScheduler.Add(new ScheduledDelegate(delegate
-            {
-                //this can probably be run in UpdateInput, and improved a lot.
-                //we can also use this for button states.
-                var state = OpenTK.Input.Mouse.GetCursorState();
-                nativePosition = host.Window.Form.PointToClient(new Point(state.X, state.Y));
-            }, 0, 0));
-
-            return true;
-        }
-
+        private MouseState previousState = new MouseState();
+        private MouseState state = new MouseState();
+        private Vector2 position = Vector2.One;
+        private int wheelDiff = 0;
 
         public override void Dispose()
         {
         }
+        
+        public override bool Initialize(BasicGameHost host)
+        {
+            this.host = host;
+            return true;
+        }
 
         public override void UpdateInput(bool isActive)
         {
-            Point nativeMousePosition = nativePosition;
-
-            position.X = nativeMousePosition.X;
-            position.Y = nativeMousePosition.Y;
+            state = OpenTK.Input.Mouse.GetState();
+            var cursorState = OpenTK.Input.Mouse.GetCursorState();
+            wheelDiff = state.Wheel - previousState.Wheel;
+            position = new Vector2(cursorState.X - host.Window.Bounds.X, cursorState.Y - host.Window.Bounds.X);
+            previousState = state;
         }
 
         public void SetPosition(Vector2 pos)
         {
-            position = pos;
+            // no-op
         }
 
         public Vector2? Position => position;
 
         public Vector2 Size => host.Size;
 
-        public bool? Left => null;
+        public bool? Left => state.LeftButton == ButtonState.Pressed;
 
-        public bool? Right => null;
+        public bool? Right => state.RightButton == ButtonState.Pressed;
 
-        public bool? Middle => null;
+        public bool? Middle => state.MiddleButton == ButtonState.Pressed;
 
-        public bool? Back => null;
+        public bool? Back => state.XButton1 == ButtonState.Pressed;
 
-        public bool? Forward => null;
+        public bool? Forward => state.XButton2 == ButtonState.Pressed;
 
-        public bool? WheelUp => null;
-        public bool? WheelDown => null;
+        public bool? WheelUp => wheelDiff > 0;
+        public bool? WheelDown => wheelDiff < 0;
 
         public List<Vector2> IntermediatePositions => new List<Vector2>();
 

@@ -32,8 +32,6 @@ namespace osu.Framework.Platform
     {
         public BasicGameWindow Window;
 
-        public abstract GLControl GLControl { get; }
-
         private bool isActive;
         public bool IsActive
         {
@@ -282,6 +280,7 @@ namespace osu.Framework.Platform
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 {
                     UpdateScheduler.Update();
+                    InputScheduler.Update();
                 }
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
@@ -300,7 +299,7 @@ namespace osu.Framework.Platform
 
         private void drawLoop()
         {
-            GLControl?.Initialize();
+            Window.MakeCurrent();
             GLWrapper.Initialize();
 
             while (!ExitRequested)
@@ -310,7 +309,7 @@ namespace osu.Framework.Platform
                 DrawFrame();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                    GLControl?.SwapBuffers();
+                    Window.SwapBuffers();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                     DrawClock.ProcessFrame();
@@ -366,7 +365,7 @@ namespace osu.Framework.Platform
 
             if (Window != null)
             {
-                Window.ClientSizeChanged += window_ClientSizeChanged;
+                Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
                 window_ClientSizeChanged(null, null);
@@ -377,7 +376,7 @@ namespace osu.Framework.Platform
             try
             {
                 Application.Idle += delegate { OnApplicationIdle(); };
-                Application.Run(Window.Form);
+                Window.Run();
             }
             catch (OutOfMemoryException)
             {
@@ -392,9 +391,9 @@ namespace osu.Framework.Platform
 
         private void window_ClientSizeChanged(object sender, EventArgs e)
         {
-            if (Window.IsMinimized) return;
+            if (Window.WindowState == WindowState.Minimized) return;
 
-            Rectangle rect = Window.ClientBounds;
+            Rectangle rect = Window.Bounds;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.

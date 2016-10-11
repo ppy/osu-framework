@@ -15,7 +15,6 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public override GLControl GLControl => null;
         public override TextInputSource TextInput => null;
 
         protected override void DrawFrame()

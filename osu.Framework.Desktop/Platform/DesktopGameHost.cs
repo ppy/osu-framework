@@ -19,8 +19,6 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {
-        public override GLControl GLControl => Window?.Form;
-
         private TextInputSource textInputBox;
         public override TextInputSource TextInput => textInputBox ?? (textInputBox = ((DesktopGameWindow)Window).CreateTextInput());
 

@@ -13,12 +13,8 @@ namespace osu.Framework.Desktop.Input
 {
     public class BackingTextBox : ImeTextBox, TextInputSource
     {
-        BasicGameForm form;
-
-        public BackingTextBox(BasicGameForm form)
+        public BackingTextBox()
         {
-            this.form = form;
-
             Location = new Point(-9999, -9999);
 
             OnNewImeComposition += Textbox_OnNewImeComposition;
@@ -48,7 +44,7 @@ namespace osu.Framework.Desktop.Input
 
                 if (boundClasses.Count == 1)
                 {
-                    form.SafeInvoke(() =>
+                    /*form.SafeInvoke(() =>
                     {
                         if (!form.Controls.Contains(this))
                             form.Controls.Add(this);
@@ -59,7 +55,7 @@ namespace osu.Framework.Desktop.Input
                         Text = string.Empty;
 
                         Focus();
-                    });
+                    });*/
                 }
             }
         }
@@ -81,13 +77,13 @@ namespace osu.Framework.Desktop.Input
 
                 if (boundClasses.Count == 0)
                 {
-                    form.SafeInvoke(() =>
+                    /*form.SafeInvoke(() =>
                     {
                         ImeMode = ImeMode.Off;
                         form.Controls.Remove(this);
                         if (form.Controls.Count > 0)
                             form.Controls[form.Controls.Count - 1].Focus();
-                    });
+                    });*/
                 }
             }
         }
@@ -95,11 +91,11 @@ namespace osu.Framework.Desktop.Input
         public string GetPendingText()
         {
             string pendingText = string.Empty;
-            form.SafeInvoke(() =>
+            /*form.SafeInvoke(() =>
             {
                 pendingText = Text;
                 Text = string.Empty;
-            });
+            });*/
 
             return pendingText;
         }

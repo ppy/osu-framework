@@ -10,7 +10,6 @@ using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
-using NativeWindow = OpenTK.NativeWindow;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
@@ -22,15 +21,20 @@ namespace osu.Framework.Desktop.Platform.Windows
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
-            IsActive = Window != null && GetForegroundWindow().Equals(Window.Handle);
+            IsActive = true; // TODO
 
             timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
 
-            Window = new WindowsGameWindow(flags);
-            Window.Activated += OnActivated;
-            Window.Deactivated += OnDeactivated;
+            Window = new DesktopGameWindow();
+            Window.WindowStateChanged += (sender, e) =>
+            {
+                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                    OnActivated(sender, e);
+                else
+                    OnDeactivated(sender, e);
+            };
 
             Storage = new WindowsStorage(gameName);
 
@@ -41,9 +45,8 @@ namespace osu.Framework.Desktop.Platform.Windows
         {
             //todo: figure why opentk input handlers aren't working.
             return new InputHandler[] {
-                new CursorMouseHandler(), //handles cursor position
-                new FormMouseHandler(),   //handles button states
-                new FormKeyboardHandler(),
+                new OpenTKKeyboardHandler(),
+                new OpenTKMouseHandler(),
             };
         }
 
@@ -68,16 +71,5 @@ namespace osu.Framework.Desktop.Platform.Windows
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
             base.OnDeactivated(sender, args);
         }
-
-        public override void Run()
-        {
-            //not sure this is still needed
-            NativeWindow.OsuWindowHandle = Window.Handle;
-
-            base.Run();
-        }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
     }
 }
