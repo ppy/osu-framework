@@ -113,6 +113,11 @@ namespace osu.Framework.Graphics.Containers
         public override Vector2 Size => base.Size + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
 
         /// <summary>
+        /// The Size (coordinate space) revealed to Children.
+        /// </summary>
+        internal virtual Vector2 ChildSize => base.Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+
+        /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
         internal virtual Vector2 ChildScale => Vector2.One;
@@ -145,11 +150,6 @@ namespace osu.Framework.Graphics.Containers
                 return new Quad(0, s.Y, s.X, -s.Y);
             }
         }
-
-        /// <summary>
-        /// The Size (coordinate space) revealed to Children.
-        /// </summary>
-        internal virtual Vector2 ChildSize => base.Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
