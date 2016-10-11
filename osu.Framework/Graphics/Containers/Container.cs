@@ -121,14 +121,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
-        /// <summary>
-        /// Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
-        /// </summary>
+        //Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
         protected override Quad DrawQuadForBounds => base.DrawQuad;
 
-        /// <summary>
-        /// Custom DrawQuad implementation excludes Margin/Padding.
-        /// </summary>
+        //Custom DrawQuad implementation excludes Margin/Padding.
         protected override Quad DrawQuad
         {
             get
