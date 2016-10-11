@@ -16,6 +16,11 @@ namespace osu.Framework.Platform
             Cursor = MouseCursor.Empty;
         }
 
+        public void SetTitle(string title)
+        {
+            Title = title;
+        }
+
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
