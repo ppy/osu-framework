@@ -52,8 +52,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-		Vector2 elementPadding;
-
+        Vector2 elementPadding;
         public Vector2 ElementPadding
         {
             get { return elementPadding; }
