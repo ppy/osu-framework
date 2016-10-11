@@ -63,18 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Host.cs" />
-    <Compile Include="Input\Handlers\Keyboard\FormKeyboardHandler.cs" />
     <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
-    <Compile Include="Input\Handlers\Mouse\CursorMouseHandler.cs" />
-    <Compile Include="Input\Handlers\Mouse\FormMouseHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKMouseHandler.cs" />
     <Compile Include="Platform\DesktopGameHost.cs" />
     <Compile Include="Platform\DesktopGameWindow.cs" />
-    <Compile Include="Platform\Linux\LinuxGameForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Platform\Linux\LinuxGameHost.cs" />
-    <Compile Include="Platform\Linux\LinuxGameWindow.cs" />
     <Compile Include="Input\BackingTextBox.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -86,11 +79,7 @@
     <Compile Include="Platform\Windows\Native\Input.cs" />
     <Compile Include="Platform\Windows\Native\Registry.cs" />
     <Compile Include="Platform\Windows\TimePeriod.cs" />
-    <Compile Include="Platform\Windows\WindowsGameForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Platform\Windows\WindowsGameHost.cs" />
-    <Compile Include="Platform\Windows\WindowsGameWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Platform\DesktopStorage.cs" />
     <Compile Include="Platform\Windows\WindowsStorage.cs" />

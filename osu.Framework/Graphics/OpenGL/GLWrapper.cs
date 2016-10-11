@@ -47,6 +47,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
 
+            GL.Enable(EnableCap.Blend);
+
             IsInitialized = true;
         }
 

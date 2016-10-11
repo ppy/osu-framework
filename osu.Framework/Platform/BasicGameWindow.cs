@@ -3,19 +3,21 @@
 
 using System;
 using System.Drawing;
+using OpenTK;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameWindow
+    public abstract class BasicGameWindow : GameWindow
     {
-        public event EventHandler ClientSizeChanged;
-        public event EventHandler ScreenDeviceNameChanged;
-        public event EventHandler Activated;
-        public event EventHandler Deactivated;
-        public event EventHandler Paint;
+        public BasicGameWindow() : this(640, 480)
+        {
+        }
 
-        //todo: remove the need for this.
-        public BasicGameForm Form { get; protected set; }
+        public BasicGameWindow(int width, int height) : base(width, height)
+        {
+            Closing += (sender, e) => e.Cancel = ExitRequested();
+            Closed += (sender, e) => Exited();
+        }
 
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
@@ -23,37 +25,11 @@ namespace osu.Framework.Platform
         public event Func<bool> ExitRequested;
 
         public event Action Exited;
-
-        public abstract Rectangle ClientBounds { get; }
-        public abstract IntPtr Handle { get; }
-        public abstract bool IsMinimized { get; }
-
-        public abstract Size Size { get; set; }
-
-        public abstract void Close();
-
-        private string title;
-
-        public string Title
+        
+        protected override void OnLoad(EventArgs e)
         {
-            get { return title; }
-            set
-            {
-                if (value == null || title == value)
-                    return;
-
-                SetTitle(title = value);
-            }
-        }
-
-        protected void OnActivated()
-        {
-            Activated?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected void OnClientSizeChanged()
-        {
-            ClientSizeChanged?.Invoke(this, EventArgs.Empty);
+            base.OnLoad(e);
+            Context.MakeCurrent(null);
         }
 
         protected void OnExited()
@@ -65,22 +41,5 @@ namespace osu.Framework.Platform
         {
             return ExitRequested?.Invoke() ?? false;
         }
-
-        protected void OnDeactivated()
-        {
-            Deactivated?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected void OnPaint()
-        {
-            Paint?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected void OnScreenDeviceNameChanged()
-        {
-            ScreenDeviceNameChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected abstract void SetTitle(string title);
     }
 }
