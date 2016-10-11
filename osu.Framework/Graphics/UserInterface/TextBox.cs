@@ -516,7 +516,7 @@ namespace osu.Framework.Graphics.UserInterface
         
         protected override bool OnCharacterInput(char c)
         {
-            Game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
             insertString(c.ToString());
             return true;
         }
