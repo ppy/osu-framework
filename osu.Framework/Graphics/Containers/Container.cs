@@ -81,20 +81,35 @@ namespace osu.Framework.Graphics.Containers
             children = new LifetimeList<Drawable>(DepthComparer);
         }
 
-		private Padding padding;
-		public Padding Padding
-		{
-			get { return padding; }
-			set
-			{
-				if (padding.Equals(value)) return;
+        private Padding padding;
+        public Padding Padding
+        {
+            get { return padding; }
+            set
+            {
+                if (padding.Equals(value)) return;
 
-				padding = value;
+                padding = value;
 
-				Invalidate(Invalidation.Position);
-			}
-		}
+                Invalidate(Invalidation.Position);
+            }
+        }
 
+        private Padding margin;
+        public Padding Margin
+        {
+            get { return margin; }
+            set
+            {
+                if (margin.Equals(value)) return;
+
+                margin = value;
+
+                Invalidate(Invalidation.SizeInParentSpace);
+            }
+        }
+
+        public override Vector2 Size => base.Size + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -104,7 +119,8 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-		internal virtual Vector2 ChildOffset => Vector2.Zero + new Vector2(Padding.Left, Padding.Top);
+        internal virtual Vector2 ChildOffset => Vector2.Zero + new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+
         /// <summary>
         /// Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
         /// </summary>
@@ -136,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        internal virtual Vector2 ChildSize => base.Size - new Vector2(Padding.TotalHorizontal + Margin.TotalHorizontal, Padding.TotalVertical + Margin.TotalVertical);
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
@@ -173,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
             drawable.ChangeParent(this);
-            
+
             if (!IsLoaded)
                 pendingChildren.Add(drawable);
             else
@@ -418,31 +434,31 @@ namespace osu.Framework.Graphics.Containers
     }
 
 
-	public struct Padding : IEquatable<Padding>
-	{
-		public float Top;
-		public float Left;
-		public float Bottom;
-		public float Right;
+    public struct Padding : IEquatable<Padding>
+    {
+        public float Top;
+        public float Left;
+        public float Bottom;
+        public float Right;
 
         public float TotalHorizontal => Left + Right;
 
         public float TotalVertical => Top + Bottom;
 
-		public Padding(float allSides)
-		{
-			Top = Left = Bottom = Right = allSides;
-		}
+        public Padding(float allSides)
+        {
+            Top = Left = Bottom = Right = allSides;
+        }
 
-		public int CompareTo(object obj)
-		{
-			throw new NotImplementedException();
-		}
+        public int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
 
-		public bool Equals(Padding other)
-		{
-			return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
-		}
-	}
+        public bool Equals(Padding other)
+        {
+            return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
+        }
+    }
 
 }
