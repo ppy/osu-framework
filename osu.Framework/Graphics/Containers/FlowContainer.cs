@@ -52,15 +52,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        Vector2 elementPadding;
-        public Vector2 ElementPadding
+        /// <summary>
+        /// Pixel spacing added between our Children
+        /// </summary>
+        Vector2 spacing;
+        public Vector2 Spacing
         {
-            get { return elementPadding; }
+            get { return spacing; }
             set
             {
-                if (elementPadding == value) return;
+                if (spacing == value) return;
 
-                elementPadding = value;
+                spacing = value;
                 Invalidate();
             }
         }
@@ -94,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (Children.FirstOrDefault() == null) return Vector2.Zero;
 
-                    Vector2 current = new Vector2(Math.Max(0, ElementPadding.X), Math.Max(0, ElementPadding.Y));
+                    Vector2 current = Vector2.Zero;
 
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
@@ -116,17 +119,18 @@ namespace osu.Framework.Graphics.Containers
                         {
                             size = d.Size * d.Scale * ChildScale;
 
+                            //We've exceeded our allowed width, move to a new row
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {
-                                current.X = Math.Max(0, ElementPadding.X);
+                                current.X = 0;
                                 current.Y += rowMaxHeight;
 
                                 rowMaxHeight = 0;
                             }
 
                             //todo: check this is correct
-                            if (size.X > 0) size.X = Math.Max(0, size.X + ElementPadding.X);
-                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + ElementPadding.Y);
+                            if (size.X > 0) size.X = Math.Max(0, size.X + Spacing.X);
+                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + Spacing.Y);
 
                             if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
                         }

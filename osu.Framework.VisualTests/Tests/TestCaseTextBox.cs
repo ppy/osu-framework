@@ -24,7 +24,7 @@ namespace osu.Framework.VisualTests.Tests
             FlowContainer textBoxes = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
-                ElementPadding = new Vector2(0, 50),
+                Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,

@@ -19,8 +19,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public float SpacingOverlap
         {
-            get { return ElementPadding.X; }
-            set { ElementPadding = new Vector2(value, 0); }
+            get { return Spacing.X; }
+            set { Spacing = new Vector2(value, 0); }
         }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
