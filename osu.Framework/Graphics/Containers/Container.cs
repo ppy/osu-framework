@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Add a collection of Drawables to Content's children list, recursing until Content == this.
         /// </summary>
-        /// <param name="drawable">The drawable to be added.</param>
+        /// <param name="collection">The collection of drawables to be added.</param>
         public void Add(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
         /// </summary>
-        /// <param name="drawable">The drawables to be added.</param>
+        /// <param name="collection">The collection of drawables to be added.</param>
         protected void AddInternal(IEnumerable<Drawable> collection)
         {
             foreach (Drawable d in collection)
