@@ -10,6 +10,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -32,21 +33,14 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Children = new []
                     {
-                        new PaddingContainer
+                        flow = new FlowContainer
                         {
-                            Padding = new Padding(5),
+                            LayoutDuration = 100,
+                            LayoutEasing = EasingTypes.Out,
+                            Spacing = new Vector2(1, 1),
                             RelativeSizeAxes = Axes.X,
-                            Children = new Drawable[]
-                            {
-                                flow = new FlowContainer
-                                {
-                                    LayoutDuration = 100,
-                                    LayoutEasing = EasingTypes.Out,
-                                    Spacing = new Vector2(1, 1),
-                                    RelativeSizeAxes = Axes.X
-                                }
-                            }
-                        },
+                            Padding = new MarginPadding(5)
+                        }
                     },
                 },
             };

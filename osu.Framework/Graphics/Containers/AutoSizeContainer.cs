@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
                 if ((RelativeSizeAxes & Axes.Y) > 0)
                     maxBoundSize.Y = Size.Y;
 
-                return new Quad(0, 0, maxBoundSize.X, maxBoundSize.Y);
+                return new Quad(0, 0, maxBoundSize.X + Padding.TotalHorizontal, maxBoundSize.Y + Padding.TotalVertical);
             }
         }
 
