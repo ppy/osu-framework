@@ -22,8 +22,8 @@ namespace osu.Framework.Desktop.Tests.Platform
             using (var server = new HeadlessGameHost())
             using (var client = new HeadlessGameHost())
             {
-                server.Load();
-                client.Load();
+                server.Load(null);
+                client.Load(null);
 
                 Assert.IsTrue(server.IsPrimaryInstance);
                 Assert.IsFalse(client.IsPrimaryInstance);
