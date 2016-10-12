@@ -26,7 +26,7 @@ namespace osu.Framework.Desktop.Platform
         private TcpIpcProvider IpcProvider;
         private Task IpcTask;
         
-        public override void Load()
+        public override void Load(BaseGame game)
         {
             IpcProvider = new TcpIpcProvider();
             IsPrimaryInstance = IpcProvider.Bind();
@@ -35,7 +35,7 @@ namespace osu.Framework.Desktop.Platform
                 IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
                 IpcTask = IpcProvider.Start();
             }
-            base.Load();
+            base.Load(game);
         }
        
         
