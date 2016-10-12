@@ -106,7 +106,6 @@
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
-    <Compile Include="Graphics\Containers\PaddingContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
@@ -118,6 +117,7 @@
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameTimeDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
+    <Compile Include="Graphics\Primitives\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />
     <Compile Include="Graphics\Transformations\TransformAlpha.cs" />

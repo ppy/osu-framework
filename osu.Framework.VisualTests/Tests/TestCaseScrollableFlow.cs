@@ -10,6 +10,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -36,9 +37,10 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             LayoutDuration = 100,
                             LayoutEasing = EasingTypes.Out,
-                            Padding = new Vector2(1, 1),
-                            RelativeSizeAxes = Axes.X
-                        },
+                            Spacing = new Vector2(1, 1),
+                            RelativeSizeAxes = Axes.X,
+                            Padding = new MarginPadding(5)
+                        }
                     },
                 },
             };

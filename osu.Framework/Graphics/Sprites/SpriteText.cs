@@ -19,8 +19,8 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public float SpacingOverlap
         {
-            get { return Padding.X; }
-            set { Padding = new Vector2(value, 0); }
+            get { return Spacing.X; }
+            set { Spacing = new Vector2(value, 0); }
         }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
@@ -36,14 +36,22 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
-
-            TextSize = 20;
         }
+
+        internal override Vector2 ChildScale => new Vector2(TextSize);
+
+        private float textSize = 20;
 
         public float TextSize
         {
-            get { return ChildScale.X; }
-            set { ChildScale = new Vector2(value); }
+            get { return textSize; }
+            set
+            {
+                if (textSize == value) return;
+
+                textSize = value;
+                Invalidate(Invalidation.SizeInParentSpace);
+            }
         }
 
         public override void Load(BaseGame game)

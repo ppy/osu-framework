@@ -285,7 +285,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             boxes = new FlowContainer {
                                 RelativeSizeAxes = Axes.X,
-                                Padding = new Vector2(0, 10),
+                                Spacing = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
                         }

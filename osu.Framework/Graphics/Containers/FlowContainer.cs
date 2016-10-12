@@ -52,16 +52,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        Vector2 padding;
-
-        public Vector2 Padding
+        /// <summary>
+        /// Pixel spacing added between our Children
+        /// </summary>
+        Vector2 spacing;
+        public Vector2 Spacing
         {
-            get { return padding; }
+            get { return spacing; }
             set
             {
-                if (padding == value) return;
+                if (spacing == value) return;
 
-                padding = value;
+                spacing = value;
                 Invalidate();
             }
         }
@@ -95,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (Children.FirstOrDefault() == null) return Vector2.Zero;
 
-                    Vector2 current = new Vector2(Math.Max(0, Padding.X), Math.Max(0, Padding.Y));
+                    Vector2 current = Vector2.Zero;
 
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
@@ -111,27 +113,24 @@ namespace osu.Framework.Graphics.Containers
                     float rowMaxHeight = 0;
                     foreach (Drawable d in Children)
                     {
-                        if (((int)direction & (int)d.RelativeSizeAxes) > 0)
-                            //if the inheriting mode of the drawable shares the same directional value as our flow direction, we have to ignore it.
-                            continue;
-
                         Vector2 size = Vector2.Zero;
 
                         if (d.IsVisible)
                         {
                             size = d.Size * d.Scale * ChildScale;
 
+                            //We've exceeded our allowed width, move to a new row
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
                             {
-                                current.X = Math.Max(0, Padding.X);
+                                current.X = 0;
                                 current.Y += rowMaxHeight;
 
                                 rowMaxHeight = 0;
                             }
 
                             //todo: check this is correct
-                            if (size.X > 0) size.X = Math.Max(0, size.X + Padding.X);
-                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + Padding.Y);
+                            if (size.X > 0) size.X = Math.Max(0, size.X + Spacing.X);
+                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + Spacing.Y);
 
                             if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
                         }
