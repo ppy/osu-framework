@@ -28,8 +28,8 @@ namespace osu.Framework.Desktop.Tests.Platform
                 Assert.IsTrue(server.IsPrimaryInstance);
                 Assert.IsFalse(client.IsPrimaryInstance);
 
-                var serverChannel = new IPCChannel<Foobar>(server);
-                var clientChannel = new IPCChannel<Foobar>(client);
+                var serverChannel = new IpcChannel<Foobar>(server);
+                var clientChannel = new IpcChannel<Foobar>(client);
                 bool messageReceived = false;
                 serverChannel.MessageReceived += message =>
                 {

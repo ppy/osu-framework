@@ -23,87 +23,29 @@ namespace osu.Framework.Desktop.Platform
 
         private TextInputSource textInputBox;
         public override TextInputSource TextInput => textInputBox ?? (textInputBox = ((DesktopGameWindow)Window).CreateTextInput());
-        
-        private readonly int ipcPort = 45356;
-        private TcpListener listener;
-        private CancellationTokenSource cancelListener;
+        private TcpIpcProvider IpcProvider;
         
         public override void Load()
         {
-            listener = new TcpListener(IPAddress.Loopback, ipcPort);
-            try
+            IpcProvider = new TcpIpcProvider();
+            IsPrimaryInstance = IpcProvider.Bind();
+            if (IsPrimaryInstance)
             {
-                listener.Start();
-                IsPrimaryInstance = true;
-                cancelListener = new CancellationTokenSource();
-                Task.Run(() => runIPCServer(cancelListener.Token));
-            }
-            catch (SocketException ex)
-            {
-                listener = null;
-                if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
-                    IsPrimaryInstance = false;
-                else
-                    throw ex;
+                IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
+                Task.Run(() => IpcProvider.Start());
             }
             base.Load();
         }
+       
         
-        private async Task runIPCServer(CancellationToken token)
+        protected override async Task SendMessage(IpcMessage message)
         {
-            IsPrimaryInstance = true;
-            while (true)
-            {
-                using (var client = await Task.Run(() => listener.AcceptTcpClientAsync(), token))
-                {
-                    if (token.IsCancellationRequested)
-                    {
-                        listener.Stop();
-                        return;
-                    }
-                    using (var stream = client.GetStream())
-                    {
-                        byte[] header = new byte[sizeof(int)];
-                        await stream.ReadAsync(header, 0, sizeof(int));
-                        int len = BitConverter.ToInt32(header, 0);
-                        byte[] data = new byte[len];
-                        await stream.ReadAsync(data, 0, len);
-                        var str = Encoding.UTF8.GetString(data);
-                        var json = JToken.Parse(str);
-                        var type = Type.GetType(json["Type"].Value<string>());
-                        var msg = new IPCMessage
-                        {
-                            Type = type.AssemblyQualifiedName,
-                            Value = JsonConvert.DeserializeObject(
-                                json["Value"].ToString(), type),
-                        };
-                        OnMessageReceived(msg);
-                    }
-                }
-            }
-        }
-        
-        protected override async Task SendMessage(IPCMessage message)
-        {
-            using (var client = new TcpClient())
-            {
-                await client.ConnectAsync(IPAddress.Loopback, ipcPort);
-                using (var stream = client.GetStream())
-                {
-                    var str = JsonConvert.SerializeObject(message, Formatting.None);
-                    byte[] header = BitConverter.GetBytes(str.Length);
-                    await stream.WriteAsync(header, 0, header.Length);
-                    byte[] data = Encoding.UTF8.GetBytes(str);
-                    await stream.WriteAsync(data, 0, data.Length);
-                    await stream.FlushAsync();
-                }
-            }
+            await IpcProvider.SendMessage(message);
         }
         
         protected override void Dispose(bool isDisposing)
         {
-            if (isDisposing && listener != null)
-                cancelListener.Cancel();
+            IpcProvider.Dispose();
             base.Dispose(isDisposing);
         }
     }

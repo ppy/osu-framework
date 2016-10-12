@@ -7,26 +7,26 @@ using Newtonsoft.Json.Linq;
 
 namespace osu.Framework.Platform
 {
-    public class IPCChannel<T>
+    public class IpcChannel<T>
     {
         private BasicGameHost host;
         public event Action<T> MessageReceived;
     
-        public IPCChannel(BasicGameHost host)
+        public IpcChannel(BasicGameHost host)
         {
             this.host = host;
             this.host.MessageReceived += HandleMessage;
         }
         public async Task SendMessage(T message)
         {
-            var msg = new IPCMessage
+            var msg = new IpcMessage
             {
                 Type = typeof(T).AssemblyQualifiedName,
                 Value = message,
             };
             await host.SendMessage(msg);
         }
-        private void HandleMessage(IPCMessage message)
+        private void HandleMessage(IpcMessage message)
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
