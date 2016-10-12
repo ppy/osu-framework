@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Containers
 
                     if (Children.FirstOrDefault() == null) return Vector2.Zero;
 
-                    Vector2 current = new Vector2(0, 0);
+                    Vector2 current = Vector2.Zero;
 
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
