@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Containers
             return childChangedStatus;
         }
 
-        internal override bool UpdateSubTree()
+        protected internal override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 

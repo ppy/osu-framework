@@ -6,13 +6,14 @@ using osu.Framework.Allocation;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
+using osu.Framework.Platform;
 
-namespace osu.Framework.Platform
+namespace osu.Framework.Desktop.Platform
 {
     /// <summary>
     /// A GameHost which doesn't require a graphical or sound device.
     /// </summary>
-    public class HeadlessGameHost : BasicGameHost
+    public class HeadlessGameHost : DesktopGameHost
     {
         public override GLControl GLControl => null;
         public override TextInputSource TextInput => null;

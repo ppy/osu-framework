@@ -596,7 +596,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
         /// <returns>A complete and updated DrawNode.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
         {
             if (node == null)
             {
@@ -628,7 +628,7 @@ namespace osu.Framework.Graphics
         /// Updates this drawable, once every frame.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
-        internal virtual bool UpdateSubTree()
+        protected internal virtual bool UpdateSubTree()
         {
             transformationDelay = 0;
 

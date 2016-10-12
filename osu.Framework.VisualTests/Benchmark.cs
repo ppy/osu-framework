@@ -9,7 +9,7 @@ namespace osu.Framework.VisualTests
 {
     public class Benchmark : BaseGame
     {
-        private double timePerTest = 1000;
+        private double timePerTest = 200;
 
         public override void Load(BaseGame game)
         {
