@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -24,6 +25,10 @@ namespace osu.Framework.VisualTests.Tests
             FlowContainer textBoxes = new FlowContainer
             {
                 Direction = FlowDirection.VerticalOnly,
+                Padding = new MarginPadding
+                {
+                    Top = 50,
+                },
                 Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
