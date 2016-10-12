@@ -445,7 +445,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
+        protected virtual DrawInfo BaseDrawInfo => new DrawInfo();
 
         protected virtual Quad DrawQuad
         {

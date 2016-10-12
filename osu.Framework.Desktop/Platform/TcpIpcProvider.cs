@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -69,6 +70,7 @@ namespace osu.Framework.Desktop.Platform
                         var str = Encoding.UTF8.GetString(data);
                         var json = JToken.Parse(str);
                         var type = Type.GetType(json["Type"].Value<string>());
+                        Debug.Assert(type != null);
                         var msg = new IpcMessage
                         {
                             Type = type.AssemblyQualifiedName,

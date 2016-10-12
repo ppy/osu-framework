@@ -12,7 +12,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
     /// Todo: Support segment containment and circles.
     /// Todo: Might be overkill, but possibly support convex decomposition? 
     /// </summary>
-    public static class IConvexPolygonExtensions
+    public static class ConvexPolygonExtensions
     {
         /// <summary>
         /// Determines whether two convex polygons intersect.

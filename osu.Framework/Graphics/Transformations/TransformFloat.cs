@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Transformations
             }
         }
 
-        public TransformFloat(IClock clock)
+        protected TransformFloat(IClock clock)
             : base(clock)
         {
         }

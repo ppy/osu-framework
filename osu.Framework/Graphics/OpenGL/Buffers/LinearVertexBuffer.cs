@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// </summary>
     public class LinearVertexBuffer<T> : VertexBuffer<T> where T : struct, IEquatable<T>
     {
-        private BeginMode type;
+        private readonly BeginMode type;
 
         public LinearVertexBuffer(int amountVertices, BeginMode type, BufferUsageHint usage)
             : base(amountVertices, usage)
@@ -51,14 +51,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EboId);
         }
 
-        public override void Unbind()
-        {
-            base.Unbind();
-        }
-
-        protected override BeginMode Type
-        {
-            get { return type; }
-        }
+        protected override BeginMode Type => type;
     }
 }

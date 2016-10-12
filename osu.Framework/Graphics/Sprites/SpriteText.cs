@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Sprites
 
                     if (char.IsWhiteSpace(c))
                     {
-                        float width = FixedWidth ? constantWidth.Value : spaceWidth;
+                        float width = FixedWidth ? constantWidth.GetValueOrDefault() : spaceWidth;
 
                         switch ((int)c)
                         {
@@ -157,7 +157,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.Value : s.Size.X, 1f),
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.Size.X, 1f),
                             Children = new[] { s }
                         };
 

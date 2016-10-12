@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private static void RotateVector(ref Vector2 toRotate, float sin, float cos)
+        private static void rotateVector(ref Vector2 toRotate, float sin, float cos)
         {
             float oldX = toRotate.X;
             toRotate.X = toRotate.X * cos - toRotate.Y * sin;

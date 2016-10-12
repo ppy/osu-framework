@@ -10,10 +10,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static QuadIndexData()
         {
-            GL.GenBuffers(1, out EboId);
+            GL.GenBuffers(1, out EBO_ID);
         }
 
-        public static readonly int EboId;
+        public static readonly int EBO_ID;
         public static int MaxAmountIndices;
     }
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EboId);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 QuadIndexData.MaxAmountIndices = amountIndices;
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EboId);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
         }
 
         public override void Unbind() => base.Unbind();

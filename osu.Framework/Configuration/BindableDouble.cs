@@ -38,7 +38,7 @@ namespace osu.Framework.Configuration
 
         public static implicit operator double(BindableDouble value)
         {
-            return value == null ? 0 : value.Value;
+            return value?.Value ?? 0;
         }
 
         public override string ToString()

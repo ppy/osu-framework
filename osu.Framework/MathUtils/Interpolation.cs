@@ -180,7 +180,7 @@ namespace osu.Framework.MathUtils
 
                     var p = duration * .3;
                     var a = change;
-                    var s = 1.70158;
+                    double s;
                     if (a < Math.Abs(change))
                     {
                         a = change;
@@ -195,7 +195,7 @@ namespace osu.Framework.MathUtils
 
                     var p = duration * .3;
                     var a = change;
-                    var s = 1.70158;
+                    double s;
                     if (a < Math.Abs(change))
                     {
                         a = change;
@@ -210,7 +210,7 @@ namespace osu.Framework.MathUtils
 
                     var p = duration * (.3 * 1.5);
                     var a = change;
-                    var s = 1.70158;
+                    double s;
                     if (a < Math.Abs(change))
                     {
                         a = change;
@@ -233,8 +233,8 @@ namespace osu.Framework.MathUtils
                 case EasingTypes.InOutBack:
                 {
                     var s = 1.70158;
-                    if ((time /= duration / 2) < 1) return change / 2 * (time * time * (((s *= (1.525)) + 1) * time - s)) + initial;
-                    return change / 2 * ((time -= 2) * time * (((s *= (1.525)) + 1) * time + s) + 2) + initial;
+                    if ((time /= duration / 2) < 1) return change / 2 * (time * time * (((s *= 1.525) + 1) * time - s)) + initial;
+                    return change / 2 * ((time -= 2) * time * (((s *= 1.525) + 1) * time + s) + 2) + initial;
                 }
                 case EasingTypes.InBounce:
                     return change - ApplyEasing(EasingTypes.OutBounce, duration - time, 0, change, duration) + initial;
@@ -245,13 +245,13 @@ namespace osu.Framework.MathUtils
                     }
                     if (time < 2 / 2.75)
                     {
-                        return change * (7.5625 * (time -= (1.5 / 2.75)) * time + .75) + initial;
+                        return change * (7.5625 * (time -= 1.5 / 2.75) * time + .75) + initial;
                     }
                     if (time < 2.5 / 2.75)
                     {
-                        return change * (7.5625 * (time -= (2.25 / 2.75)) * time + .9375) + initial;
+                        return change * (7.5625 * (time -= 2.25 / 2.75) * time + .9375) + initial;
                     }
-                    return change * (7.5625 * (time -= (2.625 / 2.75)) * time + .984375) + initial;
+                    return change * (7.5625 * (time -= 2.625 / 2.75) * time + .984375) + initial;
                 case EasingTypes.InOutBounce:
                     if (time < duration / 2) return ApplyEasing(EasingTypes.InBounce, time * 2, 0, change, duration) * .5 + initial;
                     return ApplyEasing(EasingTypes.OutBounce, time * 2 - duration, 0, change, duration) * .5 + change * .5 + initial;
