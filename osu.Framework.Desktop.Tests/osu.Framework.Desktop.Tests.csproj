@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>osu.Framework.Desktop.Tests</RootNamespace>
     <AssemblyName>osu.Framework.Desktop.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,9 +37,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Platform\" />
+    <Folder Include="Benchmark\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
+    <Compile Include="Benchmark\BenchmarkTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
@@ -49,6 +51,10 @@
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
       <Project>{65DC628F-A640-4111-AB35-3A5652BC1E17}</Project>
       <Name>osu.Framework.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\osu.Framework.VisualTests\osu.Framework.VisualTests.csproj">
+      <Project>{1F02F11C-2C66-4D25-BBB5-5C752AAD3E62}</Project>
+      <Name>osu.Framework.VisualTests</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

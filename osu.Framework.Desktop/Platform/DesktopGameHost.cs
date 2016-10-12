@@ -24,6 +24,7 @@ namespace osu.Framework.Desktop.Platform
         private TextInputSource textInputBox;
         public override TextInputSource TextInput => textInputBox ?? (textInputBox = ((DesktopGameWindow)Window).CreateTextInput());
         private TcpIpcProvider IpcProvider;
+        private Task IpcTask;
         
         public override void Load()
         {
@@ -32,7 +33,7 @@ namespace osu.Framework.Desktop.Platform
             if (IsPrimaryInstance)
             {
                 IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
-                Task.Run(() => IpcProvider.Start());
+                IpcTask = IpcProvider.Start();
             }
             base.Load();
         }
@@ -46,6 +47,7 @@ namespace osu.Framework.Desktop.Platform
         protected override void Dispose(bool isDisposing)
         {
             IpcProvider.Dispose();
+            IpcTask?.Wait(50);
             base.Dispose(isDisposing);
         }
     }

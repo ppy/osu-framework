@@ -45,13 +45,17 @@ namespace osu.Framework.Desktop.Platform
         {
             while (true)
             {
-                using (var client = await Task.Run(() => listener.AcceptTcpClientAsync(), token))
+                while (!listener.Pending())
                 {
+                    await Task.Delay(10);
                     if (token.IsCancellationRequested)
                     {
                         listener.Stop();
                         return;
                     }
+                }
+                using (var client = await listener.AcceptTcpClientAsync())
+                {
                     using (var stream = client.GetStream())
                     {
                         byte[] header = new byte[sizeof(int)];
