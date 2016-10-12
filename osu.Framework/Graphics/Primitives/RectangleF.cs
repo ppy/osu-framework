@@ -92,54 +92,31 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>The y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public float Left
-        {
-            get { return X; }
-        }
-
+        public float Left => X;
 
         /// <summary>Gets the y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The y-coordinate of the top edge of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public float Top
-        {
-            get { return Y; }
-        }
+        public float Top => Y;
 
         /// <summary>Gets the x-coordinate that is the sum of <see cref="P:System.Drawing.RectangleF.X"></see> and <see cref="P:System.Drawing.RectangleF.Width"></see> of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The x-coordinate that is the sum of <see cref="P:System.Drawing.RectangleF.X"></see> and <see cref="P:System.Drawing.RectangleF.Width"></see> of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public float Right
-        {
-            get { return (X + Width); }
-        }
+        public float Right => X + Width;
 
         /// <summary>Gets the y-coordinate that is the sum of <see cref="P:System.Drawing.RectangleF.Y"></see> and <see cref="P:System.Drawing.RectangleF.Height"></see> of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The y-coordinate that is the sum of <see cref="P:System.Drawing.RectangleF.Y"></see> and <see cref="P:System.Drawing.RectangleF.Height"></see> of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public float Bottom
-        {
-            get { return (Y + Height); }
-        }
+        public float Bottom => Y + Height;
 
         /// <summary>Tests whether the <see cref="P:System.Drawing.RectangleF.Width"></see> or <see cref="P:System.Drawing.RectangleF.Height"></see> property of this <see cref="T:System.Drawing.RectangleF"></see> has a value of zero.</summary>
         /// <returns>This property returns true if the <see cref="P:System.Drawing.RectangleF.Width"></see> or <see cref="P:System.Drawing.RectangleF.Height"></see> property of this <see cref="T:System.Drawing.RectangleF"></see> has a value of zero; otherwise, false.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public bool IsEmpty
-        {
-            get
-            {
-                if (Width > 0f)
-                {
-                    return (Height <= 0f);
-                }
-                return true;
-            }
-        }
+        public bool IsEmpty => Width <= 0 || Height <= 0;
 
         /// <summary>Tests whether obj is a <see cref="T:System.Drawing.RectangleF"></see> with the same location and size of this <see cref="T:System.Drawing.RectangleF"></see>.</summary>
         /// <returns>This method returns true if obj is a <see cref="T:System.Drawing.RectangleF"></see> and its X, Y, Width, and Height properties are equal to the corresponding properties of this <see cref="T:System.Drawing.RectangleF"></see>; otherwise, false.</returns>
@@ -148,11 +125,9 @@ namespace osu.Framework.Graphics.Primitives
         public override bool Equals(object obj)
         {
             if (!(obj is RectangleF))
-            {
                 return false;
-            }
             RectangleF ef = (RectangleF)obj;
-            return ((((ef.X == X) && (ef.Y == Y)) && (ef.Width == Width)) && (ef.Height == Height));
+            return ef.X == X && ef.Y == Y && ef.Width == Width && ef.Height == Height;
         }
 
         /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleF"></see> structures have equal location and size.</summary>
@@ -171,10 +146,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the inequality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the inequality operator. </param>
         /// <filterpriority>3</filterpriority>
-        public static bool operator !=(RectangleF left, RectangleF right)
-        {
-            return !(left == right);
-        }
+        public static bool operator !=(RectangleF left, RectangleF right) => left != right;
 
         public static RectangleF operator *(RectangleF left, float right)
         {
@@ -193,31 +165,22 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         public bool Contains(float x, float y)
         {
-            return ((((X <= x) && (x < (X + Width))) && (Y <= y)) && (y < (Y + Height)));
+            return X <= x && x < X + Width && Y <= y && y < Y + Height;
         }
 
-        public bool Contains(Vector2 pt)
-        {
-            return Contains(pt.X, pt.Y);
-        }
+        public bool Contains(Vector2 pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the point represented by the pt parameter is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
         /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(PointF pt)
-        {
-            return Contains(pt.X, pt.Y);
-        }
+        public bool Contains(PointF pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the point represented by the pt parameter is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
         /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(Point pt)
-        {
-            return Contains(pt.X, pt.Y);
-        }
+        public bool Contains(Point pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the rectangular region represented by rect is entirely contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleF"></see>; otherwise false.</returns>
@@ -277,10 +240,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method does not return a value.</returns>
         /// <param name="size">The amount to inflate this rectangle. </param>
         /// <filterpriority>1</filterpriority>
-        public void Inflate(SizeF size)
-        {
-            Inflate(size.Width, size.Height);
-        }
+        public void Inflate(SizeF size) => Inflate(size.Width, size.Height);
 
         /// <summary>Creates and returns an inflated copy of the specified <see cref="T:System.Drawing.RectangleF"></see> structure. The copy is inflated by the specified amount. The original rectangle remains unmodified.</summary>
         /// <returns>The inflated <see cref="T:System.Drawing.RectangleF"></see>.</returns>
@@ -320,9 +280,7 @@ namespace osu.Framework.Graphics.Primitives
             float y = Math.Max(a.Y, b.Y);
             float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
             if ((num2 >= x) && (num4 >= y))
-            {
                 return new RectangleF(x, y, num2 - x, num4 - y);
-            }
             return Empty;
         }
 
@@ -364,10 +322,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method does not return a value.</returns>
         /// <param name="pos">The amount to offset the location. </param>
         /// <filterpriority>1</filterpriority>
-        public void Offset(PointF pos)
-        {
-            Offset(pos.X, pos.Y);
-        }
+        public void Offset(PointF pos) => Offset(pos.X, pos.Y);
 
         /// <summary>Adjusts the location of this rectangle by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
@@ -384,10 +339,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.Rectangle"></see> structure.</returns>
         /// <param name="r">The <see cref="T:System.Drawing.Rectangle"></see> structure to convert. </param>
         /// <filterpriority>3</filterpriority>
-        public static implicit operator RectangleF(Rectangle r)
-        {
-            return new RectangleF(r.X, r.Y, r.Width, r.Height);
-        }
+        public static implicit operator RectangleF(Rectangle r) => new RectangleF(r.X, r.Y, r.Width, r.Height);
 
         /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleF"></see> to a human-readable string.</summary>
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
@@ -395,9 +347,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
         public override string ToString()
         {
-            return ("{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
+            return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
                     ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
-                    Height.ToString(CultureInfo.CurrentCulture) + "}");
+                    Height.ToString(CultureInfo.CurrentCulture) + "}";
         }
 
         static RectangleF()
@@ -421,9 +373,7 @@ namespace osu.Framework.Graphics.Primitives
                 xQmax = (xQmin = rQ.X) + rQ.Width;
                 yQmax = (yQmin = rQ.Y) + rQ.Height;
 
-                return (xPmin > xQmax || xQmin > xPmax || yPmin > yQmax || yQmin > yPmax)
-                    ? false
-                    : true;
+                return xPmin <= xQmax && xQmin <= xPmax && yPmin <= yQmax && yQmin <= yPmax;
             }
 
             // Otherwise we need two trigonometric function calls
@@ -436,18 +386,16 @@ namespace osu.Framework.Graphics.Primitives
              *          Otherwise proceed to Phase 2.
              */
 
-            double xPdif, yPdif, xPctr, yPctr, cxPdf, sxPdf, cyPdf, syPdf;
-
-            xPdif = 0.5 * rP.Width;
-            yPdif = 0.5 * rP.Height;
+            double xPdif = 0.5 * rP.Width;
+            double yPdif = 0.5 * rP.Height;
 
             /* P rotates around the midpoint of its left side. */
-            xPctr = rP.X + origin.X;
-            yPctr = rP.Y + origin.Y;
-            cxPdf = c * xPdif;
-            sxPdf = s * xPdif;
-            cyPdf = c * yPdif;
-            syPdf = s * yPdif;
+            double xPctr = rP.X + origin.X;
+            double yPctr = rP.Y + origin.Y;
+            double cxPdf = c * xPdif;
+            double sxPdf = s * xPdif;
+            double cyPdf = c * yPdif;
+            double syPdf = s * yPdif;
 
             /* Translate coordinates of Q so P is re-centered at origin. */
             xQmax = (xQmin = rQ.X - xPctr) + rQ.Width;
@@ -499,40 +447,28 @@ namespace osu.Framework.Graphics.Primitives
             if (cPos)
             {
                 if (sPos)
-                    return
-                    (c * xQmax + s * yQmax < -xPdif
-                     || c * xQmin + s * yQmin > xPdif
-                     || c * yQmax - s * xQmin < -yPdif
-                     || c * yQmin - s * xQmax > yPdif
-                    )
-                        ? false
-                        : true;
-                return
-                (c * xQmax + s * yQmin < -xPdif
-                 || c * xQmin + s * yQmax > xPdif
-                 || c * yQmax - s * xQmax < -yPdif
-                 || c * yQmin - s * xQmin > yPdif
-                )
-                    ? false
-                    : true;
+                {
+                    return (c * xQmax + s * yQmax >= -xPdif
+                        && c * xQmin + s * yQmin <= xPdif
+                        && c * yQmax - s * xQmin >= -yPdif
+                        && c * yQmin - s * xQmax <= yPdif);
+                }
+                return (c * xQmax + s * yQmin >= -xPdif
+                    && c * xQmin + s * yQmax <= xPdif
+                    && c * yQmax - s * xQmax >= -yPdif
+                    && c * yQmin - s * xQmin <= yPdif);
             }
             if (sPos)
-                return
-                (c * xQmin + s * yQmax < -xPdif
-                 || c * xQmax + s * yQmin > xPdif
-                 || c * yQmin - s * xQmin < -yPdif
-                 || c * yQmax - s * xQmax > yPdif
-                )
-                    ? false
-                    : true;
-            return
-            (c * xQmin + s * yQmin < -xPdif
-             || c * xQmax + s * yQmax > xPdif
-             || c * yQmin - s * xQmax < -yPdif
-             || c * yQmax - s * xQmin > yPdif
-            )
-                ? false
-                : true;
+            {
+                return (c * xQmin + s * yQmax >= -xPdif
+                    && c * xQmax + s * yQmin <= xPdif
+                    && c * yQmin - s * xQmin >= -yPdif
+                    && c * yQmax - s * xQmax <= yPdif);
+            }
+            return (c * xQmin + s * yQmin >= -xPdif
+                && c * xQmax + s * yQmax <= xPdif
+                && c * yQmin - s * xQmax >= -yPdif
+                && c * yQmax - s * xQmin <= yPdif);
         }
     }
 }

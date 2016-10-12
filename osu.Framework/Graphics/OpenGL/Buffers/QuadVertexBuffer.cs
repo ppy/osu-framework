@@ -52,24 +52,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EboId);
         }
 
-        public override void Unbind()
-        {
-            base.Unbind();
-        }
+        public override void Unbind() => base.Unbind();
 
-        protected override int ToElements(int vertices)
-        {
-            return 3 * vertices / 2;
-        }
+        protected override int ToElements(int vertices) => 3 * vertices / 2;
 
-        protected override int ToElementIndex(int verticexIndex)
-        {
-            return 3 * verticexIndex / 2;
-        }
+        protected override int ToElementIndex(int vertexIndex) => 3 * vertexIndex / 2;
 
-        protected override BeginMode Type
-        {
-            get { return BeginMode.Triangles; }
-        }
+        protected override BeginMode Type => BeginMode.Triangles;
     }
 }

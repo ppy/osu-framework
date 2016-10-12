@@ -354,23 +354,23 @@ namespace osu.Framework.Graphics.Containers
                     var target = cNode.Children;
 
                     int j = 0;
-                    for (int i = 0; i < current.Count; i++)
+                    foreach (Drawable drawable in current)
                     {
-                        if (!current[i].IsVisible) continue;
+                        if (!drawable.IsVisible) continue;
 
                         //todo: make this more efficient.
-                        if (game?.ScreenSpaceDrawQuad.FastIntersects(current[i].ScreenSpaceDrawQuad) == false)
+                        if (game?.ScreenSpaceDrawQuad.FastIntersects(drawable.ScreenSpaceDrawQuad) == false)
                             continue;
 
-                        if (j < target.Count && target[j].Drawable == current[i])
+                        if (j < target.Count && target[j].Drawable == drawable)
                         {
-                            current[i].GenerateDrawNodeSubtree(target[j]);
+                            drawable.GenerateDrawNodeSubtree(target[j]);
                         }
                         else
                         {
                             if (j < target.Count)
                                 target.RemoveAt(j);
-                            target.Insert(j, current[i].GenerateDrawNodeSubtree());
+                            target.Insert(j, drawable.GenerateDrawNodeSubtree());
                         }
 
                         j++;
@@ -378,7 +378,6 @@ namespace osu.Framework.Graphics.Containers
 
                     if (j < target.Count)
                         target.RemoveRange(j, target.Count - j);
-
                 }
                 else
                 {
@@ -397,9 +396,7 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
             else
-            {
-                cNode.Children?.Clear();
-            }
+                cNode?.Children?.Clear();
 
             return cNode;
         }

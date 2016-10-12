@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Drawables
 {
     public class Box : Drawable
     {
-        private QuadBatch<Vertex2d> quadBatch = new QuadBatch<Vertex2d>(1, 3);
+        private QuadBatch<Vertex2D> quadBatch = new QuadBatch<Vertex2D>(1, 3);
 
         protected override DrawNode CreateDrawNode() => new BoxDrawNode();
 

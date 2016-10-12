@@ -184,16 +184,16 @@ namespace osu.Framework.IO.Network
         {
             HttpWebRequest req;
 
-            string url = string.IsNullOrEmpty(requestString) ? Url : $@"{Url}?{requestString}";
+            string requestUrl = string.IsNullOrEmpty(requestString) ? Url : $@"{Url}?{requestString}";
 
             if (useFallbackPath != true && !UseExplicitIPv4Requests)
             {
-                req = (HttpWebRequest)System.Net.WebRequest.Create(url);
+                req = (HttpWebRequest)System.Net.WebRequest.Create(requestUrl);
                 req.ServicePoint.BindIPEndPointDelegate += bindEndPoint;
             }
             else
             {
-                string baseHost = url.Split('/', ':')[3];
+                string baseHost = requestUrl.Split('/', ':')[3];
 
                 var addresses = Dns.GetHostAddresses(baseHost);
 
@@ -221,7 +221,7 @@ namespace osu.Framework.IO.Network
                         break;
                 }
 
-                req = System.Net.WebRequest.Create(url.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
+                req = System.Net.WebRequest.Create(requestUrl.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
             }
 
             Debug.Assert(req != null);
@@ -229,14 +229,14 @@ namespace osu.Framework.IO.Network
             req.UserAgent = @"osu!";
             req.KeepAlive = useFallbackPath != true;
             req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-            req.Host = url.Split('/')[2];
+            req.Host = requestUrl.Split('/')[2];
             req.ReadWriteTimeout = System.Threading.Timeout.Infinite;
             req.Timeout = System.Threading.Timeout.Infinite;
 
             return req;
         }
 
-        private IPEndPoint bindEndPoint(ServicePoint servicePoint, IPEndPoint remoteEndPoint, int retryCount)
+        private IPEndPoint bindEndPoint(ServicePoint servicePoint, IPEndPoint remoteEndPoint, int retries)
         {
             didGetIPv6IP |= remoteEndPoint.AddressFamily == AddressFamily.InterNetworkV6;
             return null;
@@ -663,7 +663,8 @@ namespace osu.Framework.IO.Network
 
             try
             {
-                if (request?.ServicePoint.BindIPEndPointDelegate != null) request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
+                if (request?.ServicePoint.BindIPEndPointDelegate != null)
+                    request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
             }
             catch
             {

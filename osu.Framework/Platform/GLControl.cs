@@ -13,7 +13,7 @@ namespace osu.Framework.Platform
 {
     public class GLControl : OpenTK.GLControl
     {
-        private string SupportedExtensions;
+        private string supportedExtensions;
 
         internal Version GLVersion;
         internal Version GLSLVersion;
@@ -89,10 +89,10 @@ namespace osu.Framework.Platform
         {
             try
             {
-                if (string.IsNullOrEmpty(SupportedExtensions))
-                    SupportedExtensions = GL.GetString(StringName.Extensions);
+                if (string.IsNullOrEmpty(supportedExtensions))
+                    supportedExtensions = GL.GetString(StringName.Extensions);
 
-                return SupportedExtensions.Contains(extensionName);
+                return supportedExtensions.Contains(extensionName);
             }
             catch
             {

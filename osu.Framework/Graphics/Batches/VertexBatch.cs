@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Batches
 
         private VertexBuffer<T> CurrentVertexBuffer => VertexBuffers[currentVertexBuffer];
 
-        public VertexBatch(int size, int fixedBufferAmount)
+        protected VertexBatch(int size, int fixedBufferAmount)
         {
             // Vertex buffers of size 0 don't make any sense. Let's not blindly hope for good behavior of OpenGL.
             Debug.Assert(size > 0);

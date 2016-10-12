@@ -12,10 +12,7 @@ namespace osu.Framework.MathUtils
 {
     public static class Interpolation
     {
-        public static double Lerp(double start, double final, double amount)
-        {
-            return start + (final - start) * amount;
-        }
+        public static double Lerp(double start, double final, double amount) => start + (final - start) * amount;
 
         public static double Damp(double start, double final, double smoothing, double delta)
         {
@@ -168,7 +165,7 @@ namespace osu.Framework.MathUtils
 
                     var p = duration * .3;
                     var a = change;
-                    var s = 1.70158;
+                    double s;
                     if (a < Math.Abs(change))
                     {
                         a = change;
@@ -242,15 +239,15 @@ namespace osu.Framework.MathUtils
                 case EasingTypes.InBounce:
                     return change - ApplyEasing(EasingTypes.OutBounce, duration - time, 0, change, duration) + initial;
                 case EasingTypes.OutBounce:
-                    if ((time /= duration) < (1 / 2.75))
+                    if ((time /= duration) < 1 / 2.75)
                     {
                         return change * (7.5625 * time * time) + initial;
                     }
-                    if (time < (2 / 2.75))
+                    if (time < 2 / 2.75)
                     {
                         return change * (7.5625 * (time -= (1.5 / 2.75)) * time + .75) + initial;
                     }
-                    if (time < (2.5 / 2.75))
+                    if (time < 2.5 / 2.75)
                     {
                         return change * (7.5625 * (time -= (2.25 / 2.75)) * time + .9375) + initial;
                     }

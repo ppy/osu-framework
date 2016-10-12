@@ -28,7 +28,7 @@ namespace osu.Framework.Statistics
 
         internal IFrameBasedClock Clock;
 
-        public double FrameAimTime => 1000 / (Clock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
+        public double FrameAimTime => 1000.0 / (Clock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
 
         public PerformanceMonitor(IFrameBasedClock clock)
         {
@@ -120,7 +120,7 @@ namespace osu.Framework.Statistics
 
             //check for dropped (stutter) frames
             if (Clock.ElapsedFrameTime > spikeTime)
-                NewDroppedFrame();
+                newDroppedFrame();
 
             //reset frame totals
             CurrentCollectionTypeStack.Clear();
@@ -128,7 +128,7 @@ namespace osu.Framework.Statistics
             consumeStopwatchElapsedTime();
         }
 
-        private void NewDroppedFrame()
+        private void newDroppedFrame()
         {
         }
 
