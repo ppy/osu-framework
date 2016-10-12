@@ -81,8 +81,8 @@ namespace osu.Framework.Graphics.Containers
             children = new LifetimeList<Drawable>(DepthComparer);
         }
 
-        private Padding padding;
-        public Padding Padding
+        private MarginPadding padding;
+        public MarginPadding Padding
         {
             get { return padding; }
             set
@@ -96,8 +96,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Padding margin;
-        public Padding Margin
+        private MarginPadding margin;
+        public MarginPadding Margin
         {
             get { return margin; }
             set
@@ -429,33 +429,4 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
     }
-
-
-    public struct Padding : IEquatable<Padding>
-    {
-        public float Top;
-        public float Left;
-        public float Bottom;
-        public float Right;
-
-        public float TotalHorizontal => Left + Right;
-
-        public float TotalVertical => Top + Bottom;
-
-        public Padding(float allSides)
-        {
-            Top = Left = Bottom = Right = allSides;
-        }
-
-        public int CompareTo(object obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(Padding other)
-        {
-            return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
-        }
-    }
-
 }

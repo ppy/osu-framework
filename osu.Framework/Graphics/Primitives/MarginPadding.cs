@@ -1,0 +1,35 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace osu.Framework.Graphics.Primitives
+{
+    public struct MarginPadding : IEquatable<MarginPadding>
+    {
+        public float Top;
+        public float Left;
+        public float Bottom;
+        public float Right;
+
+        public float TotalHorizontal => Left + Right;
+
+        public float TotalVertical => Top + Bottom;
+
+        public MarginPadding(float allSides)
+        {
+            Top = Left = Bottom = Right = allSides;
+        }
+
+        public int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Equals(MarginPadding other)
+        {
+            return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
+        }
+    }
+}

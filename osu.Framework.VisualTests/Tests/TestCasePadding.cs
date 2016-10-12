@@ -53,7 +53,7 @@ namespace osu.Framework.VisualTests.Tests
                                         },
                                         new PaddedBox(Color4.Blue)
                                         {
-                                            Padding = new Padding(20),
+                                            Padding = new MarginPadding(20),
                                             Size = new Vector2(200),
                                             Origin = Anchor.Centre,
                                             Anchor = Anchor.Centre,
@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                                             {
                                                 new PaddedBox(Color4.DarkSeaGreen)
                                                 {
-                                                    Padding = new Padding(40),
+                                                    Padding = new MarginPadding(40),
                                                     RelativeSizeAxes = Axes.Both,
                                                     Origin = Anchor.Centre,
                                                     Anchor = Anchor.Centre
@@ -94,7 +94,7 @@ namespace osu.Framework.VisualTests.Tests
                                         },
                                         new PaddedBox(Color4.Blue)
                                         {
-                                            Padding = new Padding
+                                            Padding = new MarginPadding
                                             {
                                                 Top = 20,
                                                 Left = 20,
@@ -107,7 +107,7 @@ namespace osu.Framework.VisualTests.Tests
                                             {
                                                 new PaddedBox(Color4.DarkSeaGreen)
                                                 {
-                                                    Padding = new Padding(40),
+                                                    Padding = new MarginPadding(40),
                                                     RelativeSizeAxes = Axes.Both,
                                                     Origin = Anchor.Centre,
                                                     Anchor = Anchor.Centre
@@ -139,7 +139,7 @@ namespace osu.Framework.VisualTests.Tests
                                         },
                                         new PaddedBox(Color4.Blue)
                                         {
-                                            Margin = new Padding(20),
+                                            Margin = new MarginPadding(20),
                                             Size = new Vector2(200),
                                             Origin = Anchor.Centre,
                                             Anchor = Anchor.Centre,
@@ -148,7 +148,7 @@ namespace osu.Framework.VisualTests.Tests
                                             {
                                                 new PaddedBox(Color4.DarkSeaGreen)
                                                 {
-                                                    Padding = new Padding(20),
+                                                    Padding = new MarginPadding(20),
                                                     RelativeSizeAxes = Axes.Both,
                                                     Origin = Anchor.Centre,
                                                     Anchor = Anchor.Centre
@@ -180,7 +180,7 @@ namespace osu.Framework.VisualTests.Tests
                                         },
                                         new PaddedBox(Color4.Blue)
                                         {
-                                            Margin = new Padding
+                                            Margin = new MarginPadding
                                             {
                                                 Top = 20,
                                                 Left = 20,
@@ -193,7 +193,7 @@ namespace osu.Framework.VisualTests.Tests
                                             {
                                                 new PaddedBox(Color4.DarkSeaGreen)
                                                 {
-                                                    Padding = new Padding(40),
+                                                    Padding = new MarginPadding(40),
                                                     RelativeSizeAxes = Axes.Both,
                                                     Origin = Anchor.Centre,
                                                     Anchor = Anchor.Centre
