@@ -74,9 +74,9 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             AddInternal(new[]
             {

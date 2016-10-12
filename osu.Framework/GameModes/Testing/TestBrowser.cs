@@ -40,9 +40,9 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Add(leftContainer = new Container
             {
@@ -130,9 +130,9 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            public override void Load()
+            public override void Load(BaseGame game)
             {
-                base.Load();
+                base.Load(game);
 
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);

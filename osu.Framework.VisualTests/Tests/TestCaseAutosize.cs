@@ -360,9 +360,9 @@ namespace osu.Framework.VisualTests.Tests
 
     class InfofulBoxAutoSize : AutoSizeContainer
     {
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Masking = true;
 
@@ -421,9 +421,9 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override bool OnDragStart(InputState state) => AllowDrag;
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Add(new Box
             {

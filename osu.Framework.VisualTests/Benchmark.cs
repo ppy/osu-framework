@@ -7,13 +7,13 @@ using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests
 {
-    public class Benchmark : Game
+    public class Benchmark : BaseGame
     {
         private double timePerTest = 1000;
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Host.ActiveDrawHz = int.MaxValue;
             Host.ActiveUpdateHz = int.MaxValue;

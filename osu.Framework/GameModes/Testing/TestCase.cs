@@ -97,9 +97,9 @@ namespace osu.Framework.GameModes.Testing
             this.reloadCallback = reloadCallback;
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Size = new Vector2(100, 50);
             Colour = offColour;

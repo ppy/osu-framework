@@ -26,9 +26,9 @@ namespace osu.Framework.Graphics.Performance
             this.clock = clock;
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Add(new Box
             {

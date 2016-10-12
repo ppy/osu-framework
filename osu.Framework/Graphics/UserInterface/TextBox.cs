@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord = null;
 
+        BaseGame game;
+
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
@@ -53,9 +55,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
+
+            this.game = game;
 
             Masking = true;
 
@@ -77,6 +81,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursor = new Box
             {
+                Depth = float.MinValue,
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
                 RelativeSizeAxes = Axes.Y,
@@ -235,7 +240,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                Game.Audio.Sample.Get(@"Keyboard/key-movement")?.Play();
+                game.Audio.Sample.Get(@"Keyboard/key-movement")?.Play();
                 cursorAndLayout.Invalidate();
             }
         }
@@ -251,7 +256,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (count == 0) return false;
 
             if (sound)
-                Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in textFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -519,9 +524,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(str))
             {
                 if (state.Keyboard.ShiftPressed)
-                    Game.Audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                    game.Audio.Sample.Get(@"Keyboard/key-caps")?.Play();
                 else
-                    Game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                    game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
                 insertString(str);
 
                 return true;
@@ -649,7 +654,7 @@ namespace osu.Framework.Graphics.UserInterface
                 background.ClearTransformations();
                 background.FlashColour(BackgroundCommit, 400);
 
-                Game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                 OnCommit?.Invoke(this, true);
             }
             else
@@ -685,7 +690,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput == null)
             {
-                textInput = Game.Host.TextInput;
+                textInput = game.Host.TextInput;
                 textInput.OnNewImeComposition += delegate(string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
@@ -706,7 +711,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                Game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
 
                 foreach (Drawable d in imeDrawables)
                 {
@@ -755,7 +760,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    Game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                    game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 
@@ -771,7 +776,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            Game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion

@@ -7,13 +7,13 @@ namespace osu.Framework.Graphics.Performance
 {
     class PerformanceOverlay : FlowContainer
     {
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
-            Add(new FrameTimeDisplay(@"Input", Game.Host.InputMonitor));
-            Add(new FrameTimeDisplay(@"Update", Game.Host.UpdateMonitor));
-            Add(new FrameTimeDisplay(@"Draw", Game.Host.DrawMonitor));
+            Add(new FrameTimeDisplay(@"Input", game.Host.InputMonitor));
+            Add(new FrameTimeDisplay(@"Update", game.Host.UpdateMonitor));
+            Add(new FrameTimeDisplay(@"Draw", game.Host.DrawMonitor));
 
             Direction = FlowDirection.VerticalOnly;
         }

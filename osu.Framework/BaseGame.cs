@@ -18,7 +18,7 @@ using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
 {
-    public class Game : Container
+    public class BaseGame : Container
     {
         public BasicGameWindow Window => host?.Window;
 
@@ -55,9 +55,8 @@ namespace osu.Framework
 
         protected override Container Content => content;
 
-        public Game()
+        public BaseGame()
         {
-            Game = this;
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]
@@ -98,7 +97,7 @@ namespace osu.Framework
             }
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
@@ -110,12 +109,12 @@ namespace osu.Framework
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
 
-            Fonts = new TextureStore(new GlyphStore(Game.Resources, @"Fonts/OpenSans"))
+            Fonts = new TextureStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
             {
                 ScaleAdjust = 1 / 100f
             };
 
-            base.Load();
+            base.Load(game);
         }
 
         protected override void Update()

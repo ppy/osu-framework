@@ -41,15 +41,11 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.BoundingSize;
 
-                    if ((c.RelativeSizeAxes & Axes.X) == 0)
+                    if ((c.RelativeSizeAxes & Axes.X) == 0 && (c.RelativePositionAxes & Axes.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
-                    else
-                        Debug.Assert(c.InternalSize.X <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
 
-                    if ((c.RelativeSizeAxes & Axes.Y) == 0)
+                    if ((c.RelativeSizeAxes & Axes.Y) == 0 && (c.RelativePositionAxes & Axes.Y) == 0)
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
-                    else
-                        Debug.Assert(c.InternalSize.Y <= 1, @"Can't extend AutoSize container by setting inheriting dimension over one");
                 }
 
                 if ((RelativeSizeAxes & Axes.X) > 0)
@@ -108,22 +104,6 @@ namespace osu.Framework.Graphics.Containers
 
             return result;
         }
-
-        //public override Vector2 ActualSize
-        //{
-        //    get
-        //    {
-        //        if (HasDefinedSize)
-        //            return base.ActualSize;
-
-        //        if (SizeMode == InheritMode.None)
-        //            return new Vector2(0);
-
-        //        var actual = base.ActualSize;
-
-        //        return new Vector2((SizeMode & InheritMode.X) > 0 ? actual.X : 0, (SizeMode & InheritMode.Y) > 0 ? actual.Y : 0);
-        //    }
-        //}
 
         protected override bool HasDefinedSize => !RequireAutoSize;
 

@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics
                 if (transforms == null)
                 {
                     transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
-                    transforms.OnRemoved += transforms_OnRemoved;
+                    transforms.Removed += transforms_OnRemoved;
                 }
 
                 return transforms;
@@ -665,17 +665,6 @@ namespace osu.Framework.Graphics
                 Parent?.Remove(this, false);
                 Parent = parent;
             }
-
-            if (Parent?.Game != Game)
-                ChangeRoot(Parent?.Game);
-        }
-
-        internal virtual void ChangeRoot(Game root)
-        {
-            if (root == null) return;
-
-            Game = root;
-            clockBacking.Invalidate();
         }
 
         /// <summary>
@@ -724,7 +713,7 @@ namespace osu.Framework.Graphics
         /// load functions, and thus should be called _after_ objects which
         /// children depend on have been loaded.
         /// </summary>
-        public virtual void Load()
+        public virtual void Load(BaseGame game)
         {
             mainThread = Thread.CurrentThread;
             loaded = true;
@@ -884,8 +873,6 @@ namespace osu.Framework.Graphics
 
             return thisNew;
         }
-
-        protected Game Game;
 
         protected virtual Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
         {

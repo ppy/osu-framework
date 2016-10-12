@@ -54,12 +54,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             if (store == null)
-                store = Game.Fonts;
+                store = game.Fonts;
 
             spaceWidth = getSprite('.')?.Width * 2 ?? 20;
         }

@@ -422,14 +422,14 @@ namespace osu.Framework.Platform
 
         public override void Add(Drawable drawable)
         {
-            Game game = drawable as Game;
+            BaseGame game = drawable as BaseGame;
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
             UpdateScheduler.Add(delegate
             {
                 Children = new[] { game };
-                Load();
+                Load(game);
             });
         }
 

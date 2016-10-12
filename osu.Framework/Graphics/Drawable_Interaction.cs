@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpacePos">The input position.</param>
         /// <param name="relativeDrawable">The drawable which the input position is local to, or null for native.</param>
         /// <returns>The output position.</returns>
-        internal Vector2 GetLocalPosition(Vector2 screenSpacePos, Drawable relativeDrawable = null)
+        public Vector2 GetLocalPosition(Vector2 screenSpacePos, Drawable relativeDrawable = null)
         {
             if (relativeDrawable != null)
                 screenSpacePos *= relativeDrawable.DrawInfo.Matrix;

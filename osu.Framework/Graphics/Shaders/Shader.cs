@@ -22,16 +22,16 @@ namespace osu.Framework.Graphics.Shaders
         private static Dictionary<string, object> globalProperties = new Dictionary<string, object>();
 
         private Dictionary<string, UniformBase> uniforms = new Dictionary<string, UniformBase>();
+        private List<ShaderPart> parts;
 
         internal Shader(string name)
         {
             this.name = name;
         }
 
-        internal Shader(string name, List<ShaderPart> parts)
-            : this(name)
+        internal Shader(string name, List<ShaderPart> parts) : this(name)
         {
-            Compile(parts);
+            this.parts = parts;
         }
 
         #region Disposal
@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Shaders
 
         #endregion
 
-        internal void Compile(List<ShaderPart> parts)
+        internal void Compile()
         {
             parts.RemoveAll(p => p == null);
             uniforms.Clear();
@@ -75,8 +75,11 @@ namespace osu.Framework.Graphics.Shaders
                 return;
 
             programID = GL.CreateProgram();
-            for (int i = 0; i < parts.Count; i++)
-                GL.AttachShader(this, parts[i]);
+            foreach (ShaderPart p in parts)
+            {
+                if (!p.Compiled) p.Compile();
+                GL.AttachShader(this, p);
+            }
 
             GL.BindAttribLocation(this, 0, "m_Position");
             GL.BindAttribLocation(this, 1, "m_Colour");

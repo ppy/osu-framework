@@ -9,11 +9,11 @@ using OpenTK.Graphics;
 
 namespace SampleGame
 {
-    class SampleGame : Game
+    class SampleGame : BaseGame
     {
-        public override void Load()
+        public override void Load(BaseGame game)
         {
-            base.Load();
+            base.Load(game);
 
             Box box;
 
