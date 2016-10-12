@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (index < text.Length)
                     return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
                 var d = textFlow.Children.ElementAt(index - 1);
-                return d.Position.X + d.Size.X + textFlow.Padding.X + textFlow.Position.X;
+                return d.Position.X + d.Size.X + textFlow.ElementPadding.X + textFlow.Position.X;
             }
             return 0;
         }

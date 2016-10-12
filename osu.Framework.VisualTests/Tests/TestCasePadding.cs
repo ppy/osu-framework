@@ -25,41 +25,191 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(new AutoSizeContainer
+            Children = new Drawable[]
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Children = new Drawable[]
+                new FlowContainer
                 {
-                    new Box
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.White,
-                    },
-                    new PaddedBox(Color4.Blue)
-                    {
-                        Padding = new Padding(20),
-                        Size = new Vector2(200),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
-                        Masking = true,
-                        Children = new Drawable[]
+                        new Container
                         {
-                            new PaddedBox(Color4.DarkSeaGreen)
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Masking = true,
+                            Children = new Drawable[]
                             {
-                                Padding = new Padding(40),
-                                RelativeSizeAxes = Axes.Both,
-                                Origin = Anchor.Centre,
-                                Anchor = Anchor.Centre
+                                new SpriteText { Text = @"Padding - 20 All Sides" },
+                                new AutoSizeContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.White,
+                                        },
+                                        new PaddedBox(Color4.Blue)
+                                        {
+                                            Padding = new MarginPadding(20),
+                                            Size = new Vector2(200),
+                                            Origin = Anchor.Centre,
+                                            Anchor = Anchor.Centre,
+                                            Masking = true,
+                                            Children = new Drawable[]
+                                            {
+                                                new PaddedBox(Color4.DarkSeaGreen)
+                                                {
+                                                    Padding = new MarginPadding(40),
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Origin = Anchor.Centre,
+                                                    Anchor = Anchor.Centre
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Padding - 20 Top, Left" },
+                                new AutoSizeContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.White,
+                                        },
+                                        new PaddedBox(Color4.Blue)
+                                        {
+                                            Padding = new MarginPadding
+                                            {
+                                                Top = 20,
+                                                Left = 20,
+                                            },
+                                            Size = new Vector2(200),
+                                            Origin = Anchor.Centre,
+                                            Anchor = Anchor.Centre,
+                                            Masking = true,
+                                            Children = new Drawable[]
+                                            {
+                                                new PaddedBox(Color4.DarkSeaGreen)
+                                                {
+                                                    Padding = new MarginPadding(40),
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Origin = Anchor.Centre,
+                                                    Anchor = Anchor.Centre
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Margin - 20 All Sides" },
+                                new AutoSizeContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.White,
+                                        },
+                                        new PaddedBox(Color4.Blue)
+                                        {
+                                            Margin = new MarginPadding(20),
+                                            Size = new Vector2(200),
+                                            Origin = Anchor.Centre,
+                                            Anchor = Anchor.Centre,
+                                            Masking = true,
+                                            Children = new Drawable[]
+                                            {
+                                                new PaddedBox(Color4.DarkSeaGreen)
+                                                {
+                                                    Padding = new MarginPadding(20),
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Origin = Anchor.Centre,
+                                                    Anchor = Anchor.Centre
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Masking = true,
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Margin - 20 Top, Left" },
+                                new AutoSizeContainer
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.White,
+                                        },
+                                        new PaddedBox(Color4.Blue)
+                                        {
+                                            Margin = new MarginPadding
+                                            {
+                                                Top = 20,
+                                                Left = 20,
+                                            },
+                                            Size = new Vector2(200),
+                                            Origin = Anchor.Centre,
+                                            Anchor = Anchor.Centre,
+                                            Masking = true,
+                                            Children = new Drawable[]
+                                            {
+                                                new PaddedBox(Color4.DarkSeaGreen)
+                                                {
+                                                    Padding = new MarginPadding(40),
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Origin = Anchor.Centre,
+                                                    Anchor = Anchor.Centre
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
                     }
                 }
-            });
+            };
         }
 
-
-        class PaddedBox : PaddingContainer
+        class PaddedBox : Container
         {
             private SpriteText t1, t2, t3, t4;
 
@@ -82,27 +232,25 @@ namespace osu.Framework.VisualTests.Tests
                     },
                     t1 = new SpriteText
                     {
-                        Text = Padding.Top.ToString(),
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre
                     },
                     t2 = new SpriteText
                     {
-                        Text = Padding.Right.ToString(),
+                        Rotation = 90,
                         Anchor = Anchor.CentreRight,
-                        Origin = Anchor.CentreRight
+                        Origin = Anchor.TopCentre
                     },
                     t3 = new SpriteText
                     {
-                        Text = Padding.Bottom.ToString(),
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.BottomCentre
                     },
                     t4 = new SpriteText
                     {
-                        Text = Padding.Left.ToString(),
+                        Rotation = -90,
                         Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft
+                        Origin = Anchor.TopCentre
                     }
                 });
 
@@ -111,10 +259,10 @@ namespace osu.Framework.VisualTests.Tests
 
             public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
             {
-                t1.Text = Padding.Top.ToString();
-                t2.Text = Padding.Right.ToString();
-                t3.Text = Padding.Bottom.ToString();
-                t4.Text = Padding.Left.ToString();
+                t1.Text = (Padding.Top > 0 ? $"p{Padding.Top}" : string.Empty) + (Margin.Top > 0 ? $"m{Margin.Top}" : string.Empty);
+                t2.Text = (Padding.Right > 0 ? $"p{Padding.Right}" : string.Empty) + (Margin.Right > 0 ? $"m{Margin.Right}" : string.Empty);
+                t3.Text = (Padding.Bottom > 0 ? $"p{Padding.Bottom}" : string.Empty) + (Margin.Bottom > 0 ? $"m{Margin.Bottom}" : string.Empty);
+                t4.Text = (Padding.Left > 0 ? $"p{Padding.Left}" : string.Empty) + (Margin.Left > 0 ? $"m{Margin.Left}" : string.Empty);
 
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
