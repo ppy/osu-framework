@@ -7,7 +7,7 @@ using Newtonsoft.Json.Linq;
 
 namespace osu.Framework.Platform
 {
-    public class IpcChannel<T>
+    public class IpcChannel<T> : IDisposable
     {
         private BasicGameHost host;
         public event Action<T> MessageReceived;
@@ -31,6 +31,11 @@ namespace osu.Framework.Platform
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
             MessageReceived?.Invoke((T)message.Value);
+        }
+
+        public void Dispose()
+        {
+            this.host.MessageReceived -= HandleMessage;
         }
     }
 }
