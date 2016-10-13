@@ -5,37 +5,18 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using OpenTK.Graphics;
-using System;
 using OpenTK;
-using System.Collections.Generic;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class CheckBox : FlowContainer, IStateful<CheckBoxState>
     {
 
-        public Drawable CheckedDrawable = new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
-        public Drawable UncheckedDrawable = new Box { Size = new Vector2(20, 20) };
-        private AutoSizeContainer visualsCont;
-
-        private List<Drawable> labels = new List<Drawable>();
-        public IEnumerable<Drawable> Labels
-        {
-            get { return labels; }
-            set
-            {
-                if (IsLoaded)
-                {
-                    foreach (Drawable d in value)
-                        AddLabel(d);
-                }
-                else
-                {
-                    foreach (Drawable d in value)
-                        labels.Add(d);
-                }
-            }
-        }
+        protected virtual Drawable CheckedDrawable => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
+        protected virtual Drawable UncheckedDrawable => new Box { Size = new Vector2(20, 20) };
+        private AutoSizeContainer content;
 
         private CheckBoxState state = CheckBoxState.Unchecked;
         public CheckBoxState State
@@ -50,37 +31,32 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (state)
                 {
                     case CheckBoxState.Checked:
-                        CheckedAction?.Invoke();
-                        visualsCont.Remove(UncheckedDrawable);
-                        visualsCont.Add(CheckedDrawable);
+                        OnChecked();
+                        content.Clear();
+                        content.Add(CheckedDrawable);
                         break;
                     case CheckBoxState.Unchecked:
-                        UncheckedAction?.Invoke();
-                        visualsCont.Remove(CheckedDrawable);
-                        visualsCont.Add(UncheckedDrawable);
+                        OnUnchecked();
+                        content.Clear();
+                        content.Add(UncheckedDrawable);
                         break;
                 }
             }
         }
-
-        public Action CheckedAction;
-        public Action UncheckedAction;
 
         public CheckBox()
         {
             Direction = FlowDirection.HorizontalOnly;
             Children = new Drawable[]
             {
-                visualsCont = new AutoSizeContainer()
+                content = new AutoSizeContainer()
             };
         }
 
         public override void Load(BaseGame game)
         {
             base.Load(game);
-            visualsCont.Add(UncheckedDrawable);
-            foreach (Drawable d in labels)
-                Add(d);
+            content.Add(UncheckedDrawable);
         }
 
         protected override bool OnClick(InputState state)
@@ -97,16 +73,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        public void AddLabel(Drawable d)
+        protected virtual void OnChecked()
         {
-            Add(d);
-            labels.Add(d);
         }
 
-        public void RemoveLabel(Drawable d)
+        protected virtual void OnUnchecked()
         {
-            Remove(d);
-            labels.Remove(d);
         }
     }
 
@@ -116,4 +88,46 @@ namespace osu.Framework.Graphics.UserInterface
         Unchecked
     }
 
+    public class BasicCheckBox : CheckBox
+    {
+        private SpriteText labelSpriteText;
+        private string labelText = string.Empty;
+        public string LabelText
+        {
+            get { return labelText; }
+            set
+            {
+                labelText = value;
+                if (labelSpriteText != null)
+                    labelSpriteText.Text = labelText;
+            }
+        }
+        private MarginPadding labelPadding;
+        public MarginPadding LabelPadding
+        {
+            get { return labelPadding; }
+            set
+            {
+                labelPadding = value;
+            }
+        }
+
+        public BasicCheckBox()
+        {
+            LabelPadding = new MarginPadding
+            {
+                Left = 20
+            };
+        }
+
+        public override void Load(BaseGame game)
+        {
+            base.Load(game);
+            Add(labelSpriteText = new SpriteText
+            {
+                Padding = LabelPadding,
+                Text = labelText
+            });
+        }
+    }
 }

@@ -39,77 +39,56 @@ namespace osu.Framework.VisualTests.Tests
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
-                        BasicCheckBox = new CheckBox
+                        BasicCheckBox = new BasicCheckBox
                         {
-                            Labels = new Drawable[]
-                            {
-                                new SpriteText
-                                {
-                                    Padding = new MarginPadding
-                                    {
-                                        Left = 20
-                                    },
-                                    Text = @"Basic Test"
-                                }
-                            }
+                            LabelText = @"Basic Test",
                         },
-                        ResizingWidthCheckBox = new CheckBox
+                        ResizingWidthCheckBox = new WidthTestCheckBox
                         {
-                            CheckedDrawable = new Box
-                            {
-                                Size = new Vector2(50, 20),
-                                Colour = Color4.Cyan
-                            },
-                            Labels = new Drawable[]
-                            {
-                                new SpriteText
-                                {
-                                    Padding = new MarginPadding
-                                    {
-                                        Left = 20
-                                    },
-                                    Text = @"Resizing Width Test"
-                                },
-                            }
+                            LabelText = @"Resizing Width Test",
                         },
-                        ResizingHeightCheckBox = new CheckBox
+                        ResizingHeightCheckBox = new HeightTestCheckBox
                         {
-                            CheckedDrawable = new Box
-                            {
-                                Size = new Vector2(20, 50),
-                                Colour = Color4.Cyan
-                            },
-                            Labels = new Drawable[]
-                            {
-                                new SpriteText
-                                {
-                                    Padding = new MarginPadding
-                                    {
-                                        Left = 20
-                                    },
-                                    Text = @"Resizing Height Test"
-                                }
-                            }
+                            LabelText = @"Resizing Height Test",
                         },
-                        ActionsCheckBox = new CheckBox
+                        ActionsCheckBox = new ActionsTestCheckBox
                         {
-                            CheckedAction = () => ActionsCheckBox.RotateTo(45, 100),
-                            UncheckedAction = () => ActionsCheckBox.RotateTo(0, 100),
-                            Labels = new Drawable[]
-                            {
-                                new SpriteText
-                                {
-                                    Padding = new MarginPadding
-                                    {
-                                        Left = 20
-                                    },
-                                    Text = @"Enabled/Disabled Actions Test"
-                                }
-                            }
-                        }
+                            LabelText = @"Enabled/Disabled Actions Test",
+                        },
                     }
                 }
             };
+        }
+    }
+
+    public class WidthTestCheckBox : BasicCheckBox
+    {
+        protected override Drawable CheckedDrawable => new Box
+        {
+            Size = new Vector2(20, 50),
+            Colour = Color4.Cyan
+        };
+    }
+
+    public class HeightTestCheckBox : BasicCheckBox
+    {
+        protected override Drawable CheckedDrawable => new Box
+        {
+            Size = new Vector2(50, 20),
+            Colour = Color4.Cyan
+        };
+    }
+
+    public class ActionsTestCheckBox : BasicCheckBox
+    {
+        protected override void OnChecked()
+        {
+            RotateTo(45, 100);
+        }
+
+        protected override void OnUnchecked()
+        {
+            RotateTo(0, 100);
         }
     }
 }
