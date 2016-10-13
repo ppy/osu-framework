@@ -11,7 +11,7 @@ namespace osu.Framework.Platform
     {
         public string BaseName { get; set; }
     
-        protected BasicStorage(string baseName)
+        public BasicStorage(string baseName)
         {
             BaseName = baseName;
         }

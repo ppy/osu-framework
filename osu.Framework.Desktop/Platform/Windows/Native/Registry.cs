@@ -108,21 +108,21 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
         }
 
         // Adds an ACL entry on the specified directory for the specified account.
-        public static void AddDirectorySecurity(string fileName, string account, FileSystemRights rights,
-                                                InheritanceFlags inheritance, PropagationFlags propagation,
-                                                AccessControlType controlType)
+        public static void AddDirectorySecurity(string FileName, string Account, FileSystemRights Rights,
+                                                InheritanceFlags Inheritance, PropagationFlags Propogation,
+                                                AccessControlType ControlType)
         {
             // Create a new DirectoryInfo object.
-            DirectoryInfo dInfo = new DirectoryInfo(fileName);
+            DirectoryInfo dInfo = new DirectoryInfo(FileName);
             // Get a DirectorySecurity object that represents the
             // current security settings.
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             // Add the FileSystemAccessRule to the security settings.
-            dSecurity.AddAccessRule(new FileSystemAccessRule(account,
-                rights,
-                inheritance,
-                propagation,
-                controlType));
+            dSecurity.AddAccessRule(new FileSystemAccessRule(Account,
+                Rights,
+                Inheritance,
+                Propogation,
+                ControlType));
             // Set the new access settings.
             dInfo.SetAccessControl(dSecurity);
         }

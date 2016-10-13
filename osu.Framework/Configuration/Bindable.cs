@@ -30,7 +30,7 @@ namespace osu.Framework.Configuration
 
         public Bindable(T value)
         {
-            this.value = value;
+            Value = value;
         }
 
         public static implicit operator T(Bindable<T> value)

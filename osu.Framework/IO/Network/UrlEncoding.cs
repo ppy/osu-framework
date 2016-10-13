@@ -41,10 +41,10 @@ namespace osu.Framework.IO.Network
                 return null;
             }
             byte[] bytes = e.GetBytes(str);
-            return urlEncodeBytesToBytesPublic(bytes, 0, bytes.Length, false, paramEncode);
+            return UrlEncodeBytesToBytespublic(bytes, 0, bytes.Length, false, paramEncode);
         }
 
-        private static byte[] urlEncodeBytesToBytesPublic(byte[] bytes, int offset, int count, bool alwaysCreateReturnValue, bool paramEncode)
+        private static byte[] UrlEncodeBytesToBytespublic(byte[] bytes, int offset, int count, bool alwaysCreateReturnValue, bool paramEncode)
         {
             int num = 0;
             int num2 = 0;

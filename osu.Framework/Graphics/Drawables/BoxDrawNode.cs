@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Drawables
     {
         public Shader Shader;
         public Quad ScreenSpaceDrawQuad;
-        public QuadBatch<Vertex2D> Batch;
+        public QuadBatch<Vertex2d> Batch;
 
         protected override void Draw()
         {
@@ -22,22 +22,22 @@ namespace osu.Framework.Graphics.Drawables
 
             Shader.Bind();
 
-            Batch.Add(new Vertex2D
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = ScreenSpaceDrawQuad.BottomLeft
             });
-            Batch.Add(new Vertex2D
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = ScreenSpaceDrawQuad.BottomRight
             });
-            Batch.Add(new Vertex2D
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = ScreenSpaceDrawQuad.TopRight
             });
-            Batch.Add(new Vertex2D
+            Batch.Add(new Vertex2d
             {
                 Colour = DrawInfo.Colour,
                 Position = ScreenSpaceDrawQuad.TopLeft

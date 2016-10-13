@@ -101,8 +101,8 @@ namespace osu.Framework.Graphics.Shaders
                 Log.AppendLine(linkLog);
             }
 
-            foreach (var part in parts)
-                GL.DetachShader(this, part);
+            for (int i = 0; i < parts.Count; i++)
+                GL.DetachShader(this, parts[i]);
 
             Loaded = linkResult == 1;
 
