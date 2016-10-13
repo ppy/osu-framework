@@ -83,11 +83,13 @@ namespace osu.Framework.VisualTests.Tests
     {
         protected override void OnChecked()
         {
+            base.OnChecked();
             RotateTo(45, 100);
         }
 
         protected override void OnUnchecked()
         {
+            base.OnUnchecked();
             RotateTo(0, 100);
         }
     }

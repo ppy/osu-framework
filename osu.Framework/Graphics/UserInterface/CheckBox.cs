@@ -11,13 +11,8 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class CheckBox : FlowContainer, IStateful<CheckBoxState>
+    public abstract class CheckBox : FlowContainer, IStateful<CheckBoxState>
     {
-
-        protected virtual Drawable CheckedDrawable => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
-        protected virtual Drawable UncheckedDrawable => new Box { Size = new Vector2(20, 20) };
-        private AutoSizeContainer content;
-
         private CheckBoxState state = CheckBoxState.Unchecked;
         public CheckBoxState State
         {
@@ -32,13 +27,9 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     case CheckBoxState.Checked:
                         OnChecked();
-                        content.Clear();
-                        content.Add(CheckedDrawable);
                         break;
                     case CheckBoxState.Unchecked:
                         OnUnchecked();
-                        content.Clear();
-                        content.Add(UncheckedDrawable);
                         break;
                 }
             }
@@ -47,16 +38,6 @@ namespace osu.Framework.Graphics.UserInterface
         public CheckBox()
         {
             Direction = FlowDirection.HorizontalOnly;
-            Children = new Drawable[]
-            {
-                content = new AutoSizeContainer()
-            };
-        }
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-            content.Add(UncheckedDrawable);
         }
 
         protected override bool OnClick(InputState state)
@@ -90,6 +71,9 @@ namespace osu.Framework.Graphics.UserInterface
 
     public class BasicCheckBox : CheckBox
     {
+        protected virtual Drawable CheckedDrawable => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
+        protected virtual Drawable UncheckedDrawable => new Box { Size = new Vector2(20, 20) };
+        private AutoSizeContainer content;
         private SpriteText labelSpriteText;
         private string labelText = string.Empty;
         public string LabelText
@@ -118,16 +102,33 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Left = 20
             };
+            Children = new Drawable[]
+            {
+                content = new AutoSizeContainer()
+            };
         }
 
         public override void Load(BaseGame game)
         {
             base.Load(game);
+            content.Add(UncheckedDrawable);
             Add(labelSpriteText = new SpriteText
             {
                 Padding = LabelPadding,
                 Text = labelText
             });
+        }
+
+        protected override void OnUnchecked()
+        {
+            content.Clear();
+            content.Add(UncheckedDrawable);
+        }
+
+        protected override void OnChecked()
+        {
+            content.Clear();
+            content.Add(CheckedDrawable);
         }
     }
 }
