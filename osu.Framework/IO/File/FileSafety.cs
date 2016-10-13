@@ -383,6 +383,7 @@ namespace osu.Framework.IO.File
         {
             SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             NTAccount acct = sid.Translate(typeof(NTAccount)) as NTAccount;
+            Debug.Assert(acct != null);
             string strEveryoneAccount = acct.ToString();
 
             try

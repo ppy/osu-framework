@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     class TextureGLSingle : TextureGL
     {
-        private static VertexBatch<TexturedVertex2d> spriteBatch;
+        private static VertexBatch<TexturedVertex2D> spriteBatch;
 
         private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
@@ -113,7 +113,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
         }
 
-        private static void RotateVector(ref Vector2 toRotate, float sin, float cos)
+        private static void rotateVector(ref Vector2 toRotate, float sin, float cos)
         {
             float oldX = toRotate.X;
             toRotate.X = toRotate.X * cos - toRotate.Y * sin;
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2d> spriteBatch = null)
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null)
         {
             Debug.Assert(!isDisposed);
 
@@ -142,29 +142,29 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (spriteBatch == null)
             {
                 if (TextureGLSingle.spriteBatch == null)
-                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2d>(1, 100);
+                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(1, 100);
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
-            spriteBatch.Add(new TexturedVertex2d
+            spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d
+            spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d
+            spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
                 Colour = drawColour
             });
-            spriteBatch.Add(new TexturedVertex2d
+            spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 finally
                 {
                     h0?.Free();
-                    upload?.Dispose();
+                    upload.Dispose();
                 }
             }
 

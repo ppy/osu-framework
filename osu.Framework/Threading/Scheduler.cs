@@ -208,13 +208,13 @@ namespace osu.Framework.Threading
         {
             WaitTime = waitTime;
             RepeatInterval = repeatInterval;
-            Task = task;
+            this.task = task;
         }
 
         /// <summary>
         /// The work task.
         /// </summary>
-        Action Task;
+        Action task;
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.
@@ -234,7 +234,7 @@ namespace osu.Framework.Threading
         public void RunTask()
         {
             if (!Waiting)
-                Task();
+                task();
             Completed = true;
         }
 
@@ -255,7 +255,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Time between repeats of this task. -1 means no repeats.
         /// </summary>
-        public double RepeatInterval = -1;
+        public double RepeatInterval;
 
         public int CompareTo(ScheduledDelegate other)
         {

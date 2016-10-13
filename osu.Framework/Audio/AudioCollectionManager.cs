@@ -12,28 +12,28 @@ namespace osu.Framework.Audio
     public class AudioCollectionManager<T> : AdjustableAudioComponent
         where T : AdjustableAudioComponent
     {
-        List<T> ActiveItems = new List<T>();
+        List<T> activeItems = new List<T>();
 
         protected void AddItem(T item)
         {
             item.AddAdjustmentDependency(this);
-            ActiveItems.Add(item);
+            activeItems.Add(item);
         }
 
         public override void Update()
         {
             base.Update();
 
-            for (int i = 0; i < ActiveItems.Count; i++)
+            for (int i = 0; i < activeItems.Count; i++)
             {
-                var item = ActiveItems[i];
+                var item = activeItems[i];
 
                 item.Update();
 
                 if ((item as IHasCompletedState)?.HasCompleted ?? false)
                 {
                     item.Dispose();
-                    ActiveItems.RemoveAt(i--);
+                    activeItems.RemoveAt(i--);
                 }
             }
         }

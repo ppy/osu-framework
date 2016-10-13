@@ -408,7 +408,7 @@ namespace osu.Framework.Graphics.UserInterface
                             //A selection reset is required to select a word inside the current selection
                             if(!state.Keyboard.ShiftPressed)
                                 resetSelection();
-                            amount = (selectionEnd - lastSpace - 1);
+                            amount = selectionEnd - lastSpace - 1;
                         }
                          else
                             amount = selectionEnd;

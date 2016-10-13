@@ -9,7 +9,7 @@ namespace osu.Framework.Configuration
 {
     class SafeWriteStream : FileStream
     {
-        static object SafeLock = new object(); //ensure we are only ever writing one stream to disk at a time, application wide.
+        static object safeLock = new object(); //ensure we are only ever writing one stream to disk at a time, application wide.
 
         private bool aborted;
 
@@ -34,7 +34,7 @@ namespace osu.Framework.Configuration
 
         public override void Close()
         {
-            lock (SafeLock)
+            lock (safeLock)
             {
                 base.Close();
 

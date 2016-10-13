@@ -20,7 +20,7 @@ namespace osu.Framework.Desktop.Tests.Platform
         }
     
         [Test]
-        public async Task TestIPC()
+        public async Task TestIpc()
         {
             using (var server = new HeadlessGameHost())
             using (var client = new HeadlessGameHost())

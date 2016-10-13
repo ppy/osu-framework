@@ -6,7 +6,7 @@ using OpenTK;
 
 namespace osu.Framework.Extensions.PolygonExtensions
 {
-    public static class IPolygonExtensions
+    public static class PolygonExtensions
     {
         /// <summary>
         /// Computes the axes for each edge in a polygon.
