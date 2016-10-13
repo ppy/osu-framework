@@ -368,8 +368,7 @@ namespace osu.Framework.Graphics
             set { Size = new Vector2(Size.X, value); }
         }
 
-        protected virtual IFrameBasedClock Clock => clockBacking.EnsureValid() ? clockBacking.Value : clockBacking.Refresh(() => Parent?.Clock);
-        private Cached<IFrameBasedClock> clockBacking = new Cached<IFrameBasedClock>();
+        protected virtual IFrameBasedClock Clock => Parent?.Clock;
 
         protected double Time => Clock?.CurrentTime ?? 0;
 
