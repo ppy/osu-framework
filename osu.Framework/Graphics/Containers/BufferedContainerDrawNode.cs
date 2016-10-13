@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
     {
         public FrameBuffer FrameBuffer;
         public Quad ScreenSpaceDrawQuad;
-        public QuadBatch<TexturedVertex2D> Batch;
+        public QuadBatch<TexturedVertex2d> Batch;
         public List<RenderbufferInternalFormat> Formats;
 
         protected override void PreDraw()

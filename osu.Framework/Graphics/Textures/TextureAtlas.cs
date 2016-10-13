@@ -18,6 +18,11 @@ namespace osu.Framework.Graphics.Textures
 
         private int currentY;
 
+        private bool IsFull
+        {
+            get { return false; }
+        }
+
         public TextureAtlas(int width, int height)
         {
             atlasWidth = width;
@@ -33,7 +38,7 @@ namespace osu.Framework.Graphics.Textures
             atlasTexture = new TextureGLSingle(atlasWidth, atlasHeight);
         }
 
-        private Point findPosition(int width, int height)
+        private Point FindPosition(int width, int height)
         {
             // Super naive implementation only going from left to right.
             Point res = new Point(0, currentY);
@@ -57,7 +62,7 @@ namespace osu.Framework.Graphics.Textures
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
                 currentY = maxY + 4;
                 subTextureBounds.Clear();
-                res = findPosition(width, height);
+                res = FindPosition(width, height);
             }
 
             return res;
@@ -70,7 +75,7 @@ namespace osu.Framework.Graphics.Textures
                 if (atlasTexture == null)
                     Reset();
 
-                Point position = findPosition(width, height);
+                Point position = FindPosition(width, height);
                 Rectangle bounds = new Rectangle(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 

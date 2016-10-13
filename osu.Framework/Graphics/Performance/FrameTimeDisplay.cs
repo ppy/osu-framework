@@ -289,7 +289,7 @@ namespace osu.Framework.Graphics.Performance
 
                 float brightnessAdjust = 1;
                 if (frameTimeType == PerformanceCollectionType.Empty)
-                    brightnessAdjust *= 1 - i * 4 / HEIGHT / 8f;
+                    brightnessAdjust *= (1 - i * 4 / HEIGHT / 8f);
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 

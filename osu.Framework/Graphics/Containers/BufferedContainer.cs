@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : Container
     {
         private FrameBuffer frameBuffer;
-        private QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
+        private QuadBatch<TexturedVertex2d> quadBatch = new QuadBatch<TexturedVertex2d>(1, 3);
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 

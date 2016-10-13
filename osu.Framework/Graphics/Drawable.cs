@@ -47,8 +47,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future Update calls.
         /// </summary>
-        private Scheduler scheduler;
-        private Thread mainThread;
+        private Scheduler scheduler = null;
+        private Thread mainThread = null;
         protected Scheduler Scheduler
         {
             get
@@ -444,7 +444,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo();
+        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
         protected virtual Quad DrawQuad
         {

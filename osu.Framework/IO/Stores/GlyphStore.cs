@@ -36,8 +36,13 @@ namespace osu.Framework.IO.Stores
                 throw new FontLoadException(assetName);
             }
         }
-        
+
         public RawTexture Get(string name)
+        {
+            return Get(name, 1);
+        }
+        
+        public RawTexture Get(string name, float scale = 1)
         {
             Character c;
 

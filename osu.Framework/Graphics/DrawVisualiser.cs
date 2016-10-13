@@ -75,6 +75,11 @@ namespace osu.Framework.Graphics
             });
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+        }
+
         protected override bool OnClick(InputState state)
         {
             if (loadMessage == null)

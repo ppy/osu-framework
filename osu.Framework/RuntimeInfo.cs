@@ -22,7 +22,7 @@ namespace osu.Framework
         public static bool IsWindows { get; }
         public static bool IsUnix { get; }
         public static bool IsLinux { get; }
-        public static bool IsMacOsx { get; }
+        public static bool IsMacOSX { get; }
         public static bool IsWine { get; }
 
         static RuntimeInfo()
@@ -47,12 +47,12 @@ namespace osu.Framework
 
                 output = output.ToUpper().Replace("\n", "").Trim();
 
-                IsMacOsx = output == "DARWIN";
+                IsMacOSX = output == "DARWIN";
                 IsLinux = output == "LINUX";
             }
             else
             {
-                IsMacOsx = false;
+                IsMacOSX = false;
                 IsLinux = false;
             }
 

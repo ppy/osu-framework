@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Textures
             get
             {
                 Debug.Assert(TextureGL != null);
-                return TextureGL.Height;
+                return TextureGL?.Height ?? 0;
             }
             set { TextureGL.Height = value; }
         }
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Textures
                 upload.Dispose();
         }
 
-        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2d> spriteBatch = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 

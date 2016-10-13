@@ -5,11 +5,11 @@ using System;
 
 namespace osu.Framework.Allocation
 {
-    public class ObjectUsage<T> : IDisposable
+    public class ObjectUsage<U> : IDisposable
     {
-        public T Object;
+        public U Object;
 
-        internal Action<ObjectUsage<T>, UsageType> Finish;
+        internal Action<ObjectUsage<U>, UsageType> Finish;
 
         public UsageType Usage;
 

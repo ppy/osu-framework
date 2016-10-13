@@ -38,13 +38,13 @@ namespace osu.Framework.Graphics.OpenGL
 
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct UncolouredVertex2D : IEquatable<UncolouredVertex2D>
+    public struct UncolouredVertex2d : IEquatable<UncolouredVertex2d>
     {
         public Vector2 Position;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(UncolouredVertex2D), "Position");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(UncolouredVertex2d), "Position");
 
-        public bool Equals(UncolouredVertex2D other)
+        public bool Equals(UncolouredVertex2d other)
         {
             return Position.Equals(other.Position);
         }
@@ -56,19 +56,19 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Stride, positionOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new UncolouredVertex2D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new UncolouredVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex2D : IEquatable<Vertex2D>
+    public struct Vertex2d : IEquatable<Vertex2d>
     {
         public Vector2 Position;
         public Color4 Colour;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(Vertex2D), "Position");
-        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(Vertex2D), "Colour");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(Vertex2d), "Position");
+        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(Vertex2d), "Colour");
 
-        public bool Equals(Vertex2D other)
+        public bool Equals(Vertex2d other)
         {
             return Position.Equals(other.Position) && Colour.Equals(other.Colour);
         }
@@ -81,21 +81,21 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, Stride, colourOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new Vertex2D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new Vertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct TexturedVertex2D : IEquatable<TexturedVertex2D>
+    public struct TexturedVertex2d : IEquatable<TexturedVertex2d>
     {
         public Vector2 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "Position");
-        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "Colour");
-        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "TexturePosition");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TexturedVertex2d), "Position");
+        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TexturedVertex2d), "Colour");
+        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TexturedVertex2d), "TexturePosition");
 
-        public bool Equals(TexturedVertex2D other)
+        public bool Equals(TexturedVertex2d other)
         {
             return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
         }
@@ -109,23 +109,23 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex2D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct TimedTexturedVertex2D : IEquatable<TimedTexturedVertex2D>
+    public struct TimedTexturedVertex2d : IEquatable<TimedTexturedVertex2d>
     {
         public Vector2 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
         public float Time;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2D), "Position");
-        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2D), "Colour");
-        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2D), "TexturePosition");
-        private static readonly IntPtr timeOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2D), "Time");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2d), "Position");
+        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2d), "Colour");
+        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2d), "TexturePosition");
+        private static readonly IntPtr timeOffset = Marshal.OffsetOf(typeof(TimedTexturedVertex2d), "Time");
 
-        public bool Equals(TimedTexturedVertex2D other)
+        public bool Equals(TimedTexturedVertex2d other)
         {
             return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time);
         }
@@ -140,11 +140,11 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, Stride, timeOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new TimedTexturedVertex2D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TimedTexturedVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct ParticleVertex2D : IEquatable<ParticleVertex2D>
+    public struct ParticleVertex2d : IEquatable<ParticleVertex2d>
     {
         public Vector2 Position;
         public Color4 Colour;
@@ -152,13 +152,13 @@ namespace osu.Framework.Graphics.OpenGL
         public float Time;
         public Vector2 Direction;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(ParticleVertex2D), "Position");
-        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(ParticleVertex2D), "Colour");
-        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(ParticleVertex2D), "TexturePosition");
-        private static readonly IntPtr timeOffset = Marshal.OffsetOf(typeof(ParticleVertex2D), "Time");
-        private static readonly IntPtr directionOffset = Marshal.OffsetOf(typeof(ParticleVertex2D), "Direction");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(ParticleVertex2d), "Position");
+        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(ParticleVertex2d), "Colour");
+        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(ParticleVertex2d), "TexturePosition");
+        private static readonly IntPtr timeOffset = Marshal.OffsetOf(typeof(ParticleVertex2d), "Time");
+        private static readonly IntPtr directionOffset = Marshal.OffsetOf(typeof(ParticleVertex2d), "Direction");
 
-        public bool Equals(ParticleVertex2D other)
+        public bool Equals(ParticleVertex2d other)
         {
             return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour) && Time.Equals(other.Time) && Direction.Equals(other.Direction);
         }
@@ -174,21 +174,21 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(4, 2, VertexAttribPointerType.Float, false, Stride, directionOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new ParticleVertex2D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new ParticleVertex2d());
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct TexturedVertex3D : IEquatable<TexturedVertex3D>
+    public struct TexturedVertex3d : IEquatable<TexturedVertex3d>
     {
         public Vector3 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
 
-        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TexturedVertex3D), "Position");
-        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TexturedVertex3D), "Colour");
-        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TexturedVertex3D), "TexturePosition");
+        private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TexturedVertex3d), "Position");
+        private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TexturedVertex3d), "Colour");
+        private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TexturedVertex3d), "TexturePosition");
 
-        public bool Equals(TexturedVertex3D other)
+        public bool Equals(TexturedVertex3d other)
         {
             return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
         }
@@ -202,6 +202,6 @@ namespace osu.Framework.Graphics.OpenGL
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
         }
 
-        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex3D());
+        public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex3d());
     }
 }

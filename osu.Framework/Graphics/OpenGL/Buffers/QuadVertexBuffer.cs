@@ -10,10 +10,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static QuadIndexData()
         {
-            GL.GenBuffers(1, out EBO_ID);
+            GL.GenBuffers(1, out EboId);
         }
 
-        public static readonly int EBO_ID;
+        public static readonly int EboId;
         public static int MaxAmountIndices;
     }
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     indices[j + 5] = (ushort)(i + 1);
                 }
 
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EboId);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountIndices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 QuadIndexData.MaxAmountIndices = amountIndices;
@@ -49,15 +49,27 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EboId);
         }
 
-        public override void Unbind() => base.Unbind();
+        public override void Unbind()
+        {
+            base.Unbind();
+        }
 
-        protected override int ToElements(int vertices) => 3 * vertices / 2;
+        protected override int ToElements(int vertices)
+        {
+            return 3 * vertices / 2;
+        }
 
-        protected override int ToElementIndex(int vertexIndex) => 3 * vertexIndex / 2;
+        protected override int ToElementIndex(int verticexIndex)
+        {
+            return 3 * verticexIndex / 2;
+        }
 
-        protected override BeginMode Type => BeginMode.Triangles;
+        protected override BeginMode Type
+        {
+            get { return BeginMode.Triangles; }
+        }
     }
 }

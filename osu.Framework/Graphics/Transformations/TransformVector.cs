@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Transformations
             }
         }
 
-        protected TransformVector(IClock clock)
+        public TransformVector(IClock clock)
             : base(clock)
         {
         }
