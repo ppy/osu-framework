@@ -411,12 +411,12 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
-        public override void Flush(bool propagateChildren = false)
+        public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
-            base.Flush(propagateChildren);
+            base.Flush(propagateChildren, flushType);
 
             if (propagateChildren)
-                foreach (var c in children) c.Flush(true);
+                foreach (var c in children) c.Flush(true, flushType);
         }
 
         public override Drawable DelayReset()
