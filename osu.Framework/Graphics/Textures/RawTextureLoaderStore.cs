@@ -76,6 +76,8 @@ namespace osu.Framework.Graphics.Textures
             
             using (var stream = Store.GetStream(name))
             {
+                if (stream == null) return null;
+
                 if (PngReader.IsPngImage(stream))
                     return loadPng(stream);
                 return loadOther(stream);
