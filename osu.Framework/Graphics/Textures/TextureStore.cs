@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
@@ -38,6 +39,8 @@ namespace osu.Framework.Graphics.Textures
 
             return tex;
         }
+
+        public async Task<Texture> GetAsync(string name) => await Task.Run(() => Get(name));
 
         /// <summary>
         /// Retrieves a texture from the store and adds it to the atlas.
