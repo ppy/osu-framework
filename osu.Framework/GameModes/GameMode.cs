@@ -33,6 +33,21 @@ namespace osu.Framework.GameModes
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
+            
+            AddInternal(new[]
+            {
+                content = new ContentContainer()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre
+                },
+                childModeContainer = new Container()
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                },
+            });
         }
 
         public override bool HandleInput => !hasExited;
@@ -77,21 +92,6 @@ namespace osu.Framework.GameModes
         public override void Load(BaseGame game)
         {
             base.Load(game);
-
-            AddInternal(new[]
-            {
-                content = new ContentContainer()
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre
-                },
-                childModeContainer = new Container()
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
-            });
 
             if (ParentGameMode == null)
                 OnEntering(null);
