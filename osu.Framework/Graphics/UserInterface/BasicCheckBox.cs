@@ -12,8 +12,8 @@ namespace osu.Framework.Graphics.UserInterface
 
     public class BasicCheckBox : CheckBox
     {
-        protected virtual Drawable CreateCheckedDrawable() => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan, Depth = float.MinValue };
-        protected virtual Drawable CreateUncheckedDrawable() => new Box { Size = new Vector2(20, 20), Depth = float.MinValue };
+        protected virtual Drawable CreateCheckedDrawable() => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
+        protected virtual Drawable CreateUncheckedDrawable() => new Box { Size = new Vector2(20, 20) };
         private Drawable checkedDrawable;
         private Drawable uncheckedDrawable;
         private SpriteText labelSpriteText;
@@ -46,6 +46,15 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Left = 20
             };
+            Children = new Drawable[]
+            {
+                labelSpriteText = new SpriteText
+                {
+                    Padding = LabelPadding,
+                    Text = labelText,
+                    Depth = float.MaxValue
+                }
+            };
         }
 
         public override void Load(BaseGame game)
@@ -53,16 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.Load(game);
             checkedDrawable = CreateCheckedDrawable();
             uncheckedDrawable = CreateUncheckedDrawable();
-
-            Children = new Drawable[]
-            {
-                uncheckedDrawable,
-                labelSpriteText = new SpriteText
-                {
-                    Padding = LabelPadding,
-                    Text = labelText
-                }
-            };
+            Add(uncheckedDrawable);
         }
 
         protected override void OnUnchecked()
