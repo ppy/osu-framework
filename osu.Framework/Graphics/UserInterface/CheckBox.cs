@@ -2,12 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
-using OpenTK.Graphics;
-using OpenTK;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -42,93 +37,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            if (State == CheckBoxState.Checked)
-            {
-                State = CheckBoxState.Unchecked;
-            }
-            else
-            {
-                State = CheckBoxState.Checked;
-            }
+            State = State == CheckBoxState.Checked ? CheckBoxState.Unchecked : CheckBoxState.Checked;
             base.OnClick(state);
             return true;
         }
 
-        protected virtual void OnChecked()
-        {
-        }
+        protected abstract void OnChecked();
 
-        protected virtual void OnUnchecked()
-        {
-        }
+        protected abstract void OnUnchecked();
     }
 
     public enum CheckBoxState
     {
         Checked,
         Unchecked
-    }
-
-    public class BasicCheckBox : CheckBox
-    {
-        protected virtual Drawable CheckedDrawable => new Box { Size = new Vector2(20, 20), Colour = Color4.Cyan };
-        protected virtual Drawable UncheckedDrawable => new Box { Size = new Vector2(20, 20) };
-        private AutoSizeContainer content;
-        private SpriteText labelSpriteText;
-        private string labelText = string.Empty;
-        public string LabelText
-        {
-            get { return labelText; }
-            set
-            {
-                labelText = value;
-                if (labelSpriteText != null)
-                    labelSpriteText.Text = labelText;
-            }
-        }
-        private MarginPadding labelPadding;
-        public MarginPadding LabelPadding
-        {
-            get { return labelPadding; }
-            set
-            {
-                labelPadding = value;
-            }
-        }
-
-        public BasicCheckBox()
-        {
-            LabelPadding = new MarginPadding
-            {
-                Left = 20
-            };
-            Children = new Drawable[]
-            {
-                content = new AutoSizeContainer()
-            };
-        }
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-            content.Add(UncheckedDrawable);
-            Add(labelSpriteText = new SpriteText
-            {
-                Padding = LabelPadding,
-                Text = labelText
-            });
-        }
-
-        protected override void OnUnchecked()
-        {
-            content.Clear();
-            content.Add(UncheckedDrawable);
-        }
-
-        protected override void OnChecked()
-        {
-            content.Clear();
-            content.Add(CheckedDrawable);
-        }
     }
 }

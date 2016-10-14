@@ -263,6 +263,7 @@
     <Compile Include="Platform\IpcChannel.cs" />
     <Compile Include="Platform\IpcMessage.cs" />
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
+    <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">

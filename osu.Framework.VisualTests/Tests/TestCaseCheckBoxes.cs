@@ -63,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
     public class WidthTestCheckBox : BasicCheckBox
     {
-        protected override Drawable CheckedDrawable => new Box
+        protected override Drawable CreateCheckedDrawable() => new Box
         {
             Size = new Vector2(20, 50),
             Colour = Color4.Cyan
@@ -72,7 +72,7 @@ namespace osu.Framework.VisualTests.Tests
 
     public class HeightTestCheckBox : BasicCheckBox
     {
-        protected override Drawable CheckedDrawable => new Box
+        protected override Drawable CreateCheckedDrawable() => new Box
         {
             Size = new Vector2(50, 20),
             Colour = Color4.Cyan
