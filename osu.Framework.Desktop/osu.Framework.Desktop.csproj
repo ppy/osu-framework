@@ -133,7 +133,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="..\..\packages\SQLitePCLRaw.lib.e_sqlite3.linux.1.0.1\runtimes\linux-x64\native\libe_sqlite3.so">
+    <None Include="$(SolutionDir)\packages\SQLitePCLRaw.lib.e_sqlite3.linux.1.0.1\runtimes\linux-x64\native\libe_sqlite3.so">
       <Link>libe_sqlite3.so</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
