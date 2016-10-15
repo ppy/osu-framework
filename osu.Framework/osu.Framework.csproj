@@ -109,10 +109,9 @@
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\Drawables\BoxRounded.cs" />
-    <Compile Include="Graphics\Drawables\BoxRoundedDrawNode.cs" />
-    <Compile Include="Graphics\DrawVisualiser.cs" />
+    <Compile Include="Graphics\Drawables\Box.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
+    <Compile Include="Graphics\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
@@ -226,7 +225,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Timing\ThrottledFrameClock.cs" />
     <Compile Include="Graphics\Batches\IVertexBatch.cs" />
     <Compile Include="Graphics\Containers\FlowContainer.cs" />
-    <Compile Include="Graphics\Drawables\Box.cs" />
     <Compile Include="Graphics\Drawable_Interaction.cs" />
     <Compile Include="IO\Stores\CachedResourceStore.cs" />
     <Compile Include="IO\Stores\ChangeableResourceStore.cs" />
