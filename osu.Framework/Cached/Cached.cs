@@ -6,7 +6,12 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Cached
 {
-    public class Cached<T>
+    public abstract class StaticCached
+    {
+        internal static bool AlwaysStale = false;
+    }
+
+    public class Cached<T> : StaticCached
     {
         public delegate T PropertyUpdater();
 
@@ -20,7 +25,7 @@ namespace osu.Framework.Cached
         /// </summary>
         public bool AllowStaleReads = true;
 
-        private bool isStale => lastUpdateTime < 0 || (RefreshInterval >= 0 && clock?.CurrentTime > lastUpdateTime + RefreshInterval);
+        private bool isStale => AlwaysStale || (lastUpdateTime < 0 || (RefreshInterval >= 0 && clock?.CurrentTime > lastUpdateTime + RefreshInterval));
         public bool IsValid => !isStale;
 
         private PropertyUpdater updateDelegate;
