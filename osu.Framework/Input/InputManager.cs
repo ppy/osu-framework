@@ -70,9 +70,6 @@ namespace osu.Framework.Input
 
         private ICursorInputHandler currentCursorHandler;
 
-        //hopefully we can remove this once we fix silly invalidation caching logic.
-        public override Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
-
         /// <summary>
         /// The input state from the previous frame.
         /// </summary>
