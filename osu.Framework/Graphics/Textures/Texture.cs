@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Textures
                 upload.Dispose();
         }
 
-        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        private RectangleF textureBounds(RectangleF? textureRect = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
@@ -170,7 +170,17 @@ namespace osu.Framework.Graphics.Textures
                 texRect.Y *= DpiScale;
             }
 
-            TextureGL?.Draw(vertexQuad, texRect, colour, spriteBatch);
+            return texRect;
+        }
+
+        public RectangleF GetTextureRect(RectangleF? textureRect = null)
+        {
+            return TextureGL.GetTextureRect(textureBounds(textureRect));
+        }
+
+        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        {
+            TextureGL?.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
         }
     }
 }

@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Shaders
         public Uniform<T> GetUniform<T>(string name)
         {
             if (!uniforms.ContainsKey(name))
-                return new Uniform<T>(null);
+                return null;
             return new Uniform<T>(uniforms[name]);
         }
 

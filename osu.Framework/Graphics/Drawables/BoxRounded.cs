@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Batches;
@@ -7,18 +7,22 @@ using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.Drawables
 {
-    public class Box : Drawable
+    public class BoxRounded : Drawable
     {
-        protected override DrawNode CreateDrawNode() => new BoxDrawNode();
+        public float Radius = 0.0f;
+
+        protected override DrawNode CreateDrawNode() => new BoxRoundedDrawNode();
 
         private static Shader shader;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            BoxDrawNode n = node as BoxDrawNode;
+            BoxRoundedDrawNode n = node as BoxRoundedDrawNode;
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.Shader = shader;
+            n.Radius = Radius;
+            n.Size = Size * Scale;
 
             base.ApplyDrawNode(node);
         }
@@ -28,7 +32,7 @@ namespace osu.Framework.Graphics.Drawables
             base.Load(game);
 
             if (shader == null)
-                shader = game.Shaders.Load(VertexShader.Colour, FragmentShader.Colour);
+                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.ColourRounded);
         }
     }
 }

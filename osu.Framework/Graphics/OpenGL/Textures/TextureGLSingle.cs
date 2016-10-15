@@ -13,6 +13,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -121,6 +122,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             toRotate.Y = oldX * sin + toRotate.Y * cos;
         }
 
+        public override RectangleF GetTextureRect(RectangleF? textureRect)
+        {
+            RectangleF texRect = textureRect != null
+                ? new RectangleF(textureRect.Value.X, textureRect.Value.Y, textureRect.Value.Width, textureRect.Value.Height)
+                : new RectangleF(0, 0, Width, Height);
+
+            texRect.X /= width;
+            texRect.Y /= height;
+            texRect.Width /= width;
+            texRect.Height /= height;
+
+            return texRect;
+        }
+
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
@@ -131,14 +146,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (!Bind())
                 return;
 
-            RectangleF texRect = textureRect != null
-                ? new RectangleF(textureRect.Value.X, textureRect.Value.Y, textureRect.Value.Width, textureRect.Value.Height)
-                : new RectangleF(0, 0, Width, Height);
-
-            texRect.X /= width;
-            texRect.Y /= height;
-            texRect.Width /= width;
-            texRect.Height /= height;
+            RectangleF texRect = GetTextureRect(textureRect);
 
             if (spriteBatch == null)
             {
