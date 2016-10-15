@@ -2,9 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
+using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -72,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void contentAutoSize()
         {
-            if (availableContent == content.Size.Y)
+            if (Precision.AlmostEquals(availableContent, content.Size.Y))
                 return;
 
             availableContent = content.Size.Y;
