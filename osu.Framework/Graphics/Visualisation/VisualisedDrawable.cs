@@ -23,6 +23,10 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
 
+        public Action<VisualisedDrawable> Selected;
+
+
+
         const int line_height = 12;
 
         public FlowContainer Flow = new FlowContainer
@@ -100,6 +104,12 @@ namespace osu.Framework.Graphics.Visualisation
             Add(Flow);
 
             updateSpecifics();
+        }
+
+        protected override bool OnHover(InputState state)
+        {
+            Selected?.Invoke(this);
+            return base.OnHover(state);
         }
 
         public VisualisedDrawable(Drawable d)
