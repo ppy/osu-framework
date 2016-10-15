@@ -22,8 +22,8 @@ namespace osu.Framework.Graphics.UserInterface
     public class TextBox : Container
     {
         private FlowContainer textFlow;
-        private Box background;
-        private Box cursor;
+        private BoxRounded background;
+        private BoxRounded cursor;
         private Container textContainer;
 
         public int? LengthLimit;
@@ -63,8 +63,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             Masking = true;
 
-            Add(background = new Box
+            Add(background = new BoxRounded
             {
+                Radius = 3,
                 Colour = BackgroundUnfocused,
                 RelativeSizeAxes = Axes.Both,
             });
@@ -79,13 +80,13 @@ namespace osu.Framework.Graphics.UserInterface
                 Direction = FlowDirection.HorizontalOnly,
             };
 
-            cursor = new Box
+            cursor = new BoxRounded
             {
                 Depth = float.MinValue,
                 Size = Vector2.One,
                 Colour = Color4.Transparent,
                 RelativeSizeAxes = Axes.Y,
-                Alpha = 0
+                Alpha = 0,
             };
 
             textContainer.Add(cursor);
@@ -152,11 +153,13 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionLength > 0)
                     {
+                        cursor.Radius = 3;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                     }
                     else
                     {
+                        cursor.Radius = 0;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)
