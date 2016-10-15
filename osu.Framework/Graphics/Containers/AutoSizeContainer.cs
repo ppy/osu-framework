@@ -11,8 +11,6 @@ namespace osu.Framework.Graphics.Containers
 {
     public class AutoSizeContainer : Container
     {
-        protected bool RequireAutoSize => RelativeSizeAxes != Axes.Both && !autoSize.IsValid;
-
         internal event Action OnAutoSize;
 
         private Cached<Vector2> autoSize = new Cached<Vector2>();
@@ -75,9 +73,7 @@ namespace osu.Framework.Graphics.Containers
                 autoSize.Refresh(delegate
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
-
-                    InternalSize = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
-                    Invalidate(Invalidation.Position);
+                    Size = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
                     //might work better to add an OnRefresh event in Cached<> and invoke there.
@@ -104,8 +100,6 @@ namespace osu.Framework.Graphics.Containers
 
             return result;
         }
-
-        protected override bool HasDefinedSize => !RequireAutoSize;
 
         protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
         {

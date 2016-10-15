@@ -139,8 +139,6 @@ namespace osu.Framework.Graphics
                 if (Origin == Anchor.Custom)
                     return customOrigin;
 
-                if (!HasDefinedSize) return Vector2.Zero;
-
                 Vector2 origin = Vector2.Zero;
 
                 if ((Origin & Anchor.x1) > 0)
@@ -354,8 +352,6 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        protected virtual bool HasDefinedSize => true;
-
         public float Width
         {
             get { return Size.X; }
@@ -450,9 +446,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                if (!HasDefinedSize)
-                    return new Quad();
-
                 Vector2 s = Size;
 
                 //most common use case gets a shortcut
@@ -797,7 +790,7 @@ namespace osu.Framework.Graphics
 
         protected virtual Vector2 GetAnchoredPosition(Vector2 pos)
         {
-            if (!HasDefinedSize || Anchor == Anchor.TopLeft)
+            if (Anchor == Anchor.TopLeft)
                 return pos;
 
             Vector2 parentSize = Parent?.ChildSize ?? Vector2.Zero;
@@ -851,10 +844,7 @@ namespace osu.Framework.Graphics
             if (!string.IsNullOrEmpty(Name))
                 shortClass = $@"{Name} ({shortClass})";
 
-            if (HasDefinedSize)
-                return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) @ {Size.X:#,0}x{Size.Y:#,0}";
-            else
-                return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) size -uncalculated-";
+            return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) @ {Size.X:#,0}x{Size.Y:#,0}";
         }
 
         public virtual Drawable Clone()
