@@ -23,7 +23,8 @@ namespace osu.Framework.Graphics.Sprites
             RectangleF texRect = Texture.GetTextureRect();
 
             Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
-            Shader.GetUniform<Vector2>(@"g_Radius").Value = Vector2.Divide(new Vector2(Radius), new Vector2(Texture.Width, Texture.Height));
+            Shader.GetUniform<Vector2>(@"g_TexSize").Value = new Vector2(Texture.Width, Texture.Height);
+            Shader.GetUniform<float>(@"g_Radius").Value = Radius;
 
             base.Draw();
         }

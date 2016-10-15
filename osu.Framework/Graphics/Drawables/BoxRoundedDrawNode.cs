@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Drawables
             if (!Shader.Loaded) Shader.Compile();
 
             Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(0, 0, Size.X, Size.Y);
-            Shader.GetUniform<Vector2>(@"g_Radius").Value = new Vector2(Radius);
+            Shader.GetUniform<float>(@"g_Radius").Value = Radius;
 
             Shader.Bind();
 
