@@ -44,6 +44,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container Content => content;
 
+        private bool isDragging;
+
         public ScrollContainer()
         {
             RelativeSizeAxes = Axes.Both;
@@ -71,12 +73,13 @@ namespace osu.Framework.Graphics.Containers
 
             availableContent = content.Size.Y;
             updateSize();
-            offset(0);
+            if (!isDragging)
+                offset(0);
 
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
         }
 
-        protected override bool OnDragStart(InputState state) => true;
+        protected override bool OnDragStart(InputState state) => isDragging = true;
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
@@ -95,6 +98,8 @@ namespace osu.Framework.Graphics.Containers
         {
             //forces a clamped state to return to correct location.
             offset(-state.Mouse.Delta.Y * 10);
+
+            isDragging = false;
 
             return base.OnDragEnd(state);
         }
