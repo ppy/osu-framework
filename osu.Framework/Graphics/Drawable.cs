@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics
                     return;
                 relativePositionAxes = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics
                 if (InternalPosition == value) return;
                 InternalPosition = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -172,7 +172,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics
                 if (anchor == value) return;
                 anchor = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -217,7 +217,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics
                 if (InternalSize == value) return;
                 InternalSize = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -290,7 +290,7 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -346,7 +346,7 @@ namespace osu.Framework.Graphics
                 if (origin == value)
                     return;
                 origin = value;
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -378,7 +378,7 @@ namespace osu.Framework.Graphics
                 if (FlipVertical == value)
                     return;
                 flipVertical = value;
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -392,7 +392,7 @@ namespace osu.Framework.Graphics
                 if (FlipHorizontal == value)
                     return;
                 flipHorizontal = value;
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -757,14 +757,14 @@ namespace osu.Framework.Graphics
             OnInvalidate?.Invoke();
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.Invalidate(Parent.InvalidationEffectByChildren(invalidation), this, false);
+                Parent.InvalidateFromChild(invalidation, this);
 
             bool alreadyInvalidated = true;
 
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.Position | Invalidation.Colour | Invalidation.SizeInParentSpace)) > 0)
+            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & (Invalidation.Position | Invalidation.SizeInParentSpace)) > 0)
+                if ((invalidation & (Invalidation.Geometry)) > 0)
                 {
                     if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                         alreadyInvalidated &= !boundingSizeBacking.Invalidate();
@@ -862,11 +862,6 @@ namespace osu.Framework.Graphics
 
             return thisNew;
         }
-
-        protected virtual Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
-        {
-            return Invalidation.None;
-        }
     }
 
     /// <summary>
@@ -883,7 +878,8 @@ namespace osu.Framework.Graphics
 
         // Meta
         None = 0,
-        All = Position | SizeInParentSpace | Visibility | Colour,
+        Geometry = Position | SizeInParentSpace,
+        All = Geometry | Visibility | Colour,
     }
 
     /// <summary>

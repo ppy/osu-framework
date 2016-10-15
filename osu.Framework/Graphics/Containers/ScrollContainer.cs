@@ -64,14 +64,6 @@ namespace osu.Framework.Graphics.Containers
             content.OnAutoSize += contentAutoSize;
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
-
-            return true;
-        }
-
         private void contentAutoSize()
         {
             if (Precision.AlmostEquals(availableContent, content.Size.Y))
