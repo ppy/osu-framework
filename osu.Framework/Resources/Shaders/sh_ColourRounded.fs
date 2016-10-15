@@ -26,6 +26,6 @@ void main(void)
 {
 	float dist = distanceFromRoundedRect();
 	gl_FragColor = v_Colour;
-	if (dist > g_Radius)
-		gl_FragColor.a *= max(0.0, g_Radius - dist + 1.0);
+	if (dist > g_Radius-1.0)
+		gl_FragColor.a *= max(0.0, g_Radius - dist);
 }
