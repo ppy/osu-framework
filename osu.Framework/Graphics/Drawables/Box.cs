@@ -9,8 +9,6 @@ namespace osu.Framework.Graphics.Drawables
 {
     public class Box : Drawable
     {
-        private QuadBatch<Vertex2D> quadBatch = null;
-
         protected override DrawNode CreateDrawNode() => new BoxDrawNode();
 
         private static Shader shader;
@@ -21,7 +19,6 @@ namespace osu.Framework.Graphics.Drawables
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.Shader = shader;
-            n.Batch = quadBatch;
 
             base.ApplyDrawNode(node);
         }

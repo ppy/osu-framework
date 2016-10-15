@@ -11,8 +11,6 @@ namespace osu.Framework.Graphics.Drawables
     {
         public float Radius = 0.0f;
 
-        private QuadBatch<TexturedVertex2D> quadBatch = null;
-
         protected override DrawNode CreateDrawNode() => new BoxRoundedDrawNode();
 
         private static Shader shader;
@@ -23,7 +21,6 @@ namespace osu.Framework.Graphics.Drawables
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.Shader = shader;
-            n.Batch = quadBatch;
             n.Radius = Radius;
             n.Size = Size * Scale;
 
