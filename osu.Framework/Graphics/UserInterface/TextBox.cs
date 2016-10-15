@@ -544,15 +544,15 @@ namespace osu.Framework.Graphics.UserInterface
                 //select words at a time
                 if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1]) 
                 {
-                    selectionEnd = text.IndexOf(' ', getCharacterClosestTo(state.Mouse.Position));
-                    if (selectionEnd < selectionStart)
-                        selectionEnd = text.Length;
                     selectionStart = doubleClickWord[0];
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
                 else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
                 {
-                    selectionEnd = text.LastIndexOf(' ', getCharacterClosestTo(state.Mouse.Position)) + 1;
                     selectionStart = doubleClickWord[1];
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
+                    selectionEnd = selectionEnd >= 0 ? (selectionEnd+1) : 0;
                 }
                 else
                 {
@@ -602,23 +602,14 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private int findSeparatorIndex(string input, int searchPos, int direction)
+        private static int findSeparatorIndex(string input, int searchPos, int direction)
         {
-            if (char.IsLetterOrDigit(input[searchPos]))
+            bool isLetterOrDigit = char.IsLetterOrDigit(input[searchPos]);
+
+            for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
             {
-                for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
-                {
-                    if (!char.IsLetterOrDigit(input[i]))
-                        return i;
-                }
-            }
-            else
-            {
-                for (int i = searchPos; i >= 0 && i < input.Length; i += direction)
-                {
-                    if (char.IsSeparator(input[i]))
-                        return i;
-                }
+                if (char.IsLetterOrDigit(input[i]) != isLetterOrDigit)
+                    return i;
             }
 
             return -1;
