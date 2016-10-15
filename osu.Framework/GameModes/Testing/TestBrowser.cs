@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -46,8 +47,8 @@ namespace osu.Framework.GameModes.Testing
 
             Add(leftContainer = new Container
             {
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.15f, 1)
+                RelativeSizeAxes = Axes.Y,
+                Size = new Vector2(200, 1)
             });
 
             leftContainer.Add(new Box
@@ -69,9 +70,7 @@ namespace osu.Framework.GameModes.Testing
             Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.85f, 1),
-                RelativePositionAxes = Axes.Both,
-                Position = new Vector2(0.15f, 0),
+                Padding = new MarginPadding { Left = 200 }
             });
 
             Add(drawVis = new DrawVisualiser());
