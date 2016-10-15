@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics
             return this;
         }
 
+        public void Schedule(Action action)
+        {
+            Scheduler.AddDelayed(action, transformationDelay);
+        }
+
         /// <summary>
         /// Flush specified transformations, using the last available values (ignoring current clock time).
         /// </summary>
