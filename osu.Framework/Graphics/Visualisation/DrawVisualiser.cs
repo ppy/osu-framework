@@ -104,6 +104,31 @@ namespace osu.Framework.Graphics.Visualisation
             Add(overlay = new InfoOverlay(obj.Target));
         }
 
+        class FlashyBox : Box
+        {
+            public FlashyBox()
+            {
+                Size = new Vector2(4);
+                Origin = Anchor.Centre;
+                Colour = Color4.Red;
+            }
+
+            public override void Load(BaseGame game)
+            {
+                base.Load(game);
+
+                FadeColour(Color4.White, 500);
+                Delay(500);
+                FadeColour(Color4.Red, 500);
+                Delay(500);
+                Loop();
+
+                DelayReset();
+                ScaleTo(3);
+                ScaleTo(1, 200);
+            }
+        }
+
         class InfoOverlay : Container
         {
             private Drawable target;
@@ -119,26 +144,10 @@ namespace osu.Framework.Graphics.Visualisation
 
                 Children = new Drawable[]
                 {
-                    tl = new Box
-                    {
-                        Size = new Vector2(5),
-                        Colour = Color4.Red,
-                    },
-                    tr = new Box
-                    {
-                        Size = new Vector2(5),
-                        Colour = Color4.Red,
-                    },
-                    bl = new Box
-                    {
-                        Size = new Vector2(5),
-                        Colour = Color4.Red,
-                    },
-                    br = new Box
-                    {
-                        Size = new Vector2(5),
-                        Colour = Color4.Red,
-                    }
+                    tl = new FlashyBox(),
+                    tr = new FlashyBox(),
+                    bl = new FlashyBox(),
+                    br = new FlashyBox()
                 };
             }
 
