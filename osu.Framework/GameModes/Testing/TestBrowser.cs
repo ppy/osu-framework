@@ -74,14 +74,7 @@ namespace osu.Framework.GameModes.Testing
                 Position = new Vector2(0.15f, 0),
             });
 
-            testContainer.Size = new Vector2(0.6f, 1);
-            Add(drawVis = new DrawVisualiser()
-            {
-                RelativePositionAxes = Axes.Both,
-                Position = new Vector2(0.75f, 0),
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.25f, 1)
-            });
+            Add(drawVis = new DrawVisualiser());
 
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
