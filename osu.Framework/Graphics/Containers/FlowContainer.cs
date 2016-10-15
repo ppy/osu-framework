@@ -68,12 +68,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        internal override void InvalidateFromChild(Invalidation invalidation, Drawable source)
         {
             if ((invalidation & (Invalidation.Position | Invalidation.SizeInParentSpace | Invalidation.Visibility)) > 0)
                 layout.Invalidate();
 
-            return base.Invalidate(invalidation, source, shallPropagate);
+            base.InvalidateFromChild(invalidation, source);
         }
 
         public override void Add(Drawable drawable)

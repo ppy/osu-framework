@@ -29,23 +29,30 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Flush all existing transformations, using the last available values (ignoring current clock time).
+        /// Flush specified transformations, using the last available values (ignoring current clock time).
         /// </summary>
-        public virtual void Flush(bool propagateChildren = false)
+        /// <param name="propagateChildren">Whether we also flush down the child tree.</param>
+        /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
+        public virtual void Flush(bool propagateChildren = false, Type flushType = null)
         {
+            var operateTransforms = flushType == null ? Transforms : Transforms.FindAll(t => t.GetType() == flushType);
+
             double maxTime = double.MinValue;
-            foreach (ITransform t in Transforms)
+            foreach (ITransform t in operateTransforms)
                 if (t.EndTime > maxTime)
                     maxTime = t.EndTime;
 
             double offset = Time - maxTime - 1;
-            foreach (ITransform t in Transforms)
+            foreach (ITransform t in operateTransforms)
             {
                 t.Shift(offset);
                 t.Apply(this);
             }
 
-            ClearTransformations();
+            if (flushType == null)
+                ClearTransformations();
+            else
+                Transforms.RemoveAll(t => t.GetType() == flushType);
         }
 
         public virtual Drawable DelayReset()

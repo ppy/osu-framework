@@ -144,6 +144,7 @@
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
     <Compile Include="Configuration\Bindable.cs" />
     <Compile Include="Configuration\BindableBool.cs" />

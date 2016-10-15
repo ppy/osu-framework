@@ -2,9 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
+using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -49,7 +51,7 @@ namespace osu.Framework.Graphics.Containers
             AddInternal(new Drawable[]
             {
                 content = new AutoSizeContainer { RelativeSizeAxes = Axes.X },
-                scrollbar = new ScrollBar(offset),
+                scrollbar = new ScrollBar { Dragged = onScrollbarMovement }
             });
         }
 
@@ -62,17 +64,9 @@ namespace osu.Framework.Graphics.Containers
             content.OnAutoSize += contentAutoSize;
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
-
-            return true;
-        }
-
         private void contentAutoSize()
         {
-            if (availableContent == content.Size.Y)
+            if (Precision.AlmostEquals(availableContent, content.Size.Y))
                 return;
 
             availableContent = content.Size.Y;
@@ -92,7 +86,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            offset(-state.Mouse.Delta.Y, false, false);
+            Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
+            offset(-childDelta.Y, false, false);
             return base.OnDrag(state);
         }
 
@@ -114,6 +109,11 @@ namespace osu.Framework.Graphics.Containers
         {
             offset(-80);
             return base.OnWheelUp(state);
+        }
+
+        private void onScrollbarMovement(float value)
+        {
+            offset(value / scrollbar.Scale.Y, true, false);
         }
 
         private void offset(float value, bool clamp = true, bool animated = true)
@@ -149,17 +149,12 @@ namespace osu.Framework.Graphics.Containers
 
         private class ScrollBar : Container
         {
-            private readonly Action<float, bool, bool> offsetDelegate;
+            public Action<float> Dragged;
 
             private Color4 hoverColour = Color4.White;
             private Color4 defaultColour = Color4.LightGray;
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
-
-            public ScrollBar(Action<float, bool, bool> offsetDelegate)
-            {
-                this.offsetDelegate = offsetDelegate;
-            }
 
             public override void Load(BaseGame game)
             {
@@ -206,7 +201,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                offsetDelegate(state.Mouse.Delta.Y / (Scale.Y * Scale.Y), true, false);
+                Dragged?.Invoke(state.Mouse.Delta.Y);
                 return true;
             }
         }

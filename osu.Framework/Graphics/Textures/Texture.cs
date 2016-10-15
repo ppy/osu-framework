@@ -33,8 +33,8 @@ namespace osu.Framework.Graphics.Textures
             TextureGL = textureGl;
         }
 
-        public Texture(int width, int height)
-            : this(new TextureGLSingle(width, height))
+        public Texture(int width, int height, bool manualMipmaps = false)
+            : this(new TextureGLSingle(width, height, manualMipmaps))
         {
         }
 

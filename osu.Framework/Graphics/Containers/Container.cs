@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
     
                 foreach (Drawable c in children)
-                    c.Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace, this);
+                    c.Invalidate(Invalidation.Geometry, this);
             }
         }
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
 
                 margin = value;
 
-                Invalidate(Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -301,6 +301,8 @@ namespace osu.Framework.Graphics.Containers
             obj.Load(game);
         }
 
+        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source) { }
+
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if (!base.Invalidate(invalidation, source, shallPropagate))
@@ -409,12 +411,12 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
-        public override void Flush(bool propagateChildren = false)
+        public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
-            base.Flush(propagateChildren);
+            base.Flush(propagateChildren, flushType);
 
             if (propagateChildren)
-                foreach (var c in children) c.Flush(true);
+                foreach (var c in children) c.Flush(true, flushType);
         }
 
         public override Drawable DelayReset()

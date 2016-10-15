@@ -15,12 +15,20 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached<Vector2> autoSize = new Cached<Vector2>();
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        public override Vector2 Size
         {
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                autoSize.Invalidate();
+            get
+            {
+                return base.Size;
+            }
 
-            return base.Invalidate(invalidation, source, shallPropagate);
+            set
+            {
+                Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
+                Debug.Assert((RelativeSizeAxes & Axes.Y) > 0 || value.Y == -1, @"The Size of an AutoSizeContainer should never be manually set.");
+
+                base.Size = value;
+            }
         }
 
         protected override Quad DrawQuadForBounds
@@ -59,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
         {
             bool childChangedStatus = base.UpdateChildrenLife();
             if (childChangedStatus)
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
 
             return childChangedStatus;
         }
@@ -73,7 +81,7 @@ namespace osu.Framework.Graphics.Containers
                 autoSize.Refresh(delegate
                 {
                     Vector2 b = DrawQuadForBounds.BottomRight;
-                    Size = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
+                    base.Size = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
                     //might work better to add an OnRefresh event in Cached<> and invoke there.
@@ -89,23 +97,24 @@ namespace osu.Framework.Graphics.Containers
         public override void Add(Drawable drawable)
         {
             base.Add(drawable);
-            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+            Invalidate(Invalidation.Geometry);
         }
 
         public override bool Remove(Drawable p, bool dispose = true)
         {
             bool result = base.Remove(p, dispose);
             if (result)
-                Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
 
             return result;
         }
 
-        protected override Invalidation InvalidationEffectByChildren(Invalidation childInvalidation)
+        internal override void InvalidateFromChild(Invalidation invalidation, Drawable source)
         {
-            if ((childInvalidation & (Invalidation.Visibility | Invalidation.Position | Invalidation.SizeInParentSpace)) > 0)
-                return Invalidation.Position | Invalidation.SizeInParentSpace;
-            return base.InvalidationEffectByChildren(childInvalidation);
+            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+                autoSize.Invalidate();
+
+            base.InvalidateFromChild(invalidation, source);
         }
 
         public override Axes RelativeSizeAxes

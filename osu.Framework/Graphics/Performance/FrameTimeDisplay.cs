@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Performance
                 {
                     Sprite = new Sprite
                     {
-                        Texture = new Texture(WIDTH, HEIGHT)
+                        Texture = new Texture(WIDTH, HEIGHT, true)
                     }
                 };
             }

@@ -28,6 +28,8 @@ namespace osu.Framework.Input
         public bool BackButton => ButtonStates.Find(b => b.Button == MouseButton.Button1).State;
         public bool ForwardButton => ButtonStates.Find(b => b.Button == MouseButton.Button2).State;
 
+        public IMouseState NativeState => this;
+
         public bool WheelUp;
         public bool WheelDown;
 
@@ -36,6 +38,8 @@ namespace osu.Framework.Input
         public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
 
         public Vector2 Position { get; internal set; }
+
+        public Vector2 LastPosition => LastState?.Position ?? Position;
 
         public Vector2? PositionMouseDown { get; internal set; }
 
