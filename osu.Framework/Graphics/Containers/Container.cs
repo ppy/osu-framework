@@ -139,9 +139,6 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!HasDefinedSize)
-                    return new Quad();
-
                 Vector2 s = ChildSize;
 
                 //most common use case gets a shortcut

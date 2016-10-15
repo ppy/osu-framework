@@ -82,18 +82,6 @@ namespace osu.Framework.Graphics.Sprites
         private float? constantWidth;
         public bool FixedWidth;
 
-        public override Vector2 Size
-        {
-            get
-            {
-                if (constantWidth.HasValue && !HasDefinedSize)
-                    // We can determine the size even in the case autosize hasn't been run here, because we override autosize
-                    refreshLayout();
-
-                return base.Size;
-            }
-        }
-
         protected override void Update()
         {
             base.Update();
