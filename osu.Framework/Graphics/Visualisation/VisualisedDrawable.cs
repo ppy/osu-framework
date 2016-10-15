@@ -146,7 +146,10 @@ namespace osu.Framework.Graphics.Visualisation
         {
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.Colour = Target.Colour;
-            text.Text = Target + (!Flow.IsVisible ? $@" ({(Target as Container)?.Children.Count()} children)" : string.Empty);
+
+            int childCount = (Target as Container)?.Children.Count() ?? 0;
+
+            text.Text = Target + (!Flow.IsVisible && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
 
         protected override void Update()

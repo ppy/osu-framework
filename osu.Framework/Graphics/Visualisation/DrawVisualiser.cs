@@ -72,6 +72,9 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             Container dContainer = d as Container;
+
+            if (d is SpriteText) return;
+
             if (dContainer == null) return;
 
             foreach (var c in dContainer.Children)
