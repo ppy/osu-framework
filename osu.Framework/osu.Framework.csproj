@@ -109,7 +109,7 @@
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\DrawVisualiser.cs" />
+    <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
@@ -131,6 +131,8 @@
     <Compile Include="Graphics\Transformations\TransformScaleVector.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
+    <Compile Include="Graphics\Visualisation\TreeContainer.cs" />
+    <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
     <Compile Include="Input\TextInputSource.cs" />

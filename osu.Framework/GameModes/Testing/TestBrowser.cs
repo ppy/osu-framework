@@ -14,6 +14,7 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Visualisation;
 
 namespace osu.Framework.GameModes.Testing
 {
