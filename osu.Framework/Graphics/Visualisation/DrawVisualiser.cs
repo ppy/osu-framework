@@ -142,14 +142,7 @@ namespace osu.Framework.Graphics.Visualisation
             public override void Load(BaseGame game)
             {
                 base.Load(game);
-
                 update();
-            }
-
-            protected override void Dispose(bool isDisposing)
-            {
-                base.Dispose(isDisposing);
-                target.OnInvalidate -= update;
             }
 
             private void update()

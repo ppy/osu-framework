@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Containers
             bool result = children.Remove(drawable);
             drawable.Parent = null;
 
-            if (dispose && drawable.IsDisposable)
+            if (dispose)
                 drawable.Dispose();
             else
                 drawable.Invalidate();
