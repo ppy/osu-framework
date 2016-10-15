@@ -86,7 +86,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            offset(-state.Mouse.Delta.Y, false, false);
+            Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
+            offset(-childDelta.Y, false, false);
             return base.OnDrag(state);
         }
 
@@ -200,7 +201,8 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                offsetDelegate(state.Mouse.Delta.Y / (Scale.Y * Scale.Y), true, false);
+                //divide by scale because the scrollbar itself is getting scaled depending on content size.
+                offsetDelegate(state.Mouse.Delta.Y / Scale.Y, true, false);
                 return true;
             }
         }

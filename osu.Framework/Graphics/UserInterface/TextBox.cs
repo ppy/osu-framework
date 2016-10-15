@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = textFlow.GetLocalPosition(pos, this);
+            pos = textFlow.GetLocalPosition(pos * DrawInfo.Matrix);
 
             int i = 0;
             foreach (Drawable d in textFlow.Children)

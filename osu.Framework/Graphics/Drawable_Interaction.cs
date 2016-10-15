@@ -172,20 +172,13 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Convert a position to the local coordinate system from either native or local to another drawable.
+        /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
         /// </summary>
         /// <param name="screenSpacePos">The input position.</param>
-        /// <param name="relativeDrawable">The drawable which the input position is local to, or null for native.</param>
         /// <returns>The output position.</returns>
-        public Vector2 GetLocalPosition(Vector2 screenSpacePos, Drawable relativeDrawable = null)
+        public Vector2 GetLocalPosition(Vector2 screenSpacePos)
         {
-            if (relativeDrawable != null)
-                screenSpacePos *= relativeDrawable.DrawInfo.Matrix;
             return screenSpacePos * DrawInfo.MatrixInverse;
-        }
-
-        internal Vector2 GetLocalDelta(Vector2 delta)
-        {
-            return delta * DrawInfo.MatrixInverse - Vector2.Zero * DrawInfo.MatrixInverse;
         }
 
         public virtual bool Contains(Vector2 screenSpacePos)
@@ -206,24 +199,30 @@ namespace osu.Framework.Graphics
 
         private struct LocalMouseState : IMouseState
         {
-            private readonly IMouseState state;
+            public IMouseState NativeState { get; }
+
             private readonly Drawable us;
 
             public LocalMouseState(IMouseState state, Drawable us)
             {
-                this.state = state;
+                NativeState = state;
                 this.us = us;
             }
 
-            public bool BackButton => state.BackButton;
-            public bool ForwardButton => state.ForwardButton;
-            public Vector2 Delta => us.GetLocalDelta(state.Delta);
-            public Vector2 Position => us.GetLocalPosition(state.Position);
-            public Vector2? PositionMouseDown => state.PositionMouseDown == null ? (Vector2?)null : us.GetLocalPosition(state.PositionMouseDown.Value);
-            public bool HasMainButtonPressed => state.HasMainButtonPressed;
-            public bool LeftButton => state.LeftButton;
-            public bool MiddleButton => state.MiddleButton;
-            public bool RightButton => state.RightButton;
+            public bool BackButton => NativeState.BackButton;
+            public bool ForwardButton => NativeState.ForwardButton;
+
+            public Vector2 Delta => Position - LastPosition;
+
+            public Vector2 Position => us.Parent?.GetLocalPosition(NativeState.Position) ?? NativeState.Position;
+
+            public Vector2 LastPosition => us.Parent?.GetLocalPosition(NativeState.LastPosition) ?? NativeState.LastPosition;
+
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.GetLocalPosition(NativeState.PositionMouseDown.Value);
+            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+            public bool LeftButton => NativeState.LeftButton;
+            public bool MiddleButton => NativeState.MiddleButton;
+            public bool RightButton => NativeState.RightButton;
         }
     }
 
