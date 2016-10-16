@@ -28,12 +28,17 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
+        /// <summary>
+        /// Make this GameMode directly exited when resuming from a child.
+        /// </summary>
+        public bool Expired { get; set; }
+
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            
+
             AddInternal(new[]
             {
                 content = new ContentContainer()
@@ -153,6 +158,9 @@ namespace osu.Framework.GameModes
             ChildGameMode = null;
             OnResuming(last);
             Content.LifetimeEnd = double.MaxValue;
+
+            if (Expired)
+                Exit();
         }
 
 
