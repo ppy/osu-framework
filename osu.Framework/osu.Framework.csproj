@@ -279,13 +279,13 @@
     <EmbeddedResource Include="Resources\Shaders\sh_Colour.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Particle.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Position.vs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture2D.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture3D.vs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_ColourRounded.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_TextureRounded.fs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
