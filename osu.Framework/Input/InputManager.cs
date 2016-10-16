@@ -458,7 +458,7 @@ namespace osu.Framework.Input
                 if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
-                    handleMouseDrag(state);
+                    handleMouseDragStart(state);
                 }
 
                 if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_confirmation_distance)
@@ -531,15 +531,13 @@ namespace osu.Framework.Input
         private bool handleMouseDrag(InputState state)
         {
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return draggingDrawable?.TriggerDrag(state) ?? mouseInputQueue.Any(target => handleMouseDragStart(state, target) || target.TriggerDrag(state));
+            return draggingDrawable?.TriggerDrag(state) ?? false;
         }
 
-        private bool handleMouseDragStart(InputState state, Drawable target)
+        private bool handleMouseDragStart(InputState state)
         {
-            if (!target.TriggerDragStart(state)) return false;
-
-            draggingDrawable = target;
-            return true;
+            draggingDrawable = mouseDownInputQueue.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state));
+            return draggingDrawable != null;
         }
 
         private bool handleMouseDragEnd(InputState state)

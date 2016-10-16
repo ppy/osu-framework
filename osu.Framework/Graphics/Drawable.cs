@@ -260,8 +260,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public bool IsDisposable;
-
         internal Vector2 InternalSize;
 
         /// <summary>
@@ -895,8 +893,8 @@ namespace osu.Framework.Graphics
             scheduler?.Dispose();
             scheduler = null;
 
-            if (IsDisposable)
-                OnUpdate = null;
+            OnUpdate = null;
+            OnInvalidate = null;
         }
 
         public override string ToString()

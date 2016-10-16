@@ -106,11 +106,12 @@
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
+    <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
-    <Compile Include="Graphics\DrawVisualiser.cs" />
+    <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
@@ -131,6 +132,10 @@
     <Compile Include="Graphics\Transformations\TransformScaleVector.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
+    <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
+    <Compile Include="Graphics\Visualisation\InfoOverlay.cs" />
+    <Compile Include="Graphics\Visualisation\TreeContainer.cs" />
+    <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
     <Compile Include="Input\TextInputSource.cs" />

@@ -11,19 +11,17 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Sprite : Drawable
     {
-        public event EventHandler OnDispose;
-
         public bool WrapTexture = false;
+
+        public bool CanDisposeTexture { get; protected set; }
 
         #region Disposal
 
         protected override void Dispose(bool isDisposing)
         {
-            OnDispose?.Invoke(IsDisposable, null);
-
-            if (IsDisposable && texture != null)
+            if (CanDisposeTexture)
             {
-                texture.Dispose();
+                texture?.Dispose();
                 texture = null;
             }
 
@@ -79,7 +77,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (value == texture)
                     return;
 
-                if (texture != null && IsDisposable)
+                if (texture != null && CanDisposeTexture)
                     texture.Dispose();
 
                 texture = value;

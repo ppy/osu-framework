@@ -20,7 +20,11 @@ namespace osu.Framework.Graphics.Sprites
         public float SpacingOverlap
         {
             get { return Spacing.X; }
-            set { Spacing = new Vector2(value, 0); }
+            set
+            {
+                Spacing = new Vector2(value, 0);
+                internalSize.Invalidate();
+            }
         }
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
