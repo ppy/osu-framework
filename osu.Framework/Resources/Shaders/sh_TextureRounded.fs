@@ -2,7 +2,7 @@
     precision mediump float;
 #endif
 
-varying vec2 v_Position;
+varying vec2 v_MaskingPosition;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
 
@@ -11,7 +11,6 @@ uniform sampler2D m_Sampler;
 uniform float g_CornerRadius;
 
 uniform vec4 g_MaskingRect;
-uniform mat3 g_ToMaskingSpace;
 
 vec2 max3(vec2 a, vec2 b, vec2 c)
 {
@@ -20,13 +19,9 @@ vec2 max3(vec2 a, vec2 b, vec2 c)
 
 float distanceFromRoundedRect()
 {
-	// Transform to position to masking space.
-	vec3 localPos = g_ToMaskingSpace * vec3(v_Position, 1.0);
-	localPos.xy /= localPos.z;
-
 	// Compute offset distance from masking rect in masking space.
-    vec2 topLeftOffset = g_MaskingRect.xy - localPos.xy;
-    vec2 bottomRightOffset = localPos.xy - g_MaskingRect.zw;
+    vec2 topLeftOffset = g_MaskingRect.xy - v_MaskingPosition;
+    vec2 bottomRightOffset = v_MaskingPosition - g_MaskingRect.zw;
     vec2 distanceFromShrunkRect = max3(vec2(0.0), bottomRightOffset + vec2(g_CornerRadius), topLeftOffset + vec2(g_CornerRadius));
     return length(distanceFromShrunkRect);
 }
