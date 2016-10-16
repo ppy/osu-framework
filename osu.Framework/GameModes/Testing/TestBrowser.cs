@@ -127,6 +127,8 @@ namespace osu.Framework.GameModes.Testing
             {
                 base.Load(game);
 
+                Masking = true;
+                CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
 
@@ -141,7 +143,6 @@ namespace osu.Framework.GameModes.Testing
                 {
                     Text = test.Name,
                     RelativeSizeAxes = Axes.X,
-                    //TextBold = true
                 });
 
                 Add(new SpriteText

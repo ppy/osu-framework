@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.Performance
                 new Container
                 {
                     Masking = true,
+                    CornerRadius = 5,
                     RelativeSizeAxes = Axes.Both,
                     Children = timeBars
                 },
