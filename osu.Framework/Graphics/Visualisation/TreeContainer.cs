@@ -2,15 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Linq;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -34,10 +31,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override Container Content => scroll;
 
+        private Box titleBar;
+
         const float width = 300;
         const float height = 600;
 
         private TreeContainerStatus state;
+
         public TreeContainerStatus State
         {
             get
@@ -75,60 +75,73 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                new Container //toolbar
+                new FlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
-                    Size = new Vector2(1, 40),
+                    Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
-                        new Box {
-                            Colour = new Color4(20, 20, 20, 255),
-                            RelativeSizeAxes = Axes.Both,
-                        },
-                        new FlowContainer
+                        titleBar = new Box //title decoration
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Spacing = new Vector2(1),
+                            Colour = Color4.DarkBlue,
+                            RelativeSizeAxes = Axes.X,
+                            Size = new Vector2(1, 20),
+                        },
+                        new Container //toolbar
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Size = new Vector2(1, 40),
                             Children = new Drawable[]
                             {
-                                new Button
-                                {
-                                    Colour = Color4.DarkGray,
-                                    Size = new Vector2(100, 1),
-                                    RelativeSizeAxes = Axes.Y,
-                                    Text = @"Choose Target",
-                                    Action = delegate {
-                                        EnsureLoaded();
-                                        ChooseTarget?.Invoke();
-                                    }
+                                new Box {
+                                    Colour = new Color4(20, 20, 20, 255),
+                                    RelativeSizeAxes = Axes.Both,
                                 },
-                                new Button
+                                new FlowContainer
                                 {
-                                    Colour = Color4.DarkGray,
-                                    Size = new Vector2(100, 1),
-                                    RelativeSizeAxes = Axes.Y,
-                                    Text = @"Up one parent",
-                                    Action = delegate {
-                                        EnsureLoaded();
-                                        GoUpOneParent?.Invoke();
+                                    RelativeSizeAxes = Axes.Both,
+                                    Spacing = new Vector2(1),
+                                    Children = new Drawable[]
+                                    {
+                                        new Button
+                                        {
+                                            Colour = Color4.DarkGray,
+                                            Size = new Vector2(100, 1),
+                                            RelativeSizeAxes = Axes.Y,
+                                            Text = @"Choose Target",
+                                            Action = delegate {
+                                                EnsureLoaded();
+                                                ChooseTarget?.Invoke();
+                                            }
+                                        },
+                                        new Button
+                                        {
+                                            Colour = Color4.DarkGray,
+                                            Size = new Vector2(100, 1),
+                                            RelativeSizeAxes = Axes.Y,
+                                            Text = @"Up one parent",
+                                            Action = delegate {
+                                                EnsureLoaded();
+                                                GoUpOneParent?.Invoke();
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 },
                 scroll = new ScrollContainer()
                 {
                     Alpha = 0,
-                    Padding = new MarginPadding { Top = 50 },
+                    Padding = new MarginPadding { Top = 70 },
                 },
                 loadMessage = new SpriteText
                 {
                     Text = @"Click to load DrawVisualiser",
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
-                },
-                new CursorContainer(),
+                }
             });
         }
 
@@ -142,6 +155,14 @@ namespace osu.Framework.Graphics.Visualisation
         {
             State = TreeContainerStatus.Offscreen;
             base.OnHoverLost(state);
+        }
+
+        protected override bool OnDragStart(InputState state) => titleBar.Contains(state.Mouse.NativeState.Position);
+
+        protected override bool OnDrag(InputState state)
+        {
+            Position += state.Mouse.Delta;
+            return base.OnDrag(state);
         }
 
         public override void Load(BaseGame game)
