@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Primitives;
@@ -22,6 +23,8 @@ namespace osu.Framework.Graphics.Visualisation
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
         ScrollContainer scroll;
+
+        SpriteText waitingText;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
@@ -130,7 +133,19 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Padding = new MarginPadding { Top = 70 },
                 },
+                waitingText = new SpriteText
+                {
+                    Text = @"Waiting for target selection...",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                }
             });
+        }
+
+        protected override void Update()
+        {
+            waitingText.Alpha = scroll.Children.Any() ? 0 : 1;
+            base.Update();
         }
 
         protected override bool OnHover(InputState state)
