@@ -17,6 +17,8 @@ uniform vec2 g_MaskingTopRight;
 uniform vec2 g_MaskingBottomLeft;
 uniform vec2 g_MaskingBottomRight;
 
+#define EPSILON 0.001
+
 // Returns whether pos is contained within a triangle spanned by the vertices p0,p1,p2
 bool contains(vec2 pos, vec2 p0, vec2 p1, vec2 p2)
 {
@@ -27,11 +29,11 @@ bool contains(vec2 pos, vec2 p0, vec2 p1, vec2 p2)
         return false;
 
     float s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * pos.x + (p0.x - p2.x) * pos.y) / area2;
-    if (s < 0)
+    if (s < -EPSILON)
         return false;
 
     float t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * pos.x + (p1.x - p0.x) * pos.y) / area2;
-    if (t < 0 || (s + t) > 1)
+    if (t < -EPSILON || (s + t) > 1+EPSILON)
         return false;
 
     return true;
