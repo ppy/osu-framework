@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics
         /// <param name="origin">The center of rotation and scale.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
-        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
+        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;
             target.MatrixInverse = MatrixInverse;
@@ -48,6 +48,12 @@ namespace osu.Framework.Graphics
             {
                 MatrixExtensions.RotateFromLeft(ref target.Matrix, rotation);
                 MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -rotation);
+            }
+
+            if (shear != Vector2.Zero)
+            {
+                MatrixExtensions.ShearFromLeft(ref target.Matrix, -shear);
+                MatrixExtensions.ShearFromRight(ref target.MatrixInverse, shear);
             }
 
             if (scale != Vector2.One)

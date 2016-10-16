@@ -176,6 +176,21 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Vector2 shear = Vector2.Zero;
+
+        public Vector2 Shear
+        {
+            get { return shear; }
+
+            set
+            {
+                if (shear == value) return;
+                shear = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
         private Color4 colour = Color4.White;
 
         public Color4 Colour
@@ -433,9 +448,9 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;

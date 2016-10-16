@@ -80,6 +80,30 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M32 *= v.Y;
         }
 
+        public static void ShearFromLeft(ref Matrix3 m, Vector2 v)
+        {
+            Vector3 row0 = m.Row0 + m.Row1 * v.Y;
+            m.Row1 += m.Row0 * v.X;
+            m.Row0 = row0;
+        }
+
+        public static void ShearFromRight(ref Matrix3 m, Vector2 v)
+        {
+            //m.Column0 += m.Column1 * v.X;
+            float M11 = m.M11 + m.M12 * v.X;
+            float M21 = m.M21 + m.M22 * v.X;
+            float M31 = m.M31 + m.M32 * v.X;
+
+            //m.Column1 += m.Column0 * v.Y;
+            m.M12 += m.M11 * v.Y;
+            m.M22 += m.M21 * v.Y;
+            m.M32 += m.M31 * v.Y;
+
+            m.M11 = M11;
+            m.M21 = M21;
+            m.M31 = M31;
+        }
+
         public static void FastInvert(ref Matrix3 value)
         {
             float d11 = value.M22 * value.M33 + value.M23 * -value.M32;
