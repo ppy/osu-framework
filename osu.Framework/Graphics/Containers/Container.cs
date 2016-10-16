@@ -3,8 +3,6 @@
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
-using System.Drawing;
-using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
 using OpenTK;
@@ -448,7 +446,7 @@ namespace osu.Framework.Graphics.Containers
                 return base.Contains(screenSpacePos);
 
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
-            Primitives.RectangleF aabb = DrawQuad.AABBf;
+            RectangleF aabb = DrawQuad.AABBf;
 
             /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
             aabb.X *= scale.X;
@@ -463,5 +461,31 @@ namespace osu.Framework.Graphics.Containers
 
             return aabb.DistanceSquared(localSpacePos) < CornerRadius * CornerRadius;
         }
+
+        protected override RectangleF BoundingBox
+        {
+            get
+            {
+                //if (!Masking || CornerRadius == 0.0f)
+                    return base.BoundingBox;
+
+                /*Quad drawQuadForBounds = DrawQuadForBounds;
+
+                Vector2 cornerRadius = new Vector2(CornerRadius);
+
+                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
+                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
+
+                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
+                aabb.X -= cornerRadius.X;
+                aabb.Y -= cornerRadius.Y;
+                aabb.Width += 2 * cornerRadius.X;
+                aabb.Height += 2 * cornerRadius.Y;
+
+                return aabb;*/
+            }
+}
     }
 }

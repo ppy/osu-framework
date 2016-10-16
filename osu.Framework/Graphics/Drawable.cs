@@ -521,38 +521,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        private RectangleF boundingBox
-        {
-            get
-            {
-                // TODO: Make this work in all cases.
-
-                //if (CornerRadius == 0.0f)
-                    return ToParentSpace(DrawQuadForBounds).AABBf;
-
-                /*Quad drawQuadForBounds = DrawQuadForBounds;
-
-                Vector2 cornerRadius = new Vector2(CornerRadius);
-
-                cornerRadius = Vector2.Divide(cornerRadius, (Scale * (Parent?.ChildScale ?? Vector2.One)));
-
-                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
-                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
-
-                cornerRadius = Vector2.Multiply(cornerRadius, (Scale * (Parent?.ChildScale ?? Vector2.One)));
-
-                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
-                aabb.X -= cornerRadius.X;
-                aabb.Y -= cornerRadius.Y;
-                aabb.Width += 2 * cornerRadius.X;
-                aabb.Height += 2 * cornerRadius.Y;
-
-                return aabb;*/
-            }
-        }
-
+        protected virtual RectangleF BoundingBox => ToParentSpace(DrawQuadForBounds).AABBf;
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
@@ -562,7 +531,7 @@ namespace osu.Framework.Graphics
             : boundingSizeBacking.Refresh(() =>
             {
                 //field will be none when the drawable isn't requesting auto-sizing
-                RectangleF bbox = boundingBox;
+                RectangleF bbox = BoundingBox;
 
                 Vector2 bounds = new Vector2(0, 0);
 
@@ -685,11 +654,21 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <returns>The vector in Parent's coordinates.</returns>
+        protected Vector2 ToParentSpace(Vector2 input)
+        {
+            return (input * DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
         /// Accepts a quad in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A quad in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        protected virtual Quad ToParentSpace(Quad input)
+        protected Quad ToParentSpace(Quad input)
         {
             return input * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
         }
@@ -699,7 +678,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A quad in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        protected virtual Quad ToScreenSpace(Quad input)
+        protected Quad ToScreenSpace(Quad input)
         {
             return input * DrawInfo.Matrix;
         }
