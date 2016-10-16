@@ -23,9 +23,9 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
 
-        public Action<VisualisedDrawable> Selected;
+        public Action Hovered;
 
-
+        public Action RequestTarget;
 
         const int line_height = 12;
 
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnHover(InputState state)
         {
-            Selected?.Invoke(this);
+            Hovered?.Invoke();
             return base.OnHover(state);
         }
 
@@ -121,6 +121,12 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Flow.Alpha = Flow.Alpha > 0 ? 0 : 1;
             updateSpecifics();
+            return true;
+        }
+
+        protected override bool OnDoubleClick(InputState state)
+        {
+            RequestTarget?.Invoke();
             return true;
         }
 

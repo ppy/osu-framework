@@ -158,9 +158,11 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (dr == null)
                 {
-                    dr = new VisualisedDrawable(c)
+                    var cLocal = c;
+                    dr = new VisualisedDrawable(cLocal)
                     {
-                        Selected = onSelect
+                        Hovered = delegate { showOverlayFor(cLocal); },
+                        RequestTarget = delegate { Target = cLocal; }
                     };
                     vis.Flow.Add(dr);
                 }
@@ -178,11 +180,6 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         private InfoOverlay overlay;
-
-        private void onSelect(VisualisedDrawable obj)
-        {
-            showOverlayFor(obj.Target);
-        }
 
         private void showOverlayFor(Drawable target)
         {
