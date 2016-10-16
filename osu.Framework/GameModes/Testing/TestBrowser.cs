@@ -139,7 +139,8 @@ namespace osu.Framework.GameModes.Testing
                 Add(box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Alpha = 0.2f
+                    Colour = new Color4(140, 140, 140, 255),
+                    Alpha = 0.7f
                 });
 
                 Add(new SpriteText
@@ -161,20 +162,20 @@ namespace osu.Framework.GameModes.Testing
 
             protected override bool OnHover(InputState state)
             {
-                box.FadeTo(0.4f, 150);
+                box.FadeTo(1, 150);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                box.FadeTo(0.2f, 150);
+                box.FadeTo(0.7f, 150);
                 base.OnHoverLost(state);
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnClick(InputState state)
             {
-                box.FlashColour(Color4.White, 50);
-                return true;
+                box.FlashColour(Color4.White, 300);
+                return base.OnClick(state);
             }
         }
     }
