@@ -423,6 +423,12 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public Rectangle ScreenSpaceAABB;
         public Primitives.RectangleF MaskingRect;
+
+        /// <summary>
+        /// This matrix transforms screen space coordinates to masking space (likely the parent
+        /// space of the container doing the masking).
+        /// It is used by a shader to determine which pixels to discard.
+        /// </summary>
         public Matrix3 ToMaskingSpace;
         public float CornerRadius;
 
