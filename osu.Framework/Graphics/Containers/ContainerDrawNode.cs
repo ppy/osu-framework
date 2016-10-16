@@ -12,14 +12,14 @@ namespace osu.Framework.Graphics.Containers
     {
         public List<DrawNode> Children;
 
-        public Quad? MaskingQuad;
+        public MaskingInfo? MaskingInfo;
 
         protected override void PreDraw()
         {
             base.PreDraw();
 
-            if (MaskingQuad != null)
-                GLWrapper.PushScissor(MaskingQuad.Value);
+            if (MaskingInfo != null)
+                GLWrapper.PushScissor(MaskingInfo.Value);
         }
 
         protected override void Draw()
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.PostDraw();
 
-            if (MaskingQuad != null)
+            if (MaskingInfo != null)
                 GLWrapper.PopScissor();
         }
     }

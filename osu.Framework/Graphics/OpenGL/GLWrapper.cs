@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public const int MAX_BATCHES = 3;
 
-        public static Quad MaskingQuad { get; private set; }
+        public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
@@ -66,13 +66,18 @@ namespace osu.Framework.Graphics.OpenGL
 
             viewportStack.Clear();
             orthoStack.Clear();
-            scissorStack.Clear();
+            maskingStack.Clear();
 
             Viewport = Rectangle.Empty;
             Ortho = Rectangle.Empty;
 
             PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
-            PushScissor(new Quad(0, 0, size.X, size.Y));
+            PushScissor(new MaskingInfo
+            {
+                ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
+                MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
+                ToMaskingSpace = Matrix3.Identity,
+            });
 
             CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
         }
@@ -267,16 +272,21 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
         }
 
-        private static Stack<Quad> scissorStack = new Stack<Quad>();
+        private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
 
-        private static void setMaskingQuad(Quad maskingQuad)
+
+        private static void setMaskingInfo(MaskingInfo maskingInfo)
         {
-            Shader.SetGlobalProperty(@"g_MaskingTopLeft", maskingQuad.TopLeft);
-            Shader.SetGlobalProperty(@"g_MaskingTopRight", maskingQuad.TopRight);
-            Shader.SetGlobalProperty(@"g_MaskingBottomLeft", maskingQuad.BottomLeft);
-            Shader.SetGlobalProperty(@"g_MaskingBottomRight", maskingQuad.BottomRight);
+            Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
+                maskingInfo.MaskingRect.Left,
+                maskingInfo.MaskingRect.Top,
+                maskingInfo.MaskingRect.Right,
+                maskingInfo.MaskingRect.Bottom));
 
-            Rectangle actualRect = maskingQuad.AABB;
+            Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
+            Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
+
+            Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
             actualRect.Y += Viewport.Y;
 
@@ -300,14 +310,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="rect">The scissor rectangle.</param>
-        public static void PushScissor(Quad quad)
+        public static void PushScissor(MaskingInfo maskingInfo)
         {
-            scissorStack.Push(quad);
-            if (MaskingQuad.Equals(quad))
+            maskingStack.Push(maskingInfo);
+            if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
-            MaskingQuad = quad;
-            setMaskingQuad(MaskingQuad);
+            CurrentMaskingInfo = maskingInfo;
+            setMaskingInfo(CurrentMaskingInfo);
         }
 
         /// <summary>
@@ -315,16 +325,16 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopScissor()
         {
-            Debug.Assert(scissorStack.Count > 1);
+            Debug.Assert(maskingStack.Count > 1);
 
-            scissorStack.Pop();
-            Quad quad = scissorStack.Peek();
+            maskingStack.Pop();
+            MaskingInfo maskingInfo = maskingStack.Peek();
 
-            if (MaskingQuad.Equals(quad))
+            if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
-            MaskingQuad = quad;
-            setMaskingQuad(MaskingQuad);
+            CurrentMaskingInfo = maskingInfo;
+            setMaskingInfo(CurrentMaskingInfo);
         }
 
         /// <summary>
@@ -406,6 +416,23 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.UseProgram(s);
             currentShader = s;
+        }
+    }
+
+    public struct MaskingInfo : IEquatable<MaskingInfo>
+    {
+        public Rectangle ScreenSpaceAABB;
+        public Primitives.RectangleF MaskingRect;
+        public Matrix3 ToMaskingSpace;
+        public float CornerRadius;
+
+        public bool Equals(MaskingInfo other)
+        {
+            return
+                ScreenSpaceAABB.Equals(other.ScreenSpaceAABB) &&
+                MaskingRect.Equals(other.MaskingRect) &&
+                ToMaskingSpace.Equals(other.ToMaskingSpace) &&
+                CornerRadius == other.CornerRadius;
         }
     }
 }

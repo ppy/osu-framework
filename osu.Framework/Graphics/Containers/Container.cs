@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,7 +18,15 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class Container : Drawable
     {
-        public bool Masking;
+        public bool Masking = false;
+
+        private float cornerRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a radius is masked away around the corners.
+        /// </summary>
+        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -25,7 +34,13 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
-            n.MaskingQuad = Masking ? ScreenSpaceDrawQuad : (Quad?)null;
+            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+            {
+                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                MaskingRect = DrawQuad.AABBf,
+                ToMaskingSpace = DrawInfo.MatrixInverse,
+                CornerRadius = this.CornerRadius,
+            };
 
             base.ApplyDrawNode(node);
         }
@@ -425,6 +440,28 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in children) c.DelayReset();
 
             return this;
+        }
+
+        public override bool Contains(Vector2 screenSpacePos)
+        {
+            if (!Masking || CornerRadius == 0.0f)
+                return base.Contains(screenSpacePos);
+
+            Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
+            Primitives.RectangleF aabb = DrawQuad.AABBf;
+
+            /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
+            aabb.X *= scale.X;
+            aabb.Y *= scale.Y;
+            aabb.Width *= scale.X;
+            aabb.Height *= scale.Y;*/
+
+            aabb.X += CornerRadius;
+            aabb.Y += CornerRadius;
+            aabb.Width -= 2 * CornerRadius;
+            aabb.Height -= 2 * CornerRadius;
+
+            return aabb.DistanceSquared(localSpacePos) < CornerRadius * CornerRadius;
         }
     }
 }

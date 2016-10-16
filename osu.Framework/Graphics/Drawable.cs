@@ -99,8 +99,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private float cornerRadius = 0.0f;
-        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
 
         internal Vector2 InternalPosition;
 

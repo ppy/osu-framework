@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -51,10 +52,6 @@ namespace osu.Framework.Graphics.Sprites
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
             n.Shader = shader;
-            n.CornerRadius = CornerRadius;
-
-            if (CornerRadius != 0.0f && Texture != null)
-                n.Size = Vector2.Divide(Size * Scale * (Parent?.ChildScale ?? Vector2.One), new Vector2(Texture.DisplayWidth, Texture.DisplayHeight));
 
             base.ApplyDrawNode(node);
         }
@@ -90,14 +87,13 @@ namespace osu.Framework.Graphics.Sprites
         {
             Sprite clone = (Sprite)base.Clone();
             clone.texture = texture;
-            clone.CornerRadius = CornerRadius;
 
             return clone;
         }
 
         public override string ToString()
         {
-            return base.ToString() + $" tex: {texture?.AssetName} radius: {CornerRadius}";
+            return base.ToString() + $" tex: {texture?.AssetName}";
         }
     }
 }
