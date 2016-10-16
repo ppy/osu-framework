@@ -4,8 +4,11 @@
 using System;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
@@ -26,12 +29,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Action BeginRun;
 
+        public Action ChooseTarget;
+
         protected override Container Content => scroll;
 
         const float width = 300;
-
-        private Vector2 positionVisible => Vector2.Zero;
-        private Vector2 positionInvisible => new Vector2(10 - width, 0);
 
         private TreeContainerStatus state;
         public TreeContainerStatus State
@@ -48,15 +50,11 @@ namespace osu.Framework.Graphics.Visualisation
                 switch (state)
                 {
                     case TreeContainerStatus.Offscreen:
-                        Delay(1000, true);
-                        MoveTo(positionInvisible, 300);
-                        Delay(200, true);
-                        scroll.FadeOut(100);
+                        Delay(500, true);
+                        FadeTo(0.7f, 300);
                         break;
                     case TreeContainerStatus.Onscreen:
-                        if (loadMessage == null)
-                            scroll.FadeIn(200);
-                        MoveTo(positionVisible, 300);
+                        FadeIn(300);
                         break;
                 }
             }
@@ -65,11 +63,9 @@ namespace osu.Framework.Graphics.Visualisation
         public TreeContainer()
         {
             Masking = true;
+            Position = new Vector2(100, 100);
             RelativeSizeAxes = Axes.Y;
-            Anchor = Anchor.TopRight;
-            Origin = Anchor.TopRight;
-            Size = new Vector2(width, 1);
-            Position = positionVisible;
+            Size = new Vector2(width, 0.7f);
             AddInternal(new Drawable[]
             {
                 new Box
@@ -80,14 +76,39 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 scroll = new ScrollContainer()
                 {
-                    Alpha = 0
+                    Alpha = 0,
+                    Padding = new MarginPadding { Top = 50 },
                 },
                 loadMessage = new SpriteText
                 {
                     Text = @"Click to load DrawVisualiser",
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
-                }
+                },
+                new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Size = new Vector2(1, 40),
+                    Children = new Drawable[]
+                    {
+                        new Box {
+                            Colour = new Color4(20, 20, 20, 255),
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        new Button
+                        {
+                            Colour = Color4.DarkGray,
+                            RelativeSizeAxes = Axes.Y,
+                            Size = new Vector2(100, 1),
+                            Text = @"Choose Target",
+                            Action = delegate {
+                                EnsureLoaded();
+                                ChooseTarget?.Invoke();
+                            }
+                        }
+                    }
+                },
+                new CursorContainer(),
             });
         }
 
@@ -115,14 +136,21 @@ namespace osu.Framework.Graphics.Visualisation
             if (loadMessage == null)
                 return false;
 
+            EnsureLoaded();
+
+            return true;
+        }
+
+        public void EnsureLoaded()
+        {
+            if (loadMessage == null) return;
+
             Remove(loadMessage);
             loadMessage = null;
 
             scroll.FadeIn(500);
 
             BeginRun?.Invoke();
-
-            return true;
         }
     }
 }

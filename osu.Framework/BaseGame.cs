@@ -87,7 +87,10 @@ namespace osu.Framework
         [Conditional("DEBUG")]
         private void addDebugTools()
         {
-            Add(DrawVisualiser = new DrawVisualiser());
+            Add(DrawVisualiser = new DrawVisualiser()
+            {
+                Depth = float.MaxValue / 2,
+            });
         }
 
         /// <summary>
@@ -185,6 +188,9 @@ namespace osu.Framework
                 {
                     case Key.F11:
                         ShowPerformanceOverlay = !ShowPerformanceOverlay;
+                        return true;
+                    case Key.F1:
+                        DrawVisualiser.Alpha = DrawVisualiser.Alpha == 1 ? 0 : 1;
                         return true;
                 }
             }

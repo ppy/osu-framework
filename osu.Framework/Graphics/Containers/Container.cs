@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected virtual IEnumerable<Drawable> InternalChildren
+        internal virtual IEnumerable<Drawable> InternalChildren
         {
             get { return IsLoaded ? children : pendingChildren; }
 

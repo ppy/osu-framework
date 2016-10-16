@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
@@ -21,14 +22,86 @@ namespace osu.Framework.Graphics.Visualisation
         public DrawVisualiser()
         {
             RelativeSizeAxes = Axes.Both;
+            Alpha = 0;
 
             Children = new Drawable[]
             {
                 treeContainer = new TreeContainer
                 {
-                    BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); }
-                }
+                    BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); },
+                    ChooseTarget = chooseTarget
+                },
             };
+        }
+
+        bool targetSearching;
+
+        private void chooseTarget()
+        {
+            Target = null;
+            targetSearching = true;
+        }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            return targetSearching;
+        }
+
+        protected override bool OnClick(InputState state)
+        {
+            if (targetSearching)
+            {
+                Target = findTargetIn(Parent, state)?.Parent;
+
+                if (Target != null)
+                {
+                    targetSearching = false;
+                    showOverlayFor(null);
+                    return true;
+                }
+            }
+
+            return base.OnClick(state);
+        }
+
+        protected override bool OnMouseMove(InputState state)
+        {
+            if (targetSearching)
+            {
+                showOverlayFor(findTargetIn(Parent, state));
+            }
+
+            return base.OnMouseMove(state);
+        }
+
+        private Drawable findTargetIn(Drawable d, InputState state)
+        {
+            if (d is DrawVisualiser) return null;
+            if (d is CursorContainer) return null;
+
+            if (!d.IsVisible) return null;
+
+            var dAsContainer = d as Container;
+
+            Drawable containedTarget = null;
+
+            if (dAsContainer != null)
+            {
+                if (!dAsContainer.InternalChildren.Any())
+                    return null;
+
+                foreach (var c in dAsContainer.InternalChildren)
+                {
+                    if (!c.IsAlive)
+                        continue;
+
+                    var contained = findTargetIn(c, state);
+                    if (contained != null)
+                        containedTarget = contained;
+                }
+            }
+
+            return containedTarget ?? (d.ScreenSpaceDrawQuad.Contains(state.Mouse.Position) ? d : null);
         }
 
         private VisualisedDrawable targetVD;
@@ -43,8 +116,12 @@ namespace osu.Framework.Graphics.Visualisation
                     treeContainer.Remove(targetVD);
 
                 target = value;
-                targetVD = new VisualisedDrawable(target);
-                treeContainer.Add(targetVD);
+
+                if (target != null)
+                {
+                    targetVD = new VisualisedDrawable(target);
+                    treeContainer.Add(targetVD);
+                }
             }
         }
 
@@ -103,10 +180,16 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void onSelect(VisualisedDrawable obj)
         {
+            showOverlayFor(obj.Target);
+        }
+
+        private void showOverlayFor(Drawable target)
+        {
             if (overlay != null)
                 Remove(overlay);
 
-            Add(overlay = new InfoOverlay(obj.Target));
+            if (target != null)
+                Add(overlay = new InfoOverlay(target));
         }
 
         class FlashyBox : Box
@@ -170,6 +253,9 @@ namespace osu.Framework.Graphics.Visualisation
                 tr.Position = q.TopRight;
                 bl.Position = q.BottomLeft;
                 br.Position = q.BottomRight;
+
+                if (!target.IsAlive)
+                    Expire();
             }
         }
     }
