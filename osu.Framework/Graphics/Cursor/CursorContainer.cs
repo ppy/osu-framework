@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Cursor
         {
             public Cursor()
             {
-                Radius = 3;
+                CornerRadius = 3;
                 Size = new Vector2(6, 6);
                 Origin = Anchor.Centre;
             }

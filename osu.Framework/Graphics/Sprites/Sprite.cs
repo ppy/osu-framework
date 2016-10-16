@@ -14,7 +14,6 @@ namespace osu.Framework.Graphics.Sprites
         public event EventHandler OnDispose;
 
         public bool WrapTexture = false;
-        public float Radius = 0.0f;
 
         #region Disposal
 
@@ -54,10 +53,10 @@ namespace osu.Framework.Graphics.Sprites
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
             n.Shader = shader;
-            n.Radius = Radius;
+            n.CornerRadius = CornerRadius;
 
-            if (Texture != null)
-                n.Size = Vector2.Divide(Size * Scale, new Vector2(Texture.Width, Texture.Height));
+            if (CornerRadius != 0.0f && Texture != null)
+                n.Size = Vector2.Divide(Size * Scale * (Parent?.ChildScale ?? Vector2.One), new Vector2(Texture.DisplayWidth, Texture.DisplayHeight));
 
             base.ApplyDrawNode(node);
         }
@@ -93,14 +92,14 @@ namespace osu.Framework.Graphics.Sprites
         {
             Sprite clone = (Sprite)base.Clone();
             clone.texture = texture;
-            clone.Radius = Radius;
+            clone.CornerRadius = CornerRadius;
 
             return clone;
         }
 
         public override string ToString()
         {
-            return base.ToString() + $" tex: {texture?.AssetName} radius: {Radius}";
+            return base.ToString() + $" tex: {texture?.AssetName} radius: {CornerRadius}";
         }
     }
 }

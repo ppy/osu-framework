@@ -21,6 +21,7 @@ namespace osu.Framework.Graphics.Primitives
 
         public float X;
         public float Y;
+
         public float Width;
         public float Height;
 
@@ -327,6 +328,16 @@ namespace osu.Framework.Graphics.Primitives
         {
             X += x;
             Y += y;
+        }
+
+        internal float DistanceSquared(Vector2 localSpacePos)
+        {
+            Vector2 dist = new Vector2(
+                Math.Max(0.0f, Math.Max(localSpacePos.X - Right, Left - localSpacePos.X)),
+                Math.Max(0.0f, Math.Max(localSpacePos.Y - Bottom, Top - localSpacePos.Y))
+            );
+
+            return dist.LengthSquared;
         }
 
         /// <summary>Converts the specified <see cref="T:System.Drawing.Rectangle"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>

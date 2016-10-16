@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Sprites
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
-        public float Radius;
+        public float CornerRadius;
         public Vector2 Size;
 
         protected override void Draw()
@@ -29,9 +29,13 @@ namespace osu.Framework.Graphics.Sprites
 
             RectangleF texRect = Texture.GetTextureRect();
 
-            Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
-            Shader.GetUniform<Vector2>(@"g_TexSize").Value = Vector2.Multiply(Texture.TextureGL.Native.Size, Size);
-            Shader.GetUniform<float>(@"g_Radius").Value = Radius;
+            if (CornerRadius != 0.0f)
+            {
+                Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
+                Shader.GetUniform<Vector2>(@"g_TexSize").Value = Vector2.Multiply(Texture.TextureGL.Native.Size, Size);
+            }
+            
+            Shader.GetUniform<float>(@"g_Radius").Value = CornerRadius;
 
             Shader.Bind();
 
