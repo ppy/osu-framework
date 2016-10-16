@@ -121,13 +121,13 @@ namespace osu.Framework.Graphics.Visualisation
                                             Text = @"Up one parent",
                                             Action = delegate {
                                                 GoUpOneParent?.Invoke();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
-                    }
+                    },
                 },
                 scroll = new ScrollContainer()
                 {
