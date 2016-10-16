@@ -448,6 +448,9 @@ namespace osu.Framework.Graphics.Containers
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
             RectangleF aabb = DrawQuad.AABBf;
 
+            // We may want this, or we may not want this. Still undecided.
+            // TODO: Discuss with others.
+
             /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
             aabb.X *= scale.X;
             aabb.Y *= scale.Y;
@@ -466,6 +469,9 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
+                // TODO: Figure out how to efficiently and correctly find a parent-space bounding box
+                //       of a transformed Rect with rounded corners.
+
                 //if (!Masking || CornerRadius == 0.0f)
                     return base.BoundingBox;
 
