@@ -13,6 +13,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public const int MAX_BATCHES = 3;
 
-        public static Rectangle Scissor { get; private set; }
+        public static Quad Scissor { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
@@ -67,12 +68,11 @@ namespace osu.Framework.Graphics.OpenGL
             orthoStack.Clear();
             scissorStack.Clear();
 
-            Scissor = Rectangle.Empty;
             Viewport = Rectangle.Empty;
             Ortho = Rectangle.Empty;
 
             PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
-            PushScissor();
+            PushScissor(new Quad(0, 0, size.X, size.Y));
 
             CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
         }
@@ -267,41 +267,30 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
         }
 
-        private static Stack<Rectangle> scissorStack = new Stack<Rectangle>();
+        private static Stack<Quad> scissorStack = new Stack<Quad>();
+
+        private static void setMaskingQuad(Quad maskingQuad)
+        {
+            Shader.SetGlobalProperty(@"g_MaskingTopLeft", maskingQuad.TopLeft);
+            Shader.SetGlobalProperty(@"g_MaskingTopRight", maskingQuad.TopRight);
+            Shader.SetGlobalProperty(@"g_MaskingBottomLeft", maskingQuad.BottomLeft);
+            Shader.SetGlobalProperty(@"g_MaskingBottomRight", maskingQuad.BottomRight);
+        }
 
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="rect">The scissor rectangle.</param>
-        public static void PushScissor(Rectangle? rect = null)
+        public static void PushScissor(Quad? quad = null)
         {
-            Rectangle actualRect = rect ?? Viewport;
-            if (rect != null)
-            {
-                actualRect.X += Viewport.X;
-                actualRect.Y += Viewport.Y;
-            }
+            Quad actualQuad = quad ?? new Quad(0, 0, Viewport.Width, Viewport.Height);
 
-            // Ensure the rectangle only has positive width and height. (Required by OGL)
-            if (actualRect.Width < 0)
-            {
-                actualRect.X += actualRect.Width;
-                actualRect.Width = -actualRect.Width;
-            }
-
-            if (actualRect.Height < 0)
-            {
-                actualRect.Y += actualRect.Height;
-                actualRect.Height = -actualRect.Height;
-            }
-
-            scissorStack.Push(Scissor);
-
-            if (Scissor == actualRect)
+            scissorStack.Push(actualQuad);
+            if (Scissor.Equals(actualQuad))
                 return;
-            Scissor = actualRect;
 
-            GL.Scissor(Scissor.X, Viewport.Height - Scissor.Bottom, Scissor.Width, Scissor.Height);
+            Scissor = actualQuad;
+            setMaskingQuad(Scissor);
         }
 
         /// <summary>
@@ -312,14 +301,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (scissorStack.Count == 0)
                 return;
 
-            Rectangle actualRect = scissorStack.Pop();
+            Quad actualQuad = scissorStack.Pop();
 
-            if (Scissor == actualRect)
+            if (Scissor.Equals(actualQuad))
                 return;
 
-            Scissor = actualRect;
-
-            GL.Scissor(Scissor.X, Viewport.Height - Scissor.Bottom, Scissor.Width, Scissor.Height);
+            Scissor = actualQuad;
+            setMaskingQuad(Scissor);
         }
 
         /// <summary>

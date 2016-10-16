@@ -8,7 +8,7 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Quad : IConvexPolygon
+    public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
         public Vector2 TopLeft;
         public Vector2 TopRight;
@@ -138,6 +138,15 @@ namespace osu.Framework.Graphics.Primitives
                 Contains(other.BottomRight) ||
                 (other.TopLeft.Y <= TopLeft.Y && other.TopRight.Y <= TopRight.Y && other.BottomLeft.Y >= BottomLeft.Y && other.BottomRight.Y >= BottomRight.Y) ||
                 (other.TopLeft.X <= TopLeft.X && other.BottomLeft.X <= BottomLeft.X && other.TopRight.X >= TopRight.X && other.BottomRight.X >= BottomRight.X);
+        }
+
+        public bool Equals(Quad other)
+        {
+            return
+                TopLeft == other.TopLeft &&
+                TopRight == other.TopRight &&
+                BottomLeft == other.BottomLeft &&
+                BottomRight == other.BottomRight;
         }
     }
 }

@@ -54,8 +54,8 @@ namespace osu.Framework.Platform
             //Set up OpenGL related characteristics
             GL.Disable(EnableCap.DepthTest);
             GL.Disable(EnableCap.StencilTest);
+            GL.Disable(EnableCap.ScissorTest);
             GL.Enable(EnableCap.Blend);
-            GL.Enable(EnableCap.ScissorTest);
 
             Logger.Log($@"GL Initialized
                         GL Version:                 {GL.GetString(StringName.Version)}

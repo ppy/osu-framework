@@ -2,6 +2,7 @@
     precision mediump float;
 #endif
 
+varying vec2 v_Position;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
 
@@ -10,6 +11,37 @@ uniform sampler2D m_Sampler;
 uniform float g_Radius;
 uniform vec4 g_TexRect;
 uniform vec2 g_TexSize;
+
+uniform vec2 g_MaskingTopLeft;
+uniform vec2 g_MaskingTopRight;
+uniform vec2 g_MaskingBottomLeft;
+uniform vec2 g_MaskingBottomRight;
+
+bool contains(vec2 pos, vec2 p0, vec2 p1, vec2 p2)
+{
+    // This uses barycentric coordinates with slight simplifications for faster computation.
+    // See: https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+    float area2 = (p0.y * (p2.x - p1.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y - p1.y * p2.x);
+    if (area2 == 0)
+        return false;
+
+    float s = (p0.y * p2.x - p0.x * p2.y + (p2.y - p0.y) * pos.x + (p0.x - p2.x) * pos.y) / area2;
+    if (s < 0)
+        return false;
+
+    float t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * pos.x + (p1.x - p0.x) * pos.y) / area2;
+    if (t < 0 || (s + t) > 1)
+        return false;
+
+    return true;
+}
+
+bool contains(vec2 pos)
+{
+    return
+		contains(pos, g_MaskingBottomRight, g_MaskingBottomLeft, g_MaskingTopRight) ||
+        contains(pos, g_MaskingTopLeft, g_MaskingTopRight, g_MaskingBottomLeft);
+}
 
 vec2 max3(vec2 a, vec2 b, vec2 c)
 {
@@ -27,6 +59,12 @@ float distanceFromRoundedRect()
 
 void main(void)
 {
+	if (!contains(v_Position))
+	{
+		gl_FragColor = vec4(0.0);
+		return;
+	}
+
 	float dist = g_Radius == 0.0 ? 0.0 : distanceFromRoundedRect();
 	gl_FragColor = v_Colour * texture2D(m_Sampler, v_TexCoord, -0.9);
 
