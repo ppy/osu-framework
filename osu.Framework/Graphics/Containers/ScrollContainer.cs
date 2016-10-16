@@ -36,13 +36,15 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float availableContent = -1;
 
-        private float displayableContent => Size.Y;
+        private float displayableContent => ChildSize.Y;
 
         private float current;
 
         private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
 
         protected override Container Content => content;
+
+        private bool isDragging;
 
         public ScrollContainer()
         {
@@ -71,12 +73,13 @@ namespace osu.Framework.Graphics.Containers
 
             availableContent = content.Size.Y;
             updateSize();
-            offset(0);
+            if (!isDragging)
+                offset(0);
 
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
         }
 
-        protected override bool OnDragStart(InputState state) => true;
+        protected override bool OnDragStart(InputState state) => isDragging = true;
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
@@ -96,18 +99,20 @@ namespace osu.Framework.Graphics.Containers
             //forces a clamped state to return to correct location.
             offset(-state.Mouse.Delta.Y * 10);
 
+            isDragging = false;
+
             return base.OnDragEnd(state);
         }
 
         protected override bool OnWheelDown(InputState state)
         {
-            offset(80);
+            offset(Math.Max(-content.Position.Y - currentClamped, 0) * 1.5f + 80);
             return base.OnWheelDown(state);
         }
 
         protected override bool OnWheelUp(InputState state)
         {
-            offset(-80);
+            offset(Math.Min(currentClamped - content.Position.Y, 0) * 1.5f - 80);
             return base.OnWheelUp(state);
         }
 

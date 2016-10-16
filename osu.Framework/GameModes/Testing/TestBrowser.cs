@@ -13,6 +13,8 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Visualisation;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -26,8 +28,6 @@ namespace osu.Framework.GameModes.Testing
 
         List<TestCase> testCases = new List<TestCase>();
 
-        private DrawVisualiser drawVis;
-
         public int TestCount => testCases.Count;
 
         private List<TestCase> tests = new List<TestCase>();
@@ -40,14 +40,21 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
+        private BaseGame game;
+
         public override void Load(BaseGame game)
         {
             base.Load(game);
 
+            this.game = game;
+
+            //this doesn't work here because it's not initialised yet
+            //drawVis = game.DrawVisualiser;
+
             Add(leftContainer = new Container
             {
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.15f, 1)
+                RelativeSizeAxes = Axes.Y,
+                Size = new Vector2(200, 1)
             });
 
             leftContainer.Add(new Box
@@ -69,18 +76,7 @@ namespace osu.Framework.GameModes.Testing
             Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.85f, 1),
-                RelativePositionAxes = Axes.Both,
-                Position = new Vector2(0.15f, 0),
-            });
-
-            testContainer.Size = new Vector2(0.6f, 1);
-            Add(drawVis = new DrawVisualiser()
-            {
-                RelativePositionAxes = Axes.Both,
-                Position = new Vector2(0.75f, 0),
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.25f, 1)
+                Padding = new MarginPadding { Left = 200 }
             });
 
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
@@ -115,8 +111,6 @@ namespace osu.Framework.GameModes.Testing
             {
                 testContainer.Add(loadedTest = testCase);
                 testCase.Reset();
-
-                drawVis.Target = testCase.Contents;
             }
         }
 
@@ -140,7 +134,8 @@ namespace osu.Framework.GameModes.Testing
                 Add(box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Alpha = 0.2f
+                    Colour = new Color4(140, 140, 140, 255),
+                    Alpha = 0.7f
                 });
 
                 Add(new SpriteText
@@ -162,20 +157,20 @@ namespace osu.Framework.GameModes.Testing
 
             protected override bool OnHover(InputState state)
             {
-                box.FadeTo(0.4f, 150);
+                box.FadeTo(1, 150);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                box.FadeTo(0.2f, 150);
+                box.FadeTo(0.7f, 150);
                 base.OnHoverLost(state);
             }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+            protected override bool OnClick(InputState state)
             {
-                box.FlashColour(Color4.White, 50);
-                return true;
+                box.FlashColour(Color4.White, 300);
+                return base.OnClick(state);
             }
         }
     }
