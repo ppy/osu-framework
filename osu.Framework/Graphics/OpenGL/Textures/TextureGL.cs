@@ -47,6 +47,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public abstract int Width { get; set; }
 
+        public abstract RectangleF GetTextureRect(RectangleF? textureRect);
+
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>

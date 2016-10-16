@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (duration == 0)
+            if (duration == 0 && transformationDelay == 0)
                 transform.Apply(this);
             else
                 Transforms.Add(transform);
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (duration == 0)
+            if (duration == 0 && transformationDelay == 0)
                 transform.Apply(this);
             else
                 Transforms.Add(transform);

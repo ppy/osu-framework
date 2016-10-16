@@ -37,10 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set { bounds.Width = value; }
         }
 
-        /// <summary>
-        /// Blits sprite to OpenGL display with specified parameters.
-        /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        private RectangleF BoundsInParent(RectangleF? textureRect)
         {
             RectangleF actualBounds = bounds;
 
@@ -53,7 +50,20 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 actualBounds.Height = Math.Min(localBounds.Height, bounds.Height);
             }
 
-            parent.Draw(vertexQuad, actualBounds, drawColour, spriteBatch);
+            return actualBounds;
+        }
+
+        public override RectangleF GetTextureRect(RectangleF? textureRect)
+        {
+            return parent.GetTextureRect(BoundsInParent(textureRect));
+        }
+
+        /// <summary>
+        /// Blits sprite to OpenGL display with specified parameters.
+        /// </summary>
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        {
+            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, spriteBatch);
         }
 
         internal override bool Upload()
