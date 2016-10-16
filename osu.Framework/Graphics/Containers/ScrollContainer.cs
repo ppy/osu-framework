@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float availableContent = -1;
 
-        private float displayableContent => Size.Y;
+        private float displayableContent => ChildSize.Y;
 
         private float current;
 
