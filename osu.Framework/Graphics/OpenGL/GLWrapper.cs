@@ -217,12 +217,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopViewport()
         {
-            if (viewportStack.Count == 0)
-                return;
+            Debug.Assert(viewportStack.Count > 1);
 
             PopOrtho();
 
-            Rectangle actualRect = viewportStack.Pop();
+            viewportStack.Pop();
+            Rectangle actualRect = viewportStack.Peek();
 
             if (Viewport == actualRect)
                 return;
@@ -257,7 +257,8 @@ namespace osu.Framework.Graphics.OpenGL
             if (orthoStack.Count == 0)
                 return;
 
-            Rectangle actualRect = orthoStack.Pop();
+            orthoStack.Pop();
+            Rectangle actualRect = orthoStack.Peek();
 
             if (Ortho == actualRect)
                 return;
@@ -281,15 +282,13 @@ namespace osu.Framework.Graphics.OpenGL
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="rect">The scissor rectangle.</param>
-        public static void PushScissor(Quad? quad = null)
+        public static void PushScissor(Quad quad)
         {
-            Quad actualQuad = quad ?? new Quad(0, 0, Viewport.Width, Viewport.Height);
-
-            scissorStack.Push(actualQuad);
-            if (Scissor.Equals(actualQuad))
+            scissorStack.Push(quad);
+            if (Scissor.Equals(quad))
                 return;
 
-            Scissor = actualQuad;
+            Scissor = quad;
             setMaskingQuad(Scissor);
         }
 
@@ -301,12 +300,13 @@ namespace osu.Framework.Graphics.OpenGL
             if (scissorStack.Count == 0)
                 return;
 
-            Quad actualQuad = scissorStack.Pop();
+            scissorStack.Pop();
+            Quad quad = scissorStack.Peek();
 
-            if (Scissor.Equals(actualQuad))
+            if (Scissor.Equals(quad))
                 return;
 
-            Scissor = actualQuad;
+            Scissor = quad;
             setMaskingQuad(Scissor);
         }
 

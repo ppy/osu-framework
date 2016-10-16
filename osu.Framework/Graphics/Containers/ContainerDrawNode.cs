@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
             base.PreDraw();
 
             if (MaskingQuad != null)
-                GLWrapper.PushScissor(MaskingQuad);
+                GLWrapper.PushScissor(MaskingQuad.Value);
         }
 
         protected override void Draw()
