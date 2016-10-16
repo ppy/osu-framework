@@ -28,8 +28,6 @@ namespace osu.Framework.GameModes.Testing
 
         List<TestCase> testCases = new List<TestCase>();
 
-        private DrawVisualiser drawVis => game.DrawVisualiser;
-
         public int TestCount => testCases.Count;
 
         private List<TestCase> tests = new List<TestCase>();
@@ -114,8 +112,6 @@ namespace osu.Framework.GameModes.Testing
             {
                 testContainer.Add(loadedTest = testCase);
                 testCase.Reset();
-
-                drawVis.Target = testCase.Contents;
             }
         }
 
