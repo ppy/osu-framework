@@ -30,10 +30,12 @@ namespace osu.Framework.Graphics.Visualisation
         public Action BeginRun;
 
         public Action ChooseTarget;
+        public Action GoUpOneParent;
 
         protected override Container Content => scroll;
 
         const float width = 300;
+        const float height = 600;
 
         private TreeContainerStatus state;
         public TreeContainerStatus State
@@ -64,8 +66,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Masking = true;
             Position = new Vector2(100, 100);
-            RelativeSizeAxes = Axes.Y;
-            Size = new Vector2(width, 0.7f);
+            Size = new Vector2(width, height);
             AddInternal(new Drawable[]
             {
                 new Box
@@ -73,6 +74,48 @@ namespace osu.Framework.Graphics.Visualisation
                     Colour = new Color4(30, 30, 30, 240),
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
+                },
+                new Container //toolbar
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Size = new Vector2(1, 40),
+                    Children = new Drawable[]
+                    {
+                        new Box {
+                            Colour = new Color4(20, 20, 20, 255),
+                            RelativeSizeAxes = Axes.Both,
+                        },
+                        new FlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Spacing = new Vector2(1),
+                            Children = new Drawable[]
+                            {
+                                new Button
+                                {
+                                    Colour = Color4.DarkGray,
+                                    Size = new Vector2(100, 1),
+                                    RelativeSizeAxes = Axes.Y,
+                                    Text = @"Choose Target",
+                                    Action = delegate {
+                                        EnsureLoaded();
+                                        ChooseTarget?.Invoke();
+                                    }
+                                },
+                                new Button
+                                {
+                                    Colour = Color4.DarkGray,
+                                    Size = new Vector2(100, 1),
+                                    RelativeSizeAxes = Axes.Y,
+                                    Text = @"Up one parent",
+                                    Action = delegate {
+                                        EnsureLoaded();
+                                        GoUpOneParent?.Invoke();
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 scroll = new ScrollContainer()
                 {
@@ -84,29 +127,6 @@ namespace osu.Framework.Graphics.Visualisation
                     Text = @"Click to load DrawVisualiser",
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
-                },
-                new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    Size = new Vector2(1, 40),
-                    Children = new Drawable[]
-                    {
-                        new Box {
-                            Colour = new Color4(20, 20, 20, 255),
-                            RelativeSizeAxes = Axes.Both,
-                        },
-                        new Button
-                        {
-                            Colour = Color4.DarkGray,
-                            RelativeSizeAxes = Axes.Y,
-                            Size = new Vector2(100, 1),
-                            Text = @"Choose Target",
-                            Action = delegate {
-                                EnsureLoaded();
-                                ChooseTarget?.Invoke();
-                            }
-                        }
-                    }
                 },
                 new CursorContainer(),
             });

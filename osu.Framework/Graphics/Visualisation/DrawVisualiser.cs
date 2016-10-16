@@ -29,7 +29,8 @@ namespace osu.Framework.Graphics.Visualisation
                 treeContainer = new TreeContainer
                 {
                     BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); },
-                    ChooseTarget = chooseTarget
+                    ChooseTarget = chooseTarget,
+                    GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
                 },
             };
         }
