@@ -83,8 +83,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (var testCase in tests)
                 addTest(testCase);
 
-            //schedule required due to load init order.
-            Schedule(delegate { loadTest(); });
+            loadTest();
         }
 
         private void addTest(TestCase testCase)
