@@ -17,10 +17,11 @@ uniform vec2 g_MaskingTopRight;
 uniform vec2 g_MaskingBottomLeft;
 uniform vec2 g_MaskingBottomRight;
 
+// Returns whether pos is contained within a triangle spanned by the vertices p0,p1,p2
 bool contains(vec2 pos, vec2 p0, vec2 p1, vec2 p2)
 {
-    // This uses barycentric coordinates with slight simplifications for faster computation.
-    // See: https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+    // This code parametrizes pos as a linear combination of 2 edges s*(p1-p0) + t*(p2->p0).
+    // pos is contained if s>0, t>0, s+t<1
     float area2 = (p0.y * (p2.x - p1.x) + p0.x * (p1.y - p2.y) + p1.x * p2.y - p1.y * p2.x);
     if (area2 == 0)
         return false;
@@ -36,6 +37,8 @@ bool contains(vec2 pos, vec2 p0, vec2 p1, vec2 p2)
     return true;
 }
 
+// Returns whether pos is contained within the masking quad by checking 2 triangles making up
+// the quad.
 bool contains(vec2 pos)
 {
     return
