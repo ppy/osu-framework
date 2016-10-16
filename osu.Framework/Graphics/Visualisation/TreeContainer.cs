@@ -22,9 +22,6 @@ namespace osu.Framework.Graphics.Visualisation
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
         ScrollContainer scroll;
-        private SpriteText loadMessage;
-
-        public Action BeginRun;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
@@ -110,7 +107,6 @@ namespace osu.Framework.Graphics.Visualisation
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Choose Target",
                                             Action = delegate {
-                                                EnsureLoaded();
                                                 ChooseTarget?.Invoke();
                                             }
                                         },
@@ -121,7 +117,6 @@ namespace osu.Framework.Graphics.Visualisation
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Up one parent",
                                             Action = delegate {
-                                                EnsureLoaded();
                                                 GoUpOneParent?.Invoke();
                                             }
                                         }
@@ -133,15 +128,8 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 scroll = new ScrollContainer()
                 {
-                    Alpha = 0,
                     Padding = new MarginPadding { Top = 70 },
                 },
-                loadMessage = new SpriteText
-                {
-                    Text = @"Click to load DrawVisualiser",
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre
-                }
             });
         }
 
@@ -168,30 +156,7 @@ namespace osu.Framework.Graphics.Visualisation
         public override void Load(BaseGame game)
         {
             base.Load(game);
-
             State = TreeContainerStatus.Offscreen;
-        }
-
-        protected override bool OnClick(InputState state)
-        {
-            if (loadMessage == null)
-                return false;
-
-            EnsureLoaded();
-
-            return true;
-        }
-
-        public void EnsureLoaded()
-        {
-            if (loadMessage == null) return;
-
-            Remove(loadMessage);
-            loadMessage = null;
-
-            scroll.FadeIn(500);
-
-            BeginRun?.Invoke();
         }
     }
 }

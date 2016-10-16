@@ -190,7 +190,7 @@ namespace osu.Framework
                         ShowPerformanceOverlay = !ShowPerformanceOverlay;
                         return true;
                     case Key.F1:
-                        DrawVisualiser.Alpha = DrawVisualiser.Alpha == 1 ? 0 : 1;
+                        DrawVisualiser.ToggleVisibility();
                         return true;
                 }
             }

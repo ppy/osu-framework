@@ -5,34 +5,45 @@ using System;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
-using OpenTK;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    public class DrawVisualiser : Container
+    public class DrawVisualiser : OverlayContainer
     {
         private TreeContainer treeContainer;
+
+        private InfoOverlay overlay;
+        private ScheduledDelegate task;
 
         public DrawVisualiser()
         {
             RelativeSizeAxes = Axes.Both;
-            Alpha = 0;
-
             Children = new Drawable[]
             {
                 treeContainer = new TreeContainer
                 {
-                    BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); },
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
                 },
             };
+        }
+
+        protected override void PopIn()
+        {
+            task = Scheduler.AddDelayed(runUpdate, 200, true);
+
+            FadeIn(100);
+            if (Target == null)
+                chooseTarget();
+        }
+
+        protected override void PopOut()
+        {
+            task?.Cancel();
+            FadeOut(100);
         }
 
         bool targetSearching;
@@ -68,9 +79,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnMouseMove(InputState state)
         {
             if (targetSearching)
-            {
-                showOverlayFor(findTargetIn(Parent, state));
-            }
+                showOverlayFor(findTargetIn(Parent?.Parent?.Parent, state));
 
             return base.OnMouseMove(state);
         }
@@ -179,8 +188,6 @@ namespace osu.Framework.Graphics.Visualisation
             base.OnHoverLost(state);
         }
 
-        private InfoOverlay overlay;
-
         private void showOverlayFor(Drawable target)
         {
             if (overlay != null)
@@ -188,73 +195,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (target != null)
                 Add(overlay = new InfoOverlay(target));
-        }
-
-        class FlashyBox : Box
-        {
-            public FlashyBox()
-            {
-                Size = new Vector2(4);
-                Origin = Anchor.Centre;
-                Colour = Color4.Red;
-            }
-
-            public override void Load(BaseGame game)
-            {
-                base.Load(game);
-
-                FadeColour(Color4.White, 500);
-                Delay(500);
-                FadeColour(Color4.Red, 500);
-                Delay(500);
-                Loop();
-
-                DelayReset();
-                ScaleTo(3);
-                ScaleTo(1, 200);
-            }
-        }
-
-        class InfoOverlay : Container
-        {
-            private Drawable target;
-
-            private Box tl, tr, bl, br;
-
-            public InfoOverlay(Drawable target)
-            {
-                this.target = target;
-                target.OnInvalidate += update;
-
-                RelativeSizeAxes = Axes.Both;
-
-                Children = new Drawable[]
-                {
-                    tl = new FlashyBox(),
-                    tr = new FlashyBox(),
-                    bl = new FlashyBox(),
-                    br = new FlashyBox()
-                };
-            }
-
-            public override void Load(BaseGame game)
-            {
-                base.Load(game);
-                update();
-            }
-
-            private void update()
-            {
-                Quad q = target.ScreenSpaceDrawQuad * DrawInfo.MatrixInverse;
-
-                tl.Position = q.TopLeft;
-                tr.Position = q.TopRight;
-                bl.Position = q.BottomLeft;
-                br.Position = q.BottomRight;
-
-                if (!target.IsAlive)
-                    Expire();
-            }
         }
     }
 }
