@@ -3,7 +3,6 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -11,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.VisualTests.Tests
 {

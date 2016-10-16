@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
-            n.MaskingRect = Masking ? ScreenSpaceDrawQuad.AABB : (Rectangle?)null;
+            n.MaskingQuad = Masking ? ScreenSpaceDrawQuad : (Quad?)null;
 
             base.ApplyDrawNode(node);
         }

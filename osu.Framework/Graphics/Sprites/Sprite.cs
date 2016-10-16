@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Sprites
 
             //todo: make this better.
             if (shader == null)
-                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.Texture);
+                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.TextureRounded);
         }
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -51,6 +51,10 @@ namespace osu.Framework.Graphics.Sprites
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
             n.Shader = shader;
+            n.CornerRadius = CornerRadius;
+
+            if (CornerRadius != 0.0f && Texture != null)
+                n.Size = Vector2.Divide(Size * Scale * (Parent?.ChildScale ?? Vector2.One), new Vector2(Texture.DisplayWidth, Texture.DisplayHeight));
 
             base.ApplyDrawNode(node);
         }
@@ -86,13 +90,14 @@ namespace osu.Framework.Graphics.Sprites
         {
             Sprite clone = (Sprite)base.Clone();
             clone.texture = texture;
+            clone.CornerRadius = CornerRadius;
 
             return clone;
         }
 
         public override string ToString()
         {
-            return base.ToString() + $" tex: {texture?.AssetName}";
+            return base.ToString() + $" tex: {texture?.AssetName} radius: {CornerRadius}";
         }
     }
 }

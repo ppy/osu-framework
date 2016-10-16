@@ -99,6 +99,9 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private float cornerRadius = 0.0f;
+        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
+
         internal Vector2 InternalPosition;
 
         /// <summary>
@@ -171,6 +174,21 @@ namespace osu.Framework.Graphics
             {
                 if (scale == value) return;
                 scale = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        private Vector2 shear = Vector2.Zero;
+
+        public Vector2 Shear
+        {
+            get { return shear; }
+
+            set
+            {
+                if (shear == value) return;
+                shear = value;
 
                 Invalidate(Invalidation.Geometry);
             }
@@ -292,7 +310,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual Quad ScreenSpaceInputQuad => ScreenSpaceDrawQuad;
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
@@ -300,7 +317,7 @@ namespace osu.Framework.Graphics
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
-                Quad result = GetScreenSpaceQuad(DrawQuad);
+                Quad result = ToScreenSpace(DrawQuad);
 
                 //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
                 //{
@@ -431,9 +448,9 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;
@@ -506,7 +523,37 @@ namespace osu.Framework.Graphics
             return false;
         }
 
+        private RectangleF boundingBox
+        {
+            get
+            {
+                // TODO: Make this work in all cases.
 
+                //if (CornerRadius == 0.0f)
+                    return ToParentSpace(DrawQuadForBounds).AABBf;
+
+                /*Quad drawQuadForBounds = DrawQuadForBounds;
+
+                Vector2 cornerRadius = new Vector2(CornerRadius);
+
+                cornerRadius = Vector2.Divide(cornerRadius, (Scale * (Parent?.ChildScale ?? Vector2.One)));
+
+                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
+                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
+
+                cornerRadius = Vector2.Multiply(cornerRadius, (Scale * (Parent?.ChildScale ?? Vector2.One)));
+
+                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
+                aabb.X -= cornerRadius.X;
+                aabb.Y -= cornerRadius.Y;
+                aabb.Width += 2 * cornerRadius.X;
+                aabb.Height += 2 * cornerRadius.Y;
+
+                return aabb;*/
+            }
+        }
 
         protected virtual Quad DrawQuadForBounds => DrawQuad;
 
@@ -517,19 +564,19 @@ namespace osu.Framework.Graphics
             : boundingSizeBacking.Refresh(() =>
             {
                 //field will be none when the drawable isn't requesting auto-sizing
-                Quad q = GetScreenSpaceQuad(DrawQuadForBounds) * Parent.DrawInfo.MatrixInverse;
+                RectangleF bbox = boundingBox;
 
                 Vector2 bounds = new Vector2(0, 0);
 
                 // Without this, 0x0 objects (like FontText with no string) produce weird results.
                 // When all vertices of the quad are at the same location, then the object is effectively invisible.
                 // Thus we don't need its actual bounding box, but can just assume a size of 0.
-                if (q.TopLeft == q.TopRight && q.TopLeft == q.BottomLeft && q.TopLeft == q.BottomRight)
+                if (bbox.Width <= 0 && bbox.Height <= 0)
                     return bounds;
 
                 Vector2 a = GetAnchoredPosition(Vector2.Zero);
 
-                foreach (Vector2 p in new[] { q.TopLeft, q.TopRight, q.BottomLeft, q.BottomRight })
+                foreach (Vector2 p in new[] { new Vector2(bbox.Left, bbox.Top), new Vector2(bbox.Right, bbox.Bottom) })
                 {
                     // Compute the clipped offset depending on anchoring.
                     Vector2 offset;
@@ -639,7 +686,22 @@ namespace osu.Framework.Graphics
             scheduler?.Update();
         }
 
-        protected virtual Quad GetScreenSpaceQuad(Quad input)
+        /// <summary>
+        /// Accepts a quad in local coordinates and converts it to coordinates in Parent's space.
+        /// </summary>
+        /// <param name="input">A quad in local coordinates.</param>
+        /// <returns>The quad in Parent's coordinates.</returns>
+        protected virtual Quad ToParentSpace(Quad input)
+        {
+            return input * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
+        /// Accepts a quad in local coordinates and converts it to coordinates in screen space.
+        /// </summary>
+        /// <param name="input">A quad in local coordinates.</param>
+        /// <returns>The quad in screen coordinates.</returns>
+        protected virtual Quad ToScreenSpace(Quad input)
         {
             return input * DrawInfo.Matrix;
         }

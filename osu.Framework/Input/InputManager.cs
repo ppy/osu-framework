@@ -342,7 +342,7 @@ namespace osu.Framework.Input
                 pos.X /= currentCursorHandler.Size.X;
                 pos.Y /= currentCursorHandler.Size.Y;
 
-                Quad q = ScreenSpaceInputQuad;
+                Quad q = ScreenSpaceDrawQuad;
 
                 mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
             }

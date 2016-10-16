@@ -25,8 +25,8 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>Outcome of the check.</returns>
         public bool Contains(Vector2 pos)
         {
-            // This uses barycentric coordinates with slight simplifications for faster computation.
-            // See: https://en.wikipedia.org/wiki/Barycentric_coordinate_system
+            // This code parametrizes pos as a linear combination of 2 edges s*(p1-p0) + t*(p2->p0).
+            // pos is contained if s>0, t>0, s+t<1
             float area2 = (P0.Y * (P2.X - P1.X) + P0.X * (P1.Y - P2.Y) + P1.X * P2.Y - P1.Y * P2.X);
             if (area2 == 0)
                 return false;

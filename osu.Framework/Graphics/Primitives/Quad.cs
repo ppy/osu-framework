@@ -5,10 +5,11 @@ using System;
 using System.Drawing;
 using osu.Framework.Extensions.PolygonExtensions;
 using OpenTK;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Quad : IConvexPolygon
+    public struct Quad : IConvexPolygon, IEquatable<Quad>
     {
         public Vector2 TopLeft;
         public Vector2 TopRight;
@@ -108,6 +109,19 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
+        public RectangleF AABBf
+        {
+            get
+            {
+                float xMin = Math.Min(TopLeft.X, Math.Min(TopRight.X, Math.Min(BottomLeft.X, BottomRight.X)));
+                float yMin = Math.Min(TopLeft.Y, Math.Min(TopRight.Y, Math.Min(BottomLeft.Y, BottomRight.Y)));
+                float xMax = Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X)));
+                float yMax = Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y)));
+
+                return new RectangleF(xMin, yMin, xMax - xMin, yMax - yMin);
+            }
+        }
+
         public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
         public Vector2[] AxisVertices => Vertices;
 
@@ -138,6 +152,33 @@ namespace osu.Framework.Graphics.Primitives
                 Contains(other.BottomRight) ||
                 (other.TopLeft.Y <= TopLeft.Y && other.TopRight.Y <= TopRight.Y && other.BottomLeft.Y >= BottomLeft.Y && other.BottomRight.Y >= BottomRight.Y) ||
                 (other.TopLeft.X <= TopLeft.X && other.BottomLeft.X <= BottomLeft.X && other.TopRight.X >= TopRight.X && other.BottomRight.X >= BottomRight.X);
+        }
+
+        public bool Equals(Quad other)
+        {
+            return
+                TopLeft == other.TopLeft &&
+                TopRight == other.TopRight &&
+                BottomLeft == other.BottomLeft &&
+                BottomRight == other.BottomRight;
+        }
+
+        public bool AlmostEquals(Quad other)
+        {
+            return
+                Precision.AlmostEquals(TopLeft.X, other.TopLeft.X) &&
+                Precision.AlmostEquals(TopLeft.Y, other.TopLeft.Y) &&
+                Precision.AlmostEquals(TopRight.X, other.TopRight.X) &&
+                Precision.AlmostEquals(TopRight.Y, other.TopRight.Y) &&
+                Precision.AlmostEquals(BottomLeft.X, other.BottomLeft.X) &&
+                Precision.AlmostEquals(BottomLeft.Y, other.BottomLeft.Y) &&
+                Precision.AlmostEquals(BottomRight.X, other.BottomRight.X) &&
+                Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
+        }
+
+        public override string ToString()
+        {
+            return TopLeft.ToString() + @" " + TopRight.ToString() + @" " + BottomLeft.ToString() + @" " + BottomRight.ToString();
         }
     }
 }

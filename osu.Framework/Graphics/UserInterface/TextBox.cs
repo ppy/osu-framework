@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
@@ -65,7 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(background = new Box
             {
-                Radius = 3,
+                CornerRadius = 3,
                 Colour = BackgroundUnfocused,
                 RelativeSizeAxes = Axes.Both,
             });
@@ -153,13 +152,13 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionLength > 0)
                     {
-                        cursor.Radius = 3;
+                        cursor.CornerRadius = 3;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                     }
                     else
                     {
-                        cursor.Radius = 0;
+                        cursor.CornerRadius = 0;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)

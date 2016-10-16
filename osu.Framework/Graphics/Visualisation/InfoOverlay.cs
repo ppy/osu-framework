@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Visualisation
 {

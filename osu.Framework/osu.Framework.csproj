@@ -110,9 +110,8 @@
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\Drawables\Box.cs" />
+    <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
-    <Compile Include="Graphics\Drawables\BoxDrawNode.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureUpload.cs" />
@@ -120,9 +119,7 @@
     <Compile Include="Graphics\Performance\FrameTimeDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\Primitives\MarginPadding.cs" />
-    <Compile Include="Graphics\Sprites\SpriteRounded.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
-    <Compile Include="Graphics\Sprites\SpriteRoundedDrawNode.cs" />
     <Compile Include="Graphics\Transformations\ITransform.cs" />
     <Compile Include="Graphics\Transformations\TransformAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformColour.cs" />
@@ -287,13 +284,13 @@
     <EmbeddedResource Include="Resources\Shaders\sh_Colour.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Particle.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Position.vs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture2D.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture3D.vs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_ColourRounded.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_TextureRounded.fs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />

@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using OpenTK;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -39,7 +39,8 @@ namespace osu.Framework.Graphics.Cursor
         {
             public Cursor()
             {
-                Size = new Vector2(5, 5);
+                CornerRadius = 3;
+                Size = new Vector2(6, 6);
                 Origin = Anchor.Centre;
             }
         }

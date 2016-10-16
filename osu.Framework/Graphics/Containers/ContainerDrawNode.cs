@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -11,14 +12,14 @@ namespace osu.Framework.Graphics.Containers
     {
         public List<DrawNode> Children;
 
-        public Rectangle? MaskingRect;
+        public Quad? MaskingQuad;
 
         protected override void PreDraw()
         {
             base.PreDraw();
 
-            if (MaskingRect != null)
-                GLWrapper.PushScissor(MaskingRect);
+            if (MaskingQuad != null)
+                GLWrapper.PushScissor(MaskingQuad.Value);
         }
 
         protected override void Draw()
@@ -34,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.PostDraw();
 
-            if (MaskingRect != null)
+            if (MaskingQuad != null)
                 GLWrapper.PopScissor();
         }
     }

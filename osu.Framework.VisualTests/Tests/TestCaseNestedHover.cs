@@ -3,11 +3,11 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -53,6 +53,11 @@ namespace osu.Framework.VisualTests.Tests
 
             private Box box;
             private bool propagateHover;
+
+            public override bool Contains(Vector2 screenSpacePos)
+            {
+                return box.Contains(screenSpacePos);
+            }
 
             public HoverBox(Color4 normalColour, Color4 hoveredColour, bool propagateHover = true)
             {

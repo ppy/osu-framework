@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
+using OpenTK;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -39,6 +40,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         #endregion
 
+        public abstract TextureGL Native { get; }
+
         public abstract bool Loaded { get; }
 
         public abstract int TextureId { get; }
@@ -46,6 +49,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public abstract int Height { get; set; }
 
         public abstract int Width { get; set; }
+
+        public Vector2 Size => new Vector2(Width, Height);
 
         public abstract RectangleF GetTextureRect(RectangleF? textureRect);
 
