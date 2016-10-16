@@ -28,7 +28,7 @@ namespace osu.Framework.GameModes.Testing
 
         List<TestCase> testCases = new List<TestCase>();
 
-        private DrawVisualiser drawVis;
+        private DrawVisualiser drawVis => game.DrawVisualiser;
 
         public int TestCount => testCases.Count;
 
@@ -42,9 +42,16 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
+        private BaseGame game;
+
         public override void Load(BaseGame game)
         {
             base.Load(game);
+
+            this.game = game;
+
+            //this doesn't work here because it's not initialised yet
+            //drawVis = game.DrawVisualiser;
 
             Add(leftContainer = new Container
             {
@@ -74,13 +81,12 @@ namespace osu.Framework.GameModes.Testing
                 Padding = new MarginPadding { Left = 200 }
             });
 
-            Add(drawVis = new DrawVisualiser());
-
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
                 addTest(testCase);
 
-            loadTest();
+            //schedule required due to load init order.
+            Schedule(delegate { loadTest(); });
         }
 
         private void addTest(TestCase testCase)

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
@@ -9,11 +10,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Performance;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
+using OpenTK.Input;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 
 namespace osu.Framework
@@ -46,6 +49,7 @@ namespace osu.Framework
 
         private Container content;
         private FlowContainer performanceContainer;
+        internal DrawVisualiser DrawVisualiser;
 
         public bool ShowPerformanceOverlay
         {
@@ -61,6 +65,12 @@ namespace osu.Framework
 
             AddInternal(new Drawable[]
             {
+                content = new Container
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Both,
+                },
                 performanceContainer = new PerformanceOverlay
                 {
                     Position = new Vector2(5, 5),
@@ -70,14 +80,14 @@ namespace osu.Framework
                     Anchor = Anchor.BottomRight,
                     Origin = Anchor.BottomRight,
                     Depth = float.MaxValue
-                },
-                content = new Container
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
                 }
             });
+        }
+
+        [Conditional("DEBUG")]
+        private void addDebugTools()
+        {
+            Add(DrawVisualiser = new DrawVisualiser());
         }
 
         /// <summary>
@@ -116,6 +126,8 @@ namespace osu.Framework
             };
 
             base.Load(game);
+
+            addDebugTools();
         }
 
         protected override void Update()
@@ -163,6 +175,22 @@ namespace osu.Framework
                 else
                     OnDeactivated();
             }
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (state.Keyboard.ControlPressed)
+            {
+                switch (args.Key)
+                {
+                    case Key.F11:
+                        ShowPerformanceOverlay = !ShowPerformanceOverlay;
+                        return true;
+                }
+            }
+
+            return base.OnKeyDown(state, args);
+
         }
 
         public void Exit()

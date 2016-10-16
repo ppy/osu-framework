@@ -21,6 +21,14 @@ namespace osu.Framework.Graphics.Visualisation
         public DrawVisualiser()
         {
             RelativeSizeAxes = Axes.Both;
+
+            Children = new Drawable[]
+            {
+                treeContainer = new TreeContainer
+                {
+                    BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); }
+                }
+            };
         }
 
         private VisualisedDrawable targetVD;
@@ -38,17 +46,6 @@ namespace osu.Framework.Graphics.Visualisation
                 targetVD = new VisualisedDrawable(target);
                 treeContainer.Add(targetVD);
             }
-        }
-
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-
-            Add(treeContainer = new TreeContainer()
-            {
-                BeginRun = delegate { Scheduler.AddDelayed(runUpdate, 200, true); }
-            });
         }
 
         private void runUpdate()
@@ -92,6 +89,14 @@ namespace osu.Framework.Graphics.Visualisation
 
                 visualise(c, dr);
             }
+        }
+
+        protected override void OnHoverLost(InputState state)
+        {
+            if (overlay != null)
+                Remove(overlay);
+
+            base.OnHoverLost(state);
         }
 
         private InfoOverlay overlay;
