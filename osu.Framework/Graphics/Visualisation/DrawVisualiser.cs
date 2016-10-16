@@ -54,36 +54,6 @@ namespace osu.Framework.Graphics.Visualisation
             targetSearching = true;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return targetSearching;
-        }
-
-        protected override bool OnClick(InputState state)
-        {
-            if (targetSearching)
-            {
-                Target = findTargetIn(Parent, state)?.Parent;
-
-                if (Target != null)
-                {
-                    targetSearching = false;
-                    showOverlayFor(null);
-                    return true;
-                }
-            }
-
-            return base.OnClick(state);
-        }
-
-        protected override bool OnMouseMove(InputState state)
-        {
-            if (targetSearching)
-                showOverlayFor(findTargetIn(Parent?.Parent?.Parent, state));
-
-            return base.OnMouseMove(state);
-        }
-
         private Drawable findTargetIn(Drawable d, InputState state)
         {
             if (d is DrawVisualiser) return null;
@@ -178,6 +148,36 @@ namespace osu.Framework.Graphics.Visualisation
 
                 visualise(c, dr);
             }
+        }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            return targetSearching;
+        }
+
+        protected override bool OnClick(InputState state)
+        {
+            if (targetSearching)
+            {
+                Target = findTargetIn(Parent, state)?.Parent;
+
+                if (Target != null)
+                {
+                    targetSearching = false;
+                    showOverlayFor(null);
+                    return true;
+                }
+            }
+
+            return base.OnClick(state);
+        }
+
+        protected override bool OnMouseMove(InputState state)
+        {
+            if (targetSearching)
+                showOverlayFor(findTargetIn(Parent?.Parent?.Parent, state));
+
+            return base.OnMouseMove(state);
         }
 
         protected override void OnHoverLost(InputState state)
