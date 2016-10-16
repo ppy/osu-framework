@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public const int MAX_BATCHES = 3;
 
-        public static Quad Scissor { get; private set; }
+        public static Quad MaskingQuad { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
@@ -275,6 +275,25 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_MaskingTopRight", maskingQuad.TopRight);
             Shader.SetGlobalProperty(@"g_MaskingBottomLeft", maskingQuad.BottomLeft);
             Shader.SetGlobalProperty(@"g_MaskingBottomRight", maskingQuad.BottomRight);
+
+            Rectangle actualRect = maskingQuad.AABB;
+            actualRect.X += Viewport.X;
+            actualRect.Y += Viewport.Y;
+
+            // Ensure the rectangle only has positive width and height. (Required by OGL)
+            if (actualRect.Width < 0)
+            {
+                actualRect.X += actualRect.Width;
+                actualRect.Width = -actualRect.Width;
+            }
+
+            if (actualRect.Height < 0)
+            {
+                actualRect.Y += actualRect.Height;
+                actualRect.Height = -actualRect.Height;
+            }
+
+            GL.Scissor(actualRect.X, Viewport.Height - actualRect.Bottom, actualRect.Width, actualRect.Height);
         }
 
         /// <summary>
@@ -284,11 +303,11 @@ namespace osu.Framework.Graphics.OpenGL
         public static void PushScissor(Quad quad)
         {
             scissorStack.Push(quad);
-            if (Scissor.Equals(quad))
+            if (MaskingQuad.Equals(quad))
                 return;
 
-            Scissor = quad;
-            setMaskingQuad(Scissor);
+            MaskingQuad = quad;
+            setMaskingQuad(MaskingQuad);
         }
 
         /// <summary>
@@ -301,11 +320,11 @@ namespace osu.Framework.Graphics.OpenGL
             scissorStack.Pop();
             Quad quad = scissorStack.Peek();
 
-            if (Scissor.Equals(quad))
+            if (MaskingQuad.Equals(quad))
                 return;
 
-            Scissor = quad;
-            setMaskingQuad(Scissor);
+            MaskingQuad = quad;
+            setMaskingQuad(MaskingQuad);
         }
 
         /// <summary>
