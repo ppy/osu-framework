@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Sprites;
 

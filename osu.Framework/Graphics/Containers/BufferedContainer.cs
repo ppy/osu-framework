@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES20;

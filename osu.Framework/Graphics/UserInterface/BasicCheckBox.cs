@@ -3,7 +3,6 @@
 
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 

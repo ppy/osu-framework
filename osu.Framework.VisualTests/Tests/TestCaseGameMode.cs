@@ -5,7 +5,6 @@ using System;
 using osu.Framework.GameModes;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Graphics.UserInterface;

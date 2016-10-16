@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Cached;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;

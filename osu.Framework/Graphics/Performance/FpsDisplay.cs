@@ -1,14 +1,11 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
-using System;
 
 namespace osu.Framework.Graphics.Performance
 {

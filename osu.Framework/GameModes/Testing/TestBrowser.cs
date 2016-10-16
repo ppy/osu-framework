@@ -8,7 +8,6 @@ using System.Reflection;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Drawables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK;
