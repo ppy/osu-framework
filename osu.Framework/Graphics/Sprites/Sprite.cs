@@ -55,7 +55,9 @@ namespace osu.Framework.Graphics.Sprites
             n.WrapTexture = WrapTexture;
             n.Shader = shader;
             n.Radius = Radius;
-            n.Size = Size * Scale;
+
+            if (Texture != null)
+                n.Size = Vector2.Divide(Size * Scale, new Vector2(Texture.Width, Texture.Height));
 
             base.ApplyDrawNode(node);
         }

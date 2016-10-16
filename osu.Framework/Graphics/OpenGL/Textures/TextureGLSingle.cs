@@ -68,6 +68,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private int height;
 
+        public override TextureGL Native => this;
+
         public override int Height
         {
             get

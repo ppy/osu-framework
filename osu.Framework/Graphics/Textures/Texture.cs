@@ -12,6 +12,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -72,7 +73,7 @@ namespace osu.Framework.Graphics.Textures
             get
             {
                 Debug.Assert(TextureGL != null);
-                return TextureGL?.Width ?? 0;
+                return TextureGL.Width;
             }
             set { TextureGL.Width = value; }
         }
@@ -86,6 +87,8 @@ namespace osu.Framework.Graphics.Textures
             }
             set { TextureGL.Height = value; }
         }
+
+        public Vector2 Size => new Vector2(Width, Height);
 
         /// <summary>
         /// Turns a byte array representing BGRA colour values to a byte array representing RGBA colour values.

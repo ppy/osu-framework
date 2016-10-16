@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Sprites
             RectangleF texRect = Texture.GetTextureRect();
 
             Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
-            Shader.GetUniform<Vector2>(@"g_TexSize").Value = Vector2.Multiply(new Vector2(Texture.Width, Texture.Height), Size);
+            Shader.GetUniform<Vector2>(@"g_TexSize").Value = Vector2.Multiply(Texture.TextureGL.Native.Size, Size);
             Shader.GetUniform<float>(@"g_Radius").Value = Radius;
 
             Shader.Bind();
