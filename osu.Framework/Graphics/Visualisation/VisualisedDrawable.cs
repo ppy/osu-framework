@@ -91,7 +91,6 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 Position = new Vector2(24, -3),
                 Scale = new Vector2(0.9f),
-                //FontFace = FontFace.FixedWidth
             };
 
             Flow.Alpha = 1;
@@ -161,8 +160,6 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void Update()
         {
             text.Colour = !Flow.IsVisible ? Color4.LightBlue : Color4.White;
-            //text.BackgroundColour = Target.Pinpoint ? Color4.Purple : Color4.Transparent;
-
             base.Update();
         }
 
