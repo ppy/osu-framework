@@ -168,15 +168,11 @@ namespace osu.Framework.GameModes
         {
             if (IsCurrentGameMode) return;
 
-            //find deepest child
-            GameMode c = ChildGameMode;
-            while (c.ChildGameMode != null)
-                c = c.ChildGameMode;
+            GameMode c;
+            for (c = ChildGameMode; c.ChildGameMode != null; c = c.ChildGameMode)
+                c.Expired = true;
 
-            //set deepest child's parent to us
-            c.ParentGameMode = this;
-
-            //exit child, making us current
+            //all the expired ones will exit
             c.Exit();
         }
 
