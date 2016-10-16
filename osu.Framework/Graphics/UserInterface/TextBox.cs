@@ -22,8 +22,8 @@ namespace osu.Framework.Graphics.UserInterface
     public class TextBox : Container
     {
         private FlowContainer textFlow;
-        private BoxRounded background;
-        private BoxRounded cursor;
+        private Box background;
+        private Box cursor;
         private Container textContainer;
 
         public int? LengthLimit;
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Masking = true;
 
-            Add(background = new BoxRounded
+            Add(background = new Box
             {
                 Radius = 3,
                 Colour = BackgroundUnfocused,
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Direction = FlowDirection.HorizontalOnly,
             };
 
-            cursor = new BoxRounded
+            cursor = new Box
             {
                 Depth = float.MinValue,
                 Size = Vector2.One,
