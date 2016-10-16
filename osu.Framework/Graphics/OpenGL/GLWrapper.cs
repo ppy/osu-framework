@@ -254,8 +254,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopOrtho()
         {
-            if (orthoStack.Count == 0)
-                return;
+            Debug.Assert(orthoStack.Count > 1);
 
             orthoStack.Pop();
             Rectangle actualRect = orthoStack.Peek();
@@ -297,8 +296,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopScissor()
         {
-            if (scissorStack.Count == 0)
-                return;
+            Debug.Assert(scissorStack.Count > 1);
 
             scissorStack.Pop();
             Quad quad = scissorStack.Peek();
