@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return containedTarget ?? (d.ScreenSpaceDrawQuad.Contains(state.Mouse.Position) ? d : null);
+            return containedTarget ?? (d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position) ? d : null);
         }
 
         private VisualisedDrawable targetVD;
