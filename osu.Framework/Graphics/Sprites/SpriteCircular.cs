@@ -2,18 +2,16 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteCircular : Sprite
     {
-        public float HoverRadius;
-
-        public override bool Contains(Vector2 screenSpacePos)
+        public override float CornerRadius
         {
-            float hoverRadius = HoverRadius > 0 ? HoverRadius : Texture.DisplayWidth / 2f;
-            Vector2 localSpacePos = screenSpacePos * DrawInfo.MatrixInverse;
-            return Vector2.DistanceSquared(localSpacePos, DrawQuad.Centre) < hoverRadius * hoverRadius;
+            get { return Texture.DisplayWidth / 2f; }
+            set { Debug.Assert(false, "Cannot set CornerRadius of SpriteCircular."); }
         }
     }
 }
