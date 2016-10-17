@@ -282,6 +282,17 @@ namespace osu.Framework.Graphics
             updateTransformsOfType(typeof(TransformScale));
             return transformVectorTo(Scale, newScale, duration, easing, new TransformScale(Clock));
         }
+
+        public Drawable ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            return transformVectorTo(InternalSize, new Vector2(newSize), duration, easing, new TransformSize(Clock));
+        }
+
+        public Drawable ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            return transformVectorTo(InternalSize, newSize, duration, easing, new TransformSize(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)

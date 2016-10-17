@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value)
         {
-            offset(value / scrollbar.Scale.Y, true, false);
+            offset(value / scrollbar.InternalSize.Y, true, false);
         }
 
         private void offset(float value, bool clamp = true, bool animated = true)
@@ -141,14 +141,14 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateSize()
         {
-            scrollbar?.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
         }
 
         private void updateScroll(bool animated = true)
         {
             float adjusted = (current + currentClamped) / 2;
 
-            scrollbar?.MoveToY(adjusted * scrollbar.Scale.Y, animated ? 800 : 0, EasingTypes.OutExpo);
+            scrollbar?.MoveToY(adjusted * scrollbar.InternalSize.Y, animated ? 800 : 0, EasingTypes.OutExpo);
             content.MoveToY(-adjusted, animated ? 800 : 0, EasingTypes.OutExpo);
         }
 
@@ -175,6 +175,8 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
+                CornerRadius = 5;
+                Masking = true;
             }
 
             protected override bool OnHover(InputState state)
