@@ -153,15 +153,8 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 Vector2 s = ChildSize;
-
-                //most common use case gets a shortcut
-                if (!FlipHorizontal && !FlipVertical) return new RectangleF(ChildOffset.X, ChildOffset.Y, s.X, s.Y);
-
-                if (FlipHorizontal && FlipVertical)
-                    return new RectangleF(s.X, s.Y, -s.X, -s.Y);
-                if (FlipHorizontal)
-                    return new RectangleF(s.X, 0, -s.X, s.Y);
-                return new RectangleF(0, s.Y, s.X, -s.Y);
+                Vector2 o = ChildOffset;
+                return new RectangleF(o.X, o.Y, s.X, s.Y);
             }
         }
 

@@ -339,20 +339,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                Anchor origin = this.origin;
-
-                if (flipHorizontal)
-                {
-                    Debug.Assert((origin & Anchor.x1) == 0, @"Can't flip with a centre origin set");
-                    origin ^= Anchor.x2;
-                }
-
-                if (flipVertical)
-                {
-                    Debug.Assert((origin & Anchor.y1) == 0, @"Can't flip with a centre origin set");
-                    origin ^= Anchor.y2;
-                }
-
                 return origin;
             }
             set
@@ -381,34 +367,6 @@ namespace osu.Framework.Graphics
         protected virtual IFrameBasedClock Clock => Parent?.Clock;
 
         protected double Time => Clock?.CurrentTime ?? 0;
-
-        private bool flipVertical;
-
-        public bool FlipVertical
-        {
-            get { return flipVertical; }
-            set
-            {
-                if (FlipVertical == value)
-                    return;
-                flipVertical = value;
-                Invalidate(Invalidation.Geometry);
-            }
-        }
-
-        private bool flipHorizontal;
-
-        public bool FlipHorizontal
-        {
-            get { return flipHorizontal; }
-            set
-            {
-                if (FlipHorizontal == value)
-                    return;
-                flipHorizontal = value;
-                Invalidate(Invalidation.Geometry);
-            }
-        }
 
         const float visibility_cutoff = 0.0001f;
 
@@ -461,15 +419,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 s = Size;
-
-                //most common use case gets a shortcut
-                if (!flipHorizontal && !flipVertical) return new RectangleF(0, 0, s.X, s.Y);
-
-                if (flipHorizontal && flipVertical)
-                    return new RectangleF(s.X, s.Y, -s.X, -s.Y);
-                if (flipHorizontal)
-                    return new RectangleF(s.X, 0, -s.X, s.Y);
-                return new RectangleF(0, s.Y, s.X, -s.Y);
+                return new RectangleF(0, 0, s.X, s.Y);
             }
         }
 
