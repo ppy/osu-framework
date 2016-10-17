@@ -15,7 +15,7 @@ namespace osu.Framework.Desktop.Tests.Benchmark
         {
             using (var host = new HeadlessGameHost())
             {
-                host.Add(new osu.Framework.VisualTests.Benchmark());
+                host.Add(new VisualTests.Benchmark());
                 host.Run();
             }
         }

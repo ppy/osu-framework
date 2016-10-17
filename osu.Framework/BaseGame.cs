@@ -84,7 +84,6 @@ namespace osu.Framework
             });
         }
 
-        [Conditional("DEBUG")]
         private void addDebugTools()
         {
             Add(DrawVisualiser = new DrawVisualiser()

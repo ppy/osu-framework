@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -19,6 +20,16 @@ namespace osu.Framework.GameModes.Testing
 {
     public class TestBrowser : GameMode
     {
+        class TestBrowserConfig : ConfigManager<TestBrowserOption>
+        {
+            public override string Filename => @"visualtests.cfg";
+        }
+
+        enum TestBrowserOption
+        {
+            LastTest
+        }
+
         private Container leftContainer;
         private Container leftFlowContainer;
         private Container leftScrollContainer;
@@ -31,6 +42,8 @@ namespace osu.Framework.GameModes.Testing
 
         private List<TestCase> tests = new List<TestCase>();
 
+        ConfigManager<TestBrowserOption> config;
+
         public TestBrowser()
         {
             //we want to build the lists here because we're interested in the assembly we were *created* on.
@@ -39,16 +52,11 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        private BaseGame game;
-
         public override void Load(BaseGame game)
         {
             base.Load(game);
 
-            this.game = game;
-
-            //this doesn't work here because it's not initialised yet
-            //drawVis = game.DrawVisualiser;
+            config = new TestBrowserConfig();
 
             Add(leftContainer = new Container
             {
@@ -83,7 +91,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (var testCase in tests)
                 addTest(testCase);
 
-            loadTest();
+            loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }
 
         private void addTest(TestCase testCase)
@@ -103,6 +111,8 @@ namespace osu.Framework.GameModes.Testing
         {
             if (testCase == null && testCases.Count > 0)
                 testCase = testCases[0];
+
+            config.Set(TestBrowserOption.LastTest, testCase.Name);
 
             if (loadedTest != null)
                 testContainer.Remove(loadedTest);
