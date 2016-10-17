@@ -33,6 +33,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 @"Round corner masking",
                 @"Edge/border blurriness",
+                @"Nested masking",
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -206,6 +207,39 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
+                        break;
+                    }
+
+                case 2:
+                    {
+                        testContainer.Add(new Container
+                        {
+                            Masking = true,
+                            Size = new Vector2(0.5f),
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new[]
+                            {
+                                new Container
+                                {
+                                    Masking = true,
+                                    CornerRadius = 100f,
+                                    BorderThickness = 50f,
+                                    BorderColour = Color4.Red,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(1.5f),
+                                    Anchor = Anchor.BottomRight,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                            Colour = Color4.White,
+                                        },
+                                    }
+                                }
+                            }
+                        });
                         break;
                     }
             }

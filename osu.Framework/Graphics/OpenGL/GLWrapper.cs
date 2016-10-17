@@ -273,9 +273,9 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
+        private static Rectangle currentScissorRect;
 
-
-        private static void setMaskingInfo(MaskingInfo maskingInfo)
+        private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
             Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
                 maskingInfo.MaskingRect.Left,
@@ -313,7 +313,11 @@ namespace osu.Framework.Graphics.OpenGL
                 actualRect.Height = -actualRect.Height;
             }
 
-            GL.Scissor(actualRect.X, Viewport.Height - actualRect.Bottom, actualRect.Width, actualRect.Height);
+            if (overwritePreviousScissor)
+                currentScissorRect = actualRect;
+            else
+                currentScissorRect.Intersect(actualRect);
+            GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
         }
 
         /// <summary>
@@ -327,7 +331,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo);
+            setMaskingQuad(CurrentMaskingInfo, false);
         }
 
         /// <summary>
@@ -344,7 +348,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo);
+            setMaskingQuad(CurrentMaskingInfo, true);
         }
 
         /// <summary>
