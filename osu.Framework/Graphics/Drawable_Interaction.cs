@@ -185,7 +185,7 @@ namespace osu.Framework.Graphics
 
         public virtual bool Contains(Vector2 screenSpacePos)
         {
-            return DrawQuad.Contains(GetLocalPosition(screenSpacePos));
+            return DrawRectangle.Contains(GetLocalPosition(screenSpacePos));
         }
 
         private InputState getLocalState(InputState state)

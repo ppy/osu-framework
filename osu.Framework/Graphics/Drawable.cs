@@ -315,7 +315,7 @@ namespace osu.Framework.Graphics
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
-                Quad result = ToScreenSpace(DrawQuad);
+                Quad result = ToScreenSpace(DrawRectangle);
 
                 //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
                 //{
@@ -456,20 +456,20 @@ namespace osu.Framework.Graphics
 
         protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
 
-        protected virtual Quad DrawQuad
+        protected virtual RectangleF DrawRectangle
         {
             get
             {
                 Vector2 s = Size;
 
                 //most common use case gets a shortcut
-                if (!flipHorizontal && !flipVertical) return new Quad(0, 0, s.X, s.Y);
+                if (!flipHorizontal && !flipVertical) return new RectangleF(0, 0, s.X, s.Y);
 
                 if (flipHorizontal && flipVertical)
-                    return new Quad(s.X, s.Y, -s.X, -s.Y);
+                    return new RectangleF(s.X, s.Y, -s.X, -s.Y);
                 if (flipHorizontal)
-                    return new Quad(s.X, 0, -s.X, s.Y);
-                return new Quad(0, s.Y, s.X, -s.Y);
+                    return new RectangleF(s.X, 0, -s.X, s.Y);
+                return new RectangleF(0, s.Y, s.X, -s.Y);
             }
         }
 
@@ -521,8 +521,8 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(DrawQuadForBounds).AABBf;
-        protected virtual Quad DrawQuadForBounds => DrawQuad;
+        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangleForBounds).AABBf;
+        protected virtual RectangleF DrawRectangleForBounds => DrawRectangle;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
@@ -664,23 +664,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Accepts a quad in local coordinates and converts it to coordinates in Parent's space.
+        /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
-        /// <param name="input">A quad in local coordinates.</param>
+        /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        protected Quad ToParentSpace(Quad input)
+        protected Quad ToParentSpace(RectangleF input)
         {
-            return input * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+            return new Quad(input.X, input.Y, input.Width, input.Height) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
-        /// Accepts a quad in local coordinates and converts it to coordinates in screen space.
+        /// Accepts a rectangle in local coordinates and converts it to a quad in screen space.
         /// </summary>
-        /// <param name="input">A quad in local coordinates.</param>
+        /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        protected Quad ToScreenSpace(Quad input)
+        protected Quad ToScreenSpace(RectangleF input)
         {
-            return input * DrawInfo.Matrix;
+            return new Quad(input.X, input.Y, input.Width, input.Height) * DrawInfo.Matrix;
         }
 
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)

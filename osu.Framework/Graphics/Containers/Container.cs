@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawQuad.AABBf,
+                MaskingRect = DrawRectangle,
                 ToMaskingSpace = DrawInfo.MatrixInverse,
                 CornerRadius = this.CornerRadius,
             };
@@ -145,23 +145,23 @@ namespace osu.Framework.Graphics.Containers
         internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
         //Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
-        protected override Quad DrawQuadForBounds => base.DrawQuad;
+        protected override RectangleF DrawRectangleForBounds => base.DrawRectangle;
 
         //Custom DrawQuad implementation excludes Margin/Padding.
-        protected override Quad DrawQuad
+        protected override RectangleF DrawRectangle
         {
             get
             {
                 Vector2 s = ChildSize;
 
                 //most common use case gets a shortcut
-                if (!FlipHorizontal && !FlipVertical) return new Quad(ChildOffset.X, ChildOffset.Y, s.X, s.Y);
+                if (!FlipHorizontal && !FlipVertical) return new RectangleF(ChildOffset.X, ChildOffset.Y, s.X, s.Y);
 
                 if (FlipHorizontal && FlipVertical)
-                    return new Quad(s.X, s.Y, -s.X, -s.Y);
+                    return new RectangleF(s.X, s.Y, -s.X, -s.Y);
                 if (FlipHorizontal)
-                    return new Quad(s.X, 0, -s.X, s.Y);
-                return new Quad(0, s.Y, s.X, -s.Y);
+                    return new RectangleF(s.X, 0, -s.X, s.Y);
+                return new RectangleF(0, s.Y, s.X, -s.Y);
             }
         }
 
@@ -446,7 +446,7 @@ namespace osu.Framework.Graphics.Containers
                 return base.Contains(screenSpacePos);
 
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
-            RectangleF aabb = DrawQuad.AABBf;
+            RectangleF aabb = DrawRectangle;
 
             // We may want this, or we may not want this. Still undecided.
             // TODO: Discuss with others.
