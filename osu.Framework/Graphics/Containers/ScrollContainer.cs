@@ -107,13 +107,13 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnWheelDown(InputState state)
         {
             offset(Math.Max(-content.Position.Y - currentClamped, 0) * 1.5f + 80);
-            return base.OnWheelDown(state);
+            return true;
         }
 
         protected override bool OnWheelUp(InputState state)
         {
             offset(Math.Min(currentClamped - content.Position.Y, 0) * 1.5f - 80);
-            return base.OnWheelUp(state);
+            return true;
         }
 
         private void onScrollbarMovement(float value)
