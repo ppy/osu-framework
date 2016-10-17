@@ -39,7 +39,7 @@ void main(void)
     float dist = distanceFromRoundedRect();
 
     // This correction is needed to avoid fading of the alpha value for radii below 1px.
-    float radiusCorrection = max(0.0, g_PixelScale - g_CornerRadius);
+    float radiusCorrection = g_CornerRadius <= 0.0 ? 1.0 : max(0.0, g_PixelScale - g_CornerRadius);
     float fadeStart = g_CornerRadius + radiusCorrection;
     float alphaFactor = min((fadeStart - dist) / g_PixelScale, 1.0);
     if (alphaFactor <= 0.0)
