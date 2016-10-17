@@ -286,6 +286,13 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
 
+            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness);
+            Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
+                maskingInfo.BorderColour.R,
+                maskingInfo.BorderColour.G,
+                maskingInfo.BorderColour.B,
+                maskingInfo.BorderColour.A));
+
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
             actualRect.Y += Viewport.Y;
@@ -432,13 +439,18 @@ namespace osu.Framework.Graphics.OpenGL
         public Matrix3 ToMaskingSpace;
         public float CornerRadius;
 
+        public float BorderThickness;
+        public Color4 BorderColour;
+
         public bool Equals(MaskingInfo other)
         {
             return
                 ScreenSpaceAABB.Equals(other.ScreenSpaceAABB) &&
                 MaskingRect.Equals(other.MaskingRect) &&
                 ToMaskingSpace.Equals(other.ToMaskingSpace) &&
-                CornerRadius == other.CornerRadius;
+                CornerRadius == other.CornerRadius &&
+                BorderThickness == other.BorderThickness &&
+                BorderColour.Equals(other.BorderColour);
         }
     }
 }
