@@ -293,6 +293,9 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.BorderColour.B,
                 maskingInfo.BorderColour.A));
 
+            Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
+            Shader.SetGlobalProperty(@"g_PixelScale", (scale.X + scale.Y) / 2);
+
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
             actualRect.Y += Viewport.Y;
