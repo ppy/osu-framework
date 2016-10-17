@@ -31,11 +31,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override Quad DrawQuadForBounds
+        protected override RectangleF DrawRectangleForBounds
         {
             get
             {
-                if (RelativeSizeAxes == Axes.Both) return base.DrawQuadForBounds;
+                if (RelativeSizeAxes == Axes.Both) return base.DrawRectangleForBounds;
 
                 Vector2 maxBoundSize = Vector2.Zero;
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
                 if ((RelativeSizeAxes & Axes.Y) > 0)
                     maxBoundSize.Y = Size.Y;
 
-                return new Quad(0, 0, maxBoundSize.X + Padding.TotalHorizontal, maxBoundSize.Y + Padding.TotalVertical);
+                return new RectangleF(0, 0, maxBoundSize.X + Padding.TotalHorizontal, maxBoundSize.Y + Padding.TotalVertical);
             }
         }
 
@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 autoSize.Refresh(delegate
                 {
-                    Vector2 b = DrawQuadForBounds.BottomRight;
+                    Vector2 b = DrawRectangleForBounds.BottomRight;
                     base.Size = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
