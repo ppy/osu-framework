@@ -10,6 +10,7 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using System;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -87,6 +88,40 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 1:
                     {
+                        Func<float, Drawable> createMaskingBox = delegate(float scale)
+                        {
+                            float size = 200 / scale;
+                            return new Container
+                            {
+                                Masking = true,
+                                CornerRadius = 25 / scale,
+                                BorderThickness = 12.5f / scale,
+                                BorderColour = Color4.Red,
+                                Size = new Vector2(size),
+                                Scale = new Vector2(scale),
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Children = new Drawable[]
+                                {
+                                    new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Colour = Color4.White,
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                    },
+                                    new SpriteText
+                                    {
+                                        Text = @"Size: " + size + ", Scale: " + scale,
+                                        TextSize = 20 / scale,
+                                        Colour = Color4.Blue,
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                    },
+                                }
+                            };
+                        };
+
                         testContainer.Add(new FlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
@@ -97,112 +132,28 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Container
-                                        {
-                                            Masking = true,
-                                            CornerRadius = 0.25f,
-                                            BorderThickness = 0.125f,
-                                            BorderColour = Color4.Red,
-                                            Size = new Vector2(2),
-                                            Scale = new Vector2(100),
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Children = new Drawable[]
-                                            {
-                                                new Box
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.White,
-                                                },
-                                            }
-                                        }
-                                    }
+                                    Children = new Drawable[] { createMaskingBox(100) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Container
-                                        {
-                                            Masking = true,
-                                            CornerRadius = 2.5f,
-                                            BorderThickness = 1.25f,
-                                            BorderColour = Color4.Red,
-                                            Size = new Vector2(20),
-                                            Scale = new Vector2(10),
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Children = new Drawable[]
-                                            {
-                                                new Box
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.White,
-                                                },
-                                            }
-                                        }
-                                    }
+                                    Children = new Drawable[] { createMaskingBox(10) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Container
-                                        {
-                                            Masking = true,
-                                            CornerRadius = 25,
-                                            BorderThickness = 12.5f,
-                                            BorderColour = Color4.Red,
-                                            Size = new Vector2(200),
-                                            Scale = new Vector2(1),
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Children = new Drawable[]
-                                            {
-                                                new Box
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.White,
-                                                },
-                                            }
-                                        }
-                                    }
+                                    Children = new Drawable[] { createMaskingBox(1) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Container
-                                        {
-                                            Masking = true,
-                                            CornerRadius = 250,
-                                            BorderThickness = 125,
-                                            BorderColour = Color4.Red,
-                                            Size = new Vector2(2000),
-                                            Scale = new Vector2(0.1f),
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Children = new Drawable[]
-                                            {
-                                                new Box
-                                                {
-                                                    RelativeSizeAxes = Axes.Both,
-                                                    Colour = Color4.White,
-                                                },
-                                            }
-                                        }
-                                    }
+                                    Children = new Drawable[] { createMaskingBox(0.1f) }
                                 },
                             }
                         });
