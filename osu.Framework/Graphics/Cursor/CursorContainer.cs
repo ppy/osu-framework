@@ -35,13 +35,19 @@ namespace osu.Framework.Graphics.Cursor
             return base.OnMouseMove(state);
         }
 
-        class Cursor : Box
+        class Cursor : CircularContainer
         {
             public Cursor()
             {
-                CornerRadius = 3;
-                Size = new Vector2(6, 6);
-                Origin = Anchor.Centre;
+                Children = new[]
+                {
+                    new Box
+                    {
+                        Size = new Vector2(6, 6),
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.Centre,
+                    }
+                };
             }
         }
     }

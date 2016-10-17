@@ -61,10 +61,10 @@ namespace osu.Framework.Graphics.UserInterface
             this.game = game;
 
             Masking = true;
+            CornerRadius = 3;
 
             Add(background = new Box
             {
-                CornerRadius = 3,
                 Colour = BackgroundUnfocused,
                 RelativeSizeAxes = Axes.Both,
             });
@@ -152,13 +152,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionLength > 0)
                     {
-                        cursor.CornerRadius = 3;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                     }
                     else
                     {
-                        cursor.CornerRadius = 0;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)

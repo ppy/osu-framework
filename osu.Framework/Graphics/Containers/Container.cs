@@ -3,12 +3,11 @@
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
-using System.Drawing;
-using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,7 +16,15 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class Container : Drawable
     {
-        public bool Masking;
+        public bool Masking = false;
+
+        private float cornerRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a radius is masked away around the corners.
+        /// </summary>
+        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -25,7 +32,13 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
-            n.MaskingQuad = Masking ? ScreenSpaceDrawQuad : (Quad?)null;
+            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+            {
+                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                MaskingRect = DrawQuad.AABBf,
+                ToMaskingSpace = DrawInfo.MatrixInverse,
+                CornerRadius = this.CornerRadius,
+            };
 
             base.ApplyDrawNode(node);
         }
@@ -426,5 +439,59 @@ namespace osu.Framework.Graphics.Containers
 
             return this;
         }
+
+        public override bool Contains(Vector2 screenSpacePos)
+        {
+            if (!Masking || CornerRadius == 0.0f)
+                return base.Contains(screenSpacePos);
+
+            Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
+            RectangleF aabb = DrawQuad.AABBf;
+
+            // We may want this, or we may not want this. Still undecided.
+            // TODO: Discuss with others.
+
+            /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
+            aabb.X *= scale.X;
+            aabb.Y *= scale.Y;
+            aabb.Width *= scale.X;
+            aabb.Height *= scale.Y;*/
+
+            aabb.X += CornerRadius;
+            aabb.Y += CornerRadius;
+            aabb.Width -= 2 * CornerRadius;
+            aabb.Height -= 2 * CornerRadius;
+
+            return aabb.DistanceSquared(localSpacePos) < CornerRadius * CornerRadius;
+        }
+
+        protected override RectangleF BoundingBox
+        {
+            get
+            {
+                // TODO: Figure out how to efficiently and correctly find a parent-space bounding box
+                //       of a transformed Rect with rounded corners.
+
+                //if (!Masking || CornerRadius == 0.0f)
+                    return base.BoundingBox;
+
+                /*Quad drawQuadForBounds = DrawQuadForBounds;
+
+                Vector2 cornerRadius = new Vector2(CornerRadius);
+
+                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
+                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
+
+                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
+                aabb.X -= cornerRadius.X;
+                aabb.Y -= cornerRadius.Y;
+                aabb.Width += 2 * cornerRadius.X;
+                aabb.Height += 2 * cornerRadius.Y;
+
+                return aabb;*/
+            }
+}
     }
 }

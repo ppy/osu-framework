@@ -54,11 +54,6 @@ namespace osu.Framework.VisualTests.Tests
             private Box box;
             private bool propagateHover;
 
-            public override bool Contains(Vector2 screenSpacePos)
-            {
-                return box.Contains(screenSpacePos);
-            }
-
             public HoverBox(Color4 normalColour, Color4 hoveredColour, bool propagateHover = true)
             {
                 this.normalColour = normalColour;

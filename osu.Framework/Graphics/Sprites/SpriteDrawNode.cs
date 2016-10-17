@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES20;
 using OpenTK;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -15,8 +16,6 @@ namespace osu.Framework.Graphics.Sprites
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
-        public float CornerRadius;
-        public Vector2 Size;
 
         protected override void Draw()
         {
@@ -28,15 +27,7 @@ namespace osu.Framework.Graphics.Sprites
             if (!Shader.Loaded) Shader.Compile();
 
             RectangleF texRect = Texture.GetTextureRect();
-
-            if (CornerRadius != 0.0f)
-            {
-                Shader.GetUniform<Vector4>(@"g_TexRect").Value = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom);
-                Shader.GetUniform<Vector2>(@"g_TexSize").Value = Vector2.Multiply(Texture.TextureGL.Native.Size, Size);
-            }
             
-            Shader.GetUniform<float>(@"g_Radius").Value = CornerRadius;
-
             Shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;

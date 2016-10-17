@@ -66,6 +66,7 @@ namespace osu.Framework.GameModes.Testing
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
+                Padding = new MarginPadding(3),
                 Direction = FlowDirection.VerticalOnly,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)
@@ -127,30 +128,46 @@ namespace osu.Framework.GameModes.Testing
             {
                 base.Load(game);
 
+                Masking = true;
+                CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
 
-                Add(box = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = new Color4(140, 140, 140, 255),
-                    Alpha = 0.7f
-                });
 
-                Add(new SpriteText
+                Add(new Drawable[]
                 {
-                    Text = test.Name,
-                    RelativeSizeAxes = Axes.X,
-                    //TextBold = true
-                });
-
-                Add(new SpriteText
-                {
-                    Text = test.Description,
-                    TextSize = 15,
-                    RelativeSizeAxes = Axes.X,
-                    Anchor = Anchor.BottomLeft,
-                    Origin = Anchor.BottomLeft
+                    box = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = new Color4(140, 140, 140, 255),
+                        Alpha = 0.7f
+                    },
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Padding = new MarginPadding
+                        {
+                            Left = 4,
+                            Right = 4,
+                            Bottom = 2,
+                        },
+                        Children = new[]
+                        {
+                            new SpriteText
+                            {
+                                Text = test.Name,
+                                RelativeSizeAxes = Axes.X,
+                            },
+                            new SpriteText
+                            {
+                                Text = test.Description,
+                                TextSize = 15,
+                                RelativeSizeAxes = Axes.X,
+                                Anchor = Anchor.BottomLeft,
+                                Origin = Anchor.BottomLeft
+                            }
+                        }
+                    }
                 });
             }
 

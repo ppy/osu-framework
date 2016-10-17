@@ -64,6 +64,7 @@ namespace osu.Framework.Graphics.Visualisation
         public TreeContainer()
         {
             Masking = true;
+            CornerRadius = 5;
             Position = new Vector2(100, 100);
             Size = new Vector2(width, height);
             AddInternal(new Drawable[]
