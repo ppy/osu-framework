@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transformations
 {
-    public class TransformScaleVector : TransformVector
+    public class TransformScale : TransformVector
     {
         public override void Apply(Drawable d)
         {
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Transformations
             d.Scale = CurrentValue;
         }
 
-        public TransformScaleVector(IClock clock)
+        public TransformScale(IClock clock)
             : base(clock)
         {
         }

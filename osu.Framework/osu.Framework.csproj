@@ -130,7 +130,7 @@
     <Compile Include="Graphics\Transformations\TransformPositionY.cs" />
     <Compile Include="Graphics\Transformations\TransformRotation.cs" />
     <Compile Include="Graphics\Transformations\TransformVector.cs" />
-    <Compile Include="Graphics\Transformations\TransformScaleVector.cs" />
+    <Compile Include="Graphics\Transformations\TransformScale.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
