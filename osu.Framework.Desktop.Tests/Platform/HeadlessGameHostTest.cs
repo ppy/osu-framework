@@ -28,8 +28,8 @@ namespace osu.Framework.Desktop.Tests.Platform
                 server.Load(null);
                 client.Load(null);
 
-                Assert.IsTrue(server.IsPrimaryInstance);
-                Assert.IsFalse(client.IsPrimaryInstance);
+                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
+                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
 
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
