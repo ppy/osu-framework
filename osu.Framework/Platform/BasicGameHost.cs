@@ -372,8 +372,8 @@ namespace osu.Framework.Platform
 
             try
             {
-                Window.RenderFrame += delegate { OnApplicationIdle(); };
-                Window.Run();
+                Window.UpdateFrame += delegate { OnApplicationIdle(); };
+                Window.Run(200);
             }
             catch (OutOfMemoryException)
             {
