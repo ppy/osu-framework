@@ -28,31 +28,45 @@ namespace osu.Framework.Graphics.Containers
 
         private Vector2 computeAutoSize()
         {
-            if (RelativeSizeAxes == Axes.Both) return Size + Padding.Total;
+            MarginPadding padding = Padding;
+            MarginPadding margin = Margin;
 
-            Vector2 maxBoundSize = Vector2.Zero;
-
-            // Find the maximum width/height of children
-            foreach (Drawable c in AliveChildren)
+            try
             {
-                if (!c.IsVisible)
-                    continue;
+                Padding = new MarginPadding();
+                Margin = new MarginPadding();
 
-                Vector2 cBound = c.BoundingSize;
+                if (RelativeSizeAxes == Axes.Both) return DrawSize;
 
-                if ((c.RelativeSizeAxes & Axes.X) == 0 && (c.RelativePositionAxes & Axes.X) == 0)
-                    maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
+                Vector2 maxBoundSize = Vector2.Zero;
 
-                if ((c.RelativeSizeAxes & Axes.Y) == 0 && (c.RelativePositionAxes & Axes.Y) == 0)
-                    maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
+                // Find the maximum width/height of children
+                foreach (Drawable c in AliveChildren)
+                {
+                    if (!c.IsVisible)
+                        continue;
+
+                    Vector2 cBound = c.BoundingSize;
+
+                    if ((c.RelativeSizeAxes & Axes.X) == 0 && (c.RelativePositionAxes & Axes.X) == 0)
+                        maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
+
+                    if ((c.RelativeSizeAxes & Axes.Y) == 0 && (c.RelativePositionAxes & Axes.Y) == 0)
+                        maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
+                }
+
+                if ((RelativeSizeAxes & Axes.X) > 0)
+                    maxBoundSize.X = DrawSize.X;
+                if ((RelativeSizeAxes & Axes.Y) > 0)
+                    maxBoundSize.Y = DrawSize.Y;
+
+                return new Vector2(maxBoundSize.X, maxBoundSize.Y);
             }
-
-            if ((RelativeSizeAxes & Axes.X) > 0)
-                maxBoundSize.X = Size.X;
-            if ((RelativeSizeAxes & Axes.Y) > 0)
-                maxBoundSize.Y = Size.Y;
-
-            return new Vector2(maxBoundSize.X + Padding.TotalHorizontal, maxBoundSize.Y + Padding.TotalVertical);
+            finally
+            {
+                Padding = padding;
+                Margin = margin;
+            }
         }
 
         protected override bool UpdateChildrenLife()
@@ -72,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 autoSize.Refresh(delegate
                 {
-                    Vector2 b = computeAutoSize();
+                    Vector2 b = computeAutoSize() + Padding.Total;
                     base.Size = new Vector2(
                         (RelativeSizeAxes & Axes.X) > 0 ? Size.X : b.X,
                         (RelativeSizeAxes & Axes.Y) > 0 ? Size.Y : b.Y
