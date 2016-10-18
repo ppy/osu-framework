@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual IEnumerable<Drawable> InternalChildren
+        public virtual IEnumerable<Drawable> InternalChildren
         {
             get { return IsLoaded ? children : pendingChildren; }
 
@@ -146,12 +146,17 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override Vector2 Size => base.Size + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
+        public override Vector2 DrawSize => base.DrawSize + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
 
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => base.Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+
+        /// <summary>
+        /// The Size (coordinate space) revealed to Children.
+        /// </summary>
+        internal Vector2 RawDrawSize => base.DrawSize;
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -163,16 +168,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
-        //Custom DrawQuad implementation excludes Margin/Padding.
-        protected override RectangleF DrawRectangle
-        {
-            get
-            {
-                Vector2 s = ChildSize;
-                Vector2 o = ChildOffset;
-                return new RectangleF(o.X, o.Y, s.X, s.Y);
-            }
-        }
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.

@@ -17,11 +17,6 @@ namespace osu.Framework.Graphics.Containers
 
         public override Vector2 Size
         {
-            get
-            {
-                return base.Size;
-            }
-
             set
             {
                 Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
@@ -79,8 +74,8 @@ namespace osu.Framework.Graphics.Containers
                 {
                     Vector2 b = computeAutoSize();
                     base.Size = new Vector2(
-                        (RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X,
-                        (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y
+                        (RelativeSizeAxes & Axes.X) > 0 ? Size.X : b.X,
+                        (RelativeSizeAxes & Axes.Y) > 0 ? Size.Y : b.Y
                     );
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.

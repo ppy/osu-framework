@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                return Size.X / 2f;
+                return DrawSize.X / 2f;
             }
 
             set
