@@ -128,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
     
                 foreach (Drawable c in children)
-                    c.Invalidate(Invalidation.Geometry, this);
+                    c.Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -162,9 +162,6 @@ namespace osu.Framework.Graphics.Containers
         /// Offset which is only applied to Children.
         /// </summary>
         internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
-
-        //Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
-        protected override RectangleF DrawRectangleForBounds => base.DrawRectangle;
 
         //Custom DrawQuad implementation excludes Margin/Padding.
         protected override RectangleF DrawRectangle

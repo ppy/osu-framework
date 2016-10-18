@@ -471,8 +471,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangleForBounds).AABBf;
-        protected virtual RectangleF DrawRectangleForBounds => DrawRectangle;
+        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangle).AABBf;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
