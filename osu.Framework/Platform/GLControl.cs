@@ -29,7 +29,6 @@ namespace osu.Framework.Platform
         public void Initialize()
         {
             //make sure our context is current on the correct frame.
-            Invoke((MethodInvoker)delegate { Context.MakeCurrent(null); });
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
@@ -64,6 +63,8 @@ namespace osu.Framework.Platform
                         GL Vendor:                  {GL.GetString(StringName.Vendor)}
                         GL Extensions:              {GL.GetString(StringName.Extensions)}
                         GL Context:                 {GraphicsMode}", LoggingTarget.Runtime, LogLevel.Important);
+
+            Context.MakeCurrent(null);
         }
 
         private string GetVersionNumberSubstring(string version)
