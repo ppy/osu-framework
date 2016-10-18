@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Text = text,
                 Origin = Anchor.Centre,
-                Anchor = Anchor.Centre
+                Anchor = Anchor.Centre,
             });
         }
 

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,6 +27,22 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
 
+        private float borderThickness = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how thick of a border to draw around masked children.
+        /// </summary>
+        public virtual float BorderThickness { get { return borderThickness; } set { borderThickness = value; } }
+
+        private Color4 borderColour = Color4.Black;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines the color of the drawn border.
+        /// </summary>
+        public virtual Color4 BorderColour { get { return borderColour; } set { borderColour = value; } }
+
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -38,6 +55,8 @@ namespace osu.Framework.Graphics.Containers
                 MaskingRect = DrawRectangle,
                 ToMaskingSpace = DrawInfo.MatrixInverse,
                 CornerRadius = this.CornerRadius,
+                BorderThickness = this.BorderThickness,
+                BorderColour = this.BorderColour,
             };
 
             base.ApplyDrawNode(node);

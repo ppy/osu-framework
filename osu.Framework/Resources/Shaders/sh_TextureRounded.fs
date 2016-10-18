@@ -7,32 +7,56 @@ varying vec4 v_Colour;
 varying vec2 v_TexCoord;
 
 uniform sampler2D m_Sampler;
-
 uniform float g_CornerRadius;
-
 uniform vec4 g_MaskingRect;
+uniform float g_BorderThickness;
+uniform vec4 g_BorderColour;
 
-vec2 max3(vec2 a, vec2 b, vec2 c)
-{
-    return max(max(a, b), c);
-}
+uniform float g_PixelScale;
 
 float distanceFromRoundedRect()
 {
-	// Compute offset distance from masking rect in masking space.
+    // Compute offset distance from masking rect in masking space.
     vec2 topLeftOffset = g_MaskingRect.xy - v_MaskingPosition;
     vec2 bottomRightOffset = v_MaskingPosition - g_MaskingRect.zw;
-    vec2 distanceFromShrunkRect = max3(vec2(0.0), bottomRightOffset + vec2(g_CornerRadius), topLeftOffset + vec2(g_CornerRadius));
-    return length(distanceFromShrunkRect);
+
+    vec2 distanceFromShrunkRect = max(
+        bottomRightOffset + vec2(g_CornerRadius),
+        topLeftOffset + vec2(g_CornerRadius));
+
+    float maxDist = max(distanceFromShrunkRect.x, distanceFromShrunkRect.y);
+
+    // Inside the shrunk rectangle
+    if (maxDist <= 0.0)
+        return maxDist;
+    // Outside of the shrunk rectangle
+    else
+        return length(max(vec2(0.0), distanceFromShrunkRect));
 }
 
 void main(void)
 {
-    float dist = g_CornerRadius == 0.0 ? 0.0 : distanceFromRoundedRect();
-    gl_FragColor = v_Colour * texture2D(m_Sampler, v_TexCoord, -0.9);
+    float dist = distanceFromRoundedRect();
 
     // This correction is needed to avoid fading of the alpha value for radii below 1px.
-    float radiusCorrection = max(0.0, 1.0 - g_CornerRadius);
-    if (dist > g_CornerRadius - 1.0 + radiusCorrection)
-        gl_FragColor.a *= max(0.0, g_CornerRadius - dist + radiusCorrection);
+    float radiusCorrection = g_CornerRadius <= 0.0 ? 1.0 : max(0.0, g_PixelScale - g_CornerRadius);
+    float fadeStart = g_CornerRadius + radiusCorrection;
+    float alphaFactor = min((fadeStart - dist) / g_PixelScale, 1.0);
+    if (alphaFactor <= 0.0)
+    {
+        gl_FragColor = vec4(0.0);
+        return;
+    }
+
+    float borderStart = fadeStart - g_BorderThickness + g_PixelScale;
+    float colourWeight = min((borderStart - dist) / g_PixelScale, 1.0);
+    if (colourWeight <= 0.0)
+    {
+        gl_FragColor = vec4(g_BorderColour.rgb, g_BorderColour.a * alphaFactor);
+        return;
+    }
+
+    gl_FragColor =
+        colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texture2D(m_Sampler, v_TexCoord, -0.9) +
+        (1.0 - colourWeight) * g_BorderColour;
 }

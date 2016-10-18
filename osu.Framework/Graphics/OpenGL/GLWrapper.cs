@@ -273,9 +273,9 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
+        private static Rectangle currentScissorRect;
 
-
-        private static void setMaskingInfo(MaskingInfo maskingInfo)
+        private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
             Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
                 maskingInfo.MaskingRect.Left,
@@ -285,6 +285,16 @@ namespace osu.Framework.Graphics.OpenGL
 
             Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
+
+            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness);
+            Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
+                maskingInfo.BorderColour.R,
+                maskingInfo.BorderColour.G,
+                maskingInfo.BorderColour.B,
+                maskingInfo.BorderColour.A));
+
+            Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
+            Shader.SetGlobalProperty(@"g_PixelScale", (scale.X + scale.Y) / 2);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -303,7 +313,11 @@ namespace osu.Framework.Graphics.OpenGL
                 actualRect.Height = -actualRect.Height;
             }
 
-            GL.Scissor(actualRect.X, Viewport.Height - actualRect.Bottom, actualRect.Width, actualRect.Height);
+            if (overwritePreviousScissor)
+                currentScissorRect = actualRect;
+            else
+                currentScissorRect.Intersect(actualRect);
+            GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
         }
 
         /// <summary>
@@ -317,7 +331,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo);
+            setMaskingQuad(CurrentMaskingInfo, false);
         }
 
         /// <summary>
@@ -334,7 +348,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo);
+            setMaskingQuad(CurrentMaskingInfo, true);
         }
 
         /// <summary>
@@ -432,13 +446,18 @@ namespace osu.Framework.Graphics.OpenGL
         public Matrix3 ToMaskingSpace;
         public float CornerRadius;
 
+        public float BorderThickness;
+        public Color4 BorderColour;
+
         public bool Equals(MaskingInfo other)
         {
             return
                 ScreenSpaceAABB.Equals(other.ScreenSpaceAABB) &&
                 MaskingRect.Equals(other.MaskingRect) &&
                 ToMaskingSpace.Equals(other.ToMaskingSpace) &&
-                CornerRadius == other.CornerRadius;
+                CornerRadius == other.CornerRadius &&
+                BorderThickness == other.BorderThickness &&
+                BorderColour.Equals(other.BorderColour);
         }
     }
 }

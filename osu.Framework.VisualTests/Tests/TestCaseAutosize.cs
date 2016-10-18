@@ -24,8 +24,6 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            AddToggle(@"debug autosize", reloadCallback);
-
             Add(testContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
@@ -72,22 +70,13 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        private void reloadCallback()
-        {
-            loadTest(currentTest);
-        }
-
-        private int currentTest;
-
         private void loadTest(int testType)
         {
-            currentTest = testType;
-
             testContainer.Clear();
 
             Container box;
 
-            switch (currentTest)
+            switch (testType)
             {
                 case 1:
                     testContainer.Add(box = new InfofulBoxAutoSize

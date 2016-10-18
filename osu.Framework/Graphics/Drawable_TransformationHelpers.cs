@@ -273,14 +273,26 @@ namespace osu.Framework.Graphics
 
         public Drawable ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            updateTransformsOfType(typeof(TransformScaleVector));
-            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScaleVector(Clock));
+            updateTransformsOfType(typeof(TransformScale));
+            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale(Clock));
         }
 
         public Drawable ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            updateTransformsOfType(typeof(TransformScaleVector));
-            return transformVectorTo(Scale, newScale, duration, easing, new TransformScaleVector(Clock));
+            updateTransformsOfType(typeof(TransformScale));
+            return transformVectorTo(Scale, newScale, duration, easing, new TransformScale(Clock));
+        }
+
+        public Drawable ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            return transformVectorTo(InternalSize, new Vector2(newSize), duration, easing, new TransformSize(Clock));
+        }
+
+        public Drawable ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            return transformVectorTo(InternalSize, newSize, duration, easing, new TransformSize(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
