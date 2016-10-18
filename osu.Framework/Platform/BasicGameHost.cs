@@ -278,7 +278,6 @@ namespace osu.Framework.Platform
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 {
                     UpdateScheduler.Update();
-                    InputScheduler.Update();
                 }
 
                 using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
@@ -373,7 +372,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                Application.Idle += delegate { OnApplicationIdle(); };
+                Window.RenderFrame += delegate { OnApplicationIdle(); };
                 Window.Run();
             }
             catch (OutOfMemoryException)
