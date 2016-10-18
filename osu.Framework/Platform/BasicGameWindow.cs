@@ -2,17 +2,70 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
+using System.Windows.Forms;
+using osu.Framework.Logging;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Platform
 {
     public abstract class BasicGameWindow : GameWindow
     {
+        internal Version GLVersion;
+        internal Version GLSLVersion;
+
         public BasicGameWindow(int width, int height) : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested();
             Closed += (sender, e) => Exited();
             Cursor = MouseCursor.Empty;
+
+            ////make sure our context is current on the correct frame.
+            //Invoke((MethodInvoker)delegate { Context.MakeCurrent(null); });
+            MakeCurrent();
+
+            string version = GL.GetString(StringName.Version);
+            string versionNumberSubstring = GetVersionNumberSubstring(version);
+            GLVersion = new Version(versionNumberSubstring);
+            version = GL.GetString(StringName.ShadingLanguageVersion);
+            if (!string.IsNullOrEmpty(version))
+            {
+                try
+                {
+                    GLSLVersion = new Version(versionNumberSubstring);
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e, $@"couldn't set GLSL version using string '{version}'");
+                }
+            }
+
+            if (GLSLVersion == null)
+                GLSLVersion = new Version();
+
+            //Set up OpenGL related characteristics
+            GL.Disable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.StencilTest);
+            GL.Enable(EnableCap.Blend);
+            GL.Enable(EnableCap.ScissorTest);
+
+            Logger.Log($@"GL Initialized
+                        GL Version:                 {GL.GetString(StringName.Version)}
+                        GL Renderer:                {GL.GetString(StringName.Renderer)}
+                        GL Shader Language version: {GL.GetString(StringName.ShadingLanguageVersion)}
+                        GL Vendor:                  {GL.GetString(StringName.Vendor)}
+                        GL Extensions:              {GL.GetString(StringName.Extensions)}", LoggingTarget.Runtime, LogLevel.Important);
+
+            Context.MakeCurrent(null);
+        }
+
+        private string GetVersionNumberSubstring(string version)
+        {
+            string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
+            if (result != null) return result;
+            throw new ArgumentException(nameof(version));
         }
 
         public void SetTitle(string title)
@@ -27,12 +80,6 @@ namespace osu.Framework.Platform
 
         public event Action Exited;
         
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-            Context.MakeCurrent(null);
-        }
-
         protected void OnExited()
         {
             Exited?.Invoke();
