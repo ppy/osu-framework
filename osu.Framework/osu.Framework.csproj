@@ -71,16 +71,16 @@
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="SQLite.Net.Platform.Win32">
-      <HintPath>..\..\packages\SQLite.Net-PCL.3.0.5\lib\net4\SQLite.Net.Platform.Win32.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\SQLite.Net-PCL.3.0.5\lib\net4\SQLite.Net.Platform.Win32.dll</HintPath>
     </Reference>
     <Reference Include="SQLite.Net">
-      <HintPath>..\..\packages\SQLite.Net-PCL.3.0.5\lib\net40\SQLite.Net.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\SQLite.Net-PCL.3.0.5\lib\net40\SQLite.Net.dll</HintPath>
     </Reference>
     <Reference Include="SQLite.Net.Platform.Generic">
-      <HintPath>..\..\packages\SQLite.Net-PCL.3.0.5\lib\net40\SQLite.Net.Platform.Generic.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\SQLite.Net-PCL.3.0.5\lib\net40\SQLite.Net.Platform.Generic.dll</HintPath>
     </Reference>
     <Reference Include="SQLiteNetExtensions">
-      <HintPath>..\..\packages\SQLiteNetExtensions.1.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\SQLiteNetExtensions.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\SQLiteNetExtensions.1.3.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\SQLiteNetExtensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
