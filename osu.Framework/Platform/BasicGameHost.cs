@@ -434,16 +434,23 @@ namespace osu.Framework.Platform
             inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
+        public override void Load(BaseGame game)
+        {
+            if (!IsLoaded)
+                base.Load(game);
+        }
+
         public override void Add(Drawable drawable)
         {
             BaseGame game = drawable as BaseGame;
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
+
             UpdateScheduler.Add(delegate
             {
-                Children = new[] { game };
-                Load(game);
+                Load(null);
+                base.Add(game);
             });
         }
 
