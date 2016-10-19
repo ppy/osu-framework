@@ -55,6 +55,9 @@ namespace osu.Framework.VisualTests.Tests
                 default:
                 case 0:
                     {
+                        Color4 glowColour = Color4.Aquamarine;
+                        glowColour.A = 0.5f;
+
                         Container box;
                         testContainer.Add(box = new InfofulBoxAutoSize
                         {
@@ -62,6 +65,10 @@ namespace osu.Framework.VisualTests.Tests
                             Origin = Anchor.Centre,
                             Masking = true,
                             CornerRadius = 100,
+                            GlowRadius = 25,
+                            BorderColour = Color4.Aquamarine,
+                            BorderThickness = 3,
+                            GlowColour = glowColour
                         });
 
                         addCornerMarkers(box);
