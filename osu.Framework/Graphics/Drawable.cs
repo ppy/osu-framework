@@ -425,9 +425,9 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        internal virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = BaseDrawInfo;
+                DrawInfo di = new DrawInfo(null, null, null);
 
                 float alpha = Alpha;
                 if (Colour.A > 0 && Colour.A < 1)
@@ -444,9 +444,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
-
-        protected virtual RectangleF DrawRectangle
+        internal virtual RectangleF DrawRectangle
         {
             get
             {

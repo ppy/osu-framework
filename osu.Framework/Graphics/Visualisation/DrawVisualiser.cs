@@ -182,19 +182,25 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void OnHoverLost(InputState state)
         {
-            if (overlay != null)
-                Remove(overlay);
-
+            showOverlayFor(null);
             base.OnHoverLost(state);
         }
 
         private void showOverlayFor(Drawable target)
         {
-            if (overlay != null)
-                Remove(overlay);
-
             if (target != null)
-                Add(overlay = new InfoOverlay(target));
+            {
+                if (overlay == null)
+                    Add(overlay = new InfoOverlay());
+
+                overlay.Target = target;
+            }
+            else if (overlay != null)
+            {
+                Remove(overlay);
+                overlay.Target = null;
+                overlay = null;
+            }
         }
     }
 }
