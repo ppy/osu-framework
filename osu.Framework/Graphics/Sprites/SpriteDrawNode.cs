@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteDrawNode : DrawNode
     {
-        public Shader Shader;
+        public static Shader Shader;
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
@@ -24,10 +24,6 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            if (!Shader.Loaded) Shader.Compile();
-
-            Texture.GetTextureRect();
-            
             Shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;

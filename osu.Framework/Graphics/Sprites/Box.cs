@@ -8,17 +8,9 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Box : Sprite
     {
-        private static Texture whitePixel;
-
         public Box()
         {
-            if (whitePixel == null)
-            {
-                whitePixel = new Texture(1, 1, true);
-                whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
-            }
-
-            Texture = whitePixel;
+            Texture = Texture.WhitePixel;
         }
     }
 }

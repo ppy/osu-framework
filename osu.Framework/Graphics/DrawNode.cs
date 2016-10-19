@@ -16,24 +16,13 @@ namespace osu.Framework.Graphics
 
         public void DrawSubTree()
         {
-            PreDraw();
-
             GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
 
             Draw();
-
-            PostDraw();
         }
 
-        protected virtual void PreDraw()
-        {
-        }
 
         protected virtual void Draw()
-        {
-        }
-
-        protected virtual void PostDraw()
         {
         }
     }

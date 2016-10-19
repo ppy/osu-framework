@@ -135,13 +135,18 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
+        private void ensureLoaded()
+        {
+            if (!Loaded)
+                Compile();
+        }
+
         public void Bind()
         {
             if (IsBound)
                 return;
 
-            if (!Loaded)
-                return;
+            ensureLoaded();
 
             GLWrapper.UseProgram(this);
 
@@ -168,6 +173,7 @@ namespace osu.Framework.Graphics.Shaders
         /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
         {
+            ensureLoaded();
             if (!uniforms.ContainsKey(name))
                 return null;
             return new Uniform<T>(uniforms[name]);
@@ -185,6 +191,7 @@ namespace osu.Framework.Graphics.Shaders
 
             for (int i = 0; i < allShaders.Count; i++)
             {
+                allShaders[i].ensureLoaded();
                 if (allShaders[i].uniforms.ContainsKey(name))
                     allShaders[i].uniforms[name].Value = value;
             }

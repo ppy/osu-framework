@@ -9,6 +9,8 @@ using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -43,6 +45,9 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public virtual Color4 BorderColour { get { return borderColour; } set { borderColour = value; } }
 
+        public float GlowRadius;
+        public Color4 GlowColour;
+
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -58,6 +63,9 @@ namespace osu.Framework.Graphics.Containers
                 BorderThickness = this.BorderThickness,
                 BorderColour = this.BorderColour,
             };
+
+            n.GlowRadius = GlowRadius;
+            n.GlowColour = GlowColour;
 
             base.ApplyDrawNode(node);
         }
@@ -311,6 +319,10 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(pendingChildren);
                 pendingChildrenInternal = null;
             }
+
+            //todo: make this better.
+            if (SpriteDrawNode.Shader == null)
+                SpriteDrawNode.Shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.TextureRounded);
         }
 
         private void loadChild(Drawable obj)

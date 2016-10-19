@@ -19,10 +19,8 @@ namespace osu.Framework.Graphics.Containers
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
 
-        protected override void PreDraw()
+        protected override void Draw()
         {
-            base.PreDraw();
-
             foreach (var f in Formats)
                 FrameBuffer.Attach(f);
 
@@ -37,11 +35,9 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.PushOrtho(new Rectangle((int)ScreenSpaceDrawQuad.TopLeft.X, (int)ScreenSpaceDrawQuad.TopLeft.Y, FrameBuffer.Texture.Width, FrameBuffer.Texture.Height));
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-        }
 
-        protected override void PostDraw()
-        {
-            base.PostDraw();
+            // The actual Draw call
+            base.Draw();
 
             FrameBuffer.Unbind();
 

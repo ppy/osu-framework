@@ -288,6 +288,7 @@
     <EmbeddedResource Include="Resources\Shaders\sh_Texture2D.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture3D.vs" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans.fnt" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Glow.fs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />

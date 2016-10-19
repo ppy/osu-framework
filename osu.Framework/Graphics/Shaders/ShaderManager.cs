@@ -149,5 +149,6 @@ namespace osu.Framework.Graphics.Shaders
         TextureRounded,
         Colour,
         ColourRounded,
+        Glow,
     }
 }
