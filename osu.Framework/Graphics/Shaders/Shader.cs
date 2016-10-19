@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics.ES20;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -170,8 +171,7 @@ namespace osu.Framework.Graphics.Shaders
         public Uniform<T> GetUniform<T>(string name)
         {
             ensureLoaded();
-            if (!uniforms.ContainsKey(name))
-                return null;
+            Debug.Assert(uniforms.ContainsKey(name), string.Format(@"Inexisting uniform {0} in shader {1}.", name, this.name));
             return new Uniform<T>(uniforms[name]);
         }
 
