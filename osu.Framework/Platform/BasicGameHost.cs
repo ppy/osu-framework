@@ -434,12 +434,6 @@ namespace osu.Framework.Platform
             inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
-        public override void Load(BaseGame game)
-        {
-            if (!IsLoaded)
-                base.Load(game);
-        }
-
         public override void Add(Drawable drawable)
         {
             BaseGame game = drawable as BaseGame;
@@ -449,7 +443,10 @@ namespace osu.Framework.Platform
 
             UpdateScheduler.Add(delegate
             {
-                Load(null);
+                // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
+                // depend on a Game object.
+                if (!IsLoaded)
+                    Load(null);
                 base.Add(game);
             });
         }
