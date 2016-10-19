@@ -155,11 +155,16 @@ namespace osu.Framework.Graphics.Visualisation
             return targetSearching;
         }
 
+        private Drawable findTarget(InputState state)
+        {
+            return findTargetIn(Parent?.Parent?.Parent, state);
+        }
+
         protected override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
-                Target = findTargetIn(Parent, state)?.Parent;
+                Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {
@@ -175,7 +180,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnMouseMove(InputState state)
         {
             if (targetSearching)
-                showOverlayFor(findTargetIn(Parent?.Parent?.Parent, state));
+                showOverlayFor(findTarget(state));
 
             return base.OnMouseMove(state);
         }
