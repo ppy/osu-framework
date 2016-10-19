@@ -42,7 +42,11 @@ namespace osu.Framework.Graphics.Containers
             Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + GlowRadius;
 
             Shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
-            Shader.GetUniform<float>(@"g_PixelScale").Value = GlowRadius;
+
+            // Here we are generating the glow gradient by setting the blend range to the glow radius.
+            // Note, that unlike for masking, we are using the blend range for a visual phenomenon here,
+            // and not to achieve correct sampling of the border.
+            Shader.GetUniform<float>(@"g_LinearBlendRange").Value = GlowRadius;
 
             GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
 
