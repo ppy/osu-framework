@@ -1864,10 +1864,10 @@ namespace osu.Framework.Graphics.Textures.Png
 
             if (count == 0) return 0;
             if (nomoreinput && _wantCompress) return 0;  // workitem 8557
-            if (buffer == null) throw new ArgumentNullException("buffer");
-            if (count < 0) throw new ArgumentOutOfRangeException("count");
-            if (offset < buffer.GetLowerBound(0)) throw new ArgumentOutOfRangeException("offset");
-            if ((offset + count) > buffer.GetLength(0)) throw new ArgumentOutOfRangeException("count");
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (offset < buffer.GetLowerBound(0)) throw new ArgumentOutOfRangeException(nameof(offset));
+            if ((offset + count) > buffer.GetLength(0)) throw new ArgumentOutOfRangeException(nameof(count));
 
             int rc = 0;
 
