@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -17,6 +18,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private InfoOverlay overlay;
         private ScheduledDelegate task;
+
+        private List<Drawable> hoveredDrawables = new List<Drawable>();
 
         public DrawVisualiser()
         {
@@ -144,7 +147,15 @@ namespace osu.Framework.Graphics.Visualisation
                     var cLocal = c;
                     dr = new VisualisedDrawable(cLocal)
                     {
-                        Hovered = delegate { showOverlayFor(cLocal); },
+                        HoverGained = delegate {
+                            hoveredDrawables.Add(cLocal);
+                            showOverlayFor(cLocal);
+                        },
+                        HoverLost = delegate
+                        {
+                            hoveredDrawables.Remove(cLocal);
+                            showOverlayFor(hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null);
+                        },
                         RequestTarget = delegate { Target = cLocal; }
                     };
                     vis.Flow.Add(dr);
