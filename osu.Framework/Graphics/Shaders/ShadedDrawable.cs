@@ -12,11 +12,9 @@ namespace osu.Framework.Graphics.Shaders
         {
             base.Load(game);
 
-            // Still not happy about the right hand side of the conditional.
-            // It exists because BasicGameHost.Load invokes this before Game.Load,
-            // and hence before Game.Shaders has been created.
-            if (shader == null && game.Shaders != null)
-                shader = game.Shaders.Load(ShaderDescriptor);
+            if (shader == null)
+                // TODO: Ensure game is never null, and already loaded in here.
+                shader = game?.Shaders?.Load(ShaderDescriptor);
         }
 
         protected override DrawNode CreateDrawNode() => new ShadedDrawNode();
