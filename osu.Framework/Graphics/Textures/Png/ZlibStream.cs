@@ -471,8 +471,8 @@ namespace osu.Framework.Graphics.Textures.Png
             {
                 if (!_disposed)
                 {
-                    if (disposing && (this._baseStream != null))
-                        this._baseStream.Dispose();
+                    if (disposing)
+                        _baseStream?.Dispose();
                     _disposed = true;
                 }
             }
@@ -1565,8 +1565,7 @@ namespace osu.Framework.Graphics.Textures.Png
         {
             // workitem 7159
             // calculate the CRC on the unccompressed data  (before writing)
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, count);
+            crc?.SlurpBlock(buffer, offset, count);
 
             if (_streamMode == StreamMode.Undefined)
                 _streamMode = StreamMode.Writer;
@@ -1941,8 +1940,7 @@ namespace osu.Framework.Graphics.Textures.Png
             rc = (count - _z.AvailableBytesOut);
 
             // calculate CRC after reading
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, rc);
+            crc?.SlurpBlock(buffer, offset, rc);
 
             return rc;
         }
@@ -4610,8 +4608,7 @@ namespace osu.Framework.Graphics.Textures.Png
 
         internal int End()
         {
-            if (blocks != null)
-                blocks.Free();
+            blocks?.Free();
             blocks = null;
             return ZlibConstants.Z_OK;
         }
@@ -7763,13 +7760,13 @@ namespace osu.Framework.Graphics.Textures.Png
 
                 _TotalBytesRead = 0;
                 int count = input.Read(buffer, 0, readSize);
-                if (output != null) output.Write(buffer, 0, count);
+                output?.Write(buffer, 0, count);
                 _TotalBytesRead += count;
                 while (count > 0)
                 {
                     SlurpBlock(buffer, 0, count);
                     count = input.Read(buffer, 0, readSize);
-                    if (output != null) output.Write(buffer, 0, count);
+                    output?.Write(buffer, 0, count);
                     _TotalBytesRead += count;
                 }
 
