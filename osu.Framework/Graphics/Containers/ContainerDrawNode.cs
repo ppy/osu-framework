@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ContainerDrawNode : DrawNode
+    public class ContainerDrawNode : ShadedDrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
@@ -27,35 +27,33 @@ namespace osu.Framework.Graphics.Containers
             if (MaskingInfo == null || GlowRadius <= 0.0f || GlowColour.A <= 0.0f)
                 return;
 
-            // TODO: We need to better support shader sharing in the future.
-            Shader shader = SpriteDrawNode.Shader;
             RectangleF glowRect = MaskingInfo.Value.MaskingRect;
 
             glowRect.Inflate(GlowRadius, GlowRadius);
             Quad vertexQuad = new Quad(glowRect.X, glowRect.Y, glowRect.Width, glowRect.Height) * DrawInfo.Matrix;
 
-            shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
+            Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
                 glowRect.Left,
                 glowRect.Top,
                 glowRect.Right,
                 glowRect.Bottom);
 
-            shader.GetUniform<Matrix3>(@"g_ToMaskingSpace").Value = DrawInfo.MatrixInverse;
-            shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + GlowRadius;
+            Shader.GetUniform<Matrix3>(@"g_ToMaskingSpace").Value = DrawInfo.MatrixInverse;
+            Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + GlowRadius;
 
-            shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
-            shader.GetUniform<float>(@"g_PixelScale").Value = GlowRadius;
+            Shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
+            Shader.GetUniform<float>(@"g_PixelScale").Value = GlowRadius;
 
             GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
 
-            shader.Bind();
+            Shader.Bind();
 
             Color4 glowColour = GlowColour;
             glowColour.A *= DrawInfo.Colour.A;
 
             Texture.WhitePixel.Draw(vertexQuad, glowColour);
 
-            shader.Unbind();
+            Shader.Unbind();
         }
 
         protected override void Draw()

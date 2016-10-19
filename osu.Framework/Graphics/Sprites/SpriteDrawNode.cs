@@ -10,9 +10,8 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteDrawNode : DrawNode
+    public class SpriteDrawNode : ShadedDrawNode
     {
-        public static Shader Shader;
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;

@@ -10,7 +10,7 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class Sprite : Drawable
+    public class Sprite : ShadedDrawable
     {
         public bool WrapTexture = false;
 
@@ -32,15 +32,6 @@ namespace osu.Framework.Graphics.Sprites
         #endregion
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-
-            //todo: make this better.
-            if (SpriteDrawNode.Shader == null)
-                SpriteDrawNode.Shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.TextureRounded);
-        }
 
         protected override void ApplyDrawNode(DrawNode node)
         {

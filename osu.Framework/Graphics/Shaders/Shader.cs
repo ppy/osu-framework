@@ -24,13 +24,9 @@ namespace osu.Framework.Graphics.Shaders
         private Dictionary<string, UniformBase> uniforms = new Dictionary<string, UniformBase>();
         private List<ShaderPart> parts;
 
-        internal Shader(string name)
+        internal Shader(string name, List<ShaderPart> parts)
         {
             this.name = name;
-        }
-
-        internal Shader(string name, List<ShaderPart> parts) : this(name)
-        {
             this.parts = parts;
         }
 

@@ -17,6 +17,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Threading;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
 {
@@ -735,6 +736,7 @@ namespace osu.Framework.Graphics
             mainThread = Thread.CurrentThread;
             loaded = true;
             LifetimeStart = Time;
+
             Invalidate();
         }
 

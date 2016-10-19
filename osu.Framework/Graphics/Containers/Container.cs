@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public class Container : Drawable
+    public class Container : ShadedDrawable
     {
         public bool Masking = false;
 
@@ -319,10 +319,6 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(pendingChildren);
                 pendingChildrenInternal = null;
             }
-
-            //todo: make this better.
-            if (SpriteDrawNode.Shader == null)
-                SpriteDrawNode.Shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.TextureRounded);
         }
 
         private void loadChild(Drawable obj)
