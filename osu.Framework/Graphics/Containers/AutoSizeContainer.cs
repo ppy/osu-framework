@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
             Invalidate(Invalidation.Geometry);
         }
 
-        public override bool Remove(Drawable p, bool dispose = true)
+        public override bool Remove(Drawable p, bool dispose = false)
         {
             bool result = base.Remove(p, dispose);
             if (result)

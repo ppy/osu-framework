@@ -93,7 +93,11 @@ namespace osu.Framework.Graphics.Visualisation
             set
             {
                 if (targetVD != null)
+                {
                     treeContainer.Remove(targetVD);
+                    targetVD.Dispose();
+                    targetVD = null;
+                }
 
                 target = value;
 
@@ -203,7 +207,7 @@ namespace osu.Framework.Graphics.Visualisation
             else if (overlay != null)
             {
                 Remove(overlay);
-                overlay.Target = null;
+                overlay.Dispose();
                 overlay = null;
             }
         }
