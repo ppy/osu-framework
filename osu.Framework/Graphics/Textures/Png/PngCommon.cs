@@ -32,13 +32,7 @@ namespace osu.Framework.Graphics.Textures.Png
             colors = new List<Color>();
         }
 
-        internal Color this[int index]
-        {
-            get
-            {
-                return colors[index];
-            }
-        }
+        internal Color this[int index] => colors[index];
 
         internal void AddColor(Color color)
         {
@@ -241,10 +235,7 @@ namespace osu.Framework.Graphics.Textures.Png
             set;
         }
 
-        internal static byte[] PngSignature
-        {
-            get { return pngSignature; }
-        }
+        internal static byte[] PngSignature => pngSignature;
 
         internal override void Decode(byte[] chunkBytes)
         {
