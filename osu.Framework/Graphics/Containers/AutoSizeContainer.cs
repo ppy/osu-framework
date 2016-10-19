@@ -118,6 +118,14 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
+        public override bool Invalidate(Invalidation invalidation, Drawable source = null, bool shallPropagate = true)
+        {
+            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+                autoSize.Invalidate();
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         internal override void InvalidateFromChild(Invalidation invalidation, Drawable source)
         {
             if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
