@@ -79,13 +79,13 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A <see cref="T:System.Drawing.SizeF"></see> that represents the width and height of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public SizeF Size
+        public Vector2 Size
         {
-            get { return new SizeF(Width, Height); }
+            get { return new Vector2(Width, Height); }
             set
             {
-                Width = value.Width;
-                Height = value.Height;
+                Width = value.X;
+                Height = value.Y;
             }
         }
 

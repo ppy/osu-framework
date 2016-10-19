@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = game.Fonts;
 
-            spaceWidth = getSprite('.')?.Width * 2 ?? 20;
+            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
         }
 
         private string text;
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Sprites
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)
-                    constantWidth = getSprite('D').Width;
+                    constantWidth = getSprite('D').DrawWidth;
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.Size.X, 1f),
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
                             Children = new[] { s }
                         };
 

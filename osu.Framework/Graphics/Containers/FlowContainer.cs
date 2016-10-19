@@ -110,7 +110,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 max = maximumSize;
                     if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
                     {
-                        var s = Size;
+                        var s = DrawSize;
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if (d.IsVisible)
                         {
-                            size = d.Size * d.Scale * ChildScale;
+                            size = d.DrawSize * d.Scale * ChildScale;
 
                             //We've exceeded our allowed width, move to a new row
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
                             if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
                         }
 
-                        if (current != d.Position)
+                        if (current != d.DrawPosition)
                             d.MoveTo(current, LayoutDuration, LayoutEasing);
 
                         current.X += size.X;

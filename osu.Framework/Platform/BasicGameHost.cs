@@ -321,7 +321,7 @@ namespace osu.Framework.Platform
         {
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
-                GLWrapper.Reset(Size);
+                GLWrapper.Reset(DrawSize);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             }
 
@@ -404,8 +404,6 @@ namespace osu.Framework.Platform
 
         public override Vector2 Size
         {
-            get { return base.Size; }
-
             set
             {
                 InputScheduler.Add(delegate
