@@ -29,15 +29,7 @@ namespace osu.Framework.Graphics.Textures
         {
             RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
-            
-            Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
-            tex.SetData(new TextureUpload(raw.Pixels)
-            {
-                Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
-                Format = raw.PixelFormat,
-            });
-
-            return tex;
+            return TextureLoader.FromRawTexture(raw, atlas);
         }
 
         public async Task<Texture> GetAsync(string name) => await Task.Run(() => Get(name));
