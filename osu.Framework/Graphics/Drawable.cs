@@ -17,6 +17,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Threading;
+using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics
 {
@@ -733,6 +734,7 @@ namespace osu.Framework.Graphics
             mainThread = Thread.CurrentThread;
             loaded = true;
             LifetimeStart = Time;
+
             Invalidate();
         }
 
@@ -801,7 +803,7 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
-            if (!alreadyInvalidated)
+            if (!alreadyInvalidated || (invalidation & (Invalidation.DrawNode)) > 0)
             {
                 foreach (DrawNode n in validDrawNodes)
                     n.IsValid = false;
@@ -898,11 +900,12 @@ namespace osu.Framework.Graphics
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
+        DrawNode = 1 << 4,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Visibility | Colour,
     }
 
     /// <summary>

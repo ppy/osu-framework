@@ -293,8 +293,11 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.BorderColour.B,
                 maskingInfo.BorderColour.A));
 
+            // We are setting the linear blend range to the approximate size of a _pixel_ here.
+            // This results in the optimal trade-off between crispness and smoothness of the
+            // edges of the masked region according to sampling theory.
             Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
-            Shader.SetGlobalProperty(@"g_PixelScale", (scale.X + scale.Y) / 2);
+            Shader.SetGlobalProperty(@"g_LinearBlendRange", (scale.X + scale.Y) / 2);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;

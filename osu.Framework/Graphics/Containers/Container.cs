@@ -9,15 +9,29 @@ using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public class Container : Drawable
+    public class Container : ShadedDrawable
     {
-        public bool Masking = false;
+        private bool masking = false;
+        public bool Masking
+        {
+            get { return masking; }
+            set
+            {
+                if (masking == value)
+                    return;
+
+                masking = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private float cornerRadius = 0.0f;
 
@@ -25,15 +39,37 @@ namespace osu.Framework.Graphics.Containers
         /// Only has an effect when Masking == true.
         /// Determines how large of a radius is masked away around the corners.
         /// </summary>
-        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
+        public virtual float CornerRadius
+        {
+            get { return cornerRadius; }
+            set
+            {
+                if (cornerRadius == value)
+                    return;
+
+                cornerRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private float borderThickness = 0.0f;
 
         /// <summary>
         /// Only has an effect when Masking == true.
-        /// Determines how thick of a border to draw around masked children.
+        /// Determines how thick of a border to draw around masked children _within_ the masked region.
         /// </summary>
-        public virtual float BorderThickness { get { return borderThickness; } set { borderThickness = value; } }
+        public virtual float BorderThickness
+        {
+            get { return borderThickness; }
+            set
+            {
+                if (borderThickness == value)
+                    return;
+
+                borderThickness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private Color4 borderColour = Color4.Black;
 
@@ -41,7 +77,56 @@ namespace osu.Framework.Graphics.Containers
         /// Only has an effect when Masking == true.
         /// Determines the color of the drawn border.
         /// </summary>
-        public virtual Color4 BorderColour { get { return borderColour; } set { borderColour = value; } }
+        public virtual Color4 BorderColour
+        {
+            get { return borderColour; }
+            set
+            {
+                if (borderColour.Equals(value))
+                    return;
+
+                borderColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float glowRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a glow to draw _around_ the masked region.
+        /// </summary>
+        public virtual float GlowRadius
+        {
+            get { return glowRadius; }
+            set
+            {
+                if (glowRadius == value)
+                    return;
+
+                glowRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 glowColour = Color4.Transparent;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines the color of the glow.
+        /// </summary>
+        public virtual Color4 GlowColour
+        {
+            get { return glowColour; }
+            set
+            {
+                if (glowColour.Equals(value))
+                    return;
+
+                glowColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -58,6 +143,10 @@ namespace osu.Framework.Graphics.Containers
                 BorderThickness = this.BorderThickness,
                 BorderColour = this.BorderColour,
             };
+
+            n.GlowRadius = GlowRadius;
+            n.GlowColour = GlowColour;
+            n.ScreenSpaceMaskingQuad = null;
 
             base.ApplyDrawNode(node);
         }
@@ -451,15 +540,6 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
             RectangleF aabb = DrawRectangle;
-
-            // We may want this, or we may not want this. Still undecided.
-            // TODO: Discuss with others.
-
-            /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
-            aabb.X *= scale.X;
-            aabb.Y *= scale.Y;
-            aabb.Width *= scale.X;
-            aabb.Height *= scale.Y;*/
 
             aabb.X += CornerRadius;
             aabb.Y += CornerRadius;
