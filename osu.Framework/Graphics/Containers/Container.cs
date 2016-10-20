@@ -541,15 +541,6 @@ namespace osu.Framework.Graphics.Containers
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
             RectangleF aabb = DrawRectangle;
 
-            // We may want this, or we may not want this. Still undecided.
-            // TODO: Discuss with others.
-
-            /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
-            aabb.X *= scale.X;
-            aabb.Y *= scale.Y;
-            aabb.Width *= scale.X;
-            aabb.Height *= scale.Y;*/
-
             aabb.X += CornerRadius;
             aabb.Y += CornerRadius;
             aabb.Width -= 2 * CornerRadius;
