@@ -73,12 +73,6 @@ namespace osu.Framework.Graphics.Textures
             if (IsDisposed)
                 return;
             IsDisposed = true;
-
-            if (TextureGL != null)
-            {
-                TextureGL.Dispose();
-                TextureGL = null;
-            }
         }
 
         #endregion

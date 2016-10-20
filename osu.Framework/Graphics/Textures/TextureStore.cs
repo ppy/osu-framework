@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
 
         private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
 
@@ -54,11 +54,11 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                if (textureCache.TryGetValue(name, out tex))
+                TextureGL cachedTex;
+                if (textureCache.TryGetValue(name, out cachedTex))
                 {
                     //use existing TextureGL (but provide a new texture instance).
-                    tex = tex != null ? new Texture(tex.TextureGL) : null;
-                    return tex;
+                    return tex = cachedTex != null ? new Texture(cachedTex) : null;
                 }
 
                 switch (name)
@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Textures
                 //    div *= 2;
                 //}
 
-                textureCache[name] = tex;
+                textureCache[name] = tex?.TextureGL;
 
                 return tex;
             }
