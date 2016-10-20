@@ -22,7 +22,11 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
                 Debug.Assert((RelativeSizeAxes & Axes.Y) > 0 || value.Y == -1, @"The Size of an AutoSizeContainer should never be manually set.");
 
-                base.Size = value;
+                if (value != base.Size)
+                {
+                    base.Size = value;
+                    autoSize.Invalidate();
+                }
             }
         }
 
