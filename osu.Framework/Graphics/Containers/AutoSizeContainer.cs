@@ -23,10 +23,7 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert((RelativeSizeAxes & Axes.Y) > 0 || value.Y == -1, @"The Size of an AutoSizeContainer should never be manually set.");
 
                 if (value != base.Size)
-                {
-                    base.Size = value;
-                    autoSize.Invalidate();
-                }
+                    base.Size = new Vector2(value.X == -1 ? base.Size.X : value.X, value.Y == -1 ? base.Size.Y : value.Y);
             }
         }
 
