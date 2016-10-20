@@ -19,7 +19,19 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class Container : ShadedDrawable
     {
-        public bool Masking = false;
+        private bool masking = false;
+        public bool Masking
+        {
+            get { return masking; }
+            set
+            {
+                if (masking == value)
+                    return;
+
+                masking = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private float cornerRadius = 0.0f;
 
@@ -27,15 +39,37 @@ namespace osu.Framework.Graphics.Containers
         /// Only has an effect when Masking == true.
         /// Determines how large of a radius is masked away around the corners.
         /// </summary>
-        public virtual float CornerRadius { get { return cornerRadius; } set { cornerRadius = value; } }
+        public virtual float CornerRadius
+        {
+            get { return cornerRadius; }
+            set
+            {
+                if (cornerRadius == value)
+                    return;
+
+                cornerRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private float borderThickness = 0.0f;
 
         /// <summary>
         /// Only has an effect when Masking == true.
-        /// Determines how thick of a border to draw around masked children.
+        /// Determines how thick of a border to draw around masked children _within_ the masked region.
         /// </summary>
-        public virtual float BorderThickness { get { return borderThickness; } set { borderThickness = value; } }
+        public virtual float BorderThickness
+        {
+            get { return borderThickness; }
+            set
+            {
+                if (borderThickness == value)
+                    return;
+
+                borderThickness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         private Color4 borderColour = Color4.Black;
 
@@ -43,10 +77,56 @@ namespace osu.Framework.Graphics.Containers
         /// Only has an effect when Masking == true.
         /// Determines the color of the drawn border.
         /// </summary>
-        public virtual Color4 BorderColour { get { return borderColour; } set { borderColour = value; } }
+        public virtual Color4 BorderColour
+        {
+            get { return borderColour; }
+            set
+            {
+                if (borderColour.Equals(value))
+                    return;
 
-        public float GlowRadius;
-        public Color4 GlowColour;
+                borderColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float glowRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a glow to draw _around_ the masked region.
+        /// </summary>
+        public virtual float GlowRadius
+        {
+            get { return glowRadius; }
+            set
+            {
+                if (glowRadius == value)
+                    return;
+
+                glowRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 glowColour = Color4.Transparent;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines the color of the glow.
+        /// </summary>
+        public virtual Color4 GlowColour
+        {
+            get { return glowColour; }
+            set
+            {
+                if (glowColour.Equals(value))
+                    return;
+
+                glowColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
