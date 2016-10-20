@@ -440,10 +440,14 @@ namespace osu.Framework.Platform
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
+
             UpdateScheduler.Add(delegate
             {
-                Children = new[] { game };
-                Load(game);
+                // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
+                // depend on a Game object.
+                if (!IsLoaded)
+                    Load(null);
+                base.Add(game);
             });
         }
 

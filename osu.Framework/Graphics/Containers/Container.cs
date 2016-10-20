@@ -221,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        public virtual bool Remove(Drawable drawable, bool dispose = true)
+        public virtual bool Remove(Drawable drawable, bool dispose = false)
         {
             if (drawable == null)
                 return false;
@@ -240,7 +240,7 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        public int RemoveAll(Predicate<Drawable> match, bool dispose = true)
+        public int RemoveAll(Predicate<Drawable> match, bool dispose = false)
         {
             List<Drawable> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
@@ -249,7 +249,7 @@ namespace osu.Framework.Graphics.Containers
             return toRemove.Count;
         }
 
-        public void Remove(IEnumerable<Drawable> range, bool dispose = true)
+        public void Remove(IEnumerable<Drawable> range, bool dispose = false)
         {
             if (range == null)
                 return;
