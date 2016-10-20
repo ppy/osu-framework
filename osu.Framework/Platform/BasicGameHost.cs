@@ -65,14 +65,14 @@ namespace osu.Framework.Platform
                 }
             }
         }
-        
+
         public bool IsPrimaryInstance { get; protected set; }
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
-        
+
         protected internal event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message)
@@ -441,14 +441,16 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            UpdateScheduler.Add(delegate
-            {
-                // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
-                // depend on a Game object.
-                if (!IsLoaded)
-                    Load(null);
-                base.Add(game);
-            });
+            LoadGame(game);
+        }
+
+        protected virtual void LoadGame(BaseGame game)
+        {
+            // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
+            // depend on a Game object.
+            if (!IsLoaded)
+                Load(null);
+            base.Add(game);
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
