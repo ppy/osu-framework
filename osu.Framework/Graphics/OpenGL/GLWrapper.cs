@@ -186,6 +186,8 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastFrameBuffer == frameBuffer)
                 return lastFrameBuffer;
 
+            FlushCurrentBatch();
+
             int last = lastFrameBuffer;
 
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
@@ -256,6 +258,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             orthoStack.Push(Ortho);
 
+            FlushCurrentBatch();
+
             if (Ortho == ortho)
                 return;
             Ortho = ortho;
@@ -270,6 +274,8 @@ namespace osu.Framework.Graphics.OpenGL
         public static void PopOrtho()
         {
             Debug.Assert(orthoStack.Count > 1);
+
+            FlushCurrentBatch();
 
             orthoStack.Pop();
             Rectangle actualRect = orthoStack.Peek();
@@ -447,6 +453,8 @@ namespace osu.Framework.Graphics.OpenGL
             int s = shader ?? shaderStack.Peek();
 
             if (currentShader == s) return;
+
+            FlushCurrentBatch();
 
             GL.UseProgram(s);
             currentShader = s;
