@@ -92,10 +92,10 @@ namespace osu.Framework.Graphics.Batches
             }
         }
 
-        public void Draw()
+        public int Draw()
         {
             if (currentVertex == lastVertex)
-                return;
+                return 0;
 
             GLWrapper.SetActiveBatch(this);
 
@@ -109,8 +109,12 @@ namespace osu.Framework.Graphics.Batches
             currentVertexBuffer = (currentVertexBuffer + 1) % fixedBufferAmount;
             currentVertex = 0;
 
+            int count = currentVertex - lastVertex;
+
             lastVertex = currentVertex;
             changeBeginIndex = -1;
+
+            return count;
         }
     }
 }
