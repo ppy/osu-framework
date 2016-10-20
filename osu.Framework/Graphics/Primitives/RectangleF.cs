@@ -230,21 +230,14 @@ namespace osu.Framework.Graphics.Primitives
                  ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
         }
 
-        public RectangleF Inflate(float size) => Inflate(size, size);
+        public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
         /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> structure by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
         /// <param name="y">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure vertically. </param>
         /// <param name="x">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure horizontally. </param>
         /// <filterpriority>1</filterpriority>
-        public RectangleF Inflate(float x, float y)
-        {
-            return new RectangleF(
-                X - x,
-                Y - y,
-                Width + 2 * x,
-                Height + 2 * y);
-        }
+        public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         public RectangleF Inflate(MarginPadding amount)
         {
@@ -255,14 +248,7 @@ namespace osu.Framework.Graphics.Primitives
                 Height + amount.TotalVertical);
         }
 
-        public RectangleF Shrink(MarginPadding amount)
-        {
-            return new RectangleF(
-                X + amount.Left,
-                Y + amount.Top,
-                Width - amount.TotalHorizontal,
-                Height - amount.TotalVertical);
-        }
+        public RectangleF Shrink(MarginPadding amount) => Inflate(-amount);
 
         /// <summary>Replaces this <see cref="T:System.Drawing.RectangleF"></see> structure with the intersection of itself and the specified <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method does not return a value.</returns>
