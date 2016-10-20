@@ -28,9 +28,7 @@ namespace osu.Framework.Graphics.Containers
             if (MaskingInfo == null || GlowRadius <= 0.0f || GlowColour.A <= 0.0f)
                 return;
 
-            RectangleF glowRect = MaskingInfo.Value.MaskingRect;
-
-            glowRect.Inflate(GlowRadius, GlowRadius);
+            RectangleF glowRect = MaskingInfo.Value.MaskingRect.Inflate(GlowRadius);
             if (!ScreenSpaceMaskingQuad.HasValue)
                 ScreenSpaceMaskingQuad = new Quad(glowRect.X, glowRect.Y, glowRect.Width, glowRect.Height) * DrawInfo.Matrix;
 
