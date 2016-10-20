@@ -115,7 +115,11 @@ namespace osu.Framework.GameModes.Testing
             config.Set(TestBrowserOption.LastTest, testCase.Name);
 
             if (loadedTest != null)
+            {
                 testContainer.Remove(loadedTest);
+                loadedTest.Dispose();
+                loadedTest = null;
+            }
 
             if (testCase != null)
             {

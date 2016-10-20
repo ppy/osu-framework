@@ -11,9 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
+using OpenTK;
+using GLControl = osu.Framework.Platform.GLControl;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -43,8 +46,28 @@ namespace osu.Framework.Desktop.Platform
             }
             base.Load(game);
         }
-       
-        
+
+        protected override void LoadGame(BaseGame game)
+        {
+            //delay load until we have a size.
+            queueLoad(game);
+        }
+
+        private void queueLoad(BaseGame game)
+        {
+            UpdateScheduler.Add(delegate
+            {
+                if (Size == Vector2.Zero)
+                {
+                    queueLoad(game);
+                    return;
+                }
+
+                base.LoadGame(game);
+            });
+        }
+
+
         protected override async Task SendMessage(IpcMessage message)
         {
             await IpcProvider.SendMessage(message);

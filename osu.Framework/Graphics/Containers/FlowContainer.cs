@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
                 if (maximumSize == value) return;
 
                 maximumSize = value;
-                Invalidate();
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Containers
                 if (spacing == value) return;
 
                 spacing = value;
-                Invalidate();
+                Invalidate(Invalidation.Geometry);
             }
         }
 

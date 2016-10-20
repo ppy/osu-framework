@@ -18,6 +18,21 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
+        private static Texture whitePixel;
+        public static Texture WhitePixel
+        {
+            get
+            {
+                if (whitePixel == null)
+                {
+                    whitePixel = new Texture(1, 1, true);
+                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
+                }
+
+                return whitePixel;
+            }
+        }
+
         public TextureGL TextureGL;
         public string Filename;
         public string AssetName;

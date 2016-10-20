@@ -4,9 +4,7 @@
 
 varying vec2 v_MaskingPosition;
 varying vec4 v_Colour;
-varying vec2 v_TexCoord;
 
-uniform sampler2D m_Sampler;
 uniform float g_CornerRadius;
 uniform vec4 g_MaskingRect;
 uniform float g_BorderThickness;
@@ -57,6 +55,6 @@ void main(void)
     }
 
     gl_FragColor =
-        colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texture2D(m_Sampler, v_TexCoord, -0.9) +
+        colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) +
         (1.0 - colourWeight) * g_BorderColour;
 }

@@ -17,12 +17,5 @@ namespace osu.Framework.VisualTests
                 new CursorContainer(),
             };
         }
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-
-            ShowPerformanceOverlay = true;
-        }
     }
 }
