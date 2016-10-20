@@ -129,9 +129,11 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     },
                 },
-                scroll = new ScrollContainer()
+                new Container
                 {
-                    Position = new Vector2(0, 65),
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 65 },
+                    Children = new[] { scroll = new ScrollContainer() }
                 },
                 waitingText = new SpriteText
                 {
