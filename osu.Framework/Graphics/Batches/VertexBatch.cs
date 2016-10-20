@@ -106,6 +106,7 @@ namespace osu.Framework.Graphics.Batches
             vertexBuffer.DrawRange(lastVertex, currentVertex);
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
+            //TODO: let us know if we exceed and roll over to zero here.
             currentVertexBuffer = (currentVertexBuffer + 1) % fixedBufferAmount;
             currentVertex = 0;
 

@@ -6,5 +6,7 @@ namespace osu.Framework.Graphics.Batches
     public interface IVertexBatch
     {
         int Draw();
+
+        void ResetCounters();
     }
 }

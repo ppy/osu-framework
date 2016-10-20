@@ -59,6 +59,10 @@ namespace osu.Framework.Graphics.OpenGL
             lastSrcBlend = BlendingFactorSrc.Zero;
             lastDestBlend = BlendingFactorDest.Zero;
 
+            foreach (IVertexBatch b in thisFrameBatches)
+                b.ResetCounters();
+            thisFrameBatches.Clear();
+
             lastFrameBuffer = 0;
 
             viewportStack.Clear();
@@ -108,6 +112,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
+        private static List<IVertexBatch> thisFrameBatches = new List<IVertexBatch>();
+
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -121,6 +127,9 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastActiveBatch == batch) return;
 
             FlushCurrentBatch();
+
+            if (batch != null && !thisFrameBatches.Contains(batch))
+                thisFrameBatches.Add(batch);
 
             lastActiveBatch = batch;
         }
