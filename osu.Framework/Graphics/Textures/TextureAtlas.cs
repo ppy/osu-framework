@@ -58,13 +58,17 @@ namespace osu.Framework.Graphics.Textures
 
             atlasTexture = new TextureGLSingle(atlasWidth, atlasHeight);
 
-            using (var whiteTex = Add(2, 2))
+            //may be zero in a headless context.
+            if (atlasWidth > 0 && atlasHeight > 0)
             {
-                //add an empty white rect to use for solid box drawing (shader optimisation).
-                byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
-                for (int i = 0; i < white.Length; i++)
-                    white[i] = 255;
-                whiteTex.SetData(new TextureUpload(white));
+                using (var whiteTex = Add(2, 2))
+                {
+                    //add an empty white rect to use for solid box drawing (shader optimisation).
+                    byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
+                    for (int i = 0; i < white.Length; i++)
+                        white[i] = 255;
+                    whiteTex.SetData(new TextureUpload(white));
+                }
             }
         }
 
