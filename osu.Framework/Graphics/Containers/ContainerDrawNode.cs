@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Containers
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
+        public Quad? ScreenSpaceMaskingQuad = null;
         public float GlowRadius;
         public Color4 GlowColour;
 
@@ -30,7 +31,8 @@ namespace osu.Framework.Graphics.Containers
             RectangleF glowRect = MaskingInfo.Value.MaskingRect;
 
             glowRect.Inflate(GlowRadius, GlowRadius);
-            Quad vertexQuad = new Quad(glowRect.X, glowRect.Y, glowRect.Width, glowRect.Height) * DrawInfo.Matrix;
+            if (!ScreenSpaceMaskingQuad.HasValue)
+                ScreenSpaceMaskingQuad = new Quad(glowRect.X, glowRect.Y, glowRect.Width, glowRect.Height) * DrawInfo.Matrix;
 
             Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
                 glowRect.Left,
@@ -55,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
             Color4 glowColour = GlowColour;
             glowColour.A *= DrawInfo.Colour.A;
 
-            Texture.WhitePixel.Draw(vertexQuad, glowColour);
+            Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, glowColour);
 
             Shader.Unbind();
         }

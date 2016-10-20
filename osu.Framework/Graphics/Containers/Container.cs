@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.Containers
 
             n.GlowRadius = GlowRadius;
             n.GlowColour = GlowColour;
+            n.ScreenSpaceMaskingQuad = null;
 
             base.ApplyDrawNode(node);
         }
