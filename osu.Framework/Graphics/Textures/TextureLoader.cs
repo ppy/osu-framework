@@ -90,5 +90,18 @@ namespace osu.Framework.Graphics.Textures
             tex.SetData(upload);
             return tex;
         }
+        
+        public static Texture FromRawTexture(RawTexture raw, TextureAtlas atlas = null)
+        {
+            if (raw == null)
+                return null;
+            
+            Texture tex = atlas == null ? new Texture(raw.Width, raw.Height) : atlas.Add(raw.Width, raw.Height);
+            var upload = new TextureUpload(raw.Pixels);
+            upload.Format = raw.PixelFormat;
+            upload.Bounds = new Rectangle(0, 0, raw.Width, raw.Height);
+            tex.SetData(upload);
+            return tex;
+        }
     }
 }
