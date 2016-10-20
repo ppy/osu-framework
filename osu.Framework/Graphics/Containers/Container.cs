@@ -243,11 +243,6 @@ namespace osu.Framework.Graphics.Containers
         internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
-        /// The Size (coordinate space) revealed to Children.
-        /// </summary>
-        internal Vector2 RawDrawSize => base.DrawSize;
-
-        /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
         internal virtual Vector2 ChildScale => Vector2.One;
