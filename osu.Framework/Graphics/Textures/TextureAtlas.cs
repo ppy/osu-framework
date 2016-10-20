@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Textures
 
         private int currentY;
 
-        private int mipmapLevels => (int)Math.Floor(Math.Log(atlasWidth) / Math.Log(2));
+        private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
         public TextureAtlas(int width, int height)
         {
