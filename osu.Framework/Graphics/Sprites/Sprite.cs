@@ -66,6 +66,7 @@ namespace osu.Framework.Graphics.Sprites
                     texture.Dispose();
 
                 texture = value;
+                Invalidate(Invalidation.DrawNode);
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
