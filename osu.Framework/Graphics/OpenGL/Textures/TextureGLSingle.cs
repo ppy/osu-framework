@@ -145,9 +145,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             Debug.Assert(!isDisposed);
 
-            if (!Bind())
-                return;
-
             RectangleF texRect = GetTextureRect(textureRect);
 
             if (spriteBatch == null)
@@ -219,7 +216,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(textureId);
+            GLWrapper.BindTexture(this);
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();
@@ -272,14 +269,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             textureId = textures[0];
 
-                            GLWrapper.BindTexture(textureId);
+                            GLWrapper.BindTexture(this);
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Linear :  All.LinearMipmapLinear));
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
                             updateWrapMode();
                         }
                         else
-                            GLWrapper.BindTexture(textureId);
+                            GLWrapper.BindTexture(this);
 
                         if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
                             GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
@@ -294,7 +291,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     // Just update content of the current texture
                     else if (dataPointer != IntPtr.Zero)
                     {
-                        GLWrapper.BindTexture(textureId);
+                        GLWrapper.BindTexture(this);
 
                         if (!manualMipmaps && upload.Level > 0)
                         {

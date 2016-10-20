@@ -79,7 +79,8 @@ namespace osu.Framework.Graphics.Sprites
 
                 texture = value;
 
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
             }
         }
 

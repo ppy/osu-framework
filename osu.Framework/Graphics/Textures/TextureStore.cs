@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -29,7 +30,7 @@ namespace osu.Framework.Graphics.Textures
         {
             RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
-            
+
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
             tex.SetData(new TextureUpload(raw.Pixels)
             {
@@ -60,8 +61,22 @@ namespace osu.Framework.Graphics.Textures
                     return tex;
                 }
 
-                tex = getTexture(name);
-                    
+                switch (name)
+                {
+                    case @"_whitepixel":
+                        tex = atlas?.GetWhitePixel();
+
+                        if (tex == null)
+                        {
+                            tex = new Texture(1, 1, true);
+                            tex.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
+                        }
+                        break;
+                    default:
+                        tex = getTexture(name);
+                        break;
+                }
+
                 //load available mipmaps
                 //int level = 1;
                 //int div = 2;

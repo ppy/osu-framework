@@ -14,6 +14,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -57,7 +58,7 @@ namespace osu.Framework.Graphics.OpenGL
             //todo: don't use scheduler
             resetScheduler.Update();
 
-            lastBoundTexture = -1;
+            lastBoundTexture = null;
 
             lastSrcBlend = BlendingFactorSrc.Zero;
             lastDestBlend = BlendingFactorDest.Zero;
@@ -130,20 +131,22 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static int lastBoundTexture = -1;
+        private static TextureGL lastBoundTexture = null;
+
+        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="textureId"></param>
-        public static void BindTexture(int textureId)
+        /// <param name="texture"></param>
+        public static void BindTexture(TextureGL texture)
         {
-            if (lastBoundTexture != textureId)
+            if (lastBoundTexture != texture)
             {
                 FlushCurrentBatch();
 
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
-                lastBoundTexture = textureId;
+                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
+                lastBoundTexture = texture;
             }
         }
 

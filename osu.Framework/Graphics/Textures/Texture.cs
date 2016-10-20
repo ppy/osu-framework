@@ -183,7 +183,9 @@ namespace osu.Framework.Graphics.Textures
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
         {
-            TextureGL?.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
+            if (TextureGL == null || !TextureGL.Bind()) return;
+
+            TextureGL.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
         }
     }
 }
