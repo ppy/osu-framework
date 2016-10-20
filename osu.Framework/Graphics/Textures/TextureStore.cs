@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        Dictionary<string, Texture> textureCache = new Dictionary<string, Texture>();
+        Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
 
         private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
 
@@ -29,7 +30,7 @@ namespace osu.Framework.Graphics.Textures
         {
             RawTexture raw = base.Get($@"{name}");
             if (raw == null) return null;
-            
+
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
             tex.SetData(new TextureUpload(raw.Pixels)
             {
@@ -53,15 +54,29 @@ namespace osu.Framework.Graphics.Textures
 
             try
             {
-                if (textureCache.TryGetValue(name, out tex))
+                TextureGL cachedTex;
+                if (textureCache.TryGetValue(name, out cachedTex))
                 {
                     //use existing TextureGL (but provide a new texture instance).
-                    tex = tex != null ? new Texture(tex.TextureGL) : null;
-                    return tex;
+                    return tex = cachedTex != null ? new Texture(cachedTex) : null;
                 }
 
-                tex = getTexture(name);
-                    
+                switch (name)
+                {
+                    case @"_whitepixel":
+                        tex = atlas?.GetWhitePixel();
+
+                        if (tex == null)
+                        {
+                            tex = new Texture(1, 1, true);
+                            tex.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
+                        }
+                        break;
+                    default:
+                        tex = getTexture(name);
+                        break;
+                }
+
                 //load available mipmaps
                 //int level = 1;
                 //int div = 2;
@@ -96,7 +111,7 @@ namespace osu.Framework.Graphics.Textures
                 //    div *= 2;
                 //}
 
-                textureCache[name] = tex;
+                textureCache[name] = tex?.TextureGL;
 
                 return tex;
             }

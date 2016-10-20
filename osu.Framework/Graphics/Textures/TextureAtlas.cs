@@ -5,9 +5,34 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
+using OpenTK.Graphics.ES20;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Textures
 {
+    class TextureGLAtlas : TextureGLSingle
+    {
+        public TextureGLAtlas(int width, int height) : base(width, height, false)
+        {
+        }
+    }
+
+    class TextureGLAtlasWhite : TextureGLSub
+    {
+        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
+        {
+        }
+
+        public override bool Bind()
+        {
+            //we can use the special white space from any atlas texture.
+            if (GLWrapper.AtlasTextureIsBound)
+                return true;
+
+            return base.Bind();
+        }
+    }
+
     public class TextureAtlas
     {
         private List<Rectangle> subTextureBounds = new List<Rectangle>();
@@ -17,6 +42,8 @@ namespace osu.Framework.Graphics.Textures
         private int atlasHeight;
 
         private int currentY;
+
+        private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
         public TextureAtlas(int width, int height)
         {
@@ -29,8 +56,20 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentY = 0;
 
-            //atlasTexture?.Dispose();
             atlasTexture = new TextureGLSingle(atlasWidth, atlasHeight);
+
+            //may be zero in a headless context.
+            if (atlasWidth > 0 && atlasHeight > 0)
+            {
+                using (var whiteTex = Add(2, 2))
+                {
+                    //add an empty white rect to use for solid box drawing (shader optimisation).
+                    byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
+                    for (int i = 0; i < white.Length; i++)
+                        white[i] = 255;
+                    whiteTex.SetData(new TextureUpload(white));
+                }
+            }
         }
 
         private Point findPosition(int width, int height)
@@ -76,6 +115,14 @@ namespace osu.Framework.Graphics.Textures
 
                 return new Texture(new TextureGLSub(bounds, atlasTexture));
             }
+        }
+
+        internal Texture GetWhitePixel()
+        {
+            if (atlasTexture == null)
+                Reset();
+
+            return new Texture(new TextureGLAtlasWhite(atlasTexture));
         }
     }
 }

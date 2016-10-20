@@ -14,21 +14,18 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.OpenGL
 {
     public static class GLWrapper
     {
-        public const int MAX_BATCHES = 3;
-
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
         public static bool UsingBackbuffer => lastFrameBuffer == 0;
-
-        public static int CurrentBatchIndex { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -57,10 +54,14 @@ namespace osu.Framework.Graphics.OpenGL
             //todo: don't use scheduler
             resetScheduler.Update();
 
-            lastBoundTexture = -1;
+            lastBoundTexture = null;
 
             lastSrcBlend = BlendingFactorSrc.Zero;
             lastDestBlend = BlendingFactorDest.Zero;
+
+            foreach (IVertexBatch b in thisFrameBatches)
+                b.ResetCounters();
+            thisFrameBatches.Clear();
 
             lastFrameBuffer = 0;
 
@@ -78,8 +79,6 @@ namespace osu.Framework.Graphics.OpenGL
                 MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
             });
-
-            CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
         }
 
         /// <summary>
@@ -113,6 +112,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
+        private static List<IVertexBatch> thisFrameBatches = new List<IVertexBatch>();
+
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -123,23 +124,32 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="batch">The batch.</param>
         internal static void SetActiveBatch(IVertexBatch batch)
         {
+            if (lastActiveBatch == batch) return;
+
+            FlushCurrentBatch();
+
+            if (batch != null && !thisFrameBatches.Contains(batch))
+                thisFrameBatches.Add(batch);
+
             lastActiveBatch = batch;
         }
 
-        private static int lastBoundTexture = -1;
+        private static TextureGL lastBoundTexture = null;
+
+        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="textureId"></param>
-        public static void BindTexture(int textureId)
+        /// <param name="texture"></param>
+        public static void BindTexture(TextureGL texture)
         {
-            if (lastBoundTexture != textureId)
+            if (lastBoundTexture != texture)
             {
-                lastActiveBatch?.Draw();
+                FlushCurrentBatch();
 
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
-                lastBoundTexture = textureId;
+                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
+                lastBoundTexture = texture;
             }
         }
 
@@ -156,7 +166,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastSrcBlend == src && lastDestBlend == dest)
                 return;
 
-            lastActiveBatch?.Draw();
+            FlushCurrentBatch();
 
             GL.BlendFunc(src, dest);
 
@@ -277,6 +287,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
+            FlushCurrentBatch();
+
             Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,
@@ -321,6 +333,11 @@ namespace osu.Framework.Graphics.OpenGL
             else
                 currentScissorRect.Intersect(actualRect);
             GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
+        }
+
+        internal static void FlushCurrentBatch()
+        {
+            lastActiveBatch?.Draw();
         }
 
         /// <summary>
