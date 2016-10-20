@@ -20,16 +20,12 @@ namespace osu.Framework.Graphics.OpenGL
 {
     public static class GLWrapper
     {
-        public const int MAX_BATCHES = 3;
-
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
         public static bool UsingBackbuffer => lastFrameBuffer == 0;
-
-        public static int CurrentBatchIndex { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -79,8 +75,6 @@ namespace osu.Framework.Graphics.OpenGL
                 MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
             });
-
-            CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
         }
 
         /// <summary>
