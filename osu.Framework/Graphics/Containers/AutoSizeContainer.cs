@@ -22,7 +22,8 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
                 Debug.Assert((RelativeSizeAxes & Axes.Y) > 0 || value.Y == -1, @"The Size of an AutoSizeContainer should never be manually set.");
 
-                base.Size = value;
+                if (value != base.Size)
+                    base.Size = new Vector2(value.X == -1 ? base.Size.X : value.X, value.Y == -1 ? base.Size.Y : value.Y);
             }
         }
 
