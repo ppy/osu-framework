@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 treeContainer = new TreeContainer
                 {
+                    Depth = float.MaxValue,
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
                 },
