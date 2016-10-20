@@ -433,16 +433,10 @@ namespace osu.Framework.Graphics.Textures.Png
         }
 
         /// <summary> Returns the total number of bytes input so far.</summary>
-        virtual public long TotalIn
-        {
-            get { return this._baseStream._z.TotalBytesIn; }
-        }
+        virtual public long TotalIn => this._baseStream._z.TotalBytesIn;
 
         /// <summary> Returns the total number of bytes output so far.</summary>
-        virtual public long TotalOut
-        {
-            get { return this._baseStream._z.TotalBytesOut; }
-        }
+        virtual public long TotalOut => this._baseStream._z.TotalBytesOut;
 
         #endregion
 
@@ -477,8 +471,8 @@ namespace osu.Framework.Graphics.Textures.Png
             {
                 if (!_disposed)
                 {
-                    if (disposing && (this._baseStream != null))
-                        this._baseStream.Dispose();
+                    if (disposing)
+                        _baseStream?.Dispose();
                     _disposed = true;
                 }
             }
@@ -510,10 +504,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <remarks>
         /// Always returns false.
         /// </remarks>
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
         /// <summary>
         /// Indicates whether the stream can be written.
@@ -948,7 +939,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <summary>
         /// The Adler32 checksum on the data transferred through the codec so far. You probably don't need to look at this.
         /// </summary>
-        internal int Adler32 { get { return (int)_Adler32; } }
+        internal int Adler32 => (int)_Adler32;
 
 
         /// <summary>
@@ -1534,13 +1525,7 @@ namespace osu.Framework.Graphics.Textures.Png
         }
 
 
-        protected internal bool _wantCompress
-        {
-            get
-            {
-                return (this._compressionMode == CompressionMode.Compress);
-            }
-        }
+        protected internal bool _wantCompress => (this._compressionMode == CompressionMode.Compress);
 
         private ZlibCodec z
         {
@@ -1580,8 +1565,7 @@ namespace osu.Framework.Graphics.Textures.Png
         {
             // workitem 7159
             // calculate the CRC on the unccompressed data  (before writing)
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, count);
+            crc?.SlurpBlock(buffer, offset, count);
 
             if (_streamMode == StreamMode.Undefined)
                 _streamMode = StreamMode.Writer;
@@ -1880,10 +1864,10 @@ namespace osu.Framework.Graphics.Textures.Png
 
             if (count == 0) return 0;
             if (nomoreinput && _wantCompress) return 0;  // workitem 8557
-            if (buffer == null) throw new ArgumentNullException("buffer");
-            if (count < 0) throw new ArgumentOutOfRangeException("count");
-            if (offset < buffer.GetLowerBound(0)) throw new ArgumentOutOfRangeException("offset");
-            if ((offset + count) > buffer.GetLength(0)) throw new ArgumentOutOfRangeException("count");
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (offset < buffer.GetLowerBound(0)) throw new ArgumentOutOfRangeException(nameof(offset));
+            if ((offset + count) > buffer.GetLength(0)) throw new ArgumentOutOfRangeException(nameof(count));
 
             int rc = 0;
 
@@ -1956,33 +1940,20 @@ namespace osu.Framework.Graphics.Textures.Png
             rc = (count - _z.AvailableBytesOut);
 
             // calculate CRC after reading
-            if (crc != null)
-                crc.SlurpBlock(buffer, offset, rc);
+            crc?.SlurpBlock(buffer, offset, rc);
 
             return rc;
         }
 
 
 
-        public override System.Boolean CanRead
-        {
-            get { return this._stream.CanRead; }
-        }
+        public override System.Boolean CanRead => this._stream.CanRead;
 
-        public override System.Boolean CanSeek
-        {
-            get { return this._stream.CanSeek; }
-        }
+        public override System.Boolean CanSeek => this._stream.CanSeek;
 
-        public override System.Boolean CanWrite
-        {
-            get { return this._stream.CanWrite; }
-        }
+        public override System.Boolean CanWrite => this._stream.CanWrite;
 
-        public override System.Int64 Length
-        {
-            get { return _stream.Length; }
-        }
+        public override System.Int64 Length => _stream.Length;
 
         public override long Position
         {
@@ -4637,8 +4608,7 @@ namespace osu.Framework.Graphics.Textures.Png
 
         internal int End()
         {
-            if (blocks != null)
-                blocks.Free();
+            blocks?.Free();
             blocks = null;
             return ZlibConstants.Z_OK;
         }
@@ -5138,7 +5108,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <remarks>
         /// This is used for internal error checking. You probably don't need to look at this property.
         /// </remarks>
-        internal int Crc32 { get { return _Crc32; } }
+        internal int Crc32 => _Crc32;
 
         private int _headerByteCount;
         internal ZlibBaseStream _baseStream;
@@ -5511,22 +5481,10 @@ namespace osu.Framework.Graphics.Textures.Png
 
 
         /// <summary> Returns the total number of bytes input so far.</summary>
-        virtual internal long TotalIn
-        {
-            get
-            {
-                return this._baseStream._z.TotalBytesIn;
-            }
-        }
+        virtual internal long TotalIn => this._baseStream._z.TotalBytesIn;
 
         /// <summary> Returns the total number of bytes output so far.</summary>
-        virtual internal long TotalOut
-        {
-            get
-            {
-                return this._baseStream._z.TotalBytesOut;
-            }
-        }
+        virtual internal long TotalOut => this._baseStream._z.TotalBytesOut;
 
         #endregion
 
@@ -5597,10 +5555,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <remarks>
         /// Always returns false.
         /// </remarks>
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
 
         /// <summary>
@@ -7769,24 +7724,12 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <summary>
         ///   Indicates the total number of bytes applied to the CRC.
         /// </summary>
-        internal Int64 TotalBytesRead
-        {
-            get
-            {
-                return _TotalBytesRead;
-            }
-        }
+        internal Int64 TotalBytesRead => _TotalBytesRead;
 
         /// <summary>
         /// Indicates the current CRC for all blocks slurped in.
         /// </summary>
-        internal Int32 Crc32Result
-        {
-            get
-            {
-                return unchecked((Int32)(~_register));
-            }
-        }
+        internal Int32 Crc32Result => unchecked((Int32)(~_register));
 
         /// <summary>
         /// Returns the CRC32 for the specified stream.
@@ -7817,13 +7760,13 @@ namespace osu.Framework.Graphics.Textures.Png
 
                 _TotalBytesRead = 0;
                 int count = input.Read(buffer, 0, readSize);
-                if (output != null) output.Write(buffer, 0, count);
+                output?.Write(buffer, 0, count);
                 _TotalBytesRead += count;
                 while (count > 0)
                 {
                     SlurpBlock(buffer, 0, count);
                     count = input.Read(buffer, 0, readSize);
-                    if (output != null) output.Write(buffer, 0, count);
+                    output?.Write(buffer, 0, count);
                     _TotalBytesRead += count;
                 }
 
@@ -8352,10 +8295,7 @@ namespace osu.Framework.Graphics.Textures.Png
         ///   This is either the total number of bytes read, or the total number of
         ///   bytes written, depending on the direction of this stream.
         /// </remarks>
-        internal Int64 TotalBytesSlurped
-        {
-            get { return _Crc32.TotalBytesRead; }
-        }
+        internal Int64 TotalBytesSlurped => _Crc32.TotalBytesRead;
 
         /// <summary>
         ///   Provides the current CRC for all blocks slurped in.
@@ -8367,10 +8307,7 @@ namespace osu.Framework.Graphics.Textures.Png
         ///     get an accurate CRC for the entire stream.
         ///   </para>
         /// </remarks>
-        internal Int32 Crc
-        {
-            get { return _Crc32.Crc32Result; }
-        }
+        internal Int32 Crc => _Crc32.Crc32Result;
 
         /// <summary>
         ///   Indicates whether the underlying stream will be left open when the
@@ -8432,10 +8369,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <summary>
         /// Indicates whether the stream supports reading.
         /// </summary>
-        public override bool CanRead
-        {
-            get { return _innerStream.CanRead; }
-        }
+        public override bool CanRead => _innerStream.CanRead;
 
         /// <summary>
         ///   Indicates whether the stream supports seeking.
@@ -8445,18 +8379,12 @@ namespace osu.Framework.Graphics.Textures.Png
         ///     Always returns false.
         ///   </para>
         /// </remarks>
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
+        public override bool CanSeek => false;
 
         /// <summary>
         /// Indicates whether the stream supports writing.
         /// </summary>
-        public override bool CanWrite
-        {
-            get { return _innerStream.CanWrite; }
-        }
+        public override bool CanWrite => _innerStream.CanWrite;
 
         /// <summary>
         /// Flush the stream.
@@ -8534,13 +8462,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// <returns>
         /// The IANA name for the current <see cref="System.Text.Encoding"/>.
         /// </returns>
-        public override string WebName
-        {
-            get
-            {
-                return "iso-8859-1";
-            }
-        }
+        public override string WebName => "iso-8859-1";
 
 
         private char? fallbackCharacter;
@@ -8764,10 +8686,7 @@ namespace osu.Framework.Graphics.Textures.Png
         /// This property returns a maximum value of 256, as the encoding class
         /// only supports single byte encodings (1 byte == 256 possible values).
         /// </summary>
-        public static int CharacterCount
-        {
-            get { return byteToChar.Length; }
-        }
+        public static int CharacterCount => byteToChar.Length;
 
         #region Character Table
 

@@ -122,14 +122,14 @@ namespace osu.Framework.Graphics.Containers
         public override void Add(Drawable drawable)
         {
             base.Add(drawable);
-            Invalidate(Invalidation.Geometry);
+            InvalidateFromChild(Invalidation.Geometry, drawable);
         }
 
-        public override bool Remove(Drawable p, bool dispose = true)
+        public override bool Remove(Drawable p, bool dispose = false)
         {
             bool result = base.Remove(p, dispose);
             if (result)
-                Invalidate(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.Geometry, p);
 
             return result;
         }

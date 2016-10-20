@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 scroll = new ScrollContainer()
                 {
-                    Padding = new MarginPadding { Top = 70 },
+                    Position = new Vector2(0, 65),
                 },
                 waitingText = new SpriteText
                 {

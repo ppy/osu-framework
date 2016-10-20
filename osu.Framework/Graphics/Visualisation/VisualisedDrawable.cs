@@ -22,7 +22,8 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
 
-        public Action Hovered;
+        public Action HoverGained;
+        public Action HoverLost;
 
         public Action RequestTarget;
 
@@ -106,8 +107,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnHover(InputState state)
         {
-            Hovered?.Invoke();
+            HoverGained?.Invoke();
             return base.OnHover(state);
+        }
+
+        protected override void OnHoverLost(InputState state)
+        {
+            HoverLost?.Invoke();
+            base.OnHoverLost(state);
         }
 
         public VisualisedDrawable(Drawable d)
