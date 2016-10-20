@@ -38,12 +38,13 @@ namespace osu.Framework.Graphics.Textures.Png
         /// </summary>
         public byte[] Read(Stream inputStream)
         {
-            if (IsPngImage(inputStream) == false)
+            if (inputStream.Position != 0 && IsPngImage(inputStream) == false)
             {
                 throw new Exception("File does not have PNG signature.");
             }
-
-            inputStream.Position = 8;
+            
+            if (inputStream.CanSeek)
+                inputStream.Position = 8;
 
             while (inputStream.Position != inputStream.Length)
             {
@@ -51,10 +52,9 @@ namespace osu.Framework.Graphics.Textures.Png
                 inputStream.Read(chunkDataLengthBytes, 0, 4);
                 uint chunkDataLength = chunkDataLengthBytes.ToUInt();
 
-                inputStream.Position -= 4;
-
                 byte[] chunkBytes = new byte[12 + chunkDataLength];
-                inputStream.Read(chunkBytes, 0, (int)(12 + chunkDataLength));
+                Array.Copy(chunkDataLengthBytes, chunkBytes, 4);
+                inputStream.Read(chunkBytes, 4, (int)(8 + chunkDataLength));
 
                 ProcessChunk(chunkBytes);
             }
@@ -66,14 +66,16 @@ namespace osu.Framework.Graphics.Textures.Png
 
         public static bool IsPngImage(Stream stream)
         {
-            stream.Position = 0;
+            if (stream.CanSeek)
+                stream.Position = 0;
             
             byte[] signature = new byte[8];
             stream.Read(signature, 0, 8);
 
             bool result = signature.SequenceEqual(HeaderChunk.PngSignature);
 
-            stream.Position = 0;
+            if (stream.CanSeek)
+                stream.Position = 0;
 
             return result;
         }

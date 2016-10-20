@@ -66,8 +66,12 @@ namespace osu.Framework.Graphics.Sprites
                     texture.Dispose();
 
                 texture = value;
-
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                    
+                float width = texture?.DisplayWidth ?? 0;
+                float height = texture?.DisplayHeight ?? 0;
+                Size = new Vector2(
+                    RelativeSizeAxes.HasFlag(Axes.X) ? Size.X : width,
+                    RelativeSizeAxes.HasFlag(Axes.Y) ? Size.Y : height);
             }
         }
 

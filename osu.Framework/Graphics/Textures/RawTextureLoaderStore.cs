@@ -7,6 +7,7 @@ using System.Drawing.Imaging;
 using osu.Framework.Graphics.Textures.Png;
 using osu.Framework.IO.Stores;
 using System.Runtime.InteropServices;
+using System;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -73,11 +74,19 @@ namespace osu.Framework.Graphics.Textures
 
         public override RawTexture Get(string name)
         {
-            
             using (var stream = Store.GetStream(name))
             {
                 if (stream == null) return null;
 
+                if (!stream.CanSeek)
+                {
+                    // We need to be able to seek to do format detection
+                    var memStream = new MemoryStream();
+                    stream.CopyTo(memStream);
+                    if (PngReader.IsPngImage(memStream))
+                        return loadPng(memStream);
+                    return loadOther(memStream);
+                }
                 if (PngReader.IsPngImage(stream))
                     return loadPng(stream);
                 return loadOther(stream);
