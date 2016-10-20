@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
@@ -426,7 +426,7 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        internal virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null, null, null);
 
@@ -445,7 +445,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        internal virtual RectangleF DrawRectangle
+        protected RectangleF DrawRectangle
         {
             get
             {

@@ -20,29 +20,9 @@ namespace osu.Framework.Graphics.Visualisation
             Alpha = 0.5f;
         }
 
-        public Drawable Target
-        {
-            set
-            {
-                target = value;
-                Invalidate(Invalidation.Geometry);
-            }
-        }
+        public Drawable Target { set { target = value; } }
 
-        internal override DrawInfo DrawInfo
-        {
-            get
-            {
-                // Use own DrawInfo for color, use target DrawInfo for shape.
-                DrawInfo result = base.DrawInfo;
-                DrawInfo targetDrawInfo = target.DrawInfo;
-                result.Matrix = targetDrawInfo.Matrix;
-                result.MatrixInverse = targetDrawInfo.MatrixInverse;
-                return result;
-            }
-        }
-
-        internal override RectangleF DrawRectangle => target.DrawRectangle;
+        public override Quad ScreenSpaceDrawQuad { get { return target.ScreenSpaceDrawQuad; } }
 
         public override void Load(BaseGame game)
         {
