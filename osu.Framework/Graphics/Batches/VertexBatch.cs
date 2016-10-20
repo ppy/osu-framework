@@ -69,6 +69,8 @@ namespace osu.Framework.Graphics.Batches
 
         public void Add(T v)
         {
+            GLWrapper.SetActiveBatch(this);
+
             while (currentVertexBuffer >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
@@ -96,8 +98,6 @@ namespace osu.Framework.Graphics.Batches
         {
             if (currentVertex == lastVertex)
                 return 0;
-
-            GLWrapper.SetActiveBatch(this);
 
             VertexBuffer<T> vertexBuffer = CurrentVertexBuffer;
             if (changeBeginIndex >= 0)
