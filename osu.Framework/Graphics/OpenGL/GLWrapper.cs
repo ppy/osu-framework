@@ -123,6 +123,10 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="batch">The batch.</param>
         internal static void SetActiveBatch(IVertexBatch batch)
         {
+            if (lastActiveBatch == batch) return;
+
+            FlushCurrentBatch();
+
             lastActiveBatch = batch;
         }
 
@@ -136,7 +140,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (lastBoundTexture != textureId)
             {
-                lastActiveBatch?.Draw();
+                FlushCurrentBatch();
 
                 GL.BindTexture(TextureTarget.Texture2D, textureId);
                 lastBoundTexture = textureId;
@@ -156,7 +160,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastSrcBlend == src && lastDestBlend == dest)
                 return;
 
-            lastActiveBatch?.Draw();
+            FlushCurrentBatch();
 
             GL.BlendFunc(src, dest);
 
@@ -277,6 +281,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
+            FlushCurrentBatch();
+
             Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,
@@ -318,6 +324,11 @@ namespace osu.Framework.Graphics.OpenGL
             else
                 currentScissorRect.Intersect(actualRect);
             GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
+        }
+
+        internal static void FlushCurrentBatch()
+        {
+            lastActiveBatch?.Draw();
         }
 
         /// <summary>

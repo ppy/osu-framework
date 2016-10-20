@@ -329,6 +329,8 @@ namespace osu.Framework.Platform
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                     buffer?.Object?.DrawSubTree();
+
+                GLWrapper.FlushCurrentBatch();
             }
         }
 
