@@ -22,8 +22,6 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Cached;
-using osu.Framework.Graphics.Primitives;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
 namespace osu.Framework.Platform

@@ -19,6 +19,11 @@ namespace osu.Framework.Desktop.Platform
         public override GLControl GLControl => null;
         public override TextInputSource TextInput => null;
 
+        public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
+        {
+            
+        }
+
         protected override void DrawFrame()
         {
             //we can't draw.
