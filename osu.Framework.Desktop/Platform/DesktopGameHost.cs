@@ -43,33 +43,24 @@ namespace osu.Framework.Desktop.Platform
                 }
             }
         }
-        
+
         protected override void LoadGame(BaseGame game)
         {
             //delay load until we have a size.
-            queueLoad(game);
-        }
-
-        private void queueLoad(BaseGame game)
-        {
-            UpdateScheduler.Add(delegate
+            if (Size == Vector2.Zero)
             {
-                if (Size == Vector2.Zero)
-                {
-                    queueLoad(game);
-                    return;
-                }
+                UpdateScheduler.Add(delegate { LoadGame(game); });
+                return;
+            }
 
-                base.LoadGame(game);
-            });
+            base.LoadGame(game);
         }
-
 
         protected override async Task SendMessage(IpcMessage message)
         {
             await IpcProvider.SendMessage(message);
         }
-        
+
         protected override void Dispose(bool isDisposing)
         {
             IpcProvider?.Dispose();
