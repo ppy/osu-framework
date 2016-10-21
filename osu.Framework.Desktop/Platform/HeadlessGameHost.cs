@@ -22,6 +22,7 @@ namespace osu.Framework.Desktop.Platform
         public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
         {
             Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            
+            UpdateScheduler.Update();
         }
 
         public override void Load(BaseGame game)

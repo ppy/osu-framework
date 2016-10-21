@@ -406,14 +406,13 @@ namespace osu.Framework.Platform
         {
             set
             {
-                InputScheduler.Add(delegate
+                UpdateScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    Window.Size = new Size((int)value.X, (int)value.Y);
+                    InputScheduler.Add(delegate { Window.Size = new Size((int)value.X, (int)value.Y); });
+                    base.Size = value;
                 });
-
-                base.Size = value;
             }
         }
 
