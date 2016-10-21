@@ -15,15 +15,30 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached<Vector2> autoSize = new Cached<Vector2>();
 
+        public override float Width
+        {
+            set
+            {
+                Debug.Assert((RelativeSizeAxes & Axes.X) > 0, @"The width of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                base.Width = value;
+            }
+        }
+
+        public override float Height
+        {
+            set
+            {
+                Debug.Assert((RelativeSizeAxes & Axes.Y) > 0, @"The height of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                base.Height = value;
+            }
+        }
+
         public override Vector2 Size
         {
             set
             {
-                Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
-                Debug.Assert((RelativeSizeAxes & Axes.Y) > 0 || value.Y == -1, @"The Size of an AutoSizeContainer should never be manually set.");
-
-                if (value != base.Size)
-                    base.Size = new Vector2(value.X == -1 ? base.Size.X : value.X, value.Y == -1 ? base.Size.Y : value.Y);
+                Debug.Assert((RelativeSizeAxes & Axes.Both) > 0, @"The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                base.Size = value;
             }
         }
 

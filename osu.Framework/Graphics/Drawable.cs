@@ -269,7 +269,49 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 size;
+        private float width;
+        private float height;
+
+        public virtual float Width
+        {
+            get { return width; }
+            set
+            {
+                if (width == value) return;
+                width = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawWidth
+        {
+            get { return DrawSize.X; }
+        }
+
+        public virtual float Height
+        {
+            get { return height; }
+            set
+            {
+                if (height == value) return;
+                height = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawHeight
+        {
+            get { return DrawSize.Y; }
+        }
+
+        private Vector2 size
+        {
+            get { return new Vector2(width, height); }
+            set { width = value.X; height = value.Y; }
+        }
+
         public virtual Vector2 Size
         {
             get
@@ -374,28 +416,6 @@ namespace osu.Framework.Graphics
         }
 
         public float Depth;
-
-        public float Width
-        {
-            get { return Size.X; }
-            set { Size = new Vector2(value, Size.Y); }
-        }
-
-        public float DrawWidth
-        {
-            get { return DrawSize.X; }
-        }
-
-        public float Height
-        {
-            get { return Size.Y; }
-            set { Size = new Vector2(Size.X, value); }
-        }
-
-        public float DrawHeight
-        {
-            get { return DrawSize.Y; }
-        }
 
         protected virtual IFrameBasedClock Clock => Parent?.Clock;
 
