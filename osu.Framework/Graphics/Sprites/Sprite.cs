@@ -72,8 +72,8 @@ namespace osu.Framework.Graphics.Sprites
                     float width = texture?.DisplayWidth ?? 0;
                     float height = texture?.DisplayHeight ?? 0;
                     Size = new Vector2(
-                        RelativeSizeAxes.HasFlag(Axes.X) ? Size.X : width,
-                        RelativeSizeAxes.HasFlag(Axes.Y) ? Size.Y : height);
+                        (RelativeSizeAxes & Axes.X) > 0 ? Size.X : width,
+                        (RelativeSizeAxes & Axes.Y) > 0 ? Size.Y : height);
                 }
             }
         }
