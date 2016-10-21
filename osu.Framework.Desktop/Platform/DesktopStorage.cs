@@ -18,7 +18,11 @@ namespace osu.Framework.Desktop.Platform
         }
 
         protected virtual string BasePath => @"./"; //use current directory by default
-        
+
+        public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
+
+        public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
+
         public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
         {
             path = Path.Combine(BasePath, path);

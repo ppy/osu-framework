@@ -16,6 +16,10 @@ namespace osu.Framework.Platform
             BaseName = baseName;
         }
 
+        public abstract bool Exists(string path);
+
+        public abstract void Delete(string path);
+
         public abstract Stream GetStream(string path, FileAccess mode = FileAccess.Read);
 
         public abstract SQLiteConnection GetDatabase(string name);
