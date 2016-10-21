@@ -28,9 +28,7 @@ namespace osu.Framework.Graphics.Textures
 
         private Texture getTexture(string name)
         {
-            RawTexture raw = base.Get($@"{name}");
-            if (raw == null) return null;
-            return TextureLoader.FromRawTexture(raw, atlas);
+            return TextureLoader.FromRawTexture(base.Get($@"{name}"), atlas);
         }
 
         public async Task<Texture> GetAsync(string name) => await Task.Run(() => Get(name));
