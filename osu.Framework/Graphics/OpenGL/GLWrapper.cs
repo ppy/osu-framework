@@ -349,7 +349,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>
-        /// <param name="rect">The scissor rectangle.</param>
+        /// <param name="maskingInfo">The masking info.</param>
         public static void PushScissor(MaskingInfo maskingInfo)
         {
             maskingStack.Push(maskingInfo);
