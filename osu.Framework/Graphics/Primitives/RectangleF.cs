@@ -232,11 +232,6 @@ namespace osu.Framework.Graphics.Primitives
 
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
-        /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> structure by the specified amount.</summary>
-        /// <returns>This method does not return a value.</returns>
-        /// <param name="y">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure vertically. </param>
-        /// <param name="x">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure horizontally. </param>
-        /// <filterpriority>1</filterpriority>
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         public RectangleF Inflate(MarginPadding amount)
@@ -247,6 +242,10 @@ namespace osu.Framework.Graphics.Primitives
                 Width + amount.TotalHorizontal,
                 Height + amount.TotalVertical);
         }
+
+        public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
+
+        public RectangleF Shrink(Vector2 amount) => Shrink(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         public RectangleF Shrink(MarginPadding amount) => Inflate(-amount);
 
