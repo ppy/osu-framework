@@ -13,7 +13,7 @@ namespace osu.Framework.Desktop.Tests.Benchmark
         [Test]
         public void TestBenchmark()
         {
-            using (var host = new HeadlessGameHost() { ListenForIpc = false })
+            using (var host = new HeadlessGameHost())
             {
                 host.Add(new VisualTests.Benchmark());
                 host.Run();

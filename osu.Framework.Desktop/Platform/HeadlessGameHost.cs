@@ -19,6 +19,19 @@ namespace osu.Framework.Desktop.Platform
         public override GLControl GLControl => null;
         public override TextInputSource TextInput => null;
 
+        public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
+        {
+            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            
+            UpdateScheduler.Update();
+        }
+
+        public override void Load(BaseGame game)
+        {
+            Storage = new DesktopStorage(string.Empty);
+
+            base.Load(game);
+        }
+
         protected override void DrawFrame()
         {
             //we can't draw.
@@ -26,8 +39,6 @@ namespace osu.Framework.Desktop.Platform
 
         public override void Run()
         {
-            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.
-
             while (!ExitRequested)
             {
                 UpdateMonitor.NewFrame();

@@ -22,8 +22,6 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using osu.Framework.Cached;
-using osu.Framework.Graphics.Primitives;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 
 namespace osu.Framework.Platform
@@ -66,7 +64,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public bool IsPrimaryInstance { get; protected set; }
+        public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
@@ -408,14 +406,15 @@ namespace osu.Framework.Platform
         {
             set
             {
-                InputScheduler.Add(delegate
+                //this logic is shit, but necessary to make stuff not assert.
+                //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
+                UpdateScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    Window.Size = new Size((int)value.X, (int)value.Y);
+                    InputScheduler.Add(delegate { Window.Size = new Size((int)value.X, (int)value.Y); });
+                    base.Size = value;
                 });
-
-                base.Size = value;
             }
         }
 
