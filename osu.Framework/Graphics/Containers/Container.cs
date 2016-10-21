@@ -530,18 +530,15 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Contains(Vector2 screenSpacePos)
         {
-            if (!Masking || CornerRadius == 0.0f)
-                return DrawRectangle.Shrink(Margin).Contains(GetLocalPosition(screenSpacePos));
+            float cornerRadius = CornerRadius;
+            Vector2 localPos = GetLocalPosition(screenSpacePos);
+            RectangleF inputRect = DrawRectangle.Shrink(Margin);
 
-            Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
-            RectangleF aabb = DrawRectangle.Shrink(Margin);
-
-            aabb.X += CornerRadius;
-            aabb.Y += CornerRadius;
-            aabb.Width -= 2 * CornerRadius;
-            aabb.Height -= 2 * CornerRadius;
-
-            return aabb.DistanceSquared(localSpacePos) <= CornerRadius * CornerRadius;
+            // Select a cheaper contains method when we don't need rounded edges.
+            if (!Masking || cornerRadius == 0.0f)
+                return inputRect.Contains(localPos);
+            else
+                return inputRect.Shrink(cornerRadius).DistanceSquared(localPos) <= cornerRadius * cornerRadius;
         }
 
         protected override RectangleF BoundingBox
