@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void update()
         {
-            box.Invalidate(Invalidation.Geometry);
+            box.Invalidate(Invalidation.DrawNode);
             if (!target.IsAlive)
                 Expire();
         }

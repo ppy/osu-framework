@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
+                MaskingRect = DrawRectangle.Shrink(Margin),
                 ToMaskingSpace = DrawInfo.MatrixInverse,
                 CornerRadius = this.CornerRadius,
                 BorderThickness = this.BorderThickness,
@@ -241,11 +241,6 @@ namespace osu.Framework.Graphics.Containers
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
         internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
-
-        /// <summary>
-        /// The Size (coordinate space) revealed to Children.
-        /// </summary>
-        internal Vector2 RawDrawSize => base.DrawSize;
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -536,17 +531,17 @@ namespace osu.Framework.Graphics.Containers
         public override bool Contains(Vector2 screenSpacePos)
         {
             if (!Masking || CornerRadius == 0.0f)
-                return base.Contains(screenSpacePos);
+                return DrawRectangle.Shrink(Margin).Contains(GetLocalPosition(screenSpacePos));
 
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
-            RectangleF aabb = DrawRectangle;
+            RectangleF aabb = DrawRectangle.Shrink(Margin);
 
             aabb.X += CornerRadius;
             aabb.Y += CornerRadius;
             aabb.Width -= 2 * CornerRadius;
             aabb.Height -= 2 * CornerRadius;
 
-            return aabb.DistanceSquared(localSpacePos) < CornerRadius * CornerRadius;
+            return aabb.DistanceSquared(localSpacePos) <= CornerRadius * CornerRadius;
         }
 
         protected override RectangleF BoundingBox

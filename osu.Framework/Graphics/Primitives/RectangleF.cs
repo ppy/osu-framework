@@ -230,37 +230,25 @@ namespace osu.Framework.Graphics.Primitives
                  ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
         }
 
+        public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
+
         /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> structure by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
         /// <param name="y">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure vertically. </param>
         /// <param name="x">The amount to inflate this <see cref="T:System.Drawing.RectangleF"></see> structure horizontally. </param>
         /// <filterpriority>1</filterpriority>
-        public void Inflate(float x, float y)
+        public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
+
+        public RectangleF Inflate(MarginPadding amount)
         {
-            X -= x;
-            Y -= y;
-            Width += 2f * x;
-            Height += 2f * y;
+            return new RectangleF(
+                X - amount.Left,
+                Y - amount.Top,
+                Width + amount.TotalHorizontal,
+                Height + amount.TotalVertical);
         }
 
-        /// <summary>Inflates this <see cref="T:System.Drawing.RectangleF"></see> by the specified amount.</summary>
-        /// <returns>This method does not return a value.</returns>
-        /// <param name="size">The amount to inflate this rectangle. </param>
-        /// <filterpriority>1</filterpriority>
-        public void Inflate(SizeF size) => Inflate(size.Width, size.Height);
-
-        /// <summary>Creates and returns an inflated copy of the specified <see cref="T:System.Drawing.RectangleF"></see> structure. The copy is inflated by the specified amount. The original rectangle remains unmodified.</summary>
-        /// <returns>The inflated <see cref="T:System.Drawing.RectangleF"></see>.</returns>
-        /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to be copied. This rectangle is not modified. </param>
-        /// <param name="y">The amount to inflate the copy of the rectangle vertically. </param>
-        /// <param name="x">The amount to inflate the copy of the rectangle horizontally. </param>
-        /// <filterpriority>1</filterpriority>
-        public static RectangleF Inflate(RectangleF rect, float x, float y)
-        {
-            RectangleF ef = rect;
-            ef.Inflate(x, y);
-            return ef;
-        }
+        public RectangleF Shrink(MarginPadding amount) => Inflate(-amount);
 
         /// <summary>Replaces this <see cref="T:System.Drawing.RectangleF"></see> structure with the intersection of itself and the specified <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method does not return a value.</returns>
