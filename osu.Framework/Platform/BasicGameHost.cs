@@ -64,7 +64,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        public bool IsPrimaryInstance { get; protected set; }
+        public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
