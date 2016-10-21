@@ -11,13 +11,13 @@ using SQLite.Net.Platform.Win32;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public abstract class DesktopStorage : BasicStorage
+    public class DesktopStorage : BasicStorage
     {
         public DesktopStorage(string baseName) : base(baseName)
         {
         }
-        
-        protected abstract string BasePath { get; }
+
+        protected virtual string BasePath => @"./"; //use current directory by default
         
         public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
         {
