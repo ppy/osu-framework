@@ -22,8 +22,14 @@ namespace osu.Framework.Desktop.Platform
         public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
         {
             path = Path.Combine(BasePath, path);
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            return File.Open(path, FileMode.OpenOrCreate, mode);
+            switch (mode)
+            {
+                case FileAccess.Read:
+                    return File.Open(path, FileMode.Open, mode);
+                default:
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    return File.Open(path, FileMode.OpenOrCreate, mode);
+            }
         }
         
         public override SQLiteConnection GetDatabase(string name)
