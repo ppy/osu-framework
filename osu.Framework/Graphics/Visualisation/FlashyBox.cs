@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { set { target = value; } }
 
-        public override Quad ScreenSpaceDrawQuad { get { return target.ScreenSpaceDrawQuad; } }
+        public override Quad ScreenSpaceDrawQuad => target.ScreenSpaceDrawQuad;
 
         public override void Load(BaseGame game)
         {

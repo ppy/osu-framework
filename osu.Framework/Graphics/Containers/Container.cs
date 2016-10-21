@@ -531,7 +531,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool Contains(Vector2 screenSpacePos)
         {
             if (!Masking || CornerRadius == 0.0f)
-                DrawRectangle.Shrink(Margin).Contains(GetLocalPosition(screenSpacePos));
+                return DrawRectangle.Shrink(Margin).Contains(GetLocalPosition(screenSpacePos));
 
             Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
             RectangleF aabb = DrawRectangle.Shrink(Margin);
