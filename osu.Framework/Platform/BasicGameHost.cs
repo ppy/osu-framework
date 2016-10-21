@@ -406,6 +406,8 @@ namespace osu.Framework.Platform
         {
             set
             {
+                //this logic is shit, but necessary to make stuff not assert.
+                //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
                 UpdateScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
