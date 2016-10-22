@@ -81,7 +81,7 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (isValid)
+            if (IsValid)
             {
                 isValid = false;
                 return true;
@@ -158,7 +158,7 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (isValid)
+            if (IsValid)
             {
                 isValid = false;
                 return true;
