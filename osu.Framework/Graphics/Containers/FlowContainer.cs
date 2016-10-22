@@ -15,11 +15,7 @@ namespace osu.Framework.Graphics.Containers
 
         public EasingTypes LayoutEasing;
 
-        public int LayoutDuration
-        {
-            get { return Math.Max(0, layout.RefreshInterval); }
-            set { layout.RefreshInterval = value; }
-        }
+        public int LayoutDuration { get; set; }
 
         private FlowDirection direction = FlowDirection.Full;
 

@@ -6,43 +6,31 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Cached
 {
-    public abstract class StaticCached
+    public static class StaticCached
     {
         internal static bool AlwaysStale = false;
     }
 
-    public class Cached<T> : StaticCached
+
+    public struct Cached<T>
     {
         public delegate T PropertyUpdater();
 
-        /// <summary>
-        /// How often this property is refreshed.
-        /// </summary>
-        public int RefreshInterval;
+        private bool isValid;
 
-        /// <summary>
-        /// Whether we allow reads of stale values. If this is set to false, there may be a potential blocking delay when accessing the property.
-        /// </summary>
-        public bool AllowStaleReads = true;
-
-        private bool isStale => AlwaysStale || (lastUpdateTime < 0 || (RefreshInterval >= 0 && clock?.CurrentTime > lastUpdateTime + RefreshInterval));
-        public bool IsValid => !isStale;
+        public bool IsValid => !StaticCached.AlwaysStale && isValid;
 
         private PropertyUpdater updateDelegate;
-        private readonly IClock clock;
-        private double lastUpdateTime = -1;
 
         /// <summary>
         /// Create a new cached property.
         /// </summary>
         /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
-        /// <param name="clock">The clock which will be used to decide whether we need a refresh.</param>
-        /// <param name="refreshInterval">How often we should refresh this property. Set to -1 to never update. Set to 0 for once per frame.</param>
-        public Cached(PropertyUpdater updateDelegate = null, IClock clock = null, int refreshInterval = -1)
+        public Cached(PropertyUpdater updateDelegate = null)
         {
-            RefreshInterval = refreshInterval;
+            isValid = false;
+            value = default(T);
             this.updateDelegate = updateDelegate;
-            this.clock = clock;
         }
 
         public static implicit operator T(Cached<T> value)
@@ -85,16 +73,23 @@ namespace osu.Framework.Cached
                 return false;
 
             value = updateDelegate();
-            lastUpdateTime = clock?.CurrentTime ?? 0;
+            isValid = true;
             return true;
         }
 
+        /// <summary>
+        /// Invalidate the cache of this object.
+        /// </summary>
+        /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (lastUpdateTime < 0) return false;
+            if (isValid)
+            {
+                isValid = false;
+                return true;
+            }
 
-            lastUpdateTime = -1;
-            return true;
+            return false;
         }
 
         private T value;
@@ -103,7 +98,7 @@ namespace osu.Framework.Cached
         {
             get
             {
-                if (!AllowStaleReads && isStale)
+                if (!IsValid)
                     MakeValidOrDefault();
 
                 return value;
