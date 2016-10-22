@@ -21,8 +21,8 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using osu.Framework.Cached;
 using System.Threading.Tasks;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Platform
 {

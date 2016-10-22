@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     {
         internal event Action OnAutoSize;
 
-        private Cached<Vector2> autoSize = new Cached<Vector2>();
+        private Cached autoSize = new Cached();
 
         public override float Width
         {
@@ -103,16 +103,13 @@ namespace osu.Framework.Graphics.Containers
                 autoSize.Refresh(delegate
                 {
                     Vector2 b = computeAutoSize() + Padding.Total;
-                    base.Size = new Vector2(
-                        (RelativeSizeAxes & Axes.X) > 0 ? Size.X : b.X,
-                        (RelativeSizeAxes & Axes.Y) > 0 ? Size.Y : b.Y
-                    );
+
+                    if ((RelativeSizeAxes & Axes.X) == 0) base.Width = b.X;
+                    if ((RelativeSizeAxes & Axes.Y) == 0) base.Height = b.Y;
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
                     //might work better to add an OnRefresh event in Cached<> and invoke there.
                     OnAutoSize?.Invoke();
-
-                    return b;
                 });
             }
 

@@ -3,7 +3,7 @@
 
 using System;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Transformations;
 using OpenTK;
 
@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics.Containers
         public EasingTypes LayoutEasing;
 
         public int LayoutDuration { get; set; }
+
+        private Cached layout = new Cached();
 
         private FlowDirection direction = FlowDirection.Full;
 
@@ -87,8 +89,6 @@ namespace osu.Framework.Graphics.Containers
             base.Add(drawable);
         }
 
-        private Cached<Vector2> layout = new Cached<Vector2>();
-
         protected override void UpdateLayout()
         {
             base.UpdateLayout();
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     OnLayout?.Invoke();
 
-                    if (Children.FirstOrDefault() == null) return Vector2.Zero;
+                    if (Children.FirstOrDefault() == null) return;
 
                     Vector2 current = Vector2.Zero;
 
@@ -144,8 +144,6 @@ namespace osu.Framework.Graphics.Containers
 
                         current.X += size.X;
                     }
-
-                    return current;
                 });
             }
         }
