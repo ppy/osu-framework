@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public class Container : ShadedDrawable
+    public partial class Container : ShadedDrawable
     {
         private bool masking = false;
         public bool Masking
@@ -129,6 +129,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
+        protected override bool IsCompatibleDrawNode(DrawNode node) => node is ContainerDrawNode;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
@@ -215,7 +216,7 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-    
+
                 foreach (Drawable c in children)
                     c.Invalidate(Invalidation.Geometry);
             }
@@ -293,6 +294,9 @@ namespace osu.Framework.Graphics.Containers
                 pendingChildren.Add(drawable);
             else
                 children.Add(drawable);
+
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
         }
 
         /// <summary>
@@ -316,12 +320,17 @@ namespace osu.Framework.Graphics.Containers
             bool result = children.Remove(drawable);
             drawable.Parent = null;
 
+            if (!result) return false;
+
             if (dispose)
                 drawable.Dispose();
             else
                 drawable.Invalidate();
 
-            return result;
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
+
+            return true;
         }
 
         public int RemoveAll(Predicate<Drawable> match, bool dispose = false)
@@ -381,6 +390,9 @@ namespace osu.Framework.Graphics.Containers
                 child.UpdateSubTree();
 
             UpdateLayout();
+
+            if (AutoSizeAxes != Axes.None)
+                updateAutoSize();
             return true;
         }
 
@@ -402,7 +414,13 @@ namespace osu.Framework.Graphics.Containers
             obj.Load(game);
         }
 
-        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source) { }
+        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        {
+            if (AutoSizeAxes == Axes.None) return;
+
+            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+                autoSize.Invalidate();
+        }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -432,7 +450,12 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            return children.Update();
+            bool changed = children.Update();
+
+            if (changed && AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+
+            return changed;
         }
 
         /// <summary>
@@ -442,61 +465,52 @@ namespace osu.Framework.Graphics.Containers
         {
         }
 
-        protected internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        public override Axes RelativeSizeAxes
         {
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(node) as ContainerDrawNode;
-
-            if (children.AliveItems.Count > 0)
+            get { return base.RelativeSizeAxes; }
+            set
             {
-                if (cNode.Children != null)
-                {
-                    var current = children.AliveItems;
-                    var target = cNode.Children;
-
-                    int j = 0;
-                    foreach (Drawable drawable in current)
-                    {
-                        if (!drawable.IsVisible) continue;
-
-                        //todo: make this more efficient.
-                        if (game?.ScreenSpaceDrawQuad.FastIntersects(drawable.ScreenSpaceDrawQuad) == false)
-                            continue;
-
-                        if (j < target.Count && target[j].Drawable == drawable)
-                        {
-                            drawable.GenerateDrawNodeSubtree(target[j]);
-                        }
-                        else
-                        {
-                            if (j < target.Count)
-                                target.RemoveAt(j);
-                            target.Insert(j, drawable.GenerateDrawNodeSubtree());
-                        }
-
-                        j++;
-                    }
-
-                    if (j < target.Count)
-                        target.RemoveRange(j, target.Count - j);
-                }
-                else
-                {
-                    cNode.Children = new List<DrawNode>(children.AliveItems.Count);
-
-                    foreach (Drawable child in children.AliveItems)
-                    {
-                        //if (Game?.ScreenSpaceDrawQuad.Intersects(child.ScreenSpaceDrawQuad) == false)
-                        //    continue;
-
-                        if (!child.IsVisible)
-                            continue;
-
-                        cNode.Children.Add(child.GenerateDrawNodeSubtree());
-                    }
-                }
+                Debug.Assert((AutoSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
+                base.RelativeSizeAxes = value;
             }
-            else
-                cNode?.Children?.Clear();
+        }
+
+        protected internal override DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
+        {
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
+
+            if (children.AliveItems.Count == 0)
+            {
+                cNode.Children?.Clear();
+                return cNode;
+            }
+
+            RectangleF childBounds = bounds;
+            if (Masking)
+                childBounds.Intersect(ScreenSpaceDrawQuad.AABBf);
+
+            if (cNode.Children == null)
+                cNode.Children = new List<DrawNode>(children.AliveItems.Count);
+
+            var current = children.AliveItems;
+            var target = cNode.Children;
+
+            int j = 0;
+            foreach (Drawable drawable in current)
+            {
+                if (!drawable.IsVisible || !childBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    continue;
+
+                if (j < target.Count)
+                    target[j] = drawable.GenerateDrawNodeSubtree(childBounds, target[j]);
+                else
+                    target.Add(drawable.GenerateDrawNodeSubtree(childBounds));
+
+                j++;
+            }
+
+            if (j < target.Count)
+                target.RemoveRange(j, target.Count - j);
 
             return cNode;
         }
@@ -545,29 +559,18 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                // TODO: Figure out how to efficiently and correctly find a parent-space bounding box
-                //       of a transformed Rect with rounded corners.
-
-                //if (!Masking || CornerRadius == 0.0f)
+                if (!Masking || CornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                /*Quad drawQuadForBounds = DrawQuadForBounds;
+                float cornerRadius = CornerRadius;
+                RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
-                Vector2 cornerRadius = new Vector2(CornerRadius);
+                Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - ToParentSpace(Vector2.Zero);
+                Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - ToParentSpace(Vector2.Zero);
 
-                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
-                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
-
-                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
-                aabb.X -= cornerRadius.X;
-                aabb.Y -= cornerRadius.Y;
-                aabb.Width += 2 * cornerRadius.X;
-                aabb.Height += 2 * cornerRadius.Y;
-
-                return aabb;*/
+                Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
+                return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
-}
+        }
     }
 }

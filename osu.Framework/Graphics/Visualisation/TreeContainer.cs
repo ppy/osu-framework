@@ -78,6 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 new FlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {

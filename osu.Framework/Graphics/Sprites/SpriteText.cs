@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
+            AutoSizeAxes = Axes.Both;
         }
 
         internal override Vector2 ChildScale => new Vector2(TextSize);

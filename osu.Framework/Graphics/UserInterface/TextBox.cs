@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
+                AutoSizeAxes = Axes.Both,
             };
 
             cursor = new Box

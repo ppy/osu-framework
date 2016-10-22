@@ -84,7 +84,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Cached\Cached.cs" />
+    <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
@@ -107,6 +107,7 @@
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
+    <Compile Include="Graphics\Containers\Container_AutoSize.cs" />
     <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
@@ -166,7 +167,6 @@
     <Compile Include="Configuration\SafeWriteStream.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
-    <Compile Include="Graphics\Containers\AutoSizeContainer.cs" />
     <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
