@@ -267,6 +267,28 @@ namespace osu.Framework.Platform
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
+        protected void updateIteration()
+        {
+            UpdateMonitor.NewFrame();
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+            {
+                UpdateScheduler.Update();
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
+            {
+                UpdateSubTree();
+                using (var buffer = DrawRoots.Get(UsageType.Write))
+                    buffer.Object = GenerateDrawNodeSubtree(ScreenSpaceDrawQuad.AABBf, buffer.Object);
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            {
+                UpdateClock.ProcessFrame();
+            }
+        }
+
         private void updateLoop()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
@@ -274,26 +296,7 @@ namespace osu.Framework.Platform
                 Thread.Sleep(1);
 
             while (!ExitRequested)
-            {
-                UpdateMonitor.NewFrame();
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    UpdateScheduler.Update();
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-                {
-                    UpdateSubTree();
-                    using (var buffer = DrawRoots.Get(UsageType.Write))
-                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
-                    UpdateClock.ProcessFrame();
-                }
-            }
+                updateIteration();
         }
 
         private void drawLoop()
