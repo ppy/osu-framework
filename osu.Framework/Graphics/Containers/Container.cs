@@ -577,28 +577,17 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                // TODO: Figure out how to efficiently and correctly find a parent-space bounding box
-                //       of a transformed Rect with rounded corners.
+                if (!Masking || CornerRadius == 0.0f)
+                    return base.BoundingBox;
 
-                //if (!Masking || CornerRadius == 0.0f)
-                return base.BoundingBox;
+                float cornerRadius = CornerRadius;
+                RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
-                /*Quad drawQuadForBounds = DrawQuadForBounds;
+                Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - ToParentSpace(Vector2.Zero);
+                Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - ToParentSpace(Vector2.Zero);
 
-                Vector2 cornerRadius = new Vector2(CornerRadius);
-
-                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
-                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
-                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
-
-                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
-                aabb.X -= cornerRadius.X;
-                aabb.Y -= cornerRadius.Y;
-                aabb.Width += 2 * cornerRadius.X;
-                aabb.Height += 2 * cornerRadius.Y;
-
-                return aabb;*/
+                Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
+                return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
         }
     }
