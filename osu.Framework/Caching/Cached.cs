@@ -20,17 +20,6 @@ namespace osu.Framework.Caching
 
         private PropertyUpdater updateDelegate;
 
-        /// <summary>
-        /// Create a new cached property.
-        /// </summary>
-        /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
-        public Cached(PropertyUpdater updateDelegate = null)
-        {
-            isValid = false;
-            value = default(T);
-            this.updateDelegate = updateDelegate;
-        }
-
         public static implicit operator T(Cached<T> value)
         {
             return value.Value;
@@ -81,7 +70,7 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (IsValid)
+            if (isValid)
             {
                 isValid = false;
                 return true;
@@ -96,7 +85,7 @@ namespace osu.Framework.Caching
         {
             get
             {
-                if (!IsValid)
+                if (!isValid)
                     MakeValidOrDefault();
 
                 return value;
@@ -115,16 +104,6 @@ namespace osu.Framework.Caching
         public bool IsValid => !StaticCached.AlwaysStale && isValid;
 
         private PropertyUpdater updateDelegate;
-
-        /// <summary>
-        /// Create a new cached property.
-        /// </summary>
-        /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
-        public Cached(PropertyUpdater updateDelegate = null)
-        {
-            isValid = false;
-            this.updateDelegate = updateDelegate;
-        }
 
         /// <summary>
         /// Refresh this cached object with a custom delegate.
@@ -158,7 +137,7 @@ namespace osu.Framework.Caching
         /// <returns>True if we invalidated from a valid state.</returns>
         public bool Invalidate()
         {
-            if (IsValid)
+            if (isValid)
             {
                 isValid = false;
                 return true;
