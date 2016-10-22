@@ -117,6 +117,12 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 TopLeft => new Vector2(Left, Top);
 
         [Browsable(false)]
+        public Vector2 TopRight => new Vector2(Right, Top);
+
+        [Browsable(false)]
+        public Vector2 BottomLeft => new Vector2(Left, Bottom);
+
+        [Browsable(false)]
         public Vector2 BottomRight => new Vector2(Right, Bottom);
 
         /// <summary>Tests whether the <see cref="P:System.Drawing.RectangleF.Width"></see> or <see cref="P:System.Drawing.RectangleF.Height"></see> property of this <see cref="T:System.Drawing.RectangleF"></see> has a value of zero.</summary>

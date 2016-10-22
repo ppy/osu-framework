@@ -129,6 +129,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
+        protected override bool IsCompatibleDrawNode(DrawNode node) => node is ContainerDrawNode;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
@@ -474,61 +475,42 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        protected internal override DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(node) as ContainerDrawNode;
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
 
-            if (children.AliveItems.Count > 0)
+            if (children.AliveItems.Count == 0)
             {
-                if (cNode.Children != null)
-                {
-                    var current = children.AliveItems;
-                    var target = cNode.Children;
-
-                    int j = 0;
-                    foreach (Drawable drawable in current)
-                    {
-                        if (!drawable.IsVisible) continue;
-
-                        //todo: make this more efficient.
-                        if (game?.ScreenSpaceDrawQuad.FastIntersects(drawable.ScreenSpaceDrawQuad) == false)
-                            continue;
-
-                        if (j < target.Count && target[j].Drawable == drawable)
-                        {
-                            drawable.GenerateDrawNodeSubtree(target[j]);
-                        }
-                        else
-                        {
-                            if (j < target.Count)
-                                target.RemoveAt(j);
-                            target.Insert(j, drawable.GenerateDrawNodeSubtree());
-                        }
-
-                        j++;
-                    }
-
-                    if (j < target.Count)
-                        target.RemoveRange(j, target.Count - j);
-                }
-                else
-                {
-                    cNode.Children = new List<DrawNode>(children.AliveItems.Count);
-
-                    foreach (Drawable child in children.AliveItems)
-                    {
-                        //if (Game?.ScreenSpaceDrawQuad.Intersects(child.ScreenSpaceDrawQuad) == false)
-                        //    continue;
-
-                        if (!child.IsVisible)
-                            continue;
-
-                        cNode.Children.Add(child.GenerateDrawNodeSubtree());
-                    }
-                }
+                cNode.Children?.Clear();
+                return cNode;
             }
-            else
-                cNode?.Children?.Clear();
+
+            RectangleF childBounds = bounds;
+            if (Masking)
+                childBounds.Intersect(ScreenSpaceDrawQuad.AABBf);
+
+            if (cNode.Children == null)
+                cNode.Children = new List<DrawNode>(children.AliveItems.Count);
+
+            var current = children.AliveItems;
+            var target = cNode.Children;
+
+            int j = 0;
+            foreach (Drawable drawable in current)
+            {
+                if (!drawable.IsVisible || !childBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    continue;
+
+                if (j < target.Count)
+                    target[j] = drawable.GenerateDrawNodeSubtree(childBounds, target[j]);
+                else
+                    target.Add(drawable.GenerateDrawNodeSubtree(childBounds));
+
+                j++;
+            }
+
+            if (j < target.Count)
+                target.RemoveRange(j, target.Count - j);
 
             return cNode;
         }

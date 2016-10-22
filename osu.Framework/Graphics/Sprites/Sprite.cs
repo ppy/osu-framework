@@ -32,6 +32,7 @@ namespace osu.Framework.Graphics.Sprites
         #endregion
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
+        protected override bool IsCompatibleDrawNode(DrawNode node) => node is SpriteDrawNode;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
