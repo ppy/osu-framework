@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public class Container : ShadedDrawable
+    public partial class Container : ShadedDrawable
     {
         private bool masking = false;
         public bool Masking
@@ -215,7 +215,7 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-    
+
                 foreach (Drawable c in children)
                     c.Invalidate(Invalidation.Geometry);
             }
@@ -293,6 +293,9 @@ namespace osu.Framework.Graphics.Containers
                 pendingChildren.Add(drawable);
             else
                 children.Add(drawable);
+
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
         }
 
         /// <summary>
@@ -316,12 +319,17 @@ namespace osu.Framework.Graphics.Containers
             bool result = children.Remove(drawable);
             drawable.Parent = null;
 
+            if (!result) return false;
+
             if (dispose)
                 drawable.Dispose();
             else
                 drawable.Invalidate();
 
-            return result;
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
+
+            return true;
         }
 
         public int RemoveAll(Predicate<Drawable> match, bool dispose = false)
@@ -381,6 +389,9 @@ namespace osu.Framework.Graphics.Containers
                 child.UpdateSubTree();
 
             UpdateLayout();
+
+            if (AutoSizeAxes != Axes.None)
+                updateAutoSize();
             return true;
         }
 
@@ -402,7 +413,13 @@ namespace osu.Framework.Graphics.Containers
             obj.Load(game);
         }
 
-        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source) { }
+        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        {
+            if (AutoSizeAxes == Axes.None) return;
+
+            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+                autoSize.Invalidate();
+        }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -432,7 +449,12 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            return children.Update();
+            bool changed = children.Update();
+
+            if (changed && AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+
+            return changed;
         }
 
         /// <summary>
@@ -440,6 +462,18 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>		
         protected virtual void UpdateLayout()
         {
+        }
+
+        public override Axes RelativeSizeAxes
+        {
+            get { return base.RelativeSizeAxes; }
+            set
+            {
+                //Debug.Assert((AutoSizeAxes & value) == 0);
+                base.RelativeSizeAxes = value;
+
+                AutoSizeAxes &= ~RelativeSizeAxes;
+            }
         }
 
         protected internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
@@ -549,7 +583,7 @@ namespace osu.Framework.Graphics.Containers
                 //       of a transformed Rect with rounded corners.
 
                 //if (!Masking || CornerRadius == 0.0f)
-                    return base.BoundingBox;
+                return base.BoundingBox;
 
                 /*Quad drawQuadForBounds = DrawQuadForBounds;
 
@@ -568,6 +602,6 @@ namespace osu.Framework.Graphics.Containers
 
                 return aabb;*/
             }
-}
+        }
     }
 }
