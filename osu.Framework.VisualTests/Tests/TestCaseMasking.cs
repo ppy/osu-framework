@@ -33,6 +33,8 @@ namespace osu.Framework.VisualTests.Tests
             string[] testNames = new[]
             {
                 @"Round corner masking",
+                @"Round corner AABB 1",
+                @"Round corner AABB 2",
                 @"Edge/border blurriness",
                 @"Nested masking",
             };
@@ -94,6 +96,78 @@ namespace osu.Framework.VisualTests.Tests
                     }
 
                 case 1:
+                    {
+                        Color4 glowColour = Color4.Aquamarine;
+                        glowColour.A = 0.5f;
+
+                        Container box;
+                        testContainer.Add(box = new InfofulBoxAutoSize
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                        });
+
+                        addCornerMarkers(box);
+
+                        box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                        {
+                            Position = new Vector2(0, 0),
+                            Size = new Vector2(25, 25),
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre
+                        });
+
+                        box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                        {
+                            Masking = true,
+                            CornerRadius = 100,
+                            Size = new Vector2(400, 400),
+                            Alpha = 0.5f,
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre
+                        });
+
+                        box.OnUpdate += delegate { box.Rotation += 0.05f; };
+                        break;
+                    }
+
+                case 2:
+                    {
+                        Color4 glowColour = Color4.Aquamarine;
+                        glowColour.A = 0.5f;
+
+                        Container box;
+                        testContainer.Add(box = new InfofulBoxAutoSize
+                        {
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                        });
+
+                        box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                        {
+                            Position = new Vector2(0, 0),
+                            Size = new Vector2(25, 25),
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre
+                        });
+
+                        box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                        {
+                            Masking = true,
+                            CornerRadius = 25,
+                            Shear = new Vector2(0.5f, 0),
+                            Size = new Vector2(150, 150),
+                            Scale = new Vector2(2.5f, 1.5f),
+                            Alpha = 0.5f,
+                            Origin = Anchor.Centre,
+                            Anchor = Anchor.Centre
+                        });
+
+                        box.OnUpdate += delegate { box.Rotation += 0.05f; };
+                        break;
+                    }
+
+                case 3:
                     {
                         Func<float, Drawable> createMaskingBox = delegate(float scale)
                         {
@@ -168,7 +242,7 @@ namespace osu.Framework.VisualTests.Tests
                         break;
                     }
 
-                case 2:
+                case 4:
                     {
                         testContainer.Add(new Container
                         {
