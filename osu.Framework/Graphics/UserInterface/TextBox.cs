@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
+                AutoSizeAxes = Axes.Both,
             };
 
             cursor = new Box

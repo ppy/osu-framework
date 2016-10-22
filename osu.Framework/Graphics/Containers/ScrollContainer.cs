@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content;
+        private Container content;
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -52,7 +52,10 @@ namespace osu.Framework.Graphics.Containers
 
             AddInternal(new Drawable[]
             {
-                content = new AutoSizeContainer { RelativeSizeAxes = Axes.X },
+                content = new Container {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                },
                 scrollbar = new ScrollBar { Dragged = onScrollbarMovement }
             });
         }

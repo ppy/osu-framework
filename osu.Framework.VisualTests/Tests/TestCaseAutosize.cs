@@ -286,6 +286,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             boxes = new FlowContainer {
                                 RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
                                 Spacing = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -341,8 +342,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -372,8 +374,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -403,8 +406,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -466,8 +470,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -497,8 +502,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -528,8 +534,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -609,10 +616,12 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    class InfofulBoxAutoSize : AutoSizeContainer
+    class InfofulBoxAutoSize : Container
     {
         public override void Load(BaseGame game)
         {
+            AutoSizeAxes = Axes.Both;
+
             base.Load(game);
 
             Masking = true;

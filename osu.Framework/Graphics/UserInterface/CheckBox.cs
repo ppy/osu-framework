@@ -33,6 +33,7 @@ namespace osu.Framework.Graphics.UserInterface
         public CheckBox()
         {
             Direction = FlowDirection.HorizontalOnly;
+            AutoSizeAxes = Axes.Both;
         }
 
         protected override bool OnClick(InputState state)

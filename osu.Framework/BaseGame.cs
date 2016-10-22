@@ -75,6 +75,7 @@ namespace osu.Framework
                 {
                     Position = new Vector2(5, 5),
                     Direction = FlowDirection.VerticalOnly,
+                    AutoSizeAxes = Axes.Both,
                     Alpha = 0,
                     Spacing = new Vector2(10, 10),
                     Anchor = Anchor.BottomRight,

@@ -40,6 +40,8 @@ namespace osu.Framework.Graphics.Cursor
         {
             public Cursor()
             {
+                AutoSizeAxes = Axes.Both;
+
                 BorderThickness = 2;
                 BorderColour = new Color4(247, 99, 164, 255);
 

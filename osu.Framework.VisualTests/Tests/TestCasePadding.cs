@@ -42,8 +42,9 @@ namespace osu.Framework.VisualTests.Tests
                             Children = new Drawable[]
                             {
                                 new SpriteText { Text = @"Padding - 20 All Sides" },
-                                new AutoSizeContainer
+                                new Container
                                 {
+                                    AutoSizeAxes = Axes.Both,
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     Children = new Drawable[]
@@ -83,8 +84,9 @@ namespace osu.Framework.VisualTests.Tests
                             Children = new Drawable[]
                             {
                                 new SpriteText { Text = @"Padding - 20 Top, Left" },
-                                new AutoSizeContainer
+                                new Container
                                 {
+                                    AutoSizeAxes = Axes.Both,
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     Children = new Drawable[]
@@ -128,8 +130,9 @@ namespace osu.Framework.VisualTests.Tests
                             Children = new Drawable[]
                             {
                                 new SpriteText { Text = @"Margin - 20 All Sides" },
-                                new AutoSizeContainer
+                                new Container
                                 {
+                                    AutoSizeAxes = Axes.Both,
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     Children = new Drawable[]
@@ -169,8 +172,9 @@ namespace osu.Framework.VisualTests.Tests
                             Children = new Drawable[]
                             {
                                 new SpriteText { Text = @"Margin - 20 Top, Left" },
-                                new AutoSizeContainer
+                                new Container
                                 {
+                                    AutoSizeAxes = Axes.Both,
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                     Children = new Drawable[]

@@ -9,7 +9,7 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class FlowContainer : AutoSizeContainer
+    public class FlowContainer : Container
     {
         internal event Action OnLayout;
 
@@ -110,8 +110,8 @@ namespace osu.Framework.Graphics.Containers
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (RelativeSizeAxes & Axes.X) == 0 ? float.MaxValue : s.X;
-                        max.Y = (RelativeSizeAxes & Axes.Y) == 0 ? float.MaxValue : s.Y;
+                        max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
+                        max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
                     }
 
                     float rowMaxHeight = 0;

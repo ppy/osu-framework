@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
+            AutoSizeAxes = Axes.Both;
         }
 
         internal override Vector2 ChildScale => new Vector2(TextSize);

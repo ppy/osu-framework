@@ -92,6 +92,7 @@ namespace osu.Framework.Graphics.Performance
                         {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
+                            AutoSizeAxes = Axes.Both,
                             Spacing = new Vector2(5, 1),
                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
                             {

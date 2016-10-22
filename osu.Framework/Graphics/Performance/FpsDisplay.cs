@@ -9,7 +9,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FpsDisplay : AutoSizeContainer
+    class FpsDisplay : Container
     {
         SpriteText counter;
 
@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Performance
 
         public FpsDisplay(IFrameBasedClock clock)
         {
+            AutoSizeAxes = Axes.Both;
             this.clock = clock;
         }
 

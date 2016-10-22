@@ -469,10 +469,8 @@ namespace osu.Framework.Graphics.Containers
             get { return base.RelativeSizeAxes; }
             set
             {
-                //Debug.Assert((AutoSizeAxes & value) == 0);
+                Debug.Assert((AutoSizeAxes & value) == 0);
                 base.RelativeSizeAxes = value;
-
-                AutoSizeAxes &= ~RelativeSizeAxes;
             }
         }
 

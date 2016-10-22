@@ -35,6 +35,7 @@ namespace osu.Framework.VisualTests.Tests
                     Origin = Anchor.TopLeft,
                     Spacing = new Vector2(0,10),
                     Padding = new MarginPadding(10),
+                    AutoSizeAxes = Axes.Both,
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
