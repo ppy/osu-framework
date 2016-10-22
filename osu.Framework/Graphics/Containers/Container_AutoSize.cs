@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Containers
                 if (value == autoSizeAxes)
                     return;
 
-                Debug.Assert((RelativeSizeAxes & value) == 0);
+                Debug.Assert((RelativeSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
 

@@ -469,7 +469,7 @@ namespace osu.Framework.Graphics.Containers
             get { return base.RelativeSizeAxes; }
             set
             {
-                Debug.Assert((AutoSizeAxes & value) == 0);
+                Debug.Assert((AutoSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
                 base.RelativeSizeAxes = value;
             }
         }
