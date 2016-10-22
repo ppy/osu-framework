@@ -612,6 +612,9 @@ namespace osu.Framework.Graphics
             if (node == null || !IsCompatibleDrawNode(node))
                 node = CreateDrawNode();
 
+            if (StaticCached.AlwaysStale)
+                validDrawNodes.Clear();
+
             // Note, that invalidating clears all owned draw nodes and thus this check also serves
             // to re-populate invalidated draw nodes.
             if (!OwnsDrawNode(node))
@@ -622,8 +625,6 @@ namespace osu.Framework.Graphics
 
             return node;
         }
-
-
 
         protected virtual void ApplyDrawNode(DrawNode node)
         {
