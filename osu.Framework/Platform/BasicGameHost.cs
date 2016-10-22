@@ -21,10 +21,8 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using osu.Framework.Cached;
-using osu.Framework.Graphics.Primitives;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Platform
 {
@@ -65,14 +63,14 @@ namespace osu.Framework.Platform
                 }
             }
         }
-        
-        public bool IsPrimaryInstance { get; protected set; }
+
+        public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
-        
+
         protected internal event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message)
@@ -321,7 +319,7 @@ namespace osu.Framework.Platform
         {
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
-                GLWrapper.Reset(Size);
+                GLWrapper.Reset(DrawSize);
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             }
 
@@ -329,6 +327,8 @@ namespace osu.Framework.Platform
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                     buffer?.Object?.DrawSubTree();
+
+                GLWrapper.FlushCurrentBatch();
             }
         }
 
@@ -404,18 +404,17 @@ namespace osu.Framework.Platform
 
         public override Vector2 Size
         {
-            get { return base.Size; }
-
             set
             {
-                InputScheduler.Add(delegate
+                //this logic is shit, but necessary to make stuff not assert.
+                //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
+                UpdateScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    Window.Size = new Size((int)value.X, (int)value.Y);
+                    InputScheduler.Add(delegate { Window.Size = new Size((int)value.X, (int)value.Y); });
+                    base.Size = value;
                 });
-
-                base.Size = value;
             }
         }
 
@@ -442,11 +441,17 @@ namespace osu.Framework.Platform
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
-            UpdateScheduler.Add(delegate
-            {
-                Children = new[] { game };
-                Load(game);
-            });
+
+            LoadGame(game);
+        }
+
+        protected virtual void LoadGame(BaseGame game)
+        {
+            // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
+            // depend on a Game object.
+            if (!IsLoaded)
+                Load(null);
+            base.Add(game);
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

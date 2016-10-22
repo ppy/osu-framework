@@ -3,21 +3,130 @@
 
 using osu.Framework.Lists;
 using System.Collections.Generic;
-using System.Drawing;
-using osu.Framework.Timing;
 using System;
 using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.OpenGL;
+using OpenTK.Graphics;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public class Container : Drawable
+    public partial class Container : ShadedDrawable
     {
-        public bool Masking;
+        private bool masking = false;
+        public bool Masking
+        {
+            get { return masking; }
+            set
+            {
+                if (masking == value)
+                    return;
+
+                masking = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float cornerRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a radius is masked away around the corners.
+        /// </summary>
+        public virtual float CornerRadius
+        {
+            get { return cornerRadius; }
+            set
+            {
+                if (cornerRadius == value)
+                    return;
+
+                cornerRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float borderThickness = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how thick of a border to draw around masked children _within_ the masked region.
+        /// </summary>
+        public virtual float BorderThickness
+        {
+            get { return borderThickness; }
+            set
+            {
+                if (borderThickness == value)
+                    return;
+
+                borderThickness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 borderColour = Color4.Black;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines the color of the drawn border.
+        /// </summary>
+        public virtual Color4 BorderColour
+        {
+            get { return borderColour; }
+            set
+            {
+                if (borderColour.Equals(value))
+                    return;
+
+                borderColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float glowRadius = 0.0f;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines how large of a glow to draw _around_ the masked region.
+        /// </summary>
+        public virtual float GlowRadius
+        {
+            get { return glowRadius; }
+            set
+            {
+                if (glowRadius == value)
+                    return;
+
+                glowRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 glowColour = Color4.Transparent;
+
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines the color of the glow.
+        /// </summary>
+        public virtual Color4 GlowColour
+        {
+            get { return glowColour; }
+            set
+            {
+                if (glowColour.Equals(value))
+                    return;
+
+                glowColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -25,7 +134,19 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
-            n.MaskingQuad = Masking ? ScreenSpaceDrawQuad : (Quad?)null;
+            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+            {
+                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                MaskingRect = DrawRectangle.Shrink(Margin),
+                ToMaskingSpace = DrawInfo.MatrixInverse,
+                CornerRadius = this.CornerRadius,
+                BorderThickness = this.BorderThickness,
+                BorderColour = this.BorderColour,
+            };
+
+            n.GlowRadius = GlowRadius;
+            n.GlowColour = GlowColour;
+            n.ScreenSpaceMaskingQuad = null;
 
             base.ApplyDrawNode(node);
         }
@@ -59,7 +180,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual IEnumerable<Drawable> InternalChildren
+        public virtual IEnumerable<Drawable> InternalChildren
         {
             get { return IsLoaded ? children : pendingChildren; }
 
@@ -94,9 +215,9 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-    
+
                 foreach (Drawable c in children)
-                    c.Invalidate(Invalidation.Geometry, this);
+                    c.Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -114,12 +235,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override Vector2 Size => base.Size + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
+        public override Vector2 DrawSize => base.DrawSize + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
 
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => base.Size - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -131,26 +252,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
-        //Because of our custom DrawQuad implementation below, we want to expose the *base* DrawQuad when something requests our bounds.
-        protected override Quad DrawQuadForBounds => base.DrawQuad;
-
-        //Custom DrawQuad implementation excludes Margin/Padding.
-        protected override Quad DrawQuad
-        {
-            get
-            {
-                Vector2 s = ChildSize;
-
-                //most common use case gets a shortcut
-                if (!FlipHorizontal && !FlipVertical) return new Quad(ChildOffset.X, ChildOffset.Y, s.X, s.Y);
-
-                if (FlipHorizontal && FlipVertical)
-                    return new Quad(s.X, s.Y, -s.X, -s.Y);
-                if (FlipHorizontal)
-                    return new Quad(s.X, 0, -s.X, s.Y);
-                return new Quad(0, s.Y, s.X, -s.Y);
-            }
-        }
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
@@ -192,6 +293,9 @@ namespace osu.Framework.Graphics.Containers
                 pendingChildren.Add(drawable);
             else
                 children.Add(drawable);
+
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
         }
 
         /// <summary>
@@ -204,7 +308,7 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        public virtual bool Remove(Drawable drawable, bool dispose = true)
+        public virtual bool Remove(Drawable drawable, bool dispose = false)
         {
             if (drawable == null)
                 return false;
@@ -215,15 +319,20 @@ namespace osu.Framework.Graphics.Containers
             bool result = children.Remove(drawable);
             drawable.Parent = null;
 
+            if (!result) return false;
+
             if (dispose)
                 drawable.Dispose();
             else
                 drawable.Invalidate();
 
-            return result;
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
+
+            return true;
         }
 
-        public int RemoveAll(Predicate<Drawable> match, bool dispose = true)
+        public int RemoveAll(Predicate<Drawable> match, bool dispose = false)
         {
             List<Drawable> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
@@ -232,7 +341,7 @@ namespace osu.Framework.Graphics.Containers
             return toRemove.Count;
         }
 
-        public void Remove(IEnumerable<Drawable> range, bool dispose = true)
+        public void Remove(IEnumerable<Drawable> range, bool dispose = false)
         {
             if (range == null)
                 return;
@@ -280,6 +389,9 @@ namespace osu.Framework.Graphics.Containers
                 child.UpdateSubTree();
 
             UpdateLayout();
+
+            if (AutoSizeAxes != Axes.None)
+                updateAutoSize();
             return true;
         }
 
@@ -301,7 +413,13 @@ namespace osu.Framework.Graphics.Containers
             obj.Load(game);
         }
 
-        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source) { }
+        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        {
+            if (AutoSizeAxes == Axes.None) return;
+
+            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+                autoSize.Invalidate();
+        }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -331,7 +449,12 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            return children.Update();
+            bool changed = children.Update();
+
+            if (changed && AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+
+            return changed;
         }
 
         /// <summary>
@@ -339,6 +462,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>		
         protected virtual void UpdateLayout()
         {
+        }
+
+        public override Axes RelativeSizeAxes
+        {
+            get { return base.RelativeSizeAxes; }
+            set
+            {
+                Debug.Assert((AutoSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
+                base.RelativeSizeAxes = value;
+            }
         }
 
         protected internal override DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
@@ -425,6 +558,48 @@ namespace osu.Framework.Graphics.Containers
             foreach (var c in children) c.DelayReset();
 
             return this;
+        }
+
+        public override bool Contains(Vector2 screenSpacePos)
+        {
+            float cornerRadius = CornerRadius;
+            Vector2 localPos = GetLocalPosition(screenSpacePos);
+            RectangleF inputRect = DrawRectangle.Shrink(Margin);
+
+            // Select a cheaper contains method when we don't need rounded edges.
+            if (!Masking || cornerRadius == 0.0f)
+                return inputRect.Contains(localPos);
+            else
+                return inputRect.Shrink(cornerRadius).DistanceSquared(localPos) <= cornerRadius * cornerRadius;
+        }
+
+        protected override RectangleF BoundingBox
+        {
+            get
+            {
+                // TODO: Figure out how to efficiently and correctly find a parent-space bounding box
+                //       of a transformed Rect with rounded corners.
+
+                //if (!Masking || CornerRadius == 0.0f)
+                return base.BoundingBox;
+
+                /*Quad drawQuadForBounds = DrawQuadForBounds;
+
+                Vector2 cornerRadius = new Vector2(CornerRadius);
+
+                drawQuadForBounds.TopLeft += new Vector2(cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.TopRight += new Vector2(-cornerRadius.X, cornerRadius.Y);
+                drawQuadForBounds.BottomLeft += new Vector2(cornerRadius.X, -cornerRadius.Y);
+                drawQuadForBounds.BottomRight += new Vector2(-cornerRadius.X, -cornerRadius.Y);
+
+                RectangleF aabb = ToParentSpace(drawQuadForBounds).AABBf;
+                aabb.X -= cornerRadius.X;
+                aabb.Y -= cornerRadius.Y;
+                aabb.Width += 2 * cornerRadius.X;
+                aabb.Height += 2 * cornerRadius.Y;
+
+                return aabb;*/
+            }
         }
     }
 }

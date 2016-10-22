@@ -75,6 +75,7 @@ namespace osu.Framework
                 {
                     Position = new Vector2(5, 5),
                     Direction = FlowDirection.VerticalOnly,
+                    AutoSizeAxes = Axes.Both,
                     Alpha = 0,
                     Spacing = new Vector2(10, 10),
                     Anchor = Anchor.BottomRight,
@@ -84,7 +85,6 @@ namespace osu.Framework
             });
         }
 
-        [Conditional("DEBUG")]
         private void addDebugTools()
         {
             Add(DrawVisualiser = new DrawVisualiser()
@@ -128,7 +128,9 @@ namespace osu.Framework
                 ScaleAdjust = 1 / 100f
             };
 
-            base.Load(game);
+            // Make sure to ignore the argument and instead pass self downward.
+            // BasicGameHost will pass null into this method.
+            base.Load(this);
 
             addDebugTools();
         }

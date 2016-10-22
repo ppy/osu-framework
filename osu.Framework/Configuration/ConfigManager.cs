@@ -10,7 +10,9 @@ namespace osu.Framework.Configuration
     public class ConfigManager<T> : IDisposable
         where T : struct
     {
-        public string Filename = @"game.ini";
+        public virtual string Filename => @"game.ini";
+
+        public virtual bool AddMissingEntries => true;
 
         bool hasUnsavedChanges;
 
@@ -148,10 +150,17 @@ namespace osu.Framework.Configuration
 
                 IBindable b;
 
-                if (!configStore.TryGetValue(lookup, out b))
-                    continue;
-
-                b.Parse(val);
+                if (configStore.TryGetValue(lookup, out b))
+                    b.Parse(val);
+                else
+                {
+                    if (AddMissingEntries)
+                    {
+                        Set(lookup, val);
+                    }
+                    else
+                        continue;
+                }
             }
         }
 

@@ -1,20 +1,19 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Timing;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Transformations
 {
-    public class TransformPositionY : TransformFloat
+    public class TransformSize : TransformVector
     {
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.Position = new Vector2(d.Position.X, CurrentValue);
+            d.Size = CurrentValue;
         }
 
-        public TransformPositionY(IClock clock)
+        public TransformSize(IClock clock)
             : base(clock)
         {
         }

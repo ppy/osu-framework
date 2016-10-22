@@ -18,37 +18,36 @@ namespace osu.Framework.Desktop.Tests.Platform
         {
             public string Bar;
         }
-    
-        [Test]
-        public async Task TestIpc()
-        {
-            using (var server = new HeadlessGameHost())
-            using (var client = new HeadlessGameHost())
-            {
-                server.Load(null);
-                client.Load(null);
 
-                Assert.IsTrue(server.IsPrimaryInstance);
-                Assert.IsFalse(client.IsPrimaryInstance);
+        [Test]
+        public void TestIpc()
+        {
+            using (var server = new HeadlessGameHost(true))
+            using (var client = new HeadlessGameHost(true))
+            {
+                Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
+                Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");
 
                 var serverChannel = new IpcChannel<Foobar>(server);
                 var clientChannel = new IpcChannel<Foobar>(client);
-                bool messageReceived = false;
-                serverChannel.MessageReceived += message =>
+
+                Action waitAction = () =>
                 {
-                    messageReceived = true;
-                    Assert.AreEqual("example", message.Bar);
+                    bool received = false;
+                    serverChannel.MessageReceived += message =>
+                    {
+                        Assert.AreEqual("example", message.Bar);
+                        received = true;
+                    };
+
+                    clientChannel.SendMessage(new Foobar { Bar = "example" }).Wait();
+
+                    while (!received)
+                        Thread.Sleep(1);
                 };
-                await clientChannel.SendMessage(new Foobar { Bar = "example" });
-                var watch = new Stopwatch();
-                while (!messageReceived)
-                {
-                    // hacky, yes. This gives the server code time to process the message
-                    Thread.Sleep(1);
-                    if (watch.Elapsed.TotalSeconds > 1)
-                        Assert.Fail();
-                }
-                Assert.Pass();
+
+                Assert.IsTrue(waitAction.BeginInvoke(null, null).AsyncWaitHandle.WaitOne(1000),
+                    @"Message was not received in a timely fashion");
             }
         }
     }

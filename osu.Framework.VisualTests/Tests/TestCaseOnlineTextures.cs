@@ -36,7 +36,8 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         flow = new FlowContainer()
                         {
-                            RelativeSizeAxes = Axes.X
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
                         }
                     }
                 }

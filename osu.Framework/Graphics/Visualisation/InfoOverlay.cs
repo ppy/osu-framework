@@ -10,40 +10,41 @@ namespace osu.Framework.Graphics.Visualisation
     class InfoOverlay : Container
     {
         private Drawable target;
-
-        private Box tl, tr, bl, br;
-
-        public InfoOverlay(Drawable target)
+        public Drawable Target
         {
-            this.target = target;
-            target.OnInvalidate += update;
+            get
+            {
+                return target;
+            }
 
+            set
+            {
+                if (target != null)
+                    target.OnInvalidate -= update;
+
+                target = value;
+                box.Target = target;
+
+                if (target != null)
+                    target.OnInvalidate += update;
+            }
+        }
+
+        private FlashyBox box;
+
+        public InfoOverlay()
+        {
             RelativeSizeAxes = Axes.Both;
 
             Children = new Drawable[]
             {
-                tl = new FlashyBox(),
-                tr = new FlashyBox(),
-                bl = new FlashyBox(),
-                br = new FlashyBox()
+                box = new FlashyBox(),
             };
-        }
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-            update();
         }
 
         private void update()
         {
-            Quad q = target.ScreenSpaceDrawQuad * DrawInfo.MatrixInverse;
-
-            tl.Position = q.TopLeft;
-            tr.Position = q.TopRight;
-            bl.Position = q.BottomLeft;
-            br.Position = q.BottomRight;
-
+            box.Invalidate(Invalidation.DrawNode);
             if (!target.IsAlive)
                 Expire();
         }

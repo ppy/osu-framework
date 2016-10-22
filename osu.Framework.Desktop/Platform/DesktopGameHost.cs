@@ -11,9 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
+using OpenTK;
+using GLControl = osu.Framework.Platform.GLControl;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -23,30 +26,44 @@ namespace osu.Framework.Desktop.Platform
 
         private TextInputSource textInputBox;
         public override TextInputSource TextInput => textInputBox ?? (textInputBox = ((DesktopGameWindow)Window).CreateTextInput());
+
         private TcpIpcProvider IpcProvider;
         private Task IpcTask;
-        
-        public override void Load(BaseGame game)
+
+        public DesktopGameHost(bool bindIPCPort = false)
         {
-            IpcProvider = new TcpIpcProvider();
-            IsPrimaryInstance = IpcProvider.Bind();
-            if (IsPrimaryInstance)
+            if (bindIPCPort)
             {
-                IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
-                IpcTask = IpcProvider.Start();
+                IpcProvider = new TcpIpcProvider();
+                IsPrimaryInstance = IpcProvider.Bind();
+                if (IsPrimaryInstance)
+                {
+                    IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
+                    IpcTask = IpcProvider.Start();
+                }
             }
-            base.Load(game);
         }
-       
-        
+
+        protected override void LoadGame(BaseGame game)
+        {
+            //delay load until we have a size.
+            if (Size == Vector2.Zero)
+            {
+                UpdateScheduler.Add(delegate { LoadGame(game); });
+                return;
+            }
+
+            base.LoadGame(game);
+        }
+
         protected override async Task SendMessage(IpcMessage message)
         {
             await IpcProvider.SendMessage(message);
         }
-        
+
         protected override void Dispose(bool isDisposing)
         {
-            IpcProvider.Dispose();
+            IpcProvider?.Dispose();
             IpcTask?.Wait(50);
             base.Dispose(isDisposing);
         }

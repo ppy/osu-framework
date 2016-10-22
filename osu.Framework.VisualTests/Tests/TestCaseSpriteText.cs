@@ -29,6 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                         flow = new FlowContainer
                         {
                             Anchor = Anchor.TopLeft,
+                            AutoSizeAxes = Axes.Both,
                             Direction = FlowDirection.VerticalOnly,
                         }
                     }

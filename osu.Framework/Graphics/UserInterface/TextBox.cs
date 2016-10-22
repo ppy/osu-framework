@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -61,10 +61,10 @@ namespace osu.Framework.Graphics.UserInterface
             this.game = game;
 
             Masking = true;
+            CornerRadius = 3;
 
             Add(background = new Box
             {
-                CornerRadius = 3,
                 Colour = BackgroundUnfocused,
                 RelativeSizeAxes = Axes.Both,
             });
@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
+                AutoSizeAxes = Axes.Both,
             };
 
             cursor = new Box
@@ -132,15 +133,15 @@ namespace osu.Framework.Graphics.UserInterface
                 if (selectionLength > 0)
                     cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
 
-                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / Width;
+                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
                 //we only want to reposition the view when the cursor reaches near the extremities.
                 if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
                 {
-                    textContainerPosX = cursorPosEnd - Width / 2;
+                    textContainerPosX = cursorPosEnd - DrawWidth / 2;
                 }
 
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.Width - Width));
+                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.DrawWidth - DrawWidth));
 
                 textContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
 
@@ -152,13 +153,11 @@ namespace osu.Framework.Graphics.UserInterface
 
                     if (selectionLength > 0)
                     {
-                        cursor.CornerRadius = 3;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                     }
                     else
                     {
-                        cursor.CornerRadius = 0;
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)
@@ -185,9 +184,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
+                    return textFlow.Children.ElementAt(index).DrawPosition.X + textFlow.DrawPosition.X;
                 var d = textFlow.Children.ElementAt(index - 1);
-                return d.Position.X + d.Size.X + textFlow.Spacing.X + textFlow.Position.X;
+                return d.DrawPosition.X + d.DrawSize.X + textFlow.Spacing.X + textFlow.DrawPosition.X;
             }
             return 0;
         }
@@ -199,7 +198,7 @@ namespace osu.Framework.Graphics.UserInterface
             int i = 0;
             foreach (Drawable d in textFlow.Children)
             {
-                if (d.Position.X + d.Size.X / 2 > pos.X)
+                if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
                 i++;
             }
@@ -266,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 textContainer.Add(d);
                 d.FadeOut(200);
-                d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
+                d.MoveToY(d.DrawSize.Y, 200, EasingTypes.InExpo);
                 d.Expire();
             }
 
@@ -292,7 +291,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
-                TextSize = Size.Y,
+                TextSize = DrawSize.Y,
                 Depth = selectionLeft,
             });
 
@@ -329,7 +328,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            ch.Position = new Vector2(0, Size.Y);
+            ch.Position = new Vector2(0, DrawSize.Y);
             ch.MoveToY(0, 200, EasingTypes.OutExpo);
 
             text = text.Insert(selectionLeft, c.ToString());

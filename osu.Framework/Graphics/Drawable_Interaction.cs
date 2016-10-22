@@ -185,24 +185,7 @@ namespace osu.Framework.Graphics
 
         public virtual bool Contains(Vector2 screenSpacePos)
         {
-            if (CornerRadius == 0.0f)
-                return DrawQuad.Contains(GetLocalPosition(screenSpacePos));
-
-            Vector2 localSpacePos = GetLocalPosition(screenSpacePos);
-            RectangleF aabb = DrawQuad.AABBf;
-
-            /*Vector2 scale = Scale * (Parent?.ChildScale ?? Vector2.One);
-            aabb.X *= scale.X;
-            aabb.Y *= scale.Y;
-            aabb.Width *= scale.X;
-            aabb.Height *= scale.Y;*/
-
-            aabb.X += CornerRadius;
-            aabb.Y += CornerRadius;
-            aabb.Width -= 2 * CornerRadius;
-            aabb.Height -= 2 * CornerRadius;
-
-            return aabb.DistanceSquared(localSpacePos) < CornerRadius * CornerRadius;
+            return DrawRectangle.Contains(GetLocalPosition(screenSpacePos));
         }
 
         private InputState getLocalState(InputState state)

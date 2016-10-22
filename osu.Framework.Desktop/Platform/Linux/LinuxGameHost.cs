@@ -11,7 +11,7 @@ namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        internal LinuxGameHost(GraphicsContextFlags flags, string gameName)
+        internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
         {
             Window = new LinuxGameWindow(flags);
             Window.Activated += OnActivated;

@@ -64,6 +64,7 @@ namespace osu.Framework.Graphics.Visualisation
         public TreeContainer()
         {
             Masking = true;
+            CornerRadius = 5;
             Position = new Vector2(100, 100);
             Size = new Vector2(width, height);
             AddInternal(new Drawable[]
@@ -77,6 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 new FlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
@@ -128,9 +130,11 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     },
                 },
-                scroll = new ScrollContainer()
+                new Container
                 {
-                    Padding = new MarginPadding { Top = 70 },
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 65 },
+                    Children = new[] { scroll = new ScrollContainer() }
                 },
                 waitingText = new SpriteText
                 {

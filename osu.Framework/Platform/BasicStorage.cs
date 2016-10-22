@@ -3,7 +3,7 @@
 
 using System;
 using System.IO;
-using SQLite;
+using SQLite.Net;
 
 namespace osu.Framework.Platform
 {
@@ -16,7 +16,12 @@ namespace osu.Framework.Platform
             BaseName = baseName;
         }
 
+        public abstract bool Exists(string path);
+
+        public abstract void Delete(string path);
+
         public abstract Stream GetStream(string path, FileAccess mode = FileAccess.Read);
-        public abstract SQLiteConnection GetDatabase(string name);
+
+        public abstract SQLiteConnection GetDatabase(string name);
     }
 }

@@ -50,7 +50,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public Vector2? Position => position;
 
-        public Vector2 Size => host.Size;
+        public Vector2 Size => host.DrawSize;
 
         public bool? Left => null;
 

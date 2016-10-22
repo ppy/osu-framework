@@ -18,7 +18,7 @@ namespace osu.Framework.Desktop.Platform.Windows
     {
         private TimePeriod timePeriod;
 
-        internal WindowsGameHost(GraphicsContextFlags flags, string gameName)
+        internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
@@ -34,6 +34,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
             Storage = new WindowsStorage(gameName);
 
+            //TODO: check if we want this done so early. may be better in Run()
             Application.EnableVisualStyles();
         }
 

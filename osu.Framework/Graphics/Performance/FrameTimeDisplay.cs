@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.Performance
                 new Container
                 {
                     Masking = true,
+                    CornerRadius = 5,
                     RelativeSizeAxes = Axes.Both,
                     Children = timeBars
                 },
@@ -91,6 +92,7 @@ namespace osu.Framework.Graphics.Performance
                         {
                             Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
+                            AutoSizeAxes = Axes.Both,
                             Spacing = new Vector2(5, 1),
                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
                             {
@@ -120,19 +122,18 @@ namespace osu.Framework.Graphics.Performance
 
             overlayContainer.FadeOut(2000, EasingTypes.InExpo);
 
-            // Initialize background
-            for (int i = 0; i < WIDTH * timeBars.Length; ++i)
-            {
-                currentX = i;
+            //initialise background
+            byte[] column = new byte[HEIGHT * 4];
+            byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
 
-                TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
-                {
-                    Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                };
+            addArea(null, PerformanceCollectionType.Empty, HEIGHT, column);
 
-                addArea(null, PerformanceCollectionType.Empty, HEIGHT, upload.Data);
-                timeBars[TimeBarIndex].Sprite.Texture.SetData(upload);
-            }
+            for (int i = 0; i < HEIGHT; i++)
+                for (int k = 0; k < WIDTH; k++)
+                    Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
+
+            foreach (var t in timeBars)
+                t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
         }
 
         class TimeBar : Container
@@ -143,8 +144,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 base.Load(game);
 
-                Width = WIDTH;
-                Height = HEIGHT;
+                Size = new Vector2(WIDTH, HEIGHT);
 
                 Children = new[]
                 {
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Performance
                     currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
                     foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
-                        if (e is Box && e.Position.X <= TimeBarX)
+                        if (e is Box && e.DrawPosition.X <= TimeBarX)
                             e.Expire();
                 }
 

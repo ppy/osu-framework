@@ -43,6 +43,7 @@ namespace osu.Framework.GameModes.Testing
                             buttonsContainer = new FlowContainer
                             {
                                 Direction = FlowDirection.VerticalOnly,
+                                AutoSizeAxes = Axes.Both,
                                 Spacing = new Vector2(15, 5)
                             }
                         }
@@ -66,7 +67,7 @@ namespace osu.Framework.GameModes.Testing
             buttonsContainer.Add(b = new Button
             {
                 Colour = Color4.LightBlue,
-                Size = new Vector2(100, 50),
+                Size = new Vector2(150, 50),
                 Text = text
             });
 
