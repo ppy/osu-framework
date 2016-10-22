@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
-            });
+            }, true);
         }
 
         /// <summary>
@@ -350,14 +350,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
-        public static void PushScissor(MaskingInfo maskingInfo)
+        public static void PushScissor(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             maskingStack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, false);
+            setMaskingQuad(CurrentMaskingInfo, overwritePreviousScissor);
         }
 
         /// <summary>
