@@ -18,6 +18,7 @@ using OpenTK.Input;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -100,7 +101,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(string name, PerformanceMonitor monitor)
+        public FrameStatisticsDisplay(string name, PerformanceMonitor monitor, TextureAtlas atlas)
         {
             Name = name;
             this.monitor = monitor;
@@ -147,7 +148,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = new Texture(1, HEIGHT, true),
+                                            Texture = atlas.Add(1, HEIGHT),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -180,8 +181,8 @@ namespace osu.Framework.Graphics.Performance
                                     RelativeSizeAxes = Axes.Both,
                                     Children = timeBars = new[]
                                     {
-                                        new TimeBar(),
-                                        new TimeBar(),
+                                        new TimeBar(atlas),
+                                        new TimeBar(atlas),
                                     },
                                 },
                                 fpsDisplay = new FpsDisplay(monitor.Clock)
@@ -471,6 +472,12 @@ namespace osu.Framework.Graphics.Performance
         class TimeBar : Container
         {
             public Sprite Sprite;
+            private TextureAtlas atlas;
+
+            public TimeBar(TextureAtlas atlas)
+            {
+                this.atlas = atlas;
+            }
 
             public override void Load(BaseGame game)
             {
@@ -482,7 +489,7 @@ namespace osu.Framework.Graphics.Performance
                 {
                     Sprite = new Sprite
                     {
-                        Texture = new Texture(WIDTH, HEIGHT, true)
+                        Texture = atlas.Add(WIDTH, HEIGHT)
                     }
                 };
             }

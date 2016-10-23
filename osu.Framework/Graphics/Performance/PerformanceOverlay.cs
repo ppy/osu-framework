@@ -4,11 +4,15 @@
 using System;
 using osu.Framework.Graphics.Containers;
 using System.Linq;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Performance
 {
     class PerformanceOverlay : FlowContainer, IStateful<FrameStatisticsMode>
     {
+        TextureAtlas atlas;
+
         private FrameStatisticsMode state;
 
         public FrameStatisticsMode State
@@ -44,9 +48,11 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load(game);
 
-            Add(new FrameStatisticsDisplay(@"Input", game.Host.InputMonitor));
-            Add(new FrameStatisticsDisplay(@"Update", game.Host.UpdateMonitor));
-            Add(new FrameStatisticsDisplay(@"Draw", game.Host.DrawMonitor));
+            atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true);
+
+            Add(new FrameStatisticsDisplay(@"Input", game.Host.InputMonitor, atlas));
+            Add(new FrameStatisticsDisplay(@"Update", game.Host.UpdateMonitor, atlas));
+            Add(new FrameStatisticsDisplay(@"Draw", game.Host.DrawMonitor, atlas));
 
             Direction = FlowDirection.VerticalOnly;
         }
