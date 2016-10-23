@@ -109,6 +109,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             get
             {
                 Debug.Assert(!isDisposed);
+                Debug.Assert(textureId > 0);
+
                 return textureId;
             }
         }
