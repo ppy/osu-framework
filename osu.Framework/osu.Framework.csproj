@@ -257,6 +257,7 @@
     <Compile Include="Platform\BasicGameForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Threading\AtomicCounter.cs" />
     <Compile Include="Statistics\FrameStatistics.cs" />
     <Compile Include="Allocation\InvokeOnDisposal.cs" />
     <Compile Include="Statistics\PerformanceMonitor.cs" />
