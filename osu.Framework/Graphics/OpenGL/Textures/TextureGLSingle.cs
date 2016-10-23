@@ -13,7 +13,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using osu.Framework.Graphics.Shaders;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -268,8 +267,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(this);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Linear :  All.LinearMipmapLinear));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Nearest : All.LinearMipmapLinear));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(manualMipmaps ? All.Nearest : All.Linear));
 
                             updateWrapMode();
                         }
