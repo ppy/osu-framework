@@ -215,13 +215,12 @@ namespace osu.Framework.Platform
             instance = this;
 
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
-            InputMonitor.RegisterCounters(FrameStatistics.InputCounters);
-
             UpdateMonitor = new PerformanceMonitor(UpdateClock);
-            UpdateMonitor.RegisterCounters(FrameStatistics.UpdateCounters);
-
             DrawMonitor = new PerformanceMonitor(DrawClock);
-            DrawMonitor.RegisterCounters(FrameStatistics.DrawCounters);
+
+            // This static method uses BasicGameHost.GetInstanceIfExists() to get access
+            // to InputMonitor, UpdateMonitor and DrawMonitor.
+            FrameStatistics.RegisterCounters();
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
