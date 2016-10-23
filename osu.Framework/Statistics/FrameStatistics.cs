@@ -25,7 +25,7 @@ namespace osu.Framework.Statistics
         {
         };
 
-        internal static HashSet<StatisticsCounterType> UpdateCounters => new HashSet < StatisticsCounterType >
+        internal static HashSet<StatisticsCounterType> UpdateCounters => new HashSet<StatisticsCounterType>
         {
             StatisticsCounterType.Invalidations,
             StatisticsCounterType.Refreshes,
@@ -45,17 +45,24 @@ namespace osu.Framework.Statistics
             if (host == null)
                 return;
 
-            AtomicCounter counter = null;
-            if (UpdateCounters.Contains(type))
-                counter = host.UpdateMonitor.GetCounter(type);
-            else if (DrawCounters.Contains(type))
-                counter = host.DrawMonitor.GetCounter(type);
-            else if (InputCounters.Contains(type))
-                counter = host.InputMonitor.GetCounter(type);
-            else
-                Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+            switch (type)
+            {
+                case StatisticsCounterType.Invalidations:
+                case StatisticsCounterType.Refreshes:
+                case StatisticsCounterType.DrawNodeCtor:
+                    host.UpdateMonitor.GetCounter(type).Add(amount);
+                    break;
 
-            counter.Add(amount);
+                case StatisticsCounterType.TextureBinds:
+                case StatisticsCounterType.DrawCalls:
+                case StatisticsCounterType.Vertices:
+                    host.DrawMonitor.GetCounter(type).Add(amount);
+                    break;
+
+                default:
+                    Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+                    break;
+            }
         }
     }
 
