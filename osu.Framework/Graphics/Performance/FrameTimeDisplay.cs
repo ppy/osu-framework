@@ -484,6 +484,13 @@ namespace osu.Framework.Graphics.Performance
                 };
             }
 
+            public override void Load(BaseGame game)
+            {
+                base.Load(game);
+
+                Active = true;
+            }
+
             public float Value
             {
                 set
