@@ -36,7 +36,7 @@ namespace osu.Framework.Statistics
             Clock = clock;
         }
 
-        public void RegisterCounters(StatisticsCounterType[] counterTypes)
+        public void RegisterCounters(IEnumerable<StatisticsCounterType> counterTypes)
         {
             foreach (var t in counterTypes)
                 Counters[t] = new AtomicCounter();

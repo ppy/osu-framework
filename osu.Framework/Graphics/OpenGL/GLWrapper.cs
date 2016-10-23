@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.OpenGL
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
                 lastBoundTexture = texture;
 
-                BasicGameHost.GetInstanceIfExists()?.DrawMonitor.GetCounter(StatisticsCounterType.TextureBinds).Increment();
+                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
         }
 

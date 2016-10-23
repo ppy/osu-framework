@@ -615,7 +615,7 @@ namespace osu.Framework.Graphics
             {
                 node = CreateDrawNode();
 
-                BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.DrawNodeCtor).Increment();
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
             if (StaticCached.AlwaysStale)

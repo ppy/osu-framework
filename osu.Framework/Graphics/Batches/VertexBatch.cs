@@ -117,8 +117,8 @@ namespace osu.Framework.Graphics.Batches
             lastVertex = currentVertex;
             changeBeginIndex = -1;
 
-            BasicGameHost.GetInstanceIfExists()?.DrawMonitor.GetCounter(StatisticsCounterType.DrawCalls).Increment();
-            BasicGameHost.GetInstanceIfExists()?.DrawMonitor.GetCounter(StatisticsCounterType.Vertices).Add(count);
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Increment(StatisticsCounterType.Vertices, count);
 
             return count;
         }

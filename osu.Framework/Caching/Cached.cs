@@ -64,7 +64,7 @@ namespace osu.Framework.Caching
             value = updateDelegate();
             isValid = true;
 
-            BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Refreshes).Increment();
+            FrameStatistics.Increment(StatisticsCounterType.Refreshes);
 
             return true;
         }
@@ -78,7 +78,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
-                BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Invalidations).Increment();
+                FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
 
@@ -135,7 +135,7 @@ namespace osu.Framework.Caching
             updateDelegate();
             isValid = true;
 
-            BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Refreshes).Increment();
+            FrameStatistics.Increment(StatisticsCounterType.Refreshes);
 
             return true;
         }
@@ -149,7 +149,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
-                BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Invalidations).Increment();
+                FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
 

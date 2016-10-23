@@ -1,7 +1,10 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Platform;
+using osu.Framework.Threading;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace osu.Framework.Statistics
 {
@@ -18,23 +21,42 @@ namespace osu.Framework.Statistics
             Counts.Clear();
         }
 
-        internal static StatisticsCounterType[] InputCounters => new StatisticsCounterType[]
+        internal static HashSet<StatisticsCounterType> InputCounters => new HashSet<StatisticsCounterType>
         {
         };
 
-        internal static StatisticsCounterType[] UpdateCounters => new[]
+        internal static HashSet<StatisticsCounterType> UpdateCounters => new HashSet < StatisticsCounterType >
         {
             StatisticsCounterType.Invalidations,
             StatisticsCounterType.Refreshes,
             StatisticsCounterType.DrawNodeCtor,
         };
 
-        internal static StatisticsCounterType[] DrawCounters => new[]
+        internal static HashSet<StatisticsCounterType> DrawCounters => new HashSet<StatisticsCounterType>
         {
             StatisticsCounterType.TextureBinds,
             StatisticsCounterType.DrawCalls,
             StatisticsCounterType.Vertices,
         };
+
+        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        {
+            BasicGameHost host = BasicGameHost.GetInstanceIfExists();
+            if (host == null)
+                return;
+
+            AtomicCounter counter = null;
+            if (UpdateCounters.Contains(type))
+                counter = host.UpdateMonitor.GetCounter(type);
+            else if (DrawCounters.Contains(type))
+                counter = host.DrawMonitor.GetCounter(type);
+            else if (InputCounters.Contains(type))
+                counter = host.InputMonitor.GetCounter(type);
+            else
+                Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+
+            counter.Add(amount);
+        }
     }
 
     public enum PerformanceCollectionType
