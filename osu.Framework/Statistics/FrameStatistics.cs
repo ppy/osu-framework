@@ -3,21 +3,38 @@
 
 using System.Collections.Generic;
 
-//using System.Diagnostics.PerformanceData;
-
 namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
         internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        //internal Dictionary<CounterType, int> CollectedCounters = new Dictionary<CounterType, int>();
+        internal Dictionary<PerformanceCounterType, long> Counts = new Dictionary<PerformanceCounterType, long>();
         internal List<int> GarbageCollections = new List<int>();
 
         internal void Clear()
         {
             CollectedTimes.Clear();
             GarbageCollections.Clear();
+            Counts.Clear();
         }
+
+        internal static PerformanceCounterType[] InputCounters => new PerformanceCounterType[]
+        {
+        };
+
+        internal static PerformanceCounterType[] UpdateCounters => new[]
+        {
+            PerformanceCounterType.Invalidations,
+            PerformanceCounterType.DrawNodeConstructions,
+        };
+
+        internal static PerformanceCounterType[] DrawCounters => new[]
+        {
+            PerformanceCounterType.TextureBinds,
+            PerformanceCounterType.BufferDraws,
+            PerformanceCounterType.Vertices,
+            PerformanceCounterType.Pixels,
+        };
     }
 
     public enum PerformanceCollectionType
@@ -32,5 +49,15 @@ namespace osu.Framework.Statistics
         IPC,
         GLReset,
         Empty,
+    }
+
+    public enum PerformanceCounterType
+    {
+        BufferDraws,
+        TextureBinds,
+        Invalidations,
+        DrawNodeConstructions,
+        Vertices,
+        Pixels,
     }
 }

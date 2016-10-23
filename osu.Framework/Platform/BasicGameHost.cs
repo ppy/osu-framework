@@ -28,6 +28,7 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
+
         public BasicGameWindow Window;
 
         public abstract GLControl GLControl { get; }
@@ -206,11 +207,21 @@ namespace osu.Framework.Platform
 
         protected override Container Content => inputManager;
 
+        private static BasicGameHost instance;
+
         public BasicGameHost()
         {
+            Debug.Assert(instance == null, "Only one GameHost may exist.");
+            instance = this;
+
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
+            InputMonitor.RegisterCounters(FrameStatistics.InputCounters);
+
             UpdateMonitor = new PerformanceMonitor(UpdateClock);
+            UpdateMonitor.RegisterCounters(FrameStatistics.UpdateCounters);
+
             DrawMonitor = new PerformanceMonitor(DrawClock);
+            DrawMonitor.RegisterCounters(FrameStatistics.DrawCounters);
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
@@ -218,6 +229,8 @@ namespace osu.Framework.Platform
 
             AddInternal(inputManager = new UserInputManager(this));
         }
+
+        public static BasicGameHost GetInstanceIfExists() => instance;
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
