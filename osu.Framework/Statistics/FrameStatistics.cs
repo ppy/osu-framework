@@ -50,8 +50,8 @@ namespace osu.Framework.Statistics
 
         internal static void RegisterCounters()
         {
-            foreach (StatisticsCounterType type in Enum.GetValues(typeof(StatisticsCounterType)))
-                getMonitor(type)?.RegisterCounter(type);
+            for (StatisticsCounterType i = 0; i < StatisticsCounterType.AmountTypes; ++i)
+                getMonitor(i)?.RegisterCounter(i);
         }
 
         internal static void Increment(StatisticsCounterType type, long amount = 1)
