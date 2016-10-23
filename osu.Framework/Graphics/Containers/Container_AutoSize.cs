@@ -33,8 +33,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private bool isComputingAutosize = false;
         public override Vector2 Size
         {
+            get
+            {
+                if (!isComputingAutosize && AutoSizeAxes != Axes.None)
+                    updateAutoSize();
+                return base.Size;
+            }
+
             set
             {
                 Debug.Assert((AutoSizeAxes & Axes.Both) == 0, @"The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
@@ -44,19 +52,27 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateAutoSize()
         {
-            if (autoSize.EnsureValid()) return;
-
-            autoSize.Refresh(delegate
+            isComputingAutosize = true;
+            try
             {
-                Vector2 b = computeAutoSize() + Padding.Total;
+                if (autoSize.EnsureValid()) return;
 
-                if ((RelativeSizeAxes & Axes.X) == 0) base.Width = b.X;
-                if ((RelativeSizeAxes & Axes.Y) == 0) base.Height = b.Y;
+                autoSize.Refresh(delegate
+                {
+                    Vector2 b = computeAutoSize() + Padding.Total;
 
-                //note that this is called before autoSize becomes valid. may be something to consider down the line.
-                //might work better to add an OnRefresh event in Cached<> and invoke there.
-                OnAutoSize?.Invoke();
-            });
+                    if ((RelativeSizeAxes & Axes.X) == 0) base.Width = b.X;
+                    if ((RelativeSizeAxes & Axes.Y) == 0) base.Height = b.Y;
+
+                    //note that this is called before autoSize becomes valid. may be something to consider down the line.
+                    //might work better to add an OnRefresh event in Cached<> and invoke there.
+                    OnAutoSize?.Invoke();
+                });
+            }
+            finally
+            {
+                isComputingAutosize = false;
+            }
         }
 
         private Vector2 computeAutoSize()
