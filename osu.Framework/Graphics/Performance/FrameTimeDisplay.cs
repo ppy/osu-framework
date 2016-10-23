@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FrameTimeDisplay : Container
+    class FrameStatisticsDisplay : Container
     {
         const int WIDTH = 800;
         const int HEIGHT = 100;
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Performance
 
         public override string Name { get; }
 
-        public FrameTimeDisplay(string name, PerformanceMonitor monitor)
+        public FrameStatisticsDisplay(string name, PerformanceMonitor monitor)
         {
             Name = name;
             this.monitor = monitor;

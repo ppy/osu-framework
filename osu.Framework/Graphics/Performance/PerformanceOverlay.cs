@@ -11,9 +11,9 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load(game);
 
-            Add(new FrameTimeDisplay(@"Input", game.Host.InputMonitor));
-            Add(new FrameTimeDisplay(@"Update", game.Host.UpdateMonitor));
-            Add(new FrameTimeDisplay(@"Draw", game.Host.DrawMonitor));
+            Add(new FrameStatisticsDisplay(@"Input", game.Host.InputMonitor));
+            Add(new FrameStatisticsDisplay(@"Update", game.Host.UpdateMonitor));
+            Add(new FrameStatisticsDisplay(@"Draw", game.Host.DrawMonitor));
 
             Direction = FlowDirection.VerticalOnly;
         }
