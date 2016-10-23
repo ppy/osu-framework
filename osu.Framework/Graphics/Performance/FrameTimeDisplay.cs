@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FrameStatisticsDisplay : Container
+    class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
         const int WIDTH = 800;
         const int HEIGHT = 100;
@@ -51,12 +51,54 @@ namespace osu.Framework.Graphics.Performance
         Drawable labelText;
         Sprite counterBarBackground;
 
+        Container mainContainer;
+        Container timeBarsContainer;
+
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
         Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private FpsDisplay fpsDisplay;
 
         public override string Name { get; }
+
+        private FrameStatisticsMode state;
+        public FrameStatisticsMode State
+        {
+            get
+            {
+                return state;
+            }
+
+            set
+            {
+                if (state == value) return;
+
+                state = value;
+
+                switch (state)
+                {
+                    case FrameStatisticsMode.Minimal:
+                        mainContainer.AutoSizeAxes = Axes.Both;
+
+                        timeBarsContainer.Hide();
+
+                        labelText.Origin = Anchor.CentreRight;
+                        labelText.Rotation = 0;
+                        break;
+                    case FrameStatisticsMode.Full:
+                        mainContainer.AutoSizeAxes = Axes.None;
+                        mainContainer.Size = new Vector2(WIDTH, HEIGHT);
+
+                        timeBarsContainer.Show();
+
+                        labelText.Origin = Anchor.BottomCentre;
+                        labelText.Rotation = -90;
+                        break;
+                }
+
+                Active = true;
+            }
+        }
 
         public FrameStatisticsDisplay(string name, PerformanceMonitor monitor)
         {
@@ -119,12 +161,12 @@ namespace osu.Framework.Graphics.Performance
                                 }
                             }
                         },
-                        new Container
+                        mainContainer = new Container
                         {
                             Size = new Vector2(WIDTH, HEIGHT),
                             Children = new[]
                             {
-                                new Container
+                                timeBarsContainer = new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
@@ -143,6 +185,7 @@ namespace osu.Framework.Graphics.Performance
                                 overlayContainer = new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    Alpha = 0,
                                     Children = new []
                                     {
                                         new FlowContainer
@@ -186,8 +229,6 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load(game);
 
-            overlayContainer.FadeOut(2000, EasingTypes.InExpo);
-
             //initialise background
             byte[] column = new byte[HEIGHT * 4];
             byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
@@ -218,33 +259,51 @@ namespace osu.Framework.Graphics.Performance
             timeBars[TimeBarIndex].Add(b);
         }
 
+        private bool active = true;
+        public bool Active
+        {
+            get { return active; }
+
+            set
+            {
+                if (active == value) return;
+
+                active = value || state != FrameStatisticsMode.Full;
+
+                if (active)
+                {
+                    overlayContainer.FadeOut(100);
+                    FadeTo(alpha_when_inactive, 100);
+                    fpsDisplay.Counting = true;
+                    processFrames = true;
+
+                    foreach (CounterBar bar in counterBars.Values)
+                        bar.Active = true;
+                }
+                else
+                {
+                    overlayContainer.FadeIn(100);
+                    FadeTo(1, 100);
+                    fpsDisplay.Counting = false;
+                    processFrames = false;
+
+                    foreach (CounterBar bar in counterBars.Values)
+                        bar.Active = false;
+                }
+            }
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (args.Key == Key.ControlLeft)
-            {
-                overlayContainer.FadeIn(100);
-                FadeTo(1, 100);
-                fpsDisplay.Counting = false;
-                processFrames = false;
-
-                foreach (CounterBar bar in counterBars.Values)
-                    bar.Active = false;
-            }
+                Active = false;
             return base.OnKeyDown(state, args);
         }
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
         {
             if (args.Key == Key.ControlLeft)
-            {
-                overlayContainer.FadeOut(100);
-                FadeTo(alpha_when_inactive, 100);
-                fpsDisplay.Counting = true;
-                processFrames = true;
-
-                foreach (CounterBar bar in counterBars.Values)
-                    bar.Active = true;
-            }
+                Active = true;
             return base.OnKeyUp(state, args);
         }
 
