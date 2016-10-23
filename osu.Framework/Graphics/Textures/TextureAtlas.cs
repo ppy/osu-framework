@@ -74,14 +74,11 @@ namespace osu.Framework.Graphics.Textures
 
         private Point findPosition(int width, int height)
         {
+            if (currentY + height > atlasHeight)
+                Reset();
+
             // Super naive implementation only going from left to right.
             Point res = new Point(0, currentY);
-
-            if (currentY + height > atlasHeight)
-            {
-                Reset();
-                return new Point(0, 0);
-            }
 
             int maxY = currentY;
             foreach (Rectangle bounds in subTextureBounds)

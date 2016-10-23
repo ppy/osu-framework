@@ -109,9 +109,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             get
             {
                 Debug.Assert(!isDisposed);
-
-                if (uploadQueue.Count > 0)
-                    Upload();
+                Debug.Assert(textureId > 0);
 
                 return textureId;
             }
