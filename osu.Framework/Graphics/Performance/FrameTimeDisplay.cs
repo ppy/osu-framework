@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Performance
 
         const int AMOUNT_COUNT_STEPS = 5;
 
-        const int AMOUNT_MS_STEPS = 4;
+        const int AMOUNT_MS_STEPS = 5;
         const float VISIBLE_MS_RANGE = 20;
         const float scale = HEIGHT / VISIBLE_MS_RANGE;
 
