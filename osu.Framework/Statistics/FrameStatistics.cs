@@ -3,6 +3,7 @@
 
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -21,48 +22,41 @@ namespace osu.Framework.Statistics
             Counts.Clear();
         }
 
-        internal static HashSet<StatisticsCounterType> InputCounters => new HashSet<StatisticsCounterType>
-        {
-        };
-
-        internal static HashSet<StatisticsCounterType> UpdateCounters => new HashSet<StatisticsCounterType>
-        {
-            StatisticsCounterType.Invalidations,
-            StatisticsCounterType.Refreshes,
-            StatisticsCounterType.DrawNodeCtor,
-        };
-
-        internal static HashSet<StatisticsCounterType> DrawCounters => new HashSet<StatisticsCounterType>
-        {
-            StatisticsCounterType.TextureBinds,
-            StatisticsCounterType.DrawCalls,
-            StatisticsCounterType.Vertices,
-        };
-
-        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        private static PerformanceMonitor getMonitor(StatisticsCounterType type)
         {
             BasicGameHost host = BasicGameHost.GetInstanceIfExists();
             if (host == null)
-                return;
+                return null;
 
             switch (type)
             {
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.Refreshes:
                 case StatisticsCounterType.DrawNodeCtor:
-                    host.UpdateMonitor.GetCounter(type).Add(amount);
-                    break;
+                    return host.UpdateMonitor;
 
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Vertices:
-                    host.DrawMonitor.GetCounter(type).Add(amount);
-                    break;
+                    return host.DrawMonitor;
 
                 default:
                     Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
                     break;
             }
+
+            return null;
+        }
+
+        internal static void RegisterCounters()
+        {
+            foreach (StatisticsCounterType type in Enum.GetValues(typeof(StatisticsCounterType)))
+                getMonitor(type)?.RegisterCounter(type);
+        }
+
+        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        {
+            getMonitor(type)?.GetCounter(type).Add(amount);
         }
     }
 
