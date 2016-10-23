@@ -76,11 +76,13 @@ namespace osu.Framework.Statistics
 
     public enum StatisticsCounterType
     {
-        DrawCalls,
+        DrawCalls = 0,
         TextureBinds,
         Invalidations,
         Refreshes,
         DrawNodeCtor,
         Vertices,
+
+        AmountTypes,
     }
 }

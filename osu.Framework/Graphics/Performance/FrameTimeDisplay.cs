@@ -67,6 +67,11 @@ namespace osu.Framework.Graphics.Performance
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_inactive;
 
+            bool hasCounters = false;
+            for (int i = 0; i < (int)StatisticsCounterType.AmountTypes; ++i)
+                if (monitor.Counters[i] != null)
+                    hasCounters = true;
+
             Children = new Drawable[]
             {
                 new Container
@@ -90,7 +95,7 @@ namespace osu.Framework.Graphics.Performance
                                     Rotation = -90,
                                     Position = new Vector2(-2, 0),
                                 },
-                                monitor.Counters.Count == 0 ? new Container() : new Container
+                                !hasCounters ? new Container() : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
@@ -109,7 +114,9 @@ namespace osu.Framework.Graphics.Performance
                                             Direction = FlowDirection.HorizontalOnly,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
-                                            Children = from StatisticsCounterType t in monitor.Counters.Keys select counterBars[t] = new CounterBar
+                                            Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                       where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
+                                                       select counterBars[t] = new CounterBar
                                             {
                                                 Colour = getColour(t),
                                                 Label = t.ToString(),
@@ -152,7 +159,9 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.Both,
                                             Spacing = new Vector2(5, 1),
                                             Padding = new MarginPadding { Right = 5 },
-                                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
+                                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                                       where t < PerformanceCollectionType.Empty
+                                                       select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),
                                                 Text = t.ToString(),
