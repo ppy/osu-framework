@@ -26,8 +26,11 @@ namespace osu.Framework.Graphics.Performance
         const int WIDTH = 800;
         const int HEIGHT = 100;
 
-        const float visible_range = 20;
-        const float scale = HEIGHT / visible_range;
+        const int AMOUNT_COUNT_STEPS = 5;
+
+        const int AMOUNT_MS_STEPS = 4;
+        const float VISIBLE_MS_RANGE = 20;
+        const float scale = HEIGHT / VISIBLE_MS_RANGE;
 
         const float alpha_when_inactive = 0.6f;
 
@@ -159,7 +162,7 @@ namespace osu.Framework.Graphics.Performance
                                         new SpriteText
                                         {
                                             Padding = new MarginPadding { Left = 4 },
-                                            Text = $@"{visible_range}ms"
+                                            Text = $@"{VISIBLE_MS_RANGE}ms"
                                         },
                                         new SpriteText
                                         {
@@ -189,11 +192,13 @@ namespace osu.Framework.Graphics.Performance
             byte[] column = new byte[HEIGHT * 4];
             byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
 
-            addArea(null, PerformanceCollectionType.Empty, HEIGHT, column);
+            addArea(null, PerformanceCollectionType.Empty, HEIGHT, column, AMOUNT_MS_STEPS);
 
             for (int i = 0; i < HEIGHT; i++)
                 for (int k = 0; k < WIDTH; k++)
                     Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
+
+            addArea(null, PerformanceCollectionType.Empty, HEIGHT, column, AMOUNT_COUNT_STEPS);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
             foreach (var t in timeBars)
@@ -260,7 +265,7 @@ namespace osu.Framework.Graphics.Performance
             int currentHeight = HEIGHT;
 
             for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
-                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
+                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data, AMOUNT_MS_STEPS);
 
             timeBar.Sprite.Texture.SetData(upload);
 
@@ -348,7 +353,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData)
+        private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData, int amountSteps)
         {
             Debug.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
@@ -371,11 +376,11 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (drawHeight-- == 0) break;
 
-                bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_range;
+                bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / VISIBLE_MS_RANGE;
 
                 float brightnessAdjust = 1;
                 if (frameTimeType == PerformanceCollectionType.Empty)
-                    brightnessAdjust *= 1 - i * 4 / HEIGHT / 8f;
+                    brightnessAdjust *= 1 - i * amountSteps / HEIGHT / 8f;
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
@@ -483,7 +488,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 set
                 {
-                    height = Math.Log10(value + 1) * 20;
+                    height = Math.Log10(value + 1) * (HEIGHT / AMOUNT_COUNT_STEPS);
                 }
             }
 
