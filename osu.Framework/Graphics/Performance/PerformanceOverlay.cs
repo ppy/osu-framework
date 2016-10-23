@@ -32,10 +32,11 @@ namespace osu.Framework.Graphics.Performance
                     case FrameStatisticsMode.Minimal:
                     case FrameStatisticsMode.Full:
                         FadeIn(100);
-                        foreach (FrameStatisticsDisplay d in Children.Cast<FrameStatisticsDisplay>())
-                            d.State = state;
                         break;
                 }
+
+                foreach (FrameStatisticsDisplay d in Children.Cast<FrameStatisticsDisplay>())
+                    d.State = state;
             }
         }
 
