@@ -236,6 +236,8 @@ namespace osu.Framework.Graphics.Primitives
                  ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
         }
 
+        public float Area => Width * Height;
+
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });

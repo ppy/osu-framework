@@ -38,6 +38,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Vertices:
+                case StatisticsCounterType.KiloPixels:
                     return host.DrawMonitor;
 
                 default:
@@ -46,6 +47,12 @@ namespace osu.Framework.Statistics
             }
 
             return null;
+        }
+
+        internal void Postprocess()
+        {
+            if (Counts.ContainsKey(StatisticsCounterType.KiloPixels))
+                Counts[StatisticsCounterType.KiloPixels] /= 1000;
         }
 
         internal static void RegisterCounters()
@@ -82,6 +89,7 @@ namespace osu.Framework.Statistics
         Refreshes,
         DrawNodeCtor,
         Vertices,
+        KiloPixels,
 
         AmountTypes,
     }

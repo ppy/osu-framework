@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using System;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -40,6 +41,19 @@ namespace osu.Framework.Graphics.Primitives
                 return false;
 
             return true;
+        }
+
+        public double Area
+        {
+            get
+            {
+                float a = (P0 - P1).Length;
+                float b = (P0 - P2).Length;
+                float c = (P1 - P2).Length;
+                float s = (a + b + c) / 2.0f;
+                return Math.Sqrt(s * (s - a) * (s - b) * (s - c));
+            }
+            
         }
     }
 }

@@ -91,6 +91,7 @@ namespace osu.Framework.Statistics
         {
             if (currentFrame != null)
             {
+                currentFrame.Postprocess();
                 PendingFrames.Enqueue(currentFrame);
                 if (PendingFrames.Count > 100)
                 {

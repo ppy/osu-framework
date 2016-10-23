@@ -13,6 +13,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -175,6 +176,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
                 Colour = drawColour
             });
+
+            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
         }
 
         private void updateWrapMode()
