@@ -565,8 +565,9 @@ namespace osu.Framework.Graphics.Containers
                 float cornerRadius = CornerRadius;
                 RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
-                Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - ToParentSpace(Vector2.Zero);
-                Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - ToParentSpace(Vector2.Zero);
+                Vector2 offset = ToParentSpace(Vector2.Zero);
+                Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - offset;
+                Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
 
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);

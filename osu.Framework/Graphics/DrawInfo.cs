@@ -70,6 +70,9 @@ namespace osu.Framework.Graphics
                 MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
             }
 
+            //========================================================================================
+            //== Uncomment the following 2 lines to use a ground-truth matrix inverse for debugging ==
+            //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 

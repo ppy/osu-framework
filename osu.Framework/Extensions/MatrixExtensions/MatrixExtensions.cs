@@ -80,24 +80,40 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M32 *= v.Y;
         }
 
+        /// <summary>
+        /// Apply shearing in X and Y direction from the left hand side.
+        /// Since shearing is non-commutative it is important to note that we
+        /// first shear in the X direction, and then in the Y direction.
+        /// </summary>
+        /// <param name="m">The matrix to apply the shearing operation to.</param>
+        /// <param name="v">The X and Y amounts of shearing.</param>
         public static void ShearFromLeft(ref Matrix3 m, Vector2 v)
         {
-            Vector3 row0 = m.Row0 + m.Row1 * v.Y;
+            Vector3 row0 = m.Row0 + m.Row1 * v.Y + m.Row0 * v.X * v.Y;
             m.Row1 += m.Row0 * v.X;
             m.Row0 = row0;
         }
 
+        /// <summary>
+        /// Apply shearing in X and Y direction from the right hand side.
+        /// Since shearing is non-commutative it is important to note that we
+        /// first shear in the Y direction, and then in the X direction.
+        /// </summary>
+        /// <param name="m">The matrix to apply the shearing operation to.</param>
+        /// <param name="v">The X and Y amounts of shearing.</param>
         public static void ShearFromRight(ref Matrix3 m, Vector2 v)
         {
+            float xy = v.X * v.Y;
+
             //m.Column0 += m.Column1 * v.X;
             float M11 = m.M11 + m.M12 * v.X;
             float M21 = m.M21 + m.M22 * v.X;
             float M31 = m.M31 + m.M32 * v.X;
 
-            //m.Column1 += m.Column0 * v.Y;
-            m.M12 += m.M11 * v.Y;
-            m.M22 += m.M21 * v.Y;
-            m.M32 += m.M31 * v.Y;
+            //m.Column1 += m.Column0 * v.Y + m.Column1 * xy;
+            m.M12 += m.M11 * v.Y + m.M12 * xy;
+            m.M22 += m.M21 * v.Y + m.M22 * xy;
+            m.M32 += m.M31 * v.Y + m.M32 * xy;
 
             m.M11 = M11;
             m.M21 = M21;
