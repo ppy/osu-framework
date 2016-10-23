@@ -517,7 +517,7 @@ namespace osu.Framework.Graphics.Performance
 
             private double height;
             private double velocity;
-            private const double ACCELERATION = 0.0001;
+            private const double ACCELERATION = 0.000001;
             private const float BAR_WIDTH = 6;
 
             public CounterBar()
@@ -537,6 +537,7 @@ namespace osu.Framework.Graphics.Performance
                     box = new Box
                     {
                         Size = new Vector2(BAR_WIDTH, 0),
+                        RelativeSizeAxes = Axes.Y,
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                     }
@@ -554,7 +555,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 set
                 {
-                    height = Math.Log10(value + 1) * (HEIGHT / AMOUNT_COUNT_STEPS);
+                    height = Math.Log10(value + 1) / AMOUNT_COUNT_STEPS;
                 }
             }
 
