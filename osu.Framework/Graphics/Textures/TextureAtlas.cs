@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Textures
 {
     class TextureGLAtlas : TextureGLSingle
     {
-        public TextureGLAtlas(int width, int height) : base(width, height, false)
+        public TextureGLAtlas(int width, int height, bool manualMipmaps) : base(width, height, manualMipmaps)
         {
         }
     }
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentY = 0;
 
-            atlasTexture = new TextureGLSingle(atlasWidth, atlasHeight, manualMipmaps);
+            atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps);
 
             //may be zero in a headless context.
             if (atlasWidth > 0 && atlasHeight > 0)
