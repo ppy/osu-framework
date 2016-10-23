@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches
 {
@@ -105,15 +107,18 @@ namespace osu.Framework.Graphics.Batches
 
             vertexBuffer.DrawRange(lastVertex, currentVertex);
 
+            int count = currentVertex - lastVertex;
+
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             //TODO: let us know if we exceed and roll over to zero here.
             currentVertexBuffer = (currentVertexBuffer + 1) % fixedBufferAmount;
             currentVertex = 0;
 
-            int count = currentVertex - lastVertex;
-
             lastVertex = currentVertex;
             changeBeginIndex = -1;
+
+            BasicGameHost.GetInstanceIfExists()?.DrawMonitor.GetCounter(StatisticsCounterType.DrawCalls).Increment();
+            BasicGameHost.GetInstanceIfExists()?.DrawMonitor.GetCounter(StatisticsCounterType.Vertices).Add(count);
 
             return count;
         }

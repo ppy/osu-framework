@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using System;
 
 namespace osu.Framework.Caching
@@ -61,6 +63,9 @@ namespace osu.Framework.Caching
 
             value = updateDelegate();
             isValid = true;
+
+            BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Refreshes).Increment();
+
             return true;
         }
 
@@ -73,6 +78,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
+                BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Invalidations).Increment();
                 return true;
             }
 
@@ -128,6 +134,9 @@ namespace osu.Framework.Caching
 
             updateDelegate();
             isValid = true;
+
+            BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Refreshes).Increment();
+
             return true;
         }
 
@@ -140,6 +149,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
+                BasicGameHost.GetInstanceIfExists()?.UpdateMonitor.GetCounter(StatisticsCounterType.Invalidations).Increment();
                 return true;
             }
 

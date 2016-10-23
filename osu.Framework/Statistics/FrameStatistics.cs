@@ -8,7 +8,7 @@ namespace osu.Framework.Statistics
     public class FrameStatistics
     {
         internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        internal Dictionary<PerformanceCounterType, long> Counts = new Dictionary<PerformanceCounterType, long>();
+        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>();
         internal List<int> GarbageCollections = new List<int>();
 
         internal void Clear()
@@ -18,22 +18,22 @@ namespace osu.Framework.Statistics
             Counts.Clear();
         }
 
-        internal static PerformanceCounterType[] InputCounters => new PerformanceCounterType[]
+        internal static StatisticsCounterType[] InputCounters => new StatisticsCounterType[]
         {
         };
 
-        internal static PerformanceCounterType[] UpdateCounters => new[]
+        internal static StatisticsCounterType[] UpdateCounters => new[]
         {
-            PerformanceCounterType.Invalidations,
-            PerformanceCounterType.DrawNodeConstructions,
+            StatisticsCounterType.Invalidations,
+            StatisticsCounterType.Refreshes,
+            StatisticsCounterType.DrawNodeCtor,
         };
 
-        internal static PerformanceCounterType[] DrawCounters => new[]
+        internal static StatisticsCounterType[] DrawCounters => new[]
         {
-            PerformanceCounterType.TextureBinds,
-            PerformanceCounterType.BufferDraws,
-            PerformanceCounterType.Vertices,
-            PerformanceCounterType.Pixels,
+            StatisticsCounterType.TextureBinds,
+            StatisticsCounterType.DrawCalls,
+            StatisticsCounterType.Vertices,
         };
     }
 
@@ -51,13 +51,13 @@ namespace osu.Framework.Statistics
         Empty,
     }
 
-    public enum PerformanceCounterType
+    public enum StatisticsCounterType
     {
-        BufferDraws,
+        DrawCalls,
         TextureBinds,
         Invalidations,
-        DrawNodeConstructions,
+        Refreshes,
+        DrawNodeCtor,
         Vertices,
-        Pixels,
     }
 }

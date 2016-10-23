@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Timing;
 using osu.Framework.Threading;
+using System.Diagnostics;
 
 namespace osu.Framework.Statistics
 {
@@ -22,8 +23,7 @@ namespace osu.Framework.Statistics
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
-
-        private Dictionary<PerformanceCounterType, AtomicCounter> counters = new Dictionary<PerformanceCounterType, AtomicCounter>();
+        internal Dictionary<StatisticsCounterType, AtomicCounter> Counters = new Dictionary<StatisticsCounterType, AtomicCounter>();
 
         private double consumptionTime;
 
@@ -36,10 +36,16 @@ namespace osu.Framework.Statistics
             Clock = clock;
         }
 
-        public void RegisterCounters(PerformanceCounterType[] counterTypes)
+        public void RegisterCounters(StatisticsCounterType[] counterTypes)
         {
             foreach (var t in counterTypes)
-                counters[t] = new AtomicCounter();
+                Counters[t] = new AtomicCounter();
+        }
+
+        public AtomicCounter GetCounter(StatisticsCounterType counterType)
+        {
+            Debug.Assert(Counters.ContainsKey(counterType), "Requested inexistent counter.");
+            return Counters[counterType];
         }
 
         /// <summary>
@@ -109,7 +115,7 @@ namespace osu.Framework.Statistics
                 }
             }
 
-            foreach (var pair in counters)
+            foreach (var pair in Counters)
                 currentFrame.Counts[pair.Key] = pair.Value.Reset();
 
             //check for dropped (stutter) frames
