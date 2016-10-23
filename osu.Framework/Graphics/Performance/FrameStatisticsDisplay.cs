@@ -411,18 +411,21 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case StatisticsCounterType.DrawCalls:
-                    return Color4.YellowGreen;
+                case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
                     return Color4.BlueViolet;
-                case StatisticsCounterType.Invalidations:
-                    return Color4.Red;
+
+                case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Refreshes:
-                    return Color4.Cyan;
+                    return Color4.YellowGreen;
+
                 case StatisticsCounterType.DrawNodeCtor:
-                    return Color4.HotPink;
                 case StatisticsCounterType.Vertices:
-                    return Color4.GhostWhite;
+                    return Color4.HotPink;
+
+                case StatisticsCounterType.ScheduleInvk:
+                case StatisticsCounterType.KiloPixels:
+                    return Color4.Cyan;
             }
         }
 
@@ -524,7 +527,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(BAR_WIDTH + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = string.Format(@"{0}: {1}", Label, (long)Math.Pow(10, box.Height * AMOUNT_COUNT_STEPS) - 1);
+                        text.Text = string.Format(@"{0}: {1}", Label, (long)Math.Round(Math.Pow(10, box.Height * AMOUNT_COUNT_STEPS) - 1));
                     }
                 }
             }
