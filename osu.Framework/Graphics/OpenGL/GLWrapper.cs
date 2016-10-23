@@ -15,6 +15,8 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -150,6 +152,8 @@ namespace osu.Framework.Graphics.OpenGL
 
                 GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
                 lastBoundTexture = texture;
+
+                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
         }
 

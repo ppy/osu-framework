@@ -6,8 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Timing;
-
-//using System.Diagnostics.PerformanceData;
+using osu.Framework.Threading;
+using System.Diagnostics;
 
 namespace osu.Framework.Statistics
 {
@@ -23,6 +23,7 @@ namespace osu.Framework.Statistics
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
+        internal Dictionary<StatisticsCounterType, AtomicCounter> Counters = new Dictionary<StatisticsCounterType, AtomicCounter>();
 
         private double consumptionTime;
 
@@ -35,14 +36,17 @@ namespace osu.Framework.Statistics
             Clock = clock;
         }
 
-        //internal void ReportCount(CounterType type)
-        //{
-        //    //todo: thread safety? Interlocked.Increment?
-        //    if (!currentFrame.CollectedCounters.ContainsKey(type))
-        //        currentFrame.CollectedCounters[type] = 1;
-        //    else
-        //        currentFrame.CollectedCounters[type]++;
-        //}
+        public void RegisterCounters(IEnumerable<StatisticsCounterType> counterTypes)
+        {
+            foreach (var t in counterTypes)
+                Counters[t] = new AtomicCounter();
+        }
+
+        public AtomicCounter GetCounter(StatisticsCounterType counterType)
+        {
+            Debug.Assert(Counters.ContainsKey(counterType), "Requested inexistent counter.");
+            return Counters[counterType];
+        }
 
         /// <summary>
         /// Start collecting a type of passing time.
@@ -60,13 +64,6 @@ namespace osu.Framework.Statistics
             CurrentCollectionTypeStack.Push(type);
 
             return new InvokeOnDisposal(() => EndCollecting(type));
-        }
-
-        private double consumeStopwatchElapsedTime()
-        {
-            double last = consumptionTime;
-            consumptionTime = ourClock.CurrentTime;
-            return consumptionTime - last;
         }
 
         /// <summary>
@@ -118,6 +115,9 @@ namespace osu.Framework.Statistics
                 }
             }
 
+            foreach (var pair in Counters)
+                currentFrame.Counts[pair.Key] = pair.Value.Reset();
+
             //check for dropped (stutter) frames
             if (Clock.ElapsedFrameTime > spikeTime)
                 newDroppedFrame();
@@ -126,6 +126,13 @@ namespace osu.Framework.Statistics
             CurrentCollectionTypeStack.Clear();
             //backgroundMonitorStackTrace = null;
             consumeStopwatchElapsedTime();
+        }
+
+        private double consumeStopwatchElapsedTime()
+        {
+            double last = consumptionTime;
+            consumptionTime = ourClock.CurrentTime;
+            return consumptionTime - last;
         }
 
         private void newDroppedFrame()

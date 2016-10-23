@@ -18,6 +18,8 @@ using osu.Framework.Threading;
 using System.Threading;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
@@ -610,7 +612,11 @@ namespace osu.Framework.Graphics
         protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
             if (node == null || !IsCompatibleDrawNode(node))
+            {
                 node = CreateDrawNode();
+
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
+            }
 
             if (StaticCached.AlwaysStale)
                 validDrawNodes.Clear();
