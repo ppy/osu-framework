@@ -106,6 +106,7 @@ namespace osu.Framework.Graphics.Performance
                                         },
                                         new FlowContainer
                                         {
+                                            Padding = new MarginPadding { Left = 2, Right = 2 },
                                             Direction = FlowDirection.HorizontalOnly,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
@@ -445,12 +446,12 @@ namespace osu.Framework.Graphics.Performance
 
                     if (active)
                     {
-                        ResizeTo(new Vector2(10, 1), 100);
+                        ResizeTo(new Vector2(BAR_WIDTH, 1), 100);
                         text.FadeOut(100);
                     }
                     else
                     {
-                        ResizeTo(new Vector2(30, 1), 100);
+                        ResizeTo(new Vector2(BAR_WIDTH + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
                     }
                 }
@@ -459,11 +460,11 @@ namespace osu.Framework.Graphics.Performance
             private double height;
             private double velocity;
             private const double ACCELERATION = 0.0001;
+            private const float BAR_WIDTH = 6;
 
             public CounterBar()
             {
-                Size = new Vector2(10, 1);
-                Padding = new MarginPadding { Left = 1, Right = 1 };
+                Size = new Vector2(BAR_WIDTH, 1);
                 RelativeSizeAxes = Axes.Y;
 
                 Children = new Drawable[]
@@ -473,11 +474,11 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
-                        Position = new Vector2(10, 0),
+                        Position = new Vector2(BAR_WIDTH + 1, 0),
                     },
                     box = new Box
                     {
-                        Size = new Vector2(8, 0),
+                        Size = new Vector2(BAR_WIDTH, 0),
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                     }
