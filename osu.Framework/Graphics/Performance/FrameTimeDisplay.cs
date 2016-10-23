@@ -354,8 +354,12 @@ namespace osu.Framework.Graphics.Performance
 
         private void applyFrame(FrameStatistics frame)
         {
-            applyFrameGC(frame);
-            applyFrameTime(frame);
+            if (state == FrameStatisticsMode.Full)
+            {
+                applyFrameGC(frame);
+                applyFrameTime(frame);
+            }
+
             applyFrameCounts(frame);
         }
 
