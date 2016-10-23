@@ -106,7 +106,6 @@ namespace osu.Framework.Graphics.Performance
                                         },
                                         new FlowContainer
                                         {
-                                            Padding = new MarginPadding { Left = 2, Right = 2 },
                                             Direction = FlowDirection.HorizontalOnly,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
