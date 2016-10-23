@@ -495,14 +495,7 @@ namespace osu.Framework.Graphics.Performance
             private Box box;
             private SpriteText text;
 
-            public string Label
-            {
-                get { return text.Text; }
-                set
-                {
-                    text.Text = value;
-                }
-            }
+            public string Label;
 
             private bool active;
             public bool Active
@@ -524,6 +517,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(BAR_WIDTH + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
+                        text.Text = string.Format(@"{0}: {1}", Label, (long)Math.Pow(10, box.Height * AMOUNT_COUNT_STEPS) - 1);
                     }
                 }
             }
@@ -546,6 +540,7 @@ namespace osu.Framework.Graphics.Performance
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
                         Position = new Vector2(BAR_WIDTH + 1, 0),
+                        TextSize = 16,
                     },
                     box = new Box
                     {
@@ -564,7 +559,7 @@ namespace osu.Framework.Graphics.Performance
                 Active = true;
             }
 
-            public float Value
+            public long Value
             {
                 set
                 {
