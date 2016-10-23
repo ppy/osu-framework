@@ -16,6 +16,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -94,6 +95,7 @@ namespace osu.Framework.Graphics.Performance
                             Origin = Anchor.TopRight,
                             AutoSizeAxes = Axes.Both,
                             Spacing = new Vector2(5, 1),
+                            Padding = new MarginPadding { Right = 5 },
                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
                             {
                                 Colour = getColour(t),
@@ -103,10 +105,12 @@ namespace osu.Framework.Graphics.Performance
                         },
                         new SpriteText
                         {
+                            Padding = new MarginPadding { Left = 4 },
                             Text = $@"{visible_range}ms"
                         },
                         new SpriteText
                         {
+                            Padding = new MarginPadding { Left = 4 },
                             Text = @"0ms",
                             Anchor = Anchor.BottomLeft,
                             Origin = Anchor.BottomLeft
