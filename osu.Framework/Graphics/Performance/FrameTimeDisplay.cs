@@ -17,6 +17,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.Graphics.Performance
 
         const float alpha_when_inactive = 0.6f;
 
-        private TimeBar[] timeBars = new TimeBar[2];
+        private TimeBar[] timeBars;
         private BufferStack<byte> textureBufferStack;
 
         private static Color4[] garbageCollectColors = { Color4.Green, Color4.Yellow, Color4.Red };
@@ -44,8 +45,11 @@ namespace osu.Framework.Graphics.Performance
         private bool processFrames = true;
 
         Container overlayContainer;
+        Drawable labelText;
+        Sprite counterBarBackground;
 
         Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
+        Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private FpsDisplay fpsDisplay;
 
@@ -55,69 +59,124 @@ namespace osu.Framework.Graphics.Performance
         {
             Name = name;
             this.monitor = monitor;
-            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
 
-            Size = new Vector2(WIDTH, HEIGHT);
+            Origin = Anchor.TopRight;
+            AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_inactive;
-
-            for (int i = 0; i < timeBars.Length; ++i)
-                timeBars[i] = new TimeBar();
 
             Children = new Drawable[]
             {
                 new Container
                 {
-                    Masking = true,
-                    CornerRadius = 5,
-                    RelativeSizeAxes = Axes.Both,
-                    Children = timeBars
-                },
-                fpsDisplay = new FpsDisplay(monitor.Clock)
-                {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                },
-                overlayContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new []
+                    AutoSizeAxes = Axes.Both,
+                    Children = new[]
                     {
-                        new SpriteText
+                        new Container
                         {
-                            Text = Name,
-                            Origin = Anchor.BottomCentre,
-                            Anchor = Anchor.CentreLeft,
-                            Rotation = -90
-                        },
-                        new FlowContainer
-                        {
-                            Anchor = Anchor.TopRight,
                             Origin = Anchor.TopRight,
-                            AutoSizeAxes = Axes.Both,
-                            Spacing = new Vector2(5, 1),
-                            Padding = new MarginPadding { Right = 5 },
-                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
+                            AutoSizeAxes = Axes.X,
+                            RelativeSizeAxes = Axes.Y,
+                            Position = new Vector2(-2, 0),
+                            Children = new[]
                             {
-                                Colour = getColour(t),
-                                Text = t.ToString(),
-                                Alpha = 0
-                            },
+                                labelText = new SpriteText
+                                {
+                                    Text = Name,
+                                    Origin = Anchor.BottomCentre,
+                                    Anchor = Anchor.CentreLeft,
+                                    Rotation = -90,
+                                    Position = new Vector2(-2, 0),
+                                },
+                                monitor.Counters.Count == 0 ? new Container() : new Container
+                                {
+                                    Masking = true,
+                                    CornerRadius = 5,
+                                    AutoSizeAxes = Axes.X,
+                                    RelativeSizeAxes = Axes.Y,
+                                    Children = new Drawable[]
+                                    {
+                                        counterBarBackground = new Sprite
+                                        {
+                                            Texture = new Texture(1, HEIGHT, true),
+                                            RelativeSizeAxes = Axes.Both,
+                                            Size = new Vector2(1, 1),
+                                        },
+                                        new FlowContainer
+                                        {
+                                            Direction = FlowDirection.HorizontalOnly,
+                                            AutoSizeAxes = Axes.X,
+                                            RelativeSizeAxes = Axes.Y,
+                                            Children = from StatisticsCounterType t in monitor.Counters.Keys select counterBars[t] = new CounterBar
+                                            {
+                                                Colour = getColour(t),
+                                                Label = t.ToString(),
+                                            },
+                                        },
+                                    }
+                                }
+                            }
                         },
-                        new SpriteText
+                        new Container
                         {
-                            Padding = new MarginPadding { Left = 4 },
-                            Text = $@"{visible_range}ms"
-                        },
-                        new SpriteText
-                        {
-                            Padding = new MarginPadding { Left = 4 },
-                            Text = @"0ms",
-                            Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft
+                            Size = new Vector2(WIDTH, HEIGHT),
+                            Children = new[]
+                            {
+                                new Container
+                                {
+                                    Masking = true,
+                                    CornerRadius = 5,
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = timeBars = new[]
+                                    {
+                                        new TimeBar(),
+                                        new TimeBar(),
+                                    },
+                                },
+                                fpsDisplay = new FpsDisplay(monitor.Clock)
+                                {
+                                    Anchor = Anchor.BottomRight,
+                                    Origin = Anchor.BottomRight,
+                                },
+                                overlayContainer = new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Children = new []
+                                    {
+                                        new FlowContainer
+                                        {
+                                            Anchor = Anchor.TopRight,
+                                            Origin = Anchor.TopRight,
+                                            AutoSizeAxes = Axes.Both,
+                                            Spacing = new Vector2(5, 1),
+                                            Padding = new MarginPadding { Right = 5 },
+                                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType)) where t < PerformanceCollectionType.Empty select legendMapping[(int)t] = new SpriteText
+                                            {
+                                                Colour = getColour(t),
+                                                Text = t.ToString(),
+                                                Alpha = 0
+                                            },
+                                        },
+                                        new SpriteText
+                                        {
+                                            Padding = new MarginPadding { Left = 4 },
+                                            Text = $@"{visible_range}ms"
+                                        },
+                                        new SpriteText
+                                        {
+                                            Padding = new MarginPadding { Left = 4 },
+                                            Text = @"0ms",
+                                            Anchor = Anchor.BottomLeft,
+                                            Origin = Anchor.BottomLeft
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                }
+                },
             };
+
+            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
         public override void Load(BaseGame game)
@@ -136,30 +195,9 @@ namespace osu.Framework.Graphics.Performance
                 for (int k = 0; k < WIDTH; k++)
                     Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
 
+            counterBarBackground?.Texture.SetData(new TextureUpload(column));
             foreach (var t in timeBars)
                 t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
-        }
-
-        class TimeBar : Container
-        {
-            public Sprite Sprite;
-
-            public override void Load(BaseGame game)
-            {
-                base.Load(game);
-
-                Size = new Vector2(WIDTH, HEIGHT);
-
-                Children = new[]
-                {
-                    Sprite = new Sprite
-                    {
-                        Texture = new Texture(WIDTH, HEIGHT, true)
-                    }
-                };
-            }
-
-            public override bool HandleInput => false;
         }
 
         private void addEvent(int type)
@@ -183,6 +221,9 @@ namespace osu.Framework.Graphics.Performance
                 FadeTo(1, 100);
                 fpsDisplay.Counting = false;
                 processFrames = false;
+
+                foreach (CounterBar bar in counterBars.Values)
+                    bar.Active = false;
             }
             return base.OnKeyDown(state, args);
         }
@@ -195,8 +236,54 @@ namespace osu.Framework.Graphics.Performance
                 FadeTo(alpha_when_inactive, 100);
                 fpsDisplay.Counting = true;
                 processFrames = true;
+
+                foreach (CounterBar bar in counterBars.Values)
+                    bar.Active = true;
             }
             return base.OnKeyUp(state, args);
+        }
+
+        private void applyFrameGC(FrameStatistics frame)
+        {
+            foreach (int gcLevel in frame.GarbageCollections)
+                addEvent(gcLevel);
+        }
+
+        private void applyFrameTime(FrameStatistics frame)
+        {
+            TimeBar timeBar = timeBars[TimeBarIndex];
+            TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
+            {
+                Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
+            };
+
+            int currentHeight = HEIGHT;
+
+            for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+                currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
+
+            timeBar.Sprite.Texture.SetData(upload);
+
+            timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX));
+            timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX);
+            currentX = (currentX + 1) % (timeBars.Length * WIDTH);
+
+            foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
+                if (e is Box && e.DrawPosition.X <= TimeBarX)
+                    e.Expire();
+        }
+
+        private void applyFrameCounts(FrameStatistics frame)
+        {
+            foreach (var pair in frame.Counts)
+                counterBars[pair.Key].Value = pair.Value;
+        }
+
+        private void applyFrame(FrameStatistics frame)
+        {
+            applyFrameGC(frame);
+            applyFrameTime(frame);
+            applyFrameCounts(frame);
         }
 
         protected override void Update()
@@ -207,31 +294,7 @@ namespace osu.Framework.Graphics.Performance
             while (monitor.PendingFrames.TryDequeue(out frame))
             {
                 if (processFrames)
-                {
-                    foreach (int gcLevel in frame.GarbageCollections)
-                        addEvent(gcLevel);
-
-                    TimeBar timeBar = timeBars[TimeBarIndex];
-                    TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
-                    {
-                        Bounds = new Rectangle(TimeBarX, 0, 1, HEIGHT)
-                    };
-
-                    int currentHeight = HEIGHT;
-
-                    for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
-                        currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data);
-
-                    timeBar.Sprite.Texture.SetData(upload);
-
-                    timeBars[TimeBarIndex].MoveToX((WIDTH - TimeBarX));
-                    timeBars[(TimeBarIndex + 1) % timeBars.Length].MoveToX(-TimeBarX);
-                    currentX = (currentX + 1) % (timeBars.Length * WIDTH);
-
-                    foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
-                        if (e is Box && e.DrawPosition.X <= TimeBarX)
-                            e.Expire();
-                }
+                    applyFrame(frame);
 
                 monitor.FramesHeap.FreeObject(frame);
             }
@@ -262,6 +325,26 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.Cyan;
                 case PerformanceCollectionType.Empty:
                     return new Color4(0.1f, 0.1f, 0.1f, 1);
+            }
+        }
+
+        private Color4 getColour(StatisticsCounterType type)
+        {
+            switch (type)
+            {
+                default:
+                case StatisticsCounterType.DrawCalls:
+                    return Color4.YellowGreen;
+                case StatisticsCounterType.TextureBinds:
+                    return Color4.BlueViolet;
+                case StatisticsCounterType.Invalidations:
+                    return Color4.Red;
+                case StatisticsCounterType.Refreshes:
+                    return Color4.Cyan;
+                case StatisticsCounterType.DrawNodeCtor:
+                    return Color4.HotPink;
+                case StatisticsCounterType.Vertices:
+                    return Color4.GhostWhite;
             }
         }
 
@@ -300,12 +383,127 @@ namespace osu.Framework.Graphics.Performance
                 textureData[index] = (byte)(255 * col.R * brightnessAdjust);
                 textureData[index + 1] = (byte)(255 * col.G * brightnessAdjust);
                 textureData[index + 2] = (byte)(255 * col.B * brightnessAdjust);
-                textureData[index + 3] = 255;
+                textureData[index + 3] = (byte)(255 * col.A);
 
                 currentHeight--;
             }
 
             return currentHeight;
+        }
+
+        class TimeBar : Container
+        {
+            public Sprite Sprite;
+
+            public override void Load(BaseGame game)
+            {
+                base.Load(game);
+
+                Size = new Vector2(WIDTH, HEIGHT);
+
+                Children = new[]
+                {
+                    Sprite = new Sprite
+                    {
+                        Texture = new Texture(WIDTH, HEIGHT, true)
+                    }
+                };
+            }
+
+            public override bool HandleInput => false;
+        }
+
+        class CounterBar : Container
+        {
+            private Box box;
+            private SpriteText text;
+
+            public string Label
+            {
+                get { return text.Text; }
+                set
+                {
+                    text.Text = value;
+                }
+            }
+
+            private bool active;
+            public bool Active
+            {
+                get { return active; }
+                set
+                {
+                    if (active == value)
+                        return;
+
+                    active = value;
+
+                    if (active)
+                    {
+                        ResizeTo(new Vector2(10, 1), 100);
+                        text.FadeOut(100);
+                    }
+                    else
+                    {
+                        ResizeTo(new Vector2(30, 1), 100);
+                        text.FadeIn(100);
+                    }
+                }
+            }
+
+            private double height;
+            private double velocity;
+            private const double ACCELERATION = 0.0001;
+
+            public CounterBar()
+            {
+                Size = new Vector2(10, 1);
+                Padding = new MarginPadding { Left = 1, Right = 1 };
+                RelativeSizeAxes = Axes.Y;
+
+                Children = new Drawable[]
+                {
+                    text = new SpriteText
+                    {
+                        Origin = Anchor.BottomLeft,
+                        Anchor = Anchor.BottomRight,
+                        Rotation = -90,
+                        Position = new Vector2(10, 0),
+                    },
+                    box = new Box
+                    {
+                        Size = new Vector2(8, 0),
+                        Anchor = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight,
+                    }
+                };
+            }
+
+            public float Value
+            {
+                set
+                {
+                    height = Math.Log10(value + 1) * 20;
+                }
+            }
+
+            protected override void Update()
+            {
+                base.Update();
+
+                if (!Active)
+                    return;
+
+                double elapsedTime = Clock.ElapsedFrameTime;
+                double movement = velocity * Clock.ElapsedFrameTime + 0.5 * ACCELERATION * elapsedTime * elapsedTime;
+                double newHeight = Math.Max(height, box.Height - movement);
+                box.Height = (float)newHeight;
+
+                if (newHeight <= height)
+                    velocity = 0;
+                else
+                    velocity += Clock.ElapsedFrameTime * ACCELERATION;
+            }
         }
     }
 }
