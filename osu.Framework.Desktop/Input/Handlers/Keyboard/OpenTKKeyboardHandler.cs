@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using osu.Framework.Input.Handlers;
 using OpenTK.Input;
 using osu.Framework.Platform;
@@ -36,11 +35,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
-                try
-                {
-                    state = OpenTK.Input.Keyboard.GetState();
-                }
-                catch { }
+                state = OpenTK.Input.Keyboard.GetState();
             }, 0, 0));
 
             return true;

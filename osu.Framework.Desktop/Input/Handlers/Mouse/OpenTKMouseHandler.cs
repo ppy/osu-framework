@@ -4,9 +4,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Input.Handlers;
-using OpenTK;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using OpenTK;
 using OpenTK.Input;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
@@ -15,28 +15,24 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private BasicGameHost host;
 
-        private MouseState previousState = new MouseState();
-        private MouseState state = new MouseState();
+        private MouseState previousState;
+        private MouseState state;
         private Vector2 position = Vector2.One;
         private Point nativePosition;
-        private int wheelDiff = 0;
+        private int wheelDiff;
 
         public override void Dispose()
         {
         }
-        
+
         public override bool Initialize(BasicGameHost host)
         {
             this.host = host;
 
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
-                try
-                {
-                    state = OpenTK.Input.Mouse.GetCursorState();
-                    nativePosition = host.Window.PointToClient(new Point(state.X, state.Y));
-                }
-                catch { }
+                state = OpenTK.Input.Mouse.GetCursorState();
+                nativePosition = host.Window.PointToClient(new Point(state.X, state.Y));
             }, 0, 0));
 
             return true;
@@ -45,8 +41,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         public override void UpdateInput(bool isActive)
         {
             wheelDiff = state.Wheel - previousState.Wheel;
-            var point = host.Window.PointToClient(new Point(state.X, state.Y));
-            position = new Vector2(point.X, point.Y);
+            position = new Vector2(nativePosition.X, nativePosition.Y);
             previousState = state;
         }
 
