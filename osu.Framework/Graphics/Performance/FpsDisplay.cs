@@ -1,9 +1,11 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transformations;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 
@@ -20,13 +22,14 @@ namespace osu.Framework.Graphics.Performance
 
         public FpsDisplay(IFrameBasedClock clock)
         {
-            AutoSizeAxes = Axes.Both;
             this.clock = clock;
         }
 
         public override void Load(BaseGame game)
         {
             base.Load(game);
+
+            Masking = true;
 
             Add(new Box
             {
@@ -37,10 +40,14 @@ namespace osu.Framework.Graphics.Performance
 
             Add(counter = new SpriteText
             {
+                Anchor = Anchor.TopRight,
+                Origin = Anchor.TopRight,
                 Text = @"...",
                 FixedWidth = true,
             });
         }
+
+        float aimWidth;
 
         protected override void Update()
         {
@@ -49,6 +56,23 @@ namespace osu.Framework.Graphics.Performance
             if (!Counting) return;
 
             displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, Clock.ElapsedFrameTime / 1000);
+
+            if (counter.DrawWidth != aimWidth)
+            {
+                ClearTransformations();
+
+                if (aimWidth == 0)
+                    Size = counter.DrawSize;
+                else if (counter.DrawWidth > aimWidth)
+                    ResizeTo(counter.DrawSize, 200, EasingTypes.InOutSine);
+                else
+                {
+                    Delay(1500);
+                    ResizeTo(counter.DrawSize, 500, EasingTypes.InOutSine);
+                }
+
+                aimWidth = counter.DrawWidth;
+            }
 
             counter.Text = displayFPS.ToString(@"0");
         }

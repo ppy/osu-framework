@@ -28,6 +28,7 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
+
         public BasicGameWindow Window;
 
         public abstract GLControl GLControl { get; }
@@ -206,11 +207,20 @@ namespace osu.Framework.Platform
 
         protected override Container Content => inputManager;
 
+        private static BasicGameHost instance;
+
         public BasicGameHost()
         {
+            Debug.Assert(instance == null, "Only one GameHost may exist.");
+            instance = this;
+
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
             UpdateMonitor = new PerformanceMonitor(UpdateClock);
             DrawMonitor = new PerformanceMonitor(DrawClock);
+
+            // This static method uses BasicGameHost.GetInstanceIfExists() to get access
+            // to InputMonitor, UpdateMonitor and DrawMonitor.
+            FrameStatistics.RegisterCounters();
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
@@ -218,6 +228,8 @@ namespace osu.Framework.Platform
 
             AddInternal(inputManager = new UserInputManager(this));
         }
+
+        public static BasicGameHost GetInstanceIfExists() => instance;
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
@@ -267,6 +279,28 @@ namespace osu.Framework.Platform
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
+        protected void updateIteration()
+        {
+            UpdateMonitor.NewFrame();
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+            {
+                UpdateScheduler.Update();
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
+            {
+                UpdateSubTree();
+                using (var buffer = DrawRoots.Get(UsageType.Write))
+                    buffer.Object = GenerateDrawNodeSubtree(ScreenSpaceDrawQuad.AABBf, buffer.Object);
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            {
+                UpdateClock.ProcessFrame();
+            }
+        }
+
         private void updateLoop()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
@@ -274,26 +308,7 @@ namespace osu.Framework.Platform
                 Thread.Sleep(1);
 
             while (!ExitRequested)
-            {
-                UpdateMonitor.NewFrame();
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    UpdateScheduler.Update();
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-                {
-                    UpdateSubTree();
-                    using (var buffer = DrawRoots.Get(UsageType.Write))
-                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
-                    UpdateClock.ProcessFrame();
-                }
-            }
+                updateIteration();
         }
 
         private void drawLoop()

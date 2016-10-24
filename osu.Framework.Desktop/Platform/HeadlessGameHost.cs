@@ -40,26 +40,7 @@ namespace osu.Framework.Desktop.Platform
         public override void Run()
         {
             while (!ExitRequested)
-            {
-                UpdateMonitor.NewFrame();
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    UpdateScheduler.Update();
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-                {
-                    UpdateSubTree();
-                    using (var buffer = DrawRoots.Get(UsageType.Write))
-                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
-                    UpdateClock.ProcessFrame();
-                }
-            }
+                updateIteration();
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };

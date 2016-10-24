@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 using System;
 
 namespace osu.Framework.Caching
@@ -19,17 +21,6 @@ namespace osu.Framework.Caching
         public bool IsValid => !StaticCached.AlwaysStale && isValid;
 
         private PropertyUpdater updateDelegate;
-
-        /// <summary>
-        /// Create a new cached property.
-        /// </summary>
-        /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
-        public Cached(PropertyUpdater updateDelegate = null)
-        {
-            isValid = false;
-            value = default(T);
-            this.updateDelegate = updateDelegate;
-        }
 
         public static implicit operator T(Cached<T> value)
         {
@@ -72,6 +63,9 @@ namespace osu.Framework.Caching
 
             value = updateDelegate();
             isValid = true;
+
+            FrameStatistics.Increment(StatisticsCounterType.Refreshes);
+
             return true;
         }
 
@@ -84,6 +78,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
+                FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
 
@@ -96,7 +91,7 @@ namespace osu.Framework.Caching
         {
             get
             {
-                if (!IsValid)
+                if (!isValid)
                     MakeValidOrDefault();
 
                 return value;
@@ -115,16 +110,6 @@ namespace osu.Framework.Caching
         public bool IsValid => !StaticCached.AlwaysStale && isValid;
 
         private PropertyUpdater updateDelegate;
-
-        /// <summary>
-        /// Create a new cached property.
-        /// </summary>
-        /// <param name="updateDelegate">The delegate method which will perform future updates to this property.</param>
-        public Cached(PropertyUpdater updateDelegate = null)
-        {
-            isValid = false;
-            this.updateDelegate = updateDelegate;
-        }
 
         /// <summary>
         /// Refresh this cached object with a custom delegate.
@@ -149,6 +134,9 @@ namespace osu.Framework.Caching
 
             updateDelegate();
             isValid = true;
+
+            FrameStatistics.Increment(StatisticsCounterType.Refreshes);
+
             return true;
         }
 
@@ -161,6 +149,7 @@ namespace osu.Framework.Caching
             if (isValid)
             {
                 isValid = false;
+                FrameStatistics.Increment(StatisticsCounterType.Invalidations);
                 return true;
             }
 

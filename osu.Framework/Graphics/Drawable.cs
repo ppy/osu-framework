@@ -18,6 +18,8 @@ using osu.Framework.Threading;
 using System.Threading;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
@@ -607,20 +609,23 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
         /// <returns>A complete and updated DrawNode.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
-            if (node == null)
+            if (node == null || !IsCompatibleDrawNode(node))
             {
-                //we don't have a previous node, so we need to initialise fresh.
                 node = CreateDrawNode();
-                node.Drawable = this;
+
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (!node.IsValid)
+            if (StaticCached.AlwaysStale)
+                validDrawNodes.Clear();
+
+            // Note, that invalidating clears all owned draw nodes and thus this check also serves
+            // to re-populate invalidated draw nodes.
+            if (!OwnsDrawNode(node))
             {
-                //we need to update the node if it has been invalidated.
                 ApplyDrawNode(node);
-                node.IsValid = true;
                 validDrawNodes.Add(node);
             }
 
@@ -630,10 +635,20 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
-            node.Drawable = this;
         }
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
+
+        protected virtual bool IsCompatibleDrawNode(DrawNode node) => node is DrawNode;
+
+        protected virtual bool OwnsDrawNode(DrawNode node)
+        {
+            for (int i = 0; i < validDrawNodes.Count; ++i)
+                if (validDrawNodes[i] == node)
+                    return true;
+
+            return false;
+        }
 
         /// <summary>
         /// Updates this drawable, once every frame.
@@ -656,7 +671,11 @@ namespace osu.Framework.Graphics
 
         protected virtual void Update()
         {
-            scheduler?.Update();
+            if (scheduler != null)
+            {
+                int amountScheduledTasks = scheduler.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
         }
 
         /// <summary>
@@ -824,11 +843,7 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & (Invalidation.DrawNode)) > 0)
-            {
-                foreach (DrawNode n in validDrawNodes)
-                    n.IsValid = false;
                 validDrawNodes.Clear();
-            }
 
             return !alreadyInvalidated;
         }

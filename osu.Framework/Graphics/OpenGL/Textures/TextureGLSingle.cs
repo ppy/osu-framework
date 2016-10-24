@@ -13,7 +13,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -109,9 +109,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             get
             {
                 Debug.Assert(!isDisposed);
-
-                if (uploadQueue.Count > 0)
-                    Upload();
+                Debug.Assert(textureId > 0);
 
                 return textureId;
             }
@@ -178,6 +176,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
                 Colour = drawColour
             });
+
+            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
         }
 
         private void updateWrapMode()
@@ -270,8 +270,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(this);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Linear :  All.LinearMipmapLinear));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Nearest : All.LinearMipmapLinear));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(manualMipmaps ? All.Nearest : All.Linear));
 
                             updateWrapMode();
                         }

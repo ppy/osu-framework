@@ -48,14 +48,8 @@ namespace osu.Framework
         public TextureStore Fonts;
 
         private Container content;
-        private FlowContainer performanceContainer;
+        private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
-
-        public bool ShowPerformanceOverlay
-        {
-            get { return performanceContainer.Alpha > 0; }
-            set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
-        }
 
         protected override Container Content => content;
 
@@ -189,7 +183,18 @@ namespace osu.Framework
                 switch (args.Key)
                 {
                     case Key.F11:
-                        ShowPerformanceOverlay = !ShowPerformanceOverlay;
+                        switch (performanceContainer.State)
+                        {
+                            case FrameStatisticsMode.None:
+                                performanceContainer.State = FrameStatisticsMode.Minimal;
+                                break;
+                            case FrameStatisticsMode.Minimal:
+                                performanceContainer.State = FrameStatisticsMode.Full;
+                                break;
+                            case FrameStatisticsMode.Full:
+                                performanceContainer.State = FrameStatisticsMode.None;
+                                break;
+                        }
                         return true;
                     case Key.F1:
                         DrawVisualiser.ToggleVisibility();
