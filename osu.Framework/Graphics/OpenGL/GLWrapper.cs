@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Initialize()
         {
+            if (IsInitialized) return;
+
             resetScheduler.SetCurrentThread();
 
             MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
