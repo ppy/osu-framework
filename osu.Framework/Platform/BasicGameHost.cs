@@ -379,6 +379,7 @@ namespace osu.Framework.Platform
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
+                Window.FocusedChanged += delegate { IsActive = Window.Focused; };
                 window_ClientSizeChanged(null, null);
             }
 
