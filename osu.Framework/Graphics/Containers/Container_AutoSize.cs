@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingAutosize && (AutoSizeAxes & Axes.X) > 0)
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && (AutoSizeAxes & Axes.X) > 0)
                     updateAutoSize();
                 return base.Width;
             }
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingAutosize && (AutoSizeAxes & Axes.Y) > 0)
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && (AutoSizeAxes & Axes.Y) > 0)
                     updateAutoSize();
                 return base.Height;
             }
@@ -52,7 +52,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingAutosize && AutoSizeAxes != Axes.None)
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && AutoSizeAxes != Axes.None)
                     updateAutoSize();
                 return base.Size;
             }
