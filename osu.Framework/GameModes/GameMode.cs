@@ -156,10 +156,13 @@ namespace osu.Framework.GameModes
         private void startResume(GameMode last)
         {
             ChildGameMode = null;
-            OnResuming(last);
-            Content.LifetimeEnd = double.MaxValue;
 
-            if (!ValidForResume)
+            if (ValidForResume)
+            {
+                OnResuming(last);
+                Content.LifetimeEnd = double.MaxValue;
+            }
+            else
                 Exit();
         }
 
