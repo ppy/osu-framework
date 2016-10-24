@@ -31,7 +31,7 @@ namespace osu.Framework.GameModes
         /// <summary>
         /// Make this GameMode directly exited when resuming from a child.
         /// </summary>
-        public bool Expired { get; set; }
+        public bool ValidForResume = true;
 
         public GameMode()
         {
@@ -159,7 +159,7 @@ namespace osu.Framework.GameModes
             OnResuming(last);
             Content.LifetimeEnd = double.MaxValue;
 
-            if (Expired)
+            if (!ValidForResume)
                 Exit();
         }
 
@@ -170,7 +170,7 @@ namespace osu.Framework.GameModes
 
             GameMode c;
             for (c = ChildGameMode; c.ChildGameMode != null; c = c.ChildGameMode)
-                c.Expired = true;
+                c.ValidForResume = false;
 
             //all the expired ones will exit
             c.Exit();
