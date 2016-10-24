@@ -21,7 +21,7 @@ namespace osu.Framework.Desktop.Platform.Windows
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
-            IsActive = true; // TODO
+            IsActive = true;
 
             timePeriod = new TimePeriod(1) { Active = true };
 
