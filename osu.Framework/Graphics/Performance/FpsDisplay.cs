@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Performance
             base.Load(game);
 
             Masking = true;
+            CornerRadius = 5;
 
             Add(new Box
             {
