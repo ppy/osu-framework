@@ -93,7 +93,7 @@ namespace osu.Framework.Platform
         internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
-        internal FramedClock InputClock = new FramedClock();
+        internal FramedClock InputClock = new ThrottledFrameClock() { MaximumUpdateHz = 1000 };
 
         protected internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
 
@@ -386,7 +386,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                Window.RenderFrame += delegate { OnApplicationIdle(); };
+                Window.UpdateFrame += delegate { OnApplicationIdle(); };
                 Window.Run();
             }
             catch (OutOfMemoryException)
