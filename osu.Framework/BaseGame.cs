@@ -34,7 +34,6 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => Host.FullPath;
 
-        private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;
 
         public BasicGameHost Host => host;
@@ -95,13 +94,6 @@ namespace osu.Framework
         {
             this.host = host;
             host.Exiting += OnExiting;
-
-            if (form != null)
-            {
-                form.FormClosing += OnFormClosing;
-                form.DragEnter += dragEnter;
-                form.DragDrop += dragDrop;
-            }
         }
 
         public override void Load(BaseGame game)
