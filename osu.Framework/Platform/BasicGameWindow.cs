@@ -16,12 +16,10 @@ namespace osu.Framework.Platform
 
         public BasicGameWindow(int width, int height) : base(width, height)
         {
-            Closing += (sender, e) => e.Cancel = ExitRequested();
-            Closed += (sender, e) => Exited();
+            Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
+            Closed += (sender, e) => Exited?.Invoke();
             Cursor = MouseCursor.Empty;
 
-            ////make sure our context is current on the correct frame.
-            //Invoke((MethodInvoker)delegate { Context.MakeCurrent(null); });
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
