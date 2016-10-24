@@ -46,7 +46,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ManagedBass.PInvoke, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\ManagedBass.PInvoke.0.6.1\lib\net45\ManagedBass.PInvoke.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ManagedBass.PInvoke.0.6.1\lib\net45\ManagedBass.PInvoke.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
