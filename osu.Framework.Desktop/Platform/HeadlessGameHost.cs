@@ -7,7 +7,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
 using OpenTK;
-using GLControl = osu.Framework.Platform.GLControl;
 
 namespace osu.Framework.Desktop.Platform
 {
