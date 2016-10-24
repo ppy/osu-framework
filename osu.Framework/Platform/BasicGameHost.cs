@@ -404,7 +404,7 @@ namespace osu.Framework.Platform
         {
             if (Window.WindowState == WindowState.Minimized) return;
 
-            Rectangle rect = Window.Bounds;
+            Rectangle rect = Window.ClientRectangle;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
