@@ -12,7 +12,7 @@ namespace osu.Framework.Threading
     /// <summary>
     /// Marshals delegates to run from the Scheduler's base thread in a threadsafe manner
     /// </summary>
-    public class Scheduler : IDisposable, IUpdateable
+    public class Scheduler : IDisposable
     {
         private readonly Queue<Action> schedulerQueue = new Queue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
@@ -47,9 +47,10 @@ namespace osu.Framework.Threading
         /// Run any pending work tasks.
         /// </summary>
         /// <returns>true if any tasks were run.</returns>
-        public void Update()
+        public int Update()
         {
             Action[] runnable;
+            int count;
 
             lock (schedulerQueue)
             {
@@ -94,11 +95,12 @@ namespace osu.Framework.Threading
                     }
                 }
 
-                int c = schedulerQueue.Count;
-                if (c == 0) return;
+                count = schedulerQueue.Count;
+                if (count == 0)
+                    return 0;
 
                 //create a safe copy of pending tasks.
-                runnable = new Action[c];
+                runnable = new Action[count];
                 schedulerQueue.CopyTo(runnable, 0);
                 schedulerQueue.Clear();
             }
@@ -108,6 +110,8 @@ namespace osu.Framework.Threading
                 //todo: error handling
                 v.Invoke();
             }
+
+            return count;
         }
 
         internal void SetCurrentThread(Thread thread)

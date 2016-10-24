@@ -33,11 +33,13 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.Refreshes:
                 case StatisticsCounterType.DrawNodeCtor:
+                case StatisticsCounterType.ScheduleInvk:
                     return host.UpdateMonitor;
 
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Vertices:
+                case StatisticsCounterType.KiloPixels:
                     return host.DrawMonitor;
 
                 default:
@@ -46,6 +48,12 @@ namespace osu.Framework.Statistics
             }
 
             return null;
+        }
+
+        internal void Postprocess()
+        {
+            if (Counts.ContainsKey(StatisticsCounterType.KiloPixels))
+                Counts[StatisticsCounterType.KiloPixels] /= 1000;
         }
 
         internal static void RegisterCounters()
@@ -62,7 +70,7 @@ namespace osu.Framework.Statistics
 
     public enum PerformanceCollectionType
     {
-        Update,
+        Update = 0,
         Draw,
         SwapBuffer,
         WndProc,
@@ -76,12 +84,15 @@ namespace osu.Framework.Statistics
 
     public enum StatisticsCounterType
     {
-        DrawCalls = 0,
-        TextureBinds,
-        Invalidations,
+        Invalidations = 0,
         Refreshes,
         DrawNodeCtor,
+        ScheduleInvk,
+
+        TextureBinds,
+        DrawCalls,
         Vertices,
+        KiloPixels,
 
         AmountTypes,
     }

@@ -671,7 +671,11 @@ namespace osu.Framework.Graphics
 
         protected virtual void Update()
         {
-            scheduler?.Update();
+            if (scheduler != null)
+            {
+                int amountScheduledTasks = scheduler.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
         }
 
         /// <summary>
