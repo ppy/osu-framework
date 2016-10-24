@@ -147,6 +147,8 @@ namespace osu.Framework.GameModes
 
             ParentGameMode?.startResume(this);
             Exited?.Invoke(ParentGameMode);
+            if (ParentGameMode?.ValidForResume == false)
+                ParentGameMode.Exit();
             ParentGameMode = null;
 
             Exited = null;
@@ -162,8 +164,6 @@ namespace osu.Framework.GameModes
                 OnResuming(last);
                 Content.LifetimeEnd = double.MaxValue;
             }
-            else
-                Exit();
         }
 
 
