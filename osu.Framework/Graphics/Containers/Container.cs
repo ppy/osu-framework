@@ -477,9 +477,17 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool CanBeFlattened => !Masking;
 
-        private static void addFromContainer(ref int j, Container c, List<DrawNode> target, RectangleF childBounds)
+        /// <summary>
+        /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
+        /// of container subtrees for optimization purposes.
+        /// </summary>
+        /// <param name="j">The running index into the target List.</param>
+        /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
+        /// <param name="target">The target list to fill with DrawNodes.</param>
+        /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
+        private static void addFromContainer(ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<Drawable> current = c.children.AliveItems;
+            List<Drawable> current = parentContainer.children.AliveItems;
             for (int i = 0; i < current.Count; ++i)
             {
                 Drawable drawable = current[i];
@@ -487,12 +495,12 @@ namespace osu.Framework.Graphics.Containers
                 Container container = drawable as Container;
                 if (container?.CanBeFlattened == true)
                 {
-                    addFromContainer(ref j, container, target, childBounds);
+                    addFromContainer(ref j, container, target, maskingBounds);
                     continue;
                 }
 
                 DrawNode previous = j < target.Count ? target[j] : null;
-                DrawNode next = drawable.GenerateDrawNodeSubtree(childBounds, previous);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(maskingBounds, previous);
 
                 if (next == null)
                     continue;
