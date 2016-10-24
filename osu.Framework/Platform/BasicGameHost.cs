@@ -27,7 +27,6 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
-
         public BasicGameWindow Window;
 
         private bool isActive;

@@ -17,6 +17,8 @@ namespace osu.Framework.Desktop.Platform
         {
         }
 
+        public bool InMemorySQL = false;
+
         protected virtual string BasePath => @"./"; //use current directory by default
 
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
@@ -44,6 +46,8 @@ namespace osu.Framework.Desktop.Platform
                 platform = new SQLitePlatformWin32();
             else
                 platform = new SQLitePlatformGeneric();
+            if (InMemorySQL)
+                return new SQLiteConnection(platform, $@":memory:");
             return new SQLiteConnection(platform, Path.Combine(BasePath, $@"{name}.db"));
         }
     }
