@@ -211,7 +211,6 @@ namespace osu.Framework.Platform
 
         public BasicGameHost()
         {
-            Debug.Assert(instance == null, "Only one GameHost may exist.");
             instance = this;
 
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
