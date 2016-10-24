@@ -16,7 +16,6 @@ namespace osu.Framework.Desktop.Platform.Windows
     public class WindowsGameHost : DesktopGameHost
     {
         private TimePeriod timePeriod;
-        private OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
 
         internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
         {
@@ -43,11 +42,7 @@ namespace osu.Framework.Desktop.Platform.Windows
             Application.EnableVisualStyles();
         }
 
-        public override IEnumerable<InputHandler> GetInputHandlers()
-        {
-            //todo: figure why opentk input handlers aren't working.
-            return new InputHandler[] { new OpenTKMouseHandler(), keyboardHandler };
-        }
+        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { new OpenTKMouseHandler(), new OpenTKKeyboardHandler() };
 
         protected override void Dispose(bool isDisposing)
         {
