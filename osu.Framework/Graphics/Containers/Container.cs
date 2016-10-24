@@ -475,6 +475,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected virtual bool CanBeFlattened => !Masking;
+
         private static void addFromContainer(ref int j, Container c, List<DrawNode> target, RectangleF childBounds)
         {
             List<Drawable> current = c.children.AliveItems;
@@ -483,7 +485,7 @@ namespace osu.Framework.Graphics.Containers
                 Drawable drawable = current[i];
 
                 Container container = drawable as Container;
-                if (container != null && !container.Masking)
+                if (container?.CanBeFlattened == true)
                 {
                     addFromContainer(ref j, container, target, childBounds);
                     continue;
