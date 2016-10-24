@@ -22,7 +22,6 @@ namespace osu.Framework.Desktop.Platform.Linux
                 else
                     OnDeactivated(sender, e);
             };
-            Window.KeyPress += (sender, e) => keyboardHandler.OnCharacterInput(e.KeyChar);
             Storage = new LinuxStorage(gameName);
         }
 

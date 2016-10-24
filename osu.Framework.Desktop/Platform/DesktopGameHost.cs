@@ -4,6 +4,11 @@
 using System.Threading.Tasks;
 using osu.Framework.Platform;
 using OpenTK;
+using osu.Framework.Input.Handlers;
+using System;
+using System.Collections.Generic;
+using osu.Framework.Desktop.Input;
+using osu.Framework.Input;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -25,6 +30,8 @@ namespace osu.Framework.Desktop.Platform
                 }
             }
         }
+
+        public override TextInputSource GetTextInput() => new GameWindowTextInput(Window);
 
         protected override void LoadGame(BaseGame game)
         {

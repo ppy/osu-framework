@@ -22,13 +22,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
         {
         }
 
-        public event Action<char> CharacterInput;
-
-        internal void OnCharacterInput(char c)
-        {
-            CharacterInput?.Invoke(c);
-        }
-
         public override bool Initialize(BasicGameHost host)
         {
             PressedKeys = new List<Key>();

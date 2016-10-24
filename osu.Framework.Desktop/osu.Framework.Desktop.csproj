@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Host.cs" />
+    <Compile Include="Input\GameWindowTextInput.cs" />
     <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKMouseHandler.cs" />
     <Compile Include="Platform\DesktopGameHost.cs" />

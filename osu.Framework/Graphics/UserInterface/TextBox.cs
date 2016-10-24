@@ -45,6 +45,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
+        private TextInputSource textInput;
+
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
         public event OnCommitHandler OnCommit;
@@ -102,6 +104,8 @@ namespace osu.Framework.Graphics.UserInterface
             OnChange = null;
             OnCommit = null;
 
+            unbindInput();
+
             base.Dispose(disposing);
         }
 
@@ -157,14 +161,14 @@ namespace osu.Framework.Graphics.UserInterface
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
                         cursor.Transforms.Add(new TransformAlpha(Clock)
-                              {
-                                  StartValue = 0.5f,
-                                  EndValue = 0.2f,
-                                  StartTime = Time,
-                                  EndTime = Time + 500,
-                                  Easing = EasingTypes.InOutSine,
-                                  LoopCount = -1,
-                              });
+                        {
+                            StartValue = 0.5f,
+                            EndValue = 0.2f,
+                            StartTime = Time,
+                            EndTime = Time + 500,
+                            Easing = EasingTypes.InOutSine,
+                            LoopCount = -1,
+                        });
                     }
                 }
 
@@ -214,6 +218,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void moveSelection(int offset, bool expand)
         {
+            if (textInput?.ImeActive == true) return;
+
             int oldStart = selectionStart;
             int oldEnd = selectionEnd;
 
@@ -369,6 +375,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (!HasFocus)
                 return false;
 
+            if (textInput?.ImeActive == true) return true;
+
             switch (args.Key)
             {
                 case Key.Tab:
@@ -380,64 +388,64 @@ namespace osu.Framework.Graphics.UserInterface
                     moveSelection(-text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Left:
-                {
-                    if (!HandleLeftRightArrows) return false;
-
-                    if (selectionEnd == 0)
                     {
-                        //we only clear if you aren't holding shift
-                        if (!state.Keyboard.ShiftPressed)
-                            resetSelection();
-                        return true;
-                    }
+                        if (!HandleLeftRightArrows) return false;
 
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
-                    {
-                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                        if (lastSpace >= 0)
+                        if (selectionEnd == 0)
                         {
-                            //if you have something selected and shift is not held down
-                            //A selection reset is required to select a word inside the current selection
-                            if(!state.Keyboard.ShiftPressed)
+                            //we only clear if you aren't holding shift
+                            if (!state.Keyboard.ShiftPressed)
                                 resetSelection();
-                            amount = selectionEnd - lastSpace - 1;
+                            return true;
                         }
-                         else
-                            amount = selectionEnd;
-                    }
 
-                    moveSelection(-amount, state.Keyboard.ShiftPressed);
-                    return true;
-                }
-                case Key.Right:
-                {
-                    if (!HandleLeftRightArrows) return false;
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                            if (lastSpace >= 0)
+                            {
+                                //if you have something selected and shift is not held down
+                                //A selection reset is required to select a word inside the current selection
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = selectionEnd - lastSpace - 1;
+                            }
+                            else
+                                amount = selectionEnd;
+                        }
 
-                    if (selectionEnd == text.Length)
-                    {
-                        if (!state.Keyboard.ShiftPressed)
-                            resetSelection();
+                        moveSelection(-amount, state.Keyboard.ShiftPressed);
                         return true;
                     }
-
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
+                case Key.Right:
                     {
-                        int nextSpace = text.IndexOf(' ', selectionEnd + 1);
-                        if (nextSpace >= 0)
+                        if (!HandleLeftRightArrows) return false;
+
+                        if (selectionEnd == text.Length)
                         {
                             if (!state.Keyboard.ShiftPressed)
                                 resetSelection();
-                            amount = nextSpace - selectionEnd;
+                            return true;
                         }
-                        else
-                            amount = text.Length - selectionEnd;
-                    }
 
-                    moveSelection(amount, state.Keyboard.ShiftPressed);
-                    return true;
-                }    
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
+                            if (nextSpace >= 0)
+                            {
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = nextSpace - selectionEnd;
+                            }
+                            else
+                                amount = text.Length - selectionEnd;
+                        }
+
+                        moveSelection(amount, state.Keyboard.ShiftPressed);
+                        return true;
+                    }
                 case Key.Enter:
                     selectionStart = selectionEnd = 0;
                     TriggerFocusLost(state);
@@ -505,21 +513,27 @@ namespace osu.Framework.Graphics.UserInterface
                         removeCharacterOrSelection();
                         return true;
                     case Key.V:
-                        // TODO: clipboard
+                        //the text is pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        insertString(textInput?.GetPendingText());
                         return true;
                 }
 
                 return false;
             }
 
+            string str = textInput?.GetPendingText();
+            if (!string.IsNullOrEmpty(str))
+            {
+                if (state.Keyboard.ShiftPressed)
+                    game.Audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                else
+                    game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                insertString(str);
+
+                return true;
+            }
+
             return false;
-        }
-        
-        protected override bool OnCharacterInput(char c)
-        {
-            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-            insertString(c.ToString());
-            return true;
         }
 
         protected override bool OnDrag(InputState state)
@@ -529,17 +543,17 @@ namespace osu.Framework.Graphics.UserInterface
             if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1]) 
+                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
-                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
+                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
-                    selectionEnd = selectionEnd >= 0 ? (selectionEnd+1) : 0;
+                    selectionEnd = selectionEnd >= 0 ? (selectionEnd + 1) : 0;
                 }
                 else
                 {
@@ -570,6 +584,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDoubleClick(InputState state)
         {
+            if (textInput?.ImeActive == true) return true;
+
             if (text.Length == 0) return true;
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
@@ -602,6 +618,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
+            if (textInput?.ImeActive == true) return true;
+
             selectionStart = selectionEnd = getCharacterClosestTo(state.Mouse.Position);
 
             cursorAndLayout.Invalidate();
@@ -617,6 +635,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void OnFocusLost(InputState state)
         {
+            unbindInput();
+
             cursor.ClearTransformations();
             cursor.FadeOut(200);
 
@@ -642,11 +662,115 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (ReadOnly) return false;
 
+            bindInput();
+
             background.ClearTransformations();
             background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
             return true;
         }
+
+        #region Native TextBox handling (winform specific)
+
+        private void unbindInput()
+        {
+            textInput?.Deactivate(this);
+        }
+
+        private void bindInput()
+        {
+            if (textInput == null)
+            {
+                textInput = game.Host.GetTextInput();
+                textInput.OnNewImeComposition += delegate (string s)
+                {
+                    textUpdateScheduler.Add(() => onImeComposition(s));
+                    cursorAndLayout.Invalidate();
+                };
+                textInput.OnNewImeResult += delegate (string s)
+                {
+                    textUpdateScheduler.Add(() => onImeResult(s));
+                    cursorAndLayout.Invalidate();
+                };
+            }
+
+            textInput.Activate(this);
+        }
+
+        private void onImeResult(string s)
+        {
+            //we only succeeded if there is pending data in the textbox
+            if (imeDrawables.Count > 0)
+            {
+                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+
+                foreach (Drawable d in imeDrawables)
+                {
+                    d.Colour = Color4.White;
+                    d.FadeTo(1, 200, EasingTypes.Out);
+                }
+            }
+
+            imeDrawables.Clear();
+        }
+
+        private List<Drawable> imeDrawables = new List<Drawable>();
+
+        private void onImeComposition(string s)
+        {
+            //search for unchanged characters..
+            int matchCount = 0;
+            bool matching = true;
+            bool didDelete = false;
+
+            int searchStart = text.Length - imeDrawables.Count;
+
+            //we want to keep processing to the end of the longest string (the current displayed or the new composition).
+            int maxLength = Math.Max(imeDrawables.Count, s.Length);
+
+            for (int i = 0; i < maxLength; i++)
+            {
+                if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
+                {
+                    matchCount = i + 1;
+                    continue;
+                }
+
+                matching = false;
+
+                if (matchCount < imeDrawables.Count)
+                {
+                    //if we are no longer matching, we want to remove all further characters.
+                    removeCharacterOrSelection(false);
+                    imeDrawables.RemoveAt(matchCount);
+                    didDelete = true;
+                }
+            }
+
+            if (matchCount == s.Length)
+            {
+                //in the case of backspacing (or a NOP), we can exit early here.
+                if (didDelete)
+                    game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                return;
+            }
+
+            //add any new or changed characters
+            for (int i = matchCount; i < s.Length; i++)
+            {
+                Drawable dr = addCharacter(s[i]);
+                if (dr != null)
+                {
+                    dr.Colour = Color4.Aqua;
+                    dr.Alpha = 0.6f;
+                    imeDrawables.Add(dr);
+                }
+            }
+
+            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+        }
+
+        #endregion
     }
 }

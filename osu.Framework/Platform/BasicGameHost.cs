@@ -9,7 +9,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime;
 using System.Threading;
-using System.Windows.Forms;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -468,5 +467,7 @@ namespace osu.Framework.Platform
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
+
+        public abstract TextInputSource GetTextInput();
     }
 }

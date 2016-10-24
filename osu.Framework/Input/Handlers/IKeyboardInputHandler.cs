@@ -9,7 +9,6 @@ namespace osu.Framework.Input.Handlers
 {
     public interface IKeyboardInputHandler
     {
-        event Action<char> CharacterInput;
         List<Key> PressedKeys { get; }
     }
 }

@@ -39,8 +39,6 @@ namespace osu.Framework.Desktop.Platform.Windows
 
             Storage = new WindowsStorage(gameName);
             
-            Window.KeyPress += (sender, e) => keyboardHandler.OnCharacterInput(e.KeyChar);
-
             //TODO: check if we want this done so early. may be better in Run()
             Application.EnableVisualStyles();
         }
