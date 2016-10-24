@@ -18,6 +18,21 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
+        private static Texture whitePixel;
+        public static Texture WhitePixel
+        {
+            get
+            {
+                if (whitePixel == null)
+                {
+                    whitePixel = new Texture(1, 1, true);
+                    whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
+                }
+
+                return whitePixel;
+            }
+        }
+
         public TextureGL TextureGL;
         public string Filename;
         public string AssetName;
@@ -58,12 +73,6 @@ namespace osu.Framework.Graphics.Textures
             if (IsDisposed)
                 return;
             IsDisposed = true;
-
-            if (TextureGL != null)
-            {
-                TextureGL.Dispose();
-                TextureGL = null;
-            }
         }
 
         #endregion
@@ -183,7 +192,9 @@ namespace osu.Framework.Graphics.Textures
 
         public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
         {
-            TextureGL?.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
+            if (TextureGL == null || !TextureGL.Bind()) return;
+
+            TextureGL.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
         }
     }
 }

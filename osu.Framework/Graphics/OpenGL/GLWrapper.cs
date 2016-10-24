@@ -14,21 +14,20 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL
 {
     public static class GLWrapper
     {
-        public const int MAX_BATCHES = 3;
-
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
         public static Rectangle Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
         public static bool UsingBackbuffer => lastFrameBuffer == 0;
-
-        public static int CurrentBatchIndex { get; private set; }
 
         /// <summary>
         /// Check whether we have an initialised and non-disposed GL context.
@@ -59,10 +58,14 @@ namespace osu.Framework.Graphics.OpenGL
             //todo: don't use scheduler
             resetScheduler.Update();
 
-            lastBoundTexture = -1;
+            lastBoundTexture = null;
 
             lastSrcBlend = BlendingFactorSrc.Zero;
             lastDestBlend = BlendingFactorDest.Zero;
+
+            foreach (IVertexBatch b in thisFrameBatches)
+                b.ResetCounters();
+            thisFrameBatches.Clear();
 
             lastFrameBuffer = 0;
 
@@ -79,9 +82,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
-            });
-
-            CurrentBatchIndex = (CurrentBatchIndex + 1) % MAX_BATCHES;
+            }, true);
         }
 
         /// <summary>
@@ -115,6 +116,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static IVertexBatch lastActiveBatch;
 
+        private static List<IVertexBatch> thisFrameBatches = new List<IVertexBatch>();
+
         /// <summary>
         /// Sets the last vertex batch used for drawing.
         /// <para>
@@ -125,23 +128,34 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="batch">The batch.</param>
         internal static void SetActiveBatch(IVertexBatch batch)
         {
+            if (lastActiveBatch == batch) return;
+
+            FlushCurrentBatch();
+
+            if (batch != null && !thisFrameBatches.Contains(batch))
+                thisFrameBatches.Add(batch);
+
             lastActiveBatch = batch;
         }
 
-        private static int lastBoundTexture = -1;
+        private static TextureGL lastBoundTexture = null;
+
+        internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
 
         /// <summary>
         /// Binds a texture to darw with.
         /// </summary>
-        /// <param name="textureId"></param>
-        public static void BindTexture(int textureId)
+        /// <param name="texture"></param>
+        public static void BindTexture(TextureGL texture)
         {
-            if (lastBoundTexture != textureId)
+            if (lastBoundTexture != texture)
             {
-                lastActiveBatch?.Draw();
+                FlushCurrentBatch();
 
-                GL.BindTexture(TextureTarget.Texture2D, textureId);
-                lastBoundTexture = textureId;
+                GL.BindTexture(TextureTarget.Texture2D, texture?.TextureId ?? 0);
+                lastBoundTexture = texture;
+
+                FrameStatistics.Increment(StatisticsCounterType.TextureBinds);
             }
         }
 
@@ -158,7 +172,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (lastSrcBlend == src && lastDestBlend == dest)
                 return;
 
-            lastActiveBatch?.Draw();
+            FlushCurrentBatch();
 
             GL.BlendFunc(src, dest);
 
@@ -177,6 +191,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             if (lastFrameBuffer == frameBuffer)
                 return lastFrameBuffer;
+
+            FlushCurrentBatch();
 
             int last = lastFrameBuffer;
 
@@ -248,6 +264,8 @@ namespace osu.Framework.Graphics.OpenGL
         {
             orthoStack.Push(Ortho);
 
+            FlushCurrentBatch();
+
             if (Ortho == ortho)
                 return;
             Ortho = ortho;
@@ -262,6 +280,8 @@ namespace osu.Framework.Graphics.OpenGL
         public static void PopOrtho()
         {
             Debug.Assert(orthoStack.Count > 1);
+
+            FlushCurrentBatch();
 
             orthoStack.Pop();
             Rectangle actualRect = orthoStack.Peek();
@@ -279,6 +299,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
+            FlushCurrentBatch();
+
             Shader.SetGlobalProperty(@"g_MaskingRect", new Vector4(
                 maskingInfo.MaskingRect.Left,
                 maskingInfo.MaskingRect.Top,
@@ -295,8 +317,11 @@ namespace osu.Framework.Graphics.OpenGL
                 maskingInfo.BorderColour.B,
                 maskingInfo.BorderColour.A));
 
+            // We are setting the linear blend range to the approximate size of a _pixel_ here.
+            // This results in the optimal trade-off between crispness and smoothness of the
+            // edges of the masked region according to sampling theory.
             Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
-            Shader.SetGlobalProperty(@"g_PixelScale", (scale.X + scale.Y) / 2);
+            Shader.SetGlobalProperty(@"g_LinearBlendRange", (scale.X + scale.Y) / 2);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -322,18 +347,23 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
         }
 
+        internal static void FlushCurrentBatch()
+        {
+            lastActiveBatch?.Draw();
+        }
+
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>
-        /// <param name="rect">The scissor rectangle.</param>
-        public static void PushScissor(MaskingInfo maskingInfo)
+        /// <param name="maskingInfo">The masking info.</param>
+        public static void PushScissor(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             maskingStack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, false);
+            setMaskingQuad(CurrentMaskingInfo, overwritePreviousScissor);
         }
 
         /// <summary>
@@ -429,6 +459,8 @@ namespace osu.Framework.Graphics.OpenGL
             int s = shader ?? shaderStack.Peek();
 
             if (currentShader == s) return;
+
+            FlushCurrentBatch();
 
             GL.UseProgram(s);
             currentShader = s;

@@ -49,7 +49,11 @@ namespace osu.Framework.VisualTests.Tests
             }
 
             loadTest(0);
+            addCrosshair();
+        }
 
+        private void addCrosshair()
+        {
             Add(new Box
             {
                 Colour = Color4.Black,
@@ -100,21 +104,23 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box);
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Position = new Vector2(0, 0),
                         Size = new Vector2(25, 25),
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.Blue,
                     });
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                    box.Add(box = new InfofulBox
                     {
                         Size = new Vector2(250, 250),
                         Alpha = 0.5f,
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.DarkSeaGreen,
                     });
 
                     box.OnUpdate += delegate { box.Rotation += 0.05f; };
@@ -140,14 +146,15 @@ namespace osu.Framework.VisualTests.Tests
                     Drawable localBox = box;
                     box.OnUpdate += delegate { localBox.Rotation += 0.05f; };
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Size = new Vector2(100, 100),
                         Position = new Vector2(50, 50),
                         Alpha = 0.5f,
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.Blue,
                     });
                     break;
                 case 2:
@@ -172,12 +179,13 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box, 2);
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 1, Color4.SeaGreen)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Size = new Vector2(50, 50),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.SeaGreen,
                     });
                     break;
                 case 3:
@@ -187,12 +195,13 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.CentreLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(5, 0),
                         Size = new Vector2(300, 80),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
 
                     box.Add(new SpriteText
@@ -218,12 +227,13 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.CentreLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(5, 0),
                         Size = new Vector2(300, 80),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
 
                     box.Add(new SpriteText
@@ -258,12 +268,13 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(100, 100),
                         Size = new Vector2(100, 100),
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
                     break;
                 case 6:
@@ -286,6 +297,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             boxes = new FlowContainer {
                                 RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
                                 Spacing = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -341,8 +353,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -372,8 +385,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -403,8 +417,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -466,8 +481,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -497,8 +513,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -528,8 +545,9 @@ namespace osu.Framework.VisualTests.Tests
                                             Origin = Anchor.Centre,
                                             Children = new[]
                                             {
-                                                new AutoSizeContainer
+                                                new Container
                                                 {
+                                                    AutoSizeAxes = Axes.Both,
                                                     Depth = 1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
@@ -571,48 +589,58 @@ namespace osu.Framework.VisualTests.Tests
 
         private void addCornerMarkers(Container box, int size = 50, Color4? colour = null)
         {
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.TopLeft,
                 Anchor = Anchor.TopLeft,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.TopRight,
                 Anchor = Anchor.TopRight,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.BottomLeft,
                 Anchor = Anchor.BottomLeft,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.BottomRight,
                 Anchor = Anchor.BottomRight,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
         }
     }
 
-    class InfofulBoxAutoSize : AutoSizeContainer
+    class InfofulBoxAutoSize : Container
     {
         public override void Load(BaseGame game)
         {
+            AutoSizeAxes = Axes.Both;
+
             base.Load(game);
 
             Masking = true;
@@ -620,6 +648,7 @@ namespace osu.Framework.VisualTests.Tests
             Add(new Box
             {
                 RelativeSizeAxes = Axes.Both,
+                Depth = float.MinValue,
             });
         }
 
@@ -646,19 +675,6 @@ namespace osu.Framework.VisualTests.Tests
         private SpriteText debugInfo;
 
         public bool chameleon = false;
-
-        public InfofulBox()
-        {
-        }
-
-        public InfofulBox(RectangleF rectangle, float depth, Color4 color)
-        {
-            Position = new Vector2(rectangle.X, rectangle.Y);
-            Size = new Vector2(rectangle.Width, rectangle.Height);
-            Depth = depth;
-            Colour = color;
-        }
-
         public bool AllowDrag = true;
 
         protected override bool OnDrag(InputState state)
@@ -682,7 +698,8 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(new Box
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                Depth = float.MinValue,
             });
 
             debugInfo = new SpriteText

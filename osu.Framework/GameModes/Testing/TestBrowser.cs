@@ -76,6 +76,7 @@ namespace osu.Framework.GameModes.Testing
             {
                 Padding = new MarginPadding(3),
                 Direction = FlowDirection.VerticalOnly,
+                AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)
             });
@@ -115,7 +116,11 @@ namespace osu.Framework.GameModes.Testing
             config.Set(TestBrowserOption.LastTest, testCase.Name);
 
             if (loadedTest != null)
+            {
                 testContainer.Remove(loadedTest);
+                loadedTest.Dispose();
+                loadedTest = null;
+            }
 
             if (testCase != null)
             {
@@ -166,12 +171,14 @@ namespace osu.Framework.GameModes.Testing
                             new SpriteText
                             {
                                 Text = test.Name,
+                                AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
                             },
                             new SpriteText
                             {
                                 Text = test.Description,
                                 TextSize = 15,
+                                AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
                                 Anchor = Anchor.BottomLeft,
                                 Origin = Anchor.BottomLeft

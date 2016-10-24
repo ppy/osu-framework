@@ -3,23 +3,21 @@
 
 using System;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Transformations;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class FlowContainer : AutoSizeContainer
+    public class FlowContainer : Container
     {
         internal event Action OnLayout;
 
         public EasingTypes LayoutEasing;
 
-        public int LayoutDuration
-        {
-            get { return Math.Max(0, layout.RefreshInterval); }
-            set { layout.RefreshInterval = value; }
-        }
+        public int LayoutDuration { get; set; }
+
+        private Cached layout = new Cached();
 
         private FlowDirection direction = FlowDirection.Full;
 
@@ -48,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
                 if (maximumSize == value) return;
 
                 maximumSize = value;
-                Invalidate();
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -64,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
                 if (spacing == value) return;
 
                 spacing = value;
-                Invalidate();
+                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -91,8 +89,6 @@ namespace osu.Framework.Graphics.Containers
             base.Add(drawable);
         }
 
-        private Cached<Vector2> layout = new Cached<Vector2>();
-
         protected override void UpdateLayout()
         {
             base.UpdateLayout();
@@ -103,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     OnLayout?.Invoke();
 
-                    if (Children.FirstOrDefault() == null) return Vector2.Zero;
+                    if (Children.FirstOrDefault() == null) return;
 
                     Vector2 current = Vector2.Zero;
 
@@ -114,8 +110,8 @@ namespace osu.Framework.Graphics.Containers
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (RelativeSizeAxes & Axes.X) == 0 ? float.MaxValue : s.X;
-                        max.Y = (RelativeSizeAxes & Axes.Y) == 0 ? float.MaxValue : s.Y;
+                        max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
+                        max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
                     }
 
                     float rowMaxHeight = 0;
@@ -148,8 +144,6 @@ namespace osu.Framework.Graphics.Containers
 
                         current.X += size.X;
                     }
-
-                    return current;
                 });
             }
         }

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Cached;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
@@ -17,6 +16,10 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Threading;
+using osu.Framework.Caching;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
@@ -268,7 +271,49 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 size;
+        private float width;
+        private float height;
+
+        public virtual float Width
+        {
+            get { return width; }
+            set
+            {
+                if (width == value) return;
+                width = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawWidth
+        {
+            get { return DrawSize.X; }
+        }
+
+        public virtual float Height
+        {
+            get { return height; }
+            set
+            {
+                if (height == value) return;
+                height = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawHeight
+        {
+            get { return DrawSize.Y; }
+        }
+
+        private Vector2 size
+        {
+            get { return new Vector2(width, height); }
+            set { width = value.X; height = value.Y; }
+        }
+
         public virtual Vector2 Size
         {
             get
@@ -330,7 +375,7 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
@@ -374,28 +419,6 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        public float Width
-        {
-            get { return Size.X; }
-            set { Size = new Vector2(value, Size.Y); }
-        }
-
-        public float DrawWidth
-        {
-            get { return DrawSize.X; }
-        }
-
-        public float Height
-        {
-            get { return Size.Y; }
-            set { Size = new Vector2(Size.X, value); }
-        }
-
-        public float DrawHeight
-        {
-            get { return DrawSize.Y; }
-        }
-
         protected virtual IFrameBasedClock Clock => Parent?.Clock;
 
         protected double Time => Clock?.CurrentTime ?? 0;
@@ -427,7 +450,7 @@ namespace osu.Framework.Graphics
 
         protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = BaseDrawInfo;
+                DrawInfo di = new DrawInfo(null, null, null);
 
                 float alpha = Alpha;
                 if (Colour.A > 0 && Colour.A < 1)
@@ -444,9 +467,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
-
-        protected virtual RectangleF DrawRectangle
+        protected RectangleF DrawRectangle
         {
             get
             {
@@ -588,20 +609,23 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
         /// <returns>A complete and updated DrawNode.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
-            if (node == null)
+            if (node == null || !IsCompatibleDrawNode(node))
             {
-                //we don't have a previous node, so we need to initialise fresh.
                 node = CreateDrawNode();
-                node.Drawable = this;
+
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (!node.IsValid)
+            if (StaticCached.AlwaysStale)
+                validDrawNodes.Clear();
+
+            // Note, that invalidating clears all owned draw nodes and thus this check also serves
+            // to re-populate invalidated draw nodes.
+            if (!OwnsDrawNode(node))
             {
-                //we need to update the node if it has been invalidated.
                 ApplyDrawNode(node);
-                node.IsValid = true;
                 validDrawNodes.Add(node);
             }
 
@@ -611,10 +635,20 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
-            node.Drawable = this;
         }
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
+
+        protected virtual bool IsCompatibleDrawNode(DrawNode node) => node is DrawNode;
+
+        protected virtual bool OwnsDrawNode(DrawNode node)
+        {
+            for (int i = 0; i < validDrawNodes.Count; ++i)
+                if (validDrawNodes[i] == node)
+                    return true;
+
+            return false;
+        }
 
         /// <summary>
         /// Updates this drawable, once every frame.
@@ -637,7 +671,11 @@ namespace osu.Framework.Graphics
 
         protected virtual void Update()
         {
-            scheduler?.Update();
+            if (scheduler != null)
+            {
+                int amountScheduledTasks = scheduler.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
         }
 
         /// <summary>
@@ -735,6 +773,7 @@ namespace osu.Framework.Graphics
             mainThread = Thread.CurrentThread;
             loaded = true;
             LifetimeStart = Time;
+
             Invalidate();
         }
 
@@ -803,12 +842,8 @@ namespace osu.Framework.Graphics
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
-            if (!alreadyInvalidated)
-            {
-                foreach (DrawNode n in validDrawNodes)
-                    n.IsValid = false;
+            if (!alreadyInvalidated || (invalidation & (Invalidation.DrawNode)) > 0)
                 validDrawNodes.Clear();
-            }
 
             return !alreadyInvalidated;
         }
@@ -900,11 +935,12 @@ namespace osu.Framework.Graphics
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
+        DrawNode = 1 << 4,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Visibility | Colour,
     }
 
     /// <summary>

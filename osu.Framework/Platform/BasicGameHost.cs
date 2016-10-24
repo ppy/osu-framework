@@ -21,15 +21,14 @@ using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using osu.Framework.Cached;
-using osu.Framework.Graphics.Primitives;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
+
         public BasicGameWindow Window;
 
         private bool isActive;
@@ -63,14 +62,14 @@ namespace osu.Framework.Platform
                 }
             }
         }
-        
-        public bool IsPrimaryInstance { get; protected set; }
+
+        public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event EventHandler Activated;
         public event EventHandler Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
-        
+
         protected internal event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message)
@@ -204,11 +203,19 @@ namespace osu.Framework.Platform
 
         protected override Container Content => inputManager;
 
+        private static BasicGameHost instance;
+
         public BasicGameHost()
         {
+            instance = this;
+
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
             UpdateMonitor = new PerformanceMonitor(UpdateClock);
             DrawMonitor = new PerformanceMonitor(DrawClock);
+
+            // This static method uses BasicGameHost.GetInstanceIfExists() to get access
+            // to InputMonitor, UpdateMonitor and DrawMonitor.
+            FrameStatistics.RegisterCounters();
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
@@ -216,6 +223,8 @@ namespace osu.Framework.Platform
 
             AddInternal(inputManager = new UserInputManager(this));
         }
+
+        public static BasicGameHost GetInstanceIfExists() => instance;
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {
@@ -265,6 +274,28 @@ namespace osu.Framework.Platform
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
+        protected void updateIteration()
+        {
+            UpdateMonitor.NewFrame();
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+            {
+                UpdateScheduler.Update();
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
+            {
+                UpdateSubTree();
+                using (var buffer = DrawRoots.Get(UsageType.Write))
+                    buffer.Object = GenerateDrawNodeSubtree(ScreenSpaceDrawQuad.AABBf, buffer.Object);
+            }
+
+            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+            {
+                UpdateClock.ProcessFrame();
+            }
+        }
+
         private void updateLoop()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
@@ -272,26 +303,7 @@ namespace osu.Framework.Platform
                 Thread.Sleep(1);
 
             while (!ExitRequested)
-            {
-                UpdateMonitor.NewFrame();
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    UpdateScheduler.Update();
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-                {
-                    UpdateSubTree();
-                    using (var buffer = DrawRoots.Get(UsageType.Write))
-                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
-                    UpdateClock.ProcessFrame();
-                }
-            }
+                updateIteration();
         }
 
         private void drawLoop()
@@ -325,6 +337,8 @@ namespace osu.Framework.Platform
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                     buffer?.Object?.DrawSubTree();
+
+                GLWrapper.FlushCurrentBatch();
             }
         }
 
@@ -402,14 +416,15 @@ namespace osu.Framework.Platform
         {
             set
             {
-                InputScheduler.Add(delegate
+                //this logic is shit, but necessary to make stuff not assert.
+                //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
+                UpdateScheduler.Add(delegate
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    Window.Size = new Size((int)value.X, (int)value.Y);
+                    InputScheduler.Add(delegate { Window.Size = new Size((int)value.X, (int)value.Y); });
+                    base.Size = value;
                 });
-
-                base.Size = value;
             }
         }
 
@@ -436,11 +451,17 @@ namespace osu.Framework.Platform
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
             game.SetHost(this);
-            UpdateScheduler.Add(delegate
-            {
-                Children = new[] { game };
-                Load(game);
-            });
+
+            LoadGame(game);
+        }
+
+        protected virtual void LoadGame(BaseGame game)
+        {
+            // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
+            // depend on a Game object.
+            if (!IsLoaded)
+                Load(null);
+            base.Add(game);
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

@@ -31,6 +31,7 @@ namespace osu.Framework.Graphics
         /// <param name="scale">The amount by which to scale.</param>
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="origin">The center of rotation and scale.</param>
+        /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
@@ -69,6 +70,9 @@ namespace osu.Framework.Graphics
                 MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
             }
 
+            //========================================================================================
+            //== Uncomment the following 2 lines to use a ground-truth matrix inverse for debugging ==
+            //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 

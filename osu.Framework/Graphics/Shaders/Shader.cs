@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics.ES20;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -24,13 +25,9 @@ namespace osu.Framework.Graphics.Shaders
         private Dictionary<string, UniformBase> uniforms = new Dictionary<string, UniformBase>();
         private List<ShaderPart> parts;
 
-        internal Shader(string name)
+        internal Shader(string name, List<ShaderPart> parts)
         {
             this.name = name;
-        }
-
-        internal Shader(string name, List<ShaderPart> parts) : this(name)
-        {
             this.parts = parts;
         }
 
@@ -135,13 +132,18 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
+        private void ensureLoaded()
+        {
+            if (!Loaded)
+                Compile();
+        }
+
         public void Bind()
         {
             if (IsBound)
                 return;
 
-            if (!Loaded)
-                return;
+            ensureLoaded();
 
             GLWrapper.UseProgram(this);
 
@@ -168,8 +170,8 @@ namespace osu.Framework.Graphics.Shaders
         /// <returns>Returns a base uniform.</returns>
         public Uniform<T> GetUniform<T>(string name)
         {
-            if (!uniforms.ContainsKey(name))
-                return null;
+            ensureLoaded();
+            Debug.Assert(uniforms.ContainsKey(name), string.Format(@"Inexisting uniform {0} in shader {1}.", name, this.name));
             return new Uniform<T>(uniforms[name]);
         }
 
@@ -185,6 +187,7 @@ namespace osu.Framework.Graphics.Shaders
 
             for (int i = 0; i < allShaders.Count; i++)
             {
+                allShaders[i].ensureLoaded();
                 if (allShaders[i].uniforms.ContainsKey(name))
                     allShaders[i].uniforms[name].Value = value;
             }

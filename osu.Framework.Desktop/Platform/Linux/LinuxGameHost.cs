@@ -12,8 +12,7 @@ namespace osu.Framework.Desktop.Platform.Linux
     public class LinuxGameHost : DesktopGameHost
     {
         private OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
-    
-        internal LinuxGameHost(GraphicsContextFlags flags, string gameName)
+        internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
         {
             Window = new DesktopGameWindow();
             Window.WindowStateChanged += (sender, e) =>

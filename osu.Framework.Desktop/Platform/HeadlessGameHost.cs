@@ -6,7 +6,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
-using osu.Framework.Platform;
+using OpenTK;
+using GLControl = osu.Framework.Platform.GLControl;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -15,6 +16,19 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
+        public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
+        {
+            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            
+            UpdateScheduler.Update();
+        }
+
+        public override void Load(BaseGame game)
+        {
+            Storage = new DesktopStorage(string.Empty);
+
+            base.Load(game);
+        }
+
         protected override void DrawFrame()
         {
             //we can't draw.
@@ -23,26 +37,7 @@ namespace osu.Framework.Desktop.Platform
         public override void Run()
         {
             while (!ExitRequested)
-            {
-                UpdateMonitor.NewFrame();
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                {
-                    UpdateScheduler.Update();
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-                {
-                    UpdateSubTree();
-                    using (var buffer = DrawRoots.Get(UsageType.Write))
-                        buffer.Object = GenerateDrawNodeSubtree(buffer.Object);
-                }
-
-                using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                {
-                    UpdateClock.ProcessFrame();
-                }
-            }
+                updateIteration();
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };

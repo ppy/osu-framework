@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches
 {
@@ -69,6 +71,8 @@ namespace osu.Framework.Graphics.Batches
 
         public void Add(T v)
         {
+            GLWrapper.SetActiveBatch(this);
+
             while (currentVertexBuffer >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
@@ -92,12 +96,10 @@ namespace osu.Framework.Graphics.Batches
             }
         }
 
-        public void Draw()
+        public int Draw()
         {
             if (currentVertex == lastVertex)
-                return;
-
-            GLWrapper.SetActiveBatch(this);
+                return 0;
 
             VertexBuffer<T> vertexBuffer = CurrentVertexBuffer;
             if (changeBeginIndex >= 0)
@@ -105,12 +107,20 @@ namespace osu.Framework.Graphics.Batches
 
             vertexBuffer.DrawRange(lastVertex, currentVertex);
 
+            int count = currentVertex - lastVertex;
+
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
+            //TODO: let us know if we exceed and roll over to zero here.
             currentVertexBuffer = (currentVertexBuffer + 1) % fixedBufferAmount;
             currentVertex = 0;
 
             lastVertex = currentVertex;
             changeBeginIndex = -1;
+
+            FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
+            FrameStatistics.Increment(StatisticsCounterType.Vertices, count);
+
+            return count;
         }
     }
 }
