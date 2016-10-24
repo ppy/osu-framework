@@ -641,8 +641,6 @@ namespace osu.Framework.Graphics
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
-        protected virtual bool IsCompatibleDrawNode(DrawNode node) => node is DrawNode;
-
         protected virtual bool OwnsDrawNode(DrawNode node)
         {
             for (int i = 0; i < validDrawNodes.Count; ++i)
@@ -651,6 +649,7 @@ namespace osu.Framework.Graphics
 
             return false;
         }
+        protected virtual bool IsCompatibleDrawNode(DrawNode node) => node.GetType() == typeof(DrawNode);
 
         /// <summary>
         /// Updates this drawable, once every frame.

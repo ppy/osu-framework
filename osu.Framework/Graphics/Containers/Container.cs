@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
-        protected override bool IsCompatibleDrawNode(DrawNode node) => node is ContainerDrawNode;
+        protected override bool IsCompatibleDrawNode(DrawNode node) => node.GetType() == typeof(ContainerDrawNode);
 
         protected override void ApplyDrawNode(DrawNode node)
         {
