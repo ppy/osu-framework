@@ -387,7 +387,7 @@ namespace osu.Framework.Platform
 
             try
             {
-                Window.UpdateFrame += delegate { OnApplicationIdle(); };
+                Window.UpdateFrame += windowUpdateFrame;
                 Window.Run();
             }
             catch (OutOfMemoryException)
@@ -399,6 +399,21 @@ namespace osu.Framework.Platform
                 //    //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
                 //    OnExiting();
             }
+        }
+
+        private void windowUpdateFrame(object sender, FrameEventArgs e)
+        {
+            inputPerformanceCollectionPeriod?.Dispose();
+
+            InputMonitor.NewFrame();
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+                InputScheduler.Update();
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                InputClock.ProcessFrame();
+
+            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
         private void window_ClientSizeChanged(object sender, EventArgs e)
@@ -430,21 +445,6 @@ namespace osu.Framework.Platform
         }
 
         InvokeOnDisposal inputPerformanceCollectionPeriod;
-
-        protected virtual void OnApplicationIdle()
-        {
-            inputPerformanceCollectionPeriod?.Dispose();
-
-            InputMonitor.NewFrame();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                InputScheduler.Update();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                InputClock.ProcessFrame();
-
-            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-        }
 
         public override void Add(Drawable drawable)
         {
