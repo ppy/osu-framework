@@ -311,6 +311,8 @@ namespace osu.Framework.Platform
             Window.MakeCurrent();
             GLWrapper.Initialize();
 
+            Window.VSync = VSyncMode.Off;
+
             while (!ExitRequested)
             {
                 DrawMonitor.NewFrame();
