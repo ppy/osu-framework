@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 upload.Bounds.Y += bounds.Y;
             }
 
-            parent.SetData(upload);
+            parent?.SetData(upload);
         }
     }
 }
