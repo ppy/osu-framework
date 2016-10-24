@@ -59,24 +59,26 @@ namespace osu.Framework.Graphics.Textures
             subTextureBounds.Clear();
             currentY = 0;
 
+            //may be zero in a headless context.
+            if (atlasWidth == 0 || atlasHeight == 0)
+                return;
+
             atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps);
 
-            //may be zero in a headless context.
-            if (atlasWidth > 0 && atlasHeight > 0)
+            using (var whiteTex = Add(2, 2))
             {
-                using (var whiteTex = Add(2, 2))
-                {
-                    //add an empty white rect to use for solid box drawing (shader optimisation).
-                    byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
-                    for (int i = 0; i < white.Length; i++)
-                        white[i] = 255;
-                    whiteTex.SetData(new TextureUpload(white));
-                }
+                //add an empty white rect to use for solid box drawing (shader optimisation).
+                byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
+                for (int i = 0; i < white.Length; i++)
+                    white[i] = 255;
+                whiteTex.SetData(new TextureUpload(white));
             }
         }
 
         private Point findPosition(int width, int height)
         {
+            if (atlasHeight == 0 || atlasWidth == 0) return Point.Empty;
+
             if (currentY + height > atlasHeight)
                 Reset();
 

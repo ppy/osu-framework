@@ -11,21 +11,23 @@ namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
+        private OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
         internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
         {
-            Window = new LinuxGameWindow(flags);
-            Window.Activated += OnActivated;
-            Window.Deactivated += OnDeactivated;
+            Window = new DesktopGameWindow();
+            Window.WindowStateChanged += (sender, e) =>
+            {
+                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                    OnActivated(sender, e);
+                else
+                    OnDeactivated(sender, e);
+            };
             Storage = new LinuxStorage(gameName);
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers()
         {
-            return new InputHandler[] {
-                new OpenTKMouseHandler(), //handles cursor position
-                new FormMouseHandler(),   //handles button states
-                new OpenTKKeyboardHandler(),
-            };
+            return new InputHandler[] { new OpenTKMouseHandler(), keyboardHandler };
         }
     }
 }

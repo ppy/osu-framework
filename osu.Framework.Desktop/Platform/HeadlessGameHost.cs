@@ -7,7 +7,6 @@ using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Statistics;
 using OpenTK;
-using GLControl = osu.Framework.Platform.GLControl;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -16,9 +15,6 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public override GLControl GLControl => null;
-        public override TextInputSource TextInput => null;
-
         public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
         {
             Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            

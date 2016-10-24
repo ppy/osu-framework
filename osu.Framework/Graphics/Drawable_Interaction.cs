@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics
         {
             return false;
         }
-
+        
         public bool TriggerMouseMove(InputState state) => OnMouseMove(getLocalState(state));
 
         protected virtual bool OnMouseMove(InputState state)

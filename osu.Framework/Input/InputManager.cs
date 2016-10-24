@@ -367,7 +367,7 @@ namespace osu.Framework.Input
                         handleKeyUp(state, k);
                 }
 
-                foreach (Key k in keyboard.Keys)
+                foreach (Key k in keyboard.Keys.Distinct())
                 {
                     bool isModifier = k == Key.LControl || k == Key.RControl
                                       || k == Key.LAlt || k == Key.RAlt
@@ -617,6 +617,7 @@ namespace osu.Framework.Input
 
                     //set the initial position to the current OsuGame position.
                     (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
+
                     return true;
                 }
             }

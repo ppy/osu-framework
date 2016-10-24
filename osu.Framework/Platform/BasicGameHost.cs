@@ -9,7 +9,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime;
 using System.Threading;
-using System.Windows.Forms;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -30,8 +29,6 @@ namespace osu.Framework.Platform
     {
 
         public BasicGameWindow Window;
-
-        public abstract GLControl GLControl { get; }
 
         private bool isActive;
         public bool IsActive
@@ -95,7 +92,7 @@ namespace osu.Framework.Platform
         internal static Thread DrawThread => drawThread;
         internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
 
-        internal FramedClock InputClock = new FramedClock();
+        internal FramedClock InputClock = new ThrottledFrameClock() { MaximumUpdateHz = 1000 };
 
         protected internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
 
@@ -193,8 +190,6 @@ namespace osu.Framework.Platform
             set { UpdateClock.MaximumUpdateHz = value; }
         }
 
-        public abstract TextInputSource TextInput { get; }
-
         public Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {
@@ -211,7 +206,6 @@ namespace osu.Framework.Platform
 
         public BasicGameHost()
         {
-            Debug.Assert(instance == null, "Only one GameHost may exist.");
             instance = this;
 
             InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
@@ -313,8 +307,10 @@ namespace osu.Framework.Platform
 
         private void drawLoop()
         {
-            GLControl?.Initialize();
+            Window.MakeCurrent();
             GLWrapper.Initialize();
+
+            Window.VSync = VSyncMode.Off;
 
             while (!ExitRequested)
             {
@@ -323,7 +319,7 @@ namespace osu.Framework.Platform
                 DrawFrame();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                    GLControl?.SwapBuffers();
+                    Window.SwapBuffers();
 
                 using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
                     DrawClock.ProcessFrame();
@@ -381,9 +377,10 @@ namespace osu.Framework.Platform
 
             if (Window != null)
             {
-                Window.ClientSizeChanged += window_ClientSizeChanged;
+                Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
+                Window.FocusedChanged += delegate { IsActive = Window.Focused; };
                 window_ClientSizeChanged(null, null);
             }
 
@@ -391,8 +388,8 @@ namespace osu.Framework.Platform
 
             try
             {
-                Application.Idle += delegate { OnApplicationIdle(); };
-                Application.Run(Window.Form);
+                Window.UpdateFrame += windowUpdateFrame;
+                Window.Run();
             }
             catch (OutOfMemoryException)
             {
@@ -405,11 +402,26 @@ namespace osu.Framework.Platform
             }
         }
 
+        private void windowUpdateFrame(object sender, FrameEventArgs e)
+        {
+            inputPerformanceCollectionPeriod?.Dispose();
+
+            InputMonitor.NewFrame();
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
+                InputScheduler.Update();
+
+            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
+                InputClock.ProcessFrame();
+
+            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+        }
+
         private void window_ClientSizeChanged(object sender, EventArgs e)
         {
-            if (Window.IsMinimized) return;
+            if (Window.WindowState == WindowState.Minimized) return;
 
-            Rectangle rect = Window.ClientBounds;
+            Rectangle rect = Window.ClientRectangle;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
@@ -435,21 +447,6 @@ namespace osu.Framework.Platform
 
         InvokeOnDisposal inputPerformanceCollectionPeriod;
 
-        protected virtual void OnApplicationIdle()
-        {
-            inputPerformanceCollectionPeriod?.Dispose();
-
-            InputMonitor.NewFrame();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                InputScheduler.Update();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                InputClock.ProcessFrame();
-
-            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
-        }
-
         public override void Add(Drawable drawable)
         {
             BaseGame game = drawable as BaseGame;
@@ -470,5 +467,7 @@ namespace osu.Framework.Platform
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
+
+        public abstract TextInputSource GetTextInput();
     }
 }
