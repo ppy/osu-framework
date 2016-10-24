@@ -46,7 +46,10 @@ namespace osu.Framework.Graphics.OpenGL
 
             MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
 
+            GL.Disable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
+            GL.Enable(EnableCap.ScissorTest);
 
             IsInitialized = true;
         }
