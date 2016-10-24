@@ -598,12 +598,6 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
-
-        /// <summary>
-        /// Contains all currently valid DrawNodes. Used to invalidate DrawNodes on a change.
-        /// </summary>
-        private List<DrawNode> validDrawNodes = new List<DrawNode>(3);
-
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
@@ -620,17 +614,7 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (StaticCached.AlwaysStale)
-                validDrawNodes.Clear();
-
-            // Note, that invalidating clears all owned draw nodes and thus this check also serves
-            // to re-populate invalidated draw nodes.
-            if (!OwnsDrawNode(node))
-            {
-                ApplyDrawNode(node);
-                validDrawNodes.Add(node);
-            }
-
+            ApplyDrawNode(node);
             return node;
         }
 
@@ -641,14 +625,6 @@ namespace osu.Framework.Graphics
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
-        protected virtual bool OwnsDrawNode(DrawNode node)
-        {
-            for (int i = 0; i < validDrawNodes.Count; ++i)
-                if (validDrawNodes[i] == node)
-                    return true;
-
-            return false;
-        }
         protected virtual bool IsCompatibleDrawNode(DrawNode node) => node.GetType() == typeof(DrawNode);
 
         /// <summary>
@@ -842,9 +818,6 @@ namespace osu.Framework.Graphics
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
-
-            if (!alreadyInvalidated || (invalidation & (Invalidation.DrawNode)) > 0)
-                validDrawNodes.Clear();
 
             return !alreadyInvalidated;
         }
