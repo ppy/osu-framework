@@ -17,11 +17,6 @@ namespace osu.Framework.Graphics.Containers
 
         public override Vector2 Size
         {
-            get
-            {
-                return base.Size;
-            }
-
             set
             {
                 Debug.Assert((RelativeSizeAxes & Axes.X) > 0 || value.X == -1, @"The Size of an AutoSizeContainer should never be manually set.");
@@ -31,11 +26,17 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override RectangleF DrawRectangleForBounds
+        private Vector2 computeAutoSize()
         {
-            get
+            MarginPadding padding = Padding;
+            MarginPadding margin = Margin;
+
+            try
             {
-                if (RelativeSizeAxes == Axes.Both) return base.DrawRectangleForBounds;
+                Padding = new MarginPadding();
+                Margin = new MarginPadding();
+
+                if (RelativeSizeAxes == Axes.Both) return DrawSize;
 
                 Vector2 maxBoundSize = Vector2.Zero;
 
@@ -55,11 +56,16 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 if ((RelativeSizeAxes & Axes.X) > 0)
-                    maxBoundSize.X = Size.X;
+                    maxBoundSize.X = DrawSize.X;
                 if ((RelativeSizeAxes & Axes.Y) > 0)
-                    maxBoundSize.Y = Size.Y;
+                    maxBoundSize.Y = DrawSize.Y;
 
-                return new RectangleF(0, 0, maxBoundSize.X + Padding.TotalHorizontal, maxBoundSize.Y + Padding.TotalVertical);
+                return new Vector2(maxBoundSize.X, maxBoundSize.Y);
+            }
+            finally
+            {
+                Padding = padding;
+                Margin = margin;
             }
         }
 
@@ -80,8 +86,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 autoSize.Refresh(delegate
                 {
-                    Vector2 b = DrawRectangleForBounds.BottomRight;
-                    base.Size = new Vector2((RelativeSizeAxes & Axes.X) > 0 ? InternalSize.X : b.X, (RelativeSizeAxes & Axes.Y) > 0 ? InternalSize.Y : b.Y);
+                    Vector2 b = computeAutoSize() + Padding.Total;
+                    base.Size = new Vector2(
+                        (RelativeSizeAxes & Axes.X) > 0 ? Size.X : b.X,
+                        (RelativeSizeAxes & Axes.Y) > 0 ? Size.Y : b.Y
+                    );
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
                     //might work better to add an OnRefresh event in Cached<> and invoke there.

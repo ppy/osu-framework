@@ -68,10 +68,10 @@ namespace osu.Framework.Graphics.Containers
 
         private void contentAutoSize()
         {
-            if (Precision.AlmostEquals(availableContent, content.Size.Y))
+            if (Precision.AlmostEquals(availableContent, content.DrawSize.Y))
                 return;
 
-            availableContent = content.Size.Y;
+            availableContent = content.DrawSize.Y;
             updateSize();
             if (!isDragging)
                 offset(0);
@@ -106,19 +106,19 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheelDown(InputState state)
         {
-            offset(Math.Max(-content.Position.Y - currentClamped, 0) * 1.5f + 80);
+            offset(Math.Max(-content.DrawPosition.Y - currentClamped, 0) * 1.5f + 80);
             return true;
         }
 
         protected override bool OnWheelUp(InputState state)
         {
-            offset(Math.Min(currentClamped - content.Position.Y, 0) * 1.5f - 80);
+            offset(Math.Min(currentClamped - content.DrawPosition.Y, 0) * 1.5f - 80);
             return true;
         }
 
         private void onScrollbarMovement(float value)
         {
-            offset(value / scrollbar.InternalSize.Y, true, false);
+            offset(value / scrollbar.Size.Y, true, false);
         }
 
         private void offset(float value, bool clamp = true, bool animated = true)
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Containers
         {
             float adjusted = (current + currentClamped) / 2;
 
-            scrollbar?.MoveToY(adjusted * scrollbar.InternalSize.Y, animated ? 800 : 0, EasingTypes.OutExpo);
+            scrollbar?.MoveToY(adjusted * scrollbar.Size.Y, animated ? 800 : 0, EasingTypes.OutExpo);
             content.MoveToY(-adjusted, animated ? 800 : 0, EasingTypes.OutExpo);
         }
 

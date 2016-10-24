@@ -144,8 +144,7 @@ namespace osu.Framework.Graphics.Performance
             {
                 base.Load(game);
 
-                Width = WIDTH;
-                Height = HEIGHT;
+                Size = new Vector2(WIDTH, HEIGHT);
 
                 Children = new[]
                 {
@@ -226,7 +225,7 @@ namespace osu.Framework.Graphics.Performance
                     currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
                     foreach (Drawable e in timeBars[(TimeBarIndex + 1) % timeBars.Length].Children)
-                        if (e is Box && e.Position.X <= TimeBarX)
+                        if (e is Box && e.DrawPosition.X <= TimeBarX)
                             e.Expire();
                 }
 

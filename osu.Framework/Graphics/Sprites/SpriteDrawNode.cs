@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Sprites
 
             if (!Shader.Loaded) Shader.Compile();
 
-            RectangleF texRect = Texture.GetTextureRect();
+            Texture.GetTextureRect();
             
             Shader.Bind();
 

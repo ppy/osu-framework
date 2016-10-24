@@ -227,13 +227,13 @@ namespace osu.Framework.Graphics
         public Drawable MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionX));
-            return transformFloatTo(Position.X, destination, duration, easing, new TransformPositionX(Clock));
+            return transformFloatTo(DrawPosition.X, destination, duration, easing, new TransformPositionX(Clock));
         }
 
         public Drawable MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionY));
-            return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
+            return transformFloatTo(DrawPosition.Y, destination, duration, easing, new TransformPositionY(Clock));
         }
 
         #endregion
@@ -286,25 +286,25 @@ namespace osu.Framework.Graphics
         public Drawable ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformSize));
-            return transformVectorTo(InternalSize, new Vector2(newSize), duration, easing, new TransformSize(Clock));
+            return transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize(Clock));
         }
 
         public Drawable ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformSize));
-            return transformVectorTo(InternalSize, newSize, duration, easing, new TransformSize(Clock));
+            return transformVectorTo(Size, newSize, duration, easing, new TransformSize(Clock));
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPosition));
-            return transformVectorTo(Position, newPosition, duration, easing, new TransformPosition(Clock));
+            return transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition(Clock));
         }
 
         public Drawable MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPosition));
-            return MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
+            return MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? DrawPosition + offset, duration, easing);
         }
 
         #endregion
