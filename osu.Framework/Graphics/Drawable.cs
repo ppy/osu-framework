@@ -805,14 +805,10 @@ namespace osu.Framework.Graphics
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & (Invalidation.Geometry)) > 0)
-                {
-                    if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                        alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-                    alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-                }
-
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
 
