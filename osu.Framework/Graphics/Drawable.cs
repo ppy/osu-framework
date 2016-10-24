@@ -608,13 +608,15 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
-        /// <returns>A complete and updated DrawNode.</returns>
+        /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
+            if (!IsVisible || !bounds.IntersectsWith(ScreenSpaceDrawQuad.AABBf))
+                return null;
+
             if (node == null || !IsCompatibleDrawNode(node))
             {
                 node = CreateDrawNode();
-
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 

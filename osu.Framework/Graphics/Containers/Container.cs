@@ -477,13 +477,16 @@ namespace osu.Framework.Graphics.Containers
 
         protected internal override DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
         {
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
+            // If we only have one child, and we are not masking, then there is no need for a container indirection.
+            if (!Masking && children.AliveItems.Count == 1)
+                return children.AliveItems[0].GenerateDrawNodeSubtree(bounds, node);
+            // No need for a draw node at all if there are no children and we are not glowing.
+            else if (children.AliveItems.Count == 0 && (!Masking || GlowRadius == 0.0f))
+                return null;
 
-            if (children.AliveItems.Count == 0)
-            {
-                cNode.Children?.Clear();
-                return cNode;
-            }
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
+            if (cNode == null)
+                return null;
 
             RectangleF childBounds = bounds;
             if (Masking)
@@ -498,13 +501,16 @@ namespace osu.Framework.Graphics.Containers
             int j = 0;
             foreach (Drawable drawable in current)
             {
-                if (!drawable.IsVisible || !childBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                DrawNode previous = j < target.Count ? target[j] : null;
+                DrawNode next = drawable.GenerateDrawNodeSubtree(childBounds, previous);
+
+                if (next == null)
                     continue;
 
                 if (j < target.Count)
-                    target[j] = drawable.GenerateDrawNodeSubtree(childBounds, target[j]);
+                    target[j] = next;
                 else
-                    target.Add(drawable.GenerateDrawNodeSubtree(childBounds));
+                    target.Add(next);
 
                 j++;
             }
