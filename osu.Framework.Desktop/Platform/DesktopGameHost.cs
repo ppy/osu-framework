@@ -4,9 +4,6 @@
 using System.Threading.Tasks;
 using osu.Framework.Platform;
 using OpenTK;
-using osu.Framework.Input.Handlers;
-using System;
-using System.Collections.Generic;
 using osu.Framework.Desktop.Input;
 using osu.Framework.Input;
 

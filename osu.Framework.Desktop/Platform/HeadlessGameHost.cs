@@ -28,15 +28,17 @@ namespace osu.Framework.Desktop.Platform
             base.Load(game);
         }
 
+        protected override void UpdateInitialize()
+        {
+        }
+
+        protected override void DrawInitialize()
+        {
+        }
+
         protected override void DrawFrame()
         {
             //we can't draw.
-        }
-
-        public override void Run()
-        {
-            while (!ExitRequested)
-                updateIteration();
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };

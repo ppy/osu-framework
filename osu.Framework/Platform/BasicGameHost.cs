@@ -22,59 +22,34 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container
     {
-
         public BasicGameWindow Window;
 
-        private bool isActive;
-        public bool IsActive
+        private void setActive(bool isActive)
         {
-            get
-            {
-                return isActive;
-            }
+            threads.ForEach(t => t.IsActive = isActive);
 
-            protected set
-            {
-                if (isActive == value)
-                    return;
-
-                isActive = value;
-
-                if (isActive)
-                {
-                    MaximumUpdateHz = ActiveUpdateHz;
-                    MaximumDrawHz = ActiveDrawHz;
-
-                    Activated?.Invoke(this, EventArgs.Empty);
-                }
-                else
-                {
-                    MaximumUpdateHz = InactiveUpdateHz;
-                    MaximumDrawHz = InactiveDrawHz;
-
-                    Deactivated?.Invoke(this, EventArgs.Empty);
-                }
-            }
+            if (isActive)
+                Activated?.Invoke();
+            else
+                Deactivated?.Invoke();
         }
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
-        public event EventHandler Activated;
-        public event EventHandler Deactivated;
+        public event Action Activated;
+        public event Action Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
 
         protected internal event Action<IpcMessage> MessageReceived;
 
-        protected void OnMessageReceived(IpcMessage message)
-        {
-            MessageReceived?.Invoke(message);
-        }
+        protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
         protected internal virtual Task SendMessage(IpcMessage message)
         {
@@ -85,112 +60,68 @@ namespace osu.Framework.Platform
 
         public override bool IsVisible => true;
 
-        private static Thread updateThread;
-        private static Thread drawThread;
+        private GameThread[] threads;
+
+        private static GameThread drawThread;
+        private static GameThread updateThread;
+        private static InputThread inputThread;
+
         private static Thread startupThread = Thread.CurrentThread;
 
-        internal static Thread DrawThread => drawThread;
-        internal static Thread UpdateThread => updateThread?.IsAlive ?? false ? updateThread : startupThread;
+        internal static Thread DrawThread => drawThread.Thread;
+        internal static Thread UpdateThread => updateThread?.Thread.IsAlive ?? false ? updateThread.Thread : startupThread; //todo: check we still need this logic
 
-        internal FramedClock InputClock = new ThrottledFrameClock() { MaximumUpdateHz = 1000 };
-
-        protected internal ThrottledFrameClock UpdateClock = new ThrottledFrameClock();
-
-        private int activeUpdateHz = 1000;
-        public int ActiveUpdateHz
+        public double MaximumUpdateHz
         {
             get
             {
-                return activeUpdateHz;
+                return updateThread.ActiveHz;
             }
 
             set
             {
-                activeUpdateHz = value;
-                if (IsActive)
-                    MaximumUpdateHz = activeUpdateHz;
+                updateThread.ActiveHz = value;
             }
         }
 
-        private int inactiveUpdateHz = 30;
-        public int InactiveUpdateHz
+        public double MaximumDrawHz
         {
             get
             {
-                return inactiveUpdateHz;
+                return drawThread.ActiveHz;
             }
 
             set
             {
-                inactiveUpdateHz = value;
-                if (!IsActive)
-                    MaximumUpdateHz = inactiveUpdateHz;
+                drawThread.ActiveHz = value;
             }
         }
 
-        public int MaximumUpdateHz
-        {
-            get { return UpdateClock.MaximumUpdateHz; }
-            set { UpdateClock.MaximumUpdateHz = value; }
-        }
-
-        internal ThrottledFrameClock DrawClock = new ThrottledFrameClock();
-
-        private int activeDrawHz = 144;
-        public int ActiveDrawHz
+        public double MaximumInactiveHz
         {
             get
             {
-                return activeDrawHz;
+                return drawThread.InactiveHz;
             }
 
             set
             {
-                activeDrawHz = value;
-                if (IsActive)
-                    MaximumDrawHz = activeDrawHz;
+                drawThread.InactiveHz = value;
+                updateThread.InactiveHz = value;
             }
         }
 
-        private int inactiveDrawHz = 30;
-        public int InactiveDrawHz
-        {
-            get
-            {
-                return inactiveDrawHz;
-            }
-
-            set
-            {
-                inactiveDrawHz = value;
-                if (!IsActive)
-                    MaximumDrawHz = inactiveDrawHz;
-            }
-        }
-
-        public int MaximumDrawHz
-        {
-            get { return DrawClock.MaximumUpdateHz; }
-            set { DrawClock.MaximumUpdateHz = value; }
-        }
-
-        protected internal PerformanceMonitor InputMonitor;
-        protected internal PerformanceMonitor UpdateMonitor;
-        protected internal PerformanceMonitor DrawMonitor;
+        protected internal PerformanceMonitor InputMonitor => inputThread.Monitor;
+        protected internal PerformanceMonitor UpdateMonitor => updateThread.Monitor;
+        protected internal PerformanceMonitor DrawMonitor => drawThread.Monitor;
 
         //null here to construct early but bind to thread late.
-        public Scheduler InputScheduler = new Scheduler(null);
-        protected Scheduler UpdateScheduler = new Scheduler(null);
+        public Scheduler InputScheduler => inputThread.Scheduler;
+        protected Scheduler UpdateScheduler => updateThread.Scheduler;
 
-        protected override IFrameBasedClock Clock => UpdateClock;
+        protected override IFrameBasedClock Clock => updateThread.Clock;
 
-        protected int MaximumFramesPerSecond
-        {
-            get { return UpdateClock.MaximumUpdateHz; }
-            set { UpdateClock.MaximumUpdateHz = value; }
-        }
-
-        public Cached<string> fullPathBacking = new Cached<string>();
+        private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {
             string codeBase = Assembly.GetExecutingAssembly().CodeBase;
@@ -204,13 +135,25 @@ namespace osu.Framework.Platform
 
         private static BasicGameHost instance;
 
-        public BasicGameHost()
+        protected BasicGameHost()
         {
             instance = this;
 
-            InputMonitor = new PerformanceMonitor(InputClock) { HandleGC = false };
-            UpdateMonitor = new PerformanceMonitor(UpdateClock);
-            DrawMonitor = new PerformanceMonitor(DrawClock);
+            threads = new[]
+            {
+                drawThread = new GameThread(DrawFrame, @"DrawThread")
+                {
+                    OnThreadStart = DrawInitialize,
+                },
+                updateThread = new GameThread(UpdateFrame, @"UpdateThread")
+                {
+                    OnThreadStart = UpdateInitialize,
+                    Monitor = { HandleGC = true }
+                },
+                inputThread = new InputThread(null, @"MainThread") //never gets started.
+            };
+
+            drawThread.ActiveHz = DisplayDevice.Default.RefreshRate * 4;
 
             // This static method uses BasicGameHost.GetInstanceIfExists() to get access
             // to InputMonitor, UpdateMonitor and DrawMonitor.
@@ -218,29 +161,18 @@ namespace osu.Framework.Platform
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
-            IsActive = true;
+            setActive(true);
 
             AddInternal(inputManager = new UserInputManager(this));
         }
 
         public static BasicGameHost GetInstanceIfExists() => instance;
 
-        protected virtual void OnActivated(object sender, EventArgs args)
-        {
-            UpdateScheduler.Add(delegate
-            {
-                IsActive = true;
-            });
-        }
+        protected virtual void OnActivated() => Schedule(() => setActive(true));
 
-        protected virtual void OnDeactivated(object sender, EventArgs args)
-        {
-            UpdateScheduler.Add(delegate
-            {
-                IsActive = false;
-            });
-        }
+        protected virtual void OnDeactivated() => Schedule(() => setActive(false));
 
+        /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
             if (ExitRequested) return false;
@@ -259,10 +191,7 @@ namespace osu.Framework.Platform
             if (response.Value)
                 return true;
 
-            ExitRequested = true;
-            while (threadsRunning)
-                Thread.Sleep(1);
-
+            Exit();
             return false;
         }
 
@@ -273,56 +202,32 @@ namespace osu.Framework.Platform
 
         protected TripleBuffer<DrawNode> DrawRoots = new TripleBuffer<DrawNode>();
 
-        protected void updateIteration()
+        protected virtual void UpdateInitialize()
         {
-            UpdateMonitor.NewFrame();
+            //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
+            while (!GLWrapper.IsInitialized)
+                Thread.Sleep(1);
+        }
 
-            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-            {
-                UpdateScheduler.Update();
-            }
-
+        protected void UpdateFrame()
+        {
             using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
             {
                 UpdateSubTree();
                 using (var buffer = DrawRoots.Get(UsageType.Write))
                     buffer.Object = GenerateDrawNodeSubtree(ScreenSpaceDrawQuad.AABBf, buffer.Object);
             }
-
-            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-            {
-                UpdateClock.ProcessFrame();
-            }
         }
 
-        private void updateLoop()
-        {
-            //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            while (!GLWrapper.IsInitialized)
-                Thread.Sleep(1);
-
-            while (!ExitRequested)
-                updateIteration();
-        }
-
-        private void drawLoop()
+        protected virtual void DrawInitialize()
         {
             Window.MakeCurrent();
             GLWrapper.Initialize();
 
-            Window.VSync = VSyncMode.Off;
-
-            while (!ExitRequested)
+            if (Window != null)
             {
-                DrawMonitor.NewFrame();
-
-                DrawFrame();
-
-                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                    Window.SwapBuffers();
-
-                using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                    DrawClock.ProcessFrame();
+                Window.VSync = VSyncMode.Off;
+                //Window.WindowState = WindowState.Fullscreen;
             }
         }
 
@@ -341,80 +246,63 @@ namespace osu.Framework.Platform
 
                 GLWrapper.FlushCurrentBatch();
             }
+
+            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+                Window.SwapBuffers();
         }
 
         protected bool ExitRequested;
 
-        private bool threadsRunning => (updateThread?.IsAlive ?? false) && (drawThread?.IsAlive ?? false);
+        private bool threadsRunning => updateThread.Running || drawThread.Running;
 
         public void Exit()
         {
-            ExitRequested = true;
-            while (threadsRunning)
-                Thread.Sleep(1);
-            Window?.Close();
+            InputScheduler.Add(delegate
+            {
+                ExitRequested = true;
+
+                threads.ForEach(t => t.Exit());
+
+                while (threadsRunning)
+                    Thread.Sleep(1);
+                Window?.Close();
+            }, false);
         }
 
         public virtual void Run()
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            drawThread = new Thread(drawLoop)
-            {
-                Name = @"DrawThread",
-                IsBackground = true
-            };
             drawThread.Start();
-
-            updateThread = new Thread(updateLoop)
-            {
-                Name = @"UpdateThread",
-                IsBackground = true
-            };
             updateThread.Start();
-
-            UpdateScheduler.SetCurrentThread(updateThread);
 
             if (Window != null)
             {
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
-                Window.FocusedChanged += delegate { IsActive = Window.Focused; };
+                Window.FocusedChanged += delegate { setActive(Window.Focused); };
                 window_ClientSizeChanged(null, null);
+
+                try
+                {
+                    Window.UpdateFrame += delegate
+                    {
+                        inputPerformanceCollectionPeriod?.Dispose();
+                        inputThread.RunUpdate();
+                        inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                    };
+                    Window.Run();
+                }
+                catch (OutOfMemoryException)
+                {
+                }
             }
-
-            InputScheduler.SetCurrentThread(Thread.CurrentThread);
-
-            try
+            else
             {
-                Window.UpdateFrame += windowUpdateFrame;
-                Window.Run();
+                while (!ExitRequested)
+                    inputThread.RunUpdate();
             }
-            catch (OutOfMemoryException)
-            {
-            }
-            finally
-            {
-                //if (!(error is OutOfMemoryException))
-                //    //we don't want to attempt a safe shutdown is memory is low; it may corrupt database files.
-                //    OnExiting();
-            }
-        }
-
-        private void windowUpdateFrame(object sender, FrameEventArgs e)
-        {
-            inputPerformanceCollectionPeriod?.Dispose();
-
-            InputMonitor.NewFrame();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Scheduler))
-                InputScheduler.Update();
-
-            using (InputMonitor.BeginCollecting(PerformanceCollectionType.Sleep))
-                InputClock.ProcessFrame();
-
-            inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
         }
 
         private void window_ClientSizeChanged(object sender, EventArgs e)
@@ -439,7 +327,7 @@ namespace osu.Framework.Platform
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    InputScheduler.Add(delegate { Window.Size = new Size((int)value.X, (int)value.Y); });
+                    InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
                     base.Size = value;
                 });
             }
