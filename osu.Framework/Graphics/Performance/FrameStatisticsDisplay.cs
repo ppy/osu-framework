@@ -293,7 +293,7 @@ namespace osu.Framework.Graphics.Performance
                 else
                 {
                     overlayContainer.FadeIn(100);
-                    FadeTo(1, 100);
+                    FadeIn(100);
                     fpsDisplay.Counting = false;
                     processFrames = false;
 
@@ -411,6 +411,9 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
+                case StatisticsCounterType.VBufOverflow:
+                    return Color4.Yellow;
+
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
                     return Color4.BlueViolet;
@@ -420,8 +423,12 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.YellowGreen;
 
                 case StatisticsCounterType.DrawNodeCtor:
-                case StatisticsCounterType.Vertices:
+                case StatisticsCounterType.VerticesDraw:
                     return Color4.HotPink;
+
+                case StatisticsCounterType.DrawNodeAppl:
+                case StatisticsCounterType.VerticesUpl:
+                    return Color4.Red;
 
                 case StatisticsCounterType.ScheduleInvk:
                 case StatisticsCounterType.KiloPixels:

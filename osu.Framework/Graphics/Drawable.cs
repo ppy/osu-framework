@@ -39,12 +39,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual string Name => string.Empty;
 
-        static long creationIDCounter;
+        private static AtomicCounter creationCounter = new AtomicCounter();
         internal long CreationID;
 
         public Drawable()
         {
-            CreationID = Interlocked.Increment(ref creationIDCounter);
+            CreationID = creationCounter.Increment();
         }
 
         /// <summary>
@@ -598,35 +598,26 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
-
-        /// <summary>
-        /// Contains all currently valid DrawNodes. Used to invalidate DrawNodes on a change.
-        /// </summary>
-        private List<DrawNode> validDrawNodes = new List<DrawNode>(3);
+        private DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
-        /// <returns>A complete and updated DrawNode.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
+        /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
-            if (node == null || !IsCompatibleDrawNode(node))
+            DrawNode node = drawNodes[treeIndex];
+            if (node == null)
             {
-                node = CreateDrawNode();
-
+                drawNodes[treeIndex] = node = CreateDrawNode();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (StaticCached.AlwaysStale)
-                validDrawNodes.Clear();
-
-            // Note, that invalidating clears all owned draw nodes and thus this check also serves
-            // to re-populate invalidated draw nodes.
-            if (!OwnsDrawNode(node))
+            if (invalidationID != node.InvalidationID)
             {
                 ApplyDrawNode(node);
-                validDrawNodes.Add(node);
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
 
             return node;
@@ -635,20 +626,10 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.InvalidationID = invalidationID;
         }
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
-
-        protected virtual bool IsCompatibleDrawNode(DrawNode node) => node is DrawNode;
-
-        protected virtual bool OwnsDrawNode(DrawNode node)
-        {
-            for (int i = 0; i < validDrawNodes.Count; ++i)
-                if (validDrawNodes[i] == node)
-                    return true;
-
-            return false;
-        }
 
         /// <summary>
         /// Updates this drawable, once every frame.
@@ -807,6 +788,10 @@ namespace osu.Framework.Graphics
             t.Apply(this); //make sure we apply one last time.
         }
 
+
+        private static AtomicCounter invalidationCounter = new AtomicCounter();
+        private long invalidationID;
+
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
@@ -828,22 +813,18 @@ namespace osu.Framework.Graphics
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & (Invalidation.Geometry)) > 0)
-                {
-                    if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                        alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-                    alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-                }
-
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
-            if (!alreadyInvalidated || (invalidation & (Invalidation.DrawNode)) > 0)
-                validDrawNodes.Clear();
+            if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
+                invalidationID = invalidationCounter.Increment();
 
             return !alreadyInvalidated;
         }

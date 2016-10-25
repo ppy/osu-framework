@@ -16,8 +16,9 @@ namespace osu.Framework.Graphics.Containers
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
+        protected override bool CanBeFlattened => false;
+
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
-        protected override bool IsCompatibleDrawNode(DrawNode node) => node is BufferedContainerDrawNode;
 
         protected override void ApplyDrawNode(DrawNode node)
         {

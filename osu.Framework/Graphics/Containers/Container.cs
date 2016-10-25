@@ -129,7 +129,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
-        protected override bool IsCompatibleDrawNode(DrawNode node) => node is ContainerDrawNode;
 
         protected override void ApplyDrawNode(DrawNode node)
         {
@@ -373,7 +372,7 @@ namespace osu.Framework.Graphics.Containers
 
             children.Clear();
 
-            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+            Invalidate(Invalidation.Geometry);
         }
 
         internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
@@ -475,15 +474,65 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal override DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
-        {
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
+        protected virtual bool CanBeFlattened => !Masking;
 
-            if (children.AliveItems.Count == 0)
+        private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
+
+        /// <summary>
+        /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
+        /// of container subtrees for optimization purposes.
+        /// </summary>
+        /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
+        /// <param name="j">The running index into the target List.</param>
+        /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
+        /// <param name="target">The target list to fill with DrawNodes.</param>
+        /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
+        private static void addFromContainer(int treeIndex, ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        {
+            List<Drawable> current = parentContainer.children.AliveItems;
+            for (int i = 0; i < current.Count; ++i)
             {
-                cNode.Children?.Clear();
-                return cNode;
+                Drawable drawable = current[i];
+
+                if (!drawable.IsVisible)
+                    continue;
+
+                Container container = drawable as Container;
+                if (container?.CanBeFlattened == true)
+                {
+                    // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
+                    // when only few children exist.
+                    if (container.children.AliveItems.Count < AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK ||
+                        maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                        addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+                    continue;
+                }
+
+                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    continue;
+
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
+                if (next == null)
+                    continue;
+
+                if (j < target.Count)
+                    target[j] = next;
+                else
+                    target.Add(next);
+
+                j++;
             }
+        }
+
+        protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        {
+            // No need for a draw node at all if there are no children and we are not glowing.
+            if (children.AliveItems.Count == 0 && (!Masking || GlowRadius == 0.0f))
+                return null;
+
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
+            if (cNode == null)
+                return null;
 
             RectangleF childBounds = bounds;
             if (Masking)
@@ -492,22 +541,10 @@ namespace osu.Framework.Graphics.Containers
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(children.AliveItems.Count);
 
-            var current = children.AliveItems;
-            var target = cNode.Children;
+            List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            foreach (Drawable drawable in current)
-            {
-                if (!drawable.IsVisible || !childBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
-                    continue;
-
-                if (j < target.Count)
-                    target[j] = drawable.GenerateDrawNodeSubtree(childBounds, target[j]);
-                else
-                    target.Add(drawable.GenerateDrawNodeSubtree(childBounds));
-
-                j++;
-            }
+            addFromContainer(treeIndex, ref j, this, target, childBounds);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);

@@ -7,16 +7,16 @@ namespace osu.Framework.Threading
 {
     public class AtomicCounter
     {
-        private long count;
+        private long count = 0;
 
-        public void Increment()
+        public long Increment()
         {
-            Interlocked.Increment(ref count);
+            return Interlocked.Increment(ref count);
         }
 
-        public void Add(long value)
+        public long Add(long value)
         {
-            Interlocked.Add(ref count, value);
+            return Interlocked.Add(ref count, value);
         }
 
         public long Reset()

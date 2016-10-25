@@ -8,6 +8,7 @@ namespace osu.Framework.Allocation
     public class ObjectUsage<T> : IDisposable
     {
         public T Object;
+        public int Index;
 
         internal Action<ObjectUsage<T>, UsageType> Finish;
 

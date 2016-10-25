@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics
     public class DrawNode
     {
         public DrawInfo DrawInfo;
+        public long InvalidationID;
 
         public void DrawSubTree()
         {
