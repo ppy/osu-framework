@@ -24,7 +24,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
             Architecture.SetIncludePath();
 
-            Window = new DesktopGameWindow();
+            Window = new WindowsGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)

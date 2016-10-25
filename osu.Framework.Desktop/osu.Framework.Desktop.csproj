@@ -74,6 +74,7 @@
     <Compile Include="Platform\Windows\Native\Registry.cs" />
     <Compile Include="Platform\Windows\TimePeriod.cs" />
     <Compile Include="Platform\Windows\WindowsGameHost.cs" />
+    <Compile Include="Platform\Windows\WindowsGameWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Platform\DesktopStorage.cs" />
     <Compile Include="Platform\Windows\WindowsStorage.cs" />
