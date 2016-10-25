@@ -411,6 +411,9 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
+                case StatisticsCounterType.VBufOverflow:
+                    return Color4.Yellow;
+
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
                     return Color4.BlueViolet;

@@ -41,6 +41,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.VerticesUpl:
+                case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.KiloPixels:
                     return host.DrawMonitor;
 
@@ -92,6 +93,7 @@ namespace osu.Framework.Statistics
         DrawNodeAppl,
         ScheduleInvk,
 
+        VBufOverflow,
         TextureBinds,
         DrawCalls,
         VerticesDraw,

@@ -92,6 +92,7 @@ namespace osu.Framework.Graphics.Batches
             if (currentVertex >= vertexBuffer.Vertices.Length)
             {
                 Draw();
+                FrameStatistics.Increment(StatisticsCounterType.VBufOverflow);
                 lastVertex = currentVertex = 0;
             }
         }
