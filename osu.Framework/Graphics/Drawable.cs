@@ -598,19 +598,22 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
+        private DrawNode[] drawNodes = new DrawNode[3];
+
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             if (!IsVisible || !bounds.IntersectsWith(ScreenSpaceDrawQuad.AABBf))
                 return null;
 
-            if (node == null || !IsCompatibleDrawNode(node))
+            DrawNode node = drawNodes[treeIndex];
+            if (node == null)
             {
-                node = CreateDrawNode();
+                drawNodes[treeIndex] = node = CreateDrawNode();
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 

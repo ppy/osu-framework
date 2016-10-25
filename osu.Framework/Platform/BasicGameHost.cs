@@ -286,7 +286,7 @@ namespace osu.Framework.Platform
             {
                 UpdateSubTree();
                 using (var buffer = DrawRoots.Get(UsageType.Write))
-                    buffer.Object = GenerateDrawNodeSubtree(ScreenSpaceDrawQuad.AABBf, buffer.Object);
+                    buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBf);
             }
 
             using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Sleep))

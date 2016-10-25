@@ -481,11 +481,12 @@ namespace osu.Framework.Graphics.Containers
         /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
         /// of container subtrees for optimization purposes.
         /// </summary>
+        /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
         /// <param name="j">The running index into the target List.</param>
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromContainer(int treeIndex, ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
             List<Drawable> current = parentContainer.children.AliveItems;
             for (int i = 0; i < current.Count; ++i)
@@ -495,13 +496,11 @@ namespace osu.Framework.Graphics.Containers
                 Container container = drawable as Container;
                 if (container?.CanBeFlattened == true)
                 {
-                    addFromContainer(ref j, container, target, maskingBounds);
+                    addFromContainer(treeIndex, ref j, container, target, maskingBounds);
                     continue;
                 }
 
-                DrawNode previous = j < target.Count ? target[j] : null;
-                DrawNode next = drawable.GenerateDrawNodeSubtree(maskingBounds, previous);
-
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
                 if (next == null)
                     continue;
 
@@ -514,13 +513,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal override DrawNode GenerateDrawNodeSubtree(RectangleF bounds, DrawNode node = null)
+        protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (children.AliveItems.Count == 0 && (!Masking || GlowRadius == 0.0f))
                 return null;
 
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(bounds, node) as ContainerDrawNode;
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
             if (cNode == null)
                 return null;
 
@@ -534,7 +533,7 @@ namespace osu.Framework.Graphics.Containers
             List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            addFromContainer(ref j, this, target, childBounds);
+            addFromContainer(treeIndex, ref j, this, target, childBounds);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);
