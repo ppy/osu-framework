@@ -70,7 +70,10 @@ namespace osu.Framework.Graphics.OpenGL
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
+
             thisFrameBatches.Clear();
+            if (lastActiveBatch != null)
+                thisFrameBatches.Add(lastActiveBatch);
 
             lastFrameBuffer = 0;
 
