@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (spriteBatch == null)
             {
                 if (TextureGLSingle.spriteBatch == null)
-                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(512, 64);
+                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(512, 128);
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
