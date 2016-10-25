@@ -18,7 +18,6 @@ namespace osu.Framework.Graphics.Shaders
         }
 
         protected override DrawNode CreateDrawNode() => new ShadedDrawNode();
-        protected override bool IsCompatibleDrawNode(DrawNode node) => node.GetType() == typeof(ShadedDrawNode);
 
         protected override void ApplyDrawNode(DrawNode node)
         {

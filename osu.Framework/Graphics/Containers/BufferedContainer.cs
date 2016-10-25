@@ -19,7 +19,6 @@ namespace osu.Framework.Graphics.Containers
         protected override bool CanBeFlattened => false;
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
-        protected override bool IsCompatibleDrawNode(DrawNode node) => node.GetType() == typeof(BufferedContainerDrawNode);
 
         protected override void ApplyDrawNode(DrawNode node)
         {
