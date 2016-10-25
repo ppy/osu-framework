@@ -140,9 +140,14 @@ namespace osu.Framework.Platform
 
         private static BasicGameHost instance;
 
-        protected BasicGameHost()
+        private string name;
+        public override string Name => name;
+
+        protected BasicGameHost(string gameName = @"")
         {
             instance = this;
+
+            name = gameName;
 
             threads = new[]
             {
@@ -285,6 +290,7 @@ namespace osu.Framework.Platform
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
                 Window.FocusedChanged += delegate { setActive(Window.Focused); };
                 window_ClientSizeChanged(null, null);
 

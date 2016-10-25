@@ -14,7 +14,7 @@ namespace osu.Framework.Desktop.Platform
         private TcpIpcProvider IpcProvider;
         private Task IpcTask;
 
-        public DesktopGameHost(bool bindIPCPort = false)
+        public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
             if (bindIPCPort)
             {
