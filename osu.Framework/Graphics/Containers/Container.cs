@@ -373,7 +373,7 @@ namespace osu.Framework.Graphics.Containers
 
             children.Clear();
 
-            Invalidate(Invalidation.Position | Invalidation.SizeInParentSpace);
+            Invalidate(Invalidation.Geometry);
         }
 
         internal IEnumerable<Drawable> AliveChildren => children.AliveItems;

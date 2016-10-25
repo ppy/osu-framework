@@ -293,7 +293,7 @@ namespace osu.Framework.Graphics.Performance
                 else
                 {
                     overlayContainer.FadeIn(100);
-                    FadeTo(1, 100);
+                    FadeIn(100);
                     fpsDisplay.Counting = false;
                     processFrames = false;
 

@@ -17,6 +17,13 @@ namespace osu.Framework.Graphics.Containers
 
         public override float Width
         {
+            get
+            {
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && (AutoSizeAxes & Axes.X) > 0)
+                    updateAutoSize();
+                return base.Width;
+            }
+
             set
             {
                 Debug.Assert((AutoSizeAxes & Axes.X) == 0, @"The width of an AutoSizeContainer should only be manually set if it is relative to its parent.");
@@ -26,6 +33,13 @@ namespace osu.Framework.Graphics.Containers
 
         public override float Height
         {
+            get
+            {
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && (AutoSizeAxes & Axes.Y) > 0)
+                    updateAutoSize();
+                return base.Height;
+            }
+
             set
             {
                 Debug.Assert((AutoSizeAxes & Axes.Y) == 0, @"The height of an AutoSizeContainer should only be manually set if it is relative to its parent.");
@@ -38,7 +52,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!isComputingAutosize && AutoSizeAxes != Axes.None)
+                if (!StaticCached.AlwaysStale && !isComputingAutosize && AutoSizeAxes != Axes.None)
                     updateAutoSize();
                 return base.Size;
             }

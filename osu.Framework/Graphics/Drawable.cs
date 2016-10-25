@@ -39,12 +39,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual string Name => string.Empty;
 
-        static long creationIDCounter;
+        private static AtomicCounter creationCounter = new AtomicCounter();
         internal long CreationID;
 
         public Drawable()
         {
-            CreationID = Interlocked.Increment(ref creationIDCounter);
+            CreationID = creationCounter.Increment();
         }
 
         /// <summary>
@@ -614,13 +614,16 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            ApplyDrawNode(node);
+            if (invalidationID != node.InvalidationID)
+                ApplyDrawNode(node);
+
             return node;
         }
 
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
+            node.InvalidationID = invalidationID;
         }
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
@@ -784,6 +787,10 @@ namespace osu.Framework.Graphics
             t.Apply(this); //make sure we apply one last time.
         }
 
+
+        private static AtomicCounter invalidationCounter = new AtomicCounter();
+        private long invalidationID;
+
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
@@ -805,19 +812,18 @@ namespace osu.Framework.Graphics
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & (Invalidation.Geometry)) > 0)
-                {
-                    if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                        alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-                    alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-                }
-
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
+
+            if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
+                invalidationID = invalidationCounter.Increment();
 
             return !alreadyInvalidated;
         }
