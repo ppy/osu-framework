@@ -33,12 +33,14 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.Refreshes:
                 case StatisticsCounterType.DrawNodeCtor:
+                case StatisticsCounterType.DrawNodeAppl:
                 case StatisticsCounterType.ScheduleInvk:
                     return host.UpdateMonitor;
 
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
-                case StatisticsCounterType.Vertices:
+                case StatisticsCounterType.VerticesDraw:
+                case StatisticsCounterType.VerticesUpl:
                 case StatisticsCounterType.KiloPixels:
                     return host.DrawMonitor;
 
@@ -87,11 +89,13 @@ namespace osu.Framework.Statistics
         Invalidations = 0,
         Refreshes,
         DrawNodeCtor,
+        DrawNodeAppl,
         ScheduleInvk,
 
         TextureBinds,
         DrawCalls,
-        Vertices,
+        VerticesDraw,
+        VerticesUpl,
         KiloPixels,
 
         AmountTypes,

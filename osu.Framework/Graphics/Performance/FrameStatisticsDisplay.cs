@@ -420,8 +420,12 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.YellowGreen;
 
                 case StatisticsCounterType.DrawNodeCtor:
-                case StatisticsCounterType.Vertices:
+                case StatisticsCounterType.VerticesDraw:
                     return Color4.HotPink;
+
+                case StatisticsCounterType.DrawNodeAppl:
+                case StatisticsCounterType.VerticesUpl:
+                    return Color4.Red;
 
                 case StatisticsCounterType.ScheduleInvk:
                 case StatisticsCounterType.KiloPixels:

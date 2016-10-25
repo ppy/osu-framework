@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using OpenTK.Graphics.ES20;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -133,6 +134,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * stride), (IntPtr)(amountVertices * stride), ref Vertices[startIndex]);
 
             Unbind();
+
+            FrameStatistics.Increment(StatisticsCounterType.VerticesUpl, amountVertices);
         }
     }
 }

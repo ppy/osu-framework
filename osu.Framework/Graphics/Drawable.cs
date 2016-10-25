@@ -618,7 +618,10 @@ namespace osu.Framework.Graphics
             }
 
             if (invalidationID != node.InvalidationID)
+            {
                 ApplyDrawNode(node);
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
+            }
 
             return node;
         }
