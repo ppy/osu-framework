@@ -11,15 +11,12 @@ namespace osu.Framework.Graphics.Batches
     {
         private BeginMode type;
 
-        public LinearBatch(int size, int fixedBufferAmount, BeginMode type)
-            : base(size, fixedBufferAmount)
+        public LinearBatch(int size, int maxBuffers, BeginMode type)
+            : base(size, maxBuffers)
         {
             this.type = type;
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer()
-        {
-            return new LinearVertexBuffer<T>(Size, type, BufferUsageHint.DynamicDraw);
-        }
+        protected override VertexBuffer<T> CreateVertexBuffer() => new LinearVertexBuffer<T>(Size, type, BufferUsageHint.DynamicDraw);
     }
 }
