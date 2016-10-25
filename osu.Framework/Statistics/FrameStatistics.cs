@@ -37,11 +37,11 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.ScheduleInvk:
                     return host.UpdateMonitor;
 
+                case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.VerticesUpl:
-                case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.KiloPixels:
                     return host.DrawMonitor;
 
