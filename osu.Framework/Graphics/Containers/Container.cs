@@ -476,6 +476,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool CanBeFlattened => !Masking;
 
+        private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
+
         /// <summary>
         /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
         /// of container subtrees for optimization purposes.
@@ -492,15 +494,22 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                if (!drawable.IsVisible || !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                if (!drawable.IsVisible)
                     continue;
 
                 Container container = drawable as Container;
                 if (container?.CanBeFlattened == true)
                 {
-                    addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+                    // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
+                    // when only few children exist.
+                    if (container.children.AliveItems.Count < AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK ||
+                        maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                        addFromContainer(treeIndex, ref j, container, target, maskingBounds);
                     continue;
                 }
+
+                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    continue;
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
                 if (next == null)
