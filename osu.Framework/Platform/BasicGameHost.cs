@@ -343,8 +343,8 @@ namespace osu.Framework.Platform
             Rectangle rect = Window.ClientRectangle;
             UpdateScheduler.Add(delegate
             {
-            //set base.Size here to avoid the override below, which would cause a recursive loop.
-            base.Size = new Vector2(rect.Width, rect.Height);
+                //set base.Size here to avoid the override below, which would cause a recursive loop.
+                base.Size = new Vector2(rect.Width, rect.Height);
             });
         }
 
@@ -356,9 +356,9 @@ namespace osu.Framework.Platform
                 //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
                 UpdateScheduler.Add(delegate
                 {
-                //update the underlying window size based on our new set size.
-                //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
+                    //update the underlying window size based on our new set size.
+                    //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
+                    InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
                     base.Size = value;
                 });
             }
