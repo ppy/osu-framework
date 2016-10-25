@@ -607,9 +607,6 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
-            if (!IsVisible || !bounds.IntersectsWith(ScreenSpaceDrawQuad.AABBf))
-                return null;
-
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
             {

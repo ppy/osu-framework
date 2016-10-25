@@ -493,6 +493,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
+                if (!drawable.IsVisible || !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    continue;
+
                 Container container = drawable as Container;
                 if (container?.CanBeFlattened == true)
                 {
