@@ -67,7 +67,7 @@ namespace osu.Framework.Platform
 
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Alt && e.Key == Key.Enter)
             {
                 WindowState = WindowState == WindowState.Fullscreen ? WindowState = WindowState.Normal : WindowState.Fullscreen;
                 return;
