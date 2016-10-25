@@ -10,6 +10,9 @@ namespace osu.Framework.Threading
 {
     public class GameThread
     {
+        internal const double DEFAULT_ACTIVE_HZ = 1000;
+        internal const double DEFAULT_INACTIVE_HZ = 30;
+
         public PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
         public Thread Thread { get; }
@@ -28,7 +31,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private double activeHz = 1000;
+        private double activeHz = DEFAULT_ACTIVE_HZ;
         public double ActiveHz
         {
             get
@@ -44,7 +47,7 @@ namespace osu.Framework.Threading
             }
         }
 
-        private double inactiveHz = 40;
+        private double inactiveHz = DEFAULT_INACTIVE_HZ;
         public double InactiveHz
         {
             get

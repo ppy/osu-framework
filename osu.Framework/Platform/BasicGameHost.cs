@@ -23,6 +23,7 @@ using OpenTK.Graphics.OpenGL;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
@@ -71,29 +72,33 @@ namespace osu.Framework.Platform
         internal static Thread DrawThread => drawThread.Thread;
         internal static Thread UpdateThread => updateThread?.Thread.IsAlive ?? false ? updateThread.Thread : startupThread; //todo: check we still need this logic
 
+        private double maximumUpdateHz;
+
         public double MaximumUpdateHz
         {
             get
             {
-                return updateThread.ActiveHz;
+                return maximumUpdateHz;
             }
 
             set
             {
-                updateThread.ActiveHz = value;
+                updateThread.ActiveHz = maximumUpdateHz = value;
             }
         }
+
+        private double maximumDrawHz;
 
         public double MaximumDrawHz
         {
             get
             {
-                return drawThread.ActiveHz;
+                return maximumDrawHz;
             }
 
             set
             {
-                drawThread.ActiveHz = value;
+                drawThread.ActiveHz = maximumDrawHz = value;
             }
         }
 
@@ -153,7 +158,8 @@ namespace osu.Framework.Platform
                 inputThread = new InputThread(null, @"MainThread") //never gets started.
             };
 
-            drawThread.ActiveHz = DisplayDevice.Default.RefreshRate * 4;
+            MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
+            MaximumDrawHz = DisplayDevice.Default.RefreshRate * 4;
 
             // This static method uses BasicGameHost.GetInstanceIfExists() to get access
             // to InputMonitor, UpdateMonitor and DrawMonitor.
@@ -225,10 +231,7 @@ namespace osu.Framework.Platform
             GLWrapper.Initialize();
 
             if (Window != null)
-            {
                 Window.VSync = VSyncMode.Off;
-                //Window.WindowState = WindowState.Fullscreen;
-            }
         }
 
         protected virtual void DrawFrame()
@@ -278,6 +281,7 @@ namespace osu.Framework.Platform
 
             if (Window != null)
             {
+                Window.KeyDown += window_KeyDown;
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
@@ -305,6 +309,27 @@ namespace osu.Framework.Platform
             }
         }
 
+        private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
+        {
+            if (!e.Control)
+                return;
+            switch (e.Key)
+            {
+                case Key.F7:
+                    if (updateThread.ActiveHz == maximumUpdateHz)
+                    {
+                        updateThread.ActiveHz = double.MaxValue;
+                        drawThread.ActiveHz = double.MaxValue;
+                    }
+                    else
+                    {
+                        updateThread.ActiveHz = maximumUpdateHz;
+                        drawThread.ActiveHz = maximumDrawHz;
+                    }
+                    break;
+            }
+        }
+
         private void window_ClientSizeChanged(object sender, EventArgs e)
         {
             if (Window.WindowState == WindowState.Minimized) return;
@@ -312,8 +337,8 @@ namespace osu.Framework.Platform
             Rectangle rect = Window.ClientRectangle;
             UpdateScheduler.Add(delegate
             {
-                //set base.Size here to avoid the override below, which would cause a recursive loop.
-                base.Size = new Vector2(rect.Width, rect.Height);
+            //set base.Size here to avoid the override below, which would cause a recursive loop.
+            base.Size = new Vector2(rect.Width, rect.Height);
             });
         }
 
@@ -325,9 +350,9 @@ namespace osu.Framework.Platform
                 //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
                 UpdateScheduler.Add(delegate
                 {
-                    //update the underlying window size based on our new set size.
-                    //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
+                //update the underlying window size based on our new set size.
+                //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
+                InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
                     base.Size = value;
                 });
             }
