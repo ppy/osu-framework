@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushOrtho(viewport);
 
-            viewportStack.Push(Viewport);
+            viewportStack.Push(actualRect);
 
             if (Viewport == actualRect)
                 return;
@@ -270,7 +270,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="ortho">The orthographic projection rectangle.</param>
         public static void PushOrtho(Rectangle ortho)
         {
-            orthoStack.Push(Ortho);
+            orthoStack.Push(ortho);
 
             FlushCurrentBatch();
 
