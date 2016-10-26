@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Textures.Png;
 
 namespace osu.Framework.IO.Stores
 {
@@ -36,7 +35,7 @@ namespace osu.Framework.IO.Stores
                 throw new FontLoadException(assetName);
             }
         }
-        
+
         public RawTexture Get(string name)
         {
             Character c;
@@ -50,7 +49,7 @@ namespace osu.Framework.IO.Stores
             int height = c.Bounds.Height + c.Offset.Y;
             int length = width * height * 4;
             byte[] pixels = new byte[length];
-            
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -90,17 +89,10 @@ namespace osu.Framework.IO.Stores
             RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
             {
-                t = new RawTexture();
                 using (var stream = store.GetStream($@"{assetName}_{texturePage}.png"))
-                {
-                    var reader = new PngReader();
-                    t.Pixels = reader.Read(stream);
-                    t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
-                    t.Width = reader.Width;
-                    t.Height = reader.Height;
-                }
-                texturePages[texturePage] = t;
+                    texturePages[texturePage] = t = RawTexture.FromStream(stream);
             }
+
             return t;
         }
 
@@ -112,7 +104,7 @@ namespace osu.Framework.IO.Stores
 
     public sealed class FontLoadException : Exception
     {
-        public FontLoadException(string assetName):
+        public FontLoadException(string assetName) :
             base($@"Couldn't load font asset from {assetName}.")
         {
         }

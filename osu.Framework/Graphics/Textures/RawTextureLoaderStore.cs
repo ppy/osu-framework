@@ -4,32 +4,19 @@
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
-using osu.Framework.Graphics.Textures.Png;
 using osu.Framework.IO.Stores;
-using System.Runtime.InteropServices;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class RawTextureLoaderStore : ResourceStore<RawTexture>
     {
-        private IResourceStore<byte[]> Store { get; set; }
+        private IResourceStore<byte[]> store { get; set; }
     
         public RawTextureLoaderStore(IResourceStore<byte[]> store)
         {
-            Store = store;
+            this.store = store;
             (store as ResourceStore<byte[]>)?.AddExtension(@"png");
             (store as ResourceStore<byte[]>)?.AddExtension(@"jpg");
-        }
-
-        private RawTexture loadPng(Stream stream)
-        {
-            RawTexture t = new RawTexture();
-            var reader = new PngReader();
-            t.Pixels = reader.Read(stream);
-            t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
-            t.Width = reader.Width;
-            t.Height = reader.Height;
-            return t;
         }
 
         private RawTexture loadOther(Stream stream)
@@ -73,14 +60,11 @@ namespace osu.Framework.Graphics.Textures
 
         public override RawTexture Get(string name)
         {
-            
-            using (var stream = Store.GetStream(name))
+            using (var stream = store.GetStream(name))
             {
                 if (stream == null) return null;
 
-                if (PngReader.IsPngImage(stream))
-                    return loadPng(stream);
-                return loadOther(stream);
+                return RawTexture.FromStream(stream);
             }
         }
     }
