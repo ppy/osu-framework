@@ -4,9 +4,6 @@
 using System.Threading.Tasks;
 using osu.Framework.Platform;
 using OpenTK;
-using osu.Framework.Input.Handlers;
-using System;
-using System.Collections.Generic;
 using osu.Framework.Desktop.Input;
 using osu.Framework.Input;
 
@@ -17,7 +14,7 @@ namespace osu.Framework.Desktop.Platform
         private TcpIpcProvider IpcProvider;
         private Task IpcTask;
 
-        public DesktopGameHost(bool bindIPCPort = false)
+        public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
             if (bindIPCPort)
             {

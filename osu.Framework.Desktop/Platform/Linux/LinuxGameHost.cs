@@ -12,15 +12,15 @@ namespace osu.Framework.Desktop.Platform.Linux
     public class LinuxGameHost : DesktopGameHost
     {
         private OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
-        internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
+        internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {
             Window = new DesktopGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)
-                    OnActivated(sender, e);
+                    OnActivated();
                 else
-                    OnDeactivated(sender, e);
+                    OnDeactivated();
             };
             Storage = new LinuxStorage(gameName);
         }

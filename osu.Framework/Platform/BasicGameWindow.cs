@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics.ES20;
+using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
@@ -62,6 +63,17 @@ namespace osu.Framework.Platform
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
             throw new ArgumentException(nameof(version));
+        }
+
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
+        {
+            if (e.Alt && e.Key == Key.Enter)
+            {
+                WindowState = WindowState == WindowState.Fullscreen ? WindowState = WindowState.Normal : WindowState.Fullscreen;
+                return;
+            }
+
+            base.OnKeyDown(e);
         }
 
         public void SetTitle(string title)

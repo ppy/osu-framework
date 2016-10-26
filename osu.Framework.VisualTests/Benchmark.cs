@@ -15,14 +15,9 @@ namespace osu.Framework.VisualTests
         {
             base.Load(game);
 
-            Host.ActiveDrawHz = int.MaxValue;
-            Host.ActiveUpdateHz = int.MaxValue;
-
-            Host.InactiveDrawHz = int.MaxValue;
-            Host.InactiveUpdateHz = int.MaxValue;
-
             Host.MaximumDrawHz = int.MaxValue;
             Host.MaximumUpdateHz = int.MaxValue;
+            Host.MaximumInactiveHz = int.MaxValue;
 
             TestBrowser f = new TestBrowser();
             Add(f);
