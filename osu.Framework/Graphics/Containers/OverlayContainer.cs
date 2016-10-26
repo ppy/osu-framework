@@ -42,6 +42,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected abstract void PopOut();
 
+        public override void Hide() => State = Visibility.Hidden;
+
+        public override void Show() => State = Visibility.Visible;
+
         public void ToggleVisibility() => State = (State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible);
     }
 
