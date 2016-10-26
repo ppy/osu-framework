@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Transformations;
+using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -28,10 +29,7 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public void Schedule(Action action)
-        {
-            Scheduler.AddDelayed(action, transformationDelay);
-        }
+        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, transformationDelay);
 
         /// <summary>
         /// Flush specified transformations, using the last available values (ignoring current clock time).
