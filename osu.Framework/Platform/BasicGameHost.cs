@@ -80,7 +80,7 @@ namespace osu.Framework.Platform
             throw new NotImplementedException("This platform does not implement IPC.");
         }
 
-        public virtual BasicStorage Storage { get; set; }
+        public virtual BasicStorage Storage { get; set; } //public set currently required for visualtests setup.
 
         public override bool IsVisible => true;
 
