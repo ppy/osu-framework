@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public class BufferedContainer : Container
     {
-        private FrameBuffer frameBuffer;
+        private FrameBuffer frameBuffer = new FrameBuffer();
         private QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
@@ -24,18 +24,12 @@ namespace osu.Framework.Graphics.Containers
         {
             BufferedContainerDrawNode n = node as BufferedContainerDrawNode;
 
-            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.DrawRectangle = ScreenSpaceDrawQuad.AABB;
             n.Batch = quadBatch;
             n.FrameBuffer = frameBuffer;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
 
             base.ApplyDrawNode(node);
-        }
-
-        public BufferedContainer()
-        {
-            frameBuffer = new FrameBuffer();
-            RelativeSizeAxes = Axes.Both;
         }
 
         public void Attach(RenderbufferInternalFormat format)
