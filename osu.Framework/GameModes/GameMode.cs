@@ -28,12 +28,17 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
+        /// <summary>
+        /// Make this GameMode directly exited when resuming from a child.
+        /// </summary>
+        public bool ValidForResume = true;
+
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            
+
             AddInternal(new[]
             {
                 content = new ContentContainer()
@@ -142,6 +147,8 @@ namespace osu.Framework.GameModes
 
             ParentGameMode?.startResume(this);
             Exited?.Invoke(ParentGameMode);
+            if (ParentGameMode?.ValidForResume == false)
+                ParentGameMode.Exit();
             ParentGameMode = null;
 
             Exited = null;
@@ -151,8 +158,12 @@ namespace osu.Framework.GameModes
         private void startResume(GameMode last)
         {
             ChildGameMode = null;
-            OnResuming(last);
-            Content.LifetimeEnd = double.MaxValue;
+
+            if (ValidForResume)
+            {
+                OnResuming(last);
+                Content.LifetimeEnd = double.MaxValue;
+            }
         }
 
 
@@ -160,15 +171,11 @@ namespace osu.Framework.GameModes
         {
             if (IsCurrentGameMode) return;
 
-            //find deepest child
-            GameMode c = ChildGameMode;
-            while (c.ChildGameMode != null)
-                c = c.ChildGameMode;
+            GameMode c;
+            for (c = ChildGameMode; c.ChildGameMode != null; c = c.ChildGameMode)
+                c.ValidForResume = false;
 
-            //set deepest child's parent to us
-            c.ParentGameMode = this;
-
-            //exit child, making us current
+            //all the expired ones will exit
             c.Exit();
         }
 
