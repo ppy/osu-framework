@@ -24,10 +24,6 @@ namespace osu.Framework.Statistics
 
         private static PerformanceMonitor getMonitor(StatisticsCounterType type)
         {
-            BasicGameHost host = BasicGameHost.GetInstanceIfExists();
-            if (host == null)
-                return null;
-
             switch (type)
             {
                 case StatisticsCounterType.Invalidations:
@@ -35,7 +31,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.DrawNodeCtor:
                 case StatisticsCounterType.DrawNodeAppl:
                 case StatisticsCounterType.ScheduleInvk:
-                    return host.UpdateMonitor;
+                    return target.UpdateMonitor;
 
                 case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.TextureBinds:
@@ -43,7 +39,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.VerticesUpl:
                 case StatisticsCounterType.KiloPixels:
-                    return host.DrawMonitor;
+                    return target.DrawMonitor;
 
                 default:
                     Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
@@ -59,16 +55,31 @@ namespace osu.Framework.Statistics
                 Counts[StatisticsCounterType.KiloPixels] /= 1000;
         }
 
-        internal static void RegisterCounters()
+        /// <summary>
+        /// Registers statistics counters to the PerformanceMonitors of the _first_ host
+        /// to call this function.
+        /// </summary>
+        /// <param name="target">The host that wants to register for statistics counters.</param>
+        internal static void RegisterCounters(BasicGameHost target)
         {
+            if (FrameStatistics.target != null)
+                return;
+
+            FrameStatistics.target = target;
+
             for (StatisticsCounterType i = 0; i < StatisticsCounterType.AmountTypes; ++i)
-                getMonitor(i)?.RegisterCounter(i);
+                getMonitor(i).RegisterCounter(i);
         }
 
         internal static void Increment(StatisticsCounterType type, long amount = 1)
         {
-            getMonitor(type)?.GetCounter(type).Add(amount);
+            if (target == null)
+                return;
+
+            getMonitor(type).GetCounter(type).Add(amount);
         }
+
+        private static BasicGameHost target;
     }
 
     public enum PerformanceCollectionType
