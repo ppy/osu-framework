@@ -76,7 +76,7 @@ namespace osu.Framework.Statistics
             if (target == null)
                 return;
 
-            getMonitor(type).GetCounter(type).Add(amount);
+            getMonitor(type)?.GetCounter(type)?.Add(amount);
         }
 
         private static BasicGameHost target;
