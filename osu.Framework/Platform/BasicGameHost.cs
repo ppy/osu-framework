@@ -27,7 +27,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameHost : Container, IpcHost
+    public abstract class BasicGameHost : Container, IIpcHost
     {
         public BasicGameWindow Window;
 

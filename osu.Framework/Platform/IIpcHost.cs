@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Platform
 {
-    public interface IpcHost
+    public interface IIpcHost
     {
         event Action<IpcMessage> MessageReceived;
 
