@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            GL.BlendFunc(src, dest);
+            GL.BlendFuncSeparate(src, dest, BlendingFactorSrc.One, BlendingFactorDest.One);
 
             lastSrcBlend = src;
             lastDestBlend = dest;
