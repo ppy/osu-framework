@@ -6,6 +6,7 @@ using osu.Framework.Graphics.Containers;
 using System.Linq;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
+using OpenTK.Graphics.ES20;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -48,7 +49,7 @@ namespace osu.Framework.Graphics.Performance
         {
             base.Load(game);
 
-            atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true);
+            atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
 
             Add(new FrameStatisticsDisplay(@"Input", game.Host.InputMonitor, atlas));
             Add(new FrameStatisticsDisplay(@"Update", game.Host.UpdateMonitor, atlas));

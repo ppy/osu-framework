@@ -27,14 +27,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalHeight;
 
         private TextureWrapMode internalWrapMode;
+        private All filteringMode;
 
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false)
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
+            this.filteringMode = filteringMode;
         }
 
         #region Disposal
@@ -270,8 +272,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(this);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Nearest : All.LinearMipmapLinear));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(manualMipmaps ? All.Nearest : All.Linear));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filteringMode));
 
                             updateWrapMode();
                         }

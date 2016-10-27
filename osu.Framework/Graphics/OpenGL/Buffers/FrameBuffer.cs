@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             if (withTexture)
             {
-                Texture = new TextureGLSingle(1, 1, true);
+                Texture = new TextureGLSingle(1, 1, true, All.Linear);
                 Texture.SetData(new TextureUpload(new byte[0]));
                 Texture.Upload();
 

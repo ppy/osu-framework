@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Textures
 
                         if (tex == null)
                         {
-                            tex = new Texture(1, 1, true);
+                            tex = new Texture(1, 1, true, All.Nearest);
                             tex.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
                         }
                         break;

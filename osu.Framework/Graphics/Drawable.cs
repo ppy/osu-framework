@@ -676,7 +676,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in Parent's coordinates.</returns>
         protected Quad ToParentSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+            return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -686,7 +686,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in screen coordinates.</returns>
         protected Quad ToScreenSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * DrawInfo.Matrix;
+            return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
 
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)

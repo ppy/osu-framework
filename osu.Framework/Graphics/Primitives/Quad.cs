@@ -33,6 +33,9 @@ namespace osu.Framework.Graphics.Primitives
             BottomRight = new Vector2(x + width, y + height);
         }
 
+        public static implicit operator Quad(Rectangle r) => FromRectangle(r);
+        public static implicit operator Quad(RectangleF r) => FromRectangle(r);
+
         public static Quad FromRectangle(RectangleF rectangle)
         {
             return new Quad(new Vector2(rectangle.Left, rectangle.Top),

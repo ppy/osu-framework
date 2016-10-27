@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Containers
 
             RectangleF glowRect = MaskingInfo.Value.MaskingRect.Inflate(GlowRadius);
             if (!ScreenSpaceMaskingQuad.HasValue)
-                ScreenSpaceMaskingQuad = new Quad(glowRect.X, glowRect.Y, glowRect.Width, glowRect.Height) * DrawInfo.Matrix;
+                ScreenSpaceMaskingQuad = Quad.FromRectangle(glowRect) * DrawInfo.Matrix;
 
             Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
                 glowRect.Left,

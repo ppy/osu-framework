@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
+using Rectangle = System.Drawing.Rectangle;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -13,10 +13,10 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.ES20;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.MathUtils;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.OpenGL
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
-        public static Rectangle Ortho { get; private set; }
+        public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
         public static bool UsingBackbuffer => lastFrameBuffer == 0;
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL
             PushScissor(new MaskingInfo
             {
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
-                MaskingRect = new Primitives.RectangleF(0, 0, size.X, size.Y),
+                MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
             }, true);
         }
@@ -241,6 +241,8 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
+
+            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -260,15 +262,17 @@ namespace osu.Framework.Graphics.OpenGL
             Viewport = actualRect;
 
             GL.Viewport(Viewport.Left, Viewport.Top, Viewport.Width, Viewport.Height);
+
+            UpdateScissorToCurrentViewportAndOrtho();
         }
 
-        private static Stack<Rectangle> orthoStack = new Stack<Rectangle>();
+        private static Stack<RectangleF> orthoStack = new Stack<RectangleF>();
 
         /// <summary>
         /// Applies a new orthographic projection rectangle.
         /// </summary>
         /// <param name="ortho">The orthographic projection rectangle.</param>
-        public static void PushOrtho(Rectangle ortho)
+        public static void PushOrtho(RectangleF ortho)
         {
             orthoStack.Push(ortho);
 
@@ -280,6 +284,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+
+            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         /// <summary>
@@ -292,7 +298,7 @@ namespace osu.Framework.Graphics.OpenGL
             FlushCurrentBatch();
 
             orthoStack.Pop();
-            Rectangle actualRect = orthoStack.Peek();
+            RectangleF actualRect = orthoStack.Peek();
 
             if (Ortho == actualRect)
                 return;
@@ -300,10 +306,33 @@ namespace osu.Framework.Graphics.OpenGL
 
             ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(Ortho.Left, Ortho.Right, Ortho.Bottom, Ortho.Top, -1, 1);
             Shader.SetGlobalProperty(@"g_ProjMatrix", ProjectionMatrix);
+
+            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
         private static Rectangle currentScissorRect;
+
+        public static void UpdateScissorToCurrentViewportAndOrtho()
+        {
+            RectangleF actualRect = Viewport;
+
+            Vector2 offset = actualRect.TopLeft - Ortho.TopLeft;
+
+            Rectangle scissorRect = new Rectangle(
+                currentScissorRect.X + (int)Math.Floor(offset.X),
+                Viewport.Height - currentScissorRect.Bottom - (int)Math.Ceiling(offset.Y),
+                currentScissorRect.Width,
+                currentScissorRect.Height);
+
+            if (!Precision.AlmostEquals(offset, Vector2.Zero))
+            {
+                ++scissorRect.Width;
+                ++scissorRect.Height;
+            }
+
+            GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
+        }
 
         private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
@@ -352,7 +381,8 @@ namespace osu.Framework.Graphics.OpenGL
                 currentScissorRect = actualRect;
             else
                 currentScissorRect.Intersect(actualRect);
-            GL.Scissor(currentScissorRect.X, Viewport.Height - currentScissorRect.Bottom, currentScissorRect.Width, currentScissorRect.Height);
+
+            UpdateScissorToCurrentViewportAndOrtho();
         }
 
         internal static void FlushCurrentBatch()
@@ -478,7 +508,7 @@ namespace osu.Framework.Graphics.OpenGL
     public struct MaskingInfo : IEquatable<MaskingInfo>
     {
         public Rectangle ScreenSpaceAABB;
-        public Primitives.RectangleF MaskingRect;
+        public RectangleF MaskingRect;
 
         /// <summary>
         /// This matrix transforms screen space coordinates to masking space (likely the parent

@@ -8,58 +8,69 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK;
 using OpenTK.Graphics.ES20;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.OpenGL.Textures;
+using System;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Containers
 {
     public class BufferedContainerDrawNode : ContainerDrawNode
     {
         public FrameBuffer FrameBuffer;
-        public Rectangle DrawRectangle;
+        public Primitives.RectangleF DrawRectangle;
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
 
-        protected override void Draw()
+        protected void DrawToFrameBuffer()
         {
             if (!FrameBuffer.IsInitialized)
                 FrameBuffer.Initialize();
 
+            // These additional render buffers are only required if e.g. depth
+            // or stencil information needs to also be stored somewhere.
             foreach (var f in Formats)
                 FrameBuffer.Attach(f);
 
+            // This setter will also take care of allocating a texture of appropriate size within the framebuffer.
             FrameBuffer.Size = new Vector2(DrawRectangle.Width, DrawRectangle.Height);
 
             FrameBuffer.Bind();
 
-            // Set viewport to the texture size
-            GLWrapper.PushViewport(new Rectangle(0, 0, DrawRectangle.Width, DrawRectangle.Height));
-            // We need to draw children as if they were zero-based to the top-left of the texture
-            // so we make the new zero be this container's position without affecting children in any negative ways
-            GLWrapper.PushOrtho(new Rectangle(DrawRectangle.X, DrawRectangle.Y, DrawRectangle.Width, DrawRectangle.Height));
+            // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
+            GLWrapper.PushViewport(new Rectangle(0, 0, FrameBuffer.Texture.Width, FrameBuffer.Texture.Height));
 
+            // We need to draw children as if they were zero-based to the top-left of the texture.
+            // We can do this by adding a translation component to our (orthogonal) projection matrix.
+            GLWrapper.PushOrtho(DrawRectangle);
+
+            // The actual drawing of children.
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-            // The actual Draw call
             base.Draw();
 
             GLWrapper.PopOrtho();
             GLWrapper.PopViewport();
 
             FrameBuffer.Unbind();
+        }
 
-            GLWrapper.SetBlend(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
+        protected void DrawToScreen()
+        {
+            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
 
             Shader.Bind();
 
-            Rectangle textureRect = new Rectangle(0, 0, DrawRectangle.Width, DrawRectangle.Height);
-            FrameBuffer.Texture.Draw(new Quad(DrawRectangle.X, DrawRectangle.Y, DrawRectangle.Width, DrawRectangle.Height), textureRect, DrawInfo.Colour, null);
+            // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
+            Primitives.RectangleF textureRect = new Primitives.RectangleF(0, FrameBuffer.Texture.Height, FrameBuffer.Texture.Width, -FrameBuffer.Texture.Height);
+            if (FrameBuffer.Texture.Bind())
+                // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
+                FrameBuffer.Texture.Draw(DrawRectangle, textureRect, Color4.White);
 
             Shader.Unbind();
+        }
 
-            // In the case of nested framebuffer containerse we need to draw to
-            // the last framebuffer container immediately, so let's force it
-            Batch.Draw();
+        protected override void Draw()
+        {
+            DrawToFrameBuffer();
+            DrawToScreen();
         }
     }
 }
