@@ -27,7 +27,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameHost : Container
+    public abstract class BasicGameHost : Container, IpcHost
     {
         public BasicGameWindow Window;
 
@@ -48,11 +48,11 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
-        protected internal event Action<IpcMessage> MessageReceived;
+        public event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        protected internal virtual Task SendMessage(IpcMessage message)
+        public virtual Task SendMessage(IpcMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }

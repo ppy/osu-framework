@@ -8,10 +8,10 @@ namespace osu.Framework.Platform
 {
     public class IpcChannel<T> : IDisposable
     {
-        private BasicGameHost host;
+        private IpcHost host;
         public event Action<T> MessageReceived;
     
-        public IpcChannel(BasicGameHost host)
+        public IpcChannel(IpcHost host)
         {
             this.host = host;
             this.host.MessageReceived += handleMessage;
