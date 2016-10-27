@@ -42,7 +42,7 @@ namespace osu.Framework.Desktop.Platform
             base.LoadGame(game);
         }
 
-        protected override async Task SendMessage(IpcMessage message)
+        public override async Task SendMessage(IpcMessage message)
         {
             await IpcProvider.SendMessage(message);
         }

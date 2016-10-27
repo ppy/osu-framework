@@ -363,8 +363,8 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                if (size == Vector2.Zero)
-                    size = Vector2.One;
+                if ((value & Axes.X) > 0 && Width == 0) Width = 1;
+                if ((value & Axes.Y) > 0 && Height == 0) Height = 1;
 
                 relativeSizeAxes = value;
 
