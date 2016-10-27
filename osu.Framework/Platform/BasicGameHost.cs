@@ -138,15 +138,11 @@ namespace osu.Framework.Platform
 
         protected override Container Content => inputManager;
 
-        private static BasicGameHost instance;
-
         private string name;
         public override string Name => name;
 
         protected BasicGameHost(string gameName = @"")
         {
-            instance = this;
-
             name = gameName;
 
             threads = new[]
@@ -166,9 +162,10 @@ namespace osu.Framework.Platform
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = DisplayDevice.Default.RefreshRate * 4;
 
-            // This static method uses BasicGameHost.GetInstanceIfExists() to get access
-            // to InputMonitor, UpdateMonitor and DrawMonitor.
-            FrameStatistics.RegisterCounters();
+            // Note, that RegisterCounters only has an effect for the first
+            // BasicGameHost to be passed into it; i.e. the first BasicGameHost
+            // to be instantiated.
+            FrameStatistics.RegisterCounters(this);
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
@@ -176,8 +173,6 @@ namespace osu.Framework.Platform
 
             AddInternal(inputManager = new UserInputManager(this));
         }
-
-        public static BasicGameHost GetInstanceIfExists() => instance;
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));
 
