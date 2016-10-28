@@ -25,6 +25,10 @@ namespace osu.Framework.Audio.Track
             return track;
         }
 
+        /// <summary>
+        /// Specify an AudioTrack which should get exclusive playback over everything else.
+        /// Will pause all other tracks and throw away any existing exclusive track.
+        /// </summary>
         public void SetExclusive(AudioTrack track)
         {
             if (exclusiveTrack == track) return;
