@@ -19,6 +19,7 @@ namespace osu.Framework.Graphics.Containers
         public Primitives.RectangleF DrawRectangle;
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
+        public bool ShallDraw;
 
         protected void DrawToFrameBuffer()
         {
@@ -69,7 +70,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Draw()
         {
-            DrawToFrameBuffer();
+            if (ShallDraw)
+                DrawToFrameBuffer();
             DrawToScreen();
         }
     }
