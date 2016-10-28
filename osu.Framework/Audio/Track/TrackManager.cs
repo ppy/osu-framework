@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Linq;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
@@ -8,6 +10,8 @@ namespace osu.Framework.Audio.Track
     public class TrackManager : AudioCollectionManager<AudioTrack>
     {
         IResourceStore<byte[]> store;
+
+        AudioTrack exclusiveTrack;
 
         public TrackManager(IResourceStore<byte[]> store)
         {
@@ -19,6 +23,30 @@ namespace osu.Framework.Audio.Track
             AudioTrackBass track = new AudioTrackBass(store.GetStream(name));
             AddItem(track);
             return track;
+        }
+
+        public void SetExclusive(AudioTrack track)
+        {
+            if (exclusiveTrack == track) return;
+
+            Items.ForEach(i => i.Stop());
+            
+            AddItem(track);
+
+            exclusiveTrack = track;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (exclusiveTrack?.HasCompleted != false)
+                findExclusiveTrack();
+        }
+
+        private void findExclusiveTrack()
+        {
+            exclusiveTrack = Items.FirstOrDefault();
         }
     }
 }
