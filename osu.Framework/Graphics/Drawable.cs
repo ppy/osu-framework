@@ -419,7 +419,7 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        protected virtual IFrameBasedClock Clock => Parent?.Clock;
+        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
 
         protected double Time => Clock?.CurrentTime ?? 0;
 
@@ -713,21 +713,19 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
+        public bool IsAlive => IsAliveAt(Time);
+
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public virtual bool IsAlive
+        public bool IsAliveAt(double time)
         {
-            get
-            {
-                if (Parent == null) return false;
+            if (Parent == null) return false;
 
-                if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
-                    return true;
+            if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
+                return true;
 
-                double t = Time;
-                return t >= LifetimeStart && t < LifetimeEnd;
-            }
+            return time >= LifetimeStart && time < LifetimeEnd;
         }
 
         /// <summary>
@@ -777,7 +775,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms == null || transforms.Count == 0) return;
 
-            transforms.Update();
+            transforms.Update(Time);
 
             foreach (ITransform t in transforms.AliveItems)
                 t.Apply(this);

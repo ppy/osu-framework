@@ -126,7 +126,7 @@ namespace osu.Framework.Platform
         public Scheduler InputScheduler => inputThread.Scheduler;
         protected Scheduler UpdateScheduler => updateThread.Scheduler;
 
-        protected override IFrameBasedClock Clock => updateThread.Clock;
+        protected internal override IFrameBasedClock Clock => updateThread.Clock;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>

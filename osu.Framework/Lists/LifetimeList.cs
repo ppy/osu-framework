@@ -20,19 +20,24 @@ namespace osu.Framework.Lists
         public SortedList<T> AliveItems { get; }
         private List<bool> current = new List<bool>();
 
+        //we may want to eventually remove this.
+        double lastUpdateTime;
+
         /// <summary>
         /// Updates the life status of this LifetimeList's children.
         /// </summary>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update()
+        public bool Update(double time)
         {
+            lastUpdateTime = time;
+
             bool anyAliveChanged = false;
 
             for (int i = 0; i < Count; i++)
             {
                 var item = this[i];
 
-                if (item.IsAlive)
+                if (item.IsAliveAt(time))
                 {
                     if (!current[i])
                     {
@@ -66,7 +71,7 @@ namespace osu.Framework.Lists
 
         public new int Add(T item)
         {
-            if (item.IsAlive && !item.IsLoaded)
+            if (item.IsAliveAt(lastUpdateTime) && !item.IsLoaded)
                 LoadRequested?.Invoke(item);
 
             int i = base.Add(item);

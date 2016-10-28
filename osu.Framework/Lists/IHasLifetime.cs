@@ -8,7 +8,7 @@ namespace osu.Framework.Lists
         double LifetimeStart { get; }
         double LifetimeEnd { get; }
 
-        bool IsAlive { get; }
+        bool IsAliveAt(double time);
         bool IsLoaded { get; }
         bool RemoveWhenNotAlive { get; }
     }
