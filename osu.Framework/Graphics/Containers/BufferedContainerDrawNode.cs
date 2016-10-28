@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.PushOrtho(DrawRectangle);
 
             // The actual drawing of children.
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            GLWrapper.ClearColour(Color4.Transparent);
             base.Draw();
 
             GLWrapper.PopOrtho();

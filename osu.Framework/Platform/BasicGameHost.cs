@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
@@ -244,7 +245,7 @@ namespace osu.Framework.Platform
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
                 GLWrapper.Reset(DrawSize);
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                GLWrapper.ClearColour(Color4.Black);
             }
 
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))

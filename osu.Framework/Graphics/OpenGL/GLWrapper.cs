@@ -53,6 +53,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
 
+            GL.ClearColor(Color4.Black);
+
             IsInitialized = true;
         }
 
@@ -91,6 +93,19 @@ namespace osu.Framework.Graphics.OpenGL
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
             }, true);
+        }
+
+        // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
+        private static Color4 clearColour = new Color4(-1, -1, -1, -1);
+        public static void ClearColour(Color4 c)
+        {
+            if (clearColour != c)
+            {
+                clearColour = c;
+                GL.ClearColor(clearColour);
+            }
+
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
         }
 
         /// <summary>
