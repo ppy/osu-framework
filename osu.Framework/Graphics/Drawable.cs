@@ -419,9 +419,13 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
+        //todo: remove recursive lookup of clock
+        //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
         protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
 
-        protected double Time => Clock?.CurrentTime ?? 0;
+        private double time;
+
+        protected double Time => Clock?.CurrentTime ?? time;
 
         const float visibility_cutoff = 0.0001f;
 
@@ -713,19 +717,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
-        public bool IsAlive => IsAliveAt(Time);
+        public void UpdateTime(double time)
+        {
+            this.time = time;
+        }
 
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public bool IsAliveAt(double time)
+        public bool IsAlive
         {
-            if (Parent == null) return false;
+            get
+            {
+                if (Parent == null) return false;
 
-            if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
-                return true;
+                if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
+                    return true;
 
-            return time >= LifetimeStart && time < LifetimeEnd;
+                return Time >= LifetimeStart && Time < LifetimeEnd;
+            }
         }
 
         /// <summary>

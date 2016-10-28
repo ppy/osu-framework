@@ -25,15 +25,21 @@ namespace osu.Framework.Graphics.Transformations
 
         protected double? CurrentTime;
 
-        public bool IsAliveAt(double time)
+        public void UpdateTime(double time)
         {
             CurrentTime = time;
+        }
 
-            //we may not have reached the start of this transform yet.
-            if (StartTime > CurrentTime)
-                return false;
+        public bool IsAlive
+        {
+            get
+            {
+                //we may not have reached the start of this transform yet.
+                if (StartTime > CurrentTime)
+                    return false;
 
-            return EndTime >= CurrentTime || LoopCount != CurrentLoopCount;
+                return EndTime >= CurrentTime || LoopCount != CurrentLoopCount;
+            }
         }
 
         public ITransform Clone()
@@ -75,11 +81,6 @@ namespace osu.Framework.Graphics.Transformations
 
         public virtual void Apply(Drawable d)
         {
-            if (d.Clock == null)
-                return;
-
-            CurrentTime = d.Clock.CurrentTime;
-
             if (CurrentTime > EndTime && LoopCount != CurrentLoopCount)
             {
                 CurrentLoopCount++;

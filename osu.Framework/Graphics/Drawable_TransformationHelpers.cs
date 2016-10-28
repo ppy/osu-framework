@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics
             foreach (ITransform t in operateTransforms)
             {
                 t.Shift(offset);
+                t.UpdateTime(Time);
                 t.Apply(this);
             }
 
@@ -203,7 +204,10 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
                 Transforms.Add(transform);
 
@@ -262,7 +266,10 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
                 Transforms.Add(transform);
 
