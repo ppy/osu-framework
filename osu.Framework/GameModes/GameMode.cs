@@ -106,7 +106,7 @@ namespace osu.Framework.GameModes
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        public bool Push(GameMode mode)
+        public virtual bool Push(GameMode mode)
         {
             Debug.Assert(ChildGameMode == null);
 
