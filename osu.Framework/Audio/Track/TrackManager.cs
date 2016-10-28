@@ -30,10 +30,11 @@ namespace osu.Framework.Audio.Track
             if (exclusiveTrack == track) return;
 
             Items.ForEach(i => i.Stop());
-            
-            AddItem(track);
 
+            exclusiveTrack?.Dispose();
             exclusiveTrack = track;
+
+            AddItem(track);
         }
 
         public override void Update()
