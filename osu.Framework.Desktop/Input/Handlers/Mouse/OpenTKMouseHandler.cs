@@ -33,6 +33,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             {
                 state = OpenTK.Input.Mouse.GetCursorState();
                 nativePosition = host.Window.PointToClient(new Point(state.X, state.Y));
+
+                //we want to still receive position updated when inactive, so reset the state only after reading the position.
+                if (!host.IsActive)
+                    state = new MouseState();
             }, 0, 0));
 
             return true;

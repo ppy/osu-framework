@@ -41,6 +41,8 @@ namespace osu.Framework.Platform
                 Deactivated?.Invoke();
         }
 
+        public bool IsActive => inputThread.IsActive;
+
         public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event Action Activated;

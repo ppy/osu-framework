@@ -28,7 +28,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
-                state = OpenTK.Input.Keyboard.GetState();
+                state = host.IsActive ? OpenTK.Input.Keyboard.GetState() : new KeyboardState();
             }, 0, 0));
 
             return true;
