@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Textures
             {
                 if (whitePixel == null)
                 {
-                    TextureAtlas atlas = new TextureAtlas(2, 2, true);
+                    TextureAtlas atlas = new TextureAtlas(3, 3, true);
                     whitePixel = atlas.GetWhitePixel();
                     whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
                 }
