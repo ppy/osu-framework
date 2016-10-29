@@ -162,7 +162,7 @@ namespace osu.Framework.Platform
             };
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
-            MaximumDrawHz = DisplayDevice.Default.RefreshRate * 4;
+            MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
             // Note, that RegisterCounters only has an effect for the first
             // BasicGameHost to be passed into it; i.e. the first BasicGameHost
