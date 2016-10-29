@@ -148,7 +148,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        box.OnUpdate += delegate { box.Rotation += 0.05f; };
+                        box.OnUpdate += delegate { box.Rotation += 0.05f; box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01); };
                         break;
                     }
 
