@@ -448,7 +448,7 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null, null, null);
 

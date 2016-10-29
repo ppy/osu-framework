@@ -341,6 +341,9 @@ namespace osu.Framework.Graphics.Primitives
             return dist.LengthSquared;
         }
 
+        // This could be optimized further in the future, but made for a simple implementation right now.
+        public Rectangle AABB => ((Quad)this).AABB;
+
         /// <summary>Converts the specified <see cref="T:System.Drawing.Rectangle"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.Rectangle"></see> structure.</returns>
         /// <param name="r">The <see cref="T:System.Drawing.Rectangle"></see> structure to convert. </param>
