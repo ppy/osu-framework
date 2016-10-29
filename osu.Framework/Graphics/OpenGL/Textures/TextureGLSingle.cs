@@ -26,8 +26,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalWidth;
         private int internalHeight;
 
-        private TextureWrapMode internalWrapMode;
-
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
         public TextureGLSingle(int width, int height, bool manualMipmaps = false)
@@ -180,15 +178,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
         }
 
-        private void updateWrapMode()
-        {
-            Debug.Assert(!isDisposed);
-
-            internalWrapMode = WrapMode;
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)internalWrapMode);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)internalWrapMode);
-        }
-
         public override void SetData(TextureUpload upload)
         {
             Debug.Assert(!isDisposed);
@@ -217,10 +206,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 return false;
 
             GLWrapper.BindTexture(this);
-
-            if (internalWrapMode != WrapMode)
-                updateWrapMode();
-
             return true;
         }
 
@@ -272,8 +257,6 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GLWrapper.BindTexture(this);
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Nearest : All.LinearMipmapLinear));
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(manualMipmaps ? All.Nearest : All.Linear));
-
-                            updateWrapMode();
                         }
                         else
                             GLWrapper.BindTexture(this);
