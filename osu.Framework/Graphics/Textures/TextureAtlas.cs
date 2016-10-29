@@ -7,7 +7,6 @@ using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.OpenGL;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.Textures
 
     class TextureGLAtlasWhite : TextureGLSub
     {
-        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(1, 1, 1, 1), parent)
+        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
         {
         }
 
