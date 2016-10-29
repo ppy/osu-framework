@@ -7,6 +7,7 @@ using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Graphics.OpenGL;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -19,7 +20,7 @@ namespace osu.Framework.Graphics.Textures
 
     class TextureGLAtlasWhite : TextureGLSub
     {
-        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
+        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(1, 1, 1, 1), parent)
         {
         }
 
@@ -35,6 +36,8 @@ namespace osu.Framework.Graphics.Textures
 
     public class TextureAtlas
     {
+        private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS;
+
         private List<Rectangle> subTextureBounds = new List<Rectangle>();
         private TextureGLSingle atlasTexture;
 
@@ -65,7 +68,7 @@ namespace osu.Framework.Graphics.Textures
 
             atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps);
 
-            using (var whiteTex = Add(2, 2))
+            using (var whiteTex = Add(3, 3))
             {
                 //add an empty white rect to use for solid box drawing (shader optimisation).
                 byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
@@ -89,14 +92,14 @@ namespace osu.Framework.Graphics.Textures
             foreach (Rectangle bounds in subTextureBounds)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                res.X = Math.Max(res.X, bounds.Right + 4);
+                res.X = Math.Max(res.X, bounds.Right + PADDING);
                 maxY = Math.Max(maxY, bounds.Bottom);
             }
 
             if (res.X + width > atlasWidth)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                currentY = maxY + 4;
+                currentY = maxY + PADDING;
                 subTextureBounds.Clear();
                 res = findPosition(width, height);
             }
