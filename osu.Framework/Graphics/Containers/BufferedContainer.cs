@@ -8,15 +8,37 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES20;
 using osu.Framework.Threading;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Shaders;
+using System;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
     public class BufferedContainer : Container
     {
+        private Vector2 blurSigma = new Vector2(50, 50);
+        public Vector2 BlurSigma
+        {
+            get { return blurSigma; }
+            set
+            {
+                if (blurSigma == value)
+                    return;
+
+                blurSigma = value;
+                ForceRedraw();
+            }
+        }
+
+        private Shader blurShaderHorizontal;
+        private Shader blurShaderVertical;
+
         public bool CacheDrawnFrameBuffer = false;
         public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
 
-        private FrameBuffer frameBuffer = new FrameBuffer();
+        // We need 2 frame buffers such that we can accumulate post-processing effects in a
+        // ping-pong fashion going back and forth (reading from one buffer, writing into the other).
+        private FrameBuffer[] frameBuffers = new FrameBuffer[2];
 
         // If this counter contains a value larger then 0, then we have to redraw.
         private AtomicCounter forceRedraw = new AtomicCounter();
@@ -28,9 +50,23 @@ namespace osu.Framework.Graphics.Containers
 
         public BufferedContainer()
         {
+            for (int i = 0; i < frameBuffers.Length; ++i)
+                frameBuffers[i] = new FrameBuffer();
+
             // The initial draw cannot be cached, and thus we need to initialize
             // with a forced draw.
             ForceRedraw();
+        }
+
+        public override void Load(BaseGame game)
+        {
+            base.Load(game);
+
+            if (blurShaderHorizontal == null)
+                blurShaderHorizontal = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.BlurHorizontal));
+
+            if (blurShaderVertical == null)
+                blurShaderVertical = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.BlurVertical));
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
@@ -41,10 +77,15 @@ namespace osu.Framework.Graphics.Containers
 
             n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBf;
             n.Batch = quadBatch;
-            n.FrameBuffer = frameBuffer;
+            n.FrameBuffers = frameBuffers;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
+
             n.ForceRedraw = forceRedraw;
             n.BackgroundColour = BackgroundColour;
+
+            n.BlurSigma = BlurSigma;
+            n.BlurShaderHorizontal = blurShaderHorizontal;
+            n.BlurShaderVertical = blurShaderVertical;
 
             base.ApplyDrawNode(node);
 
@@ -64,6 +105,7 @@ namespace osu.Framework.Graphics.Containers
         public void ForceRedraw()
         {
             forceRedraw.Increment();
+            Invalidate(Invalidation.DrawNode);
         }
 
         protected override void Update()
@@ -92,7 +134,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
-            frameBuffer.Dispose();
+            foreach (FrameBuffer frameBuffer in frameBuffers)
+                frameBuffer.Dispose();
+
             base.Dispose(isDisposing);
         }
     }

@@ -190,14 +190,14 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         /// <param name="src">The source blending factor.</param>
         /// <param name="dest">The destination blending factor.</param>
-        public static void SetBlend(BlendingFactorSrc src, BlendingFactorDest dest)
+        public static void SetBlend(BlendingFactorSrc src, BlendingFactorDest dest, BlendingFactorSrc srcAlpha = BlendingFactorSrc.One, BlendingFactorDest destAlpha = BlendingFactorDest.One)
         {
             if (lastSrcBlend == src && lastDestBlend == dest)
                 return;
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(src, dest, BlendingFactorSrc.One, BlendingFactorDest.One);
+            GL.BlendFuncSeparate(src, dest, srcAlpha, destAlpha);
 
             lastSrcBlend = src;
             lastDestBlend = dest;

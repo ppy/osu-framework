@@ -4,16 +4,15 @@
 
 #include "sh_Blur2D.h";
 
-varying vec4 v_Colour;
 varying vec2 v_TexCoord;
 
 uniform sampler2D m_Sampler;
 
-uniform vec2 texSize;
-
-uniform int radius;
+uniform vec2 g_TexSize;
+uniform int g_Radius;
+uniform float g_Sigma;
 
 void main(void)
 {
-	gl_FragColor = v_Colour * blur(m_Sampler, radius, vec2(1.0, 0.0), v_TexCoord, texSize);
+	gl_FragColor = blur(m_Sampler, g_Radius, vec2(1.0, 0.0), v_TexCoord, g_TexSize, g_Sigma);
 }

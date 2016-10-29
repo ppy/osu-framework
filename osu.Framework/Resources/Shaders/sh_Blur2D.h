@@ -1,23 +1,31 @@
 #ifdef GL_ES
-    precision mediump float;
+precision mediump float;
 #endif
 
-vec4 blur(sampler2D tex, int radius, vec2 direction, vec2 texCoord, vec2 texSize)
+#define INV_SQRT_2PI 0.39894
+
+float computeGauss(in float x, in float sigma)
 {
-	vec4 sum = vec4(0.0, 0.0, 0.0, 0.0);
+	return INV_SQRT_2PI * exp(-0.5*x*x / (sigma*sigma)) / sigma;
+}
 
-    sum += pow(texture2D(tex, texCoord), vec4(2.0));
-	//Probably not the smartest way to do this
-	//cap at radius = 200 for D3D unrolling
-    for (int i = 1; i <= 200; i++)
-    {
-        sum += pow(texture2D(tex, texCoord + direction * float(i) / texSize), vec4(2.0));
-        sum += pow(texture2D(tex, texCoord + direction * float(-i) / texSize), vec4(2.0));
-    	if (i == radius)
-    		break;
-    }
-    sum /= float(radius) * 2.0 + 1.0;
-    sum = sqrt(sum);
+vec4 blur(sampler2D tex, int radius, vec2 direction, vec2 texCoord, vec2 texSize, float sigma)
+{
+	float factor = computeGauss(0.0, sigma);
+	vec4 sum = texture2D(tex, texCoord) * factor;
 
-    return sum;
+	float totalFactor = factor;
+
+	for (int i = 2; i <= 200; i += 2)
+	{
+		float x = float(i) - 0.5;
+		factor = computeGauss(x, sigma) * 2.0;
+		totalFactor += 2.0 * factor;
+		sum += texture2D(tex, texCoord + direction * x / texSize) * factor;
+		sum += texture2D(tex, texCoord - direction * x / texSize) * factor;
+		if (i >= radius)
+			break;
+	}
+
+    return sum / totalFactor;
 }
