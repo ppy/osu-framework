@@ -13,10 +13,5 @@ namespace osu.Framework.Graphics.Transformations
             base.Apply(d);
             d.Position = new Vector2(d.Position.X, CurrentValue);
         }
-
-        public TransformPositionY(IClock clock)
-            : base(clock)
-        {
-        }
     }
 }

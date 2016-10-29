@@ -12,10 +12,5 @@ namespace osu.Framework.Graphics.Transformations
             base.Apply(d);
             d.Alpha = CurrentValue;
         }
-
-        public TransformAlpha(IClock clock)
-            : base(clock)
-        {
-        }
     }
 }

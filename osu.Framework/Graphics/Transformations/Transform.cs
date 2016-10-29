@@ -23,31 +23,23 @@ namespace osu.Framework.Graphics.Transformations
 
         public double Duration => EndTime - StartTime;
 
-        protected IClock Clock;
+        protected double? CurrentTime;
 
-        protected double Time => Clock.CurrentTime;
+        public void UpdateTime(double time)
+        {
+            CurrentTime = time;
+        }
 
         public bool IsAlive
         {
             get
             {
-                //we could not be completely initialised yet.
-                if (Clock == null)
-                    return true;
-
                 //we may not have reached the start of this transform yet.
-                if (StartTime > Clock.CurrentTime)
+                if (StartTime > CurrentTime)
                     return false;
 
-                return EndTime >= Clock.CurrentTime || LoopCount != CurrentLoopCount;
+                return EndTime >= CurrentTime || LoopCount != CurrentLoopCount;
             }
-        }
-
-        public Transform(IClock clock)
-        {
-            Debug.Assert(clock != null, @"Transform must be constructed with a non-null clock.");
-
-            Clock = clock;
         }
 
         public ITransform Clone()
@@ -75,7 +67,7 @@ namespace osu.Framework.Graphics.Transformations
             LoopCount = loopCount;
         }
 
-        public abstract T CurrentValue { get; }
+        protected abstract T CurrentValue { get; }
 
         public double LifetimeStart => StartTime;
 
@@ -83,13 +75,13 @@ namespace osu.Framework.Graphics.Transformations
 
         public bool LoadRequired => false;
 
-        public bool RemoveWhenNotAlive => Time > EndTime;
+        public bool RemoveWhenNotAlive => CurrentTime > EndTime;
 
         public bool IsLoaded => true;
 
         public virtual void Apply(Drawable d)
         {
-            if (Time > EndTime && LoopCount != CurrentLoopCount)
+            if (CurrentTime > EndTime && LoopCount != CurrentLoopCount)
             {
                 CurrentLoopCount++;
                 double duration = Duration;
