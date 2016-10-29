@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public class BufferedContainer : Container
     {
-        private Vector2 blurSigma = new Vector2(50, 50);
+        private Vector2 blurSigma = Vector2.Zero;
         public Vector2 BlurSigma
         {
             get { return blurSigma; }
