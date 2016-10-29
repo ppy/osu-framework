@@ -41,12 +41,7 @@ namespace osu.Framework.Statistics
             Counters[(int)type] = new AtomicCounter();
         }
 
-        public AtomicCounter GetCounter(StatisticsCounterType counterType)
-        {
-            AtomicCounter counter = Counters[(int)counterType];
-            Debug.Assert(counter != null, "Requested inexistent counter.");
-            return counter;
-        }
+        public AtomicCounter GetCounter(StatisticsCounterType counterType) => Counters[(int)counterType];
 
         /// <summary>
         /// Start collecting a type of passing time.

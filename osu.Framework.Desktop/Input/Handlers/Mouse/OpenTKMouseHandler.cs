@@ -54,18 +54,18 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public Vector2 Size => host.DrawSize;
 
-        public bool? Left => state.LeftButton == ButtonState.Pressed;
+        public bool? Left => state.LeftButton == ButtonState.Pressed && host.IsActive;
 
-        public bool? Right => state.RightButton == ButtonState.Pressed;
+        public bool? Right => state.RightButton == ButtonState.Pressed && host.IsActive;
 
-        public bool? Middle => state.MiddleButton == ButtonState.Pressed;
+        public bool? Middle => state.MiddleButton == ButtonState.Pressed && host.IsActive;
 
-        public bool? Back => state.XButton1 == ButtonState.Pressed;
+        public bool? Back => state.XButton1 == ButtonState.Pressed && host.IsActive;
 
-        public bool? Forward => state.XButton2 == ButtonState.Pressed;
+        public bool? Forward => state.XButton2 == ButtonState.Pressed && host.IsActive;
 
-        public bool? WheelUp => wheelDiff > 0;
-        public bool? WheelDown => wheelDiff < 0;
+        public bool? WheelUp => wheelDiff > 0 && host.IsActive;
+        public bool? WheelDown => wheelDiff < 0 && host.IsActive;
 
         public List<Vector2> IntermediatePositions => new List<Vector2>();
 

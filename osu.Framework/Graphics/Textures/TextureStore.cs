@@ -61,21 +61,7 @@ namespace osu.Framework.Graphics.Textures
                     return tex = cachedTex != null ? new Texture(cachedTex) : null;
                 }
 
-                switch (name)
-                {
-                    case @"_whitepixel":
-                        tex = atlas?.GetWhitePixel();
-
-                        if (tex == null)
-                        {
-                            tex = new Texture(1, 1, true, All.Nearest);
-                            tex.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
-                        }
-                        break;
-                    default:
-                        tex = getTexture(name);
-                        break;
-                }
+                tex = getTexture(name);
 
                 //load available mipmaps
                 //int level = 1;

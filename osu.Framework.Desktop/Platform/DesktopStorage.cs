@@ -29,7 +29,7 @@ namespace osu.Framework.Desktop.Platform
             switch (mode)
             {
                 case FileAccess.Read:
-                    return File.Open(path, FileMode.Open, mode);
+                    return File.Open(path, FileMode.Open, mode, FileShare.Read);
                 default:
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                     return File.Open(path, FileMode.OpenOrCreate, mode);

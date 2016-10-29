@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics
             foreach (ITransform t in operateTransforms)
             {
                 t.Shift(offset);
+                t.UpdateTime(Time);
                 t.Apply(this);
             }
 
@@ -139,7 +140,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
-            TransformAlpha tr = new TransformAlpha(Clock)
+            TransformAlpha tr = new TransformAlpha
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -167,7 +168,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
-            TransformAlpha tr = new TransformAlpha(Clock)
+            TransformAlpha tr = new TransformAlpha
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -203,7 +204,10 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
                 Transforms.Add(transform);
 
@@ -213,25 +217,25 @@ namespace osu.Framework.Graphics
         public Drawable FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformAlpha));
-            return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
+            return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
         }
 
         public Drawable RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformRotation));
-            return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation(Clock));
+            return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
         public Drawable MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionX));
-            return transformFloatTo(DrawPosition.X, destination, duration, easing, new TransformPositionX(Clock));
+            return transformFloatTo(DrawPosition.X, destination, duration, easing, new TransformPositionX());
         }
 
         public Drawable MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionY));
-            return transformFloatTo(DrawPosition.Y, destination, duration, easing, new TransformPositionY(Clock));
+            return transformFloatTo(DrawPosition.Y, destination, duration, easing, new TransformPositionY());
         }
 
         #endregion
@@ -262,7 +266,10 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
                 Transforms.Add(transform);
 
@@ -272,31 +279,31 @@ namespace osu.Framework.Graphics
         public Drawable ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformScale));
-            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale(Clock));
+            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public Drawable ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformScale));
-            return transformVectorTo(Scale, newScale, duration, easing, new TransformScale(Clock));
+            return transformVectorTo(Scale, newScale, duration, easing, new TransformScale());
         }
 
         public Drawable ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformSize));
-            return transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize(Clock));
+            return transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public Drawable ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformSize));
-            return transformVectorTo(Size, newSize, duration, easing, new TransformSize(Clock));
+            return transformVectorTo(Size, newSize, duration, easing, new TransformSize());
         }
 
         public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPosition));
-            return transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition(Clock));
+            return transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
         }
 
         public Drawable MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
@@ -324,7 +331,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -346,7 +353,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,

@@ -8,21 +8,16 @@ namespace osu.Framework.Graphics.Transformations
 {
     public abstract class TransformFloat : Transform<float>
     {
-        public override float CurrentValue
+        protected override float CurrentValue
         {
             get
             {
-                double time = Time;
+                double time = CurrentTime ?? 0;
                 if (time < StartTime) return StartValue;
                 if (time >= EndTime) return EndValue;
 
                 return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
             }
-        }
-
-        protected TransformFloat(IClock clock)
-            : base(clock)
-        {
         }
     }
 }

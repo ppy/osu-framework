@@ -28,7 +28,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameHost : Container
+    public abstract class BasicGameHost : Container, IIpcHost
     {
         public BasicGameWindow Window;
 
@@ -42,6 +42,8 @@ namespace osu.Framework.Platform
                 Deactivated?.Invoke();
         }
 
+        public bool IsActive => inputThread.IsActive;
+
         public bool IsPrimaryInstance { get; protected set; } = true;
 
         public event Action Activated;
@@ -49,16 +51,16 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
-        protected internal event Action<IpcMessage> MessageReceived;
+        public event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        protected internal virtual Task SendMessage(IpcMessage message)
+        public virtual Task SendMessage(IpcMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }
 
-        public virtual BasicStorage Storage { get; set; } //public set currently required for visualtests setup.
+        public virtual BasicStorage Storage { get; protected set; } //public set currently required for visualtests setup.
 
         public override bool IsVisible => true;
 
@@ -125,7 +127,7 @@ namespace osu.Framework.Platform
         public Scheduler InputScheduler => inputThread.Scheduler;
         protected Scheduler UpdateScheduler => updateThread.Scheduler;
 
-        protected override IFrameBasedClock Clock => updateThread.Clock;
+        protected internal override IFrameBasedClock Clock => updateThread.Clock;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
@@ -139,15 +141,11 @@ namespace osu.Framework.Platform
 
         protected override Container Content => inputManager;
 
-        private static BasicGameHost instance;
-
         private string name;
         public override string Name => name;
 
         protected BasicGameHost(string gameName = @"")
         {
-            instance = this;
-
             name = gameName;
 
             threads = new[]
@@ -165,11 +163,12 @@ namespace osu.Framework.Platform
             };
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
-            MaximumDrawHz = DisplayDevice.Default.RefreshRate * 4;
+            MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
-            // This static method uses BasicGameHost.GetInstanceIfExists() to get access
-            // to InputMonitor, UpdateMonitor and DrawMonitor.
-            FrameStatistics.RegisterCounters();
+            // Note, that RegisterCounters only has an effect for the first
+            // BasicGameHost to be passed into it; i.e. the first BasicGameHost
+            // to be instantiated.
+            FrameStatistics.RegisterCounters(this);
 
             Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
 
@@ -177,8 +176,6 @@ namespace osu.Framework.Platform
 
             AddInternal(inputManager = new UserInputManager(this));
         }
-
-        public static BasicGameHost GetInstanceIfExists() => instance;
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));
 

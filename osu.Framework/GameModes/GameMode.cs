@@ -106,18 +106,28 @@ namespace osu.Framework.GameModes
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        public void Push(GameMode mode)
+        public virtual bool Push(GameMode mode)
         {
             Debug.Assert(ChildGameMode == null);
 
-            startSuspend(mode);
-
+            mode.ParentGameMode = this;
             childModeContainer.Add(mode);
+
+            if (mode.hasExited)
+            {
+                mode.Expire();
+                return false;
+            }
+
+            startSuspend(mode);
+            
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);
 
             Content.Expire();
+
+            return true;
         }
 
         private void startSuspend(GameMode next)
@@ -126,7 +136,6 @@ namespace osu.Framework.GameModes
             Content.Expire();
 
             ChildGameMode = next;
-            next.ParentGameMode = this;
         }
 
         /// <summary>
