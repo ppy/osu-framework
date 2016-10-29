@@ -9,11 +9,11 @@ namespace osu.Framework.Graphics.Transformations
 {
     public class TransformColour : Transform<Color4>
     {
-        public override Color4 CurrentValue
+        protected override Color4 CurrentValue
         {
             get
             {
-                double time = Time;
+                double time = CurrentTime ?? 0;
                 if (time < StartTime) return StartValue;
                 if (time >= EndTime) return EndValue;
 
@@ -25,11 +25,6 @@ namespace osu.Framework.Graphics.Transformations
         {
             base.Apply(d);
             d.Colour = CurrentValue;
-        }
-
-        public TransformColour(IClock clock)
-            : base(clock)
-        {
         }
     }
 }

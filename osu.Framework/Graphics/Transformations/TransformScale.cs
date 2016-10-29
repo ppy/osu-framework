@@ -12,10 +12,5 @@ namespace osu.Framework.Graphics.Transformations
             base.Apply(d);
             d.Scale = CurrentValue;
         }
-
-        public TransformScale(IClock clock)
-            : base(clock)
-        {
-        }
     }
 }
