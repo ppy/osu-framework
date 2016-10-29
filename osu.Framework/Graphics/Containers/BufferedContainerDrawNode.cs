@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainerDrawNode : ContainerDrawNode
     {
         public FrameBuffer FrameBuffer;
+        public Color4 BackgroundColour;
 
         // If this counter contains a value larger then 0, then we have to redraw.
         public AtomicCounter ForceRedraw;
@@ -58,7 +59,7 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.PushOrtho(ScreenSpaceDrawRectangle);
 
             // The actual drawing of children.
-            GLWrapper.ClearColour(Color4.Transparent);
+            GLWrapper.ClearColour(BackgroundColour);
             base.Draw();
 
             GLWrapper.PopOrtho();

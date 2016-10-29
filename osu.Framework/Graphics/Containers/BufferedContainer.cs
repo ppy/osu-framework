@@ -14,6 +14,7 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainer : Container
     {
         public bool CacheDrawnFrameBuffer = false;
+        public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
 
         private FrameBuffer frameBuffer = new FrameBuffer();
 
@@ -43,6 +44,7 @@ namespace osu.Framework.Graphics.Containers
             n.FrameBuffer = frameBuffer;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
             n.ForceRedraw = forceRedraw;
+            n.BackgroundColour = BackgroundColour;
 
             base.ApplyDrawNode(node);
 
