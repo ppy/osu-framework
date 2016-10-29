@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Textures
             if (atlasTexture == null)
                 Reset();
 
-            return new Texture(new TextureGLAtlasWhite(atlasTexture));
+            return new TextureWhitePixel(new TextureGLAtlasWhite(atlasTexture));
         }
     }
 }
