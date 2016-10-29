@@ -24,13 +24,15 @@ namespace osu.Framework.Lists
         /// Updates the life status of this LifetimeList's children.
         /// </summary>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update()
+        public bool Update(double time)
         {
             bool anyAliveChanged = false;
 
             for (int i = 0; i < Count; i++)
             {
                 var item = this[i];
+
+                item.UpdateTime(time);
 
                 if (item.IsAlive)
                 {

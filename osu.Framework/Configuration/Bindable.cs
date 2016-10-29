@@ -28,7 +28,7 @@ namespace osu.Framework.Configuration
             }
         }
 
-        public Bindable(T value)
+        public Bindable(T value = default(T))
         {
             this.value = value;
         }

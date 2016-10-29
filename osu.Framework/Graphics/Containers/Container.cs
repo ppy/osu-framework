@@ -449,7 +449,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            bool changed = children.Update();
+            bool changed = children.Update(Time);
 
             if (changed && AutoSizeAxes != Axes.None)
                 autoSize.Invalidate();

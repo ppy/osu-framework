@@ -9,21 +9,16 @@ namespace osu.Framework.Graphics.Transformations
 {
     public abstract class TransformVector : Transform<Vector2>
     {
-        public override Vector2 CurrentValue
+        protected override Vector2 CurrentValue
         {
             get
             {
-                double time = Time;
+                double time = CurrentTime ?? 0;
                 if (time < StartTime) return StartValue;
                 if (time >= EndTime) return EndValue;
 
                 return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
             }
-        }
-
-        protected TransformVector(IClock clock)
-            : base(clock)
-        {
         }
     }
 }
