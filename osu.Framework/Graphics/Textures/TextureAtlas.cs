@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Textures
 
     class TextureGLAtlasWhite : TextureGLSub
     {
-        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
+        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(1, 1, 1, 1), parent)
         {
         }
 
@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Textures
 
             atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps);
 
-            using (var whiteTex = Add(2, 2))
+            using (var whiteTex = Add(3, 3))
             {
                 //add an empty white rect to use for solid box drawing (shader optimisation).
                 byte[] white = new byte[whiteTex.Width * whiteTex.Height * 4];
