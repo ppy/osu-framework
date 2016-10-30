@@ -14,6 +14,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -156,29 +157,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
+            Color4 linearColour = drawColour.toLinear();
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
-                Colour = drawColour
+                Colour = linearColour
             });
 
             FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);

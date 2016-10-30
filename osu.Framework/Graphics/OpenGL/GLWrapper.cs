@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -364,11 +365,13 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
 
             Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness);
+
+            Color4 linearBorderColour = maskingInfo.BorderColour.toLinear();
             Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
-                maskingInfo.BorderColour.R,
-                maskingInfo.BorderColour.G,
-                maskingInfo.BorderColour.B,
-                maskingInfo.BorderColour.A));
+                linearBorderColour.R,
+                linearBorderColour.G,
+                linearBorderColour.B,
+                linearBorderColour.A));
 
             // We are setting the linear blend range to the approximate size of a _pixel_ here.
             // This results in the optimal trade-off between crispness and smoothness of the
