@@ -2,6 +2,8 @@
 precision mediump float;
 #endif
 
+#include "sh_Utils.h"
+
 #define INV_SQRT_2PI 0.39894
 
 float computeGauss(in float x, in float sigma)
@@ -27,5 +29,5 @@ vec4 blur(sampler2D tex, int radius, vec2 direction, vec2 texCoord, vec2 texSize
 			break;
 	}
 
-    return sum / totalFactor;
+    return toSRGB(sum / totalFactor);
 }

@@ -8,7 +8,7 @@ namespace osu.Framework.Extensions.ColourExtensions
 {
     public static class ColourExtensions
     {
-        const double GAMMA = 2.2;
+        public const double GAMMA = 2.2;
 
         public static Color4 toLinear(this Color4 colour)
         {
