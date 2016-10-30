@@ -431,6 +431,7 @@ namespace osu.Framework.Graphics
 
         private Cached<bool> isVisibleBacking = new Cached<bool>();
         public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        public bool IsMaskedAway = false;
 
         private bool? additive;
 

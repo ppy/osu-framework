@@ -502,9 +502,12 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    if (container.children.AliveItems.Count < AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK ||
-                        maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    container.IsMaskedAway = container.children.AliveItems.Count >= AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK &&
+                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf);
+
+                    if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+
                     continue;
                 }
 
