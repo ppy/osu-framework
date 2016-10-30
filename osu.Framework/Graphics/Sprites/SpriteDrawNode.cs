@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES20;
-using OpenTK;
+using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics.Sprites
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
 
-        public override void Draw()
+        public override void Draw(IVertexBatch vertexBatch)
         {
-            base.Draw();
+            base.Draw(vertexBatch);
 
             if (Texture == null || Texture.IsDisposed)
                 return;
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Sprites
             Shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour);
+            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexBatch as VertexBatch<TexturedVertex2D>);
 
             Shader.Unbind();
         }

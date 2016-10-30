@@ -128,6 +128,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
@@ -147,6 +149,7 @@ namespace osu.Framework.Graphics.Containers
             n.GlowRadius = GlowRadius;
             n.GlowColour = GlowColour;
             n.ScreenSpaceMaskingQuad = null;
+            n.Shared = containerDrawNodeSharedData;
 
             base.ApplyDrawNode(node);
         }

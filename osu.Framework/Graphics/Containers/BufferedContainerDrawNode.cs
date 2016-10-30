@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
 
-        public override void Draw()
+        public override void Draw(IVertexBatch vertexBatch)
         {
             foreach (var f in Formats)
                 FrameBuffer.Attach(f);
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
             // The actual Draw call
-            base.Draw();
+            base.Draw(vertexBatch);
 
             FrameBuffer.Unbind();
 
