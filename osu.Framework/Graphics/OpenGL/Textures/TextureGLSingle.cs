@@ -287,7 +287,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             GLWrapper.BindTexture(this);
 
                         if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
-                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
                             initializeLevel(upload.Level, width, height);
@@ -353,7 +353,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
             h0.Free();
 
             //todo: figure why FBO clear method doesn't work.

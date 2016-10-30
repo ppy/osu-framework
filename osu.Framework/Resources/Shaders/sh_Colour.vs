@@ -1,3 +1,5 @@
+#include "sh_Utils.h"
+
 attribute vec2 m_Position;
 attribute vec4 m_Colour;
 
@@ -14,6 +16,6 @@ void main(void)
 	localPos.xy /= localPos.z;
 
 	v_MaskingPosition = localPos.xy;
-	v_Colour = m_Colour;
+	v_Colour = toLinear(m_Colour);
 	gl_Position = g_ProjMatrix * vec4(m_Position, 1.0, 1.0);
 }

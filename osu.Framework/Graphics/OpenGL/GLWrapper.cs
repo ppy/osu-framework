@@ -52,6 +52,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
+            GL.Enable((EnableCap)36281); // GL_FRAMEBUFFER_SRGB
 
             GL.ClearColor(Color4.Black);
 
