@@ -262,7 +262,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 try
                 {
                     // Do we need to generate a new texture?
-                    if (textureId <= 0 || internalWidth < width || internalHeight < height)
+                    if (textureId <= 0 || internalWidth != width || internalHeight != height)
                     {
                         internalWidth = width;
                         internalHeight = height;
