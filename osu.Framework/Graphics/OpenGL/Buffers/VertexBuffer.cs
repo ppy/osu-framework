@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             this.usage = usage;
             GL.GenBuffers(1, out vboId);
 
-            Resize(amountVertices);
+            resize(amountVertices);
         }
 
         ~VertexBuffer()
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             isDisposed = true;
         }
 
-        public void Resize(int amountVertices)
+        private void resize(int amountVertices)
         {
             Debug.Assert(!isDisposed);
 
