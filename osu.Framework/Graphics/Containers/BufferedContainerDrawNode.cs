@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
 
-        protected override void Draw()
+        public override void Draw()
         {
             foreach (var f in Formats)
                 FrameBuffer.Attach(f);

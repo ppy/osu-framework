@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
 
-        protected override void Draw()
+        public override void Draw()
         {
             base.Draw();
 

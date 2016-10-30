@@ -247,7 +247,7 @@ namespace osu.Framework.Platform
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
-                    buffer?.Object?.DrawSubTree();
+                    buffer?.Object?.Draw();
 
                 GLWrapper.FlushCurrentBatch();
             }

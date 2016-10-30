@@ -60,18 +60,18 @@ namespace osu.Framework.Graphics.Containers
             Shader.Unbind();
         }
 
-        protected override void Draw()
+        public override void Draw()
         {
+            base.Draw();
+
             drawGlow();
 
             if (MaskingInfo != null)
                 GLWrapper.PushScissor(MaskingInfo.Value);
 
-            base.Draw();
-
             if (Children != null)
                 foreach (DrawNode child in Children)
-                    child.DrawSubTree();
+                    child.Draw();
 
             if (MaskingInfo != null)
                 GLWrapper.PopScissor();
