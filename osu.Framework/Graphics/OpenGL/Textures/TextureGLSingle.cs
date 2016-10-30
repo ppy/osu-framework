@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
 

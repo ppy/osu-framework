@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using OpenTK.Graphics;
 using osu.Framework.Threading;
 using osu.Framework.Graphics.Primitives;

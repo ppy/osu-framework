@@ -79,7 +79,7 @@ namespace osu.Framework.IO.Stores
             return new RawTexture
             {
                 Pixels = pixels,
-                PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba,
+                PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
                 Width = width,
                 Height = height,
             };
@@ -95,7 +95,7 @@ namespace osu.Framework.IO.Stores
                 {
                     var reader = new PngReader();
                     t.Pixels = reader.Read(stream);
-                    t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
+                    t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
                     t.Width = reader.Width;
                     t.Height = reader.Height;
                 }

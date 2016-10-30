@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.MathUtils;

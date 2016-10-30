@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Textures
             RawTexture t = new RawTexture();
             var reader = new PngReader();
             t.Pixels = reader.Read(stream);
-            t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
+            t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
             t.Width = reader.Width;
             t.Height = reader.Height;
             return t;
@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Textures
                 t.Pixels = new byte[bmp.Width * bmp.Height * 4];
                 t.Width = bmp.Width;
                 t.Height = bmp.Height;
-                t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
+                t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
                 var pixels = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height),
                     ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
                 try

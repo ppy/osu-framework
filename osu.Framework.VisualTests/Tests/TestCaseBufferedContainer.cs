@@ -25,11 +25,19 @@ namespace osu.Framework.VisualTests.Tests
 
             Remove(TestContainer);
 
-            Add(new BufferedContainer()
+            BufferedContainer buffer;
+            Add(buffer = new BufferedContainer()
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[] { TestContainer }
             });
+
+            double timer = 0.0;
+            buffer.OnUpdate += delegate
+            {
+                timer += 0.001;
+                buffer.BlurSigma = new Vector2((float)Math.Abs(Math.Sin(timer) * 10 + 10), (float)Math.Abs(Math.Sin(timer) * 10 + 10));
+            };
         }
     }
 

@@ -3,7 +3,7 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Batches
 {

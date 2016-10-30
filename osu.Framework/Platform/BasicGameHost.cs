@@ -19,7 +19,6 @@ using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;

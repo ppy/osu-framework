@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Bind();
 
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
                 GLWrapper.BindTexture(null);
 
                 Unbind();
