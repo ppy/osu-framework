@@ -164,7 +164,6 @@
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
-    <Compile Include="Configuration\SafeWriteStream.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
     <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />

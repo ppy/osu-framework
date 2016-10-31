@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
@@ -18,8 +19,11 @@ namespace osu.Framework.Configuration
 
         Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        public ConfigManager()
+        BasicStorage storage;
+
+        public ConfigManager(BasicStorage storage)
         {
+            this.storage = storage;
             InitialiseDefaults();
             Load();
         }
@@ -130,9 +134,14 @@ namespace osu.Framework.Configuration
 
         public void Load()
         {
-            if (!File.Exists(Filename)) return;
-
-            string[] lines = File.ReadAllLines(Filename);
+            string[] lines;
+            using (var stream = storage.GetStream(Filename))
+            {
+                if (stream == null)
+                    return;
+                using (var reader = new StreamReader(stream))
+                    lines = reader.ReadToEnd().Replace("\r", "").Split('\n');
+            }
 
             foreach (string line in lines)
             {
@@ -170,7 +179,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (Stream stream = new SafeWriteStream(Filename))
+                using (Stream stream = storage.GetStream(Filename, FileAccess.Write))
                 using (StreamWriter w = new StreamWriter(stream))
                 {
                     foreach (KeyValuePair<T, IBindable> p in configStore)
