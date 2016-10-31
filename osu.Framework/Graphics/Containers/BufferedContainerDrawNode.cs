@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         GL.Disable(EnableCap.ScissorTest);
 
-                        float radians = -BlurRotation / (180 / MathHelper.Pi);
+                        float radians = -MathHelper.DegreesToRadians(BlurRotation);
                         Vector2 blurDirection = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
 
                         if (radiusX > 0)
