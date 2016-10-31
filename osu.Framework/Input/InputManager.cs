@@ -152,7 +152,7 @@ namespace osu.Framework.Input
 
         private void buildKeyboardInputQueue(Drawable current)
         {
-            if (!current.HandleInput || !current.IsVisible)
+            if (!current.HandleInput || !current.IsVisible || current.IsMaskedAway)
                 return;
 
             if (current != this)
@@ -197,7 +197,7 @@ namespace osu.Framework.Input
 
         private bool checkIsHoverable(Drawable d, InputState state)
         {
-            if (!d.HandleInput || !d.IsVisible)
+            if (!d.HandleInput || !d.IsVisible || d.IsMaskedAway)
                 return false;
 
             if (!d.Contains(state.Mouse.Position))
