@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Transformations;
 using OpenTK;
 using OpenTK.Graphics;
 using System.Diagnostics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.MathUtils
 {
@@ -33,11 +34,14 @@ namespace osu.Framework.MathUtils
             if (duration == 0 || current == 0)
                 return startColour;
 
+            Color4 linearStart = startColour.toLinear();
+            Color4 linearEnd = endColour.toLinear();
+
             return new Color4(
-                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.R, endColour.R - startColour.R, duration))),
-                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.G, endColour.G - startColour.G, duration))),
-                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.B, endColour.B - startColour.B, duration))),
-                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.A, endColour.A - startColour.A, duration))));
+                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.R, linearEnd.R - linearStart.R, duration))),
+                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.G, linearEnd.G - linearStart.G, duration))),
+                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.B, linearEnd.B - linearStart.B, duration))),
+                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.A, linearEnd.A - linearStart.A, duration)))).toSRGB();
         }
 
         public static float ValueAt(double time, float val1, float val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)

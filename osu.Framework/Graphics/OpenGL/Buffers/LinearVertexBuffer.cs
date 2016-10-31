@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -22,9 +22,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// </summary>
     public class LinearVertexBuffer<T> : VertexBuffer<T> where T : struct, IEquatable<T>
     {
-        private readonly BeginMode type;
+        private readonly PrimitiveType type;
 
-        public LinearVertexBuffer(int amountVertices, BeginMode type, BufferUsageHint usage)
+        public LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
             : base(amountVertices, usage)
         {
             this.type = type;
@@ -51,6 +51,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EboId);
         }
 
-        protected override BeginMode Type => type;
+        protected override PrimitiveType Type => type;
     }
 }

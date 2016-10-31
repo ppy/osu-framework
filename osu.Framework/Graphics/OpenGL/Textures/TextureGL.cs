@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using OpenTK;
 
 namespace osu.Framework.Graphics.OpenGL.Textures

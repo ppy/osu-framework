@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -156,6 +156,8 @@ namespace osu.Framework.Graphics.Shaders
         Colour,
         ColourRounded,
         Glow,
+        BlurHorizontal,
+        BlurVertical,
     }
 
     public struct ShaderDescriptor

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using OpenTK;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -90,15 +90,15 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 switch (Format)
                 {
                     case RenderbufferInternalFormat.DepthComponent16:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.Rgb565:
                     case RenderbufferInternalFormat.Rgb5A1:
                     case RenderbufferInternalFormat.Rgba4:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                     case RenderbufferInternalFormat.StencilIndex8:
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, All.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
+                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, info.RenderBufferID);
                         break;
                 }
 

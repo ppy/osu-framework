@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -50,8 +51,8 @@ namespace osu.Framework.Graphics.Textures
             TextureGL = textureGl;
         }
 
-        public Texture(int width, int height, bool manualMipmaps = false)
-            : this(new TextureGLSingle(width, height, manualMipmaps))
+        public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+            : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
 
@@ -140,7 +141,7 @@ namespace osu.Framework.Graphics.Textures
             int width = Math.Min(bitmap.Width, Width);
             int height = Math.Min(bitmap.Height, Height);
 
-            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             TextureUpload upload = new TextureUpload(width * height * 4)
             {

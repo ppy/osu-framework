@@ -19,13 +19,13 @@ namespace osu.Framework.VisualTests.Tests
         public override string Name => @"Masking";
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";
 
-        private Container testContainer;
+        protected Container TestContainer;
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(testContainer = new Container()
+            Add(TestContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
             });
@@ -87,7 +87,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void loadTest(int testType)
         {
-            testContainer.Clear();
+            TestContainer.Clear();
 
             switch (testType)
             {
@@ -98,7 +98,7 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(box = new InfofulBoxAutoSize
+                        TestContainer.Add(box = new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -129,7 +129,7 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -158,7 +158,7 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -191,7 +191,7 @@ namespace osu.Framework.VisualTests.Tests
                         Container box1;
                         Container box2;
 
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -269,7 +269,7 @@ namespace osu.Framework.VisualTests.Tests
                             };
                         };
 
-                        testContainer.Add(new FlowContainer
+                        TestContainer.Add(new FlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new[]
@@ -310,7 +310,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 5:
                     {
-                        testContainer.Add(new Container
+                        TestContainer.Add(new Container
                         {
                             Masking = true,
                             Size = new Vector2(0.5f),

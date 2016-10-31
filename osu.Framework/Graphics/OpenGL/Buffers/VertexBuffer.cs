@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             return vertexIndex;
         }
 
-        protected abstract BeginMode Type { get; }
+        protected abstract PrimitiveType Type { get; }
 
         public void Draw()
         {
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Bind(true);
 
             int amountVertices = endIndex - startIndex;
-            GL.DrawElements(Type, ToElements(amountVertices), DrawElementsType.UnsignedShort, ToElementIndex(startIndex) * sizeof(ushort));
+            GL.DrawElements(Type, ToElements(amountVertices), DrawElementsType.UnsignedShort, (IntPtr)(ToElementIndex(startIndex) * sizeof(ushort)));
 
             Unbind();
         }

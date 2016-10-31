@@ -5,14 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Textures
 {
     class TextureGLAtlas : TextureGLSingle
     {
-        public TextureGLAtlas(int width, int height, bool manualMipmaps) : base(width, height, manualMipmaps)
+        public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear)
+            : base(width, height, manualMipmaps, filteringMode)
         {
         }
     }
@@ -48,12 +49,14 @@ namespace osu.Framework.Graphics.Textures
         private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
         private bool manualMipmaps;
+        private All filteringMode;
 
-        public TextureAtlas(int width, int height, bool manualMipmaps = false)
+        public TextureAtlas(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {
             atlasWidth = width;
             atlasHeight = height;
             this.manualMipmaps = manualMipmaps;
+            this.filteringMode = filteringMode;
         }
 
         public void Reset()
@@ -65,7 +68,7 @@ namespace osu.Framework.Graphics.Textures
             if (atlasWidth == 0 || atlasHeight == 0)
                 return;
 
-            atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps);
+            atlasTexture = new TextureGLAtlas(atlasWidth, atlasHeight, manualMipmaps, filteringMode);
 
             using (var whiteTex = Add(3, 3))
             {
