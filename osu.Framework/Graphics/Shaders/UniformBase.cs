@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Shaders
                     return;
 
                 this.value = value;
-                hasChanged = true;
+                HasChanged = true;
 
                 if (owner.IsBound)
                     Update();
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Shaders
         private int location;
         private ActiveUniformType type;
 
-        private bool hasChanged = true;
+        public bool HasChanged { get; private set; } = true;
 
         private Shader owner;
 
@@ -45,9 +45,10 @@ namespace osu.Framework.Graphics.Shaders
 
         public void Update()
         {
-            if (!hasChanged)
+            if (!HasChanged)
                 return;
-            hasChanged = false;
+
+            HasChanged = false;
 
             if (Value == null)
                 return;

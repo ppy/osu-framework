@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
             return MAX_RADIUS;
         }
 
-        private void drawChildren(FrameBuffer target, Vector2 frameBufferSize)
+        private void drawChildren(IVertexBatch vertexBatch, FrameBuffer target, Vector2 frameBufferSize)
         {
             // Fill the frame buffer with drawn children
             using (bindFrameBuffer(target, frameBufferSize))
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
                 GLWrapper.PushOrtho(ScreenSpaceDrawRectangle);
 
                 GLWrapper.ClearColour(BackgroundColour);
-                base.Draw();
+                base.Draw(vertexBatch);
 
                 GLWrapper.PopOrtho();
             }
@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override void Draw()
+        public override void Draw(IVertexBatch vertexBatch)
         {
             if (ForceRedraw.Reset() > 0)
             {
@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers
 
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
-                    drawChildren(currentFrameBuffer, frameBufferSize);
+                    drawChildren(vertexBatch, currentFrameBuffer, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
                     int radiusX = BlurSigma.X > 0 ? findBlurRadius(BlurSigma.X) : 0;
