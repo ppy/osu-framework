@@ -23,9 +23,9 @@ namespace osu.Framework.Graphics.Containers
         public Color4 BackgroundColour;
 
         public Vector2 BlurSigma;
+        public float BlurRotation;
 
-        public Shader BlurShaderHorizontal;
-        public Shader BlurShaderVertical;
+        public Shader BlurShader;
 
         // If this counter contains a value larger then 0, then we have to redraw.
         public AtomicCounter ForceRedraw;
@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void drawBlurredFrameBuffer(FrameBuffer source, FrameBuffer target, Shader blurShader, int kernelRadius, float sigma)
+        private void drawBlurredFrameBuffer(FrameBuffer source, FrameBuffer target, Shader blurShader, int kernelRadius, float sigma, Vector2 blurDirection)
         {
             GLWrapper.SetBlend(BlendingFactorSrc.One, BlendingFactorDest.Zero, BlendingFactorSrc.One, BlendingFactorDest.Zero);
 
@@ -130,6 +130,7 @@ namespace osu.Framework.Graphics.Containers
                 blurShader.GetUniform<int>(@"g_Radius").Value = kernelRadius;
                 blurShader.GetUniform<float>(@"g_Sigma").Value = sigma;
                 blurShader.GetUniform<Vector2>(@"g_TexSize").Value = source.Size;
+                blurShader.GetUniform<Vector2>(@"g_BlurDirection").Value = blurDirection;
 
                 blurShader.Bind();
                 drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height));
@@ -176,11 +177,14 @@ namespace osu.Framework.Graphics.Containers
                     {
                         GL.Disable(EnableCap.ScissorTest);
 
+                        float radians = -BlurRotation / (180 / MathHelper.Pi);
+                        Vector2 blurDirection = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
+
                         if (radiusX > 0)
-                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShaderHorizontal, radiusX, BlurSigma.X);
+                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShader, radiusX, BlurSigma.X, blurDirection);
 
                         if (radiusY > 0)
-                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShaderVertical, radiusY, BlurSigma.Y);
+                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShader, radiusY, BlurSigma.Y, new Vector2(blurDirection.Y, blurDirection.X));
 
                         GL.Enable(EnableCap.ScissorTest);
                     }
