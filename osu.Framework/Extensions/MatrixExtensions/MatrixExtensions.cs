@@ -26,24 +26,20 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M32 += m.M33 * v.Y;
         }
 
-        public static void RotateFromLeft(ref Matrix3 m, float angle)
+        public static void RotateFromLeft(ref Matrix3 m, float radians)
         {
-            // Convert to radians
-            angle = angle / (180 / MathHelper.Pi);
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = (float)Math.Cos(radians);
+            float sin = (float)Math.Sin(radians);
 
             Vector3 row0 = m.Row0 * cos + m.Row1 * sin;
             m.Row1 = m.Row1 * cos - m.Row0 * sin;
             m.Row0 = row0;
         }
 
-        public static void RotateFromRight(ref Matrix3 m, float angle)
+        public static void RotateFromRight(ref Matrix3 m, float radians)
         {
-            // Convert to radians
-            angle = angle / (180 / MathHelper.Pi);
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
+            float cos = (float)Math.Cos(radians);
+            float sin = (float)Math.Sin(radians);
 
             //Vector3 column0 = m.Column0 * cos + m.Column1 * sin;
             float M11 = m.M11 * cos - m.M12 * sin;

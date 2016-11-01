@@ -38,8 +38,8 @@ namespace osu.Framework.Graphics
         {
             target.Source = Source;
             target.Destination = Destination;
-            target.SourceAlpha = Source;
-            target.DestinationAlpha = Destination;
+            target.SourceAlpha = SourceAlpha;
+            target.DestinationAlpha = DestinationAlpha;
         }
 
         public bool Equals(BlendingInfo other)

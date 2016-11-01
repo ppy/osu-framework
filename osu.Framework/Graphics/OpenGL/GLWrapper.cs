@@ -54,6 +54,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
 
+            Shader.SetGlobalProperty(@"g_PremultiplyAlpha", true);
+
             IsInitialized = true;
         }
 
@@ -92,8 +94,6 @@ namespace osu.Framework.Graphics.OpenGL
                 ToMaskingSpace = Matrix3.Identity,
                 LinearBlendRange = 1,
             }, true);
-
-            Shader.SetGlobalProperty(@"g_PremultiplyAlpha", true);
         }
 
         // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
