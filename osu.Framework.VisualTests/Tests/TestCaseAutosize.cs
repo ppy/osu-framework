@@ -637,7 +637,7 @@ namespace osu.Framework.VisualTests.Tests
 
     class InfofulBoxAutoSize : Container
     {
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             AutoSizeAxes = Axes.Both;
 
@@ -692,7 +692,7 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override bool OnDragStart(InputState state) => AllowDrag;
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

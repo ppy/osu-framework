@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

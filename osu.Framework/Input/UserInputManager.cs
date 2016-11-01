@@ -17,7 +17,7 @@ namespace osu.Framework.Input
             Host = host;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

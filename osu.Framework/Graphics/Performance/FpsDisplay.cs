@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.Performance
             this.clock = clock;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
             ForceRedraw();
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics
 
         public TransformAlpha FadeInFromZero(double duration)
         {
-            Debug.Assert(IsLoaded);
+            
 
             if (transformationDelay == 0)
             {
@@ -147,6 +147,8 @@ namespace osu.Framework.Graphics
                 StartValue = 0,
                 EndValue = 1,
             };
+
+            Debug.Assert(Clock != null);
             Transforms.Add(tr);
             return tr;
         }
@@ -158,8 +160,6 @@ namespace osu.Framework.Graphics
 
         public TransformAlpha FadeOutFromOne(double duration)
         {
-            Debug.Assert(IsLoaded);
-
             if (transformationDelay == 0)
             {
                 Alpha = 1;
@@ -175,6 +175,8 @@ namespace osu.Framework.Graphics
                 StartValue = 1,
                 EndValue = 0,
             };
+
+            Debug.Assert(Clock != null);
             Transforms.Add(tr);
             return tr;
         }
@@ -183,8 +185,6 @@ namespace osu.Framework.Graphics
 
         private Drawable transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
         {
-            Debug.Assert(IsLoaded);
-
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
@@ -209,7 +209,10 @@ namespace osu.Framework.Graphics
                 transform.Apply(this);
             }
             else
+            {
+                Debug.Assert(Clock != null);
                 Transforms.Add(transform);
+            }
 
             return this;
         }
@@ -244,8 +247,6 @@ namespace osu.Framework.Graphics
 
         private Drawable transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
-            Debug.Assert(IsLoaded);
-
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
@@ -271,7 +272,10 @@ namespace osu.Framework.Graphics
                 transform.Apply(this);
             }
             else
+            {
+                Debug.Assert(Clock != null);
                 Transforms.Add(transform);
+            }
 
             return this;
         }
@@ -318,8 +322,6 @@ namespace osu.Framework.Graphics
 
         public Drawable FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
-            Debug.Assert(IsLoaded);
-
             updateTransformsOfType(typeof(TransformColour));
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             if (transformationDelay == 0)
@@ -331,6 +333,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
+            Debug.Assert(Clock != null);
             Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
@@ -345,7 +348,6 @@ namespace osu.Framework.Graphics
 
         public Drawable FlashColour(Color4 flashColour, int duration)
         {
-            Debug.Assert(IsLoaded);
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
@@ -353,6 +355,7 @@ namespace osu.Framework.Graphics
 
             double startTime = Time + transformationDelay;
 
+            Debug.Assert(Clock != null);
             Transforms.Add(new TransformColour
             {
                 StartTime = startTime,

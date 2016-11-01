@@ -15,7 +15,7 @@ namespace osu.Framework.DebugUtils
             //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
             if (!Debugger.IsAttached) return;
 
-            Debug.Assert(Thread.CurrentThread == BasicGameHost.UpdateThread);
+            Debug.Assert(IsUpdateThread);
         }
 
         [Conditional("DEBUG")]
@@ -24,7 +24,11 @@ namespace osu.Framework.DebugUtils
             //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
             if (!Debugger.IsAttached) return;
 
-            Debug.Assert(Thread.CurrentThread == BasicGameHost.DrawThread);
+            Debug.Assert(IsDrawThread);
         }
+
+        public static bool IsUpdateThread => Thread.CurrentThread == BasicGameHost.UpdateThread;
+
+        public static bool IsDrawThread => Thread.CurrentThread == BasicGameHost.DrawThread;
     }
 }

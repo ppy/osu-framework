@@ -7,7 +7,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Box : Sprite
     {
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

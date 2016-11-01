@@ -23,6 +23,7 @@ namespace osu.Framework.VisualTests.Tests
         private FlowContainer flow;
 
         int loadId = 55;
+        private BaseGame game;
 
         public override void Reset()
         {
@@ -46,11 +47,18 @@ namespace osu.Framework.VisualTests.Tests
             getNextAvatar();
         }
 
+        protected override void Load(BaseGame game)
+        {
+            this.game = game;
+            base.Load(game);
+        }
+
         private void getNextAvatar()
         {
-            flow.Add(new Avatar(loadId));
+            new Avatar(loadId).Preload(game, flow.Add);
+
             loadId++;
-            Scheduler.AddDelayed(getNextAvatar, 100);
+            Scheduler.AddDelayed(getNextAvatar, 400);
         }
     }
 
@@ -63,33 +71,26 @@ namespace osu.Framework.VisualTests.Tests
             this.userId = userId;
         }
 
-        public override async void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
+            Texture = game.Textures.Get($@"https://a.ppy.sh/{userId}");
+        }
 
-            Texture texture = null;
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
-            try
+            if (Texture == null)
             {
-                texture = await game.Textures.GetAsync($@"https://a.ppy.sh/{userId}");
+                Expire();
+                return;
             }
-            catch { }
 
+            //override texture size
+            Size = new Vector2(128);
 
-            Scheduler.Add(delegate
-            {
-                if (texture == null)
-                {
-                    Expire();
-                    return;
-                }
-
-                Texture = texture;
-                //override texture size
-                Size = new Vector2(128);
-
-                FadeInFromZero(500);
-            });
+            FadeInFromZero(500);
         }
     }
 }

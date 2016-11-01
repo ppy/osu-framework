@@ -94,12 +94,10 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public override void Load(BaseGame game)
+        public void DisplayAsRoot()
         {
-            base.Load(game);
-
-            if (ParentGameMode == null)
-                OnEntering(null);
+            Debug.Assert(ParentGameMode == null);
+            OnEntering(null);
         }
 
         /// <summary>
@@ -120,7 +118,7 @@ namespace osu.Framework.GameModes
             }
 
             startSuspend(mode);
-            
+
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);

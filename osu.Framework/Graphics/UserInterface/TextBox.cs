@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

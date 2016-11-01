@@ -171,9 +171,9 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnDrag(state);
         }
 
-        public override void Load(BaseGame game)
+        protected override void LoadComplete()
         {
-            base.Load(game);
+            base.LoadComplete();
             State = TreeContainerStatus.Offscreen;
         }
     }
