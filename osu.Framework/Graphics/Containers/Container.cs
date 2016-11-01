@@ -90,40 +90,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float glowRadius = 0.0f;
+        private EdgeEffect edgeEffect;
 
         /// <summary>
         /// Only has an effect when Masking == true.
-        /// Determines how large of a glow to draw _around_ the masked region.
+        /// Determines the edge effect of the container.
         /// </summary>
-        public virtual float GlowRadius
+        public virtual EdgeEffect EdgeEffect
         {
-            get { return glowRadius; }
+            get { return edgeEffect; }
             set
             {
-                if (glowRadius == value)
+                if (edgeEffect.Equals(value))
                     return;
 
-                glowRadius = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private Color4 glowColour = Color4.Transparent;
-
-        /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines the color of the glow.
-        /// </summary>
-        public virtual Color4 GlowColour
-        {
-            get { return glowColour; }
-            set
-            {
-                if (glowColour.Equals(value))
-                    return;
-
-                glowColour = value;
+                edgeEffect = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
@@ -146,8 +127,8 @@ namespace osu.Framework.Graphics.Containers
                 BorderColour = this.BorderColour,
             };
 
-            n.GlowRadius = GlowRadius;
-            n.GlowColour = GlowColour;
+            n.EdgeEffect = EdgeEffect;
+
             n.ScreenSpaceMaskingQuad = null;
             n.Shared = containerDrawNodeSharedData;
 
@@ -533,7 +514,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
-            if (children.AliveItems.Count == 0 && (!Masking || GlowRadius == 0.0f))
+            if (children.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
             ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;

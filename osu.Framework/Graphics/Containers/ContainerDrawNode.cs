@@ -15,6 +15,22 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Containers
 {
+    public enum EdgeEffectType
+    {
+        None,
+        Glow,
+        Shadow,
+    }
+
+    public struct EdgeEffect
+    {
+        public Color4 Colour;
+        public Vector2 Offset;
+        public EdgeEffectType Type;
+        public float Roundness;
+        public float Radius;
+    }
+
     public class ContainerDrawNodeSharedData
     {
         public QuadBatch<TexturedVertex2D> VertexBatch;
@@ -26,44 +42,44 @@ namespace osu.Framework.Graphics.Containers
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
         public Quad? ScreenSpaceMaskingQuad = null;
-        public float GlowRadius;
-        public Color4 GlowColour;
+
+        public EdgeEffect EdgeEffect;
 
         public ContainerDrawNodeSharedData Shared;
 
-        private void drawGlow()
+        private void drawEdgeEffect()
         {
-            if (MaskingInfo == null || GlowRadius <= 0.0f || GlowColour.A <= 0.0f)
+            if (MaskingInfo == null || EdgeEffect.Type == EdgeEffectType.None || EdgeEffect.Radius <= 0.0f || EdgeEffect.Colour.A <= 0.0f)
                 return;
 
-            RectangleF glowRect = MaskingInfo.Value.MaskingRect.Inflate(GlowRadius);
+            RectangleF effectRect = MaskingInfo.Value.MaskingRect.Inflate(EdgeEffect.Radius).Offset(EdgeEffect.Offset);
             if (!ScreenSpaceMaskingQuad.HasValue)
-                ScreenSpaceMaskingQuad = Quad.FromRectangle(glowRect) * DrawInfo.Matrix;
+                ScreenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
             Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
-                glowRect.Left,
-                glowRect.Top,
-                glowRect.Right,
-                glowRect.Bottom);
+                effectRect.Left,
+                effectRect.Top,
+                effectRect.Right,
+                effectRect.Bottom);
 
             Shader.GetUniform<Matrix3>(@"g_ToMaskingSpace").Value = DrawInfo.MatrixInverse;
-            Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + GlowRadius;
+            Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius + EdgeEffect.Roundness;
 
             Shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
 
             // Here we are generating the glow gradient by setting the blend range to the glow radius.
             // Note, that unlike for masking, we are using the blend range for a visual phenomenon here,
             // and not to achieve correct sampling of the border.
-            Shader.GetUniform<float>(@"g_LinearBlendRange").Value = GlowRadius;
+            Shader.GetUniform<float>(@"g_LinearBlendRange").Value = EdgeEffect.Radius;
 
-            GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+            GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, EdgeEffect.Type == EdgeEffectType.Glow ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha);
 
             Shader.Bind();
 
-            Color4 glowColour = GlowColour;
-            glowColour.A *= DrawInfo.Colour.A;
+            Color4 colour = EdgeEffect.Colour;
+            colour.A *= DrawInfo.Colour.A;
 
-            Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, glowColour);
+            Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, colour);
 
             Shader.Unbind();
         }
@@ -93,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
 
             base.Draw(vertexBatch);
 
-            drawGlow();
+            drawEdgeEffect();
 
             if (MaskingInfo != null)
                 GLWrapper.PushScissor(MaskingInfo.Value);
