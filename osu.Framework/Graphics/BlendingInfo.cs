@@ -9,23 +9,26 @@ namespace osu.Framework.Graphics
     {
         public BlendingFactorSrc Source;
         public BlendingFactorDest Destination;
-
-        public BlendingInfo(BlendingFactorSrc? source = null, BlendingFactorDest? destination = null)
-        {
-            Source = source ?? BlendingFactorSrc.SrcAlpha;
-            Destination = destination ?? BlendingFactorDest.OneMinusSrcAlpha;
-        }
+        public BlendingFactorSrc SourceAlpha;
+        public BlendingFactorDest DestinationAlpha;
 
         public BlendingInfo(bool additive)
         {
-            Source = BlendingFactorSrc.SrcAlpha;
-            Destination = additive ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha;
+            Source = BlendingFactorSrc.OneMinusDstAlpha;
+            Destination = BlendingFactorDest.One;
+            SourceAlpha = BlendingFactorSrc.OneMinusDstAlpha;
+            DestinationAlpha = BlendingFactorDest.One;
+
+            Additive = additive;
         }
 
         public bool Additive
         {
-            get { return Source == BlendingFactorSrc.SrcAlpha && Destination == BlendingFactorDest.One; }
-            set { Destination = value ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha; }
+            set
+            {
+                SourceAlpha = value ? BlendingFactorSrc.Zero : BlendingFactorSrc.OneMinusDstAlpha;
+                //DestinationAlpha = value ? BlendingFactorDest.One : BlendingFactorDest.One;
+            }
         }
 
         /// <summary>
@@ -36,11 +39,13 @@ namespace osu.Framework.Graphics
         {
             target.Source = Source;
             target.Destination = Destination;
+            target.SourceAlpha = Source;
+            target.DestinationAlpha = Destination;
         }
 
         public bool Equals(BlendingInfo other)
         {
-            return other.Source == Source && other.Destination == Destination;
+            return other.Source == Source && other.Destination == Destination && other.SourceAlpha == SourceAlpha && other.DestinationAlpha == DestinationAlpha;
         }
     }
 }

@@ -66,8 +66,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundTexture = null;
 
-            lastSrcBlend = BlendingFactorSrc.Zero;
-            lastDestBlend = BlendingFactorDest.Zero;
+            lastBlendingInfo = new BlendingInfo();
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
@@ -91,6 +90,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
+                LinearBlendRange = 1,
             }, true);
         }
 
@@ -181,25 +181,23 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        private static BlendingFactorSrc lastSrcBlend;
-        private static BlendingFactorDest lastDestBlend;
+        private static BlendingInfo lastBlendingInfo;
 
         /// <summary>
         /// Sets the blending function to draw with.
         /// </summary>
         /// <param name="src">The source blending factor.</param>
         /// <param name="dest">The destination blending factor.</param>
-        public static void SetBlend(BlendingFactorSrc src, BlendingFactorDest dest, BlendingFactorSrc srcAlpha = BlendingFactorSrc.One, BlendingFactorDest destAlpha = BlendingFactorDest.One)
+        public static void SetBlend(BlendingInfo blendingInfo)
         {
-            if (lastSrcBlend == src && lastDestBlend == dest)
+            if (lastBlendingInfo.Equals(blendingInfo))
                 return;
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(src, dest, srcAlpha, destAlpha);
+            GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
 
-            lastSrcBlend = src;
-            lastDestBlend = dest;
+            lastBlendingInfo = blendingInfo;
         }
 
         private static int lastFrameBuffer = -1;
@@ -370,11 +368,7 @@ namespace osu.Framework.Graphics.OpenGL
                 linearBorderColour.B,
                 linearBorderColour.A));
 
-            // We are setting the linear blend range to the approximate size of a _pixel_ here.
-            // This results in the optimal trade-off between crispness and smoothness of the
-            // edges of the masked region according to sampling theory.
-            Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
-            Shader.SetGlobalProperty(@"g_LinearBlendRange", (scale.X + scale.Y) / 2);
+            Shader.SetGlobalProperty(@"g_LinearBlendRange", maskingInfo.LinearBlendRange);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -537,6 +531,8 @@ namespace osu.Framework.Graphics.OpenGL
         public float BorderThickness;
         public Color4 BorderColour;
 
+        public float LinearBlendRange;
+
         public bool Equals(MaskingInfo other)
         {
             return
@@ -545,7 +541,8 @@ namespace osu.Framework.Graphics.OpenGL
                 ToMaskingSpace.Equals(other.ToMaskingSpace) &&
                 CornerRadius == other.CornerRadius &&
                 BorderThickness == other.BorderThickness &&
-                BorderColour.Equals(other.BorderColour);
+                BorderColour.Equals(other.BorderColour) &&
+                LinearBlendRange == other.LinearBlendRange;
         }
     }
 }
