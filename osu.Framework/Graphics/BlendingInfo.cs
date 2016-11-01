@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics
             set
             {
                 SourceAlpha = value ? BlendingFactorSrc.Zero : BlendingFactorSrc.OneMinusDstAlpha;
-                //DestinationAlpha = value ? BlendingFactorDest.One : BlendingFactorDest.One;
             }
         }
 

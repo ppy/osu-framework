@@ -199,9 +199,13 @@ namespace osu.Framework.Graphics.Containers
             // Blit the final framebuffer to screen.
             GLWrapper.SetBlend(DrawInfo.Blending);
 
+            Shader.GetUniform<bool>(@"g_PremultiplyAlpha").Value = false;
+
             Shader.Bind();
             drawFrameBufferToBackBuffer(FrameBuffers[0], ScreenSpaceDrawRectangle);
             Shader.Unbind();
+
+            Shader.GetUniform<bool>(@"g_PremultiplyAlpha").Value = true;
         }
     }
 }
