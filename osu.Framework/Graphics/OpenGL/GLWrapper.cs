@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastDestBlend = dest;
         }
 
-        private static int lastFrameBuffer = -1;
+        private static int lastFrameBuffer = 0;
 
         /// <summary>
         /// Binds a framebuffer.
@@ -518,6 +518,61 @@ namespace osu.Framework.Graphics.OpenGL
 
             GL.UseProgram(s);
             currentShader = s;
+        }
+
+        public static void SetUniform(int shader, ActiveUniformType type, int location, object value)
+        {
+            if (shader == currentShader)
+                FlushCurrentBatch();
+
+            switch (type)
+            {
+                case ActiveUniformType.Bool:
+                    GL.Uniform1(location, (bool)value ? 1 : 0);
+                    break;
+                case ActiveUniformType.Int:
+                    GL.Uniform1(location, (int)value);
+                    break;
+                case ActiveUniformType.Float:
+                    GL.Uniform1(location, (float)value);
+                    break;
+                case ActiveUniformType.BoolVec2:
+                case ActiveUniformType.IntVec2:
+                case ActiveUniformType.FloatVec2:
+                    GL.Uniform2(location, (Vector2)value);
+                    break;
+                case ActiveUniformType.FloatMat2:
+                    {
+                        Matrix2 mat = (Matrix2)value;
+                        GL.UniformMatrix2(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.BoolVec3:
+                case ActiveUniformType.IntVec3:
+                case ActiveUniformType.FloatVec3:
+                    GL.Uniform3(location, (Vector3)value);
+                    break;
+                case ActiveUniformType.FloatMat3:
+                    {
+                        Matrix3 mat = (Matrix3)value;
+                        GL.UniformMatrix3(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.BoolVec4:
+                case ActiveUniformType.IntVec4:
+                case ActiveUniformType.FloatVec4:
+                    GL.Uniform4(location, (Vector4)value);
+                    break;
+                case ActiveUniformType.FloatMat4:
+                    {
+                        Matrix4 mat = (Matrix4)value;
+                        GL.UniformMatrix4(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.Sampler2D:
+                    GL.Uniform1(location, (int)value);
+                    break;
+            }
         }
     }
 
