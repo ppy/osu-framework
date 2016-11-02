@@ -2,11 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using osu.Framework.Lists;
 using System;
 using System.Collections.Specialized;
@@ -17,19 +14,16 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private bool opened;
 
-        protected Container ComboBox;
-        protected Box ComboBoxBackground;
-        protected virtual Color4 ComboBoxBackgroundColour => Color4.DarkGray;
-        protected virtual Color4 ComboBoxBackgroundColourHover => Color4.Gray;
-        protected Container ComboBoxForeground;
-        protected SpriteText ComboBoxLabel;
-        protected Container ComboBoxCaret;
+        protected DropDownComboBox ComboBox;
 
+        protected ScrollContainer DropDown;
         protected Container DropDownList;
         protected virtual float DropDownListSpacing => 0;
 
+        protected virtual Type ComboBoxType => typeof(DropDownComboBox);
         protected virtual Type MenuItemType => typeof(DropDownMenuItem);
-        protected virtual Type MenuHeaderType => typeof(DropDownMenuHeader);
+
+        public int MaxDropDownHeight = 100;
 
         public bool NeedsRefresh { get; protected set; }
 
@@ -106,57 +100,34 @@ namespace osu.Framework.Graphics.UserInterface
         {
             items = new CollectionView();
 
+            AutoSizeAxes = Axes.Y;
+
             Children = new Drawable[]
             {
-                ComboBox = new Container
+                ComboBox = (DropDownComboBox)Activator.CreateInstance(ComboBoxType, new[] { this }),
+                DropDown = new ScrollContainer
                 {
-                    Masking = true,
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Width = 1,
                     Children = new Drawable[]
                     {
-                        ComboBoxBackground = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                        },
-                        ComboBoxForeground = new Container
+                        DropDownList = new Container
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
-                            Children = new Drawable[]
-                            {
-                                ComboBoxLabel = new SpriteText
-                                {
-                                    Text = @"",
-                                },
-                                ComboBoxCaret = new SpriteText
-                                {
-                                    Anchor = Anchor.TopRight,
-                                    Origin = Anchor.TopRight,
-                                    Text = @"+",
-                                },
-                            }
+                            Width = 1,
+                            Alpha = 0,
                         },
                     }
-                },
-                DropDownList = new Container
-                {
-                    
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Width = 1,
-                    Alpha = 0,
-                },
+                }
             };
+            DropDownList.OnAutoSize += dropDownListOnAutoSize;
         }
 
         public override void Load(BaseGame game)
         {
             base.Load(game);
-            AutoSizeAxes = Axes.Y;
-            ComboBoxBackground.Colour = ComboBoxBackgroundColour;
-            ComboBoxLabel.Text = SelectedItem?.ToString();
+
+            ComboBox.Label.Text = GetItemLabel(SelectedItem);
         }
 
         public void Open()
@@ -164,13 +135,15 @@ namespace osu.Framework.Graphics.UserInterface
             opened = true;
             if (NeedsRefresh)
                 refreshDropDownList();
-            AnimateOpen();
+            if (IsLoaded)
+                AnimateOpen();
         }
 
         public void Close()
         {
             opened = false;
-            AnimateClose();
+            if (IsLoaded)
+                AnimateClose();
         }
 
         public bool Parse(object s)
@@ -187,7 +160,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void TriggerValueChanged()
         {
-            ComboBoxLabel.Text = GetItemLabel(SelectedItem);
+            ComboBox.Label.Text = GetItemLabel(SelectedItem);
+            Close();
             NeedsRefresh = true;
             ValueChanged?.Invoke(this, null);
         }
@@ -227,25 +201,12 @@ namespace osu.Framework.Graphics.UserInterface
             DropDownList.Hide();
         }
 
-        protected override bool OnClick(InputState state)
+        public void Toogle()
         {
             if (opened)
                 Close();
             else
                 Open();
-            return true;
-        }
-
-        protected override bool OnHover(InputState state)
-        {
-            ComboBoxBackground.Colour = ComboBoxBackgroundColourHover;
-            return base.OnHover(state);
-        }
-
-        protected override void OnHoverLost(InputState state)
-        {
-            ComboBoxBackground.Colour = ComboBoxBackgroundColour;
-            base.OnHoverLost(state);
         }
 
         private void itemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => TriggerListChanged();
@@ -254,7 +215,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void addHeader(int itemIndex, int positionIndex, int level)
         {
-            DropDownMenuHeader newHeader = (DropDownMenuHeader)Activator.CreateInstance(MenuHeaderType, new[] { this });
+            DropDownMenuItem newHeader = (DropDownMenuItem)Activator.CreateInstance(MenuItemType, new[] { this });
             newHeader.Item = Items.GroupDescriptions[level].GetPropertyStringValue(Items[itemIndex]);
             newHeader.Index = -1;
             newHeader.PositionIndex = positionIndex;
@@ -273,6 +234,7 @@ namespace osu.Framework.Graphics.UserInterface
             newItem.PositionIndex = positionIndex;
             newItem.Depth = -positionIndex;
             newItem.Alpha = 0;
+            newItem.Level = -1;
 
             DropDownList.Add(newItem);
         }
@@ -283,7 +245,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return;
 
             DropDownList.Clear();
-            DropDownList.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
+            DropDown.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
             for (int itemIndex = 0, positionIndex = 0; itemIndex < Items.Count; itemIndex++, positionIndex++)
             {
                 for (int level = Items.PropertiesEqualToPreviousItem(itemIndex); level < Items.GroupDescriptions?.Count; level++)
@@ -296,6 +258,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             NeedsRefresh = false;
+        }
+
+        private void dropDownListOnAutoSize()
+        {
+            DropDown.Height = Math.Min(DropDownList.Height, MaxDropDownHeight);
         }
     }
 }

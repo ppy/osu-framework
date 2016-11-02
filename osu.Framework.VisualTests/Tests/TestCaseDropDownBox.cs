@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Data;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
@@ -174,12 +175,12 @@ namespace osu.Framework.VisualTests.Tests
         {
             protected override float DropDownListSpacing => 4;
 
+            protected override Type ComboBoxType => typeof(StyledDropDownComboBox);
             protected override Type MenuItemType => typeof(StyledDropDownMenuItem);
 
             public StyledDropDownMenu()
             {
                 ComboBox.CornerRadius = 4;
-                ComboBoxForeground.Padding = new MarginPadding(4);
             }
 
             protected override void AnimateOpen()
@@ -202,6 +203,17 @@ namespace osu.Framework.VisualTests.Tests
                 DropDownList.Delay(200);
                 DropDownList.Hide();
                 DropDownList.DelayReset();
+            }
+        }
+
+        private class StyledDropDownComboBox : DropDownComboBox
+        {
+            protected override Color4 BackgroundColour => new Color4(255, 255, 255, 100);
+            protected override Color4 BackgroundColourHover => Color4.HotPink;
+
+            public StyledDropDownComboBox(DropDownMenu parent) : base(parent)
+            {
+                Foreground.Padding = new MarginPadding(4);
             }
         }
 

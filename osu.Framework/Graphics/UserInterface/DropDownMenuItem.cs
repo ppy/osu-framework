@@ -13,6 +13,10 @@ namespace osu.Framework.Graphics.UserInterface
     {
         protected DropDownMenu ParentMenu;
 
+        public int Level;
+
+        public bool IsHeader => Level >= 0;
+
         public int Index;
         public int PositionIndex;
         public object Item;
@@ -25,8 +29,8 @@ namespace osu.Framework.Graphics.UserInterface
         public float ExpectedPositionY => ExpectedHeight * PositionIndex;
 
         protected Box Background;
-        protected virtual Color4 BackgroundColour => Color4.DarkSlateGray;
-        protected virtual Color4 BackgroundColourHover => Color4.DarkGray;
+        protected virtual Color4 BackgroundColour => IsHeader ? Color4.DarkBlue : Color4.DarkSlateGray;
+        protected virtual Color4 BackgroundColourHover => IsHeader ? BackgroundColour : Color4.DarkGray;
         protected Container Foreground;
         protected SpriteText Label;
         protected Container Caret;
@@ -35,6 +39,11 @@ namespace osu.Framework.Graphics.UserInterface
         public DropDownMenuItem(DropDownMenu parent)
         {
             ParentMenu = parent;
+
+            RelativeSizeAxes = Axes.X;
+            Width = 1;
+            AutoSizeAxes = Axes.Y;
+            Masking = true;
 
             Children = new Drawable[]
             {
@@ -69,10 +78,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Load(game);
             Background.Colour = BackgroundColour;
-            RelativeSizeAxes = Axes.X;
-            Width = 1;
-            AutoSizeAxes = Axes.Y;
-            Masking = true;
             Label.MoveTo(new Vector2(CaretSpacing, 0));
             FormatCaret();
             FormatLabel();
@@ -82,7 +87,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (Index >= 0)
                 ParentMenu.SelectedIndex = Index;
-            return false;
+            return true;
         }
 
         protected override bool OnHover(InputState state)

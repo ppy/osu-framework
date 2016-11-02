@@ -116,8 +116,8 @@
     <Compile Include="Graphics\Shaders\ShadedDrawNode.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownComboBox.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenuHeader.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
