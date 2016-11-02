@@ -104,10 +104,14 @@ namespace osu.Framework.VisualTests.Tests
                             Origin = Anchor.Centre,
                             Masking = true,
                             CornerRadius = 100,
-                            GlowRadius = 25,
                             BorderColour = Color4.Aquamarine,
                             BorderThickness = 3,
-                            GlowColour = glowColour
+                            EdgeEffect = new EdgeEffect
+                            {
+                                Type = EdgeEffectType.Shadow,
+                                Radius = 100,
+                                Colour = new Color4(0, 50, 100, 200),
+                            },
                         });
 
                         box.Add(box = new InfofulBox
@@ -195,10 +199,15 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            GlowRadius = 25,
+                            EdgeEffect = new EdgeEffect
+                            {
+                                Type = EdgeEffectType.Glow,
+                                Radius = 100,
+                                Roundness = 50,
+                                Colour = glowColour,
+                            },
                             BorderColour = Color4.Aquamarine,
                             BorderThickness = 3,
-                            GlowColour = glowColour,
                             Children = new[]
                             {
                                 box1 = new InfofulBoxAutoSize

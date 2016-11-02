@@ -318,17 +318,16 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method does not return a value.</returns>
         /// <param name="pos">The amount to offset the location. </param>
         /// <filterpriority>1</filterpriority>
-        public void Offset(PointF pos) => Offset(pos.X, pos.Y);
+        public RectangleF Offset(Vector2 pos) => Offset(pos.X, pos.Y);
 
         /// <summary>Adjusts the location of this rectangle by the specified amount.</summary>
         /// <returns>This method does not return a value.</returns>
         /// <param name="y">The amount to offset the location vertically. </param>
         /// <param name="x">The amount to offset the location horizontally. </param>
         /// <filterpriority>1</filterpriority>
-        public void Offset(float x, float y)
+        public RectangleF Offset(float x, float y)
         {
-            X += x;
-            Y += y;
+            return new RectangleF(X + x, Y + y, Width, Height);
         }
 
         internal float DistanceSquared(Vector2 localSpacePos)

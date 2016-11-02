@@ -46,6 +46,7 @@ namespace osu.Framework.Graphics.Containers
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = ScreenSpaceDrawRectangle,
                 ToMaskingSpace = Matrix3.Identity,
+                LinearBlendRange = 1.0f,
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
@@ -125,8 +126,14 @@ namespace osu.Framework.Graphics.Containers
         {
             FrameBuffer source = currentFrameBuffer;
             FrameBuffer target = advanceFrameBuffer();
-
-            GLWrapper.SetBlend(BlendingFactorSrc.One, BlendingFactorDest.Zero, BlendingFactorSrc.One, BlendingFactorDest.Zero);
+        
+            GLWrapper.SetBlend(new BlendingInfo
+            {
+                Source = BlendingFactorSrc.One,
+                Destination = BlendingFactorDest.Zero,
+                SourceAlpha = BlendingFactorSrc.One,
+                DestinationAlpha = BlendingFactorDest.Zero,
+            });
 
             using (bindFrameBuffer(target, source.Size))
             {
@@ -193,7 +200,8 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Blit the final framebuffer to screen.
-            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
+            GLWrapper.SetBlend(DrawInfo.Blending);
+
             Shader.Bind();
             drawFrameBufferToBackBuffer(FrameBuffers[0], ScreenSpaceDrawRectangle);
             Shader.Unbind();
