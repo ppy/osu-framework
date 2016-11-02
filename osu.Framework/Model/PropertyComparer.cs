@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace osu.Framework.Data
+namespace osu.Framework.Model
 {
     public class PropertyComparer : IComparer<object>
     {
@@ -77,6 +77,38 @@ namespace osu.Framework.Data
                     (xp as IComparable).CompareTo(yp) : String.CompareOrdinal(xp.ToString(), yp.ToString());
 
             return description.CompareDescending ? -comparison : comparison;
+        }
+
+        /// <summary>
+        /// Calculate how many Properties have two items in common.
+        /// </summary>
+        /// <param name="x">First item.</param>
+        /// <param name="y">Second item.</param>
+        /// <returns>Amount of Properties in common.</returns>
+        public virtual int CommonPrefixSize(
+            object x, object y)
+        {
+            return CommonPrefixSize(x, y, Descriptions);
+        }
+
+        /// <summary>
+        /// Calculate how many Properties referenced by specific Descriptions have two items in common.
+        /// </summary>
+        /// <param name="x">First item.</param>
+        /// <param name="y">Second item.</param>
+        /// <param name="desciptions">Properties referenced.</param>
+        /// <returns>Amount of Properties in common.</returns>
+        public virtual int CommonPrefixSize(
+            object x, object y, ObservableCollection<PropertyDescription> descriptions)
+        {
+            int equal = 0;
+            foreach (PropertyDescription description in descriptions)
+            {
+                if (CompareProperty(x, y, description) != 0)
+                    return equal;
+                equal++;
+            }
+            return equal;
         }
     }
 }

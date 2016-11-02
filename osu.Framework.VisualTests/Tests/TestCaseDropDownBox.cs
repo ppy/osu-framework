@@ -3,7 +3,7 @@
 
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Data;
+using osu.Framework.Model;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;

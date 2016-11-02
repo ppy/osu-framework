@@ -2,12 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Configuration;
-using osu.Framework.Data;
+using osu.Framework.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace osu.Framework.Lists
@@ -17,22 +18,41 @@ namespace osu.Framework.Lists
         private readonly PropertyComparer defaultGroupComparer = new PropertyComparer();
         private readonly PropertyComparer defaultSortComparer = new PropertyComparer();
 
+        private PropertyComparer customGroup;
+
         /// <summary>
         /// Defines custom comparer for grouping elements. Overrides GroupDescriptions.
         /// </summary>
-        public IComparer CustomGroup { get; set; }
+        public PropertyComparer CustomGroup
+        {
+            get
+            {
+                return customGroup;
+            }
+            set
+            {
+                customGroup = value;
+                Refresh();
+            }
+        }
 
-        /// <summary>
-        /// Defines custom comparer for grouping elements properties.
-        /// Overrides GroupDescriptions to calculate PropertiesEqualToPreviousItem.
-        /// </summary>
-        /// <seealso cref="PropertiesEqualToPreviousItem(int)"/>
-        public PropertyComparer CustomGroupProperty { get; set; }
+        private IComparer customSort;
 
         /// <summary>
         /// Defines custom comparer for sorting elements. Overrides SortDescriptions.
         /// </summary>
-        public IComparer CustomSort { get; set; }
+        public IComparer CustomSort
+        {
+            get
+            {
+                return customSort;
+            }
+            set
+            {
+                customSort = value;
+                Refresh();
+            }
+        }
 
         private ObservableCollection<PropertyDescription> groupDescriptions;
 
@@ -82,11 +102,6 @@ namespace osu.Framework.Lists
         /// Indicates whether this view supports grouping.
         /// </summary>
         public bool CanGroup => (CustomGroup != null || GroupDescriptions.Count > 0);
-
-        /// <summary>
-        /// Indicates whether this view supports grouping by properties.
-        /// </summary>
-        public bool CanGroupByProperties => (CustomGroupProperty != null || GroupDescriptions.Count > 0);
 
         /// <summary>
         /// Indicates whether this view supports sorting after grouping.
@@ -184,23 +199,18 @@ namespace osu.Framework.Lists
         }
 
         /// <summary>
-        /// Calculate how many Group Properties has in common an indexed item with its previous one.
+        /// Calculate how many Group Properties have in common an indexed item with its previous one.
         /// </summary>
         /// <param name="i">Index of item to compare.</param>
         /// <returns>Amount of Group Properties in common with previous item.</returns>
-        public int PropertiesEqualToPreviousItem(int i)
+        public int CommonToPreviousPrefixSize(int i)
         {
-            if (i <= 0 || !CanGroupByProperties)
+            if (i <= 0 || !CanGroup)
                 return 0;
 
-            int eq = 0;
-            foreach (PropertyDescription description in GroupDescriptions)
-            {
-                if (groupCompareProperty(Items[i - 1], Items[i], description) != 0)
-                    return eq;
-                eq++;
-            }
-            return eq;
+            return (CustomGroup != null) ?
+                CustomGroup.CommonPrefixSize(Items[i - 1], Items[i]) :
+                defaultGroupComparer.CommonPrefixSize(Items[i - 1], Items[i]);
         }
 
         /// <summary>
@@ -268,7 +278,9 @@ namespace osu.Framework.Lists
 
         private void descriptionsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset || e.Action == NotifyCollectionChangedAction.Replace)
+            if (e.Action == NotifyCollectionChangedAction.Remove ||
+                e.Action == NotifyCollectionChangedAction.Reset ||
+                e.Action == NotifyCollectionChangedAction.Replace)
                 foreach (PropertyDescription description in e.OldItems)
                     description.PropertyChanged -= descriptionPropertyChanged;
             if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Replace)
@@ -278,19 +290,11 @@ namespace osu.Framework.Lists
             Refresh();
         }
 
-        private void descriptionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            Refresh();
-        }
+        private void descriptionPropertyChanged(object sender, PropertyChangedEventArgs e) => Refresh();
 
         private int groupCompare(object x, object y)
         {
             return (CustomGroup != null) ? CustomGroup.Compare(x, y) : defaultGroupComparer.Compare(x, y);
-        }
-
-        private int groupCompareProperty(object x, object y, PropertyDescription description)
-        {
-            return (CustomGroupProperty != null) ? CustomGroupProperty.CompareProperty(x, y, description) : defaultGroupComparer.CompareProperty(x, y, description);
         }
 
         private int sortCompare(object x, object y)

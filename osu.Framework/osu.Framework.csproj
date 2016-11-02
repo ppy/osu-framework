@@ -155,8 +155,8 @@
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
-    <Compile Include="Data\PropertyGroupComparer.cs" />
-    <Compile Include="Data\PropertyDescription.cs" />
+    <Compile Include="Model\PropertyComparer.cs" />
+    <Compile Include="Model\PropertyDescription.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Lists\CollectionView.cs" />
     <Compile Include="Logging\Logger.cs" />

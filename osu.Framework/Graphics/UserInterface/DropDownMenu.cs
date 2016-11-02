@@ -248,7 +248,7 @@ namespace osu.Framework.Graphics.UserInterface
             DropDown.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
             for (int itemIndex = 0, positionIndex = 0; itemIndex < Items.Count; itemIndex++, positionIndex++)
             {
-                for (int level = Items.PropertiesEqualToPreviousItem(itemIndex); level < Items.GroupDescriptions?.Count; level++)
+                for (int level = Items.CommonToPreviousPrefixSize(itemIndex); level < Items.GroupDescriptions?.Count; level++)
                 {
                     addHeader(itemIndex, positionIndex, level);
                     positionIndex++;

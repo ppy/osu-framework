@@ -5,7 +5,7 @@ using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace osu.Framework.Data
+namespace osu.Framework.Model
 {
     public class PropertyDescription : INotifyPropertyChanged
     {
