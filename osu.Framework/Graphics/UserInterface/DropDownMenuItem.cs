@@ -20,7 +20,8 @@ namespace osu.Framework.Graphics.UserInterface
         public bool IsSelected => ParentMenu?.SelectedIndex == Index;
 
         public float ExpectedHeight =>
-            Label.TextSize + Label.Margin.TotalVertical + Label.Padding.TotalVertical + Padding.TotalVertical;
+            Label.TextSize + Label.Margin.TotalVertical + Label.Padding.TotalVertical
+            + Foreground.Margin.TotalVertical + Foreground.Padding.TotalVertical + Padding.TotalVertical;
         public float ExpectedPositionY => ExpectedHeight * PositionIndex;
 
         protected Box Background;

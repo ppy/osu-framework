@@ -11,7 +11,6 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Lists;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -36,8 +35,32 @@ namespace osu.Framework.VisualTests.Tests
                 Description = @"Beatmap selector example",
             };
 
-            ViewCollection<object> maps = new ViewCollection<object>();
-            maps.GroupDescriptions.Add(new PropertyGroupDescription { PropertyName = @"Status" });
+            CollectionView maps = new CollectionView();
+            maps.GroupDescriptions.Add(new PropertyDescription
+            {
+                PropertyName = @"Status",
+                StringConverter = item =>
+                {
+                    switch((item as BeatmapExample).Status)
+                    {
+                        case BeatmapExampleStatus.Approved:
+                            return "Approved";
+                        case BeatmapExampleStatus.Loved:
+                            return "Loved";
+                        case BeatmapExampleStatus.NotSubmitted:
+                            return "Not Submitted";
+                        case BeatmapExampleStatus.Pending:
+                            return "Pending";
+                        case BeatmapExampleStatus.Qualified:
+                            return "Qualified";
+                        case BeatmapExampleStatus.Ranked:
+                            return "Ranked";
+                        default:
+                            return "Unknown";
+                    }
+                },
+            });
+            maps.SortDescriptions.Add(new PropertyDescription { PropertyName = @"Name" });
 
             maps.Add(new BeatmapExample
             {
@@ -68,6 +91,7 @@ namespace osu.Framework.VisualTests.Tests
             });
 
             dropDownMenu.Items = maps;
+            dropDownMenu.SelectedIndex = 0;
 
             dropDownMenu.ValueChanged += DropDownBox_ValueChanged;
 
@@ -101,7 +125,7 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 0; i < 10; i++)
                 testItems[i] = @"test " + i;
 
-            styledDropDownMenu.Items = new ViewCollection<object>(testItems);
+            styledDropDownMenu.Items = new CollectionView(testItems);
 
             Add(styledDropDownMenu);
 
@@ -135,7 +159,7 @@ namespace osu.Framework.VisualTests.Tests
             AddButton(@"(un)group by mapper", delegate
             {
                 if (maps.GroupDescriptions.Count == 1)
-                    maps.GroupDescriptions.Add(new PropertyGroupDescription { PropertyName = "Mapper" });
+                    maps.GroupDescriptions.Add(new PropertyDescription { PropertyName = "Mapper" });
                 else
                     maps.GroupDescriptions.RemoveAt(1);
             });

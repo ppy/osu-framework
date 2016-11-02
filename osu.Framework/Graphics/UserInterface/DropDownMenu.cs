@@ -35,8 +35,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string Description { get; set; }
 
-        private ViewCollection<object> items;
-        public ViewCollection<object> Items
+        private CollectionView items;
+
+        /// <summary>
+        /// Collection of items contained in this menu.
+        /// </summary>
+        public CollectionView Items
         {
             get
             {
@@ -45,35 +49,47 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 if (items != null)
+                {
                     items.CollectionChanged -= itemsCollectionChanged;
+                    items.ValueChanged -= itemsValueChanged;
+                }
+                    
                 items = value;
+
                 if (items != null)
+                {
                     items.CollectionChanged += itemsCollectionChanged;
+                    items.ValueChanged += itemsValueChanged;
+                }
+                    
                 TriggerListChanged();
             }
         }
 
-        private int selectedIndex;
+        /// <summary>
+        /// Gets the index of the selected item in the menu.
+        /// </summary>
         public int SelectedIndex
         {
             get
             {
-                return selectedIndex;
+                return (Items != null) ? Items.CurrentIndex : 0;
             }
             set
             {
-                selectedIndex = Math.Max(0, Math.Min(value, Items.Count));
-                TriggerValueChanged();
+                if (Items != null)
+                    Items.CurrentIndex = value;
             }
         }
 
+        /// <summary>
+        /// Gets the selected item in the menu.
+        /// </summary>
         public object SelectedItem
         {
             get
             {
-                if (Items.Count == 0)
-                    return null;
-                return Items[SelectedIndex];
+                return Items?.CurrentItem;
             }
             set
             {
@@ -81,11 +97,14 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Occurs when the selected item changes.
+        /// </summary>
         public event EventHandler ValueChanged;
 
         public DropDownMenu()
         {
-            items = new ViewCollection<object>();
+            items = new CollectionView();
 
             Children = new Drawable[]
             {
@@ -123,6 +142,7 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 DropDownList = new Container
                 {
+                    
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Width = 1,
@@ -139,27 +159,31 @@ namespace osu.Framework.Graphics.UserInterface
             ComboBoxLabel.Text = SelectedItem?.ToString();
         }
 
+        public void Open()
+        {
+            opened = true;
+            if (NeedsRefresh)
+                refreshDropDownList();
+            AnimateOpen();
+        }
+
+        public void Close()
+        {
+            opened = false;
+            AnimateClose();
+        }
+
         public bool Parse(object s)
         {
-            if (s == null) return false;
-
-            for (int i = 0; i < Items.Count; i++)
-            {
-                if (s.Equals(Items[i]))
-                {
-                    SelectedIndex = i;
-                    return true;
-                }
-            }
-
-            return false;
+            if (Items == null)
+                return false;
+            return Items.Parse(s);
         }
 
         public void UnbindAll()
         {
             ValueChanged = null;
         }
-
 
         public void TriggerValueChanged()
         {
@@ -206,17 +230,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnClick(InputState state)
         {
             if (opened)
-            {
-                opened = false;
-                AnimateClose();
-            }
+                Close();
             else
-            {
-                opened = true;
-                if (NeedsRefresh)
-                    refreshDropDownList();
-                AnimateOpen();
-            }
+                Open();
             return true;
         }
 
@@ -232,51 +248,33 @@ namespace osu.Framework.Graphics.UserInterface
             base.OnHoverLost(state);
         }
 
-        private void itemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void itemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => TriggerListChanged();
+
+        private void itemsValueChanged(object sender, EventArgs e) => TriggerValueChanged();
+
+        private void addHeader(int itemIndex, int positionIndex, int level)
         {
-            // Items resetted
-            if (e.Action == NotifyCollectionChangedAction.Reset)
-                SelectedIndex = 0;
+            DropDownMenuHeader newHeader = (DropDownMenuHeader)Activator.CreateInstance(MenuHeaderType, new[] { this });
+            newHeader.Item = Items.GroupDescriptions[level].GetPropertyStringValue(Items[itemIndex]);
+            newHeader.Index = -1;
+            newHeader.PositionIndex = positionIndex;
+            newHeader.Depth = -positionIndex;
+            newHeader.Level = level;
+            newHeader.Alpha = 0;
 
-            // Items replaced, SelectedItem was among those; notify value change
-            if (e.Action == NotifyCollectionChangedAction.Replace &&
-                e.NewStartingIndex <= SelectedIndex && SelectedIndex < e.OldStartingIndex + e.NewItems.Count)
-                TriggerValueChanged();
+            DropDownList.Add(newHeader);
+        }
 
-            // Items added before SelectedItem; move forward index
-            if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex <= SelectedIndex)
-                SelectedIndex += e.NewItems.Count;
+        private void addItem(int itemIndex, int positionIndex)
+        {
+            DropDownMenuItem newItem = (DropDownMenuItem)Activator.CreateInstance(MenuItemType, new[] { this });
+            newItem.Item = Items[itemIndex];
+            newItem.Index = itemIndex;
+            newItem.PositionIndex = positionIndex;
+            newItem.Depth = -positionIndex;
+            newItem.Alpha = 0;
 
-            // Items removed before SelectedItem
-            if (e.Action == NotifyCollectionChangedAction.Remove && e.OldStartingIndex <= SelectedIndex)
-            {
-                // SelectedItem was among those; auto select item previous to removed items
-                if (SelectedIndex < e.OldStartingIndex + e.OldItems.Count)
-                    SelectedIndex = Math.Max(0, e.OldStartingIndex - 1);
-                // Otherwise move back index
-                else
-                    SelectedIndex -= e.OldItems.Count;
-            }
-
-            // Items moved
-            if (e.Action == NotifyCollectionChangedAction.Move)
-            {
-                // Items removed before SelectedItem
-                if (e.OldStartingIndex <= SelectedIndex)
-                {
-                    // Selected item was among moved items; calculate new position
-                    if (SelectedIndex < e.OldStartingIndex + e.OldItems.Count)
-                        SelectedIndex = SelectedIndex - e.OldStartingIndex + e.NewStartingIndex;
-                    // Items removed after SelectedItem; move back index
-                    else if (SelectedIndex < e.NewStartingIndex)
-                        SelectedIndex -= e.OldItems.Count;
-                }
-                // Items added before SelectedItem; move forward index
-                else if (e.NewStartingIndex <= SelectedIndex)
-                    SelectedIndex += e.OldItems.Count;
-            }
-
-            TriggerListChanged();
+            DropDownList.Add(newItem);
         }
 
         private void refreshDropDownList()
@@ -286,30 +284,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             DropDownList.Clear();
             DropDownList.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
-            for (int i = 0, j = 0; i < Items.Count; i++, j++)
+            for (int itemIndex = 0, positionIndex = 0; itemIndex < Items.Count; itemIndex++, positionIndex++)
             {
-                for (int eq = Items.PropertiesEqualToPreviousItem(i); eq < Items.GroupDescriptions?.Count; eq++)
+                for (int level = Items.PropertiesEqualToPreviousItem(itemIndex); level < Items.GroupDescriptions?.Count; level++)
                 {
-                    DropDownMenuHeader newHeader = (DropDownMenuHeader)Activator.CreateInstance(MenuHeaderType, new[] { this });
-                    newHeader.Item = Items[i].GetType().GetProperty(Items.GroupDescriptions[eq].PropertyName).GetValue(Items[i]);
-                    newHeader.Index = -1;
-                    newHeader.PositionIndex = j;
-                    newHeader.Depth = -j;
-                    newHeader.Level = eq;
-                    newHeader.Alpha = 0;
-
-                    DropDownList.Add(newHeader);
-                    j++;
+                    addHeader(itemIndex, positionIndex, level);
+                    positionIndex++;
                 }
 
-                DropDownMenuItem newItem = (DropDownMenuItem)Activator.CreateInstance(MenuItemType, new[] { this });
-                newItem.Item = Items[i];
-                newItem.Index = i;
-                newItem.PositionIndex = j;
-                newItem.Depth = -j;
-                newItem.Alpha = 0;
-
-                DropDownList.Add(newItem);
+                addItem(itemIndex, positionIndex);
             }
 
             NeedsRefresh = false;

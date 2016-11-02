@@ -7,18 +7,43 @@ using System.Collections.ObjectModel;
 
 namespace osu.Framework.Data
 {
-    public class PropertyGroupComparer<T> : IComparer<T>
+    public class PropertyComparer : IComparer<object>
     {
-        public ObservableCollection<PropertyGroupDescription> GroupDescriptions { get; set; } = new ObservableCollection<PropertyGroupDescription>();
+        public ObservableCollection<PropertyDescription> Descriptions { get; set; }
+            = new ObservableCollection<PropertyDescription>();
 
-        public virtual int Compare(T x, T y)
+        /// <summary>
+        /// Compares two objects using the collection of Property Descriptions provided in this class.
+        /// </summary>
+        /// <param name="x">First object.</param>
+        /// <param name="y">Second object.</param>
+        /// <returns>
+        /// Positive integer if the second object is greater than the first one based on the
+        /// property descriptions defined;
+        /// Negative integer if the first object is gretaer than the second one;
+        /// 0 if both objects have the same value on the defined properties.
+        /// </returns>
+        public virtual int Compare(object x, object y)
         {
-            return Compare(x, y, GroupDescriptions);
+            return Compare(x, y, Descriptions);
         }
 
-        public virtual int Compare(T x, T y, ObservableCollection<PropertyGroupDescription> descriptions)
+        /// <summary>
+        /// Compares two objects using an specific collection of Property Descriptions.
+        /// </summary>
+        /// <param name="x">First object.</param>
+        /// <param name="y">Second object.</param>
+        /// <param name="descriptions">Collection of property descriptions to compare by.</param>
+        /// <returns>
+        /// Positive integer if the second object is greater than the first one based on the
+        /// property descriptions defined;
+        /// Negative integer if the first object is gretaer than the second one;
+        /// 0 if both objects have the same value on the defined properties.
+        /// </returns>
+        public virtual int Compare(
+            object x, object y, ObservableCollection<PropertyDescription> descriptions)
         {
-            foreach (PropertyGroupDescription description in descriptions)
+            foreach (PropertyDescription description in descriptions)
             {
                 int comparison = CompareProperty(x, y, description);
                 if (comparison != 0)
@@ -27,10 +52,21 @@ namespace osu.Framework.Data
             return 0;
         }
 
-        public virtual int CompareProperty(T x, T y, PropertyGroupDescription description)
+        /// <summary>
+        /// Compare values of a defined property of two objects.
+        /// </summary>
+        /// <param name="x">First object.</param>
+        /// <param name="y">Second object.</param>
+        /// <param name="description">Property description to compare by.</param>
+        /// <returns>
+        /// Positive integer if the second object property value is greater than the first one value;
+        /// Positive integer if the first object property value is greater than the second one;
+        /// 0 if both objects have the same value on the defined property.
+        /// </returns>
+        public virtual int CompareProperty(object x, object y, PropertyDescription description)
         {
-            object xp = x.GetType().GetProperty(description.PropertyName).GetValue(x);
-            object yp = y.GetType().GetProperty(description.PropertyName).GetValue(y);
+            object xp = description.GetPropertyValue(x);
+            object yp = description.GetPropertyValue(y);
 
             int comparison;
 
