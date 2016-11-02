@@ -1,10 +1,19 @@
 #ifdef GL_ES
-precision mediump float;
+    precision mediump float;
 #endif
 
 #include "sh_Utils.h"
 
 #define INV_SQRT_2PI 0.39894
+
+varying vec2 v_TexCoord;
+
+uniform sampler2D m_Sampler;
+
+uniform vec2 g_TexSize;
+uniform int g_Radius;
+uniform float g_Sigma;
+uniform vec2 g_BlurDirection;
 
 float computeGauss(in float x, in float sigma)
 {
@@ -30,4 +39,9 @@ vec4 blur(sampler2D tex, int radius, vec2 direction, vec2 texCoord, vec2 texSize
 	}
 
     return toSRGB(sum / totalFactor);
+}
+
+void main(void)
+{
+	gl_FragColor = blur(m_Sampler, g_Radius, g_BlurDirection, v_TexCoord, g_TexSize, g_Sigma);
 }
