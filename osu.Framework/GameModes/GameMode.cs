@@ -20,6 +20,8 @@ namespace osu.Framework.GameModes
         private Container content;
         private Container childModeContainer;
 
+        protected BaseGame Game;
+
         protected override Container Content => content;
 
         public event Action<GameMode> ModePushed;
@@ -81,6 +83,12 @@ namespace osu.Framework.GameModes
         /// </summary>
         /// <param name="next">The new GameMode</param>
         protected virtual void OnSuspending(GameMode next) { }
+
+        protected internal override void PerformLoad(BaseGame game)
+        {
+            Game = game;
+            base.PerformLoad(game);
+        }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {

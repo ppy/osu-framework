@@ -36,8 +36,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal event Action OnInvalidate;
 
-        protected BaseGame Game => this as BaseGame ?? Parent?.Game;
-
         /// <summary>
         /// A name used to identify this Drawable internally.
         /// </summary>
