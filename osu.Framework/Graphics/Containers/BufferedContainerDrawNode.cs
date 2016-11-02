@@ -23,9 +23,9 @@ namespace osu.Framework.Graphics.Containers
         public Color4 BackgroundColour;
 
         public Vector2 BlurSigma;
+        public float BlurRotation;
 
-        public Shader BlurShaderHorizontal;
-        public Shader BlurShaderVertical;
+        public Shader BlurShader;
 
         // If this counter contains a value larger then 0, then we have to redraw.
         public AtomicCounter ForceRedraw;
@@ -105,10 +105,10 @@ namespace osu.Framework.Graphics.Containers
             return MAX_RADIUS;
         }
 
-        private void drawChildren(IVertexBatch vertexBatch, FrameBuffer target, Vector2 frameBufferSize)
+        private void drawChildren(IVertexBatch vertexBatch, Vector2 frameBufferSize)
         {
             // Fill the frame buffer with drawn children
-            using (bindFrameBuffer(target, frameBufferSize))
+            using (bindFrameBuffer(currentFrameBuffer, frameBufferSize))
             {
                 // We need to draw children as if they were zero-based to the top-left of the texture.
                 // We can do this by adding a translation component to our (orthogonal) projection matrix.
@@ -121,19 +121,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void drawBlurredFrameBuffer(FrameBuffer source, FrameBuffer target, Shader blurShader, int kernelRadius, float sigma)
+        private void drawBlurredFrameBuffer(int kernelRadius, float sigma, float blurRotation)
         {
+            FrameBuffer source = currentFrameBuffer;
+            FrameBuffer target = advanceFrameBuffer();
+
             GLWrapper.SetBlend(BlendingFactorSrc.One, BlendingFactorDest.Zero, BlendingFactorSrc.One, BlendingFactorDest.Zero);
 
             using (bindFrameBuffer(target, source.Size))
             {
-                blurShader.GetUniform<int>(@"g_Radius").Value = kernelRadius;
-                blurShader.GetUniform<float>(@"g_Sigma").Value = sigma;
-                blurShader.GetUniform<Vector2>(@"g_TexSize").Value = source.Size;
+                BlurShader.GetUniform<int>(@"g_Radius").Value = kernelRadius;
+                BlurShader.GetUniform<float>(@"g_Sigma").Value = sigma;
+                BlurShader.GetUniform<Vector2>(@"g_TexSize").Value = source.Size;
 
-                blurShader.Bind();
+                float radians = -MathHelper.DegreesToRadians(blurRotation);
+                BlurShader.GetUniform<Vector2>(@"g_BlurDirection").Value = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
+
+                BlurShader.Bind();
                 drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height));
-                blurShader.Unbind();
+                BlurShader.Unbind();
             }
         }
 
@@ -166,7 +172,7 @@ namespace osu.Framework.Graphics.Containers
 
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
-                    drawChildren(vertexBatch, currentFrameBuffer, frameBufferSize);
+                    drawChildren(vertexBatch, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
                     int radiusX = BlurSigma.X > 0 ? findBlurRadius(BlurSigma.X) : 0;
@@ -176,11 +182,8 @@ namespace osu.Framework.Graphics.Containers
                     {
                         GL.Disable(EnableCap.ScissorTest);
 
-                        if (radiusX > 0)
-                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShaderHorizontal, radiusX, BlurSigma.X);
-
-                        if (radiusY > 0)
-                            drawBlurredFrameBuffer(currentFrameBuffer, advanceFrameBuffer(), BlurShaderVertical, radiusY, BlurSigma.Y);
+                        if (radiusX > 0) drawBlurredFrameBuffer(radiusX, BlurSigma.X, BlurRotation);
+                        if (radiusY > 0) drawBlurredFrameBuffer(radiusY, BlurSigma.Y, BlurRotation + 90);
 
                         GL.Enable(EnableCap.ScissorTest);
                     }

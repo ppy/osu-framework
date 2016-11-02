@@ -278,9 +278,7 @@
     </None>
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\Shaders\sh_Bloom.fs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_Blur2D.h" />
-    <EmbeddedResource Include="Resources\Shaders\sh_BlurHorizontal.fs" />
-    <EmbeddedResource Include="Resources\Shaders\sh_BlurVertical.fs" />
+    <EmbeddedResource Include="Resources\Shaders\sh_Blur.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Colour.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Colour.vs" />
     <EmbeddedResource Include="Resources\Shaders\sh_Particle.vs" />

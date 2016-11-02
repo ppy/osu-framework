@@ -30,8 +30,21 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Shader blurShaderHorizontal;
-        private Shader blurShaderVertical;
+        private float blurRotation = 0;
+        public float BlurRotation
+        {
+            get { return blurRotation; }
+            set
+            {
+                if (blurRotation == value)
+                    return;
+
+                blurRotation = value;
+                ForceRedraw();
+            }
+        }
+
+        private Shader blurShader;
 
         public bool CacheDrawnFrameBuffer = false;
         public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
@@ -62,11 +75,8 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Load(game);
 
-            if (blurShaderHorizontal == null)
-                blurShaderHorizontal = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.BlurHorizontal));
-
-            if (blurShaderVertical == null)
-                blurShaderVertical = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.BlurVertical));
+            if (blurShader == null)
+                blurShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
@@ -84,8 +94,8 @@ namespace osu.Framework.Graphics.Containers
             n.BackgroundColour = BackgroundColour;
 
             n.BlurSigma = BlurSigma;
-            n.BlurShaderHorizontal = blurShaderHorizontal;
-            n.BlurShaderVertical = blurShaderVertical;
+            n.BlurRotation = BlurRotation;
+            n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);
 

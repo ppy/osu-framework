@@ -48,8 +48,9 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                MatrixExtensions.RotateFromLeft(ref target.Matrix, rotation);
-                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -rotation);
+                float radians = MathHelper.DegreesToRadians(rotation);
+                MatrixExtensions.RotateFromLeft(ref target.Matrix, radians);
+                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
