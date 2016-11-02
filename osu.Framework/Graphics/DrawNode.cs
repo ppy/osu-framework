@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics
 
         public virtual void Draw(IVertexBatch vertexBatch)
         {
-            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
+            GLWrapper.SetBlend(DrawInfo.Blending);
         }
     }
 }

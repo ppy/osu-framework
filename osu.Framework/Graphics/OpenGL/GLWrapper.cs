@@ -54,6 +54,8 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
 
+            Shader.SetGlobalProperty(@"g_PremultiplyAlpha", true);
+
             IsInitialized = true;
         }
 
@@ -66,8 +68,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundTexture = null;
 
-            lastSrcBlend = BlendingFactorSrc.Zero;
-            lastDestBlend = BlendingFactorDest.Zero;
+            lastBlendingInfo = new BlendingInfo();
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
@@ -91,6 +92,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
+                LinearBlendRange = 1,
             }, true);
         }
 
@@ -181,28 +183,26 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
-        private static BlendingFactorSrc lastSrcBlend;
-        private static BlendingFactorDest lastDestBlend;
+        private static BlendingInfo lastBlendingInfo;
 
         /// <summary>
         /// Sets the blending function to draw with.
         /// </summary>
         /// <param name="src">The source blending factor.</param>
         /// <param name="dest">The destination blending factor.</param>
-        public static void SetBlend(BlendingFactorSrc src, BlendingFactorDest dest, BlendingFactorSrc srcAlpha = BlendingFactorSrc.One, BlendingFactorDest destAlpha = BlendingFactorDest.One)
+        public static void SetBlend(BlendingInfo blendingInfo)
         {
-            if (lastSrcBlend == src && lastDestBlend == dest)
+            if (lastBlendingInfo.Equals(blendingInfo))
                 return;
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(src, dest, srcAlpha, destAlpha);
+            GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
 
-            lastSrcBlend = src;
-            lastDestBlend = dest;
+            lastBlendingInfo = blendingInfo;
         }
 
-        private static int lastFrameBuffer = -1;
+        private static int lastFrameBuffer = 0;
 
         /// <summary>
         /// Binds a framebuffer.
@@ -370,11 +370,7 @@ namespace osu.Framework.Graphics.OpenGL
                 linearBorderColour.B,
                 linearBorderColour.A));
 
-            // We are setting the linear blend range to the approximate size of a _pixel_ here.
-            // This results in the optimal trade-off between crispness and smoothness of the
-            // edges of the masked region according to sampling theory.
-            Vector3 scale = maskingInfo.ToMaskingSpace.ExtractScale();
-            Shader.SetGlobalProperty(@"g_LinearBlendRange", (scale.X + scale.Y) / 2);
+            Shader.SetGlobalProperty(@"g_LinearBlendRange", maskingInfo.LinearBlendRange);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -519,6 +515,61 @@ namespace osu.Framework.Graphics.OpenGL
             GL.UseProgram(s);
             currentShader = s;
         }
+
+        public static void SetUniform(int shader, ActiveUniformType type, int location, object value)
+        {
+            if (shader == currentShader)
+                FlushCurrentBatch();
+
+            switch (type)
+            {
+                case ActiveUniformType.Bool:
+                    GL.Uniform1(location, (bool)value ? 1 : 0);
+                    break;
+                case ActiveUniformType.Int:
+                    GL.Uniform1(location, (int)value);
+                    break;
+                case ActiveUniformType.Float:
+                    GL.Uniform1(location, (float)value);
+                    break;
+                case ActiveUniformType.BoolVec2:
+                case ActiveUniformType.IntVec2:
+                case ActiveUniformType.FloatVec2:
+                    GL.Uniform2(location, (Vector2)value);
+                    break;
+                case ActiveUniformType.FloatMat2:
+                    {
+                        Matrix2 mat = (Matrix2)value;
+                        GL.UniformMatrix2(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.BoolVec3:
+                case ActiveUniformType.IntVec3:
+                case ActiveUniformType.FloatVec3:
+                    GL.Uniform3(location, (Vector3)value);
+                    break;
+                case ActiveUniformType.FloatMat3:
+                    {
+                        Matrix3 mat = (Matrix3)value;
+                        GL.UniformMatrix3(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.BoolVec4:
+                case ActiveUniformType.IntVec4:
+                case ActiveUniformType.FloatVec4:
+                    GL.Uniform4(location, (Vector4)value);
+                    break;
+                case ActiveUniformType.FloatMat4:
+                    {
+                        Matrix4 mat = (Matrix4)value;
+                        GL.UniformMatrix4(location, false, ref mat);
+                    }
+                    break;
+                case ActiveUniformType.Sampler2D:
+                    GL.Uniform1(location, (int)value);
+                    break;
+            }
+        }
     }
 
     public struct MaskingInfo : IEquatable<MaskingInfo>
@@ -537,6 +588,8 @@ namespace osu.Framework.Graphics.OpenGL
         public float BorderThickness;
         public Color4 BorderColour;
 
+        public float LinearBlendRange;
+
         public bool Equals(MaskingInfo other)
         {
             return
@@ -545,7 +598,8 @@ namespace osu.Framework.Graphics.OpenGL
                 ToMaskingSpace.Equals(other.ToMaskingSpace) &&
                 CornerRadius == other.CornerRadius &&
                 BorderThickness == other.BorderThickness &&
-                BorderColour.Equals(other.BorderColour);
+                BorderColour.Equals(other.BorderColour) &&
+                LinearBlendRange == other.LinearBlendRange;
         }
     }
 }

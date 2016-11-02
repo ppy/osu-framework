@@ -241,7 +241,7 @@ namespace osu.Framework.Platform
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
                 GLWrapper.Reset(DrawSize);
-                GLWrapper.ClearColour(Color4.Black);
+                GLWrapper.ClearColour(new Color4(0, 0, 0, 0));
             }
 
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))

@@ -40,23 +40,16 @@ namespace osu.Framework.Graphics.Containers
             if (!ScreenSpaceMaskingQuad.HasValue)
                 ScreenSpaceMaskingQuad = Quad.FromRectangle(glowRect) * DrawInfo.Matrix;
 
-            Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
-                glowRect.Left,
-                glowRect.Top,
-                glowRect.Right,
-                glowRect.Bottom);
+            MaskingInfo glowMaskingInfo = MaskingInfo.Value;
+            glowMaskingInfo.MaskingRect = glowRect;
+            glowMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
+            glowMaskingInfo.CornerRadius += GlowRadius;
+            glowMaskingInfo.BorderThickness = 0;
+            glowMaskingInfo.LinearBlendRange = GlowRadius;
 
-            Shader.GetUniform<Matrix3>(@"g_ToMaskingSpace").Value = DrawInfo.MatrixInverse;
-            Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + GlowRadius;
+            GLWrapper.PushScissor(glowMaskingInfo);
 
-            Shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
-
-            // Here we are generating the glow gradient by setting the blend range to the glow radius.
-            // Note, that unlike for masking, we are using the blend range for a visual phenomenon here,
-            // and not to achieve correct sampling of the border.
-            Shader.GetUniform<float>(@"g_LinearBlendRange").Value = GlowRadius;
-
-            GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.One);
+            GLWrapper.SetBlend(new BlendingInfo(true));
 
             Shader.Bind();
 
@@ -66,6 +59,8 @@ namespace osu.Framework.Graphics.Containers
             Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, glowColour);
 
             Shader.Unbind();
+
+            GLWrapper.PopScissor();
         }
 
         private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
@@ -93,17 +88,17 @@ namespace osu.Framework.Graphics.Containers
 
             base.Draw(vertexBatch);
 
-            drawGlow();
-
             if (MaskingInfo != null)
                 GLWrapper.PushScissor(MaskingInfo.Value);
 
             if (Children != null)
-                foreach (DrawNode child in Children)
-                    child.Draw(vertexBatch);
+                for (int i = Children.Count - 1; i >= 0; --i)
+                    Children[i].Draw(vertexBatch);
 
             if (MaskingInfo != null)
                 GLWrapper.PopScissor();
+
+            drawGlow();
         }
     }
 }
