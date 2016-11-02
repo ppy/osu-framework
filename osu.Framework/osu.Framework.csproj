@@ -117,6 +117,7 @@
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownMenuHeader.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
@@ -154,7 +155,10 @@
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
+    <Compile Include="Data\PropertyGroupComparer.cs" />
+    <Compile Include="Data\PropertyGroupDescription.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Lists\ViewCollection.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />

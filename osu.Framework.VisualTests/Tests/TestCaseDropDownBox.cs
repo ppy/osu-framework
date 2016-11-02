@@ -2,14 +2,16 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using osu.Framework.Data;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
-using System.Collections.ObjectModel;
+using osu.Framework.Lists;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -21,7 +23,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private DropDownMenu dropDownMenu;
         private StyledDropDownMenu styledDropDownMenu;
-        private SpriteText label;
+        private SpriteText labelSelectedMap, labelNewMap;
 
         public override void Reset()
         {
@@ -34,34 +36,35 @@ namespace osu.Framework.VisualTests.Tests
                 Description = @"Beatmap selector example",
             };
 
-            ObservableCollection<object> maps = new ObservableCollection<object>();
+            ViewCollection<object> maps = new ViewCollection<object>();
+            maps.GroupDescriptions.Add(new PropertyGroupDescription { PropertyName = @"Status" });
 
             maps.Add(new BeatmapExample
             {
                 Name = @"Example name",
                 Mapper = @"Example Mapper",
-                Status = @"Ranked",
+                Status = BeatmapExampleStatus.Ranked,
             });
 
             maps.Add(new BeatmapExample
             {
                 Name = @"Make up!",
                 Mapper = @"peppy",
-                Status = @"Ranked",
+                Status = BeatmapExampleStatus.Ranked,
             });
 
             maps.Add(new BeatmapExample
             {
                 Name = @"Platinum",
                 Mapper = @"arflyte",
-                Status = @"Loved",
+                Status = BeatmapExampleStatus.Loved,
             });
 
             maps.Add(new BeatmapExample
             {
                 Name = @"Lorem ipsum dolor sit amed",
                 Mapper = @"Plato",
-                Status = @"Ranked",
+                Status = BeatmapExampleStatus.Ranked,
             });
 
             dropDownMenu.Items = maps;
@@ -70,13 +73,21 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(dropDownMenu);
 
-            label = new SpriteText
+            labelSelectedMap = new SpriteText
             {
                 Text = @"Waiting for map...",
                 Position = new Vector2(450, 20),
             };
 
-            Add(label);
+            Add(labelSelectedMap);
+
+            labelNewMap = new SpriteText
+            {
+                Text = @"",
+                Position = new Vector2(450, 60),
+            };
+
+            Add(labelNewMap);
 
             styledDropDownMenu = new StyledDropDownMenu
             {
@@ -90,24 +101,48 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 0; i < 10; i++)
                 testItems[i] = @"test " + i;
 
-            styledDropDownMenu.Items = new ObservableCollection<object>(testItems);
+            styledDropDownMenu.Items = new ViewCollection<object>(testItems);
 
             Add(styledDropDownMenu);
 
             AddButton(@"+ beatmap", delegate
             {
-                maps.Add(new BeatmapExample
+                string[] mapNames = { "Cool", "Stylish", "Philosofical", "Tekno"};
+                string[] mapperNames = { "peppy", "arflyte", "Plato", "BanchoBot" };
+
+                BeatmapExample newMap = new BeatmapExample
                 {
-                    Name = "New beatmap",
-                    Mapper = "New mapper",
-                    Status = "Not submitted",
-                });
+                    Name = mapNames[RNG.Next(mapNames.Length)],
+                    Mapper = mapperNames[RNG.Next(mapperNames.Length)],
+                    Status = (BeatmapExampleStatus)RNG.Next(Enum.GetValues(typeof(BeatmapExampleStatus)).Length),
+                };
+
+                maps.Add(newMap);
+                labelNewMap.Text = $@"Added ""{newMap.Name}"" by {newMap.Mapper} as {newMap.Status}";
             });
 
             AddButton(@"- beatmap", delegate
             {
                 if (maps.Count > 1)
-                    maps.RemoveAt(RNG.Next(maps.Count));
+                {
+                    int toRemove = RNG.Next(maps.Count);
+
+                    labelNewMap.Text = $@"Removed ""{(maps[toRemove] as BeatmapExample).Name}"" by {(maps[toRemove] as BeatmapExample).Mapper}";
+                    maps.RemoveAt(toRemove);
+                }
+            });
+
+            AddButton(@"(un)group by mapper", delegate
+            {
+                if (maps.GroupDescriptions.Count == 1)
+                    maps.GroupDescriptions.Add(new PropertyGroupDescription { PropertyName = "Mapper" });
+                else
+                    maps.GroupDescriptions.RemoveAt(1);
+            });
+
+            AddButton(@"invert group order", delegate
+            {
+                maps.GroupDescriptions[0].CompareDescending = !maps.GroupDescriptions[0].CompareDescending;
             });
         }
 
@@ -120,8 +155,7 @@ namespace osu.Framework.VisualTests.Tests
             public StyledDropDownMenu()
             {
                 ComboBox.CornerRadius = 4;
-                ComboBoxLabel.Margin = new MarginPadding(4);
-                ComboBoxCaret.Margin = new MarginPadding(4);
+                ComboBoxForeground.Padding = new MarginPadding(4);
             }
 
             protected override void AnimateOpen()
@@ -151,8 +185,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             public StyledDropDownMenuItem(DropDownMenu parent) : base(parent)
             {
-                Label.Margin = new MarginPadding(2);
-                Caret.Margin = new MarginPadding(2);
+                Foreground.Padding = new MarginPadding(2);
             }
 
             protected override void FormatCaret()
@@ -172,19 +205,29 @@ namespace osu.Framework.VisualTests.Tests
         public void DropDownBox_ValueChanged(object sender, System.EventArgs e)
         {
             BeatmapExample ex = (BeatmapExample)(sender as DropDownMenu).SelectedItem;
-            label.Text = @"You've selected " + ex.Name + @", mapped by " + ex.Mapper;
+            labelSelectedMap.Text = $@"You've selected ""{ex.Name}"", mapped by {ex.Mapper}";
         }
 
         public class BeatmapExample
         {
-            public string Name;
-            public string Mapper;
-            public string Status;
+            public string Name { get; set; }
+            public string Mapper { get; set; }
+            public BeatmapExampleStatus Status { get; set; }
 
             public override string ToString()
             {
                 return Name;
             }
+        }
+
+        public enum BeatmapExampleStatus
+        {
+            Ranked,
+            Approved,
+            Qualified,
+            Loved,
+            Pending,
+            NotSubmitted,
         }
     }
 }
