@@ -46,8 +46,12 @@ namespace osu.Framework.Graphics.Cursor
                 BorderColour = new Color4(247, 99, 164, 255);
 
                 Masking = true;
-                GlowColour = new Color4(247, 99, 164, 6);
-                GlowRadius = 50;
+                EdgeEffect = new EdgeEffect
+                {
+                    Type = EdgeEffectType.Glow,
+                    Colour = new Color4(247, 99, 164, 6),
+                    Radius = 50
+                };
 
                 Children = new[]
                 {

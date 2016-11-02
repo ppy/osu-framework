@@ -157,8 +157,7 @@ namespace osu.Framework.Graphics.Shaders
         Colour,
         ColourRounded,
         Glow,
-        BlurHorizontal,
-        BlurVertical,
+        Blur,
     }
 
     public struct ShaderDescriptor
