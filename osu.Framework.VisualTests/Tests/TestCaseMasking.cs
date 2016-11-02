@@ -108,9 +108,9 @@ namespace osu.Framework.VisualTests.Tests
                             BorderThickness = 3,
                             EdgeEffect = new EdgeEffect
                             {
-                                Type = EdgeEffectType.Glow,
-                                Radius = 25,
-                                Colour = glowColour,
+                                Type = EdgeEffectType.Shadow,
+                                Radius = 100,
+                                Colour = new Color4(0, 50, 100, 200),
                             },
                         });
 

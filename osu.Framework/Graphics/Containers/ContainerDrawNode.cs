@@ -56,23 +56,16 @@ namespace osu.Framework.Graphics.Containers
             if (!ScreenSpaceMaskingQuad.HasValue)
                 ScreenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
 
-            Shader.GetUniform<Vector4>(@"g_MaskingRect").Value = new Vector4(
-                effectRect.Left,
-                effectRect.Top,
-                effectRect.Right,
-                effectRect.Bottom);
+            MaskingInfo edgeEffectMaskingInfo = MaskingInfo.Value;
+            edgeEffectMaskingInfo.MaskingRect = effectRect;
+            edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
+            edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
+            edgeEffectMaskingInfo.BorderThickness = 0;
+            edgeEffectMaskingInfo.LinearBlendRange = EdgeEffect.Radius;
 
-            Shader.GetUniform<Matrix3>(@"g_ToMaskingSpace").Value = DrawInfo.MatrixInverse;
-            Shader.GetUniform<float>(@"g_CornerRadius").Value = MaskingInfo.Value.CornerRadius + EdgeEffect.Radius + EdgeEffect.Roundness;
+            GLWrapper.PushScissor(edgeEffectMaskingInfo);
 
-            Shader.GetUniform<float>(@"g_BorderThickness").Value = 0;
-
-            // Here we are generating the glow gradient by setting the blend range to the glow radius.
-            // Note, that unlike for masking, we are using the blend range for a visual phenomenon here,
-            // and not to achieve correct sampling of the border.
-            Shader.GetUniform<float>(@"g_LinearBlendRange").Value = EdgeEffect.Radius;
-
-            GLWrapper.SetBlend(BlendingFactorSrc.SrcAlpha, EdgeEffect.Type == EdgeEffectType.Glow ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha);
+            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow));
 
             Shader.Bind();
 
@@ -82,6 +75,8 @@ namespace osu.Framework.Graphics.Containers
             Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, colour);
 
             Shader.Unbind();
+
+            GLWrapper.PopScissor();
         }
 
         private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
@@ -110,7 +105,6 @@ namespace osu.Framework.Graphics.Containers
             base.Draw(vertexBatch);
 
             drawEdgeEffect();
-
             if (MaskingInfo != null)
                 GLWrapper.PushScissor(MaskingInfo.Value);
 

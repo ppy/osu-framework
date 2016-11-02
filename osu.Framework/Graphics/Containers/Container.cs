@@ -117,6 +117,7 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
+            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
@@ -125,6 +126,10 @@ namespace osu.Framework.Graphics.Containers
                 CornerRadius = this.CornerRadius,
                 BorderThickness = this.BorderThickness,
                 BorderColour = this.BorderColour,
+                // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                // This results in the optimal trade-off between crispness and smoothness of the
+                // edges of the masked region according to sampling theory.
+                LinearBlendRange = (scale.X + scale.Y) / 2,
             };
 
             n.EdgeEffect = EdgeEffect;
