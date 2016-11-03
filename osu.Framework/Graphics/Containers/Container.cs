@@ -238,7 +238,6 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(Drawable drawable)
         {
-            //Debug.Assert(IsLoaded, "Can not add children before Container is loaded.");
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
             Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
