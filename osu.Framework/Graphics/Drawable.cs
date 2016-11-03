@@ -749,7 +749,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        protected LoadState LoadState;
+        protected volatile LoadState LoadState;
 
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
