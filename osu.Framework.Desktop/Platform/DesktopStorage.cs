@@ -8,6 +8,7 @@ using osu.Framework.Platform;
 using SQLite.Net.Platform.Generic;
 using SQLite.Net.Interop;
 using SQLite.Net.Platform.Win32;
+using System.Diagnostics;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -22,6 +23,11 @@ namespace osu.Framework.Desktop.Platform
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
 
         public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
+        
+        public override void OpenInNativeExplorer()
+        {
+            Process.Start(BasePath);
+        }
 
         public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
         {
