@@ -11,11 +11,11 @@ namespace SampleGame
 {
     class SampleGame : BaseGame
     {
-        public override void Load(BaseGame game)
+        private Box box;
+
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
-
-            Box box;
 
             Add(box = new Box
             {
@@ -24,8 +24,12 @@ namespace SampleGame
                 Size = new Vector2(150, 150),
                 Colour = Color4.Tomato
             });
+        }
 
-            box.RotateTo(360 * 10, 60000);
+        protected override void Update()
+        {
+            base.Update();
+            box.Rotation += (float)Clock.ElapsedFrameTime / 10;
         }
     }
 }

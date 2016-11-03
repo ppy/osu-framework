@@ -57,7 +57,7 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -98,6 +98,14 @@ namespace osu.Framework.GameModes.Testing
                 addTest(testCase);
 
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+        }
+
+        protected override bool OnExiting(GameMode next)
+        {
+            if (next == null)
+                Game?.Exit();
+
+            return base.OnExiting(next);
         }
 
         private void addTest(TestCase testCase)
@@ -144,7 +152,7 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 

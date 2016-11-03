@@ -21,7 +21,7 @@ namespace osu.Framework.Desktop.Platform
             UpdateScheduler.Update();
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             Storage = new DesktopStorage(string.Empty);
 

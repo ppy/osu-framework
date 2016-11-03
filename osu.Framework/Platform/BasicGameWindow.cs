@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using osu.Framework.Logging;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK.Input;
 

@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     public class ShadedDrawable : Drawable
     {
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -67,6 +67,13 @@ namespace osu.Framework.Graphics.Sprites
                 store = game.Fonts;
 
             spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                //this is used to prepare the initial string (useful for intial preloading).
+                foreach (char c in text)
+                    if (!char.IsWhiteSpace(c)) getSprite(c);
+            }
         }
 
         private string text;

@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     float rowMaxHeight = 0;
-                    foreach (Drawable d in Children)
+                    foreach (Drawable d in AliveChildren)
                     {
                         Vector2 size = Vector2.Zero;
 
