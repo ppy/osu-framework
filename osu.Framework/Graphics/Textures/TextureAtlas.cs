@@ -6,34 +6,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Textures
 {
-    class TextureGLAtlas : TextureGLSingle
-    {
-        public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear)
-            : base(width, height, manualMipmaps, filteringMode)
-        {
-        }
-    }
-
-    class TextureGLAtlasWhite : TextureGLSub
-    {
-        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
-        {
-        }
-
-        public override bool Bind()
-        {
-            //we can use the special white space from any atlas texture.
-            if (GLWrapper.AtlasTextureIsBound)
-                return true;
-
-            return base.Bind();
-        }
-    }
-
     public class TextureAtlas
     {
         private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS;
