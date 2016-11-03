@@ -265,7 +265,8 @@ namespace osu.Framework.Graphics.Containers
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
-            drawable.ChangeParent(this);
+            if (drawable.IsLoaded)
+                drawable.ChangeParent(this);
 
             if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
@@ -377,7 +378,11 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Load(game);
 
-            children.LoadRequested += i => i.PerformLoad(game);
+            children.LoadRequested += i =>
+            {
+                i.PerformLoad(game);
+                i.ChangeParent(this);
+            };
 
             if (pendingChildrenInternal != null)
             {
