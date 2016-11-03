@@ -95,6 +95,14 @@ namespace osu.Framework.GameModes.Testing
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }
 
+        protected override bool OnExiting(GameMode next)
+        {
+            if (next == null)
+                Game?.Exit();
+
+            return base.OnExiting(next);
+        }
+
         private void addTest(TestCase testCase)
         {
             TestCaseButton button = new TestCaseButton(testCase);
