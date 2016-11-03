@@ -6,7 +6,7 @@ using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.Graphics.Shaders
 {
-    public class ShadedDrawable : Drawable
+    public abstract class ShadedDrawable : Drawable
     {
         protected override void Load(BaseGame game)
         {
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Shaders
             base.ApplyDrawNode(node);
         }
 
-        protected virtual ShaderDescriptor ShaderDescriptor => new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
+        protected abstract ShaderDescriptor ShaderDescriptor { get; }
         private Shader shader;
     }
 }

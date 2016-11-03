@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.OpenGL;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -72,6 +73,21 @@ namespace osu.Framework.Graphics.Sprites
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
             }
         }
+
+        private bool useSimpleShader = false;
+        public bool UseSimpleShader
+        {
+            get { return useSimpleShader; }
+            set
+            {
+                Debug.Assert(!IsLoaded, "Can only choose Sprite shader prior to loading the Sprite.");
+                useSimpleShader = value;
+            }
+        }
+
+        protected override ShaderDescriptor ShaderDescriptor => UseSimpleShader ?
+            new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture) :
+            new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
         public override Drawable Clone()
         {

@@ -591,5 +591,8 @@ namespace osu.Framework.Graphics.Containers
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
         }
+
+        protected override ShaderDescriptor ShaderDescriptor => new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
+
     }
 }
