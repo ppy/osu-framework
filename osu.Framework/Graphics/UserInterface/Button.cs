@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Text = text,
                 Origin = Anchor.Centre,
-                Anchor = Anchor.Centre
+                Anchor = Anchor.Centre,
             });
         }
 

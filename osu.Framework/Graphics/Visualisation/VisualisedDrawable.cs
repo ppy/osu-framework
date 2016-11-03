@@ -12,7 +12,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class VisualisedDrawable : AutoSizeContainer
+    internal class VisualisedDrawable : Container
     {
         public Drawable Target;
 
@@ -22,7 +22,8 @@ namespace osu.Framework.Graphics.Visualisation
         private Drawable activityAutosize;
         private Drawable activityLayout;
 
-        public Action Hovered;
+        public Action HoverGained;
+        public Action HoverLost;
 
         public Action RequestTarget;
 
@@ -31,16 +32,23 @@ namespace osu.Framework.Graphics.Visualisation
         public FlowContainer Flow = new FlowContainer
         {
             Direction = FlowDirection.VerticalOnly,
+            AutoSizeAxes = Axes.Both,
             Position = new Vector2(10, 14)
         };
 
-        public override void Load(BaseGame game)
+        public VisualisedDrawable(Drawable d)
+        {
+            Target = d;
+            AutoSizeAxes = Axes.Both;
+        }
+
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
             Target.OnInvalidate += onInvalidate;
 
-            AutoSizeContainer da = Target as AutoSizeContainer;
+            Container da = Target as Container;
             if (da != null) da.OnAutoSize += onAutoSize;
 
             FlowContainer df = Target as FlowContainer;
@@ -106,13 +114,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnHover(InputState state)
         {
-            Hovered?.Invoke();
+            HoverGained?.Invoke();
             return base.OnHover(state);
         }
 
-        public VisualisedDrawable(Drawable d)
+        protected override void OnHoverLost(InputState state)
         {
-            Target = d;
+            HoverLost?.Invoke();
+            base.OnHoverLost(state);
         }
 
         protected override bool OnClick(InputState state)

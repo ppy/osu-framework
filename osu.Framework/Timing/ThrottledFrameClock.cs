@@ -15,7 +15,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// The number of updated per second which is permitted.
         /// </summary>
-        public int MaximumUpdateHz = 1000;
+        public double MaximumUpdateHz = 1000.0;
 
         /// <summary>
         /// If true, we will perform a Thread.Sleep even if the period is absolute zero.
@@ -23,7 +23,7 @@ namespace osu.Framework.Timing
         /// </summary>
         public bool AlwaysSleep = true;
 
-        private double minimumFrameTime => 1000d / MaximumUpdateHz;
+        private double minimumFrameTime => 1000.0 / MaximumUpdateHz;
 
         private double accumulatedSleepError;
 

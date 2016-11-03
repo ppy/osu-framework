@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -31,6 +32,7 @@ namespace osu.Framework.Graphics
         /// <param name="scale">The amount by which to scale.</param>
         /// <param name="rotation">The amount by which to rotate.</param>
         /// <param name="origin">The center of rotation and scale.</param>
+        /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
         public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
@@ -46,8 +48,9 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                MatrixExtensions.RotateFromLeft(ref target.Matrix, rotation);
-                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -rotation);
+                float radians = MathHelper.DegreesToRadians(rotation);
+                MatrixExtensions.RotateFromLeft(ref target.Matrix, radians);
+                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
@@ -69,18 +72,25 @@ namespace osu.Framework.Graphics
                 MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
             }
 
+            //========================================================================================
+            //== Uncomment the following 2 lines to use a ground-truth matrix inverse for debugging ==
+            //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 
-            target.Colour = Colour;
-
             if (colour != null)
             {
-                target.Colour.R *= colour.Value.R;
-                target.Colour.G *= colour.Value.G;
-                target.Colour.B *= colour.Value.B;
-                target.Colour.A *= colour.Value.A;
+                Color4 targetLinear = colour.Value.toLinear();
+                Color4 sourceLinear = Colour.toLinear();
+
+                target.Colour = new Color4(
+                    targetLinear.R * sourceLinear.R,
+                    targetLinear.G * sourceLinear.G,
+                    targetLinear.B * sourceLinear.B,
+                    targetLinear.A * sourceLinear.A).toSRGB();
             }
+            else
+                target.Colour = Colour;
 
             if (blending == null)
                 Blending.Copy(ref target.Blending);

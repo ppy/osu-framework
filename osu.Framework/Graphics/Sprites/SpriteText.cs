@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Sprites
         public SpriteText(TextureStore store = null)
         {
             this.store = store;
+            AutoSizeAxes = Axes.Both;
         }
 
         internal override Vector2 ChildScale => new Vector2(TextSize);
@@ -54,18 +55,25 @@ namespace osu.Framework.Graphics.Sprites
                 if (textSize == value) return;
 
                 textSize = value;
-                Invalidate(Invalidation.SizeInParentSpace);
+                Invalidate(Invalidation.Geometry);
             }
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
             if (store == null)
                 store = game.Fonts;
 
-            spaceWidth = getSprite('.')?.Width * 2 ?? 20;
+            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                //this is used to prepare the initial string (useful for intial preloading).
+                foreach (char c in text)
+                    if (!char.IsWhiteSpace(c)) getSprite(c);
+            }
         }
 
         private string text;
@@ -101,14 +109,14 @@ namespace osu.Framework.Graphics.Sprites
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)
-                    constantWidth = getSprite('D').Width;
+                    constantWidth = getSprite('D').DrawWidth;
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
                 int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
 
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
-                Remove(keepDrawables, false);
+                Remove(keepDrawables);
                 Clear();
 
                 foreach (var k in keepDrawables)
@@ -149,7 +157,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.Size.X, 1f),
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
                             Children = new[] { s }
                         };
 

@@ -20,6 +20,8 @@ namespace osu.Framework.GameModes
         private Container content;
         private Container childModeContainer;
 
+        protected BaseGame Game;
+
         protected override Container Content => content;
 
         public event Action<GameMode> ModePushed;
@@ -28,12 +30,17 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
+        /// <summary>
+        /// Make this GameMode directly exited when resuming from a child.
+        /// </summary>
+        public bool ValidForResume = true;
+
         public GameMode()
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
-            
+
             AddInternal(new[]
             {
                 content = new ContentContainer()
@@ -77,6 +84,12 @@ namespace osu.Framework.GameModes
         /// <param name="next">The new GameMode</param>
         protected virtual void OnSuspending(GameMode next) { }
 
+        protected internal override void PerformLoad(BaseGame game)
+        {
+            Game = game;
+            base.PerformLoad(game);
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
@@ -89,30 +102,38 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public override void Load(BaseGame game)
+        public void DisplayAsRoot()
         {
-            base.Load(game);
-
-            if (ParentGameMode == null)
-                OnEntering(null);
+            Debug.Assert(ParentGameMode == null);
+            OnEntering(null);
         }
 
         /// <summary>
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        public void Push(GameMode mode)
+        public virtual bool Push(GameMode mode)
         {
             Debug.Assert(ChildGameMode == null);
 
+            mode.ParentGameMode = this;
+            childModeContainer.Add(mode);
+
+            if (mode.hasExited)
+            {
+                mode.Expire();
+                return false;
+            }
+
             startSuspend(mode);
 
-            childModeContainer.Add(mode);
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);
 
             Content.Expire();
+
+            return true;
         }
 
         private void startSuspend(GameMode next)
@@ -121,7 +142,6 @@ namespace osu.Framework.GameModes
             Content.Expire();
 
             ChildGameMode = next;
-            next.ParentGameMode = this;
         }
 
         /// <summary>
@@ -142,6 +162,8 @@ namespace osu.Framework.GameModes
 
             ParentGameMode?.startResume(this);
             Exited?.Invoke(ParentGameMode);
+            if (ParentGameMode?.ValidForResume == false)
+                ParentGameMode.Exit();
             ParentGameMode = null;
 
             Exited = null;
@@ -151,8 +173,12 @@ namespace osu.Framework.GameModes
         private void startResume(GameMode last)
         {
             ChildGameMode = null;
-            OnResuming(last);
-            Content.LifetimeEnd = double.MaxValue;
+
+            if (ValidForResume)
+            {
+                OnResuming(last);
+                Content.LifetimeEnd = double.MaxValue;
+            }
         }
 
 
@@ -160,15 +186,11 @@ namespace osu.Framework.GameModes
         {
             if (IsCurrentGameMode) return;
 
-            //find deepest child
-            GameMode c = ChildGameMode;
-            while (c.ChildGameMode != null)
-                c = c.ChildGameMode;
+            GameMode c;
+            for (c = ChildGameMode; c.ChildGameMode != null; c = c.ChildGameMode)
+                c.ValidForResume = false;
 
-            //set deepest child's parent to us
-            c.ParentGameMode = this;
-
-            //exit child, making us current
+            //all the expired ones will exit
             c.Exit();
         }
 

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private AutoSizeContainer content;
+        private Container content;
         private ScrollBar scrollbar;
 
         /// <summary>
@@ -52,12 +52,15 @@ namespace osu.Framework.Graphics.Containers
 
             AddInternal(new Drawable[]
             {
-                content = new AutoSizeContainer { RelativeSizeAxes = Axes.X },
+                content = new Container {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                },
                 scrollbar = new ScrollBar { Dragged = onScrollbarMovement }
             });
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -68,10 +71,10 @@ namespace osu.Framework.Graphics.Containers
 
         private void contentAutoSize()
         {
-            if (Precision.AlmostEquals(availableContent, content.Size.Y))
+            if (Precision.AlmostEquals(availableContent, content.DrawSize.Y))
                 return;
 
-            availableContent = content.Size.Y;
+            availableContent = content.DrawSize.Y;
             updateSize();
             if (!isDragging)
                 offset(0);
@@ -106,19 +109,19 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheelDown(InputState state)
         {
-            offset(Math.Max(-content.Position.Y - currentClamped, 0) * 1.5f + 80);
+            offset(Math.Max(-content.DrawPosition.Y - currentClamped, 0) * 1.5f + 80);
             return true;
         }
 
         protected override bool OnWheelUp(InputState state)
         {
-            offset(Math.Min(currentClamped - content.Position.Y, 0) * 1.5f - 80);
+            offset(Math.Min(currentClamped - content.DrawPosition.Y, 0) * 1.5f - 80);
             return true;
         }
 
         private void onScrollbarMovement(float value)
         {
-            offset(value / scrollbar.Scale.Y, true, false);
+            offset(value / scrollbar.Size.Y, true, false);
         }
 
         private void offset(float value, bool clamp = true, bool animated = true)
@@ -141,14 +144,14 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateSize()
         {
-            scrollbar?.ScaleTo(new Vector2(1, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
         }
 
         private void updateScroll(bool animated = true)
         {
             float adjusted = (current + currentClamped) / 2;
 
-            scrollbar?.MoveToY(adjusted * scrollbar.Scale.Y, animated ? 800 : 0, EasingTypes.OutExpo);
+            scrollbar?.MoveToY(adjusted * scrollbar.Size.Y, animated ? 800 : 0, EasingTypes.OutExpo);
             content.MoveToY(-adjusted, animated ? 800 : 0, EasingTypes.OutExpo);
         }
 
@@ -161,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 
@@ -175,6 +178,8 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
+                CornerRadius = 5;
+                Masking = true;
             }
 
             protected override bool OnHover(InputState state)

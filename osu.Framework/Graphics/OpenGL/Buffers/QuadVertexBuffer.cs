@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -58,6 +58,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected override int ToElementIndex(int vertexIndex) => 3 * vertexIndex / 2;
 
-        protected override BeginMode Type => BeginMode.Triangles;
+        protected override PrimitiveType Type => PrimitiveType.Triangles;
     }
 }

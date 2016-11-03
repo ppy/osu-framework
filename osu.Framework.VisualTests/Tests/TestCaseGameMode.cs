@@ -42,19 +42,19 @@ namespace osu.Framework.VisualTests.Tests
                     popButton.Alpha = 1;
                 }
 
-                Content.MoveTo(new Vector2(0, -Size.Y));
+                Content.MoveTo(new Vector2(0, -DrawSize.Y));
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
             protected override bool OnExiting(GameMode next)
             {
-                Content.MoveTo(new Vector2(0, -Size.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, EasingTypes.OutQuint);
                 return base.OnExiting(next);
             }
 
             protected override void OnSuspending(GameMode next)
             {
-                Content.MoveTo(new Vector2(0, Size.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, DrawSize.Y), transition_time, EasingTypes.OutQuint);
             }
 
             protected override void OnResuming(GameMode last)
@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 

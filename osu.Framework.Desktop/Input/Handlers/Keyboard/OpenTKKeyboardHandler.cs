@@ -6,12 +6,15 @@ using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
 using OpenTK.Input;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
     class OpenTKKeyboardHandler : InputHandler, IKeyboardInputHandler
     {
         public override bool IsActive => true;
+
+        private KeyboardState state;
 
         public override int Priority => 0;
 
@@ -22,13 +25,17 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
         public override bool Initialize(BasicGameHost host)
         {
             PressedKeys = new List<Key>();
+
+            host.InputScheduler.Add(new ScheduledDelegate(delegate
+            {
+                state = host.IsActive ? OpenTK.Input.Keyboard.GetState() : new KeyboardState();
+            }, 0, 0));
+
             return true;
         }
 
         public override void UpdateInput(bool isActive)
         {
-            OpenTK.Input.KeyboardState state = OpenTK.Input.Keyboard.GetState();
-
             PressedKeys.Clear();
 
             if (state.IsAnyKeyDown)

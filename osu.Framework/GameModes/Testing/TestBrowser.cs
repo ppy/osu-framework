@@ -52,7 +52,7 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -76,6 +76,7 @@ namespace osu.Framework.GameModes.Testing
             {
                 Padding = new MarginPadding(3),
                 Direction = FlowDirection.VerticalOnly,
+                AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)
             });
@@ -92,6 +93,14 @@ namespace osu.Framework.GameModes.Testing
                 addTest(testCase);
 
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+        }
+
+        protected override bool OnExiting(GameMode next)
+        {
+            if (next == null)
+                Game?.Exit();
+
+            return base.OnExiting(next);
         }
 
         private void addTest(TestCase testCase)
@@ -115,7 +124,11 @@ namespace osu.Framework.GameModes.Testing
             config.Set(TestBrowserOption.LastTest, testCase.Name);
 
             if (loadedTest != null)
+            {
                 testContainer.Remove(loadedTest);
+                loadedTest.Dispose();
+                loadedTest = null;
+            }
 
             if (testCase != null)
             {
@@ -134,7 +147,7 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 
@@ -166,12 +179,14 @@ namespace osu.Framework.GameModes.Testing
                             new SpriteText
                             {
                                 Text = test.Name,
+                                AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
                             },
                             new SpriteText
                             {
                                 Text = test.Description,
                                 TextSize = 15,
+                                AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
                                 Anchor = Anchor.BottomLeft,
                                 Origin = Anchor.BottomLeft

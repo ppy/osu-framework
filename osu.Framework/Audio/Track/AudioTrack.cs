@@ -78,9 +78,6 @@ namespace osu.Framework.Audio.Track
             }
         }
 
-        /// <summary>
-        /// todo: implement
-        /// </summary>
-        public bool HasCompleted => IsDisposed;
+        public virtual bool HasCompleted => IsDisposed;
     }
 }

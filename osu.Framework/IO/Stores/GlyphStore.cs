@@ -7,6 +7,7 @@ using System.IO;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Textures.Png;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -21,7 +22,7 @@ namespace osu.Framework.IO.Stores
 
         Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
 
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
         {
             this.store = store;
             this.assetName = assetName;
@@ -30,13 +31,17 @@ namespace osu.Framework.IO.Stores
             {
                 font = new BitmapFont();
                 font.LoadText(store.GetStream($@"{assetName}.fnt"));
+
+                if (precache)
+                    for (int i = 0; i < font.Pages.Length; i++)
+                        getTexturePage(i);
             }
             catch
             {
                 throw new FontLoadException(assetName);
             }
         }
-        
+
         public RawTexture Get(string name)
         {
             Character c;
@@ -50,7 +55,7 @@ namespace osu.Framework.IO.Stores
             int height = c.Bounds.Height + c.Offset.Y;
             int length = width * height * 4;
             byte[] pixels = new byte[length];
-            
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -79,7 +84,7 @@ namespace osu.Framework.IO.Stores
             return new RawTexture
             {
                 Pixels = pixels,
-                PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba,
+                PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
                 Width = width,
                 Height = height,
             };
@@ -95,7 +100,7 @@ namespace osu.Framework.IO.Stores
                 {
                     var reader = new PngReader();
                     t.Pixels = reader.Read(stream);
-                    t.PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba;
+                    t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
                     t.Width = reader.Width;
                     t.Height = reader.Height;
                 }
@@ -112,7 +117,7 @@ namespace osu.Framework.IO.Stores
 
     public sealed class FontLoadException : Exception
     {
-        public FontLoadException(string assetName):
+        public FontLoadException(string assetName) :
             base($@"Couldn't load font asset from {assetName}.")
         {
         }

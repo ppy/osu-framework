@@ -78,6 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 new FlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
@@ -129,9 +130,11 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     },
                 },
-                scroll = new ScrollContainer()
+                new Container
                 {
-                    Padding = new MarginPadding { Top = 70 },
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 65 },
+                    Children = new[] { scroll = new ScrollContainer() }
                 },
                 waitingText = new SpriteText
                 {
@@ -168,9 +171,9 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnDrag(state);
         }
 
-        public override void Load(BaseGame game)
+        protected override void LoadComplete()
         {
-            base.Load(game);
+            base.LoadComplete();
             State = TreeContainerStatus.Offscreen;
         }
     }

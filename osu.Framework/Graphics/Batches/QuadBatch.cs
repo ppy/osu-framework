@@ -3,20 +3,17 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Batches
 {
     public class QuadBatch<T> : VertexBatch<T> where T : struct, IEquatable<T>
     {
-        public QuadBatch(int size, int fixedBufferAmount)
-            : base(size, fixedBufferAmount)
+        public QuadBatch(int size, int maxBuffers)
+            : base(size, maxBuffers)
         {
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer()
-        {
-            return new QuadVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
-        }
+        protected override VertexBuffer<T> CreateVertexBuffer() => new QuadVertexBuffer<T>(Size, BufferUsageHint.DynamicDraw);
     }
 }

@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -14,7 +15,8 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private Dictionary<string, ShaderPart> partCache = new Dictionary<string, ShaderPart>();
+        private ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
+        private ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
 
         ResourceStore<byte[]> store;
 
@@ -87,11 +89,15 @@ namespace osu.Framework.Graphics.Shaders
         {
             string name = $@"{vertex}/{fragment}";
 
+            if (shaderCache.ContainsKey(name))
+                return shaderCache[name];
+
             List<ShaderPart> parts = new List<ShaderPart>();
             parts.Add(createShaderPart(vertex, ShaderType.VertexShader));
             parts.Add(createShaderPart(fragment, ShaderType.FragmentShader));
 
             Shader shader = new Shader(name, parts);
+
 #if !DEBUG
             if (!shader.Loaded)
 #endif
@@ -126,16 +132,17 @@ namespace osu.Framework.Graphics.Shaders
             //            }
             //#endif
 
+            shaderCache[name] = shader;
             return shader;
         }
 
-        public Shader Load(VertexShader vertex, FragmentShader fragment, bool continuousCompilation = false)
+        public Shader Load(ShaderDescriptor desc, bool continuousCompilation = false)
         {
-            return Load(vertex.ToString(), fragment.ToString(), continuousCompilation);
+            return Load(desc.VertexShaderDescriptor.ToString(), desc.FragmentShaderDescriptor.ToString(), continuousCompilation);
         }
     }
 
-    public enum VertexShader
+    public enum VertexShaderDescriptor
     {
         Texture2D,
         Texture3D,
@@ -143,11 +150,25 @@ namespace osu.Framework.Graphics.Shaders
         Colour,
     }
 
-    public enum FragmentShader
+    public enum FragmentShaderDescriptor
     {
         Texture,
         TextureRounded,
         Colour,
         ColourRounded,
+        Glow,
+        Blur,
+    }
+
+    public struct ShaderDescriptor
+    {
+        public ShaderDescriptor(VertexShaderDescriptor vs, FragmentShaderDescriptor fs)
+        {
+            VertexShaderDescriptor = vs;
+            FragmentShaderDescriptor = fs;
+        }
+
+        public VertexShaderDescriptor VertexShaderDescriptor;
+        public FragmentShaderDescriptor FragmentShaderDescriptor;
     }
 }

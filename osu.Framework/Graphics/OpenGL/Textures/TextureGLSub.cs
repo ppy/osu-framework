@@ -87,9 +87,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             Debug.Assert(upload.Bounds.Width <= bounds.Width && upload.Bounds.Height <= bounds.Height);
 
-            upload.Bounds = bounds;
+            if (upload.Bounds.Size.IsEmpty)
+                upload.Bounds = bounds;
+            else
+            {
+                upload.Bounds.X += bounds.X;
+                upload.Bounds.Y += bounds.Y;
+            }
 
-            parent.SetData(upload);
+            parent?.SetData(upload);
         }
     }
 }

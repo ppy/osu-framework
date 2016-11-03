@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Transformations;
+using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -28,10 +29,7 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public void Schedule(Action action)
-        {
-            Scheduler.AddDelayed(action, transformationDelay);
-        }
+        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, transformationDelay);
 
         /// <summary>
         /// Flush specified transformations, using the last available values (ignoring current clock time).
@@ -51,6 +49,7 @@ namespace osu.Framework.Graphics
             foreach (ITransform t in operateTransforms)
             {
                 t.Shift(offset);
+                t.UpdateTime(Time);
                 t.Apply(this);
             }
 
@@ -76,7 +75,7 @@ namespace osu.Framework.Graphics
         /// Make this drawable automatically clean itself up after all transformations have finished playing.
         /// Can be delayed using Delay().
         /// </summary>
-        public Drawable Expire(bool calculateLifetimeStart = false)
+        public void Expire(bool calculateLifetimeStart = false)
         {
             //expiry should happen either at the end of the last transformation or using the current sequence delay (whichever is highest).
             double max = Time + transformationDelay;
@@ -91,8 +90,6 @@ namespace osu.Framework.Graphics
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
-
-            return this;
         }
 
         public void TimeWarp(double change)
@@ -124,78 +121,75 @@ namespace osu.Framework.Graphics
             FadeIn(0);
         }
 
-        public Drawable FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            return FadeTo(1, duration, easing);
+            FadeTo(1, duration, easing);
         }
 
-        public TransformAlpha FadeInFromZero(double duration)
+        public void FadeInFromZero(double duration)
         {
-            Debug.Assert(IsLoaded);
-
             if (transformationDelay == 0)
             {
                 Alpha = 0;
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
-            TransformAlpha tr = new TransformAlpha(Clock)
+            TransformAlpha tr = new TransformAlpha
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = 0,
                 EndValue = 1,
             };
+
             Transforms.Add(tr);
-            return tr;
         }
 
-        public Drawable FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            return FadeTo(0, duration, easing);
+            FadeTo(0, duration, easing);
         }
 
-        public TransformAlpha FadeOutFromOne(double duration)
+        public void FadeOutFromOne(double duration)
         {
-            Debug.Assert(IsLoaded);
-
             if (transformationDelay == 0)
             {
                 Alpha = 1;
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
-            TransformAlpha tr = new TransformAlpha(Clock)
+            TransformAlpha tr = new TransformAlpha
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = 1,
                 EndValue = 0,
             };
+
             Transforms.Add(tr);
-            return tr;
         }
 
         #region Float-based helpers
 
-        private Drawable transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
+        private void transformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
         {
-            Debug.Assert(IsLoaded);
-
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t.GetType() == type);
                 if (startValue == newValue)
-                    return this;
+                    return;
             }
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
             transform.StartTime = startTime;
@@ -205,56 +199,58 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
+            {
                 Transforms.Add(transform);
-
-            return this;
+            }
         }
 
-        public Drawable FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformAlpha));
-            return transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha(Clock));
+            transformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
         }
 
-        public Drawable RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformRotation));
-            return transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation(Clock));
+            transformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
-        public Drawable MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionX));
-            return transformFloatTo(Position.X, destination, duration, easing, new TransformPositionX(Clock));
+            transformFloatTo(DrawPosition.X, destination, duration, easing, new TransformPositionX());
         }
 
-        public Drawable MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPositionY));
-            return transformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY(Clock));
+            transformFloatTo(DrawPosition.Y, destination, duration, easing, new TransformPositionY());
         }
 
         #endregion
 
         #region Vector2-based helpers
 
-        private Drawable transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
+        private void transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
-            Debug.Assert(IsLoaded);
-
             Type type = transform.GetType();
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t.GetType() == type);
 
                 if (startValue == newValue)
-                    return this;
+                    return;
             }
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
             transform.StartTime = startTime;
@@ -264,57 +260,71 @@ namespace osu.Framework.Graphics
             transform.Easing = easing;
 
             if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
                 transform.Apply(this);
+            }
             else
+            {
                 Transforms.Add(transform);
-
-            return this;
+            }
         }
 
-        public Drawable ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            updateTransformsOfType(typeof(TransformScaleVector));
-            return transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScaleVector(Clock));
+            updateTransformsOfType(typeof(TransformScale));
+            transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
-        public Drawable ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            updateTransformsOfType(typeof(TransformScaleVector));
-            return transformVectorTo(Scale, newScale, duration, easing, new TransformScaleVector(Clock));
+            updateTransformsOfType(typeof(TransformScale));
+            transformVectorTo(Scale, newScale, duration, easing, new TransformScale());
         }
 
-        public Drawable MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+        }
+
+        public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            updateTransformsOfType(typeof(TransformSize));
+            transformVectorTo(Size, newSize, duration, easing, new TransformSize());
+        }
+
+        public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPosition));
-            return transformVectorTo(Position, newPosition, duration, easing, new TransformPosition(Clock));
+            transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
         }
 
-        public Drawable MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformPosition));
-            return MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
+            MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? DrawPosition + offset, duration, easing);
         }
 
         #endregion
 
         #region Color4-based helpers
 
-        public Drawable FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
+        public void FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
-            Debug.Assert(IsLoaded);
-
             updateTransformsOfType(typeof(TransformColour));
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t is TransformColour);
                 if (startValue == newColour)
-                    return this;
+                    return;
             }
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -322,21 +332,19 @@ namespace osu.Framework.Graphics
                 EndValue = newColour,
                 Easing = easing,
             });
-
-            return this;
         }
 
-        public Drawable FlashColour(Color4 flashColour, int duration)
+        public void FlashColour(Color4 flashColour, int duration)
         {
-            Debug.Assert(IsLoaded);
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             Transforms.RemoveAll(t => t is TransformColour);
 
+            Debug.Assert(Parent != null);
             double startTime = Time + transformationDelay;
 
-            Transforms.Add(new TransformColour(Clock)
+            Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
@@ -344,7 +352,7 @@ namespace osu.Framework.Graphics
                 EndValue = startValue,
             });
 
-            return this;
+            return;
         }
 
         #endregion

@@ -1,16 +1,13 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
-using NativeWindow = OpenTK.NativeWindow;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
@@ -18,34 +15,31 @@ namespace osu.Framework.Desktop.Platform.Windows
     {
         private TimePeriod timePeriod;
 
-        internal WindowsGameHost(GraphicsContextFlags flags, string gameName)
+        internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
-            IsActive = Window != null && GetForegroundWindow().Equals(Window.Handle);
 
             timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
 
-            Window = new WindowsGameWindow(flags);
-            Window.Activated += OnActivated;
-            Window.Deactivated += OnDeactivated;
+            Window = new WindowsGameWindow();
+            Window.WindowStateChanged += (sender, e) =>
+            {
+                if (Window.WindowState != OpenTK.WindowState.Minimized)
+                    OnActivated();
+                else
+                    OnDeactivated();
+            };
 
             Storage = new WindowsStorage(gameName);
-
+            
+            //TODO: check if we want this done so early. may be better in Run()
             Application.EnableVisualStyles();
         }
 
-        public override IEnumerable<InputHandler> GetInputHandlers()
-        {
-            //todo: figure why opentk input handlers aren't working.
-            return new InputHandler[] {
-                new CursorMouseHandler(), //handles cursor position
-                new FormMouseHandler(),   //handles button states
-                new FormKeyboardHandler(),
-            };
-        }
+        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { new OpenTKMouseHandler(), new OpenTKKeyboardHandler() };
 
         protected override void Dispose(bool isDisposing)
         {
@@ -53,31 +47,20 @@ namespace osu.Framework.Desktop.Platform.Windows
             base.Dispose(isDisposing);
         }
 
-        protected override void OnActivated(object sender, EventArgs args)
+        protected override void OnActivated()
         {
             timePeriod.Active = true;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
-            base.OnActivated(sender, args);
+            base.OnActivated();
         }
 
-        protected override void OnDeactivated(object sender, EventArgs args)
+        protected override void OnDeactivated()
         {
             timePeriod.Active = false;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
-            base.OnDeactivated(sender, args);
+            base.OnDeactivated();
         }
-
-        public override void Run()
-        {
-            //not sure this is still needed
-            NativeWindow.OsuWindowHandle = Window.Handle;
-
-            base.Run();
-        }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
     }
 }

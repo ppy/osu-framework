@@ -2,7 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
+using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -21,7 +22,7 @@ namespace osu.Framework.Graphics.Shaders
                     return;
 
                 this.value = value;
-                hasChanged = true;
+                HasChanged = true;
 
                 if (owner.IsBound)
                     Update();
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.Shaders
         private int location;
         private ActiveUniformType type;
 
-        private bool hasChanged = true;
+        public bool HasChanged { get; private set; } = true;
 
         private Shader owner;
 
@@ -45,61 +46,15 @@ namespace osu.Framework.Graphics.Shaders
 
         public void Update()
         {
-            if (!hasChanged)
+            if (!HasChanged)
                 return;
-            hasChanged = false;
+
+            HasChanged = false;
 
             if (Value == null)
                 return;
 
-            switch (type)
-            {
-                case ActiveUniformType.Bool:
-                    GL.Uniform1(location, (bool)Value ? 1 : 0);
-                    break;
-                case ActiveUniformType.Int:
-                    GL.Uniform1(location, (int)Value);
-                    break;
-                case ActiveUniformType.Float:
-                    GL.Uniform1(location, (float)Value);
-                    break;
-                case ActiveUniformType.BoolVec2:
-                case ActiveUniformType.IntVec2:
-                case ActiveUniformType.FloatVec2:
-                    GL.Uniform2(location, (Vector2)Value);
-                    break;
-                case ActiveUniformType.FloatMat2:
-                {
-                    Matrix2 mat = (Matrix2)Value;
-                    GL.UniformMatrix2(location, false, ref mat);
-                }
-                    break;
-                case ActiveUniformType.BoolVec3:
-                case ActiveUniformType.IntVec3:
-                case ActiveUniformType.FloatVec3:
-                    GL.Uniform3(location, (Vector3)Value);
-                    break;
-                case ActiveUniformType.FloatMat3:
-                {
-                    Matrix3 mat = (Matrix3)Value;
-                    GL.UniformMatrix3(location, false, ref mat);
-                }
-                    break;
-                case ActiveUniformType.BoolVec4:
-                case ActiveUniformType.IntVec4:
-                case ActiveUniformType.FloatVec4:
-                    GL.Uniform4(location, (Vector4)Value);
-                    break;
-                case ActiveUniformType.FloatMat4:
-                {
-                    Matrix4 mat = (Matrix4)Value;
-                    GL.UniformMatrix4(location, false, ref mat);
-                }
-                    break;
-                case ActiveUniformType.Sampler2D:
-                    GL.Uniform1(location, (int)Value);
-                    break;
-            }
+            GLWrapper.SetUniform(owner, type, location, Value);
         }
     }
 }

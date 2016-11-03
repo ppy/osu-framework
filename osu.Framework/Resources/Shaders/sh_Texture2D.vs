@@ -1,3 +1,5 @@
+#include "sh_Utils.h"
+
 attribute vec2 m_Position;
 attribute vec4 m_Colour;
 attribute vec2 m_TexCoord;

@@ -41,7 +41,8 @@ namespace osu.Framework.Allocation
                         buffers[write] = new ObjectUsage<T>
                         {
                             Finish = finishDelegate,
-                            Usage = UsageType.Write
+                            Usage = UsageType.Write,
+                            Index = write,
                         };
                     }
                     else

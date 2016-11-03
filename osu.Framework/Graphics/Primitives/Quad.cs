@@ -33,6 +33,9 @@ namespace osu.Framework.Graphics.Primitives
             BottomRight = new Vector2(x + width, y + height);
         }
 
+        public static implicit operator Quad(Rectangle r) => FromRectangle(r);
+        public static implicit operator Quad(RectangleF r) => FromRectangle(r);
+
         public static Quad FromRectangle(RectangleF rectangle)
         {
             return new Quad(new Vector2(rectangle.Left, rectangle.Top),
@@ -130,6 +133,28 @@ namespace osu.Framework.Graphics.Primitives
             return
                 new Triangle(BottomRight, BottomLeft, TopRight).Contains(pos) ||
                 new Triangle(TopLeft, TopRight, BottomLeft).Contains(pos);
+        }
+
+        public double Area => new Triangle(BottomRight, BottomLeft, TopRight).Area + new Triangle(TopLeft, TopRight, BottomLeft).Area;
+
+        public double ConservativeArea
+        {
+            get
+            {
+                if (Precision.AlmostEquals(TopLeft.Y, TopRight.Y))
+                    return Math.Abs((TopLeft.Y - BottomLeft.Y) * (TopLeft.X - TopRight.X));
+
+                // Uncomment this to speed this computation up at the cost of losing accuracy when considering shearing.
+                //return Math.Sqrt(Vector2.DistanceSquared(TopLeft, TopRight) * Vector2.DistanceSquared(TopLeft, BottomLeft));
+
+                Vector2 d1 = TopLeft - TopRight;
+                float l1sq = d1.LengthSquared;
+
+                Vector2 d2 = TopLeft - BottomLeft;
+                float l2sq = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * (MathHelper.InverseSqrtFast(l1sq))));
+
+                return (float)Math.Sqrt(l1sq * l2sq);
+            }
         }
 
         public bool Intersects(IConvexPolygon other)

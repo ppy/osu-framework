@@ -11,14 +11,17 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Statistics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
     class TextureGLSingle : TextureGL
     {
+        public const int MAX_MIPMAP_LEVELS = 3;
+
         private static VertexBatch<TexturedVertex2D> spriteBatch;
 
         private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
@@ -26,15 +29,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private int internalWidth;
         private int internalHeight;
 
+        private All filteringMode;
         private TextureWrapMode internalWrapMode;
 
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
 
-        public TextureGLSingle(int width, int height, bool manualMipmaps = false)
+        public TextureGLSingle(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {
             Width = width;
             Height = height;
             this.manualMipmaps = manualMipmaps;
+            this.filteringMode = filteringMode;
         }
 
         #region Disposal
@@ -109,9 +114,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             get
             {
                 Debug.Assert(!isDisposed);
-
-                if (uploadQueue.Count > 0)
-                    Upload();
+                Debug.Assert(textureId > 0);
 
                 return textureId;
             }
@@ -145,42 +148,42 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             Debug.Assert(!isDisposed);
 
-            if (!Bind())
-                return;
-
             RectangleF texRect = GetTextureRect(textureRect);
 
             if (spriteBatch == null)
             {
                 if (TextureGLSingle.spriteBatch == null)
-                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(1, 100);
+                    TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(512, 128);
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
 
+            Color4 linearColour = drawColour.toLinear();
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
-                Colour = drawColour
+                Colour = linearColour
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
-                Colour = drawColour
+                Colour = linearColour
             });
+
+            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
         }
 
         private void updateWrapMode()
@@ -219,7 +222,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsTransparent)
                 return false;
 
-            GLWrapper.BindTexture(textureId);
+            GLWrapper.BindTexture(this);
 
             if (internalWrapMode != WrapMode)
                 updateWrapMode();
@@ -259,7 +262,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 try
                 {
                     // Do we need to generate a new texture?
-                    if (textureId <= 0 || internalWidth < width || internalHeight < height)
+                    if (textureId <= 0 || internalWidth != width || internalHeight != height)
                     {
                         internalWidth = width;
                         internalHeight = height;
@@ -272,17 +275,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             textureId = textures[0];
 
-                            GLWrapper.BindTexture(textureId);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? All.Linear :  All.LinearMipmapLinear));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                            GLWrapper.BindTexture(this);
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filteringMode));
+
+                            // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.
+                            // It controls the amount of mipmap levels generated by GL.GenerateMipmap later on.
+                            GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)33085, MAX_MIPMAP_LEVELS);
 
                             updateWrapMode();
                         }
                         else
-                            GLWrapper.BindTexture(textureId);
+                            GLWrapper.BindTexture(this);
 
                         if (width == upload.Bounds.Width && height == upload.Bounds.Height || dataPointer == IntPtr.Zero)
-                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Rgba, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
+                            GL.TexImage2D(TextureTarget2d.Texture2D, upload.Level, TextureComponentCount.Srgb8Alpha8, width, height, 0, upload.Format, PixelType.UnsignedByte, dataPointer);
                         else
                         {
                             initializeLevel(upload.Level, width, height);
@@ -294,7 +301,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     // Just update content of the current texture
                     else if (dataPointer != IntPtr.Zero)
                     {
-                        GLWrapper.BindTexture(textureId);
+                        GLWrapper.BindTexture(this);
 
                         if (!manualMipmaps && upload.Level > 0)
                         {
@@ -348,7 +355,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
-            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
+            GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
             h0.Free();
 
             //todo: figure why FBO clear method doesn't work.

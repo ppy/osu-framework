@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
-using osu.Framework.Cached;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
@@ -17,6 +16,12 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Threading;
+using System.Threading.Tasks;
+using osu.Framework.Caching;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Logging;
+using osu.Framework.Platform;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
@@ -36,12 +41,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual string Name => string.Empty;
 
-        static long creationIDCounter;
+        private static AtomicCounter creationCounter = new AtomicCounter();
         internal long CreationID;
 
         public Drawable()
         {
-            CreationID = Interlocked.Increment(ref creationIDCounter);
+            CreationID = creationCounter.Increment();
         }
 
         /// <summary>
@@ -54,10 +59,8 @@ namespace osu.Framework.Graphics
             get
             {
                 if (scheduler == null)
-                {
-                    Debug.Assert(mainThread != null);
+                    //mainThread could be null at this point.
                     scheduler = new Scheduler(mainThread);
-                }
 
                 return scheduler;
             }
@@ -72,8 +75,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                ThreadSafety.EnsureUpdateThread();
-
                 if (transforms == null)
                 {
                     transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
@@ -100,20 +101,35 @@ namespace osu.Framework.Graphics
         }
 
 
-        internal Vector2 InternalPosition;
+        private Vector2 position;
+        public Vector2 Position
+        {
+            get
+            {
+                return position;
+            }
+
+            set
+            {
+                if (position == value) return;
+                position = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
 
         /// <summary>
         /// The getter returns position of this drawable in its parent's space.
         /// The setter accepts relative values in inheriting dimensions.
         /// </summary>
-        public Vector2 Position
+        public Vector2 DrawPosition
         {
             get
             {
-                Vector2 pos = InternalPosition;
+                Vector2 pos = Position;
                 if (RelativePositionAxes != Axes.None)
                 {
-                    Vector2 parent = Parent?.Size ?? Vector2.One;
+                    Vector2 parent = Parent?.ChildSize ?? Vector2.One;
                     if ((RelativePositionAxes & Axes.X) > 0)
                         pos.X *= parent.X;
                     if ((RelativePositionAxes & Axes.Y) > 0)
@@ -121,13 +137,6 @@ namespace osu.Framework.Graphics
                 }
 
                 return pos;
-            }
-            set
-            {
-                if (InternalPosition == value) return;
-                InternalPosition = value;
-
-                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -143,14 +152,14 @@ namespace osu.Framework.Graphics
                 Vector2 origin = Vector2.Zero;
 
                 if ((Origin & Anchor.x1) > 0)
-                    origin.X += Size.X / 2f;
+                    origin.X += DrawSize.X / 2f;
                 else if ((Origin & Anchor.x2) > 0)
-                    origin.X += Size.X;
+                    origin.X += DrawSize.X;
 
                 if ((Origin & Anchor.y1) > 0)
-                    origin.Y += Size.Y / 2f;
+                    origin.Y += DrawSize.Y / 2f;
                 else if ((Origin & Anchor.y2) > 0)
-                    origin.Y += Size.Y;
+                    origin.Y += DrawSize.Y;
 
                 return origin;
             }
@@ -207,7 +216,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Anchor anchor;
+        private Anchor anchor = Anchor.TopLeft;
 
         public Anchor Anchor
         {
@@ -216,6 +225,8 @@ namespace osu.Framework.Graphics
             set
             {
                 if (anchor == value) return;
+
+                Debug.Assert(value != 0, "Cannot set anchor to 0.");
                 anchor = value;
 
                 Invalidate(Invalidation.Geometry);
@@ -258,17 +269,75 @@ namespace osu.Framework.Graphics
             }
         }
 
-        internal Vector2 InternalSize;
+        private float width;
+        private float height;
+
+        public virtual float Width
+        {
+            get { return width; }
+            set
+            {
+                if (width == value) return;
+                width = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawWidth
+        {
+            get { return DrawSize.X; }
+        }
+
+        public virtual float Height
+        {
+            get { return height; }
+            set
+            {
+                if (height == value) return;
+                height = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        public float DrawHeight
+        {
+            get { return DrawSize.Y; }
+        }
+
+        private Vector2 size
+        {
+            get { return new Vector2(width, height); }
+            set { width = value.X; height = value.Y; }
+        }
+
+        public virtual Vector2 Size
+        {
+            get
+            {
+                return size;
+            }
+
+            set
+            {
+                if (size == value) return;
+                size = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
 
         /// <summary>
         /// The getter returns size of this drawable in its parent's space.
         /// The setter accepts relative values in inheriting dimensions.
         /// </summary>
-        public virtual Vector2 Size
+        public virtual Vector2 DrawSize
         {
             get
             {
-                Vector2 size = InternalSize;
+                Vector2 size = Size;
                 if (RelativeSizeAxes != Axes.None)
                 {
                     Vector2 parent = Parent?.ChildSize ?? Vector2.One;
@@ -279,13 +348,6 @@ namespace osu.Framework.Graphics
                 }
 
                 return size;
-            }
-            set
-            {
-                if (InternalSize == value) return;
-                InternalSize = value;
-
-                Invalidate(Invalidation.Geometry);
             }
         }
 
@@ -299,8 +361,8 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                if (InternalSize == Vector2.Zero)
-                    InternalSize = Vector2.One;
+                if ((value & Axes.X) > 0 && Width == 0) Width = 1;
+                if ((value & Axes.Y) > 0 && Height == 0) Height = 1;
 
                 relativeSizeAxes = value;
 
@@ -311,7 +373,7 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
-        public Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(delegate
             {
@@ -333,7 +395,7 @@ namespace osu.Framework.Graphics
                 return result;
             });
 
-        private Anchor origin;
+        private Anchor origin = Anchor.TopLeft;
 
         public virtual Anchor Origin
         {
@@ -345,6 +407,9 @@ namespace osu.Framework.Graphics
             {
                 if (origin == value)
                     return;
+
+                Debug.Assert(value != 0, "Cannot set origin to 0.");
+
                 origin = value;
                 Invalidate(Invalidation.Geometry);
             }
@@ -352,26 +417,19 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        public float Width
-        {
-            get { return Size.X; }
-            set { Size = new Vector2(value, Size.Y); }
-        }
+        //todo: remove recursive lookup of clock
+        //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
+        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
 
-        public float Height
-        {
-            get { return Size.Y; }
-            set { Size = new Vector2(Size.X, value); }
-        }
+        private double time;
 
-        protected virtual IFrameBasedClock Clock => Parent?.Clock;
-
-        protected double Time => Clock?.CurrentTime ?? 0;
+        protected double Time => Clock?.CurrentTime ?? time;
 
         const float visibility_cutoff = 0.0001f;
 
         private Cached<bool> isVisibleBacking = new Cached<bool>();
         public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        public bool IsMaskedAway = false;
 
         private bool? additive;
 
@@ -393,9 +451,9 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = BaseDrawInfo;
+                DrawInfo di = new DrawInfo(null);
 
                 float alpha = Alpha;
                 if (Colour.A > 0 && Colour.A < 1)
@@ -404,21 +462,19 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(Position), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(Position) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
+                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
                               !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
 
                 return di;
             });
 
-        protected virtual DrawInfo BaseDrawInfo => new DrawInfo(null, null, null);
-
-        protected virtual RectangleF DrawRectangle
+        protected RectangleF DrawRectangle
         {
             get
             {
-                Vector2 s = Size;
+                Vector2 s = DrawSize;
                 return new RectangleF(0, 0, s.X, s.Y);
             }
         }
@@ -471,8 +527,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangleForBounds).AABBf;
-        protected virtual RectangleF DrawRectangleForBounds => DrawRectangle;
+        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangle).AABBf;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
@@ -498,17 +553,23 @@ namespace osu.Framework.Graphics
                     // Compute the clipped offset depending on anchoring.
                     Vector2 offset;
 
-                    if (Anchor == Anchor.CentreRight || Anchor == Anchor.TopRight || Anchor == Anchor.BottomRight)
+                    // Right
+                    if ((Anchor & Anchor.x2) > 0)
                         offset.X = a.X - p.X;
-                    else if (Anchor == Anchor.CentreLeft || Anchor == Anchor.TopLeft || Anchor == Anchor.BottomLeft)
+                    // Left
+                    else if ((Anchor & Anchor.x0) > 0)
                         offset.X = p.X - a.X;
+                    // Centre
                     else
                         offset.X = Math.Abs(p.X - a.X);
 
-                    if (Anchor == Anchor.BottomCentre || Anchor == Anchor.BottomLeft || Anchor == Anchor.BottomRight)
+                    // Bottom
+                    if ((Anchor & Anchor.y2) > 0)
                         offset.Y = a.Y - p.Y;
-                    else if (Anchor == Anchor.TopCentre || Anchor == Anchor.TopLeft || Anchor == Anchor.TopRight)
+                    // Top
+                    else if ((Anchor & Anchor.y0) > 0)
                         offset.Y = p.Y - a.Y;
+                    // Centre
                     else
                         offset.Y = Math.Abs(p.Y - a.Y);
 
@@ -540,32 +601,25 @@ namespace osu.Framework.Graphics
                 return bounds;
             });
 
-
-        /// <summary>
-        /// Contains all currently valid DrawNodes. Used to invalidate DrawNodes on a change.
-        /// </summary>
-        private List<DrawNode> validDrawNodes = new List<DrawNode>(3);
+        private DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
-        /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
-        /// <returns>A complete and updated DrawNode.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(DrawNode node = null)
+        /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
+        protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
+            DrawNode node = drawNodes[treeIndex];
             if (node == null)
             {
-                //we don't have a previous node, so we need to initialise fresh.
-                node = CreateDrawNode();
-                node.Drawable = this;
+                drawNodes[treeIndex] = node = CreateDrawNode();
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeCtor);
             }
 
-            if (!node.IsValid)
+            if (invalidationID != node.InvalidationID)
             {
-                //we need to update the node if it has been invalidated.
                 ApplyDrawNode(node);
-                node.IsValid = true;
-                validDrawNodes.Add(node);
+                FrameStatistics.Increment(StatisticsCounterType.DrawNodeAppl);
             }
 
             return node;
@@ -574,7 +628,7 @@ namespace osu.Framework.Graphics
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
-            node.Drawable = this;
+            node.InvalidationID = invalidationID;
         }
 
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
@@ -585,6 +639,9 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
+            if (LoadState < LoadState.Alive)
+                if (!loadComplete()) return false;
+
             transformationDelay = 0;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transformations (and some better logic).
@@ -600,7 +657,11 @@ namespace osu.Framework.Graphics
 
         protected virtual void Update()
         {
-            scheduler?.Update();
+            if (scheduler != null)
+            {
+                int amountScheduledTasks = scheduler.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
         }
 
         /// <summary>
@@ -620,7 +681,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in Parent's coordinates.</returns>
         protected Quad ToParentSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+            return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -630,7 +691,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in screen coordinates.</returns>
         protected Quad ToScreenSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * DrawInfo.Matrix;
+            return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
 
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
@@ -657,10 +718,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
+        public void UpdateTime(double time)
+        {
+            this.time = time;
+        }
+
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public virtual bool IsAlive
+        public bool IsAlive
         {
             get
             {
@@ -669,8 +735,7 @@ namespace osu.Framework.Graphics
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                double t = Time;
-                return t >= LifetimeStart && t < LifetimeEnd;
+                return Time >= LifetimeStart && Time < LifetimeEnd;
             }
         }
 
@@ -682,24 +747,72 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
-        public virtual bool IsLoaded => loaded;
+        public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        private bool loaded;
+        protected volatile LoadState LoadState;
+
+        public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
+        {
+            if (LoadState == LoadState.NotLoaded)
+                return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
+
+            onLoaded?.Invoke(this);
+            return null;
+        }
+
+        private static StopwatchClock perf = new StopwatchClock(true);
+
+        protected internal virtual void PerformLoad(BaseGame game)
+        {
+            switch (LoadState)
+            {
+                case LoadState.Loaded:
+                case LoadState.Alive:
+                    return;
+                case LoadState.Loading:
+                    //loading on another thread
+                    while (!IsLoaded) Thread.Sleep(1);
+                    return;
+                case LoadState.NotLoaded:
+                    LoadState = LoadState.Loading;
+                    break;
+            }
+
+            double t1 = perf.CurrentTime;
+            Load(game);
+            double elapsed = perf.CurrentTime - t1;
+            if (elapsed > 50 && ThreadSafety.IsUpdateThread)
+                Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+            LoadState = LoadState.Loaded;
+        }
 
         /// <summary>
-        /// Loads this drawable. This function is guaranteed to be called once and
-        /// in a top-down fashion--i.e. after Parent.Load() has been called.
-        /// Note, that base.Load() may implicitly call childrens'
-        /// load functions, and thus should be called _after_ objects which
-        /// children depend on have been loaded.
+        /// Runs once on the update thread after loading has finished.
         /// </summary>
-        public virtual void Load(BaseGame game)
+        private bool loadComplete()
         {
+            if (LoadState < LoadState.Loaded) return false;
+
             mainThread = Thread.CurrentThread;
-            loaded = true;
+
+            scheduler?.SetCurrentThread(mainThread);
+
             LifetimeStart = Time;
             Invalidate();
+            LoadState = LoadState.Alive;
+            LoadComplete();
+            return true;
         }
+
+        /// <summary>
+        /// Load resources etc.
+        /// </summary>
+        protected virtual void Load(BaseGame game) { }
+
+        /// <summary>
+        /// Play initial animation etc.
+        /// </summary>
+        protected virtual void LoadComplete() { }
 
         private void updateTransformsOfType(Type specificType)
         {
@@ -720,7 +833,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms == null || transforms.Count == 0) return;
 
-            transforms.Update();
+            transforms.Update(Time);
 
             foreach (ITransform t in transforms.AliveItems)
                 t.Apply(this);
@@ -731,6 +844,10 @@ namespace osu.Framework.Graphics
             t.Apply(this); //make sure we apply one last time.
         }
 
+
+        private static AtomicCounter invalidationCounter = new AtomicCounter();
+        private long invalidationID;
+
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
@@ -739,8 +856,6 @@ namespace osu.Framework.Graphics
         {
             if (invalidation == Invalidation.None)
                 return false;
-
-            ThreadSafety.EnsureUpdateThread();
 
             OnInvalidate?.Invoke();
 
@@ -752,31 +867,23 @@ namespace osu.Framework.Graphics
             // Either ScreenSize OR ScreenPosition OR Colour
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & (Invalidation.Geometry)) > 0)
-                {
-                    if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                        alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
 
-                    alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
-                }
-
+                alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
 
             if ((invalidation & Invalidation.Visibility) > 0)
                 alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
-            if (!alreadyInvalidated)
-            {
-                foreach (DrawNode n in validDrawNodes)
-                    n.IsValid = false;
-                validDrawNodes.Clear();
-            }
+            if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
+                invalidationID = invalidationCounter.Increment();
 
             return !alreadyInvalidated;
         }
 
-        protected virtual Vector2 GetAnchoredPosition(Vector2 pos)
+        internal virtual Vector2 GetAnchoredPosition(Vector2 pos)
         {
             if (Anchor == Anchor.TopLeft)
                 return pos;
@@ -832,7 +939,7 @@ namespace osu.Framework.Graphics
             if (!string.IsNullOrEmpty(Name))
                 shortClass = $@"{Name} ({shortClass})";
 
-            return $@"{shortClass} ({Position.X:#,0},{Position.Y:#,0}) @ {Size.X:#,0}x{Size.Y:#,0}";
+            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) @ {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
 
         public virtual Drawable Clone()
@@ -863,11 +970,12 @@ namespace osu.Framework.Graphics
         SizeInParentSpace = 1 << 1,
         Visibility = 1 << 2,
         Colour = 1 << 3,
+        DrawNode = 1 << 4,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Visibility | Colour,
     }
 
     /// <summary>
@@ -892,37 +1000,37 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The vertical counterpart is at "Top" position.
         /// </summary>
-        y0 = 0,
+        y0 = 1 << 0,
 
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
         /// </summary>
-        y1 = 1,
+        y1 = 1 << 1,
 
         /// <summary>
         /// The vertical counterpart is at "Bottom" position.
         /// </summary>
-        y2 = 2,
+        y2 = 1 << 2,
 
         /// <summary>
         /// The horizontal counterpart is at "Left" position.
         /// </summary>
-        x0 = 0,
+        x0 = 1 << 3,
 
         /// <summary>
         /// The horizontal counterpart is at "Centre" position.
         /// </summary>
-        x1 = 4,
+        x1 = 1 << 4,
 
         /// <summary>
         /// The horizontal counterpart is at "Right" position.
         /// </summary>
-        x2 = 8,
+        x2 = 1 << 5,
 
         /// <summary>
         /// The user is manually updating the outcome, so we shouldn't.
         /// </summary>
-        Custom = 32,
+        Custom = 1 << 6,
     }
 
     [Flags]
@@ -944,5 +1052,23 @@ namespace osu.Framework.Graphics
             if (i != 0) return i;
             return x.CreationID.CompareTo(y.CreationID);
         }
+    }
+
+    public interface ILoadable<T>
+    {
+        void Load(T reference);
+    }
+
+    public interface ILoadableAsync<T>
+    {
+        Task LoadAsync(T reference);
+    }
+
+    public enum LoadState
+    {
+        NotLoaded,
+        Loading,
+        Loaded,
+        Alive
     }
 }

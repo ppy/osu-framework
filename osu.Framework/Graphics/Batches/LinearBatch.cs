@@ -3,23 +3,20 @@
 
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Batches
 {
     public class LinearBatch<T> : VertexBatch<T> where T : struct, IEquatable<T>
     {
-        private BeginMode type;
+        private PrimitiveType type;
 
-        public LinearBatch(int size, int fixedBufferAmount, BeginMode type)
-            : base(size, fixedBufferAmount)
+        public LinearBatch(int size, int maxBuffers, PrimitiveType type)
+            : base(size, maxBuffers)
         {
             this.type = type;
         }
 
-        protected override VertexBuffer<T> CreateVertexBuffer()
-        {
-            return new LinearVertexBuffer<T>(Size, type, BufferUsageHint.DynamicDraw);
-        }
+        protected override VertexBuffer<T> CreateVertexBuffer() => new LinearVertexBuffer<T>(Size, type, BufferUsageHint.DynamicDraw);
     }
 }

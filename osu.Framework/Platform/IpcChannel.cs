@@ -2,23 +2,19 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace osu.Framework.Platform
 {
     public class IpcChannel<T> : IDisposable
     {
-        private BasicGameHost host;
+        private IIpcHost host;
         public event Action<T> MessageReceived;
     
-        public IpcChannel(BasicGameHost host)
+        public IpcChannel(IIpcHost host)
         {
             this.host = host;
-            this.host.MessageReceived += HandleMessage;
+            this.host.MessageReceived += handleMessage;
         }
         public async Task SendMessage(T message)
         {
@@ -29,7 +25,7 @@ namespace osu.Framework.Platform
             };
             await host.SendMessage(msg);
         }
-        private void HandleMessage(IpcMessage message)
+        private void handleMessage(IpcMessage message)
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
@@ -38,7 +34,7 @@ namespace osu.Framework.Platform
 
         public void Dispose()
         {
-            this.host.MessageReceived -= HandleMessage;
+            host.MessageReceived -= handleMessage;
         }
     }
 }

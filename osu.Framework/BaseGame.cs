@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
@@ -34,7 +35,6 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => Host.FullPath;
 
-        private BasicGameForm form => host?.Window?.Form;
         private BasicGameHost host;
 
         public BasicGameHost Host => host;
@@ -48,14 +48,8 @@ namespace osu.Framework
         public TextureStore Fonts;
 
         private Container content;
-        private FlowContainer performanceContainer;
+        private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
-
-        public bool ShowPerformanceOverlay
-        {
-            get { return performanceContainer.Alpha > 0; }
-            set { performanceContainer.FadeTo(value ? 1 : 0, 200); }
-        }
 
         protected override Container Content => content;
 
@@ -71,16 +65,6 @@ namespace osu.Framework
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
-                performanceContainer = new PerformanceOverlay
-                {
-                    Position = new Vector2(5, 5),
-                    Direction = FlowDirection.VerticalOnly,
-                    Alpha = 0,
-                    Spacing = new Vector2(10, 10),
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Depth = float.MaxValue
-                }
             });
         }
 
@@ -100,16 +84,11 @@ namespace osu.Framework
         {
             this.host = host;
             host.Exiting += OnExiting;
-
-            if (form != null)
-            {
-                form.FormClosing += OnFormClosing;
-                form.DragEnter += dragEnter;
-                form.DragDrop += dragDrop;
-            }
         }
 
-        public override void Load(BaseGame game)
+        protected internal override void PerformLoad(BaseGame game) => base.PerformLoad(this);
+
+        protected override void Load(BaseGame game)
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
@@ -126,6 +105,18 @@ namespace osu.Framework
             {
                 ScaleAdjust = 1 / 100f
             };
+
+            (performanceContainer = new PerformanceOverlay
+            {
+                Position = new Vector2(5, 5),
+                Direction = FlowDirection.VerticalOnly,
+                AutoSizeAxes = Axes.Both,
+                Alpha = 0,
+                Spacing = new Vector2(10, 10),
+                Anchor = Anchor.BottomRight,
+                Origin = Anchor.BottomRight,
+                Depth = float.MaxValue
+            }).Preload(game, AddInternal);
 
             base.Load(game);
 
@@ -186,7 +177,18 @@ namespace osu.Framework
                 switch (args.Key)
                 {
                     case Key.F11:
-                        ShowPerformanceOverlay = !ShowPerformanceOverlay;
+                        switch (performanceContainer.State)
+                        {
+                            case FrameStatisticsMode.None:
+                                performanceContainer.State = FrameStatisticsMode.Minimal;
+                                break;
+                            case FrameStatisticsMode.Minimal:
+                                performanceContainer.State = FrameStatisticsMode.Full;
+                                break;
+                            case FrameStatisticsMode.Full:
+                                performanceContainer.State = FrameStatisticsMode.None;
+                                break;
+                        }
                         return true;
                     case Key.F1:
                         DrawVisualiser.ToggleVisibility();

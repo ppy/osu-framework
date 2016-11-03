@@ -24,21 +24,36 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            AddToggle(@"debug autosize", reloadCallback);
-
             Add(testContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
             });
 
-            for (int i = 1; i <= 7; i++)
+            string[] testNames = new[]
+            {
+                @"Multiple children",
+                @"Nested children",
+                @"Many nested children",
+                @"SpriteText 1",
+                @"SpriteText 2",
+                @"Inverted scaling",
+                @"RelativeSize",
+                @"Padding",
+                @"Margin",
+            };
+
+            for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                AddButton($@"Test {i}", delegate { loadTest(test); });
+                AddButton(testNames[i], delegate { loadTest(test); });
             }
 
-            loadTest(1);
+            loadTest(0);
+            addCrosshair();
+        }
 
+        private void addCrosshair()
+        {
             Add(new Box
             {
                 Colour = Color4.Black,
@@ -72,24 +87,15 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        private void reloadCallback()
-        {
-            loadTest(currentTest);
-        }
-
-        private int currentTest;
-
         private void loadTest(int testType)
         {
-            currentTest = testType;
-
             testContainer.Clear();
 
             Container box;
 
-            switch (currentTest)
+            switch (testType)
             {
-                case 1:
+                case 0:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
@@ -98,26 +104,28 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box);
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Position = new Vector2(0, 0),
                         Size = new Vector2(25, 25),
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.Blue,
                     });
 
-                    box.Add(box = new InfofulBox(RectangleF.Empty, 0, Color4.DarkSeaGreen)
+                    box.Add(box = new InfofulBox
                     {
                         Size = new Vector2(250, 250),
                         Alpha = 0.5f,
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.DarkSeaGreen,
                     });
 
                     box.OnUpdate += delegate { box.Rotation += 0.05f; };
                     break;
-                case 2:
+                case 1:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
@@ -138,17 +146,18 @@ namespace osu.Framework.VisualTests.Tests
                     Drawable localBox = box;
                     box.OnUpdate += delegate { localBox.Rotation += 0.05f; };
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.Blue)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Size = new Vector2(100, 100),
                         Position = new Vector2(50, 50),
                         Alpha = 0.5f,
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
+                        Colour = Color4.Blue,
                     });
                     break;
-                case 3:
+                case 2:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
@@ -170,27 +179,29 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box, 2);
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 1, Color4.SeaGreen)
+                    box.Add(new InfofulBox
                     {
                         //chameleon = true,
                         Size = new Vector2(50, 50),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.SeaGreen,
                     });
                     break;
-                case 4:
+                case 3:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.CentreLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(5, 0),
                         Size = new Vector2(300, 80),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
 
                     box.Add(new SpriteText
@@ -209,19 +220,20 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.CentreLeft
                     });
                     break;
-                case 5:
+                case 4:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.CentreLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(5, 0),
                         Size = new Vector2(300, 80),
                         Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
 
                     box.Add(new SpriteText
@@ -241,7 +253,7 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.CentreLeft
                     });
                     break;
-                case 6:
+                case 5:
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
@@ -256,15 +268,16 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopLeft
                     });
 
-                    box.Add(new InfofulBox(RectangleF.Empty, 0, Color4.OrangeRed)
+                    box.Add(new InfofulBox
                     {
                         Position = new Vector2(100, 100),
                         Size = new Vector2(100, 100),
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.TopLeft
+                        Anchor = Anchor.TopLeft,
+                        Colour = Color4.OrangeRed,
                     });
                     break;
-                case 7:
+                case 6:
                     Container shrinkContainer;
                     Container boxes;
 
@@ -284,6 +297,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             boxes = new FlowContainer {
                                 RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
                                 Spacing = new Vector2(0, 10),
                                 Direction = FlowDirection.VerticalOnly,
                             }
@@ -309,6 +323,262 @@ namespace osu.Framework.VisualTests.Tests
                     shrinkContainer.Delay(1000);
                     shrinkContainer.Loop();
                     break;
+
+                case 7:
+                    {
+                        Container box1;
+                        Container box2;
+                        Container box3;
+
+                        testContainer.Add(new FlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                // This first guy is used for spacing.
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.125f, 1),
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Padding = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box1 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.TopLeft,
+                                                            Origin = Anchor.TopLeft,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Padding = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box2 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.Centre,
+                                                            Origin = Anchor.Centre,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Padding = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box3 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.BottomRight,
+                                                            Origin = Anchor.BottomRight,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                            }
+                        });
+
+                        foreach (Container b in new[] { box1, box2, box3 })
+                        {
+                            b.ScaleTo(new Vector2(2, 2), 1000);
+                            b.Delay(1000);
+                            b.ScaleTo(new Vector2(1, 1), 1000);
+                            b.Delay(1000);
+                            b.Loop();
+                        }
+
+                        break;
+                    }
+
+                case 8:
+                    {
+                        Container box1;
+                        Container box2;
+                        Container box3;
+
+                        testContainer.Add(new FlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                // This first guy is used for spacing.
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.125f, 1),
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Margin = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box1 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.TopLeft,
+                                                            Origin = Anchor.TopLeft,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Margin = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box2 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.Centre,
+                                                            Origin = Anchor.Centre,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.25f, 1),
+                                    Children = new[]
+                                    {
+                                        new InfofulBoxAutoSize
+                                        {
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+                                            Children = new[]
+                                            {
+                                                new Container
+                                                {
+                                                    AutoSizeAxes = Axes.Both,
+                                                    Depth = 1,
+                                                    Margin = new MarginPadding(50),
+                                                    Children = new Drawable[]
+                                                    {
+                                                        box3 = new InfofulBox
+                                                        {
+                                                            Anchor = Anchor.BottomRight,
+                                                            Origin = Anchor.BottomRight,
+                                                            Size = new Vector2(50),
+                                                            Colour = Color4.Blue,
+                                                        },
+                                                    }
+                                                }
+                                            }
+                                        },
+                                    }
+                                },
+                            }
+                        });
+
+                        foreach (Container b in new[] { box1, box2, box3 })
+                        {
+                            b.ScaleTo(new Vector2(2, 2), 1000);
+                            b.Delay(1000);
+                            b.ScaleTo(new Vector2(1, 1), 1000);
+                            b.Delay(1000);
+                            b.Loop();
+                        }
+
+                        break;
+                    }
             }
 
 #if DEBUG
@@ -319,55 +589,66 @@ namespace osu.Framework.VisualTests.Tests
 
         private void addCornerMarkers(Container box, int size = 50, Color4? colour = null)
         {
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.TopLeft,
                 Anchor = Anchor.TopLeft,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.TopRight,
                 Anchor = Anchor.TopRight,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.BottomLeft,
                 Anchor = Anchor.BottomLeft,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
 
-            box.Add(new InfofulBox(RectangleF.Empty, 2, colour ?? Color4.Red)
+            box.Add(new InfofulBox
             {
                 //chameleon = true,
                 Size = new Vector2(size, size),
                 Origin = Anchor.BottomRight,
                 Anchor = Anchor.BottomRight,
-                AllowDrag = false
+                AllowDrag = false,
+                Depth = 2,
+                Colour = colour ?? Color4.Red,
             });
         }
     }
 
-    class InfofulBoxAutoSize : AutoSizeContainer
+    class InfofulBoxAutoSize : Container
     {
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
+            AutoSizeAxes = Axes.Both;
+
             base.Load(game);
 
             Masking = true;
 
             Add(new Box
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                Depth = float.MinValue,
             });
         }
 
@@ -394,15 +675,6 @@ namespace osu.Framework.VisualTests.Tests
         private SpriteText debugInfo;
 
         public bool chameleon = false;
-
-        public InfofulBox(RectangleF rectangle, float depth, Color4 color)
-        {
-            Position = new Vector2(rectangle.X, rectangle.Y);
-            Size = new Vector2(rectangle.Width, rectangle.Height);
-            Depth = depth;
-            Colour = color;
-        }
-
         public bool AllowDrag = true;
 
         protected override bool OnDrag(InputState state)
@@ -420,13 +692,14 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override bool OnDragStart(InputState state) => AllowDrag;
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
             Add(new Box
             {
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                Depth = float.MinValue,
             });
 
             debugInfo = new SpriteText

@@ -1,21 +1,21 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Platform;
-using OpenTK.Graphics;
+using OpenTK.Input;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
-    public class WindowsGameWindow : DesktopGameWindow
+    class WindowsGameWindow : DesktopGameWindow
     {
-        public WindowsGameWindow(GraphicsContextFlags flags)
-            : base(flags)
+        protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-        }
+            if (e.Key == Key.F4 && e.Alt)
+            {
+                Exit();
+                return;
+            }
 
-        protected override BasicGameForm CreateGameForm(GraphicsContextFlags flags)
-        {
-            return new WindowsGameForm(flags);
+            base.OnKeyDown(e);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace osu.Framework.Graphics.Primitives
 
         public float TotalVertical => Top + Bottom;
 
+        public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
+
         public MarginPadding(float allSides)
         {
             Top = Left = Bottom = Right = allSides;
@@ -33,6 +36,16 @@ namespace osu.Framework.Graphics.Primitives
         public bool Equals(MarginPadding other)
         {
             return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
+        }
+
+        public static MarginPadding operator-(MarginPadding mp)
+        {
+            return new MarginPadding {
+                Left = -mp.Left,
+                Top = -mp.Top,
+                Right = -mp.Right,
+                Bottom = -mp.Bottom,
+            };
         }
     }
 }

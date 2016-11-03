@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using System;
 
 namespace osu.Framework.MathUtils
@@ -13,6 +14,11 @@ namespace osu.Framework.MathUtils
         public static bool AlmostEquals(float value1, float value2, float acceptableDifference = FLOAT_EPSILON)
         {
             return Math.Abs(value1 - value2) <= acceptableDifference;
+        }
+
+        public static bool AlmostEquals(Vector2 value1, Vector2 value2, float acceptableDifference = FLOAT_EPSILON)
+        {
+            return AlmostEquals(value1.X, value2.X, acceptableDifference) && AlmostEquals(value1.Y, value2.Y, acceptableDifference);
         }
 
         public static bool AlmostEquals(double value1, double value2, double acceptableDifference = DOUBLE_EPSILON)

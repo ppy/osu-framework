@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Cached;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -77,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow = new FlowContainer
             {
                 Direction = FlowDirection.HorizontalOnly,
+                AutoSizeAxes = Axes.Both,
             };
 
             cursor = new Box
@@ -132,15 +133,15 @@ namespace osu.Framework.Graphics.UserInterface
                 if (selectionLength > 0)
                     cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
 
-                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / Width;
+                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
                 //we only want to reposition the view when the cursor reaches near the extremities.
                 if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
                 {
-                    textContainerPosX = cursorPosEnd - Width / 2;
+                    textContainerPosX = cursorPosEnd - DrawWidth / 2;
                 }
 
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.Width - Width));
+                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.DrawWidth - DrawWidth));
 
                 textContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
 
@@ -159,15 +160,15 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         cursor.FadeTo(0.5f, 200, EasingTypes.Out);
                         cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
-                        cursor.Transforms.Add(new TransformAlpha(Clock)
-                              {
-                                  StartValue = 0.5f,
-                                  EndValue = 0.2f,
-                                  StartTime = Time,
-                                  EndTime = Time + 500,
-                                  Easing = EasingTypes.InOutSine,
-                                  LoopCount = -1,
-                              });
+                        cursor.Transforms.Add(new TransformAlpha
+                        {
+                            StartValue = 0.5f,
+                            EndValue = 0.2f,
+                            StartTime = Time,
+                            EndTime = Time + 500,
+                            Easing = EasingTypes.InOutSine,
+                            LoopCount = -1,
+                        });
                     }
                 }
 
@@ -183,9 +184,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return textFlow.Children.ElementAt(index).Position.X + textFlow.Position.X;
+                    return textFlow.Children.ElementAt(index).DrawPosition.X + textFlow.DrawPosition.X;
                 var d = textFlow.Children.ElementAt(index - 1);
-                return d.Position.X + d.Size.X + textFlow.Spacing.X + textFlow.Position.X;
+                return d.DrawPosition.X + d.DrawSize.X + textFlow.Spacing.X + textFlow.DrawPosition.X;
             }
             return 0;
         }
@@ -197,7 +198,7 @@ namespace osu.Framework.Graphics.UserInterface
             int i = 0;
             foreach (Drawable d in textFlow.Children)
             {
-                if (d.Position.X + d.Size.X / 2 > pos.X)
+                if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
                 i++;
             }
@@ -264,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 textContainer.Add(d);
                 d.FadeOut(200);
-                d.MoveToY(d.Size.Y, 200, EasingTypes.InExpo);
+                d.MoveToY(d.DrawSize.Y, 200, EasingTypes.InExpo);
                 d.Expire();
             }
 
@@ -290,7 +291,7 @@ namespace osu.Framework.Graphics.UserInterface
             textFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
-                TextSize = Size.Y,
+                TextSize = DrawSize.Y,
                 Depth = selectionLeft,
             });
 
@@ -327,7 +328,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            ch.Position = new Vector2(0, Size.Y);
+            ch.Position = new Vector2(0, DrawSize.Y);
             ch.MoveToY(0, 200, EasingTypes.OutExpo);
 
             text = text.Insert(selectionLeft, c.ToString());
@@ -387,64 +388,64 @@ namespace osu.Framework.Graphics.UserInterface
                     moveSelection(-text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Left:
-                {
-                    if (!HandleLeftRightArrows) return false;
-
-                    if (selectionEnd == 0)
                     {
-                        //we only clear if you aren't holding shift
-                        if (!state.Keyboard.ShiftPressed)
-                            resetSelection();
-                        return true;
-                    }
+                        if (!HandleLeftRightArrows) return false;
 
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
-                    {
-                        int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
-                        if (lastSpace >= 0)
+                        if (selectionEnd == 0)
                         {
-                            //if you have something selected and shift is not held down
-                            //A selection reset is required to select a word inside the current selection
-                            if(!state.Keyboard.ShiftPressed)
+                            //we only clear if you aren't holding shift
+                            if (!state.Keyboard.ShiftPressed)
                                 resetSelection();
-                            amount = selectionEnd - lastSpace - 1;
+                            return true;
                         }
-                         else
-                            amount = selectionEnd;
-                    }
 
-                    moveSelection(-amount, state.Keyboard.ShiftPressed);
-                    return true;
-                }
-                case Key.Right:
-                {
-                    if (!HandleLeftRightArrows) return false;
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                            if (lastSpace >= 0)
+                            {
+                                //if you have something selected and shift is not held down
+                                //A selection reset is required to select a word inside the current selection
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = selectionEnd - lastSpace - 1;
+                            }
+                            else
+                                amount = selectionEnd;
+                        }
 
-                    if (selectionEnd == text.Length)
-                    {
-                        if (!state.Keyboard.ShiftPressed)
-                            resetSelection();
+                        moveSelection(-amount, state.Keyboard.ShiftPressed);
                         return true;
                     }
-
-                    int amount = 1;
-                    if (state.Keyboard.ControlPressed)
+                case Key.Right:
                     {
-                        int nextSpace = text.IndexOf(' ', selectionEnd + 1);
-                        if (nextSpace >= 0)
+                        if (!HandleLeftRightArrows) return false;
+
+                        if (selectionEnd == text.Length)
                         {
                             if (!state.Keyboard.ShiftPressed)
                                 resetSelection();
-                            amount = nextSpace - selectionEnd;
+                            return true;
                         }
-                        else
-                            amount = text.Length - selectionEnd;
-                    }
 
-                    moveSelection(amount, state.Keyboard.ShiftPressed);
-                    return true;
-                }    
+                        int amount = 1;
+                        if (state.Keyboard.ControlPressed)
+                        {
+                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
+                            if (nextSpace >= 0)
+                            {
+                                if (!state.Keyboard.ShiftPressed)
+                                    resetSelection();
+                                amount = nextSpace - selectionEnd;
+                            }
+                            else
+                                amount = text.Length - selectionEnd;
+                        }
+
+                        moveSelection(amount, state.Keyboard.ShiftPressed);
+                        return true;
+                    }
                 case Key.Enter:
                     selectionStart = selectionEnd = 0;
                     TriggerFocusLost(state);
@@ -542,17 +543,17 @@ namespace osu.Framework.Graphics.UserInterface
             if (doubleClickWord != null)
             {
                 //select words at a time
-                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1]) 
+                if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
                     selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
-                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0]) 
+                else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
-                    selectionEnd = selectionEnd >= 0 ? (selectionEnd+1) : 0;
+                    selectionEnd = selectionEnd >= 0 ? (selectionEnd + 1) : 0;
                 }
                 else
                 {
@@ -681,13 +682,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput == null)
             {
-                textInput = game.Host.TextInput;
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput = game.Host.GetTextInput();
+                textInput.OnNewImeComposition += delegate (string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate(string s)
+                textInput.OnNewImeResult += delegate (string s)
                 {
                     textUpdateScheduler.Add(() => onImeResult(s));
                     cursorAndLayout.Invalidate();

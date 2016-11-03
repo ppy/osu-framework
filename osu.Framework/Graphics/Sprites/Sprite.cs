@@ -10,7 +10,7 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class Sprite : Drawable
+    public class Sprite : ShadedDrawable
     {
         public bool WrapTexture = false;
 
@@ -33,17 +33,6 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new SpriteDrawNode();
 
-        private static Shader shader;
-
-        public override void Load(BaseGame game)
-        {
-            base.Load(game);
-
-            //todo: make this better.
-            if (shader == null)
-                shader = game.Shaders.Load(VertexShader.Texture2D, FragmentShader.TextureRounded);
-        }
-
         protected override void ApplyDrawNode(DrawNode node)
         {
             SpriteDrawNode n = node as SpriteDrawNode;
@@ -51,7 +40,6 @@ namespace osu.Framework.Graphics.Sprites
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
-            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }
@@ -78,8 +66,10 @@ namespace osu.Framework.Graphics.Sprites
                     texture.Dispose();
 
                 texture = value;
+                Invalidate(Invalidation.DrawNode);
 
-                Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+                if (Size == Vector2.Zero)
+                    Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
             }
         }
 
