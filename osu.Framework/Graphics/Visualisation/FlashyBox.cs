@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public override Quad ScreenSpaceDrawQuad => target.ScreenSpaceDrawQuad;
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

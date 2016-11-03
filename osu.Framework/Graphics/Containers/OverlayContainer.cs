@@ -8,9 +8,9 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class OverlayContainer : Container, IStateful<Visibility>
     {
-        public override void Load(BaseGame game)
+        protected override void LoadComplete()
         {
-            base.Load(game);
+            base.LoadComplete();
 
             //TODO: init code using Alpha or IsVisible override to ensure we don't call Load on children before we first get unhidden.
             PopOut();

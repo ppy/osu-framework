@@ -22,6 +22,7 @@ using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Sprites;
 using OpenTK.Input;
 using OpenTK.Graphics;
 
@@ -375,11 +376,12 @@ namespace osu.Framework.Platform
 
         protected virtual void LoadGame(BaseGame game)
         {
+            if (!IsLoaded)
+                PerformLoad(null);
+
             // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
             // depend on a Game object.
-            if (!IsLoaded)
-                Load(null);
-            base.Add(game);
+            Task.Run(() => game.PerformLoad(null)).ContinueWith(obj => Schedule(() => base.Add(game)));
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();

@@ -5,12 +5,15 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -144,11 +147,8 @@ namespace osu.Framework.Graphics.Containers
 
         private LifetimeList<Drawable> children;
 
-        //todo: reference only used for screen bounds checking. we can probably remove this somehow.
-        private BaseGame game;
-
         private List<Drawable> pendingChildrenInternal;
-        private List<Drawable> pendingChildren => pendingChildrenInternal == null ? (pendingChildrenInternal = new List<Drawable>()) : pendingChildrenInternal;
+        private List<Drawable> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<Drawable>());
 
         public virtual IEnumerable<Drawable> Children
         {
@@ -171,28 +171,18 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual IEnumerable<Drawable> InternalChildren
         {
-            get { return IsLoaded ? children : pendingChildren; }
+            get { return children; }
 
             set
             {
-                if (!IsLoaded)
-                {
-                    Debug.Assert(pendingChildren.Count == 0, "Can not overwrite existing pending children.");
-                    Clear();
-                    pendingChildren.AddRange(value);
-                }
-                else
-                {
-                    Clear();
-                    AddInternal(value);
-                }
+                Clear();
+                AddInternal(value);
             }
         }
 
         public Container()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
-            children.LoadRequested += loadChild;
         }
 
         private MarginPadding padding;
@@ -248,7 +238,6 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(Drawable drawable)
         {
-            Debug.Assert(IsLoaded, "Can not add children before Container is loaded.");
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
             Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
@@ -278,7 +267,7 @@ namespace osu.Framework.Graphics.Containers
 
             drawable.ChangeParent(this);
 
-            if (!IsLoaded)
+            if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
             else
                 children.Add(drawable);
@@ -375,7 +364,7 @@ namespace osu.Framework.Graphics.Containers
             UpdateChildrenLife();
 
             foreach (Drawable child in children.AliveItems)
-                child.UpdateSubTree();
+                if (child.IsLoaded) child.UpdateSubTree();
 
             UpdateLayout();
 
@@ -384,22 +373,17 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
-            this.game = game;
+            children.LoadRequested += i => i.PerformLoad(game);
 
             if (pendingChildrenInternal != null)
             {
                 AddInternal(pendingChildren);
                 pendingChildrenInternal = null;
             }
-        }
-
-        private void loadChild(Drawable obj)
-        {
-            obj.Load(game);
         }
 
         internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)

@@ -20,6 +20,8 @@ namespace osu.Framework.GameModes
         private Container content;
         private Container childModeContainer;
 
+        protected BaseGame Game;
+
         protected override Container Content => content;
 
         public event Action<GameMode> ModePushed;
@@ -82,6 +84,12 @@ namespace osu.Framework.GameModes
         /// <param name="next">The new GameMode</param>
         protected virtual void OnSuspending(GameMode next) { }
 
+        protected internal override void PerformLoad(BaseGame game)
+        {
+            Game = game;
+            base.PerformLoad(game);
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
@@ -94,12 +102,10 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public override void Load(BaseGame game)
+        public void DisplayAsRoot()
         {
-            base.Load(game);
-
-            if (ParentGameMode == null)
-                OnEntering(null);
+            Debug.Assert(ParentGameMode == null);
+            OnEntering(null);
         }
 
         /// <summary>
@@ -120,7 +126,7 @@ namespace osu.Framework.GameModes
             }
 
             startSuspend(mode);
-            
+
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);

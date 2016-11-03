@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
@@ -64,17 +65,6 @@ namespace osu.Framework
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
-                performanceContainer = new PerformanceOverlay
-                {
-                    Position = new Vector2(5, 5),
-                    Direction = FlowDirection.VerticalOnly,
-                    AutoSizeAxes = Axes.Both,
-                    Alpha = 0,
-                    Spacing = new Vector2(10, 10),
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Depth = float.MaxValue
-                }
             });
         }
 
@@ -96,7 +86,9 @@ namespace osu.Framework
             host.Exiting += OnExiting;
         }
 
-        public override void Load(BaseGame game)
+        protected internal override void PerformLoad(BaseGame game) => base.PerformLoad(this);
+
+        protected override void Load(BaseGame game)
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
@@ -114,9 +106,19 @@ namespace osu.Framework
                 ScaleAdjust = 1 / 100f
             };
 
-            // Make sure to ignore the argument and instead pass self downward.
-            // BasicGameHost will pass null into this method.
-            base.Load(this);
+            (performanceContainer = new PerformanceOverlay
+            {
+                Position = new Vector2(5, 5),
+                Direction = FlowDirection.VerticalOnly,
+                AutoSizeAxes = Axes.Both,
+                Alpha = 0,
+                Spacing = new Vector2(10, 10),
+                Anchor = Anchor.BottomRight,
+                Origin = Anchor.BottomRight,
+                Depth = float.MaxValue
+            }).Preload(game, AddInternal);
+
+            base.Load(game);
 
             addDebugTools();
         }

@@ -38,13 +38,14 @@ namespace osu.Framework.Lists
                 {
                     if (!current[i])
                     {
-                        AliveItems.Add(item);
-                        current[i] = true;
-                        anyAliveChanged = true;
-                    }
-
-                    if (!item.IsLoaded)
                         LoadRequested?.Invoke(item);
+                        if (item.IsLoaded)
+                        {
+                            AliveItems.Add(item);
+                            current[i] = true;
+                            anyAliveChanged = true;
+                        }
+                    }
                 }
                 else
                 {

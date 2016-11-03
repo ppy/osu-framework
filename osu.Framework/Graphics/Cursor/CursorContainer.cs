@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Cursor
             RelativeSizeAxes = Axes.Both;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

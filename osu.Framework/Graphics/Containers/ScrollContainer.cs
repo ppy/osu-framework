@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 
