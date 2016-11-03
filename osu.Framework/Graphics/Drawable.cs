@@ -859,7 +859,7 @@ namespace osu.Framework.Graphics
 
             OnInvalidate?.Invoke();
 
-            if (shallPropagate && Parent != null && source != Parent)
+            if (shallPropagate && Parent != null && source != Parent && IsLoaded)
                 Parent.InvalidateFromChild(invalidation, this);
 
             bool alreadyInvalidated = true;
