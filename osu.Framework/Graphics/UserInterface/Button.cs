@@ -36,6 +36,12 @@ namespace osu.Framework.Graphics.UserInterface
                 if (box != null) box.Colour = value;
             }
         }
+        
+        public Button()
+        {
+            Height = 25;
+            Colour = new Color4(14, 132, 165, 255);
+        }
 
         public override void Load(BaseGame game)
         {
