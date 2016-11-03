@@ -134,41 +134,35 @@ namespace osu.Framework.Configuration
 
         public void Load()
         {
-            string[] lines;
             using (var stream = storage.GetStream(Filename))
             {
                 if (stream == null)
                     return;
+
+                string line;
                 using (var reader = new StreamReader(stream))
-                    lines = reader.ReadToEnd().Replace("\r", "").Split('\n');
-            }
-
-            foreach (string line in lines)
-            {
-                int equalsIndex = line.IndexOf('=');
-
-                if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
-
-                string key = line.Substring(0, equalsIndex).Trim();
-                string val = line.Remove(0, equalsIndex + 1).Trim();
-
-                T lookup;
-
-                if (!Enum.TryParse(key, out lookup))
-                    continue;
-
-                IBindable b;
-
-                if (configStore.TryGetValue(lookup, out b))
-                    b.Parse(val);
-                else
                 {
-                    if (AddMissingEntries)
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        Set(lookup, val);
+                        int equalsIndex = line.IndexOf('=');
+
+                        if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
+
+                        string key = line.Substring(0, equalsIndex).Trim();
+                        string val = line.Remove(0, equalsIndex + 1).Trim();
+
+                        T lookup;
+
+                        if (!Enum.TryParse(key, out lookup))
+                            continue;
+
+                        IBindable b;
+
+                        if (configStore.TryGetValue(lookup, out b))
+                            b.Parse(val);
+                        else if (AddMissingEntries)
+                            Set(lookup, val);
                     }
-                    else
-                        continue;
                 }
             }
         }
