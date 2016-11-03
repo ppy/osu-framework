@@ -730,7 +730,8 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                if (Parent == null) return false;
+                //we have been loaded but our parent has since been nullified
+                if (Parent == null && IsLoaded) return false;
 
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
