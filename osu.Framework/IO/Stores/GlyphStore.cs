@@ -22,7 +22,7 @@ namespace osu.Framework.IO.Stores
 
         Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
 
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
         {
             this.store = store;
             this.assetName = assetName;
@@ -32,10 +32,9 @@ namespace osu.Framework.IO.Stores
                 font = new BitmapFont();
                 font.LoadText(store.GetStream($@"{assetName}.fnt"));
 
-#if PRECACHE
-                for (int i = 0; i < font.Pages.Length; i++)
-                    getTexturePage(i);
-#endif
+                if (precache)
+                    for (int i = 0; i < font.Pages.Length; i++)
+                        getTexturePage(i);
             }
             catch
             {
