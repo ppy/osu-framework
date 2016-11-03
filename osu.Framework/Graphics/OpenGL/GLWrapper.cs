@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundTexture = null;
 
             lastBlendingInfo = new BlendingInfo();
+            lastBlendingEnabledState = null;
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
@@ -182,6 +183,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static BlendingInfo lastBlendingInfo;
+        private static bool? lastBlendingEnabledState;
 
         /// <summary>
         /// Sets the blending function to draw with.
@@ -197,11 +199,18 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (blendingInfo.IsDisabled)
             {
-                GL.Disable(EnableCap.Blend);
+                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
+                    GL.Disable(EnableCap.Blend);
+
+                lastBlendingEnabledState = false;
             }
             else
             {
-                GL.Enable(EnableCap.Blend);
+                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
+                    GL.Enable(EnableCap.Blend);
+
+                lastBlendingEnabledState = true;
+
                 GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
             }
 
