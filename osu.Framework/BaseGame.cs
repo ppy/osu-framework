@@ -74,6 +74,8 @@ namespace osu.Framework
             {
                 Depth = float.MaxValue / 2,
             });
+
+            Add(new LogOverlay());
         }
 
         /// <summary>
