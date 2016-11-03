@@ -195,7 +195,15 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            if (blendingInfo.IsDisabled)
+            {
+                GL.Disable(EnableCap.Blend);
+            }
+            else
+            {
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            }
 
             lastBlendingInfo = blendingInfo;
         }

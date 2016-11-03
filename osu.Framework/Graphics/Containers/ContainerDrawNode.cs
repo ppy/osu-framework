@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Containers
 
             GLWrapper.PushScissor(edgeEffectMaskingInfo);
 
-            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow));
+            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
             Shader.Bind();
 
