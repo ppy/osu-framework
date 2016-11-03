@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
@@ -18,8 +19,11 @@ namespace osu.Framework.Configuration
 
         Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        public ConfigManager()
+        BasicStorage storage;
+
+        public ConfigManager(BasicStorage storage)
         {
+            this.storage = storage;
             InitialiseDefaults();
             Load();
         }
@@ -130,36 +134,35 @@ namespace osu.Framework.Configuration
 
         public void Load()
         {
-            if (!File.Exists(Filename)) return;
-
-            string[] lines = File.ReadAllLines(Filename);
-
-            foreach (string line in lines)
+            using (var stream = storage.GetStream(Filename))
             {
-                int equalsIndex = line.IndexOf('=');
+                if (stream == null)
+                    return;
 
-                if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
-
-                string key = line.Substring(0, equalsIndex).Trim();
-                string val = line.Remove(0, equalsIndex + 1).Trim();
-
-                T lookup;
-
-                if (!Enum.TryParse(key, out lookup))
-                    continue;
-
-                IBindable b;
-
-                if (configStore.TryGetValue(lookup, out b))
-                    b.Parse(val);
-                else
+                string line;
+                using (var reader = new StreamReader(stream))
                 {
-                    if (AddMissingEntries)
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        Set(lookup, val);
+                        int equalsIndex = line.IndexOf('=');
+
+                        if (line.Length == 0 || line[0] == '#' || equalsIndex < 0) continue;
+
+                        string key = line.Substring(0, equalsIndex).Trim();
+                        string val = line.Remove(0, equalsIndex + 1).Trim();
+
+                        T lookup;
+
+                        if (!Enum.TryParse(key, out lookup))
+                            continue;
+
+                        IBindable b;
+
+                        if (configStore.TryGetValue(lookup, out b))
+                            b.Parse(val);
+                        else if (AddMissingEntries)
+                            Set(lookup, val);
                     }
-                    else
-                        continue;
                 }
             }
         }
@@ -170,7 +173,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (Stream stream = new SafeWriteStream(Filename))
+                using (Stream stream = storage.GetStream(Filename, FileAccess.Write))
                 using (StreamWriter w = new StreamWriter(stream))
                 {
                     foreach (KeyValuePair<T, IBindable> p in configStore)

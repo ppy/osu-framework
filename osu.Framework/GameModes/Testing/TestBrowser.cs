@@ -15,6 +15,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Platform;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -23,6 +24,10 @@ namespace osu.Framework.GameModes.Testing
         class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
             public override string Filename => @"visualtests.cfg";
+
+            public TestBrowserConfig(BasicStorage storage) : base(storage)
+            {
+            }
         }
 
         enum TestBrowserOption
@@ -56,7 +61,7 @@ namespace osu.Framework.GameModes.Testing
         {
             base.Load(game);
 
-            config = new TestBrowserConfig();
+            config = new TestBrowserConfig(game.Host.Storage);
 
             Add(leftContainer = new Container
             {
