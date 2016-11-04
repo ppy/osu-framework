@@ -75,6 +75,12 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private bool useSimpleShader = false;
+
+        /// <summary>
+        /// This should only be used for sprites that are not masked away by any parents, and which
+        /// have a large footprint (i.e. require many fragment shader invocations). Otherwise it may
+        /// incur a performance penalty rather than a gain.
+        /// </summary>
         public bool UseSimpleShader
         {
             get { return useSimpleShader; }
