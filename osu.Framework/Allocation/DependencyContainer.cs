@@ -36,7 +36,8 @@ namespace osu.Framework.Allocation
             parameters.ForEach(p => p());
             activators[type] = d =>
             {
-                return (T)Activator.CreateInstance(type, parameters.Select(p => p()));
+                var p = parameters.Select(pa => pa()).ToArray();
+                return (T)Activator.CreateInstance(type, p);
             };
         }
         
@@ -53,7 +54,7 @@ namespace osu.Framework.Allocation
         public void Cache<T>(T instance = null) where T : class
         {
             if (instance == null)
-                instance = Get<T>();
+                instance = Get<T>(false);
             cacheable.Add(typeof(T));
             cache[typeof(T)] = instance;
         }
@@ -72,9 +73,15 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Gets an instance of the specified type.
         /// </summary>
-        public T Get<T>() where T : class
+        public T Get<T>(bool autoRegister = true) where T : class
         {
-            return (T)Get(typeof(T));
+            T instance = (T)Get(typeof(T));
+            if (autoRegister && instance == null)
+            {
+                Register<T>();
+                instance = (T)Get(typeof(T));
+            }
+            return instance;
         }
     }
 }
