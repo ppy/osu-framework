@@ -6,6 +6,7 @@ using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Platform.Linux
 {
@@ -22,7 +23,7 @@ namespace osu.Framework.Desktop.Platform.Linux
                 else
                     OnDeactivated();
             };
-            Storage = new LinuxStorage(gameName);
+            Dependencies.Cache<BasicStorage>(Storage = new LinuxStorage(gameName));
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers()

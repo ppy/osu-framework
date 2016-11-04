@@ -19,6 +19,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Input;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
+using osu.Framework.Allocation;
 
 namespace osu.Framework
 {
@@ -54,6 +55,8 @@ namespace osu.Framework
         private LogOverlay LogOverlay;
 
         protected override Container<Drawable> Content => content;
+
+        public DependencyContainer Dependencies => Host.Dependencies;
 
         public BaseGame()
         {

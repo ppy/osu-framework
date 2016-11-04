@@ -273,6 +273,7 @@
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
     <Compile Include="Timing\TimeInfo.cs" />
+    <Compile Include="Allocation\DependencyContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
