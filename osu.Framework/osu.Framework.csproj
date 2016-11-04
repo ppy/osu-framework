@@ -116,6 +116,7 @@
     <Compile Include="Graphics\Shaders\ShadedDrawNode.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\UserInterface\Sliderbar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
