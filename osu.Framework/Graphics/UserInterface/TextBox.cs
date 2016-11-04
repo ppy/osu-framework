@@ -529,11 +529,9 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
                 insertString(str);
-
-                return true;
             }
 
-            return false;
+            return true;
         }
 
         protected override bool OnDrag(InputState state)
