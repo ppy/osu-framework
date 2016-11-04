@@ -199,14 +199,14 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (blendingInfo.IsDisabled)
             {
-                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
+                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
                     GL.Disable(EnableCap.Blend);
 
                 lastBlendingEnabledState = false;
             }
             else
             {
-                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
+                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
                     GL.Enable(EnableCap.Blend);
 
                 lastBlendingEnabledState = true;
