@@ -11,8 +11,11 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class Sprite : ShadedDrawable
+    public class Sprite : Drawable
     {
+        private Shader textureShader;
+        private Shader roundedTextureShader;
+
         public bool WrapTexture = false;
 
         public bool CanDisposeTexture { get; protected set; }
@@ -42,7 +45,21 @@ namespace osu.Framework.Graphics.Sprites
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
 
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
+
             base.ApplyDrawNode(node);
+        }
+
+        protected override void Load(BaseGame game)
+        {
+            base.Load(game);
+
+            if (textureShader == null)
+                textureShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture));
+
+            if (roundedTextureShader == null)
+                roundedTextureShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
         }
 
         protected override bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
@@ -73,27 +90,6 @@ namespace osu.Framework.Graphics.Sprites
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
             }
         }
-
-        private bool useSimpleShader = false;
-
-        /// <summary>
-        /// This should only be used for sprites that are not masked away by any parents, and which
-        /// have a large footprint (i.e. require many fragment shader invocations). Otherwise it may
-        /// incur a performance penalty rather than a gain.
-        /// </summary>
-        public bool UseSimpleShader
-        {
-            get { return useSimpleShader; }
-            set
-            {
-                Debug.Assert(!IsLoaded, "Can only choose Sprite shader prior to loading the Sprite.");
-                useSimpleShader = value;
-            }
-        }
-
-        protected override ShaderDescriptor ShaderDescriptor => UseSimpleShader ?
-            new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture) :
-            new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
         public override Drawable Clone()
         {

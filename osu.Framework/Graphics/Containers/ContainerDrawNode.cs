@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
         public bool ForceOwnVertexBatch = false;
     }
 
-    public class ContainerDrawNode : ShadedDrawNode
+    public class ContainerDrawNode : DrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
@@ -46,6 +46,8 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffect EdgeEffect;
 
         public ContainerDrawNodeSharedData Shared;
+
+        public Shader Shader;
 
         private void drawEdgeEffect()
         {

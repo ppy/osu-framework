@@ -10,11 +10,14 @@ using osu.Framework.Graphics.OpenGL;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteDrawNode : ShadedDrawNode
+    public class SpriteDrawNode : DrawNode
     {
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public bool WrapTexture;
+
+        public Shader TextureShader;
+        public Shader RoundedTextureShader;
 
         public override void Draw(IVertexBatch vertexBatch)
         {
@@ -23,12 +26,13 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            Shader.Bind();
+            Shader shader = GLWrapper.IsMaskingActive ? RoundedTextureShader : TextureShader;
+            shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
             Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexBatch as VertexBatch<TexturedVertex2D>);
 
-            Shader.Unbind();
+            shader.Unbind();
         }
     }
 }

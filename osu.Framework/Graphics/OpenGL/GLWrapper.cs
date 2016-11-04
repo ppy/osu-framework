@@ -417,6 +417,8 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch?.Draw();
         }
 
+        public static bool IsMaskingActive => maskingStack.Count > 1;
+
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>

@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public partial class Container : ShadedDrawable
+    public partial class Container : Drawable
     {
         private bool masking = false;
         public bool Masking
@@ -113,6 +113,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private Shader shader;
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -139,6 +140,8 @@ namespace osu.Framework.Graphics.Containers
 
             n.ScreenSpaceMaskingQuad = null;
             n.Shared = containerDrawNodeSharedData;
+
+            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }
@@ -378,6 +381,9 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Load(game);
 
+            if (shader == null)
+                shader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+
             children.LoadRequested += i =>
             {
                 i.PerformLoad(game);
@@ -591,8 +597,5 @@ namespace osu.Framework.Graphics.Containers
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
         }
-
-        protected override ShaderDescriptor ShaderDescriptor => new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
-
     }
 }
