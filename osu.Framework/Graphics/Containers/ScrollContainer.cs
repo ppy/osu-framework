@@ -164,14 +164,15 @@ namespace osu.Framework.Graphics.Containers
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
 
-            protected override void Load(BaseGame game)
+            public ScrollBar()
             {
-                base.Load(game);
-
-                Add(box = new Box
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both
-                });
+                    box = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
 
                 Anchor = Anchor.TopRight;
                 Origin = Anchor.TopRight;
