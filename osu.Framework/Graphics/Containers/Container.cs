@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildScale => Vector2.One;
+        protected internal virtual Vector2 ChildScale => Vector2.One;
 
         /// <summary>
         /// Offset which is only applied to Children.
