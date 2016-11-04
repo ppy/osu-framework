@@ -369,6 +369,9 @@ namespace osu.Framework.Platform
             BaseGame game = drawable as BaseGame;
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
+            if (!IsLoaded)
+                PerformLoad(null);
+
             game.SetHost(this);
 
             LoadGame(game);
@@ -376,9 +379,6 @@ namespace osu.Framework.Platform
 
         protected virtual void LoadGame(BaseGame game)
         {
-            if (!IsLoaded)
-                PerformLoad(null);
-
             // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
             // depend on a Game object.
             Task.Run(() => game.PerformLoad(null)).ContinueWith(obj => Schedule(() => base.Add(game)));
