@@ -9,6 +9,7 @@ using SQLite.Net.Platform.Generic;
 using SQLite.Net.Interop;
 using SQLite.Net.Platform.Win32;
 using System.Diagnostics;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -16,6 +17,8 @@ namespace osu.Framework.Desktop.Platform
     {
         public DesktopStorage(string baseName) : base(baseName)
         {
+            //todo: this is obviously not the right way to do this.
+            Logger.LogDirectory = Path.Combine(BasePath, @"logs");
         }
 
         protected virtual string BasePath => @"./"; //use current directory by default
