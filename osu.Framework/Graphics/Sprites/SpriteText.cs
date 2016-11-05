@@ -29,6 +29,18 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
 
+        private string font;
+
+        public string Font
+        {
+            get { return font; }
+            set
+            {
+                font = value;
+                internalSize.Invalidate();
+            }
+        }
+
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
         private float spaceWidth;
@@ -43,7 +55,7 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        internal override Vector2 ChildScale => new Vector2(TextSize);
+        protected internal override Vector2 ChildScale => new Vector2(TextSize);
 
         private float textSize = 20;
 
@@ -180,7 +192,7 @@ namespace osu.Framework.Graphics.Sprites
         };
 
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
-        private string getTextureName(char c) => $@"{c}";
+        private string getTextureName(char c) => string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
         {

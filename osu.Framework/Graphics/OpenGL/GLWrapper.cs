@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundTexture = null;
 
             lastBlendingInfo = new BlendingInfo();
+            lastBlendingEnabledState = null;
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
@@ -85,7 +86,7 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = Rectangle.Empty;
 
             PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
-            PushScissor(new MaskingInfo
+            PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
@@ -182,6 +183,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static BlendingInfo lastBlendingInfo;
+        private static bool? lastBlendingEnabledState;
 
         /// <summary>
         /// Sets the blending function to draw with.
@@ -195,7 +197,22 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            if (blendingInfo.IsDisabled)
+            {
+                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
+                    GL.Disable(EnableCap.Blend);
+
+                lastBlendingEnabledState = false;
+            }
+            else
+            {
+                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
+                    GL.Enable(EnableCap.Blend);
+
+                lastBlendingEnabledState = true;
+
+                GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            }
 
             lastBlendingInfo = blendingInfo;
         }
@@ -346,7 +363,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
         }
 
-        private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
+        private static void setMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
             FlushCurrentBatch();
 
@@ -400,24 +417,27 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch?.Draw();
         }
 
+        public static bool IsMaskingActive => maskingStack.Count > 1;
+
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
-        public static void PushScissor(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
+        public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             maskingStack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, overwritePreviousScissor);
+            setMaskingInfo(CurrentMaskingInfo, overwritePreviousScissor);
         }
 
         /// <summary>
         /// Applies the last scissor rectangle.
         /// </summary>
-        public static void PopScissor()
+        public static void PopMaskingInfo()
         {
             Debug.Assert(maskingStack.Count > 1);
 
@@ -428,7 +448,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, true);
+            setMaskingInfo(CurrentMaskingInfo, true);
         }
 
         /// <summary>

@@ -112,9 +112,9 @@
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawable.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawNode.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
@@ -165,7 +165,6 @@
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
-    <Compile Include="Configuration\SafeWriteStream.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
     <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />

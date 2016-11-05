@@ -431,19 +431,18 @@ namespace osu.Framework.Graphics
         public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
         public bool IsMaskedAway = false;
 
-        private bool? additive;
+        private BlendingMode blendingMode;
 
-        public bool? Additive
+        public BlendingMode BlendingMode
         {
-            get { return additive; }
+            get { return blendingMode; }
 
             set
             {
-                if (additive == value) return;
+                if (blendingMode == value) return;
 
+                blendingMode = value;
                 Invalidate(Invalidation.Colour);
-
-                additive = value;
             }
         }
 
@@ -462,10 +461,10 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
                 else
                     Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
-                              !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                              BlendingMode == BlendingMode.Inherit ? (BlendingInfo?)null : new BlendingInfo(BlendingMode));
 
                 return di;
             });
@@ -730,7 +729,8 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                if (Parent == null) return false;
+                //we have been loaded but our parent has since been nullified
+                if (Parent == null && IsLoaded) return false;
 
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
@@ -1042,6 +1042,14 @@ namespace osu.Framework.Graphics
         Y = 1 << 1,
 
         Both = X | Y
+    }
+
+    public enum BlendingMode
+    {
+        Inherit = 0,
+        Mixture,
+        Additive,
+        None,
     }
 
     public class DepthComparer : IComparer<Drawable>

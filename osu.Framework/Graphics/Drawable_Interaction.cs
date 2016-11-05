@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics
 
             public Vector2 LastPosition => us.Parent?.GetLocalPosition(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.GetLocalPosition(NativeState.PositionMouseDown.Value);
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.GetLocalPosition(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;
