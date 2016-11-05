@@ -51,6 +51,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
+    <Compile Include="Tests\TestCaseDropDownBox.cs" />
     <Compile Include="Tests\TestCaseGameMode.cs" />
     <Compile Include="Tests\TestCaseBufferedContainer.cs" />
     <Compile Include="Tests\TestCaseMasking.cs" />
