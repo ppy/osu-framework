@@ -24,7 +24,7 @@ namespace osu.Framework.Lists
         /// Updates the life status of this LifetimeList's children.
         /// </summary>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update()
+        public bool Update(double time)
         {
             bool anyAliveChanged = false;
 
@@ -32,17 +32,20 @@ namespace osu.Framework.Lists
             {
                 var item = this[i];
 
+                item.UpdateTime(time);
+
                 if (item.IsAlive)
                 {
                     if (!current[i])
                     {
-                        AliveItems.Add(item);
-                        current[i] = true;
-                        anyAliveChanged = true;
-                    }
-
-                    if (!item.IsLoaded)
                         LoadRequested?.Invoke(item);
+                        if (item.IsLoaded)
+                        {
+                            AliveItems.Add(item);
+                            current[i] = true;
+                            anyAliveChanged = true;
+                        }
+                    }
                 }
                 else
                 {

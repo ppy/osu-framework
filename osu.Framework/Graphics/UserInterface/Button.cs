@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.UserInterface
             Add(flash);
 
             flash.Colour = backgroundColour;
-            flash.Additive = true;
+            flash.BlendingMode = BlendingMode.Additive;
             flash.Alpha = 0.3f;
             flash.FadeOutFromOne(200);
             flash.Expire();

@@ -5,19 +5,22 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public partial class Container : ShadedDrawable
+    public partial class Container : Drawable
     {
         private bool masking = false;
         public bool Masking
@@ -90,43 +93,27 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float glowRadius = 0.0f;
+        private EdgeEffect edgeEffect;
 
         /// <summary>
         /// Only has an effect when Masking == true.
-        /// Determines how large of a glow to draw _around_ the masked region.
+        /// Determines the edge effect of the container.
         /// </summary>
-        public virtual float GlowRadius
+        public virtual EdgeEffect EdgeEffect
         {
-            get { return glowRadius; }
+            get { return edgeEffect; }
             set
             {
-                if (glowRadius == value)
+                if (edgeEffect.Equals(value))
                     return;
 
-                glowRadius = value;
+                edgeEffect = value;
                 Invalidate(Invalidation.DrawNode);
             }
         }
 
-        private Color4 glowColour = Color4.Transparent;
-
-        /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines the color of the glow.
-        /// </summary>
-        public virtual Color4 GlowColour
-        {
-            get { return glowColour; }
-            set
-            {
-                if (glowColour.Equals(value))
-                    return;
-
-                glowColour = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
+        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private Shader shader;
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -134,19 +121,31 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
+            Debug.Assert(
+                Masking || (CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None),
+                "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+
+            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
                 MaskingRect = DrawRectangle.Shrink(Margin),
                 ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = this.CornerRadius,
-                BorderThickness = this.BorderThickness,
-                BorderColour = this.BorderColour,
+                CornerRadius = CornerRadius,
+                BorderThickness = BorderThickness,
+                BorderColour = BorderColour,
+                // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                // This results in the optimal trade-off between crispness and smoothness of the
+                // edges of the masked region according to sampling theory.
+                LinearBlendRange = (scale.X + scale.Y) / 2,
             };
 
-            n.GlowRadius = GlowRadius;
-            n.GlowColour = GlowColour;
+            n.EdgeEffect = EdgeEffect;
+
             n.ScreenSpaceMaskingQuad = null;
+            n.Shared = containerDrawNodeSharedData;
+
+            n.Shader = shader;
 
             base.ApplyDrawNode(node);
         }
@@ -155,11 +154,8 @@ namespace osu.Framework.Graphics.Containers
 
         private LifetimeList<Drawable> children;
 
-        //todo: reference only used for screen bounds checking. we can probably remove this somehow.
-        private BaseGame game;
-
         private List<Drawable> pendingChildrenInternal;
-        private List<Drawable> pendingChildren => pendingChildrenInternal == null ? (pendingChildrenInternal = new List<Drawable>()) : pendingChildrenInternal;
+        private List<Drawable> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<Drawable>());
 
         public virtual IEnumerable<Drawable> Children
         {
@@ -182,28 +178,18 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual IEnumerable<Drawable> InternalChildren
         {
-            get { return IsLoaded ? children : pendingChildren; }
+            get { return children; }
 
             set
             {
-                if (!IsLoaded)
-                {
-                    Debug.Assert(pendingChildren.Count == 0, "Can not overwrite existing pending children.");
-                    Clear();
-                    pendingChildren.AddRange(value);
-                }
-                else
-                {
-                    Clear();
-                    AddInternal(value);
-                }
+                Clear();
+                AddInternal(value);
             }
         }
 
         public Container()
         {
             children = new LifetimeList<Drawable>(DepthComparer);
-            children.LoadRequested += loadChild;
         }
 
         private MarginPadding padding;
@@ -245,7 +231,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildScale => Vector2.One;
+        protected internal virtual Vector2 ChildScale => Vector2.One;
 
         /// <summary>
         /// Offset which is only applied to Children.
@@ -259,7 +245,6 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(Drawable drawable)
         {
-            Debug.Assert(IsLoaded, "Can not add children before Container is loaded.");
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
             Debug.Assert(Content != drawable, "Content may not be added to itself.");
 
@@ -287,9 +272,10 @@ namespace osu.Framework.Graphics.Containers
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
-            drawable.ChangeParent(this);
+            if (drawable.IsLoaded)
+                drawable.ChangeParent(this);
 
-            if (!IsLoaded)
+            if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
             else
                 children.Add(drawable);
@@ -386,7 +372,7 @@ namespace osu.Framework.Graphics.Containers
             UpdateChildrenLife();
 
             foreach (Drawable child in children.AliveItems)
-                child.UpdateSubTree();
+                if (child.IsLoaded) child.UpdateSubTree();
 
             UpdateLayout();
 
@@ -395,22 +381,24 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
-            this.game = game;
+            if (shader == null)
+                shader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+
+            children.LoadRequested += i =>
+            {
+                i.PerformLoad(game);
+                i.ChangeParent(this);
+            };
 
             if (pendingChildrenInternal != null)
             {
                 AddInternal(pendingChildren);
                 pendingChildrenInternal = null;
             }
-        }
-
-        private void loadChild(Drawable obj)
-        {
-            obj.Load(game);
         }
 
         internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
@@ -449,7 +437,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            bool changed = children.Update();
+            bool changed = children.Update(Time);
 
             if (changed && AutoSizeAxes != Axes.None)
                 autoSize.Invalidate();
@@ -502,9 +490,12 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    if (container.children.AliveItems.Count < AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK ||
-                        maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                    container.IsMaskedAway = container.children.AliveItems.Count >= AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK &&
+                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf);
+
+                    if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+
                     continue;
                 }
 
@@ -527,7 +518,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
-            if (children.AliveItems.Count == 0 && (!Masking || GlowRadius == 0.0f))
+            if (children.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
             ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
@@ -596,16 +587,17 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!Masking || CornerRadius == 0.0f)
+                float cornerRadius = CornerRadius;
+                if (!Masking || cornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                float cornerRadius = CornerRadius;
                 RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
+                // Inflate bounding box in parent space by the half-size of the bounding box of the
+                // ellipse obtained by transforming the unit circle into parent space.
                 Vector2 offset = ToParentSpace(Vector2.Zero);
                 Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
-
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }

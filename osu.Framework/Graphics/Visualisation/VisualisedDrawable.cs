@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Visualisation
             AutoSizeAxes = Axes.Both;
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 

@@ -12,28 +12,31 @@ namespace osu.Framework.Audio
     public class AudioCollectionManager<T> : AdjustableAudioComponent
         where T : AdjustableAudioComponent
     {
-        List<T> activeItems = new List<T>();
+        protected List<T> Items = new List<T>();
 
-        protected void AddItem(T item)
+        public void AddItem(T item)
         {
+            if (Items.Contains(item)) return;
+
             item.AddAdjustmentDependency(this);
-            activeItems.Add(item);
+            Items.Add(item);
         }
 
         public override void Update()
         {
             base.Update();
 
-            for (int i = 0; i < activeItems.Count; i++)
+            for (int i = 0; i < Items.Count; i++)
             {
-                var item = activeItems[i];
+                var item = Items[i];
 
                 item.Update();
 
+                //todo: this is wrong (completed items may want to stay in an AudioCollectionManager ie. AudioTracks)
                 if ((item as IHasCompletedState)?.HasCompleted ?? false)
                 {
                     item.Dispose();
-                    activeItems.RemoveAt(i--);
+                    Items.RemoveAt(i--);
                 }
             }
         }

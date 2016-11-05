@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
             checkedDrawable = CreateCheckedDrawable();

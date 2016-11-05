@@ -15,6 +15,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Platform;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -23,6 +24,10 @@ namespace osu.Framework.GameModes.Testing
         class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
             public override string Filename => @"visualtests.cfg";
+
+            public TestBrowserConfig(BasicStorage storage) : base(storage)
+            {
+            }
         }
 
         enum TestBrowserOption
@@ -52,11 +57,11 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
-            config = new TestBrowserConfig();
+            config = new TestBrowserConfig(game.Host.Storage);
 
             Add(leftContainer = new Container
             {
@@ -93,6 +98,14 @@ namespace osu.Framework.GameModes.Testing
                 addTest(testCase);
 
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+        }
+
+        protected override bool OnExiting(GameMode next)
+        {
+            if (next == null)
+                Game?.Exit();
+
+            return base.OnExiting(next);
         }
 
         private void addTest(TestCase testCase)
@@ -139,7 +152,7 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 

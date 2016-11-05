@@ -23,5 +23,7 @@ namespace osu.Framework.Platform
         public abstract Stream GetStream(string path, FileAccess mode = FileAccess.Read);
 
         public abstract SQLiteConnection GetDatabase(string name);
+
+        public abstract void OpenInNativeExplorer();
     }
 }

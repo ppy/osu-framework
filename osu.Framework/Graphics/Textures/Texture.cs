@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -25,7 +26,8 @@ namespace osu.Framework.Graphics.Textures
             {
                 if (whitePixel == null)
                 {
-                    whitePixel = new Texture(1, 1, true);
+                    TextureAtlas atlas = new TextureAtlas(3, 3, true);
+                    whitePixel = atlas.GetWhitePixel();
                     whitePixel.SetData(new TextureUpload(new byte[] { 255, 255, 255, 255 }));
                 }
 
@@ -49,8 +51,8 @@ namespace osu.Framework.Graphics.Textures
             TextureGL = textureGl;
         }
 
-        public Texture(int width, int height, bool manualMipmaps = false)
-            : this(new TextureGLSingle(width, height, manualMipmaps))
+        public Texture(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
+            : this(new TextureGLSingle(width, height, manualMipmaps, filteringMode))
         {
         }
 
@@ -139,7 +141,7 @@ namespace osu.Framework.Graphics.Textures
             int width = Math.Min(bitmap.Width, Width);
             int height = Math.Min(bitmap.Height, Height);
 
-            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData bData = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             TextureUpload upload = new TextureUpload(width * height * 4)
             {
@@ -170,7 +172,7 @@ namespace osu.Framework.Graphics.Textures
                 upload.Dispose();
         }
 
-        private RectangleF textureBounds(RectangleF? textureRect = null)
+        protected virtual RectangleF textureBounds(RectangleF? textureRect = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
@@ -195,6 +197,19 @@ namespace osu.Framework.Graphics.Textures
             if (TextureGL == null || !TextureGL.Bind()) return;
 
             TextureGL.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
+        }
+    }
+
+    public class TextureWhitePixel : Texture
+    {
+        public TextureWhitePixel(TextureGL textureGl)
+            : base(textureGl)
+        {
+        }
+
+        protected override RectangleF textureBounds(RectangleF? textureRect = default(RectangleF?))
+        {
+            return new RectangleF();
         }
     }
 }

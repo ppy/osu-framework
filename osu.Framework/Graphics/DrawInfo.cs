@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -47,8 +48,9 @@ namespace osu.Framework.Graphics
 
             if (rotation != 0)
             {
-                MatrixExtensions.RotateFromLeft(ref target.Matrix, rotation);
-                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -rotation);
+                float radians = MathHelper.DegreesToRadians(rotation);
+                MatrixExtensions.RotateFromLeft(ref target.Matrix, radians);
+                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
@@ -76,15 +78,19 @@ namespace osu.Framework.Graphics
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 
-            target.Colour = Colour;
-
             if (colour != null)
             {
-                target.Colour.R *= colour.Value.R;
-                target.Colour.G *= colour.Value.G;
-                target.Colour.B *= colour.Value.B;
-                target.Colour.A *= colour.Value.A;
+                Color4 targetLinear = colour.Value.toLinear();
+                Color4 sourceLinear = Colour.toLinear();
+
+                target.Colour = new Color4(
+                    targetLinear.R * sourceLinear.R,
+                    targetLinear.G * sourceLinear.G,
+                    targetLinear.B * sourceLinear.B,
+                    targetLinear.A * sourceLinear.A).toSRGB();
             }
+            else
+                target.Colour = Colour;
 
             if (blending == null)
                 Blending.Copy(ref target.Blending);

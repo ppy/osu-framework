@@ -20,6 +20,8 @@ namespace osu.Framework.GameModes
         private Container content;
         private Container childModeContainer;
 
+        protected BaseGame Game;
+
         protected override Container Content => content;
 
         public event Action<GameMode> ModePushed;
@@ -82,6 +84,12 @@ namespace osu.Framework.GameModes
         /// <param name="next">The new GameMode</param>
         protected virtual void OnSuspending(GameMode next) { }
 
+        protected internal override void PerformLoad(BaseGame game)
+        {
+            Game = game;
+            base.PerformLoad(game);
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
@@ -94,30 +102,38 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public override void Load(BaseGame game)
+        public void DisplayAsRoot()
         {
-            base.Load(game);
-
-            if (ParentGameMode == null)
-                OnEntering(null);
+            Debug.Assert(ParentGameMode == null);
+            OnEntering(null);
         }
 
         /// <summary>
         /// Changes to a new GameMode.
         /// </summary>
         /// <param name="mode">The new GameMode.</param>
-        public void Push(GameMode mode)
+        public virtual bool Push(GameMode mode)
         {
             Debug.Assert(ChildGameMode == null);
 
+            mode.ParentGameMode = this;
+            childModeContainer.Add(mode);
+
+            if (mode.hasExited)
+            {
+                mode.Expire();
+                return false;
+            }
+
             startSuspend(mode);
 
-            childModeContainer.Add(mode);
             mode.OnEntering(this);
 
             ModePushed?.Invoke(mode);
 
             Content.Expire();
+
+            return true;
         }
 
         private void startSuspend(GameMode next)
@@ -126,7 +142,6 @@ namespace osu.Framework.GameModes
             Content.Expire();
 
             ChildGameMode = next;
-            next.ParentGameMode = this;
         }
 
         /// <summary>

@@ -8,6 +8,8 @@ using osu.Framework.Platform;
 using SQLite.Net.Platform.Generic;
 using SQLite.Net.Interop;
 using SQLite.Net.Platform.Win32;
+using System.Diagnostics;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -15,6 +17,8 @@ namespace osu.Framework.Desktop.Platform
     {
         public DesktopStorage(string baseName) : base(baseName)
         {
+            //todo: this is obviously not the right way to do this.
+            Logger.LogDirectory = Path.Combine(BasePath, @"logs");
         }
 
         protected virtual string BasePath => @"./"; //use current directory by default
@@ -22,6 +26,11 @@ namespace osu.Framework.Desktop.Platform
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
 
         public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
+        
+        public override void OpenInNativeExplorer()
+        {
+            Process.Start(BasePath);
+        }
 
         public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
         {
@@ -29,7 +38,9 @@ namespace osu.Framework.Desktop.Platform
             switch (mode)
             {
                 case FileAccess.Read:
-                    return File.Open(path, FileMode.Open, mode);
+                    if (!File.Exists(path))
+                        return null;
+                    return File.Open(path, FileMode.Open, mode, FileShare.Read);
                 default:
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                     return File.Open(path, FileMode.OpenOrCreate, mode);

@@ -1,12 +1,13 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -14,8 +15,8 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private Dictionary<string, ShaderPart> partCache = new Dictionary<string, ShaderPart>();
-        private Dictionary<string, Shader> shaderCache = new Dictionary<string, Shader>();
+        private ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
+        private ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
 
         ResourceStore<byte[]> store;
 
@@ -156,6 +157,7 @@ namespace osu.Framework.Graphics.Shaders
         Colour,
         ColourRounded,
         Glow,
+        Blur,
     }
 
     public struct ShaderDescriptor

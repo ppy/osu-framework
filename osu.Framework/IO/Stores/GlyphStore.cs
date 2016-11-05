@@ -4,14 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
 {
     public class GlyphStore : IResourceStore<RawTexture>
     {
         private string assetName;
+
+        private string fontName;
 
         const float default_size = 96;
 
@@ -20,15 +24,21 @@ namespace osu.Framework.IO.Stores
 
         Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
 
-        public GlyphStore(ResourceStore<byte[]> store, string assetName = null)
+        public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
         {
             this.store = store;
             this.assetName = assetName;
+
+            fontName = assetName.Split('/').Last();
 
             try
             {
                 font = new BitmapFont();
                 font.LoadText(store.GetStream($@"{assetName}.fnt"));
+
+                if (precache)
+                    for (int i = 0; i < font.Pages.Length; i++)
+                        getTexturePage(i);
             }
             catch
             {
@@ -38,9 +48,12 @@ namespace osu.Framework.IO.Stores
 
         public RawTexture Get(string name)
         {
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/"))
+                return null;
+
             Character c;
 
-            if (!font.Characters.TryGetValue(name[0], out c))
+            if (!font.Characters.TryGetValue(name.Last(), out c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
@@ -78,7 +91,7 @@ namespace osu.Framework.IO.Stores
             return new RawTexture
             {
                 Pixels = pixels,
-                PixelFormat = OpenTK.Graphics.ES20.PixelFormat.Rgba,
+                PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
                 Width = width,
                 Height = height,
             };

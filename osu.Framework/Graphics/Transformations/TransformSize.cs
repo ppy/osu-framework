@@ -12,10 +12,5 @@ namespace osu.Framework.Graphics.Transformations
             base.Apply(d);
             d.Size = CurrentValue;
         }
-
-        public TransformSize(IClock clock)
-            : base(clock)
-        {
-        }
     }
 }

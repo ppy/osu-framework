@@ -19,13 +19,13 @@ namespace osu.Framework.VisualTests.Tests
         public override string Name => @"Masking";
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";
 
-        private Container testContainer;
+        protected Container TestContainer;
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(testContainer = new Container()
+            Add(TestContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
             });
@@ -87,7 +87,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void loadTest(int testType)
         {
-            testContainer.Clear();
+            TestContainer.Clear();
 
             switch (testType)
             {
@@ -98,16 +98,20 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(box = new InfofulBoxAutoSize
+                        TestContainer.Add(box = new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Masking = true,
                             CornerRadius = 100,
-                            GlowRadius = 25,
                             BorderColour = Color4.Aquamarine,
                             BorderThickness = 3,
-                            GlowColour = glowColour
+                            EdgeEffect = new EdgeEffect
+                            {
+                                Type = EdgeEffectType.Shadow,
+                                Radius = 100,
+                                Colour = new Color4(0, 50, 100, 200),
+                            },
                         });
 
                         box.Add(box = new InfofulBox
@@ -129,7 +133,7 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -148,7 +152,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        box.OnUpdate += delegate { box.Rotation += 0.05f; };
+                        box.OnUpdate += delegate { box.Rotation += 0.05f; box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01); };
                         break;
                     }
 
@@ -158,7 +162,7 @@ namespace osu.Framework.VisualTests.Tests
                         glowColour.A = 0.5f;
 
                         Container box;
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
@@ -191,14 +195,19 @@ namespace osu.Framework.VisualTests.Tests
                         Container box1;
                         Container box2;
 
-                        testContainer.Add(new InfofulBoxAutoSize
+                        TestContainer.Add(new InfofulBoxAutoSize
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            GlowRadius = 25,
+                            EdgeEffect = new EdgeEffect
+                            {
+                                Type = EdgeEffectType.Glow,
+                                Radius = 100,
+                                Roundness = 50,
+                                Colour = glowColour,
+                            },
                             BorderColour = Color4.Aquamarine,
                             BorderThickness = 3,
-                            GlowColour = glowColour,
                             Children = new[]
                             {
                                 box1 = new InfofulBoxAutoSize
@@ -269,7 +278,7 @@ namespace osu.Framework.VisualTests.Tests
                             };
                         };
 
-                        testContainer.Add(new FlowContainer
+                        TestContainer.Add(new FlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new[]
@@ -310,7 +319,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 5:
                     {
-                        testContainer.Add(new Container
+                        TestContainer.Add(new Container
                         {
                             Masking = true,
                             Size = new Vector2(0.5f),

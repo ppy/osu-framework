@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
@@ -17,23 +15,22 @@ namespace osu.Framework.Desktop.Platform.Windows
     {
         private TimePeriod timePeriod;
 
-        internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(bindIPC)
+        internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.
-            IsActive = true;
 
             timePeriod = new TimePeriod(1) { Active = true };
 
             Architecture.SetIncludePath();
 
-            Window = new DesktopGameWindow();
+            Window = new WindowsGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
                 if (Window.WindowState != OpenTK.WindowState.Minimized)
-                    OnActivated(sender, e);
+                    OnActivated();
                 else
-                    OnDeactivated(sender, e);
+                    OnDeactivated();
             };
 
             Storage = new WindowsStorage(gameName);
@@ -50,20 +47,20 @@ namespace osu.Framework.Desktop.Platform.Windows
             base.Dispose(isDisposing);
         }
 
-        protected override void OnActivated(object sender, EventArgs args)
+        protected override void OnActivated()
         {
             timePeriod.Active = true;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous | Execution.ExecutionState.SystemRequired | Execution.ExecutionState.DisplayRequired);
-            base.OnActivated(sender, args);
+            base.OnActivated();
         }
 
-        protected override void OnDeactivated(object sender, EventArgs args)
+        protected override void OnDeactivated()
         {
             timePeriod.Active = false;
 
             Execution.SetThreadExecutionState(Execution.ExecutionState.Continuous);
-            base.OnDeactivated(sender, args);
+            base.OnDeactivated();
         }
     }
 }

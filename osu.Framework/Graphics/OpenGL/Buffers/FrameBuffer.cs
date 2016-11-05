@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
@@ -14,30 +14,11 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         private int lastFramebuffer;
         private int frameBuffer = -1;
 
-        public TextureGL Texture { get; }
+        public TextureGL Texture { get; private set; }
 
         private bool IsBound => lastFramebuffer != -1;
 
         private List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
-
-        public FrameBuffer(bool withTexture = true)
-        {
-            frameBuffer = GL.GenFramebuffer();
-
-            if (withTexture)
-            {
-                Texture = new TextureGLSingle(1, 1);
-                Texture.SetData(new TextureUpload(0));
-                Texture.Upload();
-
-                Bind();
-
-                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
-                GLWrapper.BindTexture(null);
-
-                Unbind();
-            }
-        }
 
         #region Disposal
 
@@ -68,6 +49,29 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         #endregion
 
+        public bool IsInitialized { get; private set; }
+
+        public void Initialize(bool withTexture = true)
+        {
+            frameBuffer = GL.GenFramebuffer();
+
+            if (withTexture)
+            {
+                Texture = new TextureGLSingle(1, 1, true, All.Linear);
+                Texture.SetData(new TextureUpload(new byte[0]));
+                Texture.Upload();
+
+                Bind();
+
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget2d.Texture2D, Texture.TextureId, 0);
+                GLWrapper.BindTexture(null);
+
+                Unbind();
+            }
+
+            IsInitialized = true;
+        }
+
         private Vector2 size = Vector2.One;
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
                 Texture.Width = (int)Math.Ceiling(size.X);
                 Texture.Height = (int)Math.Ceiling(size.Y);
-                Texture.SetData(new TextureUpload(0));
+                Texture.SetData(new TextureUpload(new byte[0]));
                 Texture.Upload();
             }
         }

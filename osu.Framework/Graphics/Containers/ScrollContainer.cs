@@ -17,14 +17,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
         /// </summary>
-        public bool ScrollDraggerOnLeft
+        public Anchor ScrollDraggerAnchor
         {
-            get { return scrollbar.Anchor == Anchor.TopLeft; }
+            get { return scrollbar.Anchor; }
 
             set
             {
-                scrollbar.Anchor = value ? Anchor.TopLeft : Anchor.TopRight;
-                scrollbar.Origin = value ? Anchor.TopLeft : Anchor.TopRight;
+                scrollbar.Anchor = value;
+                scrollbar.Origin = value;
             }
         }
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -129,6 +129,11 @@ namespace osu.Framework.Graphics.Containers
             scrollTo(current + value, clamp, animated);
         }
 
+        public void ScrollTo(float value)
+        {
+            scrollTo(value);
+        }
+
         private void scrollTo(float value, bool clamp = true, bool animated = true)
         {
             current = value;
@@ -140,6 +145,11 @@ namespace osu.Framework.Graphics.Containers
             }
 
             updateScroll(animated);
+        }
+        
+        public void ScrollIntoView(Drawable d)
+        {
+            scrollTo(d.Position.Y);
         }
 
         private void updateSize()
@@ -164,22 +174,24 @@ namespace osu.Framework.Graphics.Containers
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
 
-            public override void Load(BaseGame game)
+            public ScrollBar()
             {
-                base.Load(game);
-
-                Add(box = new Box
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both
-                });
+                    box = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both
+                    }
+                };
 
-                Anchor = Anchor.TopRight;
-                Origin = Anchor.TopRight;
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
                 CornerRadius = 5;
                 Masking = true;
+
+                Anchor = Anchor.TopRight;
+                Origin = Anchor.TopRight;
             }
 
             protected override bool OnHover(InputState state)

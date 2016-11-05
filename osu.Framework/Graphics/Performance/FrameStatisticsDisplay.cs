@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Performance
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             base.Load(game);
 
@@ -489,7 +489,7 @@ namespace osu.Framework.Graphics.Performance
                 this.atlas = atlas;
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 
@@ -569,10 +569,9 @@ namespace osu.Framework.Graphics.Performance
                 };
             }
 
-            public override void Load(BaseGame game)
+            protected override void LoadComplete()
             {
-                base.Load(game);
-
+                base.LoadComplete();
                 Active = true;
             }
 

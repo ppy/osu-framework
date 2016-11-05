@@ -8,15 +8,17 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class OverlayContainer : Container, IStateful<Visibility>
     {
-        public override void Load(BaseGame game)
+
+        protected override void LoadComplete()
         {
-            base.Load(game);
+            if (state == Visibility.Hidden)
+            {
+                PopOut();
+                Flush();
+            }
 
-            //TODO: init code using Alpha or IsVisible override to ensure we don't call Load on children before we first get unhidden.
-            PopOut();
-            Flush();
+            base.LoadComplete();
         }
-
         private Visibility state;
         public Visibility State
         {
@@ -41,6 +43,10 @@ namespace osu.Framework.Graphics.Containers
         protected abstract void PopIn();
 
         protected abstract void PopOut();
+
+        public override void Hide() => State = Visibility.Hidden;
+
+        public override void Show() => State = Visibility.Visible;
 
         public void ToggleVisibility() => State = (State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible);
     }

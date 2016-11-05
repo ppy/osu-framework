@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            public override void Load(BaseGame game)
+            protected override void Load(BaseGame game)
             {
                 base.Load(game);
 

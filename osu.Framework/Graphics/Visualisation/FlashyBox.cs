@@ -24,10 +24,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public override Quad ScreenSpaceDrawQuad => target.ScreenSpaceDrawQuad;
 
-        public override void Load(BaseGame game)
+        protected override void LoadComplete()
         {
-            base.Load(game);
-
+            base.LoadComplete();
             FadeColour(Color4.Red, 500);
             Delay(500);
             FadeColour(Color4.White, 500);

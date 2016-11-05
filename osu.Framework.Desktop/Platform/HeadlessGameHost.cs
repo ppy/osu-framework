@@ -15,28 +15,30 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public HeadlessGameHost(bool bindIPC = false) : base(bindIPC)
+        public HeadlessGameHost(string gameName = @"", bool bindIPC = false) : base(gameName, bindIPC)
         {
             Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            
             UpdateScheduler.Update();
         }
 
-        public override void Load(BaseGame game)
+        protected override void Load(BaseGame game)
         {
             Storage = new DesktopStorage(string.Empty);
 
             base.Load(game);
         }
 
+        protected override void UpdateInitialize()
+        {
+        }
+
+        protected override void DrawInitialize()
+        {
+        }
+
         protected override void DrawFrame()
         {
             //we can't draw.
-        }
-
-        public override void Run()
-        {
-            while (!ExitRequested)
-                updateIteration();
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };

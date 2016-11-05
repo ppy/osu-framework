@@ -22,8 +22,8 @@ namespace osu.Framework.Desktop.Tests.Platform
         [Test]
         public void TestIpc()
         {
-            using (var server = new HeadlessGameHost(true))
-            using (var client = new HeadlessGameHost(true))
+            using (var server = new HeadlessGameHost(@"server", true))
+            using (var client = new HeadlessGameHost(@"client", true))
             {
                 Assert.IsTrue(server.IsPrimaryInstance, @"Server wasn't able to bind");
                 Assert.IsFalse(client.IsPrimaryInstance, @"Client was able to bind when it shouldn't have been able to");

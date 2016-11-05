@@ -32,9 +32,11 @@ namespace osu.Framework.Timing
             ChangeSource(source);
         }
 
-        public virtual double CurrentTime => SourceClock.IsRunning ? CurrentInterpolatedTime : SourceClock.CurrentTime;
+        public virtual double CurrentTime => sourceIsRunning ? CurrentInterpolatedTime : SourceClock.CurrentTime;
 
         public double AllowableErrorMilliseconds = 1000.0 / 60 * 2;
+
+        private bool sourceIsRunning;
 
         public double Rate => SourceClock.Rate;
 
@@ -50,6 +52,8 @@ namespace osu.Framework.Timing
 
             clock.ProcessFrame();
             SourceClock.ProcessFrame();
+
+            sourceIsRunning = SourceClock.IsRunning;
 
             LastInterpolatedTime = CurrentTime;
 

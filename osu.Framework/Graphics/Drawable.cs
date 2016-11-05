@@ -16,8 +16,10 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Threading;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
 
@@ -57,10 +59,8 @@ namespace osu.Framework.Graphics
             get
             {
                 if (scheduler == null)
-                {
-                    Debug.Assert(mainThread != null);
+                    //mainThread could be null at this point.
                     scheduler = new Scheduler(mainThread);
-                }
 
                 return scheduler;
             }
@@ -75,8 +75,6 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                ThreadSafety.EnsureUpdateThread();
-
                 if (transforms == null)
                 {
                     transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
@@ -363,8 +361,8 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                if (size == Vector2.Zero)
-                    size = Vector2.One;
+                if ((value & Axes.X) > 0 && Width == 0) Width = 1;
+                if ((value & Axes.Y) > 0 && Height == 0) Height = 1;
 
                 relativeSizeAxes = value;
 
@@ -419,28 +417,32 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        protected virtual IFrameBasedClock Clock => Parent?.Clock;
+        //todo: remove recursive lookup of clock
+        //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
+        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
 
-        protected double Time => Clock?.CurrentTime ?? 0;
+        private double time;
+
+        protected double Time => Clock?.CurrentTime ?? time;
 
         const float visibility_cutoff = 0.0001f;
 
         private Cached<bool> isVisibleBacking = new Cached<bool>();
         public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        public bool IsMaskedAway = false;
 
-        private bool? additive;
+        private BlendingMode blendingMode;
 
-        public bool? Additive
+        public BlendingMode BlendingMode
         {
-            get { return additive; }
+            get { return blendingMode; }
 
             set
             {
-                if (additive == value) return;
+                if (blendingMode == value) return;
 
+                blendingMode = value;
                 Invalidate(Invalidation.Colour);
-
-                additive = value;
             }
         }
 
@@ -448,9 +450,9 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = new DrawInfo(null, null, null);
+                DrawInfo di = new DrawInfo(null);
 
                 float alpha = Alpha;
                 if (Colour.A > 0 && Colour.A < 1)
@@ -459,10 +461,10 @@ namespace osu.Framework.Graphics
                 Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
                 else
                     Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
-                              !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                              BlendingMode == BlendingMode.Inherit ? (BlendingInfo?)null : new BlendingInfo(BlendingMode));
 
                 return di;
             });
@@ -603,7 +605,6 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
-        /// <param name="node">An existing DrawNode which may need to be updated, or null if a node needs to be created.</param>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
@@ -637,6 +638,9 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
+            if (LoadState < LoadState.Alive)
+                if (!loadComplete()) return false;
+
             transformationDelay = 0;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transformations (and some better logic).
@@ -676,7 +680,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in Parent's coordinates.</returns>
         protected Quad ToParentSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+            return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
         }
 
         /// <summary>
@@ -686,7 +690,7 @@ namespace osu.Framework.Graphics
         /// <returns>The quad in screen coordinates.</returns>
         protected Quad ToScreenSpace(RectangleF input)
         {
-            return new Quad(input.X, input.Y, input.Width, input.Height) * DrawInfo.Matrix;
+            return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
 
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
@@ -713,20 +717,25 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
+        public void UpdateTime(double time)
+        {
+            this.time = time;
+        }
+
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public virtual bool IsAlive
+        public bool IsAlive
         {
             get
             {
-                if (Parent == null) return false;
+                //we have been loaded but our parent has since been nullified
+                if (Parent == null && IsLoaded) return false;
 
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                double t = Time;
-                return t >= LifetimeStart && t < LifetimeEnd;
+                return Time >= LifetimeStart && Time < LifetimeEnd;
             }
         }
 
@@ -738,25 +747,72 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
-        public virtual bool IsLoaded => loaded;
+        public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        private bool loaded;
+        protected volatile LoadState LoadState;
+
+        public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
+        {
+            if (LoadState == LoadState.NotLoaded)
+                return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
+
+            onLoaded?.Invoke(this);
+            return null;
+        }
+
+        private static StopwatchClock perf = new StopwatchClock(true);
+
+        protected internal virtual void PerformLoad(BaseGame game)
+        {
+            switch (LoadState)
+            {
+                case LoadState.Loaded:
+                case LoadState.Alive:
+                    return;
+                case LoadState.Loading:
+                    //loading on another thread
+                    while (!IsLoaded) Thread.Sleep(1);
+                    return;
+                case LoadState.NotLoaded:
+                    LoadState = LoadState.Loading;
+                    break;
+            }
+
+            double t1 = perf.CurrentTime;
+            Load(game);
+            double elapsed = perf.CurrentTime - t1;
+            if (elapsed > 50 && ThreadSafety.IsUpdateThread)
+                Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+            LoadState = LoadState.Loaded;
+        }
 
         /// <summary>
-        /// Loads this drawable. This function is guaranteed to be called once and
-        /// in a top-down fashion--i.e. after Parent.Load() has been called.
-        /// Note, that base.Load() may implicitly call childrens'
-        /// load functions, and thus should be called _after_ objects which
-        /// children depend on have been loaded.
+        /// Runs once on the update thread after loading has finished.
         /// </summary>
-        public virtual void Load(BaseGame game)
+        private bool loadComplete()
         {
-            mainThread = Thread.CurrentThread;
-            loaded = true;
-            LifetimeStart = Time;
+            if (LoadState < LoadState.Loaded) return false;
 
+            mainThread = Thread.CurrentThread;
+
+            scheduler?.SetCurrentThread(mainThread);
+
+            LifetimeStart = Time;
             Invalidate();
+            LoadState = LoadState.Alive;
+            LoadComplete();
+            return true;
         }
+
+        /// <summary>
+        /// Load resources etc.
+        /// </summary>
+        protected virtual void Load(BaseGame game) { }
+
+        /// <summary>
+        /// Play initial animation etc.
+        /// </summary>
+        protected virtual void LoadComplete() { }
 
         private void updateTransformsOfType(Type specificType)
         {
@@ -777,7 +833,7 @@ namespace osu.Framework.Graphics
         {
             if (transforms == null || transforms.Count == 0) return;
 
-            transforms.Update();
+            transforms.Update(Time);
 
             foreach (ITransform t in transforms.AliveItems)
                 t.Apply(this);
@@ -800,8 +856,6 @@ namespace osu.Framework.Graphics
         {
             if (invalidation == Invalidation.None)
                 return false;
-
-            ThreadSafety.EnsureUpdateThread();
 
             OnInvalidate?.Invoke();
 
@@ -990,6 +1044,14 @@ namespace osu.Framework.Graphics
         Both = X | Y
     }
 
+    public enum BlendingMode
+    {
+        Inherit = 0,
+        Mixture,
+        Additive,
+        None,
+    }
+
     public class DepthComparer : IComparer<Drawable>
     {
         public int Compare(Drawable x, Drawable y)
@@ -998,5 +1060,23 @@ namespace osu.Framework.Graphics
             if (i != 0) return i;
             return x.CreationID.CompareTo(y.CreationID);
         }
+    }
+
+    public interface ILoadable<T>
+    {
+        void Load(T reference);
+    }
+
+    public interface ILoadableAsync<T>
+    {
+        Task LoadAsync(T reference);
+    }
+
+    public enum LoadState
+    {
+        NotLoaded,
+        Loading,
+        Loaded,
+        Alive
     }
 }

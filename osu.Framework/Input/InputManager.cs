@@ -152,7 +152,7 @@ namespace osu.Framework.Input
 
         private void buildKeyboardInputQueue(Drawable current)
         {
-            if (!current.HandleInput || !current.IsVisible)
+            if (!current.HandleInput || !current.IsVisible || current.IsMaskedAway)
                 return;
 
             if (current != this)
@@ -197,7 +197,7 @@ namespace osu.Framework.Input
 
         private bool checkIsHoverable(Drawable d, InputState state)
         {
-            if (!d.HandleInput || !d.IsVisible)
+            if (!d.HandleInput || !d.IsVisible || d.IsMaskedAway)
                 return false;
 
             if (!d.Contains(state.Mouse.Position))
@@ -403,8 +403,8 @@ namespace osu.Framework.Input
             }
         }
 
+        InputState mouseDownState;
         List<Drawable> mouseDownInputQueue;
-        Drawable mouseDownHandledDrawable;
 
         private void updateMouseEvents(InputState state)
         {
@@ -469,7 +469,6 @@ namespace osu.Framework.Input
                 if (isValidClick)
                     handleMouseClick(state);
 
-                mouseDownHandledDrawable = null;
                 mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
 
@@ -488,10 +487,10 @@ namespace osu.Framework.Input
                 Button = button
             };
 
+            mouseDownState = state;
             mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
-            mouseDownHandledDrawable = mouseInputQueue.Find(target => target.TriggerMouseDown(state, args));
 
-            return mouseDownHandledDrawable != null;
+            return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args)) != null;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -512,11 +511,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseClick(InputState state)
         {
-            if (mouseDownHandledDrawable != null)
-                return checkIsHoverable(mouseDownHandledDrawable, state) && (mouseDownHandledDrawable.TriggerClick(state) | mouseDownHandledDrawable.TriggerFocus(state, true));
-
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseDownInputQueue.Any(target => checkIsHoverable(target, state) && (target.TriggerClick(state) | target.TriggerFocus(state, true))))
+            if (mouseDownInputQueue.Any(target => checkIsHoverable(target, mouseDownState) && (target.TriggerClick(mouseDownState) | target.TriggerFocus(mouseDownState, true))))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();

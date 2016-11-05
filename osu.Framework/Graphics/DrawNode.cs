@@ -1,9 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Batches;
 
 namespace osu.Framework.Graphics
 {
@@ -12,15 +11,9 @@ namespace osu.Framework.Graphics
         public DrawInfo DrawInfo;
         public long InvalidationID;
 
-        public void DrawSubTree()
+        public virtual void Draw(IVertexBatch vertexBatch)
         {
-            GLWrapper.SetBlend(DrawInfo.Blending.Source, DrawInfo.Blending.Destination);
-
-            Draw();
-        }
-
-        protected virtual void Draw()
-        {
+            GLWrapper.SetBlend(DrawInfo.Blending);
         }
     }
 }
