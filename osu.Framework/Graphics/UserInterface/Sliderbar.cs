@@ -12,36 +12,62 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Sliderbar : Container
     {
-        private readonly double keyboardStep;
-        private readonly double minValue, maxValue;
-        private readonly BindableDouble selectedValue;
-        private readonly Color4 color, selectedRangeColor;
+        public double KeyboardStep => 0.01;
+
+        public double MinValue
+        {
+            get { return minValue; }
+            set
+            {
+                minValue = value;
+                selectedRange = SelectedValue - MinValue;
+            }
+        }
+
+        public double MaxValue { get; set; }
+
+        public BindableDouble SelectedValue
+        {
+            get { return selectedValue; }
+            set
+            {
+                if (selectedValue != null)
+                    selectedValue.ValueChanged -= SelectedValue_ValueChanged;
+                selectedValue = value;
+                selectedRange = SelectedValue - MinValue;
+                selectedValue.ValueChanged += SelectedValue_ValueChanged;
+            }
+        }
+
+        public Color4 Color
+        {
+            get { return sliderbarBox.Colour; }
+            set { sliderbarBox.Colour = value; }
+        }
+
+        public Color4 SelectedRangeColor
+        {
+            get { return selectedRangeBox.Colour; }
+            set { selectedRangeBox.Colour = value; }
+        }
+
         private readonly Box selectedRangeBox;
         private readonly Box sliderbarBox;
-        private double valuesRange => maxValue - minValue;
+        private double valuesRange => MaxValue - MinValue;
         private double selectedRange;
+        private BindableDouble selectedValue;
+        private double minValue;
 
-        public Sliderbar(double minValue, double maxValue, BindableDouble selectedValue, Color4 color, Color4 selectedRangeColor)
+        public Sliderbar()
         {
-            this.minValue = minValue;
-            this.maxValue = maxValue;
-            this.selectedValue = selectedValue;
-            this.color = color;
-            this.selectedRangeColor = selectedRangeColor;
-            keyboardStep = 0.01;
-            selectedRange = this.selectedValue - this.minValue;
-            selectedValue.ValueChanged += SelectedValue_ValueChanged;
-
             Children = new Drawable[]
             {
                 sliderbarBox = new Box
                 {
-                    Colour = color,
                     RelativeSizeAxes = Axes.Both,
                 },
                 selectedRangeBox = new Box
                 {
-                    Colour = selectedRangeColor,
                     RelativeSizeAxes = Axes.Both,
                     Origin = Anchor.CentreLeft,
                     Anchor = Anchor.CentreLeft
@@ -53,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         ~Sliderbar()
         {
-            selectedValue.ValueChanged -= SelectedValue_ValueChanged;
+            SelectedValue.ValueChanged -= SelectedValue_ValueChanged;
         }
 
         #endregion
@@ -89,23 +115,23 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (args.Key == Key.Right)
-                selectedValue.Value += keyboardStep;
+                SelectedValue.Value += KeyboardStep;
             else if (args.Key == Key.Left)
-                selectedValue.Value -= keyboardStep;
+                SelectedValue.Value -= KeyboardStep;
             return true;
         }
 
         private void SelectedValue_ValueChanged(object sender, EventArgs e)
         {
-            if (selectedValue.Value > maxValue)
+            if (SelectedValue.Value > MaxValue)
             {
-                selectedValue.Value = maxValue;
+                SelectedValue.Value = MaxValue;
                 return;
             }
 
-            if (selectedValue.Value < minValue)
+            if (SelectedValue.Value < MinValue)
             {
-                selectedValue.Value = minValue;
+                SelectedValue.Value = MinValue;
                 return;
             }
             updateVisualization();
@@ -120,7 +146,7 @@ namespace osu.Framework.Graphics.UserInterface
                 xPosition = sliderbarBox.DrawWidth;
             double percentage = xPosition / sliderbarBox.DrawWidth;
             selectedRange = valuesRange * percentage;
-            selectedValue.Value = minValue + selectedRange;
+            SelectedValue.Value = MinValue + selectedRange;
         }
 
         private void updateVisualization()
