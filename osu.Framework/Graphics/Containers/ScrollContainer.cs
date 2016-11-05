@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value)
         {
-            offset(value / scrollbar.Size.Y, true, false);
+            scrollTo(value / scrollbar.Size.Y, true, false);
         }
 
         private void offset(float value, bool clamp = true, bool animated = true)
@@ -174,6 +174,8 @@ namespace osu.Framework.Graphics.Containers
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
 
+            private float dragOffset;
+
             public ScrollBar()
             {
                 Children = new Drawable[]
@@ -205,7 +207,11 @@ namespace osu.Framework.Graphics.Containers
                 FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(InputState state) => true;
+            protected override bool OnDragStart(InputState state)
+            {
+                dragOffset = state.Mouse.Position.Y - Position.Y;
+                return true;
+            }
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
@@ -223,7 +229,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                Dragged?.Invoke(state.Mouse.Delta.Y);
+                Dragged?.Invoke(state.Mouse.Position.Y - dragOffset);
                 return true;
             }
         }
