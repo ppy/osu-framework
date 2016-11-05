@@ -121,15 +121,19 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
+            Debug.Assert(
+                Masking || (CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None),
+                "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
                 MaskingRect = DrawRectangle.Shrink(Margin),
                 ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = this.CornerRadius,
-                BorderThickness = this.BorderThickness,
-                BorderColour = this.BorderColour,
+                CornerRadius = CornerRadius,
+                BorderThickness = BorderThickness,
+                BorderColour = BorderColour,
                 // We are setting the linear blend range to the approximate size of a _pixel_ here.
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
@@ -583,16 +587,17 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!Masking || CornerRadius == 0.0f)
+                float cornerRadius = CornerRadius;
+                if (!Masking || cornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                float cornerRadius = CornerRadius;
                 RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
+                // Inflate bounding box in parent space by the half-size of the bounding box of the
+                // ellipse obtained by transforming the unit circle into parent space.
                 Vector2 offset = ToParentSpace(Vector2.Zero);
                 Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
-
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
