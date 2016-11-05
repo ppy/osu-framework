@@ -32,6 +32,11 @@ namespace osu.Framework.Audio.Track
         //must keep a reference to this else it will be garbage collected early.
         private DataStreamFileProcedures procs;
 
+        /// <summary>
+        /// This marks if the track is paused, or stopped to the end.
+        /// </summary>
+        private bool isPlayed;
+
         public AudioTrackBass(Stream data, bool quick = false)
         {
             Preview = quick;
@@ -90,6 +95,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
+            isPlayed = false;
             if (IsRunning)
                 togglePause();
         }
@@ -122,6 +128,7 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
+            isPlayed = true;
             Update(); //ensure state is valid.
             Bass.ChannelPlay(activeStream);
         }
@@ -161,7 +168,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-        public override bool HasCompleted => base.HasCompleted || (!IsRunning && CurrentTime >= Length);
+        public override bool HasCompleted => base.HasCompleted || (isPlayed && !IsRunning && CurrentTime >= Length);
 
         private class DataStreamFileProcedures
         {
