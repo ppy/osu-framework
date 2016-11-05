@@ -67,7 +67,7 @@ namespace osu.Framework.Threading
 
         public void Exit() => exitRequested = true;
 
-        private bool exitRequested;
+        private volatile bool exitRequested;
 
         public Action OnThreadStart;
 
