@@ -97,20 +97,7 @@ namespace osu.Framework.Audio.Track
         {
             isPlayed = false;
             if (IsRunning)
-                togglePause();
-        }
-
-        private bool togglePause()
-        {
-            //if (IsDisposed) return false;
-
-            if (PlaybackState.Playing == Bass.ChannelIsActive(activeStream))
-            {
                 Bass.ChannelPause(activeStream);
-                return true;
-            }
-            Bass.ChannelPlay(activeStream, false);
-            return false;
         }
 
         int direction;
