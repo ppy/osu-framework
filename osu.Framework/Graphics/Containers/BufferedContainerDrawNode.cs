@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
             // in the frame buffer and helps with cached buffers being re-used.
             Rectangle screenSpaceMaskingRect = new Rectangle((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
 
-            GLWrapper.PushScissor(new MaskingInfo
+            GLWrapper.PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = ScreenSpaceDrawRectangle,
@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Containers
             return new InvokeOnDisposal(delegate
             {
                 GLWrapper.PopViewport();
-                GLWrapper.PopScissor();
+                GLWrapper.PopMaskingInfo();
             });
         }
 
