@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Textures.Png;
@@ -14,6 +15,8 @@ namespace osu.Framework.IO.Stores
     public class GlyphStore : IResourceStore<RawTexture>
     {
         private string assetName;
+
+        private string fontName;
 
         const float default_size = 96;
 
@@ -26,6 +29,8 @@ namespace osu.Framework.IO.Stores
         {
             this.store = store;
             this.assetName = assetName;
+
+            fontName = assetName.Split('/').Last();
 
             try
             {
@@ -44,9 +49,12 @@ namespace osu.Framework.IO.Stores
 
         public RawTexture Get(string name)
         {
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/"))
+                return null;
+
             Character c;
 
-            if (!font.Characters.TryGetValue(name[0], out c))
+            if (!font.Characters.TryGetValue(name.Last(), out c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
