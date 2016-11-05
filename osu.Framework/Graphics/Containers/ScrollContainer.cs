@@ -129,6 +129,11 @@ namespace osu.Framework.Graphics.Containers
             scrollTo(current + value, clamp, animated);
         }
 
+        public void ScrollTo(float value)
+        {
+            scrollTo(value);
+        }
+
         private void scrollTo(float value, bool clamp = true, bool animated = true)
         {
             current = value;
@@ -140,6 +145,11 @@ namespace osu.Framework.Graphics.Containers
             }
 
             updateScroll(animated);
+        }
+        
+        public void ScrollIntoView(Drawable d)
+        {
+            scrollTo(d.Position.Y);
         }
 
         private void updateSize()
