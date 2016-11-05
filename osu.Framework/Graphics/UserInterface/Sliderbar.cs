@@ -123,27 +123,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void SelectedValue_ValueChanged(object sender, EventArgs e)
         {
-            if (SelectedValue.Value > MaxValue)
-            {
-                SelectedValue.Value = MaxValue;
-                return;
-            }
-
-            if (SelectedValue.Value < MinValue)
-            {
-                SelectedValue.Value = MinValue;
-                return;
-            }
+            SelectedValue.Value = MathHelper.Clamp(SelectedValue.Value, MinValue, MaxValue);
             updateVisualization();
         }
 
         private void handleMouseInput(InputState state)
         {
             var xPosition = state.Mouse.Position.X;
-            if (xPosition < 0)
-                xPosition = 0;
-            if (xPosition > sliderbarBox.DrawWidth)
-                xPosition = sliderbarBox.DrawWidth;
+            xPosition = MathHelper.Clamp(xPosition, 0, sliderbarBox.DrawWidth);
             double percentage = xPosition / sliderbarBox.DrawWidth;
             selectedRange = valuesRange * percentage;
             SelectedValue.Value = MinValue + selectedRange;
