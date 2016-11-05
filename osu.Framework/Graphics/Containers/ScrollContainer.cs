@@ -17,14 +17,14 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
         /// </summary>
-        public bool ScrollDraggerOnLeft
+        public Anchor ScrollDraggerAnchor
         {
-            get { return scrollbar.Anchor == Anchor.TopLeft; }
+            get { return scrollbar.Anchor; }
 
             set
             {
-                scrollbar.Anchor = value ? Anchor.TopLeft : Anchor.TopRight;
-                scrollbar.Origin = value ? Anchor.TopLeft : Anchor.TopRight;
+                scrollbar.Anchor = value;
+                scrollbar.Origin = value;
             }
         }
 
@@ -174,13 +174,14 @@ namespace osu.Framework.Graphics.Containers
                     }
                 };
 
-                Anchor = Anchor.TopRight;
-                Origin = Anchor.TopRight;
                 RelativeSizeAxes = Axes.Y;
                 Size = new Vector2(10, 1);
                 Colour = defaultColour;
                 CornerRadius = 5;
                 Masking = true;
+
+                Anchor = Anchor.TopRight;
+                Origin = Anchor.TopRight;
             }
 
             protected override bool OnHover(InputState state)
