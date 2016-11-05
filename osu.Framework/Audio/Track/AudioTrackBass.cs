@@ -6,8 +6,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Fx;
-using osu.Framework.IO;
 using OpenTK;
+using osu.Framework.IO;
 
 namespace osu.Framework.Audio.Track
 {
@@ -100,7 +100,7 @@ namespace osu.Framework.Audio.Track
                 Bass.ChannelPause(activeStream);
         }
 
-        int direction;
+        private int direction;
 
         private void setDirection(bool reverse)
         {
@@ -133,7 +133,15 @@ namespace osu.Framework.Audio.Track
             return clamped == seek;
         }
 
-        public override double CurrentTime => Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+        public override double CurrentTime
+        {
+            get
+            {
+                double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+                if (value == Length && !isPlayed) return 0;
+                else return value;
+            }
+        }
 
         public override bool IsRunning => Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
@@ -155,7 +163,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-        public override bool HasCompleted => base.HasCompleted || (isPlayed && !IsRunning && CurrentTime >= Length);
+        public override bool HasCompleted => base.HasCompleted || (!IsRunning && CurrentTime >= Length);
 
         private class DataStreamFileProcedures
         {
@@ -176,12 +184,12 @@ namespace osu.Framework.Audio.Track
                 dataStream = data;
             }
 
-            void ac_Close(IntPtr user)
+            private void ac_Close(IntPtr user)
             {
                 //manually handle closing of stream
             }
 
-            long ac_Length(IntPtr user)
+            private long ac_Length(IntPtr user)
             {
                 if (dataStream == null) return 0;
 
@@ -196,7 +204,7 @@ namespace osu.Framework.Audio.Track
                 return 0;
             }
 
-            int ac_Read(IntPtr buffer, int length, IntPtr user)
+            private int ac_Read(IntPtr buffer, int length, IntPtr user)
             {
                 if (dataStream == null) return 0;
 
@@ -219,7 +227,7 @@ namespace osu.Framework.Audio.Track
                 return 0;
             }
 
-            bool ac_Seek(long offset, IntPtr user)
+            private bool ac_Seek(long offset, IntPtr user)
             {
                 if (dataStream == null) return false;
 
