@@ -22,6 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly List<DropDownMenuItem<T>> selectableItems = new List<DropDownMenuItem<T>>();
         private List<DropDownMenuItem<T>> internalItems = new List<DropDownMenuItem<T>>();
+        private readonly Dictionary<T, int> itemDictionary = new Dictionary<T, int>();
 
         public IEnumerable<DropDownMenuItem<T>> Items
         {
@@ -206,14 +207,12 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectableItems == null)
                 return false;
 
-            for (int i = 0; i < selectableItems.Count; i++)
+            if (itemDictionary.ContainsKey((T)value))
             {
-                if (value.Equals(selectableItems[i].Value))
-                {
-                    SelectedIndex = i;
-                    return true;
-                }
+                SelectedIndex = itemDictionary[(T)value];
+                return true;
             }
+
             return false;
         }
 
@@ -271,6 +270,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             internalItems.Clear();
             selectableItems.Clear();
+            itemDictionary.Clear();
             DropDownList.Clear();
         }
 
@@ -286,6 +286,7 @@ namespace osu.Framework.Graphics.UserInterface
                         SelectedIndex = item.Index;
                 };
                 selectableItems.Add(item);
+                itemDictionary[item.Value] = item.Index;
             }
         }
 
@@ -293,7 +294,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (DropDownList == null || !DropDownList.IsLoaded)
                 return;
-            
+
             for (int i = 0; i < internalItems.Count; i++)
                 DropDownList.Add(internalItems[i]);
 
