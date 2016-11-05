@@ -51,6 +51,8 @@ namespace osu.Framework
         private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
 
+        private LogOverlay LogOverlay;
+
         protected override Container Content => content;
 
         public BaseGame()
@@ -74,6 +76,8 @@ namespace osu.Framework
             {
                 Depth = float.MaxValue / 2,
             });
+
+            Add(LogOverlay = new LogOverlay());
         }
 
         /// <summary>
@@ -192,6 +196,9 @@ namespace osu.Framework
                         return true;
                     case Key.F1:
                         DrawVisualiser.ToggleVisibility();
+                        return true;
+                    case Key.F10:
+                        LogOverlay.ToggleVisibility();
                         return true;
                 }
             }

@@ -257,7 +257,7 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected bool ExitRequested;
+        protected volatile bool ExitRequested;
 
         private bool threadsRunning => updateThread.Running || drawThread.Running;
 

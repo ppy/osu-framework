@@ -139,6 +139,7 @@
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
     <Compile Include="Graphics\Visualisation\InfoOverlay.cs" />
+    <Compile Include="Graphics\Visualisation\LogOverlay.cs" />
     <Compile Include="Graphics\Visualisation\TreeContainer.cs" />
     <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
