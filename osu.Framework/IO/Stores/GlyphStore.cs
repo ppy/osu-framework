@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Textures.Png;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
@@ -103,17 +102,10 @@ namespace osu.Framework.IO.Stores
             RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
             {
-                t = new RawTexture();
                 using (var stream = store.GetStream($@"{assetName}_{texturePage}.png"))
-                {
-                    var reader = new PngReader();
-                    t.Pixels = reader.Read(stream);
-                    t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
-                    t.Width = reader.Width;
-                    t.Height = reader.Height;
-                }
-                texturePages[texturePage] = t;
+                    texturePages[texturePage] = t = RawTexture.FromStream(stream);
             }
+
             return t;
         }
 

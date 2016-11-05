@@ -13,14 +13,17 @@ namespace osu.Framework.Graphics.Textures
     {
         Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
 
-        private TextureAtlas atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
+        private TextureAtlas atlas;
 
         public float ScaleAdjust = 1;
 
-        public TextureStore(IResourceStore<RawTexture> store = null) : base(store)
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true) : base(store)
         {
             AddExtension(@"png");
             AddExtension(@"jpg");
+
+            if (useAtlas)
+                atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
         }
 
         private Texture getTexture(string name)

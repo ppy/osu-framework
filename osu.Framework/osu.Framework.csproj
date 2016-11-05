@@ -262,9 +262,6 @@
     <Compile Include="Threading\SleepHandle.cs" />
     <Compile Include="Threading\SleepScheduler.cs" />
     <Compile Include="Graphics\Textures\RawTexture.cs" />
-    <Compile Include="Graphics\Textures\Png\PngReader.cs" />
-    <Compile Include="Graphics\Textures\Png\PngCommon.cs" />
-    <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\BasicStorage.cs" />
     <Compile Include="Platform\IpcChannel.cs" />
