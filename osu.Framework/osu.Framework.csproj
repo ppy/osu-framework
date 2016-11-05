@@ -116,6 +116,9 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownComboBox.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
@@ -153,7 +156,10 @@
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
+    <Compile Include="Model\PropertyComparer.cs" />
+    <Compile Include="Model\PropertyDescription.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Lists\CollectionView.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
