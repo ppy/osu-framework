@@ -119,7 +119,12 @@ namespace osu.Framework.Graphics.Containers
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
         }
 
-        protected override bool OnDragStart(InputState state) => isDragging = true;
+        protected override bool OnDragStart(InputState state)
+        {
+            lastDragTime = Clock.CurrentTime;
+            isDragging = true;
+            return true;
+        }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
@@ -128,8 +133,17 @@ namespace osu.Framework.Graphics.Containers
             return base.OnMouseDown(state, args);
         }
 
+        // We keep track of this because input events may happen at different intervals than update frames
+        // and we are interested in the time difference between drag _input_ events.
+        private double lastDragTime;
+        private double lastDragTimeDelta;
+
         protected override bool OnDrag(InputState state)
         {
+            var clock = Clock;
+            lastDragTimeDelta = clock.CurrentTime - lastDragTime;
+            lastDragTime = clock.CurrentTime;
+
             Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
 
             // If we are dragging past the extent of the scrollable area, half the offset
@@ -143,13 +157,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
+            if (lastDragTimeDelta == 0.0)
+                return base.OnDragEnd(state);
+
             distanceDecay = distanceDecayDrag;
 
-            // Compute distance to keep going from velocity.
-            double elapsedTime = Clock.ElapsedFrameTime;
-            double velocity = -state.Mouse.Delta.Y / elapsedTime;
-            // Solve exponential for distance, given velocity.
-            double distance = velocity / (distanceDecay * Math.Exp(-distanceDecay * elapsedTime));
+            // Solve exponential for distance, given delta and elapsed time during delta.
+            double distance = -state.Mouse.Delta.Y / (1 - Math.Exp(-distanceDecay * lastDragTimeDelta));
             offset((float)distance);
 
             isDragging = false;
