@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value)
         {
-            scrollTo(value / scrollbar.Size.Y, false);
+            scrollTo(clamp(value / scrollbar.Size.Y), false);
         }
 
         private void offset(float value, bool animated = true)
@@ -238,6 +238,10 @@ namespace osu.Framework.Graphics.Containers
 
                 // Lastly, we gradually nudge the target towards valid bounds.
                 target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Clock.ElapsedFrameTime));
+
+                float clampedTarget = clamp(target);
+                if (Precision.AlmostEquals(clampedTarget, target))
+                    target = clampedTarget;
             }
 
             // Exponential interpolation between the target and our current scroll position.
