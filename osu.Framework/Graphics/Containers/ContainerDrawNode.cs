@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
         public bool ForceOwnVertexBatch = false;
     }
 
-    public class ContainerDrawNode : ShadedDrawNode
+    public class ContainerDrawNode : DrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
@@ -46,6 +46,8 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffect EdgeEffect;
 
         public ContainerDrawNodeSharedData Shared;
+
+        public Shader Shader;
 
         private void drawEdgeEffect()
         {
@@ -63,9 +65,9 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.BorderThickness = 0;
             edgeEffectMaskingInfo.LinearBlendRange = EdgeEffect.Radius;
 
-            GLWrapper.PushScissor(edgeEffectMaskingInfo);
+            GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
-            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow));
+            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
             Shader.Bind();
 
@@ -76,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
 
             Shader.Unbind();
 
-            GLWrapper.PopScissor();
+            GLWrapper.PopMaskingInfo();
         }
 
         private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
@@ -106,14 +108,14 @@ namespace osu.Framework.Graphics.Containers
 
             drawEdgeEffect();
             if (MaskingInfo != null)
-                GLWrapper.PushScissor(MaskingInfo.Value);
+                GLWrapper.PushMaskingInfo(MaskingInfo.Value);
 
             if (Children != null)
                 foreach (DrawNode child in Children)
                     child.Draw(vertexBatch);
 
             if (MaskingInfo != null)
-                GLWrapper.PopScissor();
+                GLWrapper.PopMaskingInfo();
         }
     }
 }

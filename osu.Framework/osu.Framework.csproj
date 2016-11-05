@@ -112,8 +112,6 @@
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawable.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawNode.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
