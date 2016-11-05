@@ -265,7 +265,6 @@ namespace osu.Framework.Logging
         Runtime,
         Network,
         Tournament,
-        Update,
         Performance,
         Debug
     }
