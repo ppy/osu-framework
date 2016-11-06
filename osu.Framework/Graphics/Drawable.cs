@@ -416,9 +416,22 @@ namespace osu.Framework.Graphics
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
         protected virtual IFrameBasedClock Clock => null;
 
-        private FrameTimeInfo time;
+        private FrameTimeInfo? time;
 
-        protected FrameTimeInfo Time => Clock?.TimeInfo ?? time;
+        protected FrameTimeInfo Time
+        {
+            get
+            {
+                if (Clock != null)
+                    return Clock.TimeInfo;
+
+                if (!time.HasValue)
+                    time = Parent?.Time;
+
+                Debug.Assert(time.HasValue);
+                return time.HasValue ? time.Value : new FrameTimeInfo();
+            }
+        }
 
         const float visibility_cutoff = 0.0001f;
         
@@ -641,7 +654,7 @@ namespace osu.Framework.Graphics
             updateTransforms();
 
             if (!IsVisible)
-                return false;
+                return true;
 
             Update();
             OnUpdate?.Invoke();
