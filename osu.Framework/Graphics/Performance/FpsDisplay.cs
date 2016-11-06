@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, Clock.ElapsedFrameTime / 1000);
+            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
 
             if (counter.DrawWidth != aimWidth)
             {

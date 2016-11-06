@@ -358,7 +358,7 @@ namespace osu.Framework.Input
             if (!keyboard.Keys.Any())
                 keyboardRepeatTime = 0;
             else
-                keyboardRepeatTime -= (Clock as FramedClock)?.ElapsedFrameTime ?? 0;
+                keyboardRepeatTime -= Time.Elapsed;
 
             if (keyboard.LastState != null)
             {

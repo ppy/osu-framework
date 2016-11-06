@@ -419,7 +419,7 @@ namespace osu.Framework.Graphics
 
         //todo: remove recursive lookup of clock
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
-        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
+        protected virtual IFrameBasedClock Clock => null;
 
         private FrameTimeInfo time;
 
