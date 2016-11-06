@@ -65,7 +65,7 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        EdgeSmoothness = new Vector2(5, 30),
+                                        EdgeSmoothness = new Vector2(0, 2),
                                     }
                                 }
                             },
