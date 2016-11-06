@@ -45,12 +45,12 @@ namespace osu.Framework.Graphics.Containers
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float CLAMP_EXTENSION = 50;
+        private const float CLAMP_EXTENSION = 500;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
         /// </summary>
-        private const double DISTANCE_DECAY_CLAMPING = 0.01;
+        private const double DISTANCE_DECAY_CLAMPING = 0.012;
 
         /// <summary>
         /// Controls the rate with which the target position is approached after ending a drag.
