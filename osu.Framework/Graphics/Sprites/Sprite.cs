@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Sprites
                 Debug.Assert(
                     EdgeSmoothness.X <= MAX_EDGE_SMOOTHNESS &&
                     EdgeSmoothness.Y <= MAX_EDGE_SMOOTHNESS,
-                    $@"May not smoothen more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
+                    $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
 
                 Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
                 

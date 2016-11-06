@@ -3,20 +3,17 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
-using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSmoothenedEdges : TestCase
+    class TestCaseSmoothedEdges : TestCase
     {
-        public override string Name => @"Smoothened Edges";
-        public override string Description => @"Boxes with automatically smoothened edges (no anti-aliasing).";
+        public override string Name => @"Smoothed Edges";
+        public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 
         private Box[] boxes = new Box[4];
         private Container testContainer;
