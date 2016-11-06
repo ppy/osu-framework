@@ -405,7 +405,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (AutoSizeAxes == Axes.None) return;
 
-            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+            if ((invalidation & Invalidation.Geometry) > 0)
                 autoSize.Invalidate();
         }
 

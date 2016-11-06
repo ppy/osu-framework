@@ -258,12 +258,7 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidation i = Invalidation.Colour;
-                //we may have changed the visible state.
-                if (alpha <= visibility_cutoff || value <= visibility_cutoff)
-                    i |= Invalidation.Visibility;
-
-                Invalidate(i);
+                Invalidate(Invalidation.Colour);
 
                 alpha = value;
             }
@@ -426,9 +421,8 @@ namespace osu.Framework.Graphics
         protected FrameTimeInfo Time => Clock?.TimeInfo ?? time;
 
         const float visibility_cutoff = 0.0001f;
-
-        private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        
+        public virtual bool IsVisible => Alpha > visibility_cutoff;
         public bool IsMaskedAway = false;
 
         private BlendingMode blendingMode;
@@ -874,9 +868,6 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
 
-            if ((invalidation & Invalidation.Visibility) > 0)
-                alreadyInvalidated &= !isVisibleBacking.Invalidate();
-
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidationCounter.Increment();
 
@@ -968,14 +959,13 @@ namespace osu.Framework.Graphics
         // Individual types
         Position = 1 << 0,
         SizeInParentSpace = 1 << 1,
-        Visibility = 1 << 2,
-        Colour = 1 << 3,
-        DrawNode = 1 << 4,
+        Colour = 1 << 2,
+        DrawNode = 1 << 3,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = DrawNode | Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Colour,
     }
 
     /// <summary>
