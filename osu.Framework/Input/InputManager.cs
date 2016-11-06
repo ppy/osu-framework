@@ -330,8 +330,9 @@ namespace osu.Framework.Input
                     }
                 }
 
-                mouse.WheelUp |= ch.WheelUp ?? false;
-                mouse.WheelDown |= ch.WheelDown ?? false;
+                mouse.WheelUp |= ch.WheelDiff.HasValue && ch.WheelDiff.Value > 0;
+                mouse.WheelDown |= ch.WheelDiff.HasValue && ch.WheelDiff.Value < 0;
+                mouse.WheelDiff += ch.WheelDiff ?? 0;
             }
 
             if (currentCursorHandler != null)
@@ -428,11 +429,8 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelUp)
-                handleWheelUp(state);
-
-            if (mouse.WheelDown)
-                handleWheelDown(state);
+            if (mouse.WheelUp || mouse.WheelDown)
+                handleWheel(state);
 
             if (mouse.HasMainButtonPressed)
             {
@@ -547,14 +545,9 @@ namespace osu.Framework.Input
             return result;
         }
 
-        private bool handleWheelUp(InputState state)
+        private bool handleWheel(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerWheelUp(state));
-        }
-
-        private bool handleWheelDown(InputState state)
-        {
-            return mouseInputQueue.Any(target => target.TriggerWheelDown(state));
+            return mouseInputQueue.Any(target => target.TriggerWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)

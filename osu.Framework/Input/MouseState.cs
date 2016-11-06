@@ -30,8 +30,10 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public bool WheelUp;
-        public bool WheelDown;
+        public bool WheelUp { get; set; }
+        public bool WheelDown { get; set; }
+
+        public int WheelDiff { get; set; }
 
         public bool HasMainButtonPressed => LeftButton || RightButton;
 
