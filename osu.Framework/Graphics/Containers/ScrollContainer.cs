@@ -45,12 +45,12 @@ namespace osu.Framework.Graphics.Containers
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float CLAMP_EXTENSION = 50;
+        private const float CLAMP_EXTENSION = 500;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
         /// </summary>
-        private const double DISTANCE_DECAY_CLAMPING = 0.01;
+        private const double DISTANCE_DECAY_CLAMPING = 0.012;
 
         /// <summary>
         /// Controls the rate with which the target position is approached after ending a drag.
@@ -230,7 +230,8 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
+                if ((current < target && target < 0) || (current > target && target > scrollableExtent))
+                    localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
                 target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Time.Elapsed));
