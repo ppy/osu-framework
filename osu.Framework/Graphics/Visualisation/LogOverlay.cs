@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Schedule(() =>
             {
-                var drawEntry = new DrawableLogEntry(entry) { Depth = -(float)Time };
+                var drawEntry = new DrawableLogEntry(entry) { Depth = -(float)Time.Current };
 
                 flow.Add(drawEntry);
 

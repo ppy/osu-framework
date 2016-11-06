@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Lists
 {
@@ -24,7 +25,7 @@ namespace osu.Framework.Lists
         /// Updates the life status of this LifetimeList's children.
         /// </summary>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update(double time)
+        public bool Update(FrameTimeInfo time)
         {
             bool anyAliveChanged = false;
 

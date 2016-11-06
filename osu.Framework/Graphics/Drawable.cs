@@ -421,9 +421,9 @@ namespace osu.Framework.Graphics
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
         protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
 
-        private double time;
+        private FrameTimeInfo time;
 
-        protected double Time => Clock?.CurrentTime ?? time;
+        protected FrameTimeInfo Time => Clock?.TimeInfo ?? time;
 
         const float visibility_cutoff = 0.0001f;
 
@@ -717,7 +717,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
-        public void UpdateTime(double time)
+        public void UpdateTime(FrameTimeInfo time)
         {
             this.time = time;
         }
@@ -735,14 +735,14 @@ namespace osu.Framework.Graphics
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return Time >= LifetimeStart && Time < LifetimeEnd;
+                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
             }
         }
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
-        public virtual bool RemoveWhenNotAlive => Parent == null || Time > LifetimeStart;
+        public virtual bool RemoveWhenNotAlive => Parent == null || Time.Current > LifetimeStart;
 
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
@@ -797,7 +797,7 @@ namespace osu.Framework.Graphics
 
             scheduler?.SetCurrentThread(mainThread);
 
-            LifetimeStart = Time;
+            LifetimeStart = Time.Current;
             Invalidate();
             LoadState = LoadState.Alive;
             LoadComplete();

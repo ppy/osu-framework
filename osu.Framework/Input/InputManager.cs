@@ -375,7 +375,7 @@ namespace osu.Framework.Input
                                       || k == Key.LShift || k == Key.RShift
                                       || k == Key.LWin || k == Key.RWin;
 
-                    LastActionTime = Time;
+                    LastActionTime = Time.Current;
 
                     bool isRepetition = keyboard.LastState.Keys.Contains(k);
 
@@ -438,10 +438,10 @@ namespace osu.Framework.Input
                 {
                     //stuff which only happens once after the mousedown state
                     mouse.PositionMouseDown = state.Mouse.Position;
-                    LastActionTime = Time;
+                    LastActionTime = Time.Current;
                     isValidClick = true;
 
-                    if (Time - lastClickTime < double_click_time)
+                    if (Time.Current - lastClickTime < double_click_time)
                     {
                         if (handleMouseDoubleClick(state))
                             //when we handle a double-click we want to block a normal click from firing.
@@ -450,7 +450,7 @@ namespace osu.Framework.Input
                         lastClickTime = 0;
                     }
 
-                    lastClickTime = Time;
+                    lastClickTime = Time.Current;
                 }
 
                 if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
