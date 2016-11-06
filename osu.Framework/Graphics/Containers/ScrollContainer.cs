@@ -231,7 +231,8 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
+                if ((current < target && target < 0) || (current > target && target > scrollableExtent))
+                    localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
                 target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Clock.ElapsedFrameTime));
