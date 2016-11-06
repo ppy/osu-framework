@@ -171,14 +171,7 @@ namespace osu.Framework.Graphics.Containers
             return base.OnDragEnd(state);
         }
 
-        protected override bool OnWheelDown(InputState state)
-        {
-            distanceDecay = distanceDecayWheel;
-            offset(80);
-            return true;
-        }
-
-        protected override bool OnWheelUp(InputState state)
+        protected override bool OnWheel(InputState state)
         {
             distanceDecay = distanceDecayWheel;
             offset(-80);

@@ -24,5 +24,9 @@ namespace osu.Framework.Input
         bool LeftButton { get; }
         bool MiddleButton { get; }
         bool RightButton { get; }
+
+        bool WheelUp { get; }
+        bool WheelDown { get; }
+        int WheelDiff { get; }
     }
 }
