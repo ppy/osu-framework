@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
             edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
-            edgeEffectMaskingInfo.LinearBlendRange = EdgeEffect.Radius;
+            edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 

@@ -368,27 +368,11 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
+        protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
+
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
-            : screenSpaceDrawQuadBacking.Refresh(delegate
-            {
-                Quad result = ToScreenSpace(DrawRectangle);
-
-                //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
-                //{
-                //    Vector2 adjust = new Vector2(
-                //        (float)Math.Round(result.TopLeft.X) - result.TopLeft.X,
-                //        (float)Math.Round(result.TopLeft.Y) - result.TopLeft.Y
-                //        );
-
-                //    result.TopLeft += adjust;
-                //    result.TopRight += adjust;
-                //    result.BottomLeft += adjust;
-                //    result.BottomRight += adjust;
-                //}
-
-                return result;
-            });
+            : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
 
         private Anchor origin = Anchor.TopLeft;
 

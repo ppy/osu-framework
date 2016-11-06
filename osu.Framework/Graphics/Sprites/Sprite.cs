@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.Sprites
         private Shader roundedTextureShader;
 
         public bool WrapTexture = false;
+        public bool SmoothenEdges = false;
 
         public bool CanDisposeTexture { get; protected set; }
 
@@ -42,11 +43,13 @@ namespace osu.Framework.Graphics.Sprites
             SpriteDrawNode n = node as SpriteDrawNode;
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.DrawRectangle = DrawRectangle;
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
 
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
+            n.InflationAmount = inflationAmount;
 
             base.ApplyDrawNode(node);
         }
@@ -88,6 +91,22 @@ namespace osu.Framework.Graphics.Sprites
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+            }
+        }
+
+        private float inflationAmount;
+        protected override Quad ComputeScreenSpaceDrawQuad()
+        {
+            if (!SmoothenEdges)
+            {
+                inflationAmount = 0;
+                return base.ComputeScreenSpaceDrawQuad();
+            }
+            else
+            {
+                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                inflationAmount = (float)Math.Min(scale.X, scale.Y);
+                return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
             }
         }
 
