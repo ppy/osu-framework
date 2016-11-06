@@ -18,7 +18,7 @@ uniform vec4 g_BorderColour;
 uniform float g_MaskingBlendRange;
 
 uniform vec4 g_DrawingRect;
-uniform float g_DrawingBlendRange;
+uniform vec2 g_DrawingBlendRange;
 
 float distanceFromRoundedRect()
 {
@@ -45,7 +45,9 @@ float distanceFromDrawingRect()
 	vec2 topLeftOffset = g_DrawingRect.xy - v_DrawingPosition;
     vec2 bottomRightOffset = v_DrawingPosition - g_DrawingRect.zw;
 	vec2 xyDistance = max(topLeftOffset, bottomRightOffset);
-	return max(xyDistance.x, xyDistance.y);
+	return max(
+	    g_DrawingBlendRange.x > 0 ? xyDistance.x / g_DrawingBlendRange.x : 0.0,
+		g_DrawingBlendRange.y > 0 ? xyDistance.y / g_DrawingBlendRange.y : 0.0);
 }
 
 void main(void)
@@ -57,8 +59,8 @@ void main(void)
     float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
     float alphaFactor = min(fadeStart - dist, 1.0);
 
-	if (g_DrawingBlendRange > 0.0)
-		alphaFactor *= clamp(1.0 - distanceFromDrawingRect() / g_DrawingBlendRange, 0.0, 1.0);
+	if (g_DrawingBlendRange.x > 0.0 || g_DrawingBlendRange.y > 0.0)
+		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(), 0.0, 1.0);
 
     if (alphaFactor <= 0.0)
     {
