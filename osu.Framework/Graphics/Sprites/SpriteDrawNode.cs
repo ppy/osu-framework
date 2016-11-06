@@ -17,11 +17,13 @@ namespace osu.Framework.Graphics.Sprites
         public Texture Texture;
         public Quad ScreenSpaceDrawQuad;
         public RectangleF DrawRectangle;
-        public float InflationAmount;
+        public Vector2 InflationAmount;
         public bool WrapTexture;
 
         public Shader TextureShader;
         public Shader RoundedTextureShader;
+
+        private bool NeedsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
         public override void Draw(IVertexBatch vertexBatch)
         {
@@ -30,30 +32,33 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            Shader shader = GLWrapper.IsMaskingActive ? RoundedTextureShader : TextureShader;
 
-            if (InflationAmount != 0)
+            Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
+
+            if (InflationAmount != Vector2.Zero)
             {
-                shader.GetUniform<Vector4>(@"g_DrawingRect").Value = new Vector4(
-                    DrawRectangle.Left,
-                    DrawRectangle.Top,
-                    DrawRectangle.Right,
-                    DrawRectangle.Bottom);
+                // The shader currently cannot deal with negative width and height.
+                RectangleF drawRect = DrawRectangle.WithPositiveExtent;
+                RoundedTextureShader.GetUniform<Vector4>(@"g_DrawingRect").Value = new Vector4(
+                    drawRect.Left,
+                    drawRect.Top,
+                    drawRect.Right,
+                    drawRect.Bottom);
 
-                shader.GetUniform<Matrix3>(@"g_ToDrawingSpace").Value = DrawInfo.MatrixInverse;
-                shader.GetUniform<float>(@"g_DrawingBlendRange").Value = InflationAmount;
+                RoundedTextureShader.GetUniform<Matrix3>(@"g_ToDrawingSpace").Value = DrawInfo.MatrixInverse;
+                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = InflationAmount;
             }
 
             shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
             Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexBatch as VertexBatch<TexturedVertex2D>,
-                new Vector2(InflationAmount / DrawRectangle.Width, InflationAmount / DrawRectangle.Height));
+                new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
 
             shader.Unbind();
 
-            if (InflationAmount != 0)
-                shader.GetUniform<float>(@"g_DrawingBlendRange").Value = 0f;
+            if (InflationAmount != Vector2.Zero)
+                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = Vector2.Zero;
         }
     }
 }
