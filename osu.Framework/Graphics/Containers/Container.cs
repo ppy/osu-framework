@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
                 // We are setting the linear blend range to the approximate size of a _pixel_ here.
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
-                LinearBlendRange = (scale.X + scale.Y) / 2,
+                BlendRange = (scale.X + scale.Y) / 2,
             };
 
             n.EdgeEffect = EdgeEffect;

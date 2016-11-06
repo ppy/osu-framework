@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureAtlas
     {
-        private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS;
+        private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS + 2;
 
         private List<Rectangle> subTextureBounds = new List<Rectangle>();
         private TextureGLSingle atlasTexture;

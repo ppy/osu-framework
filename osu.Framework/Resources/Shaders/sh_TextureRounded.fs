@@ -4,6 +4,7 @@
 
 #include "sh_Utils.h"
 
+varying vec2 v_DrawingPosition;
 varying vec2 v_MaskingPosition;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
@@ -14,7 +15,10 @@ uniform vec4 g_MaskingRect;
 uniform float g_BorderThickness;
 uniform vec4 g_BorderColour;
 
-uniform float g_LinearBlendRange;
+uniform float g_MaskingBlendRange;
+
+uniform vec4 g_DrawingRect;
+uniform float g_DrawingBlendRange;
 
 float distanceFromRoundedRect()
 {
@@ -36,14 +40,26 @@ float distanceFromRoundedRect()
         return length(max(vec2(0.0), distanceFromShrunkRect));
 }
 
+float distanceFromDrawingRect()
+{
+	vec2 topLeftOffset = g_DrawingRect.xy - v_DrawingPosition;
+    vec2 bottomRightOffset = v_DrawingPosition - g_DrawingRect.zw;
+	vec2 xyDistance = max(topLeftOffset, bottomRightOffset);
+	return max(xyDistance.x, xyDistance.y);
+}
+
 void main(void)
 {
-    float dist = distanceFromRoundedRect();
+    float dist = distanceFromRoundedRect() / g_MaskingBlendRange;
 
     // This correction is needed to avoid fading of the alpha value for radii below 1px.
-    float radiusCorrection = g_CornerRadius <= 0.0 ? 1.0 : max(0.0, g_LinearBlendRange - g_CornerRadius);
-    float fadeStart = g_CornerRadius + radiusCorrection;
-    float alphaFactor = min((fadeStart - dist) / g_LinearBlendRange, 1.0);
+    float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
+    float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
+    float alphaFactor = min(fadeStart - dist, 1.0);
+
+	if (g_DrawingBlendRange > 0.0)
+		alphaFactor *= clamp(1.0 - distanceFromDrawingRect() / g_DrawingBlendRange, 0.0, 1.0);
+
     if (alphaFactor <= 0.0)
     {
         gl_FragColor = vec4(0.0);
@@ -53,8 +69,8 @@ void main(void)
     // This ends up softening glow without negatively affecting edge smoothness much.
     alphaFactor *= alphaFactor;
 
-    float borderStart = fadeStart - g_BorderThickness + g_LinearBlendRange;
-    float colourWeight = min((borderStart - dist) / g_LinearBlendRange, 1.0);
+    float borderStart = 1.0 + fadeStart - g_BorderThickness;
+    float colourWeight = min(borderStart - dist, 1.0);
     if (colourWeight <= 0.0)
     {
         gl_FragColor = toSRGB(vec4(g_BorderColour.rgb, g_BorderColour.a * alphaFactor));
