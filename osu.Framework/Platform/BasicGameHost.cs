@@ -338,11 +338,11 @@ namespace osu.Framework.Platform
         {
             if (Window.WindowState == WindowState.Minimized) return;
 
-            Rectangle rect = Window.ClientRectangle;
+            var size = Window.ClientSize;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
-                base.Size = new Vector2(rect.Width, rect.Height);
+                base.Size = new Vector2(size.Width, size.Height);
             });
         }
 
@@ -356,7 +356,7 @@ namespace osu.Framework.Platform
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
+                    InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
                     base.Size = value;
                 });
             }
