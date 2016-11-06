@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class Sliderbar : Container
     {
-        public double KeyboardStep => 0.01;
+        public double KeyboardStep { get; set; }
 
         public double MinValue
         {
@@ -65,6 +65,8 @@ namespace osu.Framework.Graphics.UserInterface
                 sliderbarBox = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
+                    Origin = Anchor.CentreLeft,
+                    Anchor = Anchor.CentreLeft
                 },
                 selectedRangeBox = new Box
                 {
@@ -79,7 +81,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         ~Sliderbar()
         {
-            SelectedValue.ValueChanged -= SelectedValue_ValueChanged;
+            Dispose(false);
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (SelectedValue != null)
+                SelectedValue.ValueChanged -= SelectedValue_ValueChanged;
+            base.Dispose(isDisposing);
         }
 
         #endregion
@@ -129,7 +138,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(InputState state)
         {
-            var xPosition = state.Mouse.Position.X;
+            var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
             xPosition = MathHelper.Clamp(xPosition, 0, sliderbarBox.DrawWidth);
             double percentage = xPosition / sliderbarBox.DrawWidth;
             selectedRange = valuesRange * percentage;

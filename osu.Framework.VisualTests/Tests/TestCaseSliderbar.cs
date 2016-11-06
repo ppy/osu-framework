@@ -35,6 +35,7 @@ namespace osu.Framework.VisualTests.Tests
                 SelectedValue = sliderBarSelectedValue,
                 MinValue = -10,
                 MaxValue = 10,
+                KeyboardStep = 0.01,
                 Color = Color4.White,
                 SelectedRangeColor = Color4.Pink
             };
