@@ -18,6 +18,11 @@ namespace osu.Framework.VisualTests
             Host.MaximumDrawHz = int.MaxValue;
             Host.MaximumUpdateHz = int.MaxValue;
             Host.MaximumInactiveHz = int.MaxValue;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             TestBrowser f = new TestBrowser();
             Add(f);
