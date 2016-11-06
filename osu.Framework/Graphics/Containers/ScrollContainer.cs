@@ -38,12 +38,14 @@ namespace osu.Framework.Graphics.Containers
 
         private float displayableContent => ChildSize.Y;
 
+        public float MouseWheelScrollDistance = 80;
+
         /// <summary>
         /// This limits how far out of clamping bounds we allow the target position to be at most.
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float CLAMP_EXTENSION = 200;
+        private const float CLAMP_EXTENSION = 50;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
@@ -53,12 +55,17 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Controls the rate with which the target position is approached after ending a drag.
         /// </summary>
-        private double distanceDecayDrag = 0.0035;
+        public double DistanceDecayDrag = 0.0035;
 
         /// <summary>
         /// Controls the rate with which the target position is approached after using the mouse wheel.
         /// </summary>
-        private double distanceDecayWheel = 0.01;
+        public double DistanceDecayWheel = 0.01;
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached after jumping to a specific location.
+        /// </summary>
+        public double DistanceDecayJump = 0.01;
 
         /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
@@ -113,8 +120,6 @@ namespace osu.Framework.Graphics.Containers
 
             availableContent = content.DrawSize.Y;
             updateSize();
-            if (!isDragging)
-                offset(0);
 
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
         }
@@ -157,14 +162,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            if (lastDragTimeDelta == 0.0)
+            if (lastDragTimeDelta <= 0.0)
                 return base.OnDragEnd(state);
 
-            distanceDecay = distanceDecayDrag;
-
             // Solve exponential for distance, given delta and elapsed time during delta.
-            double distance = -state.Mouse.Delta.Y / (1 - Math.Exp(-distanceDecay * lastDragTimeDelta));
-            offset((float)distance);
+            double distance = -state.Mouse.Delta.Y / (1 - Math.Exp(-DistanceDecayDrag * lastDragTimeDelta));
+            offset((float)distance, true, DistanceDecayDrag);
 
             isDragging = false;
 
@@ -173,8 +176,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheel(InputState state)
         {
-            distanceDecay = distanceDecayWheel;
-            offset(-80);
+            offset(-MouseWheelScrollDistance * state.Mouse.WheelDiff, true, DistanceDecayWheel);
             return true;
         }
 
@@ -183,27 +185,29 @@ namespace osu.Framework.Graphics.Containers
             scrollTo(clamp(value / scrollbar.Size.Y), false);
         }
 
-        private void offset(float value, bool animated = true)
+        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            scrollTo(target + value, animated);
+            scrollTo(target + value, animated, distanceDecay);
         }
 
         public void ScrollTo(float value)
         {
-            scrollTo(value);
+            scrollTo(value, true, DistanceDecayJump);
         }
 
-        private void scrollTo(float value, bool animated = true)
+        private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
             target = value;
 
-            if (!animated)
+            if (animated)
+                this.distanceDecay = distanceDecay;
+            else
                 current = target;
         }
         
         public void ScrollIntoView(Drawable d)
         {
-            scrollTo(d.Position.Y);
+            scrollTo(d.Position.Y, true, DistanceDecayJump);
         }
 
         private void updateSize()
