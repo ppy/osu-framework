@@ -365,11 +365,30 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual Container Content => this;
 
+        /// <summary>
+        /// Updates the life status of children according to their IsAlive property.
+        /// </summary>
+        /// <returns>True iff the life status of at least one child changed.</returns>
+        private bool updateChildrenLife()
+        {
+            bool changed = children.Update(Time);
+
+            if (changed && AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+
+            return changed;
+        }
+
         protected internal override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
-            UpdateChildrenLife();
+            // We update our children's life even if we are invisible.
+            // Note, that this does not propagate down and may need
+            // generalization in the future.
+            updateChildrenLife();
+
+            if (!IsVisible) return false;
 
             foreach (Drawable child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
@@ -405,7 +424,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (AutoSizeAxes == Axes.None) return;
 
-            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+            if ((invalidation & Invalidation.Geometry) > 0)
                 autoSize.Invalidate();
         }
 
@@ -429,20 +448,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Updates the life status of children according to their IsAlive property.
-        /// </summary>
-        /// <returns>True iff the life status of at least one child changed.</returns>
-        protected virtual bool UpdateChildrenLife()
-        {
-            bool changed = children.Update(Time);
-
-            if (changed && AutoSizeAxes != Axes.None)
-                autoSize.Invalidate();
-
-            return changed;
         }
 
         /// <summary>

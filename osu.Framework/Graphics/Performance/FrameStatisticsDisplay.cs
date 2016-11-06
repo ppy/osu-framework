@@ -590,15 +590,15 @@ namespace osu.Framework.Graphics.Performance
                 if (!Active)
                     return;
 
-                double elapsedTime = Clock.ElapsedFrameTime;
-                double movement = velocity * Clock.ElapsedFrameTime + 0.5 * ACCELERATION * elapsedTime * elapsedTime;
+                double elapsedTime = Time.Elapsed;
+                double movement = velocity * Time.Elapsed + 0.5 * ACCELERATION * elapsedTime * elapsedTime;
                 double newHeight = Math.Max(height, box.Height - movement);
                 box.Height = (float)newHeight;
 
                 if (newHeight <= height)
                     velocity = 0;
                 else
-                    velocity += Clock.ElapsedFrameTime * ACCELERATION;
+                    velocity += Time.Elapsed * ACCELERATION;
             }
         }
     }

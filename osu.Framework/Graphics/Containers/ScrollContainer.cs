@@ -126,7 +126,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(InputState state)
         {
-            lastDragTime = Clock.CurrentTime;
+            lastDragTime = Time.Current;
             isDragging = true;
             return true;
         }
@@ -145,9 +145,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            var clock = Clock;
-            lastDragTimeDelta = clock.CurrentTime - lastDragTime;
-            lastDragTime = clock.CurrentTime;
+            lastDragTimeDelta = Time.Current - lastDragTime;
+            lastDragTime = Time.Current;
 
             Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
 
@@ -235,7 +234,7 @@ namespace osu.Framework.Graphics.Containers
                     localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
-                target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Clock.ElapsedFrameTime));
+                target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Time.Elapsed));
 
                 float clampedTarget = clamp(target);
                 if (Precision.AlmostEquals(clampedTarget, target))
@@ -243,7 +242,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            current = (float)Interpolation.Lerp(target, current, Math.Exp(-localDistanceDecay * Clock.ElapsedFrameTime));
+            current = (float)Interpolation.Lerp(target, current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
             if (Precision.AlmostEquals(current, target))
