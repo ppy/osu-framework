@@ -11,6 +11,9 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureAtlas
     {
+        // We are adding an extra padding of 2 texels on top of the padding required by
+        // mipmap blending in order to support smooth edges without antialiasing which requires
+        // inflating the texture rectangles.
         private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS + 2;
 
         private List<Rectangle> subTextureBounds = new List<Rectangle>();

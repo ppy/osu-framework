@@ -102,10 +102,12 @@ namespace osu.Framework.Graphics.Sprites
                 inflationAmount = 0;
                 return base.ComputeScreenSpaceDrawQuad();
             }
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-            inflationAmount = (float)Math.Min(scale.X, scale.Y);
-            return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
+            else
+            {
+                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                inflationAmount = (float)Math.Min(scale.X, scale.Y);
+                return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
+            }
         }
 
         public override Drawable Clone()
