@@ -16,15 +16,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         public double MinValue
         {
-            get { return minValue; }
+            get { return SelectedValue.MinValue; }
             set
             {
-                minValue = value;
+                SelectedValue.MinValue = value;
                 selectedRange = SelectedValue - MinValue;
             }
         }
 
-        public double MaxValue { get; set; }
+        public double MaxValue
+        {
+            get { return SelectedValue.MaxValue; }
+            set { SelectedValue.MaxValue = value; }
+        }
 
         public BindableDouble SelectedValue
         {
@@ -56,7 +60,6 @@ namespace osu.Framework.Graphics.UserInterface
         private double valuesRange => MaxValue - MinValue;
         private double selectedRange;
         private BindableDouble selectedValue;
-        private double minValue;
 
         public Sliderbar()
         {
@@ -130,11 +133,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        private void SelectedValue_ValueChanged(object sender, EventArgs e)
-        {
-            SelectedValue.Value = MathHelper.Clamp(SelectedValue.Value, MinValue, MaxValue);
-            updateVisualization();
-        }
+        private void SelectedValue_ValueChanged(object sender, EventArgs e) => updateVisualization();
 
         private void handleMouseInput(InputState state)
         {
