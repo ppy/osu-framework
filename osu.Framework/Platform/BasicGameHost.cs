@@ -139,7 +139,7 @@ namespace osu.Framework.Platform
 
         private UserInputManager inputManager;
 
-        protected override Container Content => inputManager;
+        protected override Container<Drawable> Content => inputManager;
 
         private string name;
         public override string Name => name;

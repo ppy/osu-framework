@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        internal override void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        public override void InvalidateFromChild(Invalidation invalidation, Drawable source)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();

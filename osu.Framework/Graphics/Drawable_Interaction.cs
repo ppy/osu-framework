@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Find the first parent InputManager which this drawable is contained by.
         /// </summary>
-        private InputManager ourInputManager => this as InputManager ?? Parent?.ourInputManager;
+        private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
 
         public bool TriggerHover(InputState state)
         {

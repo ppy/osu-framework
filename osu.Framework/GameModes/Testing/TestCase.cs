@@ -22,7 +22,7 @@ namespace osu.Framework.GameModes.Testing
         //       Right now this is required for DrawVis to inspect the Drawable tree.
         public Container Contents;
 
-        protected override Container Content => Contents;
+        protected override Container<Drawable> Content => Contents;
 
         public TestCase()
         {

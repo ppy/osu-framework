@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public partial class Container
+    public partial class Container<T>
     {
         internal event Action OnAutoSize;
 

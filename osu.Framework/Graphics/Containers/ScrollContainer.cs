@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
         private float scrollableExtent => (float)Math.Max(availableContent - displayableContent, 0);
         private float clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
 
-        protected override Container Content => content;
+        protected override Container<Drawable> Content => content;
 
         private bool isDragging;
 

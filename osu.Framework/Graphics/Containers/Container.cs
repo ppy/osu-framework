@@ -17,10 +17,13 @@ using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
+    public class Container : Container<Drawable>
+    { }
+
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public partial class Container : Drawable
+    public partial class Container<T> : Drawable, IContainer
     {
         private bool masking = false;
         public bool Masking
@@ -226,17 +229,17 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        protected internal virtual Vector2 ChildScale => Vector2.One;
+        public virtual Vector2 ChildScale => Vector2.One;
 
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+        public virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
 
         /// <summary>
@@ -363,7 +366,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
 
-        protected virtual Container Content => this;
+        protected virtual Container<T> Content => this;
 
         /// <summary>
         /// Updates the life status of children according to their IsAlive property.
@@ -420,7 +423,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        public virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
         {
             if (AutoSizeAxes == Axes.None) return;
 
@@ -480,7 +483,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(int treeIndex, ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
             List<Drawable> current = parentContainer.children.AliveItems;
             for (int i = 0; i < current.Count; ++i)
@@ -490,7 +493,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsVisible)
                     continue;
 
-                Container container = drawable as Container;
+                Container<T> container = drawable as Container<T>;
                 if (container?.CanBeFlattened == true)
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)

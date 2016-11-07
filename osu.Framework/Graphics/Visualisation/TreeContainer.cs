@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Visualisation
         public Action ChooseTarget;
         public Action GoUpOneParent;
 
-        protected override Container Content => scroll;
+        protected override Container<Drawable> Content => scroll;
 
         private Box titleBar;
 
