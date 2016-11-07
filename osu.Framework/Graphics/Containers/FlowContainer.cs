@@ -9,7 +9,10 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class FlowContainer : Container
+    public class FlowContainer : FlowContainer<Drawable>
+    { }
+
+    public class FlowContainer<T> : Container<T>
     {
         internal event Action OnLayout;
 

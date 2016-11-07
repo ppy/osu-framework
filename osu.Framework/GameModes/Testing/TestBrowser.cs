@@ -36,7 +36,7 @@ namespace osu.Framework.GameModes.Testing
         }
 
         private Container leftContainer;
-        private Container leftFlowContainer;
+        private Container<Drawable> leftFlowContainer;
         private Container leftScrollContainer;
         private TestCase loadedTest;
         private Container testContainer;
