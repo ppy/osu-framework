@@ -607,5 +607,11 @@ namespace osu.Framework.Graphics.Containers
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
         }
+        
+        protected override void Dispose(bool isDisposing)
+        {
+            Children.ForEach(c => c.Dispose());
+            base.Dispose(isDisposing);
+        }
     }
 }
