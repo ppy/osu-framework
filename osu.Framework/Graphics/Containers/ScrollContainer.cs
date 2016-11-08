@@ -206,7 +206,8 @@ namespace osu.Framework.Graphics.Containers
         
         public void ScrollIntoView(Drawable d)
         {
-            scrollTo(d.Position.Y, true, DistanceDecayJump);
+            Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
+            scrollTo(clamp(pos.Y), true, DistanceDecayJump);
         }
 
         private void updateSize()
