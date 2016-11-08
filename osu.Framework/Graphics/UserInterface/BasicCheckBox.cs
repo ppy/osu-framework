@@ -1,10 +1,11 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -54,6 +55,14 @@ namespace osu.Framework.Graphics.UserInterface
                     Size = new Vector2(20, 20)
                 }
             };
+        }
+
+        [Initializer]
+        private void Load(BaseGame game)
+        {
+            checkedDrawable = CreateCheckedDrawable();
+            uncheckedDrawable = CreateUncheckedDrawable();
+            Add(uncheckedDrawable);
         }
 
         protected override void OnUnchecked() => box.FadeColour(UncheckedColor, FadeDuration);

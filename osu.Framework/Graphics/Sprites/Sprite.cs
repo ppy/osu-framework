@@ -8,6 +8,7 @@ using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.OpenGL;
 using System.Diagnostics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -61,15 +62,14 @@ namespace osu.Framework.Graphics.Sprites
             base.ApplyDrawNode(node);
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(ShaderManager shaders)
         {
-            base.Load(game);
-
             if (textureShader == null)
-                textureShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture));
+                textureShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture));
 
             if (roundedTextureShader == null)
-                roundedTextureShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+                roundedTextureShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
         }
 
         protected override bool CheckForcedPixelSnapping(Quad screenSpaceQuad)

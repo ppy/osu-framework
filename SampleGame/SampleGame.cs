@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Allocation;
 
 namespace SampleGame
 {
@@ -13,10 +14,9 @@ namespace SampleGame
     {
         private Box box;
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load()
         {
-            base.Load(game);
-
             Add(box = new Box
             {
                 Anchor = Anchor.Centre,

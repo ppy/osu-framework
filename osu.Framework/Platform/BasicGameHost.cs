@@ -372,10 +372,11 @@ namespace osu.Framework.Platform
             BaseGame game = drawable as BaseGame;
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
-            if (!IsLoaded)
-                PerformLoad(null);
-
+            Dependencies.Cache(game);
             game.SetHost(this);
+
+            if (!IsLoaded)
+                PerformLoad(game);
 
             LoadGame(game);
         }

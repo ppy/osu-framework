@@ -10,6 +10,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -119,10 +120,9 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load()
         {
-            base.Load(game);
-
             Masking = true;
 
             content.OnAutoSize += contentAutoSize;

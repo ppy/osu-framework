@@ -235,10 +235,9 @@ namespace osu.Framework.Graphics.Performance
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load()
         {
-            base.Load(game);
-
             //initialise background
             byte[] column = new byte[HEIGHT * 4];
             byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
@@ -489,10 +488,9 @@ namespace osu.Framework.Graphics.Performance
                 this.atlas = atlas;
             }
 
-            protected override void Load(BaseGame game)
+            [Initializer]
+            private void Load()
             {
-                base.Load(game);
-
                 Size = new Vector2(WIDTH, HEIGHT);
 
                 Children = new[]

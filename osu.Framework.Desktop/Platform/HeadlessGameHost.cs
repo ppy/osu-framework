@@ -21,11 +21,10 @@ namespace osu.Framework.Desktop.Platform
             UpdateScheduler.Update();
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load()
         {
             Storage = new DesktopStorage(string.Empty);
-
-            base.Load(game);
         }
 
         protected override void UpdateInitialize()

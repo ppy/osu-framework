@@ -5,6 +5,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -29,8 +30,8 @@ namespace osu.Framework.Graphics.UserInterface
         private Box box;
         private SpriteText spriteText;
 
-
-        public Button()
+        [Initializer]
+        private void Load()
         {
             Children = new Drawable[]
             {

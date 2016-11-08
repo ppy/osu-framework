@@ -5,6 +5,7 @@ using osu.Framework.Input.Handlers;
 using OpenTK;
 using System.Collections.Generic;
 using osu.Framework.Platform;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Input
 {
@@ -17,10 +18,9 @@ namespace osu.Framework.Input
             Host = host;
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(BaseGame game)
         {
-            base.Load(game);
-
             if (Host != null)
             {
                 foreach (InputHandler h in Host.GetInputHandlers())

@@ -23,7 +23,7 @@ namespace osu.Framework.Desktop.Platform.Linux
                 else
                     OnDeactivated();
             };
-            Dependencies.Cache<BasicStorage>(Storage = new LinuxStorage(gameName));
+            Dependencies.Cache(Storage = new LinuxStorage(gameName));
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers()

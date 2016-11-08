@@ -7,6 +7,8 @@ using System.Linq;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
+using osu.Framework.Allocation;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -45,15 +47,14 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(BasicGameHost host)
         {
-            base.Load(game);
-
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
 
-            Add(new FrameStatisticsDisplay(@"Input", game.Host.InputMonitor, atlas));
-            Add(new FrameStatisticsDisplay(@"Update", game.Host.UpdateMonitor, atlas));
-            Add(new FrameStatisticsDisplay(@"Draw", game.Host.DrawMonitor, atlas));
+            Add(new FrameStatisticsDisplay(@"Input", host.InputMonitor, atlas));
+            Add(new FrameStatisticsDisplay(@"Update", host.UpdateMonitor, atlas));
+            Add(new FrameStatisticsDisplay(@"Draw", host.DrawMonitor, atlas));
 
             Direction = FlowDirection.VerticalOnly;
         }

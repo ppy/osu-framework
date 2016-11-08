@@ -16,6 +16,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Platform;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -57,11 +58,10 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(BasicStorage storage)
         {
-            base.Load(game);
-
-            config = new TestBrowserConfig(game.Host.Storage);
+            config = new TestBrowserConfig(storage);
 
             Add(leftContainer = new Container
             {
@@ -157,10 +157,9 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            protected override void Load(BaseGame game)
+            [Initializer]
+            private void Load()
             {
-                base.Load(game);
-
                 Masking = true;
                 CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;

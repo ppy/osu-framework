@@ -11,6 +11,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -62,10 +63,9 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            protected override void Load(BaseGame game)
+            [Initializer]
+            private void Load()
             {
-                base.Load(game);
-
                 Children = new Drawable[]
                 {
                     new Box

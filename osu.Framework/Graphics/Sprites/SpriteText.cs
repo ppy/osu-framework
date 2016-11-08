@@ -9,6 +9,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -71,12 +73,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(FontStore fonts)
         {
-            base.Load(game);
-
             if (store == null)
-                store = game.Fonts;
+                store = fonts;
 
             spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
 

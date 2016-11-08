@@ -7,64 +7,115 @@ namespace osu.Framework.Allocation
 {
     public class DependencyContainer
     {
-        private Dictionary<Type, Func<DependencyContainer, object>> activators =
-            new Dictionary<Type, Func<DependencyContainer,object>>();
+        // Activators are object Activate(DependencyContainer container, object instance),
+        // where the latter may be null.
+        private Dictionary<Type, Func<DependencyContainer, object, object>> activators =
+            new Dictionary<Type, Func<DependencyContainer,object, object>>();
         private Dictionary<Type, object> cache = new Dictionary<Type, object>();
         private HashSet<Type> cacheable = new HashSet<Type>();
+
+        private MethodInfo GetLoaderMethod(Type type)
+        {
+            return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).SingleOrDefault(
+                mi => mi.CustomAttributes.Any(attr => attr.AttributeType == typeof(InitializerAttribute)));
+        }
+
+        private void Register(Type type, bool lazy)
+        {
+            if (activators.ContainsKey(type) || cache.ContainsKey(type))
+                throw new InvalidOperationException($@"Type {type.FullName} is already registered");
+
+            var initialize = GetLoaderMethod(type);
+            var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
+
+            var initializerMethods = new List<MethodInfo>();
+            if (initialize != null)
+                initializerMethods.Add(initialize);
+            Type parent = type.BaseType;
+            while (parent != typeof(object))
+            {
+                var init = GetLoaderMethod(parent);
+                if (init != null)
+                    initializerMethods.Insert(0, init);
+                parent = parent.BaseType;
+            }
+            
+            if (initializerMethods.Count == 0)
+                throw new InvalidOperationException($@"Type {type.FullName} has no initializer in itself or any base class. You could just, you know, construct one.");
+
+            var initializers = initializerMethods.Select(initializer =>
+            {
+                var permitNull = initializer.GetCustomAttribute<InitializerAttribute>().PermitNulls;
+                var parameters = initializer.GetParameters().Select(p => p.ParameterType)
+                    .Select(t => (Func<object>)(() =>
+                        {
+                            var val = Get(t);
+                            if (val == null && !permitNull)
+                            {
+                                throw new InvalidOperationException(
+                                    $@"Type {t.FullName} is not registered, and is a dependency of {type.FullName}");
+                            }
+                            return val;
+                        })).ToList();
+                // Test that we already have all the dependencies registered
+                if (!lazy)
+                    parameters.ForEach(p => p());
+                return new Action<object>(instance =>
+                {
+                    var p = parameters.Select(pa => pa()).ToArray();
+                    initializer.Invoke(instance, p);
+                });
+            }).ToList();
+
+            activators[type] = (container, instance) =>
+            {
+                if (instance == null)
+                {
+                    if (constructor == null)
+                        throw new InvalidOperationException($@"Type {type.FullName} must have a parameterless constructor to initialize one from scratch.");
+                    instance = Activator.CreateInstance(type);
+                }
+                initializers.ForEach(init => init(instance));
+                return instance;
+            };
+        }
 
         /// <summary>
         /// Registers a type and configures a default allocator for it that injects its
         /// dependencies.
         /// </summary>
-        public void Register<T>() where T : class
-        {
-            var type = typeof(T);
-            if (activators.ContainsKey(type) || this.cache.ContainsKey(type))
-                throw new InvalidOperationException($@"Type {typeof(T).Name} is already registered");
-            var parameters = type.GetConstructors()[0].GetParameters().Select(p => p.ParameterType)
-                .Select(t => (Func<object>)(() =>
-                    {
-                        var val = Get(t);
-                        if (val == null)
-                        {
-                            throw new InvalidOperationException(
-                                $@"Type {t.Name} is not registered, and is a dependency of {type.Name}");
-                        }
-                        return val;
-                    })).ToList();
-            // Test that we already have all the dependencies registered
-            parameters.ForEach(p => p());
-            activators[type] = d =>
-            {
-                var p = parameters.Select(pa => pa()).ToArray();
-                return (T)Activator.CreateInstance(type, p);
-            };
-        }
+        public void Register<T>(bool lazy = false) where T : class => Register(typeof(T), lazy);
         
         /// <summary>
-        /// Registers a type that we can allocate with the default activator.
+        /// Registers a type that allocates with a custom allocator.
         /// </summary>
         public void Register<T>(Func<DependencyContainer, T> activator) where T : class
         {
             var type = typeof(T);
             if (activators.ContainsKey(type))
                 throw new InvalidOperationException($@"Type {typeof(T).Name} is already registered");
-            activators[type] = d => activator(d);
+            activators[type] = (d, i) => i ?? activator(d);
         }
-        public void Cache<T>(T instance = null) where T : class
+
+        /// <summary>
+        /// Caches an instance of a type. This instance will be returned each time you Get<T>.
+        /// </summary>
+        public T Cache<T>(T instance = null, bool lazy = false) where T : class
         {
             if (instance == null)
-                instance = Get<T>(false);
+                instance = Get<T>(false, false);
             cacheable.Add(typeof(T));
             cache[typeof(T)] = instance;
+            return instance;
         }
-        private object Get(Type type)
+
+        private object Get(Type type)
         {
             if (cache.ContainsKey(type))
                 return cache[type];
             if (!activators.ContainsKey(type))
                 return null; // Or an exception?
-            object instance = activators[type](this);
+            object instance = activators[type](this, null);
             if (cacheable.Contains(type))
                 cache[type] = instance;
             return instance;
@@ -73,15 +124,23 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Gets an instance of the specified type.
         /// </summary>
-        public T Get<T>(bool autoRegister = true) where T : class
+        public T Get<T>(bool autoRegister = true, bool lazy = false) where T : class
         {
             T instance = (T)Get(typeof(T));
             if (autoRegister && instance == null)
             {
-                Register<T>();
+                Register<T>(lazy);
                 instance = (T)Get(typeof(T));
             }
             return instance;
+        }
+        
+        public T Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
+        {
+            var type = instance.GetType();
+            if (autoRegister && !activators.ContainsKey(type))
+                Register(type, lazy);
+            return (T)activators[type](this, instance);
         }
     }
 }

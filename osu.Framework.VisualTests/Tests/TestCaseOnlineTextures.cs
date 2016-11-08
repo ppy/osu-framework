@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
 using OpenTK;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -47,10 +48,10 @@ namespace osu.Framework.VisualTests.Tests
             getNextAvatar();
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(BaseGame game)
         {
             this.game = game;
-            base.Load(game);
         }
 
         private void getNextAvatar()
@@ -71,10 +72,10 @@ namespace osu.Framework.VisualTests.Tests
             this.userId = userId;
         }
 
-        protected override void Load(BaseGame game)
+        [Initializer]
+        private void Load(TextureStore textures)
         {
-            base.Load(game);
-            Texture = game.Textures.Get($@"https://a.ppy.sh/{userId}");
+            Texture = textures.Get($@"https://a.ppy.sh/{userId}");
         }
 
         protected override void LoadComplete()
