@@ -134,7 +134,6 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             TransformAlpha tr = new TransformAlpha
@@ -161,7 +160,6 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             TransformAlpha tr = new TransformAlpha
@@ -189,7 +187,6 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             transform.StartTime = startTime;
@@ -250,7 +247,6 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             transform.StartTime = startTime;
@@ -321,7 +317,6 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             Transforms.Add(new TransformColour
@@ -341,7 +336,6 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            Debug.Assert(Parent != null);
             double startTime = Time.Current + transformationDelay;
 
             Transforms.Add(new TransformColour

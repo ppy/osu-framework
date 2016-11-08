@@ -80,14 +80,10 @@ namespace osu.Framework.Graphics.Visualisation
 
     class DrawableLogEntry : Container
     {
-        private readonly LogEntry entry;
-
         const float target_box_width = 90;
 
         public DrawableLogEntry(LogEntry entry)
         {
-            this.entry = entry;
-
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
