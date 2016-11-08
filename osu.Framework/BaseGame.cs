@@ -72,12 +72,12 @@ namespace osu.Framework
 
         private void addDebugTools()
         {
-            Add(DrawVisualiser = new DrawVisualiser()
+            AddInternal(DrawVisualiser = new DrawVisualiser()
             {
                 Depth = float.MaxValue / 2,
             });
 
-            Add(LogOverlay = new LogOverlay());
+            AddInternal(LogOverlay = new LogOverlay());
         }
 
         /// <summary>

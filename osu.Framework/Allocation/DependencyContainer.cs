@@ -34,8 +34,6 @@ namespace osu.Framework.Allocation
             var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
 
             var initializerMethods = new List<MethodInfo>();
-            if (initialize != null)
-                initializerMethods.Add(initialize);
             Type parent = type.BaseType;
             while (parent != typeof(object))
             {
@@ -44,9 +42,8 @@ namespace osu.Framework.Allocation
                     initializerMethods.Insert(0, init);
                 parent = parent.BaseType;
             }
-            
-            if (initializerMethods.Count == 0)
-                throw new InvalidOperationException($@"Type {type.FullName} has no initializer in itself or any base class. You could just, you know, construct one.");
+            if (initialize != null)
+                initializerMethods.Add(initialize);
 
             var initializers = initializerMethods.Select(initializer =>
             {
@@ -70,7 +67,7 @@ namespace osu.Framework.Allocation
                     var p = parameters.Select(pa => pa()).ToArray();
                     initializer.Invoke(instance, p);
                 });
-            }).Reverse().ToList();
+            }).ToList();
 
             activators[type] = (container, instance) =>
             {
