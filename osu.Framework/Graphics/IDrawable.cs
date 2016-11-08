@@ -2,12 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
 
 namespace osu.Framework.Graphics
 {
-    public interface IDrawable
+    public interface IDrawable : IHasLifetime
     {
         Vector2 DrawSize { get; }
 

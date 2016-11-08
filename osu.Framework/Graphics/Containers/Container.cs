@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.Containers
     /// A drawable which can have children added externally.
     /// </summary>
     public partial class Container<T> : Drawable, IContainer
+        where T : Drawable
     {
         private bool masking = false;
         public bool Masking

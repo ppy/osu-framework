@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Containers
     { }
 
     public class FlowContainer<T> : Container<T>
+        where T : Drawable
     {
         internal event Action OnLayout;
 
