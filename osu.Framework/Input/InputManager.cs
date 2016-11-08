@@ -186,7 +186,7 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            Container currentContainer = current as Container;
+            IContainer<Drawable> currentContainer = current as IContainer<Drawable>;
 
             if (currentContainer != null)
             {

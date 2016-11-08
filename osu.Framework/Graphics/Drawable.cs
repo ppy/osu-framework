@@ -418,7 +418,7 @@ namespace osu.Framework.Graphics
         }
 
         const float visibility_cutoff = 0.0001f;
-        
+
         public virtual bool IsVisible => Alpha > visibility_cutoff;
         public bool IsMaskedAway = false;
 
@@ -691,11 +691,10 @@ namespace osu.Framework.Graphics
 
         internal void ChangeParent(IContainer parent)
         {
-            if (Parent != parent)
-            {
-                Parent?.Remove(this, false);
-                Parent = parent;
-            }
+            if (parent == Parent) return;
+
+            Debug.Assert(Parent == null);
+            Parent = parent;
         }
 
         /// <summary>

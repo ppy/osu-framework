@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation, source);
         }
 
-        public override void Add(Drawable drawable)
+        public override void Add(T drawable)
         {
             //let's force an instant re-flow on adding a new drawable for now.
             layout.Invalidate();

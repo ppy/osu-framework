@@ -9,18 +9,22 @@ namespace osu.Framework.Graphics.Containers
 {
     public interface IContainer : IDrawable
     {
-        IEnumerable<Drawable> Children { get; set; }
-
-        void Add(IEnumerable<Drawable> collection);
-        void Add(Drawable drawable);
-        void Remove(IEnumerable<Drawable> range, bool dispose = false);
-        bool Remove(Drawable drawable, bool dispose = false);
-        int RemoveAll(Predicate<Drawable> match, bool dispose = false);
-
-        void InvalidateFromChild(Invalidation invalidation, Drawable source);
-
         Vector2 ChildSize { get; }
         Vector2 ChildScale { get; }
         Vector2 ChildOffset { get; }
+
+        void InvalidateFromChild(Invalidation invalidation, IDrawable source);
+    }
+
+    public interface IContainer<T> : IContainer
+    {
+        IEnumerable<T> Children { get; set; }
+        IEnumerable<T> AliveChildren { get; }
+
+        void Add(IEnumerable<T> collection);
+        void Add(T drawable);
+        void Remove(IEnumerable<T> range, bool dispose = false);
+        bool Remove(T drawable, bool dispose = false);
+        int RemoveAll(Predicate<T> match, bool dispose = false);
     }
 }
