@@ -10,15 +10,9 @@ namespace osu.Framework.Configuration
         {
         }
 
-        public static implicit operator bool(BindableBool value)
-        {
-            return value == null ? false : value.Value;
-        }
+        public static implicit operator bool(BindableBool value) => value != null && value.Value;
 
-        public override string ToString()
-        {
-            return Value ? @"true" : @"false";
-        }
+        public override string ToString() => Value ? @"true" : @"false";
 
         public override bool Parse(object s)
         {
@@ -27,9 +21,6 @@ namespace osu.Framework.Configuration
             return true;
         }
 
-        public void Toggle()
-        {
-            Value = !Value;
-        }
+        public void Toggle() => Value = !Value;
     }
 }

@@ -2,27 +2,23 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
+using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableDouble : Bindable<double>
     {
-        internal double MinValue = double.MinValue;
-        internal double MaxValue = double.MaxValue;
+        public override bool IsDefault => Math.Abs(Value - Default) < Precision;
+
+        public double Precision = double.Epsilon;
 
         public override double Value
         {
             get { return base.Value; }
             set
             {
-                double boundValue = value;
-
-                if (boundValue > MaxValue)
-                    boundValue = MaxValue;
-                else if (boundValue < MinValue)
-                    boundValue = MinValue;
+                double boundValue = MathHelper.Clamp(value, MinValue, MaxValue);
 
                 if (Precision > double.Epsilon)
                     boundValue = Math.Round(boundValue / Precision) * Precision;
@@ -31,20 +27,17 @@ namespace osu.Framework.Configuration
             }
         }
 
+        internal double MinValue = double.MinValue;
+        internal double MaxValue = double.MaxValue;
+
         public BindableDouble(double value = 0)
             : base(value)
         {
         }
 
-        public static implicit operator double(BindableDouble value)
-        {
-            return value?.Value ?? 0;
-        }
+        public static implicit operator double(BindableDouble value) => value?.Value ?? 0;
 
-        public override string ToString()
-        {
-            return Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
-        }
+        public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
         public override bool Parse(object s)
         {
@@ -53,9 +46,5 @@ namespace osu.Framework.Configuration
             Value = double.Parse((string)s, NumberFormatInfo.InvariantInfo);
             return true;
         }
-
-        public double Precision = double.Epsilon;
-
-        public override bool IsDefault => Math.Abs(Value - Default) < Precision;
     }
 }

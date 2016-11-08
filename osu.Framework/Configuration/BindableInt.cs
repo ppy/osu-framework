@@ -2,49 +2,35 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Globalization;
+using OpenTK;
 
 namespace osu.Framework.Configuration
 {
     public class BindableInt : Bindable<int>
     {
-        internal int MinValue = int.MinValue;
-        internal int MaxValue = int.MaxValue;
-
         public override int Value
         {
             get { return base.Value; }
-            set
-            {
-                int boundValue = value;
-
-                if (boundValue > MaxValue)
-                    boundValue = MaxValue;
-                else if (boundValue < MinValue)
-                    boundValue = MinValue;
-
-                base.Value = boundValue;
-            }
+            set { base.Value = MathHelper.Clamp(value, MinValue, MaxValue); }
         }
+
+        internal int MinValue = int.MinValue;
+        internal int MaxValue = int.MaxValue;
 
         public BindableInt(int value = 0)
             : base(value)
         {
         }
 
-        public static implicit operator int(BindableInt value)
-        {
-            return value == null ? 0 : value.Value;
-        }
+        public static implicit operator int(BindableInt value) => value?.Value ?? 0;
 
         public override bool Parse(object s)
         {
-            Value = int.Parse(s as string, NumberFormatInfo.InvariantInfo);
+            if (s == null) return false;
+            Value = int.Parse((string)s, NumberFormatInfo.InvariantInfo);
             return true;
         }
 
-        public override string ToString()
-        {
-            return Value.ToString(NumberFormatInfo.InvariantInfo);
-        }
+        public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
     }
 }
