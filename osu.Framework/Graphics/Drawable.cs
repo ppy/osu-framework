@@ -662,6 +662,9 @@ namespace osu.Framework.Graphics
         /// <returns>The vector in other's coordinates.</returns>
         public Vector2 ToSpaceOfOtherDrawable(Vector2 input, Drawable other)
         {
+            if (other == this)
+                return input;
+
             return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
         }
 
