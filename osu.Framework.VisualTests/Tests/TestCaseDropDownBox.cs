@@ -187,6 +187,10 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void OnSelectChange()
             {
+                if (!IsLoaded)
+                    return;
+
+                FormatBackground();
                 FormatCaret();
                 FormatLabel();
             }
@@ -199,9 +203,9 @@ namespace osu.Framework.VisualTests.Tests
             protected override void FormatLabel()
             {
                 if (IsSelected)
-                    Label.Text = @"*" + Value + @"*";
+                    (Label as SpriteText).Text = @"*" + Value + @"*";
                 else
-                    Label.Text = Value.ToString();
+                    (Label as SpriteText).Text = Value.ToString();
             }
         }
 

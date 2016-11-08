@@ -57,9 +57,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Box Background;
         protected virtual Color4 BackgroundColour => Color4.DarkSlateGray;
+        protected virtual Color4 BackgroundColourSelected => Color4.SlateGray;
         protected virtual Color4 BackgroundColourHover => Color4.DarkGray;
         protected Container Foreground;
-        protected SpriteText Label;
+        protected Container Label;
         protected Container Caret;
         protected virtual float CaretSpacing => 15;
 
@@ -99,37 +100,42 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsLoaded)
                 return;
 
-            FormatCaret();
+            FormatBackground();
+        }
+
+        protected virtual void FormatBackground(bool hover = false)
+        {
+            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour), 0);
         }
 
         protected virtual void FormatCaret()
         {
-            (Caret as SpriteText).Text = IsSelected ? @">>" : @">";
+            (Caret as SpriteText).Text = @">";
         }
 
         protected virtual void FormatLabel()
         {
-            Label.Text = DisplayText;
+            (Label as SpriteText).Text = DisplayText;
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            Background.Colour = BackgroundColour;
+            Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
             FormatCaret();
             FormatLabel();
         }
 
         protected override bool OnHover(InputState state)
         {
-            Background.Colour = BackgroundColourHover;
+            FormatBackground(true);
             return base.OnHover(state);
         }
 
         protected override void OnHoverLost(InputState state)
         {
             base.OnHover(state);
-            Background.Colour = BackgroundColour;
+            FormatBackground();
         }
     }
 }
