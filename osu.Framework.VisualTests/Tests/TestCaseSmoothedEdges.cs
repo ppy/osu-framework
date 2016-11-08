@@ -16,13 +16,12 @@ namespace osu.Framework.VisualTests.Tests
         public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 
         private Box[] boxes = new Box[4];
-        private Container testContainer;
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(testContainer = new Container()
+            Add(new Container()
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]

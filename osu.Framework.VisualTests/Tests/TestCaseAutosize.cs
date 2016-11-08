@@ -279,7 +279,7 @@ namespace osu.Framework.VisualTests.Tests
                     break;
                 case 6:
                     Container shrinkContainer;
-                    Container boxes;
+                    Container<Drawable> boxes;
 
                     testContainer.Add(shrinkContainer = new Container
                     {

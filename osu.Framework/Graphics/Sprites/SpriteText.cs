@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        protected internal override Vector2 ChildScale => new Vector2(TextSize);
+        public override Vector2 ChildScale => new Vector2(TextSize);
 
         private float textSize = 20;
 

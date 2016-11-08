@@ -25,7 +25,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
-    public abstract partial class Drawable : IDisposable, IHasLifetime
+    public abstract partial class Drawable : IDisposable, IHasLifetime, IDrawable
     {
         public event Action OnUpdate;
 
@@ -402,7 +402,7 @@ namespace osu.Framework.Graphics
 
         private FrameTimeInfo? time;
 
-        protected FrameTimeInfo Time
+        public FrameTimeInfo Time
         {
             get
             {
@@ -418,7 +418,7 @@ namespace osu.Framework.Graphics
         }
 
         const float visibility_cutoff = 0.0001f;
-        
+
         public virtual bool IsVisible => Alpha > visibility_cutoff;
         public bool IsMaskedAway = false;
 
@@ -441,7 +441,7 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null);
 
@@ -469,7 +469,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Container Parent { get; set; }
+        public IContainer Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
@@ -484,7 +484,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = Parent;
+            IDrawable currentParent = Parent;
             while (currentParent != null)
             {
                 if (currentParent == parent)
@@ -506,7 +506,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = child.Parent;
+            IContainer currentParent = child.Parent;
             while (currentParent != null)
             {
                 if (currentParent == this)
@@ -689,13 +689,12 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        internal void ChangeParent(Container parent)
+        internal void ChangeParent(IContainer parent)
         {
-            if (Parent != parent)
-            {
-                Parent?.Remove(this, false);
-                Parent = parent;
-            }
+            if (parent == Parent) return;
+
+            Debug.Assert(Parent == null);
+            Parent = parent;
         }
 
         /// <summary>
