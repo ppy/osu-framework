@@ -251,8 +251,11 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, PerformanceCollectionType.Empty, HEIGHT, column, AMOUNT_COUNT_STEPS);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
-            foreach (var t in timeBars)
-                t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            Schedule(() =>
+            {
+                foreach (var t in timeBars)
+                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            });
         }
 
         private void addEvent(int type)
@@ -486,20 +489,17 @@ namespace osu.Framework.Graphics.Performance
             public TimeBar(TextureAtlas atlas)
             {
                 this.atlas = atlas;
+                Children = new[]
+                {
+                    Sprite = new Sprite()
+                };
             }
 
             [Initializer]
             private void Load()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
-
-                Children = new[]
-                {
-                    Sprite = new Sprite
-                    {
-                        Texture = atlas.Add(WIDTH, HEIGHT)
-                    }
-                };
+                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
             public override bool HandleInput => false;

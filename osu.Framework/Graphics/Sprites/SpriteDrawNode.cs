@@ -32,7 +32,6 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-
             Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
 
             if (InflationAmount != Vector2.Zero)

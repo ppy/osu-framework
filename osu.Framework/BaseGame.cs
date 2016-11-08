@@ -43,7 +43,7 @@ namespace osu.Framework
 
         public ShaderManager Shaders;
 
-        public TextureStore Fonts;
+        public FontStore Fonts;
 
         private Container content;
         private PerformanceOverlay performanceContainer;

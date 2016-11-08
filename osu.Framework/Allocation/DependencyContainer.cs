@@ -13,6 +13,11 @@ namespace osu.Framework.Allocation
             new Dictionary<Type, Func<DependencyContainer,object, object>>();
         private Dictionary<Type, object> cache = new Dictionary<Type, object>();
         private HashSet<Type> cacheable = new HashSet<Type>();
+        
+        public DependencyContainer()
+        {
+            Cache(this);
+        }
 
         private MethodInfo GetLoaderMethod(Type type)
         {
@@ -65,7 +70,7 @@ namespace osu.Framework.Allocation
                     var p = parameters.Select(pa => pa()).ToArray();
                     initializer.Invoke(instance, p);
                 });
-            }).ToList();
+            }).Reverse().ToList();
 
             activators[type] = (container, instance) =>
             {
@@ -93,7 +98,7 @@ namespace osu.Framework.Allocation
         {
             var type = typeof(T);
             if (activators.ContainsKey(type))
-                throw new InvalidOperationException($@"Type {typeof(T).Name} is already registered");
+                throw new InvalidOperationException($@"Type {typeof(T).FullName} is already registered");
             activators[type] = (d, i) => i ?? activator(d);
         }
 
