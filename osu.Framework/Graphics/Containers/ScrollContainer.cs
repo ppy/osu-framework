@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
@@ -30,6 +31,23 @@ namespace osu.Framework.Graphics.Containers
 
         private Container content;
         private ScrollBar scrollbar;
+
+        private bool scrollbarOverlapsContent = true;
+
+        public bool ScrollbarOverlapsContent
+        {
+            get { return scrollbarOverlapsContent; }
+            set
+            {
+                scrollbarOverlapsContent = value;
+
+                if (scrollbarOverlapsContent)
+                    content.Padding = new MarginPadding();
+                else
+                    content.Padding = new MarginPadding { Left = scrollbar.Width };
+            }
+        }
+
 
         /// <summary>
         /// Vertical size of available content (content.Size)
@@ -203,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
             else
                 current = target;
         }
-        
+
         public void ScrollIntoView(Drawable d)
         {
             Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
