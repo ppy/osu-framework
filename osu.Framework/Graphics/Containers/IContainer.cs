@@ -16,15 +16,21 @@ namespace osu.Framework.Graphics.Containers
         void InvalidateFromChild(Invalidation invalidation, IDrawable source);
     }
 
-    public interface IContainer<T> : IContainer
+    public interface IContainerEnumerable<out T> : IContainer
     {
-        IEnumerable<T> Children { get; set; }
+        IEnumerable<T> Children { get; }
         IEnumerable<T> AliveChildren { get; }
+        
+        int RemoveAll(Predicate<T> match, bool dispose = false);
+    }
+
+    public interface IContainerCollection<in T> : IContainer
+    {
+        IEnumerable<T> Children { set; }
 
         void Add(IEnumerable<T> collection);
         void Add(T drawable);
         void Remove(IEnumerable<T> range, bool dispose = false);
         bool Remove(T drawable, bool dispose = false);
-        int RemoveAll(Predicate<T> match, bool dispose = false);
     }
 }
