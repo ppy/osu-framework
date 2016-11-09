@@ -2,10 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using osu.Framework.Allocation;
-using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Statistics;
 using OpenTK;
 
 namespace osu.Framework.Desktop.Platform
@@ -17,14 +14,9 @@ namespace osu.Framework.Desktop.Platform
     {
         public HeadlessGameHost(string gameName = @"", bool bindIPC = false) : base(gameName, bindIPC)
         {
-            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.            
+            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.
             UpdateScheduler.Update();
-        }
-
-        [Initializer]
-        private void Load()
-        {
-            Storage = new DesktopStorage(string.Empty);
+            Dependencies.Cache(Storage = new DesktopStorage(string.Empty));
         }
 
         protected override void UpdateInitialize()
