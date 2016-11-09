@@ -15,8 +15,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundColour => Color4.DarkGray;
         protected virtual Color4 BackgroundColourHover => Color4.Gray;
         protected Container Foreground;
-        protected SpriteText Label;
-        protected Container Caret;
+        protected Drawable Label;
+        protected Drawable Caret;
 
         public Action CloseAction;
 
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void UpdateLabel(string label)
         {
-            Label.Text = label;
+            (Label as SpriteText).Text = label;
         }
     }
 }

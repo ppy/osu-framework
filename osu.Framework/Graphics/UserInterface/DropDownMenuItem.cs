@@ -60,8 +60,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundColourSelected => Color4.SlateGray;
         protected virtual Color4 BackgroundColourHover => Color4.DarkGray;
         protected Container Foreground;
-        protected Container Label;
-        protected Container Caret;
+        protected Drawable Label;
+        protected Drawable Caret;
         protected virtual float CaretSpacing => 15;
 
         public DropDownMenuItem(string text, T value)
