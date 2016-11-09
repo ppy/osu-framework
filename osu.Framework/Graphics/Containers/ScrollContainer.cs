@@ -95,6 +95,14 @@ namespace osu.Framework.Graphics.Containers
         /// The current scroll position.
         /// </summary>
         private float current;
+        
+        public float Scroll
+        {
+            get { return current; }
+            set { ScrollTo(value); }
+        }
+
+        public Action<float> Scrolled;
 
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
@@ -215,6 +223,7 @@ namespace osu.Framework.Graphics.Containers
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
             target = value;
+            Scrolled?.Invoke(target);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
@@ -226,6 +235,11 @@ namespace osu.Framework.Graphics.Containers
         {
             Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
             scrollTo(clamp(pos.Y), true, DistanceDecayJump);
+        }
+
+        public float GetChildY(Drawable d)
+        {
+            return d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
         }
 
         private void updateSize()
