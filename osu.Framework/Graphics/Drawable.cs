@@ -660,7 +660,7 @@ namespace osu.Framework.Graphics
         /// <param name="input">A vector in local coordinates.</param>
         /// <param name="other">The drawable in which space we want to transform the vector to.</param>
         /// <returns>The vector in other's coordinates.</returns>
-        public Vector2 ToSpaceOfOtherDrawable(Vector2 input, Drawable other)
+        public Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other)
         {
             if (other == this)
                 return input;
@@ -693,7 +693,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in screen coordinates.</returns>
-        public Vector2 ToScreenSpace(Vector2 input, Drawable other)
+        public Vector2 ToScreenSpace(Vector2 input)
         {
             return input * DrawInfo.Matrix;
         }
