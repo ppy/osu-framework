@@ -238,6 +238,28 @@ namespace osu.Framework.Graphics.Primitives
 
         public float Area => Width * Height;
 
+        public RectangleF WithPositiveExtent
+        {
+            get
+            {
+                RectangleF result = this;
+
+                if (result.Width < 0)
+                {
+                    result.Width = -result.Width;
+                    result.X -= result.Width;
+                }
+
+                if (Height < 0)
+                {
+                    result.Height = -result.Height;
+                    result.Y -= result.Height;
+                }
+
+                return result;
+            }
+        }
+
         public RectangleF Inflate(float amount) => Inflate(new Vector2(amount, amount));
 
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });

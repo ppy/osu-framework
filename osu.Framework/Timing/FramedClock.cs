@@ -24,6 +24,8 @@ namespace osu.Framework.Timing
             Source = source;
         }
 
+        public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
+
         public double AverageFrameTime { get; private set; }
 
         public double FramesPerSecond { get; private set; }

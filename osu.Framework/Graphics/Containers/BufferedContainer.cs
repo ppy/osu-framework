@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
-        protected override DrawInfo DrawInfo
+        public override DrawInfo DrawInfo
         {
             get
             {

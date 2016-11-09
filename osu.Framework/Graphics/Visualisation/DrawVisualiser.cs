@@ -90,8 +90,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable targetVD;
 
-        private Drawable target;
-        public Drawable Target
+        private IDrawable target;
+        public IDrawable Target
         {
             get { return target; }
             set
@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 if (target != null)
                 {
-                    targetVD = new VisualisedDrawable(target);
+                    targetVD = new VisualisedDrawable(target as Drawable);
                     treeContainer.Add(targetVD);
                 }
             }
@@ -120,7 +120,7 @@ namespace osu.Framework.Graphics.Visualisation
             visualise(Target, targetVD);
         }
 
-        private void visualise(Drawable d, VisualisedDrawable vis)
+        private void visualise(IDrawable d, VisualisedDrawable vis)
         {
             if (d == this) return;
 
@@ -173,7 +173,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(InputState state)
         {
-            return findTargetIn(Parent?.Parent?.Parent, state);
+            return findTargetIn(Parent?.Parent?.Parent as Drawable, state);
         }
 
         protected override bool OnClick(InputState state)

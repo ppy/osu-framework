@@ -164,8 +164,8 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             StartValue = 0.5f,
                             EndValue = 0.2f,
-                            StartTime = Time,
-                            EndTime = Time + 500,
+                            StartTime = Time.Current,
+                            EndTime = Time.Current + 500,
                             Easing = EasingTypes.InOutSine,
                             LoopCount = -1,
                         });

@@ -29,7 +29,7 @@ namespace SampleGame
         protected override void Update()
         {
             base.Update();
-            box.Rotation += (float)Clock.ElapsedFrameTime / 10;
+            box.Rotation += (float)Time.Elapsed / 10;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace osu.Framework.GameModes.Testing
         }
 
         private Container leftContainer;
-        private Container leftFlowContainer;
+        private Container<Drawable> leftFlowContainer;
         private Container leftScrollContainer;
         private TestCase loadedTest;
         private Container testContainer;
@@ -96,6 +96,11 @@ namespace osu.Framework.GameModes.Testing
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
                 addTest(testCase);
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }

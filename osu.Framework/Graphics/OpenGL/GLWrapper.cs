@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.OpenGL
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
-                LinearBlendRange = 1,
+                BlendRange = 1,
             }, true);
         }
 
@@ -376,7 +376,7 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
 
-            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness);
+            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
 
             Color4 linearBorderColour = maskingInfo.BorderColour.toLinear();
             Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
@@ -385,7 +385,7 @@ namespace osu.Framework.Graphics.OpenGL
                 linearBorderColour.B,
                 linearBorderColour.A));
 
-            Shader.SetGlobalProperty(@"g_LinearBlendRange", maskingInfo.LinearBlendRange);
+            Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -606,7 +606,7 @@ namespace osu.Framework.Graphics.OpenGL
         public float BorderThickness;
         public Color4 BorderColour;
 
-        public float LinearBlendRange;
+        public float BlendRange;
 
         public bool Equals(MaskingInfo other)
         {
@@ -617,7 +617,7 @@ namespace osu.Framework.Graphics.OpenGL
                 CornerRadius == other.CornerRadius &&
                 BorderThickness == other.BorderThickness &&
                 BorderColour.Equals(other.BorderColour) &&
-                LinearBlendRange == other.LinearBlendRange;
+                BlendRange == other.BlendRange;
         }
     }
 }

@@ -221,7 +221,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Container content;
 
-            protected override Container Content => content;
+            protected override Container<Drawable> Content => content;
 
             public PaddedBox(Color4 colour)
             {

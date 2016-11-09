@@ -22,7 +22,7 @@ namespace osu.Framework.GameModes
 
         protected BaseGame Game;
 
-        protected override Container Content => content;
+        protected override Container<Drawable> Content => content;
 
         public event Action<GameMode> ModePushed;
 

@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics
                 if (t.EndTime > maxTime)
                     maxTime = t.EndTime;
 
-            double offset = Time - maxTime - 1;
+            double offset = Time.Current - maxTime - 1;
             foreach (ITransform t in operateTransforms)
             {
                 t.Shift(offset);
@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics
         public void Expire(bool calculateLifetimeStart = false)
         {
             //expiry should happen either at the end of the last transformation or using the current sequence delay (whichever is highest).
-            double max = Time + transformationDelay;
+            double max = Time.Current + transformationDelay;
             foreach (ITransform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
@@ -134,8 +134,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             TransformAlpha tr = new TransformAlpha
             {
@@ -161,8 +160,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             TransformAlpha tr = new TransformAlpha
             {
@@ -189,8 +187,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -250,8 +247,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -321,8 +317,7 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             Transforms.Add(new TransformColour
             {
@@ -341,8 +336,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            Debug.Assert(Parent != null);
-            double startTime = Time + transformationDelay;
+            double startTime = Time.Current + transformationDelay;
 
             Transforms.Add(new TransformColour
             {

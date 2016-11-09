@@ -47,8 +47,7 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         bool? Forward { get; }
 
-        bool? WheelUp { get; }
-        bool? WheelDown { get; }
+        int? WheelDiff { get; }
 
 
         /// <summary>

@@ -18,6 +18,14 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool WrapTexture = false;
 
+        public const int MAX_EDGE_SMOOTHNESS = 2;
+
+        /// <summary>
+        /// Determines over how many pixels of width the border of the sprite is smoothed
+        /// in X and Y direction respectively.
+        /// </summary>
+        public Vector2 EdgeSmoothness = Vector2.Zero;
+
         public bool CanDisposeTexture { get; protected set; }
 
         #region Disposal
@@ -42,11 +50,13 @@ namespace osu.Framework.Graphics.Sprites
             SpriteDrawNode n = node as SpriteDrawNode;
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.DrawRectangle = DrawRectangle;
             n.Texture = Texture;
             n.WrapTexture = WrapTexture;
 
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
+            n.InflationAmount = inflationAmount;
 
             base.ApplyDrawNode(node);
         }
@@ -88,6 +98,28 @@ namespace osu.Framework.Graphics.Sprites
 
                 if (Size == Vector2.Zero)
                     Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
+            }
+        }
+
+        private Vector2 inflationAmount;
+        protected override Quad ComputeScreenSpaceDrawQuad()
+        {
+            if (EdgeSmoothness == Vector2.Zero)
+            {
+                inflationAmount = Vector2.Zero;
+                return base.ComputeScreenSpaceDrawQuad();
+            }
+            else
+            {
+                Debug.Assert(
+                    EdgeSmoothness.X <= MAX_EDGE_SMOOTHNESS &&
+                    EdgeSmoothness.Y <= MAX_EDGE_SMOOTHNESS,
+                    $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
+
+                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+                
+                inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
+                return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
             }
         }
 

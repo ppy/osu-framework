@@ -186,7 +186,7 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            Container currentContainer = current as Container;
+            IContainer<Drawable> currentContainer = current as IContainer<Drawable>;
 
             if (currentContainer != null)
             {
@@ -330,8 +330,9 @@ namespace osu.Framework.Input
                     }
                 }
 
-                mouse.WheelUp |= ch.WheelUp ?? false;
-                mouse.WheelDown |= ch.WheelDown ?? false;
+                mouse.WheelUp |= ch.WheelDiff.HasValue && ch.WheelDiff.Value > 0;
+                mouse.WheelDown |= ch.WheelDiff.HasValue && ch.WheelDiff.Value < 0;
+                mouse.WheelDiff += ch.WheelDiff ?? 0;
             }
 
             if (currentCursorHandler != null)
@@ -357,7 +358,7 @@ namespace osu.Framework.Input
             if (!keyboard.Keys.Any())
                 keyboardRepeatTime = 0;
             else
-                keyboardRepeatTime -= (Clock as FramedClock)?.ElapsedFrameTime ?? 0;
+                keyboardRepeatTime -= Time.Elapsed;
 
             if (keyboard.LastState != null)
             {
@@ -374,7 +375,7 @@ namespace osu.Framework.Input
                                       || k == Key.LShift || k == Key.RShift
                                       || k == Key.LWin || k == Key.RWin;
 
-                    LastActionTime = Time;
+                    LastActionTime = Time.Current;
 
                     bool isRepetition = keyboard.LastState.Keys.Contains(k);
 
@@ -428,11 +429,8 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelUp)
-                handleWheelUp(state);
-
-            if (mouse.WheelDown)
-                handleWheelDown(state);
+            if (mouse.WheelUp || mouse.WheelDown)
+                handleWheel(state);
 
             if (mouse.HasMainButtonPressed)
             {
@@ -440,10 +438,10 @@ namespace osu.Framework.Input
                 {
                     //stuff which only happens once after the mousedown state
                     mouse.PositionMouseDown = state.Mouse.Position;
-                    LastActionTime = Time;
+                    LastActionTime = Time.Current;
                     isValidClick = true;
 
-                    if (Time - lastClickTime < double_click_time)
+                    if (Time.Current - lastClickTime < double_click_time)
                     {
                         if (handleMouseDoubleClick(state))
                             //when we handle a double-click we want to block a normal click from firing.
@@ -452,7 +450,7 @@ namespace osu.Framework.Input
                         lastClickTime = 0;
                     }
 
-                    lastClickTime = Time;
+                    lastClickTime = Time.Current;
                 }
 
                 if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
@@ -547,14 +545,9 @@ namespace osu.Framework.Input
             return result;
         }
 
-        private bool handleWheelUp(InputState state)
+        private bool handleWheel(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerWheelUp(state));
-        }
-
-        private bool handleWheelDown(InputState state)
-        {
-            return mouseInputQueue.Any(target => target.TriggerWheelDown(state));
+            return mouseInputQueue.Any(target => target.TriggerWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)

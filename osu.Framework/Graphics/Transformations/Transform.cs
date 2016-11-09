@@ -23,11 +23,11 @@ namespace osu.Framework.Graphics.Transformations
 
         public double Duration => EndTime - StartTime;
 
-        protected double? CurrentTime;
+        protected FrameTimeInfo? Time;
 
-        public void UpdateTime(double time)
+        public void UpdateTime(FrameTimeInfo time)
         {
-            CurrentTime = time;
+            Time = time;
         }
 
         public bool IsAlive
@@ -35,10 +35,10 @@ namespace osu.Framework.Graphics.Transformations
             get
             {
                 //we may not have reached the start of this transform yet.
-                if (StartTime > CurrentTime)
+                if (StartTime > Time?.Current)
                     return false;
 
-                return EndTime >= CurrentTime || LoopCount != CurrentLoopCount;
+                return EndTime >= Time?.Current || LoopCount != CurrentLoopCount;
             }
         }
 
@@ -75,13 +75,13 @@ namespace osu.Framework.Graphics.Transformations
 
         public bool LoadRequired => false;
 
-        public bool RemoveWhenNotAlive => CurrentTime > EndTime;
+        public bool RemoveWhenNotAlive => Time?.Current > EndTime;
 
         public bool IsLoaded => true;
 
         public virtual void Apply(Drawable d)
         {
-            if (CurrentTime > EndTime && LoopCount != CurrentLoopCount)
+            if (Time?.Current > EndTime && LoopCount != CurrentLoopCount)
             {
                 CurrentLoopCount++;
                 double duration = Duration;

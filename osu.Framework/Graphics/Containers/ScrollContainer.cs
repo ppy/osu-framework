@@ -38,11 +38,55 @@ namespace osu.Framework.Graphics.Containers
 
         private float displayableContent => ChildSize.Y;
 
+        public float MouseWheelScrollDistance = 80;
+
+        /// <summary>
+        /// This limits how far out of clamping bounds we allow the target position to be at most.
+        /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
+        /// with high velocity.
+        /// </summary>
+        private const float CLAMP_EXTENSION = 500;
+
+        /// <summary>
+        /// This corresponds to the clamping force. A larger value means more aggressive clamping.
+        /// </summary>
+        private const double DISTANCE_DECAY_CLAMPING = 0.012;
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached after ending a drag.
+        /// </summary>
+        public double DistanceDecayDrag = 0.0035;
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached after using the mouse wheel.
+        /// </summary>
+        public double DistanceDecayWheel = 0.01;
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached after jumping to a specific location.
+        /// </summary>
+        public double DistanceDecayJump = 0.01;
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached. It is automatically set after
+        /// dragging or using the mouse wheel.
+        /// </summary>
+        private double distanceDecay;
+
+        /// <summary>
+        /// The current scroll position.
+        /// </summary>
         private float current;
 
-        private float currentClamped => MathHelper.Clamp(current, 0, availableContent - displayableContent);
+        /// <summary>
+        /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
+        /// </summary>
+        private float target;
 
-        protected override Container Content => content;
+        private float scrollableExtent => (float)Math.Max(availableContent - displayableContent, 0);
+        private float clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
+
+        protected override Container<Drawable> Content => content;
 
         private bool isDragging;
 
@@ -76,80 +120,93 @@ namespace osu.Framework.Graphics.Containers
 
             availableContent = content.DrawSize.Y;
             updateSize();
-            if (!isDragging)
-                offset(0);
 
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
         }
 
-        protected override bool OnDragStart(InputState state) => isDragging = true;
+        protected override bool OnDragStart(InputState state)
+        {
+            lastDragTime = Time.Current;
+            isDragging = true;
+            return true;
+        }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            offset(0, false, false);
+            // Continue from where we currently are scrolled to.
+            target = current;
             return base.OnMouseDown(state, args);
         }
 
+        // We keep track of this because input events may happen at different intervals than update frames
+        // and we are interested in the time difference between drag _input_ events.
+        private double lastDragTime;
+        private double lastDragTimeDelta;
+
         protected override bool OnDrag(InputState state)
         {
+            lastDragTimeDelta = Time.Current - lastDragTime;
+            lastDragTime = Time.Current;
+
             Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
-            offset(-childDelta.Y, false, false);
+
+            // If we are dragging past the extent of the scrollable area, half the offset
+            // such that the user can feel it.
+            if (target != clamp(target))
+                childDelta /= 2;
+
+            offset(-childDelta.Y, false);
             return base.OnDrag(state);
         }
 
         protected override bool OnDragEnd(InputState state)
         {
-            //forces a clamped state to return to correct location.
-            offset(-state.Mouse.Delta.Y * 10);
+            if (lastDragTimeDelta <= 0.0)
+                return base.OnDragEnd(state);
+
+            // Solve exponential for distance, given delta and elapsed time during delta.
+            double distance = -state.Mouse.Delta.Y / (1 - Math.Exp(-DistanceDecayDrag * lastDragTimeDelta));
+            offset((float)distance, true, DistanceDecayDrag);
 
             isDragging = false;
 
             return base.OnDragEnd(state);
         }
 
-        protected override bool OnWheelDown(InputState state)
+        protected override bool OnWheel(InputState state)
         {
-            offset(Math.Max(-content.DrawPosition.Y - currentClamped, 0) * 1.5f + 80);
-            return true;
-        }
-
-        protected override bool OnWheelUp(InputState state)
-        {
-            offset(Math.Min(currentClamped - content.DrawPosition.Y, 0) * 1.5f - 80);
+            offset(-MouseWheelScrollDistance * state.Mouse.WheelDiff, true, DistanceDecayWheel);
             return true;
         }
 
         private void onScrollbarMovement(float value)
         {
-            offset(value / scrollbar.Size.Y, true, false);
+            scrollTo(clamp(value / scrollbar.Size.Y), false);
         }
 
-        private void offset(float value, bool clamp = true, bool animated = true)
+        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            scrollTo(current + value, clamp, animated);
+            scrollTo(target + value, animated, distanceDecay);
         }
 
         public void ScrollTo(float value)
         {
-            scrollTo(value);
+            scrollTo(value, true, DistanceDecayJump);
         }
 
-        private void scrollTo(float value, bool clamp = true, bool animated = true)
+        private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
-            current = value;
+            target = value;
 
-            if (clamp && current != currentClamped)
-            {
-                updateScroll(false);
-                current = currentClamped;
-            }
-
-            updateScroll(animated);
+            if (animated)
+                this.distanceDecay = distanceDecay;
+            else
+                current = target;
         }
         
         public void ScrollIntoView(Drawable d)
         {
-            scrollTo(d.Position.Y);
+            scrollTo(d.Position.Y, true, DistanceDecayJump);
         }
 
         private void updateSize()
@@ -157,12 +214,49 @@ namespace osu.Framework.Graphics.Containers
             scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
         }
 
-        private void updateScroll(bool animated = true)
+        private void updatePosition()
         {
-            float adjusted = (current + currentClamped) / 2;
+            double localDistanceDecay = distanceDecay;
 
-            scrollbar?.MoveToY(adjusted * scrollbar.Size.Y, animated ? 800 : 0, EasingTypes.OutExpo);
-            content.MoveToY(-adjusted, animated ? 800 : 0, EasingTypes.OutExpo);
+            // If we are not currently dragging the content, and we have scrolled out of bounds,
+            // then we should handle the clamping force. Note, that if the target is _within_
+            // acceptable bounds, then we do not need special handling of the clamping force, as
+            // we will naturally scroll back into acceptable bounds.
+            if (!isDragging && current != clamp(current) && target != clamp(target, -0.01f))
+            {
+                // Firstly, we want to limit how far out the target may go to limit overly bouncy
+                // behaviour with extreme scroll velocities.
+                target = clamp(target, CLAMP_EXTENSION);
+
+                // Secondly, we would like to quickly approach the target while we are out of bounds.
+                // This is simulating a "strong" clamping force towards the target.
+                if ((current < target && target < 0) || (current > target && target > scrollableExtent))
+                    localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
+
+                // Lastly, we gradually nudge the target towards valid bounds.
+                target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Time.Elapsed));
+
+                float clampedTarget = clamp(target);
+                if (Precision.AlmostEquals(clampedTarget, target))
+                    target = clampedTarget;
+            }
+
+            // Exponential interpolation between the target and our current scroll position.
+            current = (float)Interpolation.Lerp(target, current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+
+            // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
+            if (Precision.AlmostEquals(current, target))
+                current = target;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            updatePosition();
+
+            scrollbar?.MoveToY(current * scrollbar.Size.Y);
+            content.MoveToY(-current);
         }
 
         private class ScrollBar : Container
@@ -173,6 +267,8 @@ namespace osu.Framework.Graphics.Containers
             private Color4 defaultColour = Color4.LightGray;
             private Color4 highlightColour = Color4.GreenYellow;
             private Box box;
+
+            private float dragOffset;
 
             public ScrollBar()
             {
@@ -205,7 +301,11 @@ namespace osu.Framework.Graphics.Containers
                 FadeColour(defaultColour, 100);
             }
 
-            protected override bool OnDragStart(InputState state) => true;
+            protected override bool OnDragStart(InputState state)
+            {
+                dragOffset = state.Mouse.Position.Y - Position.Y;
+                return true;
+            }
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
@@ -223,7 +323,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                Dragged?.Invoke(state.Mouse.Delta.Y);
+                Dragged?.Invoke(state.Mouse.Position.Y - dragOffset);
                 return true;
             }
         }

@@ -53,7 +53,7 @@ namespace osu.Framework
 
         private LogOverlay LogOverlay;
 
-        protected override Container Content => content;
+        protected override Container<Drawable> Content => content;
 
         public BaseGame()
         {

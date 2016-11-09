@@ -25,7 +25,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics
 {
-    public abstract partial class Drawable : IDisposable, IHasLifetime
+    public abstract partial class Drawable : IDisposable, IHasLifetime, IDrawable
     {
         public event Action OnUpdate;
 
@@ -258,12 +258,7 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidation i = Invalidation.Colour;
-                //we may have changed the visible state.
-                if (alpha <= visibility_cutoff || value <= visibility_cutoff)
-                    i |= Invalidation.Visibility;
-
-                Invalidate(i);
+                Invalidate(Invalidation.Colour);
 
                 alpha = value;
             }
@@ -373,27 +368,11 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
+        protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
+
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
-            : screenSpaceDrawQuadBacking.Refresh(delegate
-            {
-                Quad result = ToScreenSpace(DrawRectangle);
-
-                //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
-                //{
-                //    Vector2 adjust = new Vector2(
-                //        (float)Math.Round(result.TopLeft.X) - result.TopLeft.X,
-                //        (float)Math.Round(result.TopLeft.Y) - result.TopLeft.Y
-                //        );
-
-                //    result.TopLeft += adjust;
-                //    result.TopRight += adjust;
-                //    result.BottomLeft += adjust;
-                //    result.BottomRight += adjust;
-                //}
-
-                return result;
-            });
+            : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
 
         private Anchor origin = Anchor.TopLeft;
 
@@ -419,16 +398,28 @@ namespace osu.Framework.Graphics
 
         //todo: remove recursive lookup of clock
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
-        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
+        protected virtual IFrameBasedClock Clock => null;
 
-        private double time;
+        private FrameTimeInfo? time;
 
-        protected double Time => Clock?.CurrentTime ?? time;
+        public FrameTimeInfo Time
+        {
+            get
+            {
+                if (Clock != null)
+                    return Clock.TimeInfo;
+
+                if (!time.HasValue)
+                    time = Parent?.Time;
+
+                Debug.Assert(time.HasValue);
+                return time.HasValue ? time.Value : new FrameTimeInfo();
+            }
+        }
 
         const float visibility_cutoff = 0.0001f;
 
-        private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        public virtual bool IsVisible => Alpha > visibility_cutoff;
         public bool IsMaskedAway = false;
 
         private BlendingMode blendingMode;
@@ -450,7 +441,7 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null);
 
@@ -478,7 +469,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Container Parent { get; set; }
+        public IContainer Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
@@ -493,7 +484,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = Parent;
+            IDrawable currentParent = Parent;
             while (currentParent != null)
             {
                 if (currentParent == parent)
@@ -515,7 +506,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = child.Parent;
+            IContainer currentParent = child.Parent;
             while (currentParent != null)
             {
                 if (currentParent == this)
@@ -647,7 +638,7 @@ namespace osu.Framework.Graphics
             updateTransforms();
 
             if (!IsVisible)
-                return false;
+                return true;
 
             Update();
             OnUpdate?.Invoke();
@@ -698,13 +689,12 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        internal void ChangeParent(Container parent)
+        internal void ChangeParent(IContainer parent)
         {
-            if (Parent != parent)
-            {
-                Parent?.Remove(this, false);
-                Parent = parent;
-            }
+            if (parent == Parent) return;
+
+            Debug.Assert(Parent == null);
+            Parent = parent;
         }
 
         /// <summary>
@@ -717,7 +707,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
-        public void UpdateTime(double time)
+        public void UpdateTime(FrameTimeInfo time)
         {
             this.time = time;
         }
@@ -735,14 +725,14 @@ namespace osu.Framework.Graphics
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return Time >= LifetimeStart && Time < LifetimeEnd;
+                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
             }
         }
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
-        public virtual bool RemoveWhenNotAlive => Parent == null || Time > LifetimeStart;
+        public virtual bool RemoveWhenNotAlive => Parent == null || Time.Current > LifetimeStart;
 
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
@@ -797,7 +787,7 @@ namespace osu.Framework.Graphics
 
             scheduler?.SetCurrentThread(mainThread);
 
-            LifetimeStart = Time;
+            LifetimeStart = Time.Current;
             Invalidate();
             LoadState = LoadState.Alive;
             LoadComplete();
@@ -873,9 +863,6 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
-
-            if ((invalidation & Invalidation.Visibility) > 0)
-                alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidationCounter.Increment();
@@ -968,14 +955,13 @@ namespace osu.Framework.Graphics
         // Individual types
         Position = 1 << 0,
         SizeInParentSpace = 1 << 1,
-        Visibility = 1 << 2,
-        Colour = 1 << 3,
-        DrawNode = 1 << 4,
+        Colour = 1 << 2,
+        DrawNode = 1 << 3,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = DrawNode | Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Colour,
     }
 
     /// <summary>

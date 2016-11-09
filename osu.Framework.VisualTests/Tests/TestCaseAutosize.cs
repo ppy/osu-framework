@@ -279,7 +279,7 @@ namespace osu.Framework.VisualTests.Tests
                     break;
                 case 6:
                     Container shrinkContainer;
-                    Container boxes;
+                    Container<Drawable> boxes;
 
                     testContainer.Add(shrinkContainer = new Container
                     {
@@ -713,9 +713,9 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override void Update()
         {
-            if (chameleon && (int)Time / 1000 != lastSwitch)
+            if (chameleon && (int)Time.Current / 1000 != lastSwitch)
             {
-                lastSwitch = (int)Time / 1000;
+                lastSwitch = (int)Time.Current / 1000;
                 switch (lastSwitch % 6)
                 {
                     case 0:
