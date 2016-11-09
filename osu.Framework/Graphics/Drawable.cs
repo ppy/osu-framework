@@ -655,13 +655,27 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the vector to.</param>
+        /// <returns>The vector in other's coordinates.</returns>
+        public Vector2 ToSpaceOfOtherDrawable(Vector2 input, Drawable other)
+        {
+            if (other == this)
+                return input;
+
+            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        protected Vector2 ToParentSpace(Vector2 input)
+        public Vector2 ToParentSpace(Vector2 input)
         {
-            return (input * DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse;
+            return ToSpaceOfOtherDrawable(input, Parent);
         }
 
         /// <summary>
@@ -669,9 +683,19 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        protected Quad ToParentSpace(RectangleF input)
+        public Quad ToParentSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <returns>The vector in screen coordinates.</returns>
+        public Vector2 ToScreenSpace(Vector2 input, Drawable other)
+        {
+            return input * DrawInfo.Matrix;
         }
 
         /// <summary>
@@ -679,7 +703,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        protected Quad ToScreenSpace(RectangleF input)
+        public Quad ToScreenSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
