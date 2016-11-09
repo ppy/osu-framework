@@ -41,9 +41,10 @@ namespace osu.Framework.Configuration
 
         public override bool Parse(object s)
         {
-            if (s == null) return false;
+            string str = s as string;
+            if (str == null) return false;
 
-            Value = double.Parse((string)s, NumberFormatInfo.InvariantInfo);
+            Value = double.Parse(str, NumberFormatInfo.InvariantInfo);
             return true;
         }
     }

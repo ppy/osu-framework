@@ -12,11 +12,13 @@ namespace osu.Framework.Configuration
 
         public static implicit operator bool(BindableBool value) => value != null && value.Value;
 
-        public override string ToString() => Value ? @"true" : @"false";
+        public override string ToString() => Value.ToString();
 
         public override bool Parse(object s)
         {
             string str = s as string;
+            if (str == null) return false;
+
             Value = str == @"1" || str == @"true";
             return true;
         }

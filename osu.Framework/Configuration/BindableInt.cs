@@ -26,8 +26,10 @@ namespace osu.Framework.Configuration
 
         public override bool Parse(object s)
         {
-            if (s == null) return false;
-            Value = int.Parse((string)s, NumberFormatInfo.InvariantInfo);
+            string str = s as string;
+            if (str == null) return false;
+
+            Value = int.Parse(str, NumberFormatInfo.InvariantInfo);
             return true;
         }
 
