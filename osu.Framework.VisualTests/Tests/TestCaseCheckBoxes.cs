@@ -17,6 +17,7 @@ namespace osu.Framework.VisualTests.Tests
         public override string Description => @"CheckBoxes with clickable labels";
 
         private CheckBox basicCheckBox;
+        private CheckBox fadeDurationCheckBox;
         private CheckBox actionsCheckBox;
 
         public override void Reset()
@@ -38,6 +39,11 @@ namespace osu.Framework.VisualTests.Tests
                         basicCheckBox = new BasicCheckBox
                         {
                             LabelText = @"Basic Test"
+                        },
+                        fadeDurationCheckBox = new BasicCheckBox
+                        {
+                            LabelText = @"FadeDuration Test",
+                            FadeDuration = 300
                         },
                         actionsCheckBox = new ActionsTestCheckBox
                         {

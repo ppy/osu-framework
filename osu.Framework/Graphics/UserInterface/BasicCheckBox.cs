@@ -12,6 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public Color4 CheckedColor { get; set; } = Color4.Cyan;
         public Color4 UncheckedColor { get; set; } = Color4.White;
+        public int FadeDuration { get; set; }
 
         public string LabelText
         {
@@ -55,8 +56,8 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override void OnUnchecked() => box.Colour = UncheckedColor;
+        protected override void OnUnchecked() => box.FadeColour(UncheckedColor, FadeDuration);
 
-        protected override void OnChecked() => box.Colour = CheckedColor;
+        protected override void OnChecked() => box.FadeColour(CheckedColor, FadeDuration);
     }
 }
