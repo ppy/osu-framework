@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -50,7 +51,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo() { TopLeft = Color4.White, BottomLeft = Color4.Blue, TopRight = Color4.Red, BottomRight = Color4.Green },
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.Blue.ToLinear(),
+                                            TopRight = Color4.Red.ToLinear(),
+                                            BottomRight = Color4.Green.ToLinear(),
+                                        },
                                     }
                                 }
                             },
@@ -62,7 +69,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "White to black",
+                                        Text = "White to black (linear brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[1] = new Box
@@ -72,7 +79,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo() { TopLeft = Color4.White, BottomLeft = Color4.White, TopRight = Color4.Black, BottomRight = Color4.Black },
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = Color4.Black,
+                                            BottomRight = Color4.Black,
+                                        },
                                     }
                                 }
                             },
@@ -84,7 +97,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "White to transparent white",
+                                        Text = "White to transparent white (sRGB brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[2] = new Box
@@ -94,7 +107,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo() { TopLeft = Color4.White, BottomLeft = Color4.White, TopRight = Color4.Transparent, BottomRight = Color4.Transparent },
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = Color4.Transparent,
+                                            BottomRight = Color4.Transparent,
+                                        },
                                     }
                                 }
                             },
@@ -106,7 +125,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "White to transparent black",
+                                        Text = "White to transparent black (mixed brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[3] = new Box
@@ -116,7 +135,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo() { TopLeft = Color4.White, BottomLeft = Color4.White, TopRight = transparentBlack, BottomRight = transparentBlack },
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = transparentBlack,
+                                            BottomRight = transparentBlack,
+                                        },
                                     }
                                 }
                             },

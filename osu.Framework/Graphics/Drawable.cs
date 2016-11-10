@@ -22,6 +22,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -216,7 +217,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Color4 Colour
+        public Color4 ColourLinear
         {
             get
             {
@@ -233,6 +234,12 @@ namespace osu.Framework.Graphics
 
                 Invalidate(Invalidation.Colour);
             }
+        }
+
+        public Color4 Colour
+        {
+            get { return ColourLinear.ToSRGB(); }
+            set { ColourLinear = value.ToLinear(); }
         }
 
         private Anchor anchor = Anchor.TopLeft;

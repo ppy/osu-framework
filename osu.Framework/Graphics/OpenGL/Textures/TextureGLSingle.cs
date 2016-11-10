@@ -164,25 +164,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
-                Colour = drawColour.BottomLeft.ToLinear(),
+                Colour = drawColour.BottomLeft,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
-                Colour = drawColour.BottomRight.ToLinear(),
+                Colour = drawColour.BottomRight,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
-                Colour = drawColour.TopRight.ToLinear(),
+                Colour = drawColour.TopRight,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
-                Colour = drawColour.TopLeft.ToLinear(),
+                Colour = drawColour.TopLeft,
             });
 
             FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);

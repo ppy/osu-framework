@@ -12,6 +12,7 @@ using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -71,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
 
             Shader.Bind();
 
-            ColourInfo colour = new ColourInfo(EdgeEffect.Colour);
+            ColourInfo colour = new ColourInfo(EdgeEffect.Colour.ToLinear());
             colour.TopLeft.A *= DrawInfo.Colour.TopLeft.A;
             colour.BottomLeft.A *= DrawInfo.Colour.BottomLeft.A;
             colour.TopRight.A *= DrawInfo.Colour.TopRight.A;

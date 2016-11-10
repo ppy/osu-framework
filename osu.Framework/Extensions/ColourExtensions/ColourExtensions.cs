@@ -44,5 +44,19 @@ namespace osu.Framework.Extensions.ColourExtensions
                 first.B * second.B,
                 first.A * second.A).ToSRGB();
         }
+
+        public static Color4 Multiply(Color4 first, Color4 second)
+        {
+            if (first.Equals(Color4.White))
+                return second;
+            else if (second.Equals(Color4.White))
+                return first;
+
+            return new Color4(
+                first.R * second.R,
+                first.G * second.G,
+                first.B * second.B,
+                first.A * second.A);
+        }
     }
 }

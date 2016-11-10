@@ -77,13 +77,13 @@ namespace osu.Framework.Graphics.Containers
             return new InvokeOnDisposal(() => frameBuffer.Unbind());
         }
 
-        private void drawFrameBufferToBackBuffer(FrameBuffer frameBuffer, RectangleF drawRectangle)
+        private void drawFrameBufferToBackBuffer(FrameBuffer frameBuffer, RectangleF drawRectangle, ColourInfo colourInfo)
         {
             // The strange Y coordinate and Height are a result of OpenGL coordinate systems having Y grow upwards and not downwards.
             RectangleF textureRect = new RectangleF(0, frameBuffer.Texture.Height, frameBuffer.Texture.Width, -frameBuffer.Texture.Height);
             if (frameBuffer.Texture.Bind())
                 // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
-                frameBuffer.Texture.Draw(drawRectangle, textureRect, DrawInfo.Colour);
+                frameBuffer.Texture.Draw(drawRectangle, textureRect, colourInfo);
         }
 
         private double evalGaussian(float x, float sigma)
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Containers
                 BlurShader.GetUniform<Vector2>(@"g_BlurDirection").Value = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
 
                 BlurShader.Bind();
-                drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height));
+                drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), new ColourInfo(Color4.White));
                 BlurShader.Unbind();
             }
         }
@@ -203,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.SetBlend(DrawInfo.Blending);
 
             Shader.Bind();
-            drawFrameBufferToBackBuffer(FrameBuffers[0], ScreenSpaceDrawRectangle);
+            drawFrameBufferToBackBuffer(FrameBuffers[0], ScreenSpaceDrawRectangle, DrawInfo.Colour);
             Shader.Unbind();
         }
     }

@@ -9,6 +9,10 @@ using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// ColourInfo contains information about the colours of all 4 vertices of a quad.
+    /// These colours are always stored in linear space.
+    /// </summary>
     public struct ColourInfo : IEquatable<ColourInfo>
     {
         public Color4 TopLeft;
@@ -22,32 +26,42 @@ namespace osu.Framework.Graphics
             if (colour.HasSingleColour && parent.Colour.HasSingleColour)
             {
                 HasSingleColour = true;
-                TopLeft = BottomLeft = TopRight = BottomRight = ColourExtensions.MultiplySRGB(colour.TopLeft, parent.Colour.TopLeft);
+                TopLeft = BottomLeft = TopRight = BottomRight = ColourExtensions.Multiply(colour.TopLeft, parent.Colour.TopLeft);
             }
             else if (!colour.HasSingleColour && parent.Colour.HasSingleColour)
             {
                 HasSingleColour = false;
-                TopLeft = ColourExtensions.MultiplySRGB(colour.TopLeft, parent.Colour.TopLeft);
-                BottomLeft = ColourExtensions.MultiplySRGB(colour.BottomLeft, parent.Colour.TopLeft);
-                TopRight = ColourExtensions.MultiplySRGB(colour.TopRight, parent.Colour.TopLeft);
-                BottomRight = ColourExtensions.MultiplySRGB(colour.BottomRight, parent.Colour.TopLeft);
+                TopLeft = ColourExtensions.Multiply(colour.TopLeft, parent.Colour.TopLeft);
+                BottomLeft = ColourExtensions.Multiply(colour.BottomLeft, parent.Colour.TopLeft);
+                TopRight = ColourExtensions.Multiply(colour.TopRight, parent.Colour.TopLeft);
+                BottomRight = ColourExtensions.Multiply(colour.BottomRight, parent.Colour.TopLeft);
             }
             else
             {
                 HasSingleColour = false;
-                TopLeft = ColourExtensions.MultiplySRGB(colour.TopLeft, parent.Colour.TopLeft);
-                BottomLeft = ColourExtensions.MultiplySRGB(colour.BottomLeft, parent.Colour.BottomLeft);
-                TopRight = ColourExtensions.MultiplySRGB(colour.TopRight, parent.Colour.TopRight);
-                BottomRight = ColourExtensions.MultiplySRGB(colour.BottomRight, parent.Colour.BottomRight);
+                TopLeft = ColourExtensions.Multiply(colour.TopLeft, parent.Colour.TopLeft);
+                BottomLeft = ColourExtensions.Multiply(colour.BottomLeft, parent.Colour.BottomLeft);
+                TopRight = ColourExtensions.Multiply(colour.TopRight, parent.Colour.TopRight);
+                BottomRight = ColourExtensions.Multiply(colour.BottomRight, parent.Colour.BottomRight);
             }
         }
 
+        /// <summary>
+        /// Creates a ColourInfo with a single linear colour assigned to all vertices.
+        /// </summary>
+        /// <param name="colour">The single linear colour to be assigned to all vertices.</param>
         public ColourInfo(Color4 colour)
         {
             TopLeft = BottomLeft = TopRight = BottomRight = colour;
             HasSingleColour = true;
         }
 
+        /// <summary>
+        /// Created a new ColourInfo with the alpha value of the colours of all vertices 
+        /// multiplied by a given alpha parameter.
+        /// </summary>
+        /// <param name="alpha">The alpha parameter to multiply the alpha values of all vertices with.</param>
+        /// <returns>The new ColourInfo.</returns>
         public ColourInfo MultiplyAlpha(float alpha)
         {
             if (alpha == 1.0)
