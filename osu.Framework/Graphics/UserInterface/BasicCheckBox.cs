@@ -57,14 +57,6 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        [Initializer]
-        private void Load(BaseGame game)
-        {
-            checkedDrawable = CreateCheckedDrawable();
-            uncheckedDrawable = CreateUncheckedDrawable();
-            Add(uncheckedDrawable);
-        }
-
         protected override void OnUnchecked() => box.FadeColour(UncheckedColor, FadeDuration);
 
         protected override void OnChecked() => box.FadeColour(CheckedColor, FadeDuration);
