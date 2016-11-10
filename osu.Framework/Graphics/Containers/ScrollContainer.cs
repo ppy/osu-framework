@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 scrollbar.Anchor = value;
                 scrollbar.Origin = value;
+                updatePadding();
             }
         }
 
@@ -40,11 +41,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollbarOverlapsContent = value;
-
-                if (scrollbarOverlapsContent)
-                    content.Padding = new MarginPadding();
-                else
-                    content.Padding = new MarginPadding { Left = scrollbar.Width };
+                updatePadding();
             }
         }
 
@@ -140,6 +137,16 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
 
             scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
+        }
+
+        private void updatePadding()
+        {
+            if (scrollbarOverlapsContent)
+                content.Padding = new MarginPadding();
+            else
+                content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
+                    new MarginPadding { Left = scrollbar.Width } :
+                    new MarginPadding { Right = scrollbar.Width };
         }
 
         protected override bool OnDragStart(InputState state)

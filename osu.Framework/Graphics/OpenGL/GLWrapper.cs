@@ -378,7 +378,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
 
-            Color4 linearBorderColour = maskingInfo.BorderColour.toLinear();
+            Color4 linearBorderColour = maskingInfo.BorderColour.ToLinear();
             Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
                 linearBorderColour.R,
                 linearBorderColour.G,

@@ -7,19 +7,22 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSmoothedEdges : TestCase
+    class TestCaseColourGradient : TestCase
     {
-        public override string Name => @"Smoothed Edges";
-        public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
+        public override string Name => @"Colour Gradient";
+        public override string Description => @"Various cases of colour gradients.";
 
         private Box[] boxes = new Box[4];
 
         public override void Reset()
         {
             base.Reset();
+
+            Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
             Add(new Container()
             {
@@ -29,7 +32,7 @@ namespace osu.Framework.VisualTests.Tests
                     new FlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new []
+                        Children = new[]
                         {
                             new Container
                             {
@@ -39,17 +42,22 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "No smoothing",
+                                        Text = "Colours",
                                         TextSize = 20,
                                     },
                                     boxes[0] = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.Zero,
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.Blue.ToLinear(),
+                                            TopRight = Color4.Red.ToLinear(),
+                                            BottomRight = Color4.Green.ToLinear(),
+                                        },
                                     }
                                 }
                             },
@@ -61,7 +69,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "2-smoothing perpendicular to Y",
+                                        Text = "White to black (linear brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[1] = new Box
@@ -71,7 +79,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        EdgeSmoothness = new Vector2(0, 2),
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = Color4.Black,
+                                            BottomRight = Color4.Black,
+                                        },
                                     }
                                 }
                             },
@@ -83,7 +97,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "1-smoothing",
+                                        Text = "White to transparent white (sRGB brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[2] = new Box
@@ -93,7 +107,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.One,
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = Color4.Transparent,
+                                            BottomRight = Color4.Transparent,
+                                        },
                                     }
                                 }
                             },
@@ -105,7 +125,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     new SpriteText
                                     {
-                                        Text = "2-smoothing",
+                                        Text = "White to transparent black (mixed brightness gradient)",
                                         TextSize = 20,
                                     },
                                     boxes[3] = new Box
@@ -115,7 +135,13 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.One * 2,
+                                        ColourInfo = new ColourInfo()
+                                        {
+                                            TopLeft = Color4.White,
+                                            BottomLeft = Color4.White,
+                                            TopRight = transparentBlack,
+                                            BottomRight = transparentBlack,
+                                        },
                                     }
                                 }
                             },

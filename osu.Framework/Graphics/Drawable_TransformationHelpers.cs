@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Transformations;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -309,7 +310,9 @@ namespace osu.Framework.Graphics
         public void FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformColour));
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? ColourLinear;
+            newColour = newColour.ToLinear();
+
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t is TransformColour);
@@ -333,7 +336,7 @@ namespace osu.Framework.Graphics
         {
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? ColourLinear;
             Transforms.RemoveAll(t => t is TransformColour);
 
             double startTime = Time.Current + transformationDelay;
@@ -342,7 +345,7 @@ namespace osu.Framework.Graphics
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
-                StartValue = flashColour,
+                StartValue = flashColour.ToLinear(),
                 EndValue = startValue,
             });
 

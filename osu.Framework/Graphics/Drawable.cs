@@ -22,6 +22,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -200,20 +201,45 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry);
             }
         }
+        
+        private ColourInfo colourInfo = new ColourInfo(Color4.White);
 
-        private Color4 colour = Color4.White;
-
-        public Color4 Colour
+        public ColourInfo ColourInfo
         {
-            get { return colour; }
+            get { return colourInfo; }
 
             set
             {
-                if (colour == value) return;
-                colour = value;
+                if (colourInfo.Equals(value)) return;
+                colourInfo = value;
 
                 Invalidate(Invalidation.Colour);
             }
+        }
+
+        public Color4 ColourLinear
+        {
+            get
+            {
+                Debug.Assert(colourInfo.HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
+                return colourInfo.TopLeft;
+            }
+
+            set
+            {
+                if (colourInfo.HasSingleColour && colourInfo.TopLeft == value) return;
+
+                colourInfo.TopLeft = value;
+                colourInfo.HasSingleColour = true;
+
+                Invalidate(Invalidation.Colour);
+            }
+        }
+
+        public Color4 Colour
+        {
+            get { return ColourLinear.ToSRGB(); }
+            set { ColourLinear = value.ToLinear(); }
         }
 
         private Anchor anchor = Anchor.TopLeft;
@@ -444,12 +470,7 @@ namespace osu.Framework.Graphics
         public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null);
-
-                float alpha = Alpha;
-                if (Colour.A > 0 && Colour.A < 1)
-                    alpha *= Colour.A;
-
-                Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+                ColourInfo colour = ColourInfo.MultiplyAlpha(alpha);
 
                 if (Parent == null)
                     di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
