@@ -13,14 +13,14 @@ namespace osu.Framework.Graphics
     {
         public Matrix3 Matrix;
         public Matrix3 MatrixInverse;
-        public Color4 Colour;
+        public ColourInfo Colour;
         public BlendingInfo Blending;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, Color4? colour = null, BlendingInfo? blending = null)
+        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, ColourInfo? colour = null, BlendingInfo? blending = null)
         {
             Matrix = matrix ?? Matrix3.Identity;
             MatrixInverse = matrixInverse ?? Matrix3.Identity;
-            Colour = colour ?? Color4.White;
+            Colour = colour ?? new ColourInfo(Color4.White);
             Blending = blending ?? new BlendingInfo();
         }
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics
         /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
-        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
+        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, ColourInfo? colour = null, BlendingInfo? blending = null)
         {
             target.Matrix = Matrix;
             target.MatrixInverse = MatrixInverse;
@@ -79,39 +79,16 @@ namespace osu.Framework.Graphics
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
 
             if (colour != null)
-            {
-                Color4 targetLinear = colour.Value.toLinear();
-                Color4 sourceLinear = Colour.toLinear();
-
-                target.Colour = new Color4(
-                    targetLinear.R * sourceLinear.R,
-                    targetLinear.G * sourceLinear.G,
-                    targetLinear.B * sourceLinear.B,
-                    targetLinear.A * sourceLinear.A).toSRGB();
-            }
+                target.Colour = new ColourInfo(ref this, colour.Value);
             else
                 target.Colour = Colour;
 
-            if (blending == null)
-                Blending.Copy(ref target.Blending);
-            else
-                blending.Value.Copy(ref target.Blending);
-        }
-
-        /// <summary>
-        /// Copies the current DrawInfo into target.
-        /// </summary>
-        /// <param name="target">The DrawInfo to be filled with the copy.</param>
-        public void Copy(ref DrawInfo target)
-        {
-            target.Matrix = Matrix;
-            target.MatrixInverse = MatrixInverse;
-            target.Colour = Colour;
+            target.Blending = blending == null ? Blending : blending.Value;
         }
 
         public bool Equals(DrawInfo other)
         {
-            return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour);
+            return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
         }
     }
 }

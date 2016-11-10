@@ -104,6 +104,7 @@
     <Compile Include="GameModes\Testing\TestBrowser.cs" />
     <Compile Include="GameModes\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
+    <Compile Include="Graphics\ColourInfo.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />

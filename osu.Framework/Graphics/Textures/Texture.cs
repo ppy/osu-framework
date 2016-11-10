@@ -192,7 +192,7 @@ namespace osu.Framework.Graphics.Textures
             return TextureGL.GetTextureRect(textureBounds(textureRect));
         }
 
-        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
+        public void Draw(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 

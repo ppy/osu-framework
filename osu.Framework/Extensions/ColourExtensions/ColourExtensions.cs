@@ -10,7 +10,7 @@ namespace osu.Framework.Extensions.ColourExtensions
     {
         public const double GAMMA = 2.2;
 
-        public static Color4 toLinear(this Color4 colour)
+        public static Color4 ToLinear(this Color4 colour)
         {
             return new Color4(
                 (float)Math.Pow(colour.R, GAMMA),
@@ -19,13 +19,30 @@ namespace osu.Framework.Extensions.ColourExtensions
                 colour.A);
         }
 
-        public static Color4 toSRGB(this Color4 colour)
+        public static Color4 ToSRGB(this Color4 colour)
         {
             return new Color4(
                 (float)Math.Pow(colour.R, 1 / GAMMA),
                 (float)Math.Pow(colour.G, 1 / GAMMA),
                 (float)Math.Pow(colour.B, 1 / GAMMA),
                 colour.A);
+        }
+
+        public static Color4 MultiplySRGB(Color4 first, Color4 second)
+        {
+            if (first.Equals(Color4.White))
+                return second;
+            else if (second.Equals(Color4.White))
+                return first;
+
+            first = first.ToLinear();
+            second = second.ToLinear();
+
+            return new Color4(
+                first.R * second.R,
+                first.G * second.G,
+                first.B * second.B,
+                first.A * second.A).ToSRGB();
         }
     }
 }

@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
         {
             Debug.Assert(!isDisposed);
 
@@ -159,31 +159,30 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(512, 128);
                 spriteBatch = TextureGLSingle.spriteBatch;
             }
-
-            Color4 linearColour = drawColour.toLinear();
+            
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
-                Colour = linearColour
+                Colour = drawColour.BottomLeft.ToLinear(),
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
-                Colour = linearColour
+                Colour = drawColour.BottomRight.ToLinear(),
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
-                Colour = linearColour
+                Colour = drawColour.TopRight.ToLinear(),
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
-                Colour = linearColour
+                Colour = drawColour.TopLeft.ToLinear(),
             });
 
             FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);

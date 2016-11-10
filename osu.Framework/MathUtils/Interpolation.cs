@@ -34,14 +34,14 @@ namespace osu.Framework.MathUtils
             if (duration == 0 || current == 0)
                 return startColour;
 
-            Color4 linearStart = startColour.toLinear();
-            Color4 linearEnd = endColour.toLinear();
+            Color4 linearStart = startColour.ToLinear();
+            Color4 linearEnd = endColour.ToLinear();
 
             return new Color4(
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.R, linearEnd.R - linearStart.R, duration))),
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.G, linearEnd.G - linearStart.G, duration))),
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.B, linearEnd.B - linearStart.B, duration))),
-                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.A, linearEnd.A - linearStart.A, duration)))).toSRGB();
+                (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, linearStart.A, linearEnd.A - linearStart.A, duration)))).ToSRGB();
         }
 
         public static float ValueAt(double time, float val1, float val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
