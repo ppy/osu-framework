@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -28,7 +29,10 @@ namespace osu.Framework.Allocation
         private void Register(Type type, bool lazy)
         {
             if (activators.ContainsKey(type) || cache.ContainsKey(type))
-                throw new InvalidOperationException($@"Type {type.FullName} is already registered");
+            {
+                Debug.Assert(false, $@"Type {type.FullName} should not be registered twice");
+                return;
+            }
 
             var initialize = GetLoaderMethod(type);
             var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
