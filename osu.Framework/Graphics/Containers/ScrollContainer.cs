@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics.Containers
             scrollTo(clamp(pos.Y), true, DistanceDecayJump);
         }
 
-        public float GetChildY(Drawable d)
+        public float GetChildYInContent(Drawable d)
         {
             return d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
         }
