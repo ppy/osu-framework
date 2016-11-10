@@ -468,7 +468,7 @@ namespace osu.Framework.Graphics.Containers
         private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
 
         /// <summary>
-        /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
+        /// This function adds all children's DrawNodes to a target List, flattening the children of certain types
         /// of container subtrees for optimization purposes.
         /// </summary>
         /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
@@ -486,7 +486,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsVisible)
                     continue;
 
-                // We are consciously mission out on potential flattening (due to lack of covariance)
+                // We are consciously missing out on potential flattening (due to lack of covariance)
                 // in order to be able to let this loop be over integers instead of using
                 // IContainerEnumerable<Drrawable>.AliveChildren which measures to be a _major_ slowdown.
                 Container<T> container = drawable as Container<T>;
