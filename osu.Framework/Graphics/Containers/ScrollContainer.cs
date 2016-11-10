@@ -94,7 +94,18 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The current scroll position.
         /// </summary>
-        private float current;
+        private float _current;
+        private float current
+        {
+            get { return _current; }
+            set
+            {
+                if (_current == value)
+                    return;
+                _current = value;
+                Scrolled?.Invoke(_current);
+            }
+        }
         
         public float Scroll
         {
@@ -223,7 +234,6 @@ namespace osu.Framework.Graphics.Containers
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
             target = value;
-            Scrolled?.Invoke(target);
 
             if (animated)
                 this.distanceDecay = distanceDecay;
