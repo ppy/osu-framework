@@ -8,23 +8,33 @@ namespace osu.Framework.Extensions.ColourExtensions
 {
     public static class ColourExtensions
     {
-        public const double GAMMA = 2.2;
+        public const double GAMMA = 2.4;
+
+        public static double ToLinear(double color)
+        {
+            return color <= 0.04045 ? (color / 12.92) : Math.Pow((color + 0.055) / 1.055, GAMMA);
+        }
+
+        public static double ToSRGB(double color)
+        {
+            return color < 0.0031308 ? (12.92 * color) : (1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055);
+        }
 
         public static Color4 ToLinear(this Color4 colour)
         {
             return new Color4(
-                (float)Math.Pow(colour.R, GAMMA),
-                (float)Math.Pow(colour.G, GAMMA),
-                (float)Math.Pow(colour.B, GAMMA),
+                (float)ToLinear(colour.R),
+                (float)ToLinear(colour.G),
+                (float)ToLinear(colour.B),
                 colour.A);
         }
 
         public static Color4 ToSRGB(this Color4 colour)
         {
             return new Color4(
-                (float)Math.Pow(colour.R, 1 / GAMMA),
-                (float)Math.Pow(colour.G, 1 / GAMMA),
-                (float)Math.Pow(colour.B, 1 / GAMMA),
+                (float)ToSRGB(colour.R),
+                (float)ToSRGB(colour.G),
+                (float)ToSRGB(colour.B),
                 colour.A);
         }
 
