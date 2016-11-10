@@ -16,10 +16,6 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Description => @"CheckBoxes with clickable labels";
 
-        private CheckBox basicCheckBox;
-        private CheckBox fadeDurationCheckBox;
-        private CheckBox actionsCheckBox;
-
         public override void Reset()
         {
             base.Reset();
@@ -36,16 +32,16 @@ namespace osu.Framework.VisualTests.Tests
                     Direction = FlowDirection.VerticalOnly,
                     Children = new Drawable[]
                     {
-                        basicCheckBox = new BasicCheckBox
+                        new BasicCheckBox
                         {
                             LabelText = @"Basic Test"
                         },
-                        fadeDurationCheckBox = new BasicCheckBox
+                        new BasicCheckBox
                         {
                             LabelText = @"FadeDuration Test",
                             FadeDuration = 300
                         },
-                        actionsCheckBox = new ActionsTestCheckBox
+                        new ActionsTestCheckBox
                         {
                             LabelText = @"Enabled/Disabled Actions Test",
                         },
