@@ -164,13 +164,11 @@ namespace osu.Framework.Input
                 keyboardInputQueue.Add(current);
             }
 
-            Container currentContainer = current as Container;
+            IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
-            {
-                foreach (Drawable child in currentContainer.AliveChildren)
-                    buildKeyboardInputQueue(child);
-            }
+                foreach (Drawable d in currentContainer.AliveChildren)
+                    buildKeyboardInputQueue(d);
         }
 
         private void buildMouseInputQueue(InputState state, Drawable current)
@@ -189,10 +187,8 @@ namespace osu.Framework.Input
             IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
-            {
-                foreach (Drawable child in currentContainer.AliveChildren)
-                    buildMouseInputQueue(state, child);
-            }
+                foreach (Drawable d in currentContainer.AliveChildren)
+                    buildMouseInputQueue(state, d);
         }
 
         private bool checkIsHoverable(Drawable d, InputState state)

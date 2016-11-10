@@ -14,6 +14,8 @@ namespace osu.Framework.Graphics.Containers
         Vector2 ChildOffset { get; }
 
         void InvalidateFromChild(Invalidation invalidation, IDrawable source);
+
+        void Clear(bool dispose = true);
     }
 
     public interface IContainerEnumerable<out T> : IContainer
