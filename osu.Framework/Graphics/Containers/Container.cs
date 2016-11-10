@@ -346,7 +346,7 @@ namespace osu.Framework.Graphics.Containers
                 if (dispose)
                 {
                     //cascade disposal
-                    (t as Container)?.Clear();
+                    (t as IContainer)?.Clear();
 
                     t.Dispose();
                 }
@@ -486,6 +486,9 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsVisible)
                     continue;
 
+                // We are consciously mission out on potential flattening (due to lack of covariance)
+                // in order to be able to let this loop be over integers instead of using
+                // IContainerEnumerable<Drrawable>.AliveChildren which measures to be a _major_ slowdown.
                 Container<T> container = drawable as Container<T>;
                 if (container?.CanBeFlattened == true)
                 {
