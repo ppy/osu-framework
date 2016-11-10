@@ -106,12 +106,6 @@ namespace osu.Framework.Graphics.Containers
                 Scrolled?.Invoke(_current);
             }
         }
-        
-        public float Scroll
-        {
-            get { return current; }
-            set { ScrollTo(value); }
-        }
 
         public Action<float> Scrolled;
 
