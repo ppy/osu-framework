@@ -12,6 +12,7 @@ using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -37,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
         public bool ForceOwnVertexBatch = false;
     }
 
-    public class ContainerDrawNode : ShadedDrawNode
+    public class ContainerDrawNode : DrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
@@ -46,6 +47,8 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffect EdgeEffect;
 
         public ContainerDrawNodeSharedData Shared;
+
+        public Shader Shader;
 
         private void drawEdgeEffect()
         {
@@ -61,22 +64,25 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
             edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
-            edgeEffectMaskingInfo.LinearBlendRange = EdgeEffect.Radius;
+            edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
 
-            GLWrapper.PushScissor(edgeEffectMaskingInfo);
+            GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
-            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow));
+            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
             Shader.Bind();
 
-            Color4 colour = EdgeEffect.Colour;
-            colour.A *= DrawInfo.Colour.A;
+            ColourInfo colour = new ColourInfo(EdgeEffect.Colour.ToLinear());
+            colour.TopLeft.A *= DrawInfo.Colour.TopLeft.A;
+            colour.BottomLeft.A *= DrawInfo.Colour.BottomLeft.A;
+            colour.TopRight.A *= DrawInfo.Colour.TopRight.A;
+            colour.BottomRight.A *= DrawInfo.Colour.BottomRight.A;
 
             Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, colour);
 
             Shader.Unbind();
 
-            GLWrapper.PopScissor();
+            GLWrapper.PopMaskingInfo();
         }
 
         private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
@@ -106,14 +112,14 @@ namespace osu.Framework.Graphics.Containers
 
             drawEdgeEffect();
             if (MaskingInfo != null)
-                GLWrapper.PushScissor(MaskingInfo.Value);
+                GLWrapper.PushMaskingInfo(MaskingInfo.Value);
 
             if (Children != null)
                 foreach (DrawNode child in Children)
                     child.Draw(vertexBatch);
 
             if (MaskingInfo != null)
-                GLWrapper.PopScissor();
+                GLWrapper.PopMaskingInfo();
         }
     }
 }

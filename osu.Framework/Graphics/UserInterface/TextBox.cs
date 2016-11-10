@@ -164,8 +164,8 @@ namespace osu.Framework.Graphics.UserInterface
                         {
                             StartValue = 0.5f,
                             EndValue = 0.2f,
-                            StartTime = Time,
-                            EndTime = Time + 500,
+                            StartTime = Time.Current,
+                            EndTime = Time.Current + 500,
                             Easing = EasingTypes.InOutSine,
                             LoopCount = -1,
                         });
@@ -529,11 +529,9 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
                 insertString(str);
-
-                return true;
             }
 
-            return false;
+            return true;
         }
 
         protected override bool OnDrag(InputState state)
@@ -578,8 +576,12 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(InputState state)
         {
-            //need to handle this so we get onDrag events.
-            return true;
+
+            if (HasFocus) return true;
+
+            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
         }
 
         protected override bool OnDoubleClick(InputState state)
@@ -624,7 +626,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             cursorAndLayout.Invalidate();
 
-            return true;
+            return false;
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)

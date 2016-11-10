@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
-        protected override DrawInfo DrawInfo
+        public override DrawInfo DrawInfo
         {
             get
             {
@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
                 // want their colour to be polluted by their parent (us!)
                 // since our own color will be applied on top when we render
                 // from the frame buffer to the back buffer later on.
-                result.Colour = Color4.White;
+                result.Colour = new ColourInfo(Color4.White);
                 return result;
             }
         }

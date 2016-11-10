@@ -16,13 +16,13 @@ namespace osu.Framework.GameModes.Testing
         public virtual string Description => @"The base class for a test case";
         public virtual int DisplayOrder => 0;
 
-        Container buttonsContainer;
+        FlowContainer buttonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
         public Container Contents;
 
-        protected override Container Content => Contents;
+        protected override Container<Drawable> Content => Contents;
 
         public TestCase()
         {

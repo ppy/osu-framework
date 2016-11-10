@@ -161,6 +161,15 @@ namespace osu.Framework.Logging
                 lines[i] = $@"{DateTime.UtcNow.ToString(NumberFormatInfo.InvariantInfo)}: {s.Trim()}";
             }
 
+            LogEntry entry = new LogEntry
+            {
+                Level = level,
+                Target = Target,
+                Message = message
+            };
+
+            NewEntry?.Invoke(entry);
+
             backgroundScheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
@@ -176,6 +185,8 @@ namespace osu.Framework.Logging
                 }
             });
         }
+
+        public static event Action<LogEntry> NewEntry;
 
         /// <summary>
         /// Deletes log file from disk.
@@ -234,6 +245,13 @@ namespace osu.Framework.Logging
         }
     }
 
+    public class LogEntry
+    {
+        public LogLevel Level;
+        public LoggingTarget Target;
+        public string Message;
+    }
+
     public enum LogLevel
     {
         Debug,
@@ -247,7 +265,6 @@ namespace osu.Framework.Logging
         Runtime,
         Network,
         Tournament,
-        Update,
         Performance,
         Debug
     }

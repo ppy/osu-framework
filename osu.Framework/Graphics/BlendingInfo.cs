@@ -12,32 +12,40 @@ namespace osu.Framework.Graphics
         public BlendingFactorSrc SourceAlpha;
         public BlendingFactorDest DestinationAlpha;
 
-        public BlendingInfo(bool additive)
+        public BlendingInfo(BlendingMode blendingMode)
         {
-            Source = BlendingFactorSrc.SrcAlpha;
-            Destination = BlendingFactorDest.OneMinusSrcAlpha;
-            SourceAlpha = BlendingFactorSrc.One;
-            DestinationAlpha = BlendingFactorDest.One;
+            switch (blendingMode)
+            {
+                case BlendingMode.Inherit:
+                case BlendingMode.Mixture:
+                    Source = BlendingFactorSrc.SrcAlpha;
+                    Destination = BlendingFactorDest.OneMinusSrcAlpha;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.One;
+                    break;
 
-            Additive = additive;
+                case BlendingMode.Additive:
+                    Source = BlendingFactorSrc.SrcAlpha;
+                    Destination = BlendingFactorDest.One;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.One;
+                    break;
+
+                default:
+                case BlendingMode.None:
+                    Source = BlendingFactorSrc.One;
+                    Destination = BlendingFactorDest.Zero;
+                    SourceAlpha = BlendingFactorSrc.One;
+                    DestinationAlpha = BlendingFactorDest.Zero;
+                    break;
+            }
         }
 
-        public bool Additive
-        {
-            set { Destination = value ? BlendingFactorDest.One : BlendingFactorDest.OneMinusSrcAlpha; }
-        }
-
-        /// <summary>
-        /// Copies the current BlendingInfo into target.
-        /// </summary>
-        /// <param name="target">The BlendingInfo to be filled with the copy.</param>
-        public void Copy(ref BlendingInfo target)
-        {
-            target.Source = Source;
-            target.Destination = Destination;
-            target.SourceAlpha = SourceAlpha;
-            target.DestinationAlpha = DestinationAlpha;
-        }
+        public bool IsDisabled =>
+            Source == BlendingFactorSrc.One &&
+            Destination == BlendingFactorDest.Zero &&
+            SourceAlpha == BlendingFactorSrc.One &&
+            DestinationAlpha == BlendingFactorDest.Zero;
 
         public bool Equals(BlendingInfo other)
         {

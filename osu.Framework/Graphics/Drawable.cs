@@ -22,10 +22,11 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions.ColourExtensions;
 
 namespace osu.Framework.Graphics
 {
-    public abstract partial class Drawable : IDisposable, IHasLifetime
+    public abstract partial class Drawable : IDisposable, IHasLifetime, IDrawable
     {
         public event Action OnUpdate;
 
@@ -200,20 +201,45 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry);
             }
         }
+        
+        private ColourInfo colourInfo = new ColourInfo(Color4.White);
 
-        private Color4 colour = Color4.White;
-
-        public Color4 Colour
+        public ColourInfo ColourInfo
         {
-            get { return colour; }
+            get { return colourInfo; }
 
             set
             {
-                if (colour == value) return;
-                colour = value;
+                if (colourInfo.Equals(value)) return;
+                colourInfo = value;
 
                 Invalidate(Invalidation.Colour);
             }
+        }
+
+        public Color4 ColourLinear
+        {
+            get
+            {
+                Debug.Assert(colourInfo.HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
+                return colourInfo.TopLeft;
+            }
+
+            set
+            {
+                if (colourInfo.HasSingleColour && colourInfo.TopLeft == value) return;
+
+                colourInfo.TopLeft = value;
+                colourInfo.HasSingleColour = true;
+
+                Invalidate(Invalidation.Colour);
+            }
+        }
+
+        public Color4 Colour
+        {
+            get { return ColourLinear.ToSRGB(); }
+            set { ColourLinear = value.ToLinear(); }
         }
 
         private Anchor anchor = Anchor.TopLeft;
@@ -258,12 +284,7 @@ namespace osu.Framework.Graphics
             {
                 if (alpha == value) return;
 
-                Invalidation i = Invalidation.Colour;
-                //we may have changed the visible state.
-                if (alpha <= visibility_cutoff || value <= visibility_cutoff)
-                    i |= Invalidation.Visibility;
-
-                Invalidate(i);
+                Invalidate(Invalidation.Colour);
 
                 alpha = value;
             }
@@ -373,27 +394,11 @@ namespace osu.Framework.Graphics
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
+        protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
+
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
-            : screenSpaceDrawQuadBacking.Refresh(delegate
-            {
-                Quad result = ToScreenSpace(DrawRectangle);
-
-                //if (PixelSnapping ?? CheckForcedPixelSnapping(result))
-                //{
-                //    Vector2 adjust = new Vector2(
-                //        (float)Math.Round(result.TopLeft.X) - result.TopLeft.X,
-                //        (float)Math.Round(result.TopLeft.Y) - result.TopLeft.Y
-                //        );
-
-                //    result.TopLeft += adjust;
-                //    result.TopRight += adjust;
-                //    result.BottomLeft += adjust;
-                //    result.BottomRight += adjust;
-                //}
-
-                return result;
-            });
+            : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
 
         private Anchor origin = Anchor.TopLeft;
 
@@ -419,31 +424,42 @@ namespace osu.Framework.Graphics
 
         //todo: remove recursive lookup of clock
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
-        protected internal virtual IFrameBasedClock Clock => Parent?.Clock;
+        protected virtual IFrameBasedClock Clock => null;
 
-        private double time;
+        private FrameTimeInfo? time;
 
-        protected double Time => Clock?.CurrentTime ?? time;
+        public FrameTimeInfo Time
+        {
+            get
+            {
+                if (Clock != null)
+                    return Clock.TimeInfo;
+
+                if (!time.HasValue)
+                    time = Parent?.Time;
+
+                Debug.Assert(time.HasValue);
+                return time.HasValue ? time.Value : new FrameTimeInfo();
+            }
+        }
 
         const float visibility_cutoff = 0.0001f;
 
-        private Cached<bool> isVisibleBacking = new Cached<bool>();
-        public virtual bool IsVisible => isVisibleBacking.EnsureValid() ? isVisibleBacking.Value : isVisibleBacking.Refresh(() => Alpha > visibility_cutoff && Parent?.IsVisible == true);
+        public virtual bool IsVisible => Alpha > visibility_cutoff;
         public bool IsMaskedAway = false;
 
-        private bool? additive;
+        private BlendingMode blendingMode;
 
-        public bool? Additive
+        public BlendingMode BlendingMode
         {
-            get { return additive; }
+            get { return blendingMode; }
 
             set
             {
-                if (additive == value) return;
+                if (blendingMode == value) return;
 
+                blendingMode = value;
                 Invalidate(Invalidation.Colour);
-
-                additive = value;
             }
         }
 
@@ -451,21 +467,16 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
-        protected virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = new DrawInfo(null);
-
-                float alpha = Alpha;
-                if (Colour.A > 0 && Colour.A < 1)
-                    alpha *= Colour.A;
-
-                Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+                ColourInfo colour = ColourInfo.MultiplyAlpha(alpha);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(Additive ?? false));
+                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
                 else
                     Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
-                              !Additive.HasValue ? (BlendingInfo?)null : new BlendingInfo(Additive.Value));
+                              BlendingMode == BlendingMode.Inherit ? (BlendingInfo?)null : new BlendingInfo(BlendingMode));
 
                 return di;
             });
@@ -479,7 +490,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public Container Parent { get; set; }
+        public IContainer Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
@@ -494,7 +505,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = Parent;
+            IDrawable currentParent = Parent;
             while (currentParent != null)
             {
                 if (currentParent == parent)
@@ -516,7 +527,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             // Do a bottom-up recursion for efficiency
-            Drawable currentParent = child.Parent;
+            IContainer currentParent = child.Parent;
             while (currentParent != null)
             {
                 if (currentParent == this)
@@ -648,7 +659,7 @@ namespace osu.Framework.Graphics
             updateTransforms();
 
             if (!IsVisible)
-                return false;
+                return true;
 
             Update();
             OnUpdate?.Invoke();
@@ -665,13 +676,27 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the vector to.</param>
+        /// <returns>The vector in other's coordinates.</returns>
+        public Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other)
+        {
+            if (other == this)
+                return input;
+
+            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        protected Vector2 ToParentSpace(Vector2 input)
+        public Vector2 ToParentSpace(Vector2 input)
         {
-            return (input * DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse;
+            return ToSpaceOfOtherDrawable(input, Parent);
         }
 
         /// <summary>
@@ -679,9 +704,19 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        protected Quad ToParentSpace(RectangleF input)
+        public Quad ToParentSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <returns>The vector in screen coordinates.</returns>
+        public Vector2 ToScreenSpace(Vector2 input)
+        {
+            return input * DrawInfo.Matrix;
         }
 
         /// <summary>
@@ -689,7 +724,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        protected Quad ToScreenSpace(RectangleF input)
+        public Quad ToScreenSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
@@ -699,13 +734,12 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        internal void ChangeParent(Container parent)
+        internal void ChangeParent(IContainer parent)
         {
-            if (Parent != parent)
-            {
-                Parent?.Remove(this, false);
-                Parent = parent;
-            }
+            if (parent == Parent) return;
+
+            Debug.Assert(Parent == null);
+            Parent = parent;
         }
 
         /// <summary>
@@ -718,7 +752,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
-        public void UpdateTime(double time)
+        public void UpdateTime(FrameTimeInfo time)
         {
             this.time = time;
         }
@@ -730,19 +764,20 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                if (Parent == null) return false;
+                //we have been loaded but our parent has since been nullified
+                if (Parent == null && IsLoaded) return false;
 
                 if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return Time >= LifetimeStart && Time < LifetimeEnd;
+                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
             }
         }
 
         /// <summary>
         /// Whether to remove the drawable from its parent's children when it's not alive.
         /// </summary>
-        public virtual bool RemoveWhenNotAlive => Parent == null || Time > LifetimeStart;
+        public virtual bool RemoveWhenNotAlive => Parent == null || Time.Current > LifetimeStart;
 
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
@@ -797,7 +832,7 @@ namespace osu.Framework.Graphics
 
             scheduler?.SetCurrentThread(mainThread);
 
-            LifetimeStart = Time;
+            LifetimeStart = Time.Current;
             Invalidate();
             LoadState = LoadState.Alive;
             LoadComplete();
@@ -873,9 +908,6 @@ namespace osu.Framework.Graphics
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
             }
-
-            if ((invalidation & Invalidation.Visibility) > 0)
-                alreadyInvalidated &= !isVisibleBacking.Invalidate();
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidationCounter.Increment();
@@ -968,14 +1000,13 @@ namespace osu.Framework.Graphics
         // Individual types
         Position = 1 << 0,
         SizeInParentSpace = 1 << 1,
-        Visibility = 1 << 2,
-        Colour = 1 << 3,
-        DrawNode = 1 << 4,
+        Colour = 1 << 2,
+        DrawNode = 1 << 3,
 
         // Meta
         None = 0,
         Geometry = Position | SizeInParentSpace,
-        All = DrawNode | Geometry | Visibility | Colour,
+        All = DrawNode | Geometry | Colour,
     }
 
     /// <summary>
@@ -1042,6 +1073,14 @@ namespace osu.Framework.Graphics
         Y = 1 << 1,
 
         Both = X | Y
+    }
+
+    public enum BlendingMode
+    {
+        Inherit = 0,
+        Mixture,
+        Additive,
+        None,
     }
 
     public class DepthComparer : IComparer<Drawable>

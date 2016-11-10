@@ -15,6 +15,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Visualisation;
+using osu.Framework.Platform;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -23,6 +24,10 @@ namespace osu.Framework.GameModes.Testing
         class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
             public override string Filename => @"visualtests.cfg";
+
+            public TestBrowserConfig(BasicStorage storage) : base(storage)
+            {
+            }
         }
 
         enum TestBrowserOption
@@ -31,7 +36,7 @@ namespace osu.Framework.GameModes.Testing
         }
 
         private Container leftContainer;
-        private Container leftFlowContainer;
+        private Container<Drawable> leftFlowContainer;
         private Container leftScrollContainer;
         private TestCase loadedTest;
         private Container testContainer;
@@ -56,7 +61,7 @@ namespace osu.Framework.GameModes.Testing
         {
             base.Load(game);
 
-            config = new TestBrowserConfig();
+            config = new TestBrowserConfig(game.Host.Storage);
 
             Add(leftContainer = new Container
             {
@@ -70,7 +75,7 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer());
+            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollbarOverlapsContent = false });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
@@ -91,6 +96,11 @@ namespace osu.Framework.GameModes.Testing
             tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
                 addTest(testCase);
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }

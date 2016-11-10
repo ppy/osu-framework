@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Transformations
         {
             get
             {
-                double time = CurrentTime ?? 0;
+                double time = Time?.Current ?? 0;
                 if (time < StartTime) return StartValue;
                 if (time >= EndTime) return EndValue;
 
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Transformations
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.Colour = CurrentValue;
+            d.ColourLinear = CurrentValue;
         }
     }
 }
