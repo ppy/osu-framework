@@ -29,14 +29,19 @@ namespace osu.Framework.VisualTests.Tests
                     new FlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new[]
+                        Children = new []
                         {
                             new Container
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
-                                Children = new []
+                                Children = new Drawable[]
                                 {
+                                    new SpriteText
+                                    {
+                                        Text = "No smoothing",
+                                        TextSize = 20,
+                                    },
                                     boxes[0] = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
@@ -52,8 +57,13 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
-                                Children = new []
+                                Children = new Drawable[]
                                 {
+                                    new SpriteText
+                                    {
+                                        Text = "2-smoothing perpendicular to Y",
+                                        TextSize = 20,
+                                    },
                                     boxes[1] = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
@@ -69,8 +79,13 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
-                                Children = new []
+                                Children = new Drawable[]
                                 {
+                                    new SpriteText
+                                    {
+                                        Text = "1-smoothing",
+                                        TextSize = 20,
+                                    },
                                     boxes[2] = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
@@ -86,8 +101,13 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Size = new Vector2(0.5f),
-                                Children = new []
+                                Children = new Drawable[]
                                 {
+                                    new SpriteText
+                                    {
+                                        Text = "2-smoothing",
+                                        TextSize = 20,
+                                    },
                                     boxes[3] = new Box
                                     {
                                         RelativeSizeAxes = Axes.Both,
