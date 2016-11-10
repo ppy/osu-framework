@@ -75,7 +75,7 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer());
+            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollbarOverlapsContent = false });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
