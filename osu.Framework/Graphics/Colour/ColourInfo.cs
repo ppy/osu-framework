@@ -33,6 +33,21 @@ namespace osu.Framework.Graphics.Colour
             HasSingleColour = true;
         }
 
+        public SRGBColour Colour
+        {
+            get
+            {
+                Debug.Assert(HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
+                return TopLeft;
+            }
+
+            set
+            {
+                TopLeft = BottomLeft = TopRight = BottomRight = value;
+                HasSingleColour = true;
+            }
+        }
+
         public SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
@@ -42,7 +57,7 @@ namespace osu.Framework.Graphics.Colour
             Debug.Assert(HasSingleColour);
             if (childColour.HasSingleColour)
             {
-                TopLeft = BottomLeft = TopRight = BottomRight = childColour.TopLeft * TopLeft;
+                Colour = childColour.Colour * Colour;
             }
             else if (!childColour.HasSingleColour)
             {
@@ -58,25 +73,10 @@ namespace osu.Framework.Graphics.Colour
         {
             Debug.Assert(!HasSingleColour);
 
-            SRGBColour newTopLeft;
-            SRGBColour newTopRight;
-            SRGBColour newBottomLeft;
-            SRGBColour newBottomRight;
-
-            if (childColour.HasSingleColour)
-            {
-                newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
-                newTopRight = Interpolate(interp.TopRight) * childColour.TopLeft;
-                newBottomLeft = Interpolate(interp.BottomLeft) * childColour.TopLeft;
-                newBottomRight = Interpolate(interp.BottomRight) * childColour.TopLeft;
-            }
-            else
-            {
-                newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
-                newTopRight = Interpolate(interp.TopRight) * childColour.TopRight;
-                newBottomLeft = Interpolate(interp.BottomLeft) * childColour.BottomLeft;
-                newBottomRight = Interpolate(interp.BottomRight) * childColour.BottomRight;
-            }
+            SRGBColour newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
+            SRGBColour newTopRight = Interpolate(interp.TopRight) * childColour.TopRight;
+            SRGBColour newBottomLeft = Interpolate(interp.BottomLeft) * childColour.BottomLeft;
+            SRGBColour newBottomRight = Interpolate(interp.BottomRight) * childColour.BottomRight;
 
             TopLeft = newTopLeft;
             TopRight = newTopRight;
@@ -98,7 +98,11 @@ namespace osu.Framework.Graphics.Colour
             ColourInfo result = this;
             result.TopLeft.MultiplyAlpha(alpha);
 
-            if (!HasSingleColour)
+            if (HasSingleColour)
+            {
+                result.BottomLeft = result.TopRight = result.BottomRight = result.TopLeft;
+            }
+            else
             {
                 result.BottomLeft.MultiplyAlpha(alpha);
                 result.TopRight.MultiplyAlpha(alpha);

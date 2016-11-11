@@ -222,16 +222,14 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                Debug.Assert(colourInfo.HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
-                return colourInfo.TopLeft;
+                return colourInfo.Colour;
             }
 
             set
             {
                 if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
 
-                colourInfo.TopLeft = value;
-                colourInfo.HasSingleColour = true;
+                colourInfo.Colour = value;
 
                 Invalidate(Invalidation.Colour);
             }
