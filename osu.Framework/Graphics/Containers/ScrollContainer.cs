@@ -229,16 +229,9 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        public void ScrollIntoView(Drawable d)
-        {
-            Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
-            scrollTo(clamp(pos.Y), true, DistanceDecayJump);
-        }
+        public void ScrollIntoView(Drawable d) => scrollTo(clamp(GetChildYInContent(d)), true, DistanceDecayJump);
 
-        public float GetChildYInContent(Drawable d)
-        {
-            return d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
-        }
+        public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
 
         private void updateSize()
         {
