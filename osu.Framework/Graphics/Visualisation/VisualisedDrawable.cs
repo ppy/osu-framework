@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void updateSpecifics()
         {
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
-            previewBox.ColourLinear = Target.ColourLinear;
+            previewBox.Colour = Target.Colour;
 
             int childCount = (Target as Container)?.Children.Count() ?? 0;
 

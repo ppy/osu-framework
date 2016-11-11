@@ -11,6 +11,7 @@ using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -75,13 +76,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Color4 borderColour = Color4.Black;
+        private SRGBColour borderColour = Color4.Black;
 
         /// <summary>
         /// Only has an effect when Masking == true.
         /// Determines the color of the drawn border.
         /// </summary>
-        public virtual Color4 BorderColour
+        public virtual SRGBColour BorderColour
         {
             get { return borderColour; }
             set

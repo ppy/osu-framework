@@ -11,6 +11,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using System;
 using OpenTK;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Containers
 {

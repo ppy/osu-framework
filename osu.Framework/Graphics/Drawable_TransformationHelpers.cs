@@ -8,7 +8,8 @@ using osu.Framework.Graphics.Transformations;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics
 {
@@ -307,11 +308,10 @@ namespace osu.Framework.Graphics
 
         #region Color4-based helpers
 
-        public void FadeColour(Color4 newColour, int duration, EasingTypes easing = EasingTypes.None)
+        public void FadeColour(SRGBColour newColour, int duration, EasingTypes easing = EasingTypes.None)
         {
             updateTransformsOfType(typeof(TransformColour));
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? ColourLinear;
-            newColour = newColour.ToLinear();
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
 
             if (transformationDelay == 0)
             {
@@ -322,30 +322,32 @@ namespace osu.Framework.Graphics
 
             double startTime = Time.Current + transformationDelay;
 
+            // We need to pass colours in linear space, since colour transformations work in linear colour space.
             Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = startValue,
-                EndValue = newColour,
+                EndValue = newColour.Linear,
                 Easing = easing,
             });
         }
 
-        public void FlashColour(Color4 flashColour, int duration)
+        public void FlashColour(SRGBColour flashColour, int duration)
         {
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? ColourLinear;
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
             double startTime = Time.Current + transformationDelay;
 
+            // We need to pass colours in linear space, since colour transformations work in linear colour space.
             Transforms.Add(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
-                StartValue = flashColour.ToLinear(),
+                StartValue = flashColour.Linear,
                 EndValue = startValue,
             });
 

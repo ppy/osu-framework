@@ -23,11 +23,7 @@ namespace osu.Framework.Graphics.UserInterface
         public new Color4 Colour
         {
             get { return box.Colour; }
-            set
-            {
-                if (box != null)
-                    box.Colour = value;
-            }
+            set { box.Colour = value; }
         }
 
         private Box box;
