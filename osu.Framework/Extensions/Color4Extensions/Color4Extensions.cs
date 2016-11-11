@@ -4,9 +4,9 @@
 using OpenTK.Graphics;
 using System;
 
-namespace osu.Framework.Extensions.ColourExtensions
+namespace osu.Framework.Extensions.Color4Extensions
 {
-    public static class ColourExtensions
+    public static class Color4Extensions
     {
         public const double GAMMA = 2.4;
 

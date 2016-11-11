@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using System;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Containers
 {

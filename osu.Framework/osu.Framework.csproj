@@ -85,7 +85,7 @@
   <ItemGroup>
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
-    <Compile Include="Extensions\ColourExtensions\ColourExtensions.cs" />
+    <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
@@ -104,7 +104,8 @@
     <Compile Include="GameModes\Testing\TestBrowser.cs" />
     <Compile Include="GameModes\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
-    <Compile Include="Graphics\ColourInfo.cs" />
+    <Compile Include="Graphics\Colour\ColourInfo.cs" />
+    <Compile Include="Graphics\Colour\SRGBColour.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />

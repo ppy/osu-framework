@@ -4,11 +4,18 @@
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Transformations
 {
+    /// <summary>
+    /// Transforms colour value in linear colour space.
+    /// </summary>
     public class TransformColour : Transform<Color4>
     {
+        /// <summary>
+        /// Current value of the transformed colour in linear colour space.
+        /// </summary>
         protected override Color4 CurrentValue
         {
             get
@@ -24,7 +31,7 @@ namespace osu.Framework.Graphics.Transformations
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.ColourLinear = CurrentValue;
+            d.Colour = new SRGBColour { Linear = CurrentValue };
         }
     }
 }

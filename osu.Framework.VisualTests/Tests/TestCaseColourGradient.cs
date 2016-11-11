@@ -7,7 +7,8 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -54,9 +55,9 @@ namespace osu.Framework.VisualTests.Tests
                                         ColourInfo = new ColourInfo()
                                         {
                                             TopLeft = Color4.White,
-                                            BottomLeft = Color4.Blue.ToLinear(),
-                                            TopRight = Color4.Red.ToLinear(),
-                                            BottomRight = Color4.Green.ToLinear(),
+                                            BottomLeft = Color4.Blue,
+                                            TopRight = Color4.Red,
+                                            BottomRight = Color4.Green,
                                         },
                                     }
                                 }

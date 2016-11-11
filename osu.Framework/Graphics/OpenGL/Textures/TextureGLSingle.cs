@@ -14,7 +14,8 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -164,25 +165,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
-                Colour = drawColour.BottomLeft,
+                Colour = drawColour.BottomLeft.Linear,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
-                Colour = drawColour.BottomRight,
+                Colour = drawColour.BottomRight.Linear,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
-                Colour = drawColour.TopRight,
+                Colour = drawColour.TopRight.Linear,
             });
             spriteBatch.Add(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),
-                Colour = drawColour.TopLeft,
+                Colour = drawColour.TopLeft.Linear,
             });
 
             FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
