@@ -36,41 +36,38 @@ namespace osu.Framework.Graphics
         /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
-        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, ColourInfo? colour = null, BlendingInfo? blending = null)
+        public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
         {
-            target.Matrix = Matrix;
-            target.MatrixInverse = MatrixInverse;
-
             if (translation != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref target.Matrix, translation);
-                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, -translation);
+                MatrixExtensions.TranslateFromLeft(ref Matrix, translation);
+                MatrixExtensions.TranslateFromRight(ref MatrixInverse, -translation);
             }
 
             if (rotation != 0)
             {
                 float radians = MathHelper.DegreesToRadians(rotation);
-                MatrixExtensions.RotateFromLeft(ref target.Matrix, radians);
-                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -radians);
+                MatrixExtensions.RotateFromLeft(ref Matrix, radians);
+                MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
             {
-                MatrixExtensions.ShearFromLeft(ref target.Matrix, -shear);
-                MatrixExtensions.ShearFromRight(ref target.MatrixInverse, shear);
+                MatrixExtensions.ShearFromLeft(ref Matrix, -shear);
+                MatrixExtensions.ShearFromRight(ref MatrixInverse, shear);
             }
 
             if (scale != Vector2.One)
             {
                 Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
-                MatrixExtensions.ScaleFromLeft(ref target.Matrix, scale);
-                MatrixExtensions.ScaleFromRight(ref target.MatrixInverse, inverseScale);
+                MatrixExtensions.ScaleFromLeft(ref Matrix, scale);
+                MatrixExtensions.ScaleFromRight(ref MatrixInverse, inverseScale);
             }
 
             if (origin != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref target.Matrix, -origin);
-                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
+                MatrixExtensions.TranslateFromLeft(ref Matrix, -origin);
+                MatrixExtensions.TranslateFromRight(ref MatrixInverse, origin);
             }
 
             //========================================================================================
@@ -78,13 +75,6 @@ namespace osu.Framework.Graphics
             //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
-
-            if (colour != null)
-                target.Colour = new ColourInfo(ref this, colour.Value);
-            else
-                target.Colour = Colour;
-
-            target.Blending = blending == null ? Blending : blending.Value;
         }
 
         public bool Equals(DrawInfo other)

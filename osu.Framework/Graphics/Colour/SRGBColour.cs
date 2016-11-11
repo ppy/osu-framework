@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System;
@@ -30,10 +31,10 @@ namespace osu.Framework.Graphics.Colour
         /// <param name="first">First factor.</param>
         /// <param name="second">Second factor.</param>
         /// <returns>Product of first and second.</returns>
-        public static SRGBColour operator *(SRGBColour first, SRGBColour second)
-        {
-            return new SRGBColour { Linear = Color4Extensions.Multiply(first.Linear, second.Linear) };
-        }
+        public static SRGBColour operator *(SRGBColour first, SRGBColour second) => FromVector(first.ToVector() * second.ToVector());
+
+        public Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
+        public static SRGBColour FromVector(Vector4 v) => new SRGBColour { Linear = new Color4(v.X, v.Y, v.Z, v.W) };
 
         /// <summary>
         /// Multiplies the alpha value of this colour by the given alpha factor.

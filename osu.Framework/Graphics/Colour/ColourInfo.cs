@@ -6,6 +6,8 @@ using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Primitives;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Colour
 {
@@ -21,31 +23,6 @@ namespace osu.Framework.Graphics.Colour
         public SRGBColour BottomRight;
         public bool HasSingleColour;
 
-        public ColourInfo(ref DrawInfo parent, ColourInfo colour)
-        {
-            if (colour.HasSingleColour && parent.Colour.HasSingleColour)
-            {
-                HasSingleColour = true;
-                TopLeft = BottomLeft = TopRight = BottomRight = colour.TopLeft * parent.Colour.TopLeft;
-            }
-            else if (!colour.HasSingleColour && parent.Colour.HasSingleColour)
-            {
-                HasSingleColour = false;
-                TopLeft = colour.TopLeft * parent.Colour.TopLeft;
-                BottomLeft = colour.BottomLeft * parent.Colour.TopLeft;
-                TopRight = colour.TopRight * parent.Colour.TopLeft;
-                BottomRight = colour.BottomRight * parent.Colour.TopLeft;
-            }
-            else
-            {
-                HasSingleColour = false;
-                TopLeft = colour.TopLeft * parent.Colour.TopLeft;
-                BottomLeft = colour.BottomLeft * parent.Colour.BottomLeft;
-                TopRight = colour.TopRight * parent.Colour.TopRight;
-                BottomRight = colour.BottomRight * parent.Colour.BottomRight;
-            }
-        }
-
         /// <summary>
         /// Creates a ColourInfo with a single linear colour assigned to all vertices.
         /// </summary>
@@ -54,6 +31,57 @@ namespace osu.Framework.Graphics.Colour
         {
             TopLeft = BottomLeft = TopRight = BottomRight = colour;
             HasSingleColour = true;
+        }
+
+        public SRGBColour Interpolate(Vector2 interp) => SRGBColour.FromVector(
+            (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
+            interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
+
+        public void ApplyChild(ColourInfo childColour)
+        {
+            Debug.Assert(HasSingleColour);
+            if (childColour.HasSingleColour)
+            {
+                TopLeft = BottomLeft = TopRight = BottomRight = childColour.TopLeft * TopLeft;
+            }
+            else if (!childColour.HasSingleColour)
+            {
+                HasSingleColour = false;
+                TopLeft = childColour.TopLeft * TopLeft;
+                BottomLeft = childColour.BottomLeft * TopLeft;
+                TopRight = childColour.TopRight * TopLeft;
+                BottomRight = childColour.BottomRight * TopLeft;
+            }
+        }
+
+        public void ApplyChild(ColourInfo childColour, Quad interp)
+        {
+            Debug.Assert(!HasSingleColour);
+
+            SRGBColour newTopLeft;
+            SRGBColour newTopRight;
+            SRGBColour newBottomLeft;
+            SRGBColour newBottomRight;
+
+            if (childColour.HasSingleColour)
+            {
+                newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
+                newTopRight = Interpolate(interp.TopRight) * childColour.TopLeft;
+                newBottomLeft = Interpolate(interp.BottomLeft) * childColour.TopLeft;
+                newBottomRight = Interpolate(interp.BottomRight) * childColour.TopLeft;
+            }
+            else
+            {
+                newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
+                newTopRight = Interpolate(interp.TopRight) * childColour.TopRight;
+                newBottomLeft = Interpolate(interp.BottomLeft) * childColour.BottomLeft;
+                newBottomRight = Interpolate(interp.BottomRight) * childColour.BottomRight;
+            }
+
+            TopLeft = newTopLeft;
+            TopRight = newTopRight;
+            BottomLeft = newBottomLeft;
+            BottomRight = newBottomRight;
         }
 
         /// <summary>
