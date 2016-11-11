@@ -91,7 +91,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The current scroll position.
         /// </summary>
-        private float current;
+        public float Current { get; private set; }
 
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             // Continue from where we currently are scrolled to.
-            target = current;
+            target = Current;
             return base.OnMouseDown(state, args);
         }
 
@@ -226,13 +226,18 @@ namespace osu.Framework.Graphics.Containers
             if (animated)
                 this.distanceDecay = distanceDecay;
             else
-                current = target;
+                Current = target;
         }
 
         public void ScrollIntoView(Drawable d)
         {
             Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
             scrollTo(clamp(pos.Y), true, DistanceDecayJump);
+        }
+
+        public float GetChildYInContent(Drawable d)
+        {
+            return d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
         }
 
         private void updateSize()
@@ -248,7 +253,7 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!isDragging && current != clamp(current) && target != clamp(target, -0.01f))
+            if (!isDragging && Current != clamp(Current) && target != clamp(target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
@@ -256,7 +261,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if ((current < target && target < 0) || (current > target && target > scrollableExtent))
+                if ((Current < target && target < 0) || (Current > target && target > scrollableExtent))
                     localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
@@ -268,11 +273,11 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            current = (float)Interpolation.Lerp(target, current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+            Current = (float)Interpolation.Lerp(target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
-            if (Precision.AlmostEquals(current, target))
-                current = target;
+            if (Precision.AlmostEquals(Current, target))
+                Current = target;
         }
 
         protected override void Update()
@@ -281,8 +286,8 @@ namespace osu.Framework.Graphics.Containers
 
             updatePosition();
 
-            scrollbar?.MoveToY(current * scrollbar.Size.Y);
-            content.MoveToY(-current);
+            scrollbar?.MoveToY(Current * scrollbar.Size.Y);
+            content.MoveToY(-Current);
         }
 
         private class ScrollBar : Container
