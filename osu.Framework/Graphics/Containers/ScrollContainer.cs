@@ -204,20 +204,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value)
-        {
-            scrollTo(clamp(value / scrollbar.Size.Y), false);
-        }
+        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size.Y), false);
 
-        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity)
-        {
-            scrollTo(target + value, animated, distanceDecay);
-        }
+        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
-        public void ScrollTo(float value)
-        {
-            scrollTo(value, true, DistanceDecayJump);
-        }
+        public void ScrollTo(float value) => scrollTo(value, true, DistanceDecayJump);
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
@@ -229,21 +220,11 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        public void ScrollIntoView(Drawable d)
-        {
-            Vector2 pos = d.Parent.ToSpaceOfOtherDrawable(d.Position, content);
-            scrollTo(clamp(pos.Y), true, DistanceDecayJump);
-        }
+        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildYInContent(d));
 
-        public float GetChildYInContent(Drawable d)
-        {
-            return d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
-        }
+        public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
 
-        private void updateSize()
-        {
-            scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
-        }
+        private void updateSize() => scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
 
         private void updatePosition()
         {
