@@ -6,13 +6,8 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Batches;
-using OpenTK.Graphics;
-using OpenTK.Graphics.ES30;
-using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Containers

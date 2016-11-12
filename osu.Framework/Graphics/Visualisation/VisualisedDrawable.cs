@@ -48,10 +48,10 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target.OnInvalidate += onInvalidate;
 
-            Container da = Target as Container;
+            var da = Target as Container<Drawable>;
             if (da != null) da.OnAutoSize += onAutoSize;
 
-            FlowContainer df = Target as FlowContainer;
+            var df = Target as FlowContainer<Drawable>;
             if (df != null) df.OnLayout += onLayout;
 
             activityAutosize = new Box
@@ -160,7 +160,7 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.Colour = Target.Colour;
 
-            int childCount = (Target as Container)?.Children.Count() ?? 0;
+            int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
             text.Text = Target + (!Flow.IsVisible && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
