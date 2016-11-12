@@ -145,8 +145,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
-            foreach (FrameBuffer frameBuffer in frameBuffers)
-                frameBuffer.Dispose();
+            // right now we are relying on the finalizer for correct disposal.
+            // correct method would be to schedule these to update thread and
+            // then to the draw thread.
+            
+            //foreach (FrameBuffer frameBuffer in frameBuffers)
+              //  frameBuffer.Dispose();
 
             base.Dispose(isDisposing);
         }
