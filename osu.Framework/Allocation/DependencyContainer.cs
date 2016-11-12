@@ -11,10 +11,10 @@ namespace osu.Framework.Allocation
         // Activators are object Activate(DependencyContainer container, object instance),
         // where the latter may be null.
         private Dictionary<Type, Func<DependencyContainer, object, object>> activators =
-            new Dictionary<Type, Func<DependencyContainer,object, object>>();
+            new Dictionary<Type, Func<DependencyContainer, object, object>>();
         private Dictionary<Type, object> cache = new Dictionary<Type, object>();
         private HashSet<Type> cacheable = new HashSet<Type>();
-        
+
         public DependencyContainer()
         {
             Cache(this);
@@ -87,7 +87,7 @@ namespace osu.Framework.Allocation
         /// dependencies.
         /// </summary>
         public void Register<T>(bool lazy = false) where T : class => Register(typeof(T), lazy);
-        
+
         /// <summary>
         /// Registers a type that allocates with a custom allocator.
         /// </summary>
@@ -136,7 +136,7 @@ namespace osu.Framework.Allocation
             }
             return instance;
         }
-        
+
         public T Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
