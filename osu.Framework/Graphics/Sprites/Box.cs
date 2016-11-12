@@ -8,8 +8,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Box : Sprite
     {
-        [BackgroundDependencyLoader]
-        private void load()
+        public Box()
         {
             Texture = Texture.WhitePixel;
         }

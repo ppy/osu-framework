@@ -156,16 +156,11 @@ namespace osu.Framework.GameModes.Testing
             public TestCaseButton(TestCase test)
             {
                 this.test = test;
-            }
 
-            [BackgroundDependencyLoader]
-            private void load()
-            {
                 Masking = true;
                 CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
-
 
                 Add(new Drawable[]
                 {

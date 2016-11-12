@@ -24,31 +24,29 @@ namespace osu.Framework.Graphics.Performance
         public FpsDisplay(IFrameBasedClock clock)
         {
             this.clock = clock;
-        }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             Masking = true;
             CornerRadius = 5;
 
-            Add(new Box
+            Add(new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Colour = Color4.Black,
-                Alpha = 0.2f
-            });
-
-            Add(counter = new SpriteText
-            {
-                Anchor = Anchor.TopRight,
-                Origin = Anchor.TopRight,
-                Text = @"...",
-                FixedWidth = true,
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.Black,
+                    Alpha = 0.2f
+                },
+                counter = new SpriteText
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    Text = @"...",
+                    FixedWidth = true,
+                }
             });
         }
 
-        float aimWidth;
+        private float aimWidth;
 
         protected override void Update()
         {
