@@ -222,16 +222,14 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                Debug.Assert(colourInfo.HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
-                return colourInfo.TopLeft;
+                return colourInfo.Colour;
             }
 
             set
             {
                 if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
 
-                colourInfo.TopLeft = value;
-                colourInfo.HasSingleColour = true;
+                colourInfo.Colour = value;
 
                 Invalidate(Invalidation.Colour);
             }
@@ -466,14 +464,31 @@ namespace osu.Framework.Graphics
 
         public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = new DrawInfo(null);
-                ColourInfo colour = ColourInfo.MultiplyAlpha(alpha);
+                DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
+
+                di.ApplyTransform(
+                    GetAnchoredPosition(DrawPosition) + Parent?.ChildOffset ?? Vector2.Zero,
+                    Scale * Parent?.ChildScale ?? Vector2.One, Rotation, Shear, OriginPosition);
+
+                di.Blending = new BlendingInfo(Parent != null && BlendingMode == BlendingMode.Inherit ? Parent.BlendingMode : BlendingMode);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
+                    di.Colour = ColourInfo;
+                else if (di.Colour.HasSingleColour)
+                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
-                              BlendingMode == BlendingMode.Inherit ? (BlendingInfo?)null : new BlendingInfo(BlendingMode));
+                {
+                    // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                    Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                    Vector2 parentSize = Parent.DrawSize;
+
+                    interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
+                    interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
+                    interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
+                    interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+
+                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha), interp);
+                }
 
                 return di;
             });

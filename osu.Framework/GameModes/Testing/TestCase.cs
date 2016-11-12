@@ -15,7 +15,6 @@ namespace osu.Framework.GameModes.Testing
     {
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
-        public virtual int DisplayOrder => 0;
 
         FlowContainer buttonsContainer;
 

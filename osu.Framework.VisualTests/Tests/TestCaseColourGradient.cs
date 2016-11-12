@@ -25,6 +25,38 @@ namespace osu.Framework.VisualTests.Tests
 
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
+            ColourInfo[] colours = new[]
+            {
+                new ColourInfo()
+                {
+                    TopLeft = Color4.White,
+                    BottomLeft = Color4.Blue,
+                    TopRight = Color4.Red,
+                    BottomRight = Color4.Green,
+                },
+                new ColourInfo()
+                {
+                    TopLeft = Color4.White,
+                    BottomLeft = Color4.White,
+                    TopRight = Color4.Black,
+                    BottomRight = Color4.Black,
+                },
+                new ColourInfo()
+                {
+                    TopLeft = Color4.White,
+                    BottomLeft = Color4.White,
+                    TopRight = Color4.Transparent,
+                    BottomRight = Color4.Transparent,
+                },
+                new ColourInfo()
+                {
+                    TopLeft = Color4.White,
+                    BottomLeft = Color4.White,
+                    TopRight = transparentBlack,
+                    BottomRight = transparentBlack,
+                },
+            };
+
             Add(new Container()
             {
                 RelativeSizeAxes = Axes.Both,
@@ -45,6 +77,7 @@ namespace osu.Framework.VisualTests.Tests
                                     {
                                         Text = "Colours",
                                         TextSize = 20,
+                                        ColourInfo = colours[0],
                                     },
                                     boxes[0] = new Box
                                     {
@@ -52,13 +85,7 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo()
-                                        {
-                                            TopLeft = Color4.White,
-                                            BottomLeft = Color4.Blue,
-                                            TopRight = Color4.Red,
-                                            BottomRight = Color4.Green,
-                                        },
+                                        ColourInfo = colours[0],
                                     }
                                 }
                             },
@@ -72,6 +99,7 @@ namespace osu.Framework.VisualTests.Tests
                                     {
                                         Text = "White to black (linear brightness gradient)",
                                         TextSize = 20,
+                                        ColourInfo = colours[0],
                                     },
                                     boxes[1] = new Box
                                     {
@@ -80,13 +108,7 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo()
-                                        {
-                                            TopLeft = Color4.White,
-                                            BottomLeft = Color4.White,
-                                            TopRight = Color4.Black,
-                                            BottomRight = Color4.Black,
-                                        },
+                                        ColourInfo = colours[1],
                                     }
                                 }
                             },
@@ -100,6 +122,7 @@ namespace osu.Framework.VisualTests.Tests
                                     {
                                         Text = "White to transparent white (sRGB brightness gradient)",
                                         TextSize = 20,
+                                        ColourInfo = colours[0],
                                     },
                                     boxes[2] = new Box
                                     {
@@ -108,13 +131,7 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo()
-                                        {
-                                            TopLeft = Color4.White,
-                                            BottomLeft = Color4.White,
-                                            TopRight = Color4.Transparent,
-                                            BottomRight = Color4.Transparent,
-                                        },
+                                        ColourInfo = colours[2],
                                     }
                                 }
                             },
@@ -128,6 +145,7 @@ namespace osu.Framework.VisualTests.Tests
                                     {
                                         Text = "White to transparent black (mixed brightness gradient)",
                                         TextSize = 20,
+                                        ColourInfo = colours[0],
                                     },
                                     boxes[3] = new Box
                                     {
@@ -136,13 +154,7 @@ namespace osu.Framework.VisualTests.Tests
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
                                         Size = new Vector2(0.5f),
-                                        ColourInfo = new ColourInfo()
-                                        {
-                                            TopLeft = Color4.White,
-                                            BottomLeft = Color4.White,
-                                            TopRight = transparentBlack,
-                                            BottomRight = transparentBlack,
-                                        },
+                                        ColourInfo = colours[3],
                                     }
                                 }
                             },

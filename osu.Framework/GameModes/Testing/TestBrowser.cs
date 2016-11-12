@@ -56,6 +56,8 @@ namespace osu.Framework.GameModes.Testing
             Assembly asm = Assembly.GetCallingAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
+
+            tests.Sort((TestCase a, TestCase b) => a.Name.CompareTo(b.Name));
         }
 
         [BackgroundDependencyLoader]
@@ -93,7 +95,6 @@ namespace osu.Framework.GameModes.Testing
                 Padding = new MarginPadding { Left = 200 }
             });
 
-            tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
                 addTest(testCase);
         }

@@ -33,5 +33,7 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpacePos">The input position.</param>
         /// <returns>The output position.</returns>
         Vector2 GetLocalPosition(Vector2 screenSpacePos);
+
+        BlendingMode BlendingMode { get; }
     }
 }
