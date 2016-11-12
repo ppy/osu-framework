@@ -77,7 +77,10 @@ namespace osu.Framework
                 Depth = float.MaxValue / 2,
             });
 
-            AddInternal(LogOverlay = new LogOverlay());
+            AddInternal(LogOverlay = new LogOverlay()
+            {
+                Depth = float.MaxValue / 2,
+            });
         }
 
         /// <summary>
@@ -116,6 +119,11 @@ namespace osu.Framework
                 ScaleAdjust = 1 / 100f
             };
             Dependencies.Cache(Fonts);
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             (performanceContainer = new PerformanceOverlay
             {
