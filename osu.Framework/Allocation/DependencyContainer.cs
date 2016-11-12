@@ -28,11 +28,7 @@ namespace osu.Framework.Allocation
 
         private void Register(Type type, bool lazy)
         {
-            if (activators.ContainsKey(type) || cache.ContainsKey(type))
-            {
-                Debug.Assert(false, $@"Type {type.FullName} should not be registered twice");
-                return;
-            }
+            Debug.Assert(!activators.ContainsKey(type) && !cache.ContainsKey(type), $@"Type {type.FullName} should not be registered twice");
 
             var initialize = GetLoaderMethod(type);
             var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
