@@ -10,7 +10,7 @@ namespace osu.Framework.Allocation
         /// Marks this method as the initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
-        public BackgroundDependencyLoader(bool permitNulls = true)
+        public BackgroundDependencyLoader(bool permitNulls = false)
         {
             PermitNulls = permitNulls;
         }
