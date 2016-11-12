@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {
@@ -189,7 +190,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = Time.Current + transformationDelay;
+            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -197,7 +198,12 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (duration == 0 && transformationDelay == 0)
+            if (!hasTimeAvailable)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+            }
+            else if (duration == 0 && transformationDelay == 0)
             {
                 transform.UpdateTime(Time);
                 transform.Apply(this);
@@ -249,7 +255,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = Time.Current + transformationDelay;
+            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -257,7 +263,12 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (duration == 0 && transformationDelay == 0)
+            if (!hasTimeAvailable)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+            }
+            else if (duration == 0 && transformationDelay == 0)
             {
                 transform.UpdateTime(Time);
                 transform.Apply(this);
@@ -320,38 +331,65 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            double startTime = Time.Current + transformationDelay;
+            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
 
-            // We need to pass colours in linear space, since colour transformations work in linear colour space.
-            Transforms.Add(new TransformColour
+            TransformColour transform = new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = startValue,
                 EndValue = newColour.Linear,
-                Easing = easing,
-            });
+                Easing = easing
+            };
+
+            if (!hasTimeAvailable)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+            }
+            else if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
+                transform.Apply(this);
+            }
+            else
+            {
+                Transforms.Add(transform);
+            }
         }
 
-        public void FlashColour(SRGBColour flashColour, int duration)
+        public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
         {
             Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
 
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = Time.Current + transformationDelay;
+            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
 
-            // We need to pass colours in linear space, since colour transformations work in linear colour space.
-            Transforms.Add(new TransformColour
+            TransformColour transform = new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = flashColour.Linear,
                 EndValue = startValue,
-            });
+                Easing = easing
+            };
 
-            return;
+            if (!hasTimeAvailable)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+            }
+            else if (duration == 0 && transformationDelay == 0)
+            {
+                transform.UpdateTime(Time);
+                transform.Apply(this);
+            }
+            else
+            {
+                Transforms.Add(transform);
+            }
         }
 
         #endregion
