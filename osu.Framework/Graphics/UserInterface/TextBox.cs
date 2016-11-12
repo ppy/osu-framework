@@ -96,16 +96,19 @@ namespace osu.Framework.Graphics.UserInterface
             this.audio = audio;
 
             textInput = game.Host.GetTextInput();
-            textInput.OnNewImeComposition += delegate (string s)
+            if (textInput != null)
             {
-                textUpdateScheduler.Add(() => onImeComposition(s));
-                cursorAndLayout.Invalidate();
-            };
-            textInput.OnNewImeResult += delegate (string s)
-            {
-                textUpdateScheduler.Add(() => onImeResult(s));
-                cursorAndLayout.Invalidate();
-            };
+                textInput.OnNewImeComposition += delegate (string s)
+                {
+                    textUpdateScheduler.Add(() => onImeComposition(s));
+                    cursorAndLayout.Invalidate();
+                };
+                textInput.OnNewImeResult += delegate (string s)
+                {
+                    textUpdateScheduler.Add(() => onImeResult(s));
+                    cursorAndLayout.Invalidate();
+                };
+            }
         }
 
         private void resetSelection()
