@@ -29,9 +29,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Box box;
         private SpriteText spriteText;
-
-        [Initializer]
-        private void Load()
+        
+        public Button()
         {
             Children = new Drawable[]
             {
