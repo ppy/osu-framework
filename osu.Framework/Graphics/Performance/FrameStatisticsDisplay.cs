@@ -488,17 +488,13 @@ namespace osu.Framework.Graphics.Performance
 
             public TimeBar(TextureAtlas atlas)
             {
-                this.atlas = atlas;
+                Size = new Vector2(WIDTH, HEIGHT);
                 Children = new[]
                 {
                     Sprite = new Sprite()
                 };
-            }
 
-            [BackgroundDependencyLoader]
-            private void load()
-            {
-                Size = new Vector2(WIDTH, HEIGHT);
+                this.atlas = atlas;
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
@@ -559,17 +555,13 @@ namespace osu.Framework.Graphics.Performance
                     },
                     box = new Box
                     {
-                        Size = new Vector2(BAR_WIDTH, 0),
                         RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(BAR_WIDTH, 0),
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                     }
                 };
-            }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
                 Active = true;
             }
 
