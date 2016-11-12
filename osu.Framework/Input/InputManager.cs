@@ -333,15 +333,12 @@ namespace osu.Framework.Input
 
             if (currentCursorHandler != null)
             {
-                //convert InputHandler coordinates to native scren coordinates.
+                //convert inputhandler coordinates to inputmanager coordinates.
                 Vector2 pos = currentCursorHandler.Position ?? Vector2.Zero;
 
-                pos.X /= currentCursorHandler.Size.X;
-                pos.Y /= currentCursorHandler.Size.Y;
+                pos = Vector2.Multiply(pos, Vector2.Divide(Host.DrawSize, currentCursorHandler.Size));
 
-                Quad q = ScreenSpaceDrawQuad;
-
-                mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
+                mouse.Position = pos * DrawInfo.MatrixInverse;
             }
             else
                 mouse.Position = Vector2.Zero;
