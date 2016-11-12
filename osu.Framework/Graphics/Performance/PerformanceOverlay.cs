@@ -47,8 +47,8 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        [Initializer]
-        private void Load(BasicGameHost host)
+        [BackgroundDependencyLoader]
+        private void load(BasicGameHost host)
         {
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
 

@@ -120,8 +120,8 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Masking = true;
 

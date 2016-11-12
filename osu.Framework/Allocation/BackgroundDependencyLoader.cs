@@ -2,7 +2,7 @@
 namespace osu.Framework.Allocation
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class InitializerAttribute : Attribute
+    public class BackgroundDependencyLoader : Attribute
     {
         public bool PermitNulls { get; private set; }
 
@@ -10,7 +10,7 @@ namespace osu.Framework.Allocation
         /// Marks this method as the initializer for a class in the context of dependency injection.
         /// </summary>
         /// <param name="permitNulls">If true, the initializer may be passed null for the dependencies we can't fulfill.</param>
-        public InitializerAttribute(bool permitNulls = true)
+        public BackgroundDependencyLoader(bool permitNulls = true)
         {
             PermitNulls = permitNulls;
         }

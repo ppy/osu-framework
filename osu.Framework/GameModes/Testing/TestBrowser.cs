@@ -58,8 +58,8 @@ namespace osu.Framework.GameModes.Testing
                 tests.Add((TestCase)Activator.CreateInstance(type));
         }
 
-        [Initializer]
-        private void Load(BasicStorage storage)
+        [BackgroundDependencyLoader]
+        private void load(BasicStorage storage)
         {
             config = new TestBrowserConfig(storage);
 
@@ -157,8 +157,8 @@ namespace osu.Framework.GameModes.Testing
                 this.test = test;
             }
 
-            [Initializer]
-            private void Load()
+            [BackgroundDependencyLoader]
+            private void load()
             {
                 Masking = true;
                 CornerRadius = 5;

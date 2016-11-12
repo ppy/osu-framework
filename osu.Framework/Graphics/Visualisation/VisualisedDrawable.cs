@@ -43,8 +43,8 @@ namespace osu.Framework.Graphics.Visualisation
             AutoSizeAxes = Axes.Both;
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Target.OnInvalidate += onInvalidate;
 

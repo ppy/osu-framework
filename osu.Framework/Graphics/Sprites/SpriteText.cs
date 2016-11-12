@@ -73,8 +73,8 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        [Initializer]
-        private void Load(FontStore fonts)
+        [BackgroundDependencyLoader]
+        private void load(FontStore fonts)
         {
             if (store == null)
                 store = fonts;

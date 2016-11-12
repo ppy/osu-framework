@@ -10,8 +10,8 @@ namespace osu.Framework.VisualTests
 {
     class VisualTestGame : BaseGame
     {
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Children = new Drawable[]
             {

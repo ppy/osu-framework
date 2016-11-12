@@ -92,8 +92,8 @@ namespace osu.Framework
 
         protected internal override void PerformLoad(BaseGame game) => base.PerformLoad(this);
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));

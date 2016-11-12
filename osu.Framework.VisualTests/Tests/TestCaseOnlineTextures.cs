@@ -48,8 +48,8 @@ namespace osu.Framework.VisualTests.Tests
             getNextAvatar();
         }
 
-        [Initializer]
-        private void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
             this.game = game;
         }
@@ -72,8 +72,8 @@ namespace osu.Framework.VisualTests.Tests
             this.userId = userId;
         }
 
-        [Initializer]
-        private void Load(TextureStore textures)
+        [BackgroundDependencyLoader]
+        private void load(TextureStore textures)
         {
             Texture = textures.Get($@"https://a.ppy.sh/{userId}");
         }

@@ -18,8 +18,8 @@ namespace osu.Framework.Input
             Host = host;
         }
 
-        [Initializer]
-        private void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
             if (Host != null)
             {

@@ -235,8 +235,8 @@ namespace osu.Framework.Graphics.Performance
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             //initialise background
             byte[] column = new byte[HEIGHT * 4];
@@ -495,8 +495,8 @@ namespace osu.Framework.Graphics.Performance
                 };
             }
 
-            [Initializer]
-            private void Load()
+            [BackgroundDependencyLoader]
+            private void load()
             {
                 Size = new Vector2(WIDTH, HEIGHT);
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);

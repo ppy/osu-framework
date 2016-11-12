@@ -14,8 +14,8 @@ namespace SampleGame
     {
         private Box box;
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Add(box = new Box
             {

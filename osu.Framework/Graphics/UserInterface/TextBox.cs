@@ -55,8 +55,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        [Initializer]
-        private void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
             this.game = game;
 

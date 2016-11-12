@@ -26,8 +26,8 @@ namespace osu.Framework.Graphics.Performance
             this.clock = clock;
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Masking = true;
             CornerRadius = 5;

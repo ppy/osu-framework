@@ -20,8 +20,8 @@ namespace osu.Framework.Graphics.Cursor
             RelativeSizeAxes = Axes.Both;
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Add(ActiveCursor = CreateCursor());
         }

@@ -99,8 +99,8 @@ namespace osu.Framework.GameModes.Testing
             this.reloadCallback = reloadCallback;
         }
 
-        [Initializer]
-        private void Load()
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Size = new Vector2(100, 50);
             Colour = offColour;

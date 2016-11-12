@@ -63,8 +63,8 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            [Initializer]
-            private void Load()
+            [BackgroundDependencyLoader]
+            private void load()
             {
                 Children = new Drawable[]
                 {

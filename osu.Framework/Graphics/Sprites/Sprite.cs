@@ -62,8 +62,8 @@ namespace osu.Framework.Graphics.Sprites
             base.ApplyDrawNode(node);
         }
 
-        [Initializer]
-        private void Load(ShaderManager shaders)
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
         {
             if (textureShader == null)
                 textureShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Texture));

@@ -23,7 +23,7 @@ namespace osu.Framework.Allocation
         private MethodInfo GetLoaderMethod(Type type)
         {
             return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).SingleOrDefault(
-                mi => mi.CustomAttributes.Any(attr => attr.AttributeType == typeof(InitializerAttribute)));
+                mi => mi.CustomAttributes.Any(attr => attr.AttributeType == typeof(BackgroundDependencyLoader)));
         }
 
         private void Register(Type type, bool lazy)
@@ -51,7 +51,7 @@ namespace osu.Framework.Allocation
 
             var initializers = initializerMethods.Select(initializer =>
             {
-                var permitNull = initializer.GetCustomAttribute<InitializerAttribute>().PermitNulls;
+                var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoader>().PermitNulls;
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
                     .Select(t => (Func<object>)(() =>
                         {

@@ -73,8 +73,8 @@ namespace osu.Framework.Graphics.Containers
             ForceRedraw();
         }
 
-        [Initializer]
-        private void Load(ShaderManager shaders)
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
         {
             if (blurShader == null)
                 blurShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
