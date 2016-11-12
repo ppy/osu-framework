@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 scrollDraggerVisible = value;
-                updateScrollDraggerVisibility();
+                updateScrollDragger();
             }
         }
 
@@ -121,6 +121,7 @@ namespace osu.Framework.Graphics.Containers
         public ScrollContainer()
         {
             RelativeSizeAxes = Axes.Both;
+            Masking = true;
 
             AddInternal(new Drawable[]
             {
@@ -132,26 +133,20 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            Masking = true;
 
-            content.OnAutoSize += contentAutoSize;
-        }
-
-        private void contentAutoSize()
+        private void updateSize()
         {
-            if (Precision.AlmostEquals(availableContent, content.DrawSize.Y))
+            float contentSize = content.DrawSize.Y;
+            if (Precision.AlmostEquals(availableContent, contentSize))
                 return;
 
-            availableContent = content.DrawSize.Y;
-            updateSize();
-            updateScrollDraggerVisibility();
+            availableContent = contentSize;
+            updateScrollDragger(); 
         }
 
-        private void updateScrollDraggerVisibility()
+        private void updateScrollDragger()
         {
+            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
             scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
         }
 
@@ -240,8 +235,6 @@ namespace osu.Framework.Graphics.Containers
 
         public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
 
-        private void updateSize() => scrollDragger?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
-
         private void updatePosition()
         {
             double localDistanceDecay = distanceDecay;
@@ -281,6 +274,7 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
+            updateSize();
             updatePosition();
 
             scrollDragger?.MoveToY(Current * scrollDragger.Size.Y);
