@@ -12,6 +12,9 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Sprites;
+using System.Threading.Tasks;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -398,12 +401,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader(permitNulls: true)]
+        private void load(BaseGame game, ShaderManager shaders)
         {
-            base.Load(game);
-
             if (shader == null)
-                shader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+                shader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
 
             children.LoadRequested += i =>
             {

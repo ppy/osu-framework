@@ -21,7 +21,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(new Container()
+            Add(new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]

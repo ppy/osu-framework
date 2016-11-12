@@ -7,6 +7,7 @@ using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -98,10 +99,9 @@ namespace osu.Framework.GameModes.Testing
             this.reloadCallback = reloadCallback;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             Size = new Vector2(100, 50);
             Colour = offColour;
             Action += clickAction;

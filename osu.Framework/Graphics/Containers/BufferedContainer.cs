@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shaders;
 using System;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -72,12 +73,11 @@ namespace osu.Framework.Graphics.Containers
             ForceRedraw();
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
         {
-            base.Load(game);
-
             if (blurShader == null)
-                blurShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
+                blurShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();

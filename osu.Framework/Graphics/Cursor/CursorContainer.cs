@@ -6,6 +6,7 @@ using osu.Framework.Input;
 using OpenTK;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -19,10 +20,9 @@ namespace osu.Framework.Graphics.Cursor
             RelativeSizeAxes = Axes.Both;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             Add(ActiveCursor = CreateCursor());
         }
 

@@ -15,6 +15,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -54,10 +55,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
-            base.Load(game);
-
             this.game = game;
 
             Masking = true;

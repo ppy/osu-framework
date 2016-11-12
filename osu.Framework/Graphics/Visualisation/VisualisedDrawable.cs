@@ -9,6 +9,7 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -42,10 +43,9 @@ namespace osu.Framework.Graphics.Visualisation
             AutoSizeAxes = Axes.Both;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             Target.OnInvalidate += onInvalidate;
 
             Container da = Target as Container;

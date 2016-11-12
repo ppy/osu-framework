@@ -811,7 +811,7 @@ namespace osu.Framework.Graphics
             }
 
             double t1 = perf.CurrentTime;
-            Load(game);
+            game.Dependencies.Initialize(this);
             double elapsed = perf.CurrentTime - t1;
             if (elapsed > 50 && ThreadSafety.IsUpdateThread)
                 Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -835,11 +835,6 @@ namespace osu.Framework.Graphics
             LoadComplete();
             return true;
         }
-
-        /// <summary>
-        /// Load resources etc.
-        /// </summary>
-        protected virtual void Load(BaseGame game) { }
 
         /// <summary>
         /// Play initial animation etc.
