@@ -338,7 +338,7 @@ namespace osu.Framework.Input
 
                 pos = Vector2.Multiply(pos, Vector2.Divide(Host.DrawSize, currentCursorHandler.Size));
 
-                mouse.Position = pos * DrawInfo.MatrixInverse;
+                mouse.Position = pos;
             }
             else
                 mouse.Position = Vector2.Zero;
