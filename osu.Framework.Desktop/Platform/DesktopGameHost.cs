@@ -28,7 +28,7 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public override TextInputSource GetTextInput() => new GameWindowTextInput(Window);
+        public override TextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
         protected override void LoadGame(BaseGame game)
         {
