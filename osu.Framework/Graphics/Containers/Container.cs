@@ -610,7 +610,9 @@ namespace osu.Framework.Graphics.Containers
         
         protected override void Dispose(bool isDisposing)
         {
-            Children.ForEach(c => c.Dispose());
+            //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
+            Children?.ForEach(c => c.Dispose());
+
             base.Dispose(isDisposing);
         }
     }
