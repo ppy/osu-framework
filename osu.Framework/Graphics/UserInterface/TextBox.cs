@@ -16,6 +16,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -33,7 +34,7 @@ namespace osu.Framework.Graphics.UserInterface
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord = null;
 
-        BaseGame game;
+        private AudioManager audio;
 
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
@@ -55,42 +56,56 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
-        [BackgroundDependencyLoader]
-        private void load(BaseGame game)
+        public TextBox()
         {
-            this.game = game;
-
             Masking = true;
             CornerRadius = 3;
 
-            Add(background = new Box
+            Add(new Drawable[]
             {
-                Colour = BackgroundUnfocused,
-                RelativeSizeAxes = Axes.Both,
+                background = new Box
+                {
+                    Colour = BackgroundUnfocused,
+                    RelativeSizeAxes = Axes.Both,
+                },
+                textContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
+                    {
+                        cursor = new Box
+                        {
+                            Size = Vector2.One,
+                            Colour = Color4.Transparent,
+                            RelativeSizeAxes = Axes.Y,
+                            Alpha = 0,
+                        },
+                        textFlow = new FlowContainer
+                        {
+                            Direction = FlowDirection.HorizontalOnly,
+                            AutoSizeAxes = Axes.Both,
+                        },
+                    },
+                },
             });
+        }
 
-            Add(textContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both
-            });
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game, AudioManager audio)
+        {
+            this.audio = audio;
 
-            textFlow = new FlowContainer
+            textInput = game.Host.GetTextInput();
+            textInput.OnNewImeComposition += delegate (string s)
             {
-                Direction = FlowDirection.HorizontalOnly,
-                AutoSizeAxes = Axes.Both,
+                textUpdateScheduler.Add(() => onImeComposition(s));
+                cursorAndLayout.Invalidate();
             };
-
-            cursor = new Box
+            textInput.OnNewImeResult += delegate (string s)
             {
-                Depth = float.MinValue,
-                Size = Vector2.One,
-                Colour = Color4.Transparent,
-                RelativeSizeAxes = Axes.Y,
-                Alpha = 0,
+                textUpdateScheduler.Add(() => onImeResult(s));
+                cursorAndLayout.Invalidate();
             };
-
-            textContainer.Add(cursor);
-            textContainer.Add(textFlow);
         }
 
         private void resetSelection()
@@ -241,7 +256,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
             {
-                game.Audio.Sample.Get(@"Keyboard/key-movement")?.Play();
+                audio.Sample.Get(@"Keyboard/key-movement")?.Play();
                 cursorAndLayout.Invalidate();
             }
         }
@@ -257,7 +272,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (count == 0) return false;
 
             if (sound)
-                game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
             foreach (var d in textFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
@@ -531,9 +546,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (!string.IsNullOrEmpty(str))
             {
                 if (state.Keyboard.ShiftPressed)
-                    game.Audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
                 else
-                    game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
                 insertString(str);
             }
 
@@ -654,7 +669,7 @@ namespace osu.Framework.Graphics.UserInterface
                 background.ClearTransformations();
                 background.FlashColour(BackgroundCommit, 400);
 
-                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                 OnCommit?.Invoke(this, true);
             }
             else
@@ -683,26 +698,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void unbindInput()
         {
-            textInput?.Deactivate(this);
+            textInput.Deactivate(this);
         }
 
         private void bindInput()
         {
-            if (textInput == null)
-            {
-                textInput = game.Host.GetTextInput();
-                textInput.OnNewImeComposition += delegate (string s)
-                {
-                    textUpdateScheduler.Add(() => onImeComposition(s));
-                    cursorAndLayout.Invalidate();
-                };
-                textInput.OnNewImeResult += delegate (string s)
-                {
-                    textUpdateScheduler.Add(() => onImeResult(s));
-                    cursorAndLayout.Invalidate();
-                };
-            }
-
             textInput.Activate(this);
         }
 
@@ -711,7 +711,7 @@ namespace osu.Framework.Graphics.UserInterface
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                game.Audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
 
                 foreach (Drawable d in imeDrawables)
                 {
@@ -760,7 +760,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 //in the case of backspacing (or a NOP), we can exit early here.
                 if (didDelete)
-                    game.Audio.Sample.Get(@"Keyboard/key-delete")?.Play();
+                    audio.Sample.Get(@"Keyboard/key-delete")?.Play();
                 return;
             }
 
@@ -776,7 +776,7 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
 
-            game.Audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
         }
 
         #endregion
