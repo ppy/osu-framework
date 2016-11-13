@@ -90,7 +90,7 @@ namespace osu.Framework.Extensions
         {
             if (list.Count != list2.Count) return false;
 
-            return !list.Where((t, i) => !t.Equals(list2[i])).Any();
+            return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
         }
 
         public static string ToResolutionString(this Size size)
