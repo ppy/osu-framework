@@ -8,6 +8,8 @@ using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
+using OpenTK;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -63,9 +65,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, Color4 drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
         {
-            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, spriteBatch);
+            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, spriteBatch, inflationPercentage);
         }
 
         internal override bool Upload()

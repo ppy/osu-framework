@@ -3,6 +3,7 @@
 
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -23,32 +24,29 @@ namespace osu.Framework.Graphics.Performance
         public FpsDisplay(IFrameBasedClock clock)
         {
             this.clock = clock;
-        }
-
-        protected override void Load(BaseGame game)
-        {
-            base.Load(game);
 
             Masking = true;
             CornerRadius = 5;
 
-            Add(new Box
+            Add(new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Colour = Color4.Black,
-                Alpha = 0.2f
-            });
-
-            Add(counter = new SpriteText
-            {
-                Anchor = Anchor.TopRight,
-                Origin = Anchor.TopRight,
-                Text = @"...",
-                FixedWidth = true,
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.Black,
+                    Alpha = 0.2f
+                },
+                counter = new SpriteText
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    Text = @"...",
+                    FixedWidth = true,
+                }
             });
         }
 
-        float aimWidth;
+        private float aimWidth;
 
         protected override void Update()
         {
@@ -56,7 +54,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, Clock.ElapsedFrameTime / 1000);
+            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
 
             if (counter.DrawWidth != aimWidth)
             {

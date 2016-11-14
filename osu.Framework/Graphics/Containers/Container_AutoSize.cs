@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public partial class Container
+    public partial class Container<T>
     {
         internal event Action OnAutoSize;
 
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (Drawable c in AliveChildren)
+                foreach (T c in AliveChildren)
                 {
                     if (!c.IsVisible)
                         continue;

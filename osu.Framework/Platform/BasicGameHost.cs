@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Threading;
@@ -127,7 +128,7 @@ namespace osu.Framework.Platform
         public Scheduler InputScheduler => inputThread.Scheduler;
         protected Scheduler UpdateScheduler => updateThread.Scheduler;
 
-        protected internal override IFrameBasedClock Clock => updateThread.Clock;
+        protected override IFrameBasedClock Clock => updateThread.Clock;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
@@ -139,13 +140,16 @@ namespace osu.Framework.Platform
 
         private UserInputManager inputManager;
 
-        protected override Container Content => inputManager;
+        protected override Container<Drawable> Content => inputManager;
 
         private string name;
         public override string Name => name;
 
+        public DependencyContainer Dependencies { get; private set; } = new DependencyContainer();
+
         protected BasicGameHost(string gameName = @"")
         {
+            Dependencies.Cache(this);
             name = gameName;
 
             threads = new[]
@@ -257,7 +261,7 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected bool ExitRequested;
+        protected volatile bool ExitRequested;
 
         private bool threadsRunning => updateThread.Running || drawThread.Running;
 
@@ -338,11 +342,11 @@ namespace osu.Framework.Platform
         {
             if (Window.WindowState == WindowState.Minimized) return;
 
-            Rectangle rect = Window.ClientRectangle;
+            var size = Window.ClientSize;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
-                base.Size = new Vector2(rect.Width, rect.Height);
+                base.Size = new Vector2(size.Width, size.Height);
             });
         }
 
@@ -356,7 +360,7 @@ namespace osu.Framework.Platform
                 {
                     //update the underlying window size based on our new set size.
                     //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    InputScheduler.Add(delegate { if (Window != null) Window.Size = new Size((int)value.X, (int)value.Y); });
+                    InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
                     base.Size = value;
                 });
             }
@@ -366,19 +370,23 @@ namespace osu.Framework.Platform
 
         public override void Add(Drawable drawable)
         {
+            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
+
             BaseGame game = drawable as BaseGame;
+
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
+            Dependencies.Cache(game);
             game.SetHost(this);
+
+            if (!IsLoaded)
+                PerformLoad(game);
 
             LoadGame(game);
         }
 
         protected virtual void LoadGame(BaseGame game)
         {
-            if (!IsLoaded)
-                PerformLoad(null);
-
             // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
             // depend on a Game object.
             Task.Run(() => game.PerformLoad(null)).ContinueWith(obj => Schedule(() => base.Add(game)));

@@ -85,7 +85,7 @@
   <ItemGroup>
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
-    <Compile Include="Extensions\ColourExtensions\ColourExtensions.cs" />
+    <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
@@ -104,17 +104,21 @@
     <Compile Include="GameModes\Testing\TestBrowser.cs" />
     <Compile Include="GameModes\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
+    <Compile Include="Graphics\Colour\ColourInfo.cs" />
+    <Compile Include="Graphics\Colour\SRGBColour.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
     <Compile Include="Graphics\Containers\CircularContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
     <Compile Include="Graphics\Containers\Container_AutoSize.cs" />
+    <Compile Include="Graphics\Containers\IContainer.cs" />
     <Compile Include="Graphics\Containers\OverlayContainer.cs" />
     <Compile Include="Graphics\Containers\ScrollContainer.cs" />
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawable.cs" />
-    <Compile Include="Graphics\Shaders\ShadedDrawNode.cs" />
+    <Compile Include="Graphics\IDrawable.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
+    <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\Sliderbar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
@@ -140,6 +144,7 @@
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
     <Compile Include="Graphics\Visualisation\InfoOverlay.cs" />
+    <Compile Include="Graphics\Visualisation\LogOverlay.cs" />
     <Compile Include="Graphics\Visualisation\TreeContainer.cs" />
     <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
@@ -165,7 +170,6 @@
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
-    <Compile Include="Configuration\SafeWriteStream.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
     <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />
@@ -263,15 +267,15 @@
     <Compile Include="Threading\SleepHandle.cs" />
     <Compile Include="Threading\SleepScheduler.cs" />
     <Compile Include="Graphics\Textures\RawTexture.cs" />
-    <Compile Include="Graphics\Textures\Png\PngReader.cs" />
-    <Compile Include="Graphics\Textures\Png\PngCommon.cs" />
-    <Compile Include="Graphics\Textures\Png\ZlibStream.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\BasicStorage.cs" />
     <Compile Include="Platform\IpcChannel.cs" />
     <Compile Include="Platform\IpcMessage.cs" />
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
+    <Compile Include="Timing\TimeInfo.cs" />
+    <Compile Include="Allocation\DependencyContainer.cs" />
+    <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">

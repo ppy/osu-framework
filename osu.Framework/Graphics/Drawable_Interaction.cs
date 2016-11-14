@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Find the first parent InputManager which this drawable is contained by.
         /// </summary>
-        private InputManager ourInputManager => this as InputManager ?? Parent?.ourInputManager;
+        private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
 
         public bool TriggerHover(InputState state)
         {
@@ -87,16 +87,9 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        public bool TriggerWheelUp(InputState state) => OnWheelUp(getLocalState(state));
+        public bool TriggerWheel(InputState state) => OnWheel(getLocalState(state));
 
-        protected virtual bool OnWheelUp(InputState state)
-        {
-            return false;
-        }
-
-        public bool TriggerWheelDown(InputState state) => OnWheelDown(getLocalState(state));
-
-        protected virtual bool OnWheelDown(InputState state)
+        protected virtual bool OnWheel(InputState state)
         {
             return false;
         }
@@ -220,11 +213,15 @@ namespace osu.Framework.Graphics
 
             public Vector2 LastPosition => us.Parent?.GetLocalPosition(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.GetLocalPosition(NativeState.PositionMouseDown.Value);
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.GetLocalPosition(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;
             public bool RightButton => NativeState.RightButton;
+
+            public bool WheelUp => NativeState.WheelUp;
+            public bool WheelDown => NativeState.WheelDown;
+            public int WheelDiff => NativeState.WheelDiff;
         }
     }
 

@@ -11,6 +11,8 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using System;
 using OpenTK;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -71,12 +73,11 @@ namespace osu.Framework.Graphics.Containers
             ForceRedraw();
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
         {
-            base.Load(game);
-
             if (blurShader == null)
-                blurShader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
+                blurShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
@@ -127,7 +128,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
-        protected override DrawInfo DrawInfo
+        public override DrawInfo DrawInfo
         {
             get
             {
@@ -137,15 +138,19 @@ namespace osu.Framework.Graphics.Containers
                 // want their colour to be polluted by their parent (us!)
                 // since our own color will be applied on top when we render
                 // from the frame buffer to the back buffer later on.
-                result.Colour = Color4.White;
+                result.Colour = new ColourInfo(Color4.White);
                 return result;
             }
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            foreach (FrameBuffer frameBuffer in frameBuffers)
-                frameBuffer.Dispose();
+            // right now we are relying on the finalizer for correct disposal.
+            // correct method would be to schedule these to update thread and
+            // then to the draw thread.
+            
+            //foreach (FrameBuffer frameBuffer in frameBuffers)
+              //  frameBuffer.Dispose();
 
             base.Dispose(isDisposing);
         }

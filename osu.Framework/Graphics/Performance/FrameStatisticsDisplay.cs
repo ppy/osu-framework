@@ -235,10 +235,9 @@ namespace osu.Framework.Graphics.Performance
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             //initialise background
             byte[] column = new byte[HEIGHT * 4];
             byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
@@ -252,8 +251,11 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, PerformanceCollectionType.Empty, HEIGHT, column, AMOUNT_COUNT_STEPS);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
-            foreach (var t in timeBars)
-                t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            Schedule(() =>
+            {
+                foreach (var t in timeBars)
+                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            });
         }
 
         private void addEvent(int type)
@@ -486,22 +488,14 @@ namespace osu.Framework.Graphics.Performance
 
             public TimeBar(TextureAtlas atlas)
             {
-                this.atlas = atlas;
-            }
-
-            protected override void Load(BaseGame game)
-            {
-                base.Load(game);
-
                 Size = new Vector2(WIDTH, HEIGHT);
-
                 Children = new[]
                 {
-                    Sprite = new Sprite
-                    {
-                        Texture = atlas.Add(WIDTH, HEIGHT)
-                    }
+                    Sprite = new Sprite()
                 };
+
+                this.atlas = atlas;
+                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
             public override bool HandleInput => false;
@@ -561,17 +555,13 @@ namespace osu.Framework.Graphics.Performance
                     },
                     box = new Box
                     {
-                        Size = new Vector2(BAR_WIDTH, 0),
                         RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(BAR_WIDTH, 0),
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                     }
                 };
-            }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
                 Active = true;
             }
 
@@ -590,15 +580,15 @@ namespace osu.Framework.Graphics.Performance
                 if (!Active)
                     return;
 
-                double elapsedTime = Clock.ElapsedFrameTime;
-                double movement = velocity * Clock.ElapsedFrameTime + 0.5 * ACCELERATION * elapsedTime * elapsedTime;
+                double elapsedTime = Time.Elapsed;
+                double movement = velocity * Time.Elapsed + 0.5 * ACCELERATION * elapsedTime * elapsedTime;
                 double newHeight = Math.Max(height, box.Height - movement);
                 box.Height = (float)newHeight;
 
                 if (newHeight <= height)
                     velocity = 0;
                 else
-                    velocity += Clock.ElapsedFrameTime * ACCELERATION;
+                    velocity += Time.Elapsed * ACCELERATION;
             }
         }
     }

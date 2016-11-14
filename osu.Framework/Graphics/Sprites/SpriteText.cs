@@ -9,6 +9,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -29,6 +31,18 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
 
+        private string font;
+
+        public string Font
+        {
+            get { return font; }
+            set
+            {
+                font = value;
+                internalSize.Invalidate();
+            }
+        }
+
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
         private float spaceWidth;
@@ -43,7 +57,7 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        internal override Vector2 ChildScale => new Vector2(TextSize);
+        public override Vector2 ChildScale => new Vector2(TextSize);
 
         private float textSize = 20;
 
@@ -59,12 +73,11 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(FontStore fonts)
         {
-            base.Load(game);
-
             if (store == null)
-                store = game.Fonts;
+                store = fonts;
 
             spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
 
@@ -167,8 +180,6 @@ namespace osu.Framework.Graphics.Sprites
                     Add(s);
                 }
 
-                base.UpdateChildrenLife();
-
                 lastText = text;
                 return Vector2.Zero;
             });
@@ -180,16 +191,11 @@ namespace osu.Framework.Graphics.Sprites
         };
 
         private Texture getTexture(char c) => store?.Get(getTextureName(c));
-        private string getTextureName(char c) => $@"{c}";
+        private string getTextureName(char c) => string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
         {
             return $@"""{Text}"" " + base.ToString();
-        }
-
-        protected override bool UpdateChildrenLife()
-        {
-            return false;
         }
     }
 }

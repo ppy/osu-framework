@@ -6,37 +6,16 @@ using System.Collections.Generic;
 using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Textures
 {
-    class TextureGLAtlas : TextureGLSingle
-    {
-        public TextureGLAtlas(int width, int height, bool manualMipmaps, All filteringMode = All.Linear)
-            : base(width, height, manualMipmaps, filteringMode)
-        {
-        }
-    }
-
-    class TextureGLAtlasWhite : TextureGLSub
-    {
-        public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
-        {
-        }
-
-        public override bool Bind()
-        {
-            //we can use the special white space from any atlas texture.
-            if (GLWrapper.AtlasTextureIsBound)
-                return true;
-
-            return base.Bind();
-        }
-    }
-
     public class TextureAtlas
     {
-        private const int PADDING = 1 << TextureGLSingle.MAX_MIPMAP_LEVELS;
+        // We are adding an extra padding on top of the padding required by
+        // mipmap blending in order to support smooth edges without antialiasing which requires
+        // inflating texture rectangles.
+        private const int PADDING = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
         private List<Rectangle> subTextureBounds = new List<Rectangle>();
         private TextureGLSingle atlasTexture;

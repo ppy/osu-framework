@@ -2,8 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
@@ -15,10 +13,10 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Input;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
+using osu.Framework.Allocation;
 
 namespace osu.Framework
 {
@@ -45,13 +43,17 @@ namespace osu.Framework
 
         public ShaderManager Shaders;
 
-        public TextureStore Fonts;
+        public FontStore Fonts;
 
         private Container content;
         private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
 
-        protected override Container Content => content;
+        private LogOverlay LogOverlay;
+
+        protected override Container<Drawable> Content => content;
+
+        public DependencyContainer Dependencies => Host.Dependencies;
 
         public BaseGame()
         {
@@ -70,7 +72,12 @@ namespace osu.Framework
 
         private void addDebugTools()
         {
-            Add(DrawVisualiser = new DrawVisualiser()
+            AddInternal(DrawVisualiser = new DrawVisualiser()
+            {
+                Depth = float.MaxValue / 2,
+            });
+
+            AddInternal(LogOverlay = new LogOverlay()
             {
                 Depth = float.MaxValue / 2,
             });
@@ -88,7 +95,8 @@ namespace osu.Framework
 
         protected internal override void PerformLoad(BaseGame game) => base.PerformLoad(this);
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
@@ -96,15 +104,26 @@ namespace osu.Framework
 
             Textures = new TextureStore(new RawTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
+            Dependencies.Cache(Textures);
 
-            Audio = new AudioManager(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"), new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
+            Audio = Dependencies.Cache(new AudioManager(
+                new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
+                new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
+            Dependencies.Cache(Audio);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
+            Dependencies.Cache(Shaders);
 
-            Fonts = new TextureStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
+            Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
             {
                 ScaleAdjust = 1 / 100f
             };
+            Dependencies.Cache(Fonts);
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             (performanceContainer = new PerformanceOverlay
             {
@@ -116,9 +135,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MaxValue
-            }).Preload(game, AddInternal);
-
-            base.Load(game);
+            }).Preload(this, AddInternal);
 
             addDebugTools();
         }
@@ -192,6 +209,9 @@ namespace osu.Framework
                         return true;
                     case Key.F1:
                         DrawVisualiser.ToggleVisibility();
+                        return true;
+                    case Key.F10:
+                        LogOverlay.ToggleVisibility();
                         return true;
                 }
             }

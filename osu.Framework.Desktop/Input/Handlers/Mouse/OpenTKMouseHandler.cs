@@ -64,8 +64,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public bool? Forward => state.XButton2 == ButtonState.Pressed && host.IsActive;
 
-        public bool? WheelUp => wheelDiff > 0 && host.IsActive;
-        public bool? WheelDown => wheelDiff < 0 && host.IsActive;
+        public int? WheelDiff => host.IsActive ? wheelDiff : 0;
 
         public List<Vector2> IntermediatePositions => new List<Vector2>();
 

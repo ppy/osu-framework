@@ -5,7 +5,8 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics
 {
@@ -13,14 +14,14 @@ namespace osu.Framework.Graphics
     {
         public Matrix3 Matrix;
         public Matrix3 MatrixInverse;
-        public Color4 Colour;
+        public ColourInfo Colour;
         public BlendingInfo Blending;
 
-        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, Color4? colour = null, BlendingInfo? blending = null)
+        public DrawInfo(Matrix3? matrix = null, Matrix3? matrixInverse = null, ColourInfo? colour = null, BlendingInfo? blending = null)
         {
             Matrix = matrix ?? Matrix3.Identity;
             MatrixInverse = matrixInverse ?? Matrix3.Identity;
-            Colour = colour ?? Color4.White;
+            Colour = colour ?? new ColourInfo(Color4.White);
             Blending = blending ?? new BlendingInfo();
         }
 
@@ -35,41 +36,38 @@ namespace osu.Framework.Graphics
         /// <param name="shear">The shear amounts for both directions.</param>
         /// <param name="colour">An optional color to be applied multiplicatively.</param>
         /// <param name="blending">An optional blending change.</param>
-        public void ApplyTransform(ref DrawInfo target, Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin, Color4? colour = null, BlendingInfo? blending = null)
+        public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
         {
-            target.Matrix = Matrix;
-            target.MatrixInverse = MatrixInverse;
-
             if (translation != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref target.Matrix, translation);
-                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, -translation);
+                MatrixExtensions.TranslateFromLeft(ref Matrix, translation);
+                MatrixExtensions.TranslateFromRight(ref MatrixInverse, -translation);
             }
 
             if (rotation != 0)
             {
                 float radians = MathHelper.DegreesToRadians(rotation);
-                MatrixExtensions.RotateFromLeft(ref target.Matrix, radians);
-                MatrixExtensions.RotateFromRight(ref target.MatrixInverse, -radians);
+                MatrixExtensions.RotateFromLeft(ref Matrix, radians);
+                MatrixExtensions.RotateFromRight(ref MatrixInverse, -radians);
             }
 
             if (shear != Vector2.Zero)
             {
-                MatrixExtensions.ShearFromLeft(ref target.Matrix, -shear);
-                MatrixExtensions.ShearFromRight(ref target.MatrixInverse, shear);
+                MatrixExtensions.ShearFromLeft(ref Matrix, -shear);
+                MatrixExtensions.ShearFromRight(ref MatrixInverse, shear);
             }
 
             if (scale != Vector2.One)
             {
                 Vector2 inverseScale = new Vector2(1.0f / scale.X, 1.0f / scale.Y);
-                MatrixExtensions.ScaleFromLeft(ref target.Matrix, scale);
-                MatrixExtensions.ScaleFromRight(ref target.MatrixInverse, inverseScale);
+                MatrixExtensions.ScaleFromLeft(ref Matrix, scale);
+                MatrixExtensions.ScaleFromRight(ref MatrixInverse, inverseScale);
             }
 
             if (origin != Vector2.Zero)
             {
-                MatrixExtensions.TranslateFromLeft(ref target.Matrix, -origin);
-                MatrixExtensions.TranslateFromRight(ref target.MatrixInverse, origin);
+                MatrixExtensions.TranslateFromLeft(ref Matrix, -origin);
+                MatrixExtensions.TranslateFromRight(ref MatrixInverse, origin);
             }
 
             //========================================================================================
@@ -77,41 +75,11 @@ namespace osu.Framework.Graphics
             //========================================================================================
             //target.MatrixInverse = target.Matrix;
             //MatrixExtensions.FastInvert(ref target.MatrixInverse);
-
-            if (colour != null)
-            {
-                Color4 targetLinear = colour.Value.toLinear();
-                Color4 sourceLinear = Colour.toLinear();
-
-                target.Colour = new Color4(
-                    targetLinear.R * sourceLinear.R,
-                    targetLinear.G * sourceLinear.G,
-                    targetLinear.B * sourceLinear.B,
-                    targetLinear.A * sourceLinear.A).toSRGB();
-            }
-            else
-                target.Colour = Colour;
-
-            if (blending == null)
-                Blending.Copy(ref target.Blending);
-            else
-                blending.Value.Copy(ref target.Blending);
-        }
-
-        /// <summary>
-        /// Copies the current DrawInfo into target.
-        /// </summary>
-        /// <param name="target">The DrawInfo to be filled with the copy.</param>
-        public void Copy(ref DrawInfo target)
-        {
-            target.Matrix = Matrix;
-            target.MatrixInverse = MatrixInverse;
-            target.Colour = Colour;
         }
 
         public bool Equals(DrawInfo other)
         {
-            return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour);
+            return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
         }
     }
 }

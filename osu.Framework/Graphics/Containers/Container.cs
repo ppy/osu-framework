@@ -5,22 +5,27 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
-using System.Linq;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Sprites;
 using System.Threading.Tasks;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
+    public class Container : Container<Drawable>
+    { }
+
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public partial class Container : ShadedDrawable
+    public partial class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
+        where T : Drawable
     {
         private bool masking = false;
         public bool Masking
@@ -36,7 +41,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float cornerRadius = 0.0f;
+        private float cornerRadius;
 
         /// <summary>
         /// Only has an effect when Masking == true.
@@ -55,7 +60,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float borderThickness = 0.0f;
+        private float borderThickness;
 
         /// <summary>
         /// Only has an effect when Masking == true.
@@ -74,13 +79,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Color4 borderColour = Color4.Black;
+        private SRGBColour borderColour = Color4.Black;
 
         /// <summary>
         /// Only has an effect when Masking == true.
         /// Determines the color of the drawn border.
         /// </summary>
-        public virtual Color4 BorderColour
+        public virtual SRGBColour BorderColour
         {
             get { return borderColour; }
             set
@@ -113,6 +118,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private Shader shader;
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
 
@@ -120,19 +126,23 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = node as ContainerDrawNode;
 
+            Debug.Assert(
+                Masking || (CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None),
+                "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
                 MaskingRect = DrawRectangle.Shrink(Margin),
                 ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = this.CornerRadius,
-                BorderThickness = this.BorderThickness,
-                BorderColour = this.BorderColour,
+                CornerRadius = CornerRadius,
+                BorderThickness = BorderThickness,
+                BorderColour = BorderColour,
                 // We are setting the linear blend range to the approximate size of a _pixel_ here.
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
-                LinearBlendRange = (scale.X + scale.Y) / 2,
+                BlendRange = (scale.X + scale.Y) / 2,
             };
 
             n.EdgeEffect = EdgeEffect;
@@ -140,24 +150,22 @@ namespace osu.Framework.Graphics.Containers
             n.ScreenSpaceMaskingQuad = null;
             n.Shared = containerDrawNodeSharedData;
 
+            n.Shader = shader;
+
             base.ApplyDrawNode(node);
         }
 
         public override bool HandleInput => true;
 
-        private LifetimeList<Drawable> children;
+        private LifetimeList<T> children;
 
-        private List<Drawable> pendingChildrenInternal;
-        private List<Drawable> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<Drawable>());
+        private List<T> pendingChildrenInternal;
+        private List<T> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<T>());
 
-        public virtual IEnumerable<Drawable> Children
+        public virtual IEnumerable<T> Children
         {
-            get
-            {
-                if (Content != this)
-                    return Content.Children;
-                else
-                    return children;
+            get {
+                return Content != this ? Content.Children : children;
             }
 
             set
@@ -169,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public virtual IEnumerable<Drawable> InternalChildren
+        public IEnumerable<T> InternalChildren
         {
             get { return children; }
 
@@ -182,7 +190,7 @@ namespace osu.Framework.Graphics.Containers
 
         public Container()
         {
-            children = new LifetimeList<Drawable>(DepthComparer);
+            children = new LifetimeList<T>(DepthComparer);
         }
 
         private MarginPadding padding;
@@ -195,7 +203,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                foreach (Drawable c in children)
+                foreach (T c in children)
                     c.Invalidate(Invalidation.Geometry);
             }
         }
@@ -219,24 +227,24 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        internal virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildScale => Vector2.One;
+        public virtual Vector2 ChildScale => Vector2.One;
 
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        internal virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+        public virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
 
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.
         /// </summary>
         /// <param name="drawable">The drawable to be added.</param>
-        public virtual void Add(Drawable drawable)
+        public virtual void Add(T drawable)
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
             Debug.Assert(Content != drawable, "Content may not be added to itself.");
@@ -251,9 +259,9 @@ namespace osu.Framework.Graphics.Containers
         /// Add a collection of Drawables to Content's children list, recursing until Content == this.
         /// </summary>
         /// <param name="collection">The collection of drawables to be added.</param>
-        public void Add(IEnumerable<Drawable> collection)
+        public void Add(IEnumerable<T> collection)
         {
-            foreach (Drawable d in collection)
+            foreach (T d in collection)
                 Add(d);
         }
 
@@ -261,11 +269,12 @@ namespace osu.Framework.Graphics.Containers
         /// Add a Drawable to this container's Children list, disregarding the value of Content.
         /// </summary>
         /// <param name="drawable">The drawable to be added.</param>
-        protected void AddInternal(Drawable drawable)
+        protected void AddInternal(T drawable)
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
-            drawable.ChangeParent(this);
+            if (drawable.IsLoaded)
+                drawable.ChangeParent(this);
 
             if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
@@ -280,13 +289,13 @@ namespace osu.Framework.Graphics.Containers
         /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
         /// </summary>
         /// <param name="collection">The collection of drawables to be added.</param>
-        protected void AddInternal(IEnumerable<Drawable> collection)
+        protected void AddInternal(IEnumerable<T> collection)
         {
-            foreach (Drawable d in collection)
+            foreach (T d in collection)
                 AddInternal(d);
         }
 
-        public virtual bool Remove(Drawable drawable, bool dispose = false)
+        public virtual bool Remove(T drawable, bool dispose = false)
         {
             if (drawable == null)
                 return false;
@@ -310,21 +319,21 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public int RemoveAll(Predicate<Drawable> match, bool dispose = false)
+        public int RemoveAll(Predicate<T> match, bool dispose = false)
         {
-            List<Drawable> toRemove = children.FindAll(match);
+            List<T> toRemove = children.FindAll(match);
             for (int i = 0; i < toRemove.Count; i++)
                 Remove(toRemove[i], dispose);
 
             return toRemove.Count;
         }
 
-        public void Remove(IEnumerable<Drawable> range, bool dispose = false)
+        public void Remove(IEnumerable<T> range, bool dispose = false)
         {
             if (range == null)
                 return;
 
-            foreach (Drawable p in range)
+            foreach (T p in range)
                 Remove(p, dispose);
         }
 
@@ -336,12 +345,12 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            foreach (Drawable t in children)
+            foreach (T t in children)
             {
                 if (dispose)
                 {
                     //cascade disposal
-                    (t as Container)?.Clear();
+                    (t as IContainer)?.Clear();
 
                     t.Dispose();
                 }
@@ -353,17 +362,36 @@ namespace osu.Framework.Graphics.Containers
             Invalidate(Invalidation.Geometry);
         }
 
-        internal IEnumerable<Drawable> AliveChildren => children.AliveItems;
+        public IEnumerable<T> AliveChildren => children.AliveItems;
 
-        protected virtual Container Content => this;
+        protected virtual Container<T> Content => this;
+
+        /// <summary>
+        /// Updates the life status of children according to their IsAlive property.
+        /// </summary>
+        /// <returns>True iff the life status of at least one child changed.</returns>
+        private bool updateChildrenLife()
+        {
+            bool changed = children.Update(Time);
+
+            if (changed && AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+
+            return changed;
+        }
 
         protected internal override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
-            UpdateChildrenLife();
+            // We update our children's life even if we are invisible.
+            // Note, that this does not propagate down and may need
+            // generalization in the future.
+            updateChildrenLife();
 
-            foreach (Drawable child in children.AliveItems)
+            if (!IsVisible) return false;
+
+            foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
             UpdateLayout();
@@ -373,11 +401,17 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader(permitNulls: true)]
+        private void load(BaseGame game, ShaderManager shaders)
         {
-            base.Load(game);
+            if (shader == null)
+                shader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
 
-            children.LoadRequested += i => i.PerformLoad(game);
+            children.LoadRequested += i =>
+            {
+                i.PerformLoad(game);
+                i.ChangeParent(this);
+            };
 
             if (pendingChildrenInternal != null)
             {
@@ -386,11 +420,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal virtual void InvalidateFromChild(Invalidation invalidation, Drawable source)
+        public virtual void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if (AutoSizeAxes == Axes.None) return;
 
-            if ((invalidation & (Invalidation.Visibility | Invalidation.Geometry)) > 0)
+            if ((invalidation & Invalidation.Geometry) > 0)
                 autoSize.Invalidate();
         }
 
@@ -399,35 +433,20 @@ namespace osu.Framework.Graphics.Containers
             if (!base.Invalidate(invalidation, source, shallPropagate))
                 return false;
 
-            if (shallPropagate)
+            if (!shallPropagate) return true;
+
+            foreach (var c in children)
             {
-                foreach (var c in children)
-                {
-                    Debug.Assert(c != source);
+                Debug.Assert(c != source);
 
-                    Invalidation childInvalidation = invalidation;
-                    if (c.RelativeSizeAxes == Axes.None)
-                        childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                Invalidation childInvalidation = invalidation;
+                if (c.RelativeSizeAxes == Axes.None)
+                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
 
-                    c.Invalidate(childInvalidation, this);
-                }
+                c.Invalidate(childInvalidation, this);
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Updates the life status of children according to their IsAlive property.
-        /// </summary>
-        /// <returns>True iff the life status of at least one child changed.</returns>
-        protected virtual bool UpdateChildrenLife()
-        {
-            bool changed = children.Update(Time);
-
-            if (changed && AutoSizeAxes != Axes.None)
-                autoSize.Invalidate();
-
-            return changed;
         }
 
         /// <summary>
@@ -452,7 +471,7 @@ namespace osu.Framework.Graphics.Containers
         private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
 
         /// <summary>
-        /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
+        /// This function adds all children's DrawNodes to a target List, flattening the children of certain types
         /// of container subtrees for optimization purposes.
         /// </summary>
         /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
@@ -460,9 +479,9 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(int treeIndex, ref int j, Container parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<Drawable> current = parentContainer.children.AliveItems;
+            List<T> current = parentContainer.children.AliveItems;
             for (int i = 0; i < current.Count; ++i)
             {
                 Drawable drawable = current[i];
@@ -470,7 +489,10 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsVisible)
                     continue;
 
-                Container container = drawable as Container;
+                // We are consciously missing out on potential flattening (due to lack of covariance)
+                // in order to be able to let this loop be over integers instead of using
+                // IContainerEnumerable<Drrawable>.AliveChildren which measures to be a _major_ slowdown.
+                Container<T> container = drawable as Container<T>;
                 if (container?.CanBeFlattened == true)
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
@@ -572,19 +594,28 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!Masking || CornerRadius == 0.0f)
+                float cornerRadius = CornerRadius;
+                if (!Masking || cornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                float cornerRadius = CornerRadius;
                 RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
 
+                // Inflate bounding box in parent space by the half-size of the bounding box of the
+                // ellipse obtained by transforming the unit circle into parent space.
                 Vector2 offset = ToParentSpace(Vector2.Zero);
                 Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
-
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
+        }
+        
+        protected override void Dispose(bool isDisposing)
+        {
+            //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
+            Children?.ForEach(c => c.Dispose());
+
+            base.Dispose(isDisposing);
         }
     }
 }

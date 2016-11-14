@@ -4,9 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Textures.Png;
 using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
@@ -14,6 +14,8 @@ namespace osu.Framework.IO.Stores
     public class GlyphStore : IResourceStore<RawTexture>
     {
         private string assetName;
+
+        private string fontName;
 
         const float default_size = 96;
 
@@ -26,6 +28,8 @@ namespace osu.Framework.IO.Stores
         {
             this.store = store;
             this.assetName = assetName;
+
+            fontName = assetName.Split('/').Last();
 
             try
             {
@@ -44,9 +48,12 @@ namespace osu.Framework.IO.Stores
 
         public RawTexture Get(string name)
         {
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/"))
+                return null;
+
             Character c;
 
-            if (!font.Characters.TryGetValue(name[0], out c))
+            if (!font.Characters.TryGetValue(name.Last(), out c))
                 return null;
 
             RawTexture page = getTexturePage(c.TexturePage);
@@ -95,17 +102,10 @@ namespace osu.Framework.IO.Stores
             RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
             {
-                t = new RawTexture();
                 using (var stream = store.GetStream($@"{assetName}_{texturePage}.png"))
-                {
-                    var reader = new PngReader();
-                    t.Pixels = reader.Read(stream);
-                    t.PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba;
-                    t.Width = reader.Width;
-                    t.Height = reader.Height;
-                }
-                texturePages[texturePage] = t;
+                    texturePages[texturePage] = t = RawTexture.FromStream(stream);
             }
+
             return t;
         }
 
@@ -119,6 +119,17 @@ namespace osu.Framework.IO.Stores
     {
         public FontLoadException(string assetName) :
             base($@"Couldn't load font asset from {assetName}.")
+        {
+        }
+    }
+
+    public class FontStore : TextureStore
+    {
+        public FontStore()
+        {
+        }
+   
+        public FontStore(GlyphStore glyphStore) : base(glyphStore)
         {
         }
     }

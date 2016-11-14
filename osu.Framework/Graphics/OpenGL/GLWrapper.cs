@@ -17,7 +17,8 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -67,6 +68,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBoundTexture = null;
 
             lastBlendingInfo = new BlendingInfo();
+            lastBlendingEnabledState = null;
 
             foreach (IVertexBatch b in thisFrameBatches)
                 b.ResetCounters();
@@ -85,12 +87,12 @@ namespace osu.Framework.Graphics.OpenGL
             Ortho = Rectangle.Empty;
 
             PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
-            PushScissor(new MaskingInfo
+            PushMaskingInfo(new MaskingInfo
             {
                 ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
-                LinearBlendRange = 1,
+                BlendRange = 1,
             }, true);
         }
 
@@ -182,6 +184,7 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static BlendingInfo lastBlendingInfo;
+        private static bool? lastBlendingEnabledState;
 
         /// <summary>
         /// Sets the blending function to draw with.
@@ -195,7 +198,22 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            if (blendingInfo.IsDisabled)
+            {
+                if (!lastBlendingEnabledState.HasValue || lastBlendingEnabledState.Value)
+                    GL.Disable(EnableCap.Blend);
+
+                lastBlendingEnabledState = false;
+            }
+            else
+            {
+                if (!lastBlendingEnabledState.HasValue || !lastBlendingEnabledState.Value)
+                    GL.Enable(EnableCap.Blend);
+
+                lastBlendingEnabledState = true;
+
+                GL.BlendFuncSeparate(blendingInfo.Source, blendingInfo.Destination, blendingInfo.SourceAlpha, blendingInfo.DestinationAlpha);
+            }
 
             lastBlendingInfo = blendingInfo;
         }
@@ -346,7 +364,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
         }
 
-        private static void setMaskingQuad(MaskingInfo maskingInfo, bool overwritePreviousScissor)
+        private static void setMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor)
         {
             FlushCurrentBatch();
 
@@ -359,16 +377,14 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_ToMaskingSpace", maskingInfo.ToMaskingSpace);
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
 
-            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness);
-
-            Color4 linearBorderColour = maskingInfo.BorderColour.toLinear();
+            Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
             Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
-                linearBorderColour.R,
-                linearBorderColour.G,
-                linearBorderColour.B,
-                linearBorderColour.A));
+                maskingInfo.BorderColour.Linear.R,
+                maskingInfo.BorderColour.Linear.G,
+                maskingInfo.BorderColour.Linear.B,
+                maskingInfo.BorderColour.Linear.A));
 
-            Shader.SetGlobalProperty(@"g_LinearBlendRange", maskingInfo.LinearBlendRange);
+            Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
 
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
@@ -400,24 +416,27 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch?.Draw();
         }
 
+        public static bool IsMaskingActive => maskingStack.Count > 1;
+
         /// <summary>
         /// Applies a new scissor rectangle.
         /// </summary>
         /// <param name="maskingInfo">The masking info.</param>
-        public static void PushScissor(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
+        /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
+        public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
             maskingStack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, overwritePreviousScissor);
+            setMaskingInfo(CurrentMaskingInfo, overwritePreviousScissor);
         }
 
         /// <summary>
         /// Applies the last scissor rectangle.
         /// </summary>
-        public static void PopScissor()
+        public static void PopMaskingInfo()
         {
             Debug.Assert(maskingStack.Count > 1);
 
@@ -428,7 +447,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingQuad(CurrentMaskingInfo, true);
+            setMaskingInfo(CurrentMaskingInfo, true);
         }
 
         /// <summary>
@@ -584,9 +603,9 @@ namespace osu.Framework.Graphics.OpenGL
         public float CornerRadius;
 
         public float BorderThickness;
-        public Color4 BorderColour;
+        public SRGBColour BorderColour;
 
-        public float LinearBlendRange;
+        public float BlendRange;
 
         public bool Equals(MaskingInfo other)
         {
@@ -597,7 +616,7 @@ namespace osu.Framework.Graphics.OpenGL
                 CornerRadius == other.CornerRadius &&
                 BorderThickness == other.BorderThickness &&
                 BorderColour.Equals(other.BorderColour) &&
-                LinearBlendRange == other.LinearBlendRange;
+                BlendRange == other.BlendRange;
         }
     }
 }

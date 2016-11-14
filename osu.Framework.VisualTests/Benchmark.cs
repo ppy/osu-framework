@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Allocation;
 using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests
@@ -11,13 +12,17 @@ namespace osu.Framework.VisualTests
     {
         private double timePerTest = 200;
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
-            base.Load(game);
-
             Host.MaximumDrawHz = int.MaxValue;
             Host.MaximumUpdateHz = int.MaxValue;
             Host.MaximumInactiveHz = int.MaxValue;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
 
             TestBrowser f = new TestBrowser();
             Add(f);

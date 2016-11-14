@@ -16,8 +16,6 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Description => @"Text entry evolved";
 
-        public override int DisplayOrder => -1;
-
         public override void Reset()
         {
             base.Reset();

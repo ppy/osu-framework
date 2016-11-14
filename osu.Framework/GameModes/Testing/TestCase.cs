@@ -7,6 +7,7 @@ using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -14,15 +15,14 @@ namespace osu.Framework.GameModes.Testing
     {
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
-        public virtual int DisplayOrder => 0;
 
-        Container buttonsContainer;
+        FlowContainer buttonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
         public Container Contents;
 
-        protected override Container Content => Contents;
+        protected override Container<Drawable> Content => Contents;
 
         public TestCase()
         {
@@ -96,11 +96,6 @@ namespace osu.Framework.GameModes.Testing
         public ToggleButton(Action reloadCallback)
         {
             this.reloadCallback = reloadCallback;
-        }
-
-        protected override void Load(BaseGame game)
-        {
-            base.Load(game);
 
             Size = new Vector2(100, 50);
             Colour = offColour;

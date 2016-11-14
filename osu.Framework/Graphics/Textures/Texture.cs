@@ -14,6 +14,7 @@ using OpenTK.Graphics;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
 using OpenTK.Graphics.ES30;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -192,11 +193,11 @@ namespace osu.Framework.Graphics.Textures
             return TextureGL.GetTextureRect(textureBounds(textureRect));
         }
 
-        public void Draw(Quad vertexQuad, Color4 colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null)
+        public void Draw(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch);
+            TextureGL.Draw(vertexQuad, textureBounds(textureRect), colour, spriteBatch, inflationPercentage);
         }
     }
 
