@@ -550,7 +550,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
-                        Position = new Vector2(BAR_WIDTH + 1, 0),
+                        Position = new Vector2(-BAR_WIDTH - 1, 0),
                         TextSize = 16,
                     },
                     box = new Box
