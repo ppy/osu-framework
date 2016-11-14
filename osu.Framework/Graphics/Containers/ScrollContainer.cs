@@ -21,18 +21,30 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor ScrollDraggerAnchor
         {
-            get { return scrollbar.Anchor; }
+            get { return scrollDragger.Anchor; }
 
             set
             {
-                scrollbar.Anchor = value;
-                scrollbar.Origin = value;
+                scrollDragger.Anchor = value;
+                scrollDragger.Origin = value;
                 updatePadding();
             }
         }
 
+        private bool scrollDraggerVisible = true;
+        public bool ScrollDraggerVisible
+        {
+            get { return scrollDraggerVisible; }
+            set
+            {
+                scrollDraggerVisible = value;
+                updateScrollDragger();
+            }
+        }
+
         private Container content;
-        private ScrollBar scrollbar;
+        private ScrollBar scrollDragger;
+
 
         private bool scrollbarOverlapsContent = true;
 
@@ -109,6 +121,7 @@ namespace osu.Framework.Graphics.Containers
         public ScrollContainer()
         {
             RelativeSizeAxes = Axes.Both;
+            Masking = true;
 
             AddInternal(new Drawable[]
             {
@@ -116,27 +129,25 @@ namespace osu.Framework.Graphics.Containers
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                 },
-                scrollbar = new ScrollBar { Dragged = onScrollbarMovement }
+                scrollDragger = new ScrollBar { Dragged = onScrollbarMovement }
             });
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            Masking = true;
 
-            content.OnAutoSize += contentAutoSize;
-        }
-
-        private void contentAutoSize()
+        private void updateSize()
         {
-            if (Precision.AlmostEquals(availableContent, content.DrawSize.Y))
+            float contentSize = content.DrawSize.Y;
+            if (Precision.AlmostEquals(availableContent, contentSize))
                 return;
 
-            availableContent = content.DrawSize.Y;
-            updateSize();
+            availableContent = contentSize;
+            updateScrollDragger(); 
+        }
 
-            scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
+        private void updateScrollDragger()
+        {
+            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
         }
 
         private void updatePadding()
@@ -145,8 +156,8 @@ namespace osu.Framework.Graphics.Containers
                 content.Padding = new MarginPadding();
             else
                 content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                    new MarginPadding { Left = scrollbar.Width } :
-                    new MarginPadding { Right = scrollbar.Width };
+                    new MarginPadding { Left = scrollDragger.Width } :
+                    new MarginPadding { Right = scrollDragger.Width };
         }
 
         protected override bool OnDragStart(InputState state)
@@ -204,7 +215,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size.Y), false);
+        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size.Y), false);
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
@@ -223,8 +234,6 @@ namespace osu.Framework.Graphics.Containers
         public void ScrollIntoView(Drawable d) => ScrollTo(GetChildYInContent(d));
 
         public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
-
-        private void updateSize() => scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
 
         private void updatePosition()
         {
@@ -265,9 +274,10 @@ namespace osu.Framework.Graphics.Containers
         {
             base.Update();
 
+            updateSize();
             updatePosition();
 
-            scrollbar?.MoveToY(Current * scrollbar.Size.Y);
+            scrollDragger?.MoveToY(Current * scrollDragger.Size.Y);
             content.MoveToY(-Current);
         }
 
