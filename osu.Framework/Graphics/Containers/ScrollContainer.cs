@@ -171,7 +171,7 @@ namespace osu.Framework.Graphics.Containers
         {
             // Continue from where we currently are scrolled to.
             target = Current;
-            return base.OnMouseDown(state, args);
+            return true;
         }
 
         // We keep track of this because input events may happen at different intervals than update frames
