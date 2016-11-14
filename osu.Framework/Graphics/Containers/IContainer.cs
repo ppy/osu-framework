@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Containers
 
     public interface IContainerEnumerable<out T> : IContainer
     {
+        IEnumerable<T> InternalChildren { get; }
         IEnumerable<T> Children { get; }
         IEnumerable<T> AliveChildren { get; }
         
@@ -28,6 +29,7 @@ namespace osu.Framework.Graphics.Containers
 
     public interface IContainerCollection<in T> : IContainer
     {
+        IEnumerable<T> InternalChildren { set; }
         IEnumerable<T> Children { set; }
 
         void Add(IEnumerable<T> collection);

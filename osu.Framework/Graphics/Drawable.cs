@@ -796,13 +796,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        protected volatile LoadState LoadState;
+        public volatile LoadState LoadState;
 
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
             if (LoadState == LoadState.NotLoaded)
                 return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
 
+            Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
             onLoaded?.Invoke(this);
             return null;
         }

@@ -96,11 +96,7 @@ namespace osu.Framework.GameModes.Testing
         public ToggleButton(Action reloadCallback)
         {
             this.reloadCallback = reloadCallback;
-        }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             Size = new Vector2(100, 50);
             Colour = offColour;
             Action += clickAction;

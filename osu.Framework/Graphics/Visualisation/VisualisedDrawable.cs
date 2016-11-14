@@ -30,87 +30,69 @@ namespace osu.Framework.Graphics.Visualisation
 
         const int line_height = 12;
 
-        public FlowContainer Flow = new FlowContainer
-        {
-            Direction = FlowDirection.VerticalOnly,
-            AutoSizeAxes = Axes.Both,
-            Position = new Vector2(10, 14)
-        };
+        public FlowContainer Flow;
 
         public VisualisedDrawable(Drawable d)
         {
             Target = d;
-            AutoSizeAxes = Axes.Both;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load()
-        {
             Target.OnInvalidate += onInvalidate;
 
-            Container da = Target as Container;
+            var da = Target as Container<Drawable>;
             if (da != null) da.OnAutoSize += onAutoSize;
 
-            FlowContainer df = Target as FlowContainer;
+            var df = Target as FlowContainer<Drawable>;
             if (df != null) df.OnLayout += onLayout;
 
-            activityAutosize = new Box
-            {
-                Colour = Color4.Red,
-                Size = new Vector2(2, line_height),
-                Position = new Vector2(0, 0),
-                Alpha = 0
-            };
-
-            activityLayout = new Box
-            {
-                Colour = Color4.Orange,
-                Size = new Vector2(2, line_height),
-                Position = new Vector2(3, 0),
-                Alpha = 0
-            };
-
-            activityInvalidate = new Box
-            {
-                Colour = Color4.Yellow,
-                Size = new Vector2(2, line_height),
-                Position = new Vector2(6, 0),
-                Alpha = 0
-            };
-
             var sprite = Target as Sprite;
-            if (sprite?.Texture != null)
-                previewBox = new Sprite
+
+            AutoSizeAxes = Axes.Both;
+            Add(new Drawable[]
+            {
+                activityInvalidate = new Box
+                {
+                    Colour = Color4.Yellow,
+                    Size = new Vector2(2, line_height),
+                    Position = new Vector2(6, 0),
+                    Alpha = 0
+                },
+                activityLayout = new Box
+                {
+                    Colour = Color4.Orange,
+                    Size = new Vector2(2, line_height),
+                    Position = new Vector2(3, 0),
+                    Alpha = 0
+                },
+                activityAutosize = new Box
+                {
+                    Colour = Color4.Red,
+                    Size = new Vector2(2, line_height),
+                    Position = new Vector2(0, 0),
+                    Alpha = 0
+                },
+                previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
                 {
                     Texture = sprite.Texture,
-                    Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1)
-                };
-            else
-                previewBox = new Box
+                    Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1),
+                },
+                text = new SpriteText
                 {
-                    Colour = Color4.White
-                };
+                    Position = new Vector2(24, -3),
+                    Scale = new Vector2(0.9f),
+                },
+                Flow = new FlowContainer
+                {
+                    Direction = FlowDirection.VerticalOnly,
+                    AutoSizeAxes = Axes.Both,
+                    Position = new Vector2(10, 14)
+                },
+            });
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
 
-            text = new SpriteText
-            {
-                Position = new Vector2(24, -3),
-                Scale = new Vector2(0.9f),
-            };
-
-            Flow.Alpha = 1;
-
-            Add(activityInvalidate);
-            Add(activityLayout);
-            Add(activityAutosize);
-            Add(previewBox);
-            Add(text);
-            Add(Flow);
-
             updateSpecifics();
         }
+
 
         protected override bool OnHover(InputState state)
         {
@@ -160,7 +142,7 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.Colour = Target.Colour;
 
-            int childCount = (Target as Container)?.Children.Count() ?? 0;
+            int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
             text.Text = Target + (!Flow.IsVisible && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
