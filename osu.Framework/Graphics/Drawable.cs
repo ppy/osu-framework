@@ -142,6 +142,20 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private MarginPadding margin;
+        public MarginPadding Margin
+        {
+            get { return margin; }
+            set
+            {
+                if (margin.Equals(value)) return;
+
+                margin = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
         private Vector2 customOrigin;
 
         public virtual Vector2 OriginPosition
@@ -154,7 +168,7 @@ namespace osu.Framework.Graphics
                 if (Origin == Anchor.TopLeft)
                     return Vector2.Zero;
 
-                return computeAnchorPosition(DrawSize, Origin);
+                return computeAnchorPosition(DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical), Origin);
             }
 
             set
@@ -528,7 +542,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 s = DrawSize;
-                return new RectangleF(0, 0, s.X, s.Y);
+                return new RectangleF(margin.Left, margin.Top, s.X, s.Y);
             }
         }
 
@@ -580,7 +594,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangle).AABBf;
+        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangle.Inflate(margin)).AABBf;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 
