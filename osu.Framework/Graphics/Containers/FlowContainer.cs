@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if (d.IsVisible)
                         {
-                            size = d.DrawSize * d.Scale * ChildScale;
+                            size = d.LayoutSize * d.Scale * ChildScale;
 
                             //We've exceeded our allowed width, move to a new row
                             if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)

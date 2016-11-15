@@ -580,7 +580,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!Masking || cornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                RectangleF drawRect = DrawRectangle.Shrink(cornerRadius).Inflate(Margin);
+                RectangleF drawRect = LayoutRectangle.Shrink(cornerRadius);
 
                 // Inflate bounding box in parent space by the half-size of the bounding box of the
                 // ellipse obtained by transforming the unit circle into parent space.
