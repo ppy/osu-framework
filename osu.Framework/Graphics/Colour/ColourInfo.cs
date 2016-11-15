@@ -135,6 +135,21 @@ namespace osu.Framework.Graphics.Colour
         }
 
         /// <summary>
+        /// The average colour of all corners.
+        /// </summary>
+        public SRGBColour AverageColour
+        {
+            get
+            {
+                if (HasSingleColour)
+                    return TopLeft;
+
+                return SRGBColour.FromVector(
+                    (TopLeft.ToVector() + TopRight.ToVector() + BottomLeft.ToVector() + BottomRight.ToVector()) / 4);
+            }
+        }
+
+        /// <summary>
         /// The maximum alpha value of all four corners.
         /// </summary>
         public float MaxAlpha
