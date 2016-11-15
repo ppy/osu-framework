@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Sprites;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Transformations;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -616,6 +617,12 @@ namespace osu.Framework.Graphics.Containers
             Children?.ForEach(c => c.Dispose());
 
             base.Dispose(isDisposing);
+        }
+
+        public void FadeGlowTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformGlowAlpha));
+            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformGlowAlpha());
         }
     }
 }
