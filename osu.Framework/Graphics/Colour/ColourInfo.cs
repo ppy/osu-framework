@@ -27,10 +27,43 @@ namespace osu.Framework.Graphics.Colour
         /// Creates a ColourInfo with a single linear colour assigned to all vertices.
         /// </summary>
         /// <param name="colour">The single linear colour to be assigned to all vertices.</param>
-        public ColourInfo(SRGBColour colour)
+        /// <returns>The created ColourInfo.</returns>
+        public static ColourInfo SingleColour(SRGBColour colour)
         {
-            TopLeft = BottomLeft = TopRight = BottomRight = colour;
-            HasSingleColour = true;
+            ColourInfo result = new ColourInfo();
+            result.TopLeft = result.BottomLeft = result.TopRight = result.BottomRight = colour;
+            result.HasSingleColour = true;
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a ColourInfo with a horizontal gradient.
+        /// </summary>
+        /// <param name="c1">The left colour of the gradient.</param>
+        /// <param name="c2">The right colour of the gradient.</param>
+        /// <returns>The created ColourInfo.</returns>
+        public static ColourInfo GradientHorizontal(SRGBColour c1, SRGBColour c2)
+        {
+            ColourInfo result = new ColourInfo();
+            result.TopLeft = result.BottomLeft = c1;
+            result.TopRight = result.BottomRight = c2;
+            result.HasSingleColour = false;
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a ColourInfo with a horizontal gradient.
+        /// </summary>
+        /// <param name="c1">The top colour of the gradient.</param>
+        /// <param name="c2">The bottom colour of the gradient.</param>
+        /// <returns>The created ColourInfo.</returns>
+        public static ColourInfo GradientVertical(SRGBColour c1, SRGBColour c2)
+        {
+            ColourInfo result = new ColourInfo();
+            result.TopLeft = result.TopRight = c1;
+            result.BottomLeft = result.BottomRight = c2;
+            result.HasSingleColour = false;
+            return result;
         }
 
         public SRGBColour Colour

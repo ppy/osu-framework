@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics
         {
             Matrix = matrix ?? Matrix3.Identity;
             MatrixInverse = matrixInverse ?? Matrix3.Identity;
-            Colour = colour ?? new ColourInfo(Color4.White);
+            Colour = colour ?? ColourInfo.SingleColour(Color4.White);
             Blending = blending ?? new BlendingInfo();
         }
 

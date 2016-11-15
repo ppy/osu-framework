@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Containers
                 // want their colour to be polluted by their parent (us!)
                 // since our own color will be applied on top when we render
                 // from the frame buffer to the back buffer later on.
-                result.Colour = new ColourInfo(Color4.White);
+                result.Colour = ColourInfo.SingleColour(Color4.White);
                 return result;
             }
         }

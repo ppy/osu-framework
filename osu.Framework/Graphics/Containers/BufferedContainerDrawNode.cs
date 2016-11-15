@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.Containers
                 BlurShader.GetUniform<Vector2>(@"g_BlurDirection").Value = new Vector2((float)Math.Cos(radians), (float)Math.Sin(radians));
 
                 BlurShader.Bind();
-                drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), new ColourInfo(Color4.White));
+                drawFrameBufferToBackBuffer(source, new RectangleF(0, 0, source.Texture.Width, source.Texture.Height), ColourInfo.SingleColour(Color4.White));
                 BlurShader.Unbind();
             }
         }

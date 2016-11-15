@@ -247,7 +247,7 @@ namespace osu.Framework.Graphics
             }
         }
         
-        private ColourInfo colourInfo = new ColourInfo(Color4.White);
+        private ColourInfo colourInfo = ColourInfo.SingleColour(Color4.White);
 
         public ColourInfo ColourInfo
         {
