@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 
@@ -43,8 +45,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected DropDownComboBox ComboBox;
 
-        protected ScrollContainer DropDown;
-        protected FlowContainer DropDownList;
+        protected Container DropDown;
+        protected ScrollContainer DropDownScroll;
+        protected FlowContainer<DropDownMenuItem<T>> DropDownList;
+        protected Box DropDownBackground;
         protected virtual float DropDownListSpacing => 0;
 
         protected virtual DropDownComboBox CreateComboBox()
@@ -154,18 +158,29 @@ namespace osu.Framework.Graphics.UserInterface
             Children = new Drawable[]
             {
                 ComboBox = CreateComboBox(),
-                DropDown = new ScrollContainer
+                DropDown = new Container
                 {
                     RelativeSizeAxes = Axes.X,
-                    Alpha = 0,
+                    Masking = true,
                     Children = new Drawable[]
                     {
-                        DropDownList = new FlowContainer
+                        DropDownBackground = new Box
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Width = 1,
-                            Direction = FlowDirection.VerticalOnly,
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.Black,
+                            Alpha = 0.8f,
+                        },
+                        DropDownScroll = new ScrollContainer
+                        {
+                            Children = new Drawable[]
+                            {
+                                DropDownList = new FlowContainer<DropDownMenuItem<T>>
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    Direction = FlowDirection.VerticalOnly,
+                                },
+                            },
                         },
                     },
                 }
@@ -230,14 +245,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void AnimateOpen()
         {
-            foreach (Drawable child in DropDownList.Children)
+            foreach (DropDownMenuItem<T> child in DropDownList.Children)
                 child.Show();
             DropDown.Show();
         }
 
         protected virtual void AnimateClose()
         {
-            foreach (Drawable child in DropDownList.Children)
+            foreach (DropDownMenuItem<T> child in DropDownList.Children)
                 child.Hide();
             DropDown.Hide();
         }

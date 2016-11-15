@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
+using System.Diagnostics;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -140,11 +141,12 @@ namespace osu.Framework.VisualTests.Tests
             public StyledDropDownMenu()
             {
                 ComboBox.CornerRadius = 4;
+                DropDown.CornerRadius = 4;
             }
 
             protected override void AnimateOpen()
             {
-                foreach (Drawable child in DropDownList.Children)
+                foreach (StyledDropDownMenuItem child in DropDownList.Children)
                 {
                     child.FadeIn(200);
                     child.ResizeTo(new Vector2(1, 24), 200);
@@ -154,14 +156,11 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void AnimateClose()
             {
-                foreach (Drawable child in DropDownList.Children)
+                foreach (StyledDropDownMenuItem child in DropDownList.Children)
                 {
                     child.ResizeTo(new Vector2(1, 0), 200);
                     child.FadeOut(200);
                 }
-                DropDown.Delay(200);
-                DropDown.Hide();
-                DropDown.DelayReset();
             }
         }
 
