@@ -71,15 +71,17 @@ void main(void)
 	// This ends up softening glow without negatively affecting edge smoothness much.
 	alphaFactor *= alphaFactor;
 
+	vec4 borderColour = vec4(g_BorderColour.rgb * v_Colour.rgb, g_BorderColour.a);
+
 	float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	float colourWeight = min(borderStart - dist, 1.0);
 	if (colourWeight <= 0.0)
 	{
-		gl_FragColor = toSRGB(vec4(g_BorderColour.rgb, g_BorderColour.a * alphaFactor));
+		gl_FragColor = toSRGB(vec4(borderColour.rgb, borderColour.a * alphaFactor));
 		return;
 	}
 
 	gl_FragColor = toSRGB(
 		colourWeight * vec4(v_Colour.rgb, v_Colour.a * alphaFactor) * texture2D(m_Sampler, v_TexCoord, -0.9) +
-		(1.0 - colourWeight) * g_BorderColour);
+		(1.0 - colourWeight) * borderColour);
 }
