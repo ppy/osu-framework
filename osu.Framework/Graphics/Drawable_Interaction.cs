@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        internal void TriggerHoverLost(InputState state)
+        public void TriggerHoverLost(InputState state)
         {
             OnHoverLost(state);
         }

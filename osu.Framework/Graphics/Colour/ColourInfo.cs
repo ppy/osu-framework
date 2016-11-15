@@ -133,5 +133,21 @@ namespace osu.Framework.Graphics.Colour
         {
             return HasSingleColour && TopLeft.Equals(other);
         }
+
+        /// <summary>
+        /// The maximum alpha value of all four corners.
+        /// </summary>
+        public float MaxAlpha
+        {
+            get
+            {
+                float max = TopLeft.Linear.A;
+                if (TopRight.Linear.A < max) max = TopRight.Linear.A;
+                if (BottomLeft.Linear.A < max) max = BottomLeft.Linear.A;
+                if (BottomRight.Linear.A < max) max = BottomRight.Linear.A;
+
+                return max;
+            }
+        }
     }
 }

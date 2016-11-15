@@ -875,7 +875,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected virtual void LoadComplete() { }
 
-        private void updateTransformsOfType(Type specificType)
+        protected void UpdateTransformsOfType(Type specificType)
         {
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.

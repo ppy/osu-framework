@@ -108,7 +108,12 @@ namespace osu.Framework.Graphics.Containers
 
             drawEdgeEffect();
             if (MaskingInfo != null)
-                GLWrapper.PushMaskingInfo(MaskingInfo.Value);
+            {
+                MaskingInfo info = MaskingInfo.Value;
+                if (info.BorderThickness > 0)
+                    info.BorderColour.Linear.A *= DrawInfo.Colour.MaxAlpha; 
+                GLWrapper.PushMaskingInfo(info);
+            }
 
             if (Children != null)
                 foreach (DrawNode child in Children)
