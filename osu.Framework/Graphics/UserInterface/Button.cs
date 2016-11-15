@@ -5,54 +5,45 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
     public class Button : ClickableContainer
     {
-        private Box box;
-        private SpriteText spriteText;
-
-        private string text;
-
         public string Text
         {
-            get { return text; }
+            get { return spriteText?.Text; }
             set
             {
-                text = value;
-                if (spriteText != null) spriteText.Text = value;
+                if (spriteText != null)
+                    spriteText.Text = value;
             }
         }
-
-        private Color4 backgroundColour;
 
         public new Color4 Colour
         {
-            get { return backgroundColour; }
-            set
-            {
-                backgroundColour = value;
-                if (box != null) box.Colour = value;
-            }
+            get { return box.Colour; }
+            set { box.Colour = value; }
         }
 
-        protected override void Load(BaseGame game)
+        private Box box;
+        private SpriteText spriteText;
+        
+        public Button()
         {
-            base.Load(game);
-
-            Add(box = new Box
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Colour = backgroundColour
-            });
-
-            Add(spriteText = new SpriteText
-            {
-                Text = text,
-                Origin = Anchor.Centre,
-                Anchor = Anchor.Centre,
-            });
+                box = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                },
+                spriteText = new SpriteText
+                {
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
+                }
+            };
         }
 
         protected override bool OnClick(InputState state)
@@ -64,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(flash);
 
-            flash.Colour = backgroundColour;
+            flash.Colour = box.Colour;
             flash.BlendingMode = BlendingMode.Additive;
             flash.Alpha = 0.3f;
             flash.FadeOutFromOne(200);

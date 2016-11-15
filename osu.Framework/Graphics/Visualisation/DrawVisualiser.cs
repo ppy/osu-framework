@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (!d.IsVisible) return null;
 
-            var dAsContainer = d as Container;
+            var dAsContainer = d as IContainerEnumerable<Drawable>;
 
             Drawable containedTarget = null;
 
@@ -133,13 +133,13 @@ namespace osu.Framework.Graphics.Visualisation
                     visualise(dd.Target, dd);
             }
 
-            Container dContainer = d as Container;
+            var dContainer = d as IContainerEnumerable<Drawable>;
 
             if (d is SpriteText) return;
 
             if (dContainer == null) return;
 
-            foreach (var c in dContainer.Children)
+            foreach (var c in dContainer.InternalChildren)
             {
                 var dr = drawables.FirstOrDefault(x => x.Target == c);
 

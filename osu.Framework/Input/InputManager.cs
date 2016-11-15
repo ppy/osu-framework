@@ -164,13 +164,11 @@ namespace osu.Framework.Input
                 keyboardInputQueue.Add(current);
             }
 
-            Container currentContainer = current as Container;
+            IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
-            {
-                foreach (Drawable child in currentContainer.AliveChildren)
-                    buildKeyboardInputQueue(child);
-            }
+                foreach (Drawable d in currentContainer.AliveChildren)
+                    buildKeyboardInputQueue(d);
         }
 
         private void buildMouseInputQueue(InputState state, Drawable current)
@@ -186,13 +184,11 @@ namespace osu.Framework.Input
                 mouseInputQueue.Add(current);
             }
 
-            IContainer<Drawable> currentContainer = current as IContainer<Drawable>;
+            IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
-            {
-                foreach (Drawable child in currentContainer.AliveChildren)
-                    buildMouseInputQueue(state, child);
-            }
+                foreach (Drawable d in currentContainer.AliveChildren)
+                    buildMouseInputQueue(state, d);
         }
 
         private bool checkIsHoverable(Drawable d, InputState state)
@@ -337,15 +333,12 @@ namespace osu.Framework.Input
 
             if (currentCursorHandler != null)
             {
-                //convert InputHandler coordinates to native scren coordinates.
+                //convert inputhandler coordinates to inputmanager coordinates.
                 Vector2 pos = currentCursorHandler.Position ?? Vector2.Zero;
 
-                pos.X /= currentCursorHandler.Size.X;
-                pos.Y /= currentCursorHandler.Size.Y;
+                pos = Vector2.Multiply(pos, Vector2.Divide(Host.DrawSize, currentCursorHandler.Size));
 
-                Quad q = ScreenSpaceDrawQuad;
-
-                mouse.Position = q.TopLeft + new Vector2(pos.X * q.Width, pos.Y * q.Height);
+                mouse.Position = pos;
             }
             else
                 mouse.Position = Vector2.Zero;

@@ -10,6 +10,7 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -171,9 +172,9 @@ namespace osu.Framework.VisualTests.Tests
                         box.Add(box = new InfofulBoxAutoSize
                         {
                             Colour = new Color4(253, 253, 253, 255),
-                            Position = new Vector2(3, 3),
+                            Position = new Vector2(-3, -3),
                             Origin = Anchor.BottomRight,
-                            Anchor = Anchor.BottomRight
+                            Anchor = Anchor.BottomRight,
                         });
                     }
 
@@ -183,8 +184,8 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         //chameleon = true,
                         Size = new Vector2(50, 50),
-                        Origin = Anchor.TopLeft,
-                        Anchor = Anchor.TopLeft,
+                        Origin = Anchor.BottomRight,
+                        Anchor = Anchor.BottomRight,
                         Colour = Color4.SeaGreen,
                     });
                     break;
@@ -637,11 +638,10 @@ namespace osu.Framework.VisualTests.Tests
 
     class InfofulBoxAutoSize : Container
     {
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BaseGame game)
         {
             AutoSizeAxes = Axes.Both;
-
-            base.Load(game);
 
             Masking = true;
 
@@ -692,10 +692,9 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override bool OnDragStart(InputState state) => AllowDrag;
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             Add(new Box
             {
                 RelativeSizeAxes = Axes.Both,

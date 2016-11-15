@@ -17,11 +17,6 @@ namespace osu.Framework.Graphics.Cursor
         {
             Depth = float.MaxValue;
             RelativeSizeAxes = Axes.Both;
-        }
-
-        protected override void Load(BaseGame game)
-        {
-            base.Load(game);
 
             Add(ActiveCursor = CreateCursor());
         }

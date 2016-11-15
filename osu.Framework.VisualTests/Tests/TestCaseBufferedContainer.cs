@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests.Tests
     class TestCaseBufferedContainer : TestCaseMasking
     {
         public override string Name => @"BufferedContainer";
-        public override string Description => @"Various scenarios which potentially challenge buffered containers calculations.";
+        public override string Description => @"Buffered containers containing almost all visual effects.";
 
         public override void Reset()
         {

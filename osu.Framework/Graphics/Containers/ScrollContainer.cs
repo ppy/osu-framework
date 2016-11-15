@@ -3,12 +3,14 @@
 
 using System;
 using System.Diagnostics;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -19,17 +21,43 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Anchor ScrollDraggerAnchor
         {
-            get { return scrollbar.Anchor; }
+            get { return scrollDragger.Anchor; }
 
             set
             {
-                scrollbar.Anchor = value;
-                scrollbar.Origin = value;
+                scrollDragger.Anchor = value;
+                scrollDragger.Origin = value;
+                updatePadding();
+            }
+        }
+
+        private bool scrollDraggerVisible = true;
+        public bool ScrollDraggerVisible
+        {
+            get { return scrollDraggerVisible; }
+            set
+            {
+                scrollDraggerVisible = value;
+                updateScrollDragger();
             }
         }
 
         private Container content;
-        private ScrollBar scrollbar;
+        private ScrollBar scrollDragger;
+
+
+        private bool scrollbarOverlapsContent = true;
+
+        public bool ScrollbarOverlapsContent
+        {
+            get { return scrollbarOverlapsContent; }
+            set
+            {
+                scrollbarOverlapsContent = value;
+                updatePadding();
+            }
+        }
+
 
         /// <summary>
         /// Vertical size of available content (content.Size)
@@ -76,7 +104,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The current scroll position.
         /// </summary>
-        private float current;
+        public float Current { get; private set; }
 
         /// <summary>
         /// The target scroll position which is exponentially approached by current via a rate of distanceDecay.
@@ -93,6 +121,7 @@ namespace osu.Framework.Graphics.Containers
         public ScrollContainer()
         {
             RelativeSizeAxes = Axes.Both;
+            Masking = true;
 
             AddInternal(new Drawable[]
             {
@@ -100,28 +129,35 @@ namespace osu.Framework.Graphics.Containers
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                 },
-                scrollbar = new ScrollBar { Dragged = onScrollbarMovement }
+                scrollDragger = new ScrollBar { Dragged = onScrollbarMovement }
             });
         }
 
-        protected override void Load(BaseGame game)
+
+        private void updateSize()
         {
-            base.Load(game);
-
-            Masking = true;
-
-            content.OnAutoSize += contentAutoSize;
-        }
-
-        private void contentAutoSize()
-        {
-            if (Precision.AlmostEquals(availableContent, content.DrawSize.Y))
+            float contentSize = content.DrawSize.Y;
+            if (Precision.AlmostEquals(availableContent, contentSize))
                 return;
 
-            availableContent = content.DrawSize.Y;
-            updateSize();
+            availableContent = contentSize;
+            updateScrollDragger(); 
+        }
 
-            scrollbar.Alpha = availableContent > displayableContent ? 1 : 0;
+        private void updateScrollDragger()
+        {
+            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
+        }
+
+        private void updatePadding()
+        {
+            if (scrollbarOverlapsContent)
+                content.Padding = new MarginPadding();
+            else
+                content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
+                    new MarginPadding { Left = scrollDragger.Width } :
+                    new MarginPadding { Right = scrollDragger.Width };
         }
 
         protected override bool OnDragStart(InputState state)
@@ -134,8 +170,8 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             // Continue from where we currently are scrolled to.
-            target = current;
-            return base.OnMouseDown(state, args);
+            target = Current;
+            return true;
         }
 
         // We keep track of this because input events may happen at different intervals than update frames
@@ -179,20 +215,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value)
-        {
-            scrollTo(clamp(value / scrollbar.Size.Y), false);
-        }
+        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size.Y), false);
 
-        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity)
-        {
-            scrollTo(target + value, animated, distanceDecay);
-        }
+        private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
-        public void ScrollTo(float value)
-        {
-            scrollTo(value, true, DistanceDecayJump);
-        }
+        public void ScrollTo(float value) => scrollTo(value, true, DistanceDecayJump);
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
@@ -201,18 +228,12 @@ namespace osu.Framework.Graphics.Containers
             if (animated)
                 this.distanceDecay = distanceDecay;
             else
-                current = target;
-        }
-        
-        public void ScrollIntoView(Drawable d)
-        {
-            scrollTo(d.Position.Y, true, DistanceDecayJump);
+                Current = target;
         }
 
-        private void updateSize()
-        {
-            scrollbar?.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
-        }
+        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildYInContent(d));
+
+        public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
 
         private void updatePosition()
         {
@@ -222,7 +243,7 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!isDragging && current != clamp(current) && target != clamp(target, -0.01f))
+            if (!isDragging && Current != clamp(Current) && target != clamp(target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
@@ -230,7 +251,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if ((current < target && target < 0) || (current > target && target > scrollableExtent))
+                if ((Current < target && target < 0) || (Current > target && target > scrollableExtent))
                     localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
@@ -242,21 +263,22 @@ namespace osu.Framework.Graphics.Containers
             }
 
             // Exponential interpolation between the target and our current scroll position.
-            current = (float)Interpolation.Lerp(target, current, Math.Exp(-localDistanceDecay * Time.Elapsed));
+            Current = (float)Interpolation.Lerp(target, Current, Math.Exp(-localDistanceDecay * Time.Elapsed));
 
             // This prevents us from entering the de-normalized range of floating point numbers when approaching target closely.
-            if (Precision.AlmostEquals(current, target))
-                current = target;
+            if (Precision.AlmostEquals(Current, target))
+                Current = target;
         }
 
         protected override void Update()
         {
             base.Update();
 
+            updateSize();
             updatePosition();
 
-            scrollbar?.MoveToY(current * scrollbar.Size.Y);
-            content.MoveToY(-current);
+            scrollDragger?.MoveToY(Current * scrollDragger.Size.Y);
+            content.MoveToY(-Current);
         }
 
         private class ScrollBar : Container

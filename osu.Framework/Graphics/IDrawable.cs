@@ -19,11 +19,21 @@ namespace osu.Framework.Graphics
         FrameTimeInfo Time { get; }
 
         /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the vector to.</param>
+        /// <returns>The vector in other's coordinates.</returns>
+        Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other);
+
+        /// <summary>
         /// Convert a position to the local coordinate system from either native or local to another drawable.
         /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
         /// </summary>
         /// <param name="screenSpacePos">The input position.</param>
         /// <returns>The output position.</returns>
         Vector2 GetLocalPosition(Vector2 screenSpacePos);
+
+        BlendingMode BlendingMode { get; }
     }
 }

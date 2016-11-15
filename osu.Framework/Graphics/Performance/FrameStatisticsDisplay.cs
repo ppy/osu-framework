@@ -127,7 +127,6 @@ namespace osu.Framework.Graphics.Performance
                             Origin = Anchor.TopRight,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
-                            Position = new Vector2(-2, 0),
                             Children = new[]
                             {
                                 labelText = new SpriteText
@@ -136,14 +135,14 @@ namespace osu.Framework.Graphics.Performance
                                     Origin = Anchor.BottomCentre,
                                     Anchor = Anchor.CentreLeft,
                                     Rotation = -90,
-                                    Position = new Vector2(-2, 0),
                                 },
-                                !hasCounters ? new Container() : new Container
+                                !hasCounters ? new Container() { Width = 2 } : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
                                     AutoSizeAxes = Axes.X,
                                     RelativeSizeAxes = Axes.Y,
+                                    Margin = new MarginPadding { Right = 2, Left = 2 },
                                     Children = new Drawable[]
                                     {
                                         counterBarBackground = new Sprite
@@ -235,10 +234,9 @@ namespace osu.Framework.Graphics.Performance
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            base.Load(game);
-
             //initialise background
             byte[] column = new byte[HEIGHT * 4];
             byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
@@ -252,8 +250,11 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, PerformanceCollectionType.Empty, HEIGHT, column, AMOUNT_COUNT_STEPS);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
-            foreach (var t in timeBars)
-                t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            Schedule(() =>
+            {
+                foreach (var t in timeBars)
+                    t.Sprite.Texture.SetData(new TextureUpload(fullBackground));
+            });
         }
 
         private void addEvent(int type)
@@ -486,22 +487,14 @@ namespace osu.Framework.Graphics.Performance
 
             public TimeBar(TextureAtlas atlas)
             {
-                this.atlas = atlas;
-            }
-
-            protected override void Load(BaseGame game)
-            {
-                base.Load(game);
-
                 Size = new Vector2(WIDTH, HEIGHT);
-
                 Children = new[]
                 {
-                    Sprite = new Sprite
-                    {
-                        Texture = atlas.Add(WIDTH, HEIGHT)
-                    }
+                    Sprite = new Sprite()
                 };
+
+                this.atlas = atlas;
+                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
             public override bool HandleInput => false;
@@ -556,22 +549,18 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
-                        Position = new Vector2(BAR_WIDTH + 1, 0),
+                        Position = new Vector2(-BAR_WIDTH - 1, 0),
                         TextSize = 16,
                     },
                     box = new Box
                     {
-                        Size = new Vector2(BAR_WIDTH, 0),
                         RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(BAR_WIDTH, 0),
                         Anchor = Anchor.BottomRight,
                         Origin = Anchor.BottomRight,
                     }
                 };
-            }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
                 Active = true;
             }
 

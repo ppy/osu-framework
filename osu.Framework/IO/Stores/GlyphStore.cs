@@ -122,4 +122,15 @@ namespace osu.Framework.IO.Stores
         {
         }
     }
+
+    public class FontStore : TextureStore
+    {
+        public FontStore()
+        {
+        }
+   
+        public FontStore(GlyphStore glyphStore) : base(glyphStore)
+        {
+        }
+    }
 }

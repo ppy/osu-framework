@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Threading;
@@ -144,8 +145,11 @@ namespace osu.Framework.Platform
         private string name;
         public override string Name => name;
 
+        public DependencyContainer Dependencies { get; private set; } = new DependencyContainer();
+
         protected BasicGameHost(string gameName = @"")
         {
+            Dependencies.Cache(this);
             name = gameName;
 
             threads = new[]
@@ -366,13 +370,17 @@ namespace osu.Framework.Platform
 
         public override void Add(Drawable drawable)
         {
+            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
+
             BaseGame game = drawable as BaseGame;
+
             Debug.Assert(game != null, @"Make sure to load a Game in a Host");
 
-            if (!IsLoaded)
-                PerformLoad(null);
-
+            Dependencies.Cache(game);
             game.SetHost(this);
+
+            if (!IsLoaded)
+                PerformLoad(game);
 
             LoadGame(game);
         }

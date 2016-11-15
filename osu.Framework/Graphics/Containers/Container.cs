@@ -11,6 +11,10 @@ using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Sprites;
+using System.Threading.Tasks;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -20,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A drawable which can have children added externally.
     /// </summary>
-    public partial class Container<T> : Drawable, IContainer<T>
+    public partial class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
         private bool masking = false;
@@ -75,13 +79,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Color4 borderColour = Color4.Black;
+        private SRGBColour borderColour = Color4.Black;
 
         /// <summary>
         /// Only has an effect when Masking == true.
         /// Determines the color of the drawn border.
         /// </summary>
-        public virtual Color4 BorderColour
+        public virtual SRGBColour BorderColour
         {
             get { return borderColour; }
             set
@@ -346,7 +350,7 @@ namespace osu.Framework.Graphics.Containers
                 if (dispose)
                 {
                     //cascade disposal
-                    (t as Container)?.Clear();
+                    (t as IContainer)?.Clear();
 
                     t.Dispose();
                 }
@@ -397,12 +401,11 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader(permitNulls: true)]
+        private void load(BaseGame game, ShaderManager shaders)
         {
-            base.Load(game);
-
             if (shader == null)
-                shader = game?.Shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+                shader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
 
             children.LoadRequested += i =>
             {
@@ -468,7 +471,7 @@ namespace osu.Framework.Graphics.Containers
         private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
 
         /// <summary>
-        /// This function adds all children's DrawNodes to a targe List, flattening the children of certain types
+        /// This function adds all children's DrawNodes to a target List, flattening the children of certain types
         /// of container subtrees for optimization purposes.
         /// </summary>
         /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
@@ -486,6 +489,9 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsVisible)
                     continue;
 
+                // We are consciously missing out on potential flattening (due to lack of covariance)
+                // in order to be able to let this loop be over integers instead of using
+                // IContainerEnumerable<Drrawable>.AliveChildren which measures to be a _major_ slowdown.
                 Container<T> container = drawable as Container<T>;
                 if (container?.CanBeFlattened == true)
                 {
@@ -606,7 +612,9 @@ namespace osu.Framework.Graphics.Containers
         
         protected override void Dispose(bool isDisposing)
         {
-            Children.ForEach(c => c.Dispose());
+            //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
+            Children?.ForEach(c => c.Dispose());
+
             base.Dispose(isDisposing);
         }
     }

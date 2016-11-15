@@ -16,6 +16,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Platform;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.GameModes.Testing
 {
@@ -55,13 +56,14 @@ namespace osu.Framework.GameModes.Testing
             Assembly asm = Assembly.GetCallingAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
+
+            tests.Sort((TestCase a, TestCase b) => a.Name.CompareTo(b.Name));
         }
 
-        protected override void Load(BaseGame game)
+        [BackgroundDependencyLoader]
+        private void load(BasicStorage storage)
         {
-            base.Load(game);
-
-            config = new TestBrowserConfig(game.Host.Storage);
+            config = new TestBrowserConfig(storage);
 
             Add(leftContainer = new Container
             {
@@ -75,7 +77,7 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer());
+            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollbarOverlapsContent = false });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
@@ -93,7 +95,6 @@ namespace osu.Framework.GameModes.Testing
                 Padding = new MarginPadding { Left = 200 }
             });
 
-            tests.Sort((a, b) => a.DisplayOrder.CompareTo(b.DisplayOrder));
             foreach (var testCase in tests)
                 addTest(testCase);
         }
@@ -155,17 +156,11 @@ namespace osu.Framework.GameModes.Testing
             public TestCaseButton(TestCase test)
             {
                 this.test = test;
-            }
-
-            protected override void Load(BaseGame game)
-            {
-                base.Load(game);
 
                 Masking = true;
                 CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
-
 
                 Add(new Drawable[]
                 {

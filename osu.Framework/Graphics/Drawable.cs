@@ -22,6 +22,8 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Statistics;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics
 {
@@ -149,19 +151,10 @@ namespace osu.Framework.Graphics
                 if (Origin == Anchor.Custom)
                     return customOrigin;
 
-                Vector2 origin = Vector2.Zero;
+                if (Origin == Anchor.TopLeft)
+                    return Vector2.Zero;
 
-                if ((Origin & Anchor.x1) > 0)
-                    origin.X += DrawSize.X / 2f;
-                else if ((Origin & Anchor.x2) > 0)
-                    origin.X += DrawSize.X;
-
-                if ((Origin & Anchor.y1) > 0)
-                    origin.Y += DrawSize.Y / 2f;
-                else if ((Origin & Anchor.y2) > 0)
-                    origin.Y += DrawSize.Y;
-
-                return origin;
+                return computeAnchorPosition(DrawSize, Origin);
             }
 
             set
@@ -169,6 +162,45 @@ namespace osu.Framework.Graphics
                 customOrigin = value;
                 Origin = Anchor.Custom;
             }
+        }
+
+        private Vector2 customAnchor;
+
+        public virtual Vector2 AnchorPosition
+        {
+            get
+            {
+                if (Anchor == Anchor.Custom)
+                    return customAnchor;
+
+                if (Anchor == Anchor.TopLeft || Parent == null)
+                    return Vector2.Zero;
+
+                return computeAnchorPosition(Parent.ChildSize, Anchor);
+            }
+
+            set
+            {
+                customAnchor = value;
+                Anchor = Anchor.Custom;
+            }
+        }
+
+        private static Vector2 computeAnchorPosition(Vector2 size, Anchor anchor)
+        {
+            Vector2 result = Vector2.Zero;
+
+            if ((anchor & Anchor.x1) > 0)
+                result.X = size.X / 2f;
+            else if ((anchor & Anchor.x2) > 0)
+                result.X = size.X;
+
+            if ((anchor & Anchor.y1) > 0)
+                result.Y = size.Y / 2f;
+            else if ((anchor & Anchor.y2) > 0)
+                result.Y = size.Y;
+
+            return result;
         }
 
         private Vector2 scale = Vector2.One;
@@ -200,17 +232,34 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry);
             }
         }
+        
+        private ColourInfo colourInfo = new ColourInfo(Color4.White);
 
-        private Color4 colour = Color4.White;
-
-        public Color4 Colour
+        public ColourInfo ColourInfo
         {
-            get { return colour; }
+            get { return colourInfo; }
 
             set
             {
-                if (colour == value) return;
-                colour = value;
+                if (colourInfo.Equals(value)) return;
+                colourInfo = value;
+
+                Invalidate(Invalidation.Colour);
+            }
+        }
+
+        public SRGBColour Colour
+        {
+            get
+            {
+                return colourInfo.Colour;
+            }
+
+            set
+            {
+                if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
+
+                colourInfo.Colour = value;
 
                 Invalidate(Invalidation.Colour);
             }
@@ -400,6 +449,8 @@ namespace osu.Framework.Graphics
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
         protected virtual IFrameBasedClock Clock => null;
 
+        private bool hasTimeAvailable => Clock != null || Parent != null;
+
         private FrameTimeInfo? time;
 
         public FrameTimeInfo Time
@@ -443,19 +494,31 @@ namespace osu.Framework.Graphics
 
         public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
-                DrawInfo di = new DrawInfo(null);
+                DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
-                float alpha = Alpha;
-                if (Colour.A > 0 && Colour.A < 1)
-                    alpha *= Colour.A;
+                di.ApplyTransform(
+                    DrawPosition + AnchorPosition + Parent?.ChildOffset ?? Vector2.Zero,
+                    Scale * Parent?.ChildScale ?? Vector2.One, Rotation, Shear, OriginPosition);
 
-                Color4 colour = new Color4(Colour.R, Colour.G, Colour.B, alpha);
+                di.Blending = new BlendingInfo(Parent != null && BlendingMode == BlendingMode.Inherit ? Parent.BlendingMode : BlendingMode);
 
                 if (Parent == null)
-                    di.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition), Scale, Rotation, Shear, OriginPosition, colour, new BlendingInfo(BlendingMode));
+                    di.Colour = ColourInfo;
+                else if (di.Colour.HasSingleColour)
+                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha));
                 else
-                    Parent.DrawInfo.ApplyTransform(ref di, GetAnchoredPosition(DrawPosition) + Parent.ChildOffset, Scale * Parent.ChildScale, Rotation, Shear, OriginPosition, colour,
-                              BlendingMode == BlendingMode.Inherit ? (BlendingInfo?)null : new BlendingInfo(BlendingMode));
+                {
+                    // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                    Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                    Vector2 parentSize = Parent.DrawSize;
+
+                    interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
+                    interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
+                    interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
+                    interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+
+                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha), interp);
+                }
 
                 return di;
             });
@@ -536,7 +599,7 @@ namespace osu.Framework.Graphics
                 if (bbox.Width <= 0 && bbox.Height <= 0)
                     return bounds;
 
-                Vector2 a = GetAnchoredPosition(Vector2.Zero);
+                Vector2 a = AnchorPosition;
 
                 foreach (Vector2 p in new[] { new Vector2(bbox.Left, bbox.Top), new Vector2(bbox.Right, bbox.Bottom) })
                 {
@@ -549,7 +612,7 @@ namespace osu.Framework.Graphics
                     // Left
                     else if ((Anchor & Anchor.x0) > 0)
                         offset.X = p.X - a.X;
-                    // Centre
+                    // Centre or custom
                     else
                         offset.X = Math.Abs(p.X - a.X);
 
@@ -559,7 +622,7 @@ namespace osu.Framework.Graphics
                     // Top
                     else if ((Anchor & Anchor.y0) > 0)
                         offset.Y = p.Y - a.Y;
-                    // Centre
+                    // Centre or custom
                     else
                         offset.Y = Math.Abs(p.Y - a.Y);
 
@@ -570,23 +633,11 @@ namespace osu.Framework.Graphics
 
                 // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
                 // as the child's size.
-                switch (Anchor)
-                {
-                    case Anchor.TopCentre:
-                    case Anchor.Centre:
-                    case Anchor.BottomCentre:
-                        bounds.X *= 2;
-                        break;
-                }
+                if ((Anchor & Anchor.x1) > 0)
+                    bounds.X *= 2;
 
-                switch (Anchor)
-                {
-                    case Anchor.CentreLeft:
-                    case Anchor.Centre:
-                    case Anchor.CentreRight:
-                        bounds.Y *= 2;
-                        break;
-                }
+                if ((Anchor & Anchor.y1) > 0)
+                    bounds.Y *= 2;
 
                 return bounds;
             });
@@ -655,13 +706,27 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the vector to.</param>
+        /// <returns>The vector in other's coordinates.</returns>
+        public Vector2 ToSpaceOfOtherDrawable(Vector2 input, IDrawable other)
+        {
+            if (other == this)
+                return input;
+
+            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        protected Vector2 ToParentSpace(Vector2 input)
+        public Vector2 ToParentSpace(Vector2 input)
         {
-            return (input * DrawInfo.Matrix) * Parent.DrawInfo.MatrixInverse;
+            return ToSpaceOfOtherDrawable(input, Parent);
         }
 
         /// <summary>
@@ -669,9 +734,19 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        protected Quad ToParentSpace(RectangleF input)
+        public Quad ToParentSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
+        /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
+        /// </summary>
+        /// <param name="input">A vector in local coordinates.</param>
+        /// <returns>The vector in screen coordinates.</returns>
+        public Vector2 ToScreenSpace(Vector2 input)
+        {
+            return input * DrawInfo.Matrix;
         }
 
         /// <summary>
@@ -679,7 +754,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        protected Quad ToScreenSpace(RectangleF input)
+        public Quad ToScreenSpace(RectangleF input)
         {
             return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
@@ -739,13 +814,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        protected volatile LoadState LoadState;
+        public volatile LoadState LoadState;
 
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
             if (LoadState == LoadState.NotLoaded)
                 return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
 
+            Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
             onLoaded?.Invoke(this);
             return null;
         }
@@ -769,7 +845,7 @@ namespace osu.Framework.Graphics
             }
 
             double t1 = perf.CurrentTime;
-            Load(game);
+            game.Dependencies.Initialize(this);
             double elapsed = perf.CurrentTime - t1;
             if (elapsed > 50 && ThreadSafety.IsUpdateThread)
                 Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
@@ -793,11 +869,6 @@ namespace osu.Framework.Graphics
             LoadComplete();
             return true;
         }
-
-        /// <summary>
-        /// Load resources etc.
-        /// </summary>
-        protected virtual void Load(BaseGame game) { }
 
         /// <summary>
         /// Play initial animation etc.
@@ -868,26 +939,6 @@ namespace osu.Framework.Graphics
                 invalidationID = invalidationCounter.Increment();
 
             return !alreadyInvalidated;
-        }
-
-        internal virtual Vector2 GetAnchoredPosition(Vector2 pos)
-        {
-            if (Anchor == Anchor.TopLeft)
-                return pos;
-
-            Vector2 parentSize = Parent?.ChildSize ?? Vector2.Zero;
-
-            if ((Anchor & Anchor.x1) > 0)
-                pos.X += parentSize.X / 2f;
-            else if ((Anchor & Anchor.x2) > 0)
-                pos.X = parentSize.X - pos.X;
-
-            if ((Anchor & Anchor.y1) > 0)
-                pos.Y += parentSize.Y / 2f;
-            else if ((Anchor & Anchor.y2) > 0)
-                pos.Y = parentSize.Y - pos.Y;
-
-            return pos;
         }
 
         ~Drawable()

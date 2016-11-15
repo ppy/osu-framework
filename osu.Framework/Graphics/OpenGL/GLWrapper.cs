@@ -17,7 +17,8 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Statistics;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Extensions.ColourExtensions;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -377,13 +378,11 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_CornerRadius", maskingInfo.CornerRadius);
 
             Shader.SetGlobalProperty(@"g_BorderThickness", maskingInfo.BorderThickness / maskingInfo.BlendRange);
-
-            Color4 linearBorderColour = maskingInfo.BorderColour.toLinear();
             Shader.SetGlobalProperty(@"g_BorderColour", new Vector4(
-                linearBorderColour.R,
-                linearBorderColour.G,
-                linearBorderColour.B,
-                linearBorderColour.A));
+                maskingInfo.BorderColour.Linear.R,
+                maskingInfo.BorderColour.Linear.G,
+                maskingInfo.BorderColour.Linear.B,
+                maskingInfo.BorderColour.Linear.A));
 
             Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
 
@@ -604,7 +603,7 @@ namespace osu.Framework.Graphics.OpenGL
         public float CornerRadius;
 
         public float BorderThickness;
-        public Color4 BorderColour;
+        public SRGBColour BorderColour;
 
         public float BlendRange;
 

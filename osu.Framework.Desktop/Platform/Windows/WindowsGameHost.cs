@@ -33,8 +33,8 @@ namespace osu.Framework.Desktop.Platform.Windows
                     OnDeactivated();
             };
 
-            Storage = new WindowsStorage(gameName);
-            
+            Dependencies.Cache(Storage = new WindowsStorage(gameName));
+
             //TODO: check if we want this done so early. may be better in Run()
             Application.EnableVisualStyles();
         }
