@@ -6,7 +6,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class CheckBox : FlowContainer, IStateful<CheckBoxState>
+    public abstract class CheckBox : Container, IStateful<CheckBoxState>
     {
         private CheckBoxState state = CheckBoxState.Unchecked;
         public CheckBoxState State
@@ -28,12 +28,6 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
                 }
             }
-        }
-
-        public CheckBox()
-        {
-            Direction = FlowDirection.HorizontalOnly;
-            AutoSizeAxes = Axes.Both;
         }
 
         protected override bool OnClick(InputState state)
