@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics
                 if (Origin == Anchor.TopLeft)
                     return Vector2.Zero;
 
-                return computeAnchorPosition(DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical), Origin);
+                return computeAnchorPosition(LayoutSize, Origin);
             }
 
             set
@@ -391,7 +391,7 @@ namespace osu.Framework.Graphics
         /// The getter returns size of this drawable in its parent's space.
         /// The setter accepts relative values in inheriting dimensions.
         /// </summary>
-        public virtual Vector2 DrawSize
+        public Vector2 DrawSize
         {
             get
             {
@@ -408,6 +408,8 @@ namespace osu.Framework.Graphics
                 return size;
             }
         }
+
+        public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
 
         private Axes relativeSizeAxes;
 
@@ -546,6 +548,15 @@ namespace osu.Framework.Graphics
             }
         }
 
+        protected RectangleF LayoutRectangle
+        {
+            get
+            {
+                Vector2 s = LayoutSize;
+                return new RectangleF(0, 0, s.X, s.Y);
+            }
+        }
+
         public IContainer Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
@@ -594,7 +605,7 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(DrawRectangle.Inflate(margin)).AABBf;
+        protected virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBf;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 

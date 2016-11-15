@@ -172,7 +172,6 @@
     <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
-    <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
