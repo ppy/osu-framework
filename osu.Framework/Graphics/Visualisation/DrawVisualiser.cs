@@ -32,6 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
                 },
+                new CursorContainer()
             };
         }
 

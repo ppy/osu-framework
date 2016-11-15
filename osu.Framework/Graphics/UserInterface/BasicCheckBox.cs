@@ -4,6 +4,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 
@@ -40,19 +41,29 @@ namespace osu.Framework.Graphics.UserInterface
 
         public BasicCheckBox()
         {
+            AutoSizeAxes = Axes.Both;
+
             Children = new Drawable[]
             {
-                labelSpriteText = new SpriteText
+                new FlowContainer
                 {
-                    Padding = new MarginPadding
+                    Direction = FlowDirection.HorizontalOnly,
+                    AutoSizeAxes = Axes.Both,
+                    Children = new Drawable[]
                     {
-                        Left = 20
-                    },
-                    Depth = float.MaxValue
-                },
-                box = new Box
-                {
-                    Size = new Vector2(20, 20)
+                        labelSpriteText = new SpriteText
+                        {
+                            Padding = new MarginPadding
+                            {
+                                Left = 10
+                            },
+                            Depth = float.MaxValue
+                        },
+                        box = new Box
+                        {
+                            Size = new Vector2(20, 20),
+                        }
+                    }
                 }
             };
         }
