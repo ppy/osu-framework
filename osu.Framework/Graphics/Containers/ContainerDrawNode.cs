@@ -110,7 +110,8 @@ namespace osu.Framework.Graphics.Containers
             if (MaskingInfo != null)
             {
                 MaskingInfo info = MaskingInfo.Value;
-                info.BorderColour.Linear.A *= DrawInfo.Colour.TopLeft.Linear.A;
+                if (info.BorderThickness > 0)
+                    info.BorderColour.Linear.A *= DrawInfo.Colour.MaxAlpha; 
                 GLWrapper.PushMaskingInfo(info);
             }
 
