@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Containers
 
             Shader.Bind();
 
-            ColourInfo colour = new ColourInfo(EdgeEffect.Colour);
+            ColourInfo colour = ColourInfo.SingleColour(EdgeEffect.Colour);
             colour.TopLeft.MultiplyAlpha(DrawInfo.Colour.TopLeft.Linear.A);
             colour.BottomLeft.MultiplyAlpha(DrawInfo.Colour.BottomLeft.Linear.A);
             colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
@@ -111,7 +111,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 MaskingInfo info = MaskingInfo.Value;
                 if (info.BorderThickness > 0)
-                    info.BorderColour.Linear.A *= DrawInfo.Colour.MaxAlpha; 
+                    info.BorderColour *= DrawInfo.Colour.AverageColour;
+
                 GLWrapper.PushMaskingInfo(info);
             }
 
