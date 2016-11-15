@@ -151,19 +151,10 @@ namespace osu.Framework.Graphics
                 if (Origin == Anchor.Custom)
                     return customOrigin;
 
-                Vector2 origin = Vector2.Zero;
+                if (Origin == Anchor.TopLeft)
+                    return Vector2.Zero;
 
-                if ((Origin & Anchor.x1) > 0)
-                    origin.X += DrawSize.X / 2f;
-                else if ((Origin & Anchor.x2) > 0)
-                    origin.X += DrawSize.X;
-
-                if ((Origin & Anchor.y1) > 0)
-                    origin.Y += DrawSize.Y / 2f;
-                else if ((Origin & Anchor.y2) > 0)
-                    origin.Y += DrawSize.Y;
-
-                return origin;
+                return computeAnchorPosition(DrawSize, Origin);
             }
 
             set
@@ -171,6 +162,45 @@ namespace osu.Framework.Graphics
                 customOrigin = value;
                 Origin = Anchor.Custom;
             }
+        }
+
+        private Vector2 customAnchor;
+
+        public virtual Vector2 AnchorPosition
+        {
+            get
+            {
+                if (Anchor == Anchor.Custom)
+                    return customAnchor;
+
+                if (Anchor == Anchor.TopLeft || Parent == null)
+                    return Vector2.Zero;
+
+                return computeAnchorPosition(Parent.ChildSize, Anchor);
+            }
+
+            set
+            {
+                customAnchor = value;
+                Anchor = Anchor.Custom;
+            }
+        }
+
+        private static Vector2 computeAnchorPosition(Vector2 size, Anchor anchor)
+        {
+            Vector2 result = Vector2.Zero;
+
+            if ((anchor & Anchor.x1) > 0)
+                result.X = size.X / 2f;
+            else if ((anchor & Anchor.x2) > 0)
+                result.X = size.X;
+
+            if ((anchor & Anchor.y1) > 0)
+                result.Y = size.Y / 2f;
+            else if ((anchor & Anchor.y2) > 0)
+                result.Y = size.Y;
+
+            return result;
         }
 
         private Vector2 scale = Vector2.One;
@@ -467,7 +497,7 @@ namespace osu.Framework.Graphics
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
                 di.ApplyTransform(
-                    GetAnchoredPosition(DrawPosition) + Parent?.ChildOffset ?? Vector2.Zero,
+                    DrawPosition + AnchorPosition + Parent?.ChildOffset ?? Vector2.Zero,
                     Scale * Parent?.ChildScale ?? Vector2.One, Rotation, Shear, OriginPosition);
 
                 di.Blending = new BlendingInfo(Parent != null && BlendingMode == BlendingMode.Inherit ? Parent.BlendingMode : BlendingMode);
@@ -569,7 +599,7 @@ namespace osu.Framework.Graphics
                 if (bbox.Width <= 0 && bbox.Height <= 0)
                     return bounds;
 
-                Vector2 a = GetAnchoredPosition(Vector2.Zero);
+                Vector2 a = AnchorPosition;
 
                 foreach (Vector2 p in new[] { new Vector2(bbox.Left, bbox.Top), new Vector2(bbox.Right, bbox.Bottom) })
                 {
@@ -582,7 +612,7 @@ namespace osu.Framework.Graphics
                     // Left
                     else if ((Anchor & Anchor.x0) > 0)
                         offset.X = p.X - a.X;
-                    // Centre
+                    // Centre or custom
                     else
                         offset.X = Math.Abs(p.X - a.X);
 
@@ -592,7 +622,7 @@ namespace osu.Framework.Graphics
                     // Top
                     else if ((Anchor & Anchor.y0) > 0)
                         offset.Y = p.Y - a.Y;
-                    // Centre
+                    // Centre or custom
                     else
                         offset.Y = Math.Abs(p.Y - a.Y);
 
@@ -603,23 +633,11 @@ namespace osu.Framework.Graphics
 
                 // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
                 // as the child's size.
-                switch (Anchor)
-                {
-                    case Anchor.TopCentre:
-                    case Anchor.Centre:
-                    case Anchor.BottomCentre:
-                        bounds.X *= 2;
-                        break;
-                }
+                if ((Anchor & Anchor.x1) > 0)
+                    bounds.X *= 2;
 
-                switch (Anchor)
-                {
-                    case Anchor.CentreLeft:
-                    case Anchor.Centre:
-                    case Anchor.CentreRight:
-                        bounds.Y *= 2;
-                        break;
-                }
+                if ((Anchor & Anchor.y1) > 0)
+                    bounds.Y *= 2;
 
                 return bounds;
             });
@@ -921,26 +939,6 @@ namespace osu.Framework.Graphics
                 invalidationID = invalidationCounter.Increment();
 
             return !alreadyInvalidated;
-        }
-
-        internal virtual Vector2 GetAnchoredPosition(Vector2 pos)
-        {
-            if (Anchor == Anchor.TopLeft)
-                return pos;
-
-            Vector2 parentSize = Parent?.ChildSize ?? Vector2.Zero;
-
-            if ((Anchor & Anchor.x1) > 0)
-                pos.X += parentSize.X / 2f;
-            else if ((Anchor & Anchor.x2) > 0)
-                pos.X = parentSize.X - pos.X;
-
-            if ((Anchor & Anchor.y1) > 0)
-                pos.Y += parentSize.Y / 2f;
-            else if ((Anchor & Anchor.y2) > 0)
-                pos.Y = parentSize.Y - pos.Y;
-
-            return pos;
         }
 
         ~Drawable()
