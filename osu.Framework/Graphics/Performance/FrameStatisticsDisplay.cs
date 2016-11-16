@@ -483,7 +483,6 @@ namespace osu.Framework.Graphics.Performance
         class TimeBar : Container
         {
             public Sprite Sprite;
-            private TextureAtlas atlas;
 
             public TimeBar(TextureAtlas atlas)
             {
@@ -493,7 +492,6 @@ namespace osu.Framework.Graphics.Performance
                     Sprite = new Sprite()
                 };
 
-                this.atlas = atlas;
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
