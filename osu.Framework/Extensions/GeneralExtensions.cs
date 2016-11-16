@@ -90,7 +90,7 @@ namespace osu.Framework.Extensions
         {
             if (list.Count != list2.Count) return false;
 
-            return !list.Where((t, i) => !t.Equals(list2[i])).Any();
+            return !list.Where((t, i) => !EqualityComparer<T>.Default.Equals(t, list2[i])).Any();
         }
 
         public static string ToResolutionString(this Size size)
@@ -121,13 +121,13 @@ namespace osu.Framework.Extensions
         public static long ToUnixTimestamp(this DateTime date)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return Convert.ToInt64((date - epoch).TotalSeconds);
+            return (date - epoch).Ticks / TimeSpan.TicksPerSecond;
         }
 
         public static long TotalMilliseconds(this DateTime date)
         {
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return Convert.ToInt64((date - epoch).TotalMilliseconds);
+            return (date - epoch).Ticks / TimeSpan.TicksPerMillisecond;
         }
 
         public static IEnumerable<Type> GetLoadableTypes(this Assembly assembly)
@@ -144,16 +144,7 @@ namespace osu.Framework.Extensions
         }
 
         public static string GetDescription(this Enum value)
-        {
-            FieldInfo fi = value.GetType().GetField(value.ToString());
-
-            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
-
-            if (attributes != null &&
-                attributes.Length > 0)
-                return attributes[0].Description;
-            else
-                return value.ToString();
-        }
+            => value.GetType().GetField(value.ToString())
+            .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
     }
 }

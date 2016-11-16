@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Windows.Forms;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.Platform.Windows.Native;
@@ -34,9 +33,6 @@ namespace osu.Framework.Desktop.Platform.Windows
             };
 
             Dependencies.Cache(Storage = new WindowsStorage(gameName));
-
-            //TODO: check if we want this done so early. may be better in Run()
-            Application.EnableVisualStyles();
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { new OpenTKMouseHandler(), new OpenTKKeyboardHandler() };
