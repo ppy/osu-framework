@@ -151,12 +151,9 @@ namespace osu.Framework.GameModes.Testing
         class TestCaseButton : ClickableContainer
         {
             private Box box;
-            private TestCase test;
 
             public TestCaseButton(TestCase test)
             {
-                this.test = test;
-
                 Masking = true;
                 CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
