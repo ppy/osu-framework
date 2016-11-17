@@ -96,9 +96,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         #endregion
 
-        protected override void Load(BaseGame game)
+        protected override void LoadComplete()
         {
-            base.Load(game);
+            base.LoadComplete();
             updateVisualization();
         }
 
