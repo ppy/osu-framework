@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        public virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -222,7 +222,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        public virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
 
         /// <summary>
