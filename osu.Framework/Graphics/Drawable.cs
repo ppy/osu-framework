@@ -87,60 +87,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Axes relativePositionAxes;
-
-        public Axes RelativePositionAxes
-        {
-            get { return relativePositionAxes; }
-            set
-            {
-                if (value == relativePositionAxes)
-                    return;
-                relativePositionAxes = value;
-
-                Invalidate(Invalidation.Geometry);
-            }
-        }
-
-
-        private Vector2 position;
-        public Vector2 Position
-        {
-            get
-            {
-                return position;
-            }
-
-            set
-            {
-                if (position == value) return;
-                position = value;
-
-                Invalidate(Invalidation.Geometry);
-            }
-        }
-
-        /// <summary>
-        /// The getter returns position of this drawable in its parent's space.
-        /// The setter accepts relative values in inheriting dimensions.
-        /// </summary>
-        public Vector2 DrawPosition
-        {
-            get
-            {
-                Vector2 pos = Position;
-                if (RelativePositionAxes != Axes.None)
-                {
-                    Vector2 parent = Parent?.ChildSize ?? Vector2.One;
-                    if ((RelativePositionAxes & Axes.X) > 0)
-                        pos.X *= parent.X;
-                    if ((RelativePositionAxes & Axes.Y) > 0)
-                        pos.Y *= parent.Y;
-                }
-
-                return pos;
-            }
-        }
 
         private MarginPadding margin;
         public MarginPadding Margin
@@ -162,13 +108,15 @@ namespace osu.Framework.Graphics
         {
             get
             {
+                Vector2 result;
                 if (Origin == Anchor.Custom)
-                    return customOrigin;
+                    result = customOrigin;
+                else if (Origin == Anchor.TopLeft)
+                    result = Vector2.Zero;
+                else
+                    result = computeAnchorPosition(LayoutSize, Origin);
 
-                if (Origin == Anchor.TopLeft)
-                    return Vector2.Zero;
-
-                return computeAnchorPosition(LayoutSize, Origin);
+                return result - new Vector2(margin.Left, margin.Top);
             }
 
             set
@@ -391,23 +339,7 @@ namespace osu.Framework.Graphics
         /// The getter returns size of this drawable in its parent's space.
         /// The setter accepts relative values in inheriting dimensions.
         /// </summary>
-        public Vector2 DrawSize
-        {
-            get
-            {
-                Vector2 size = Size;
-                if (RelativeSizeAxes != Axes.None)
-                {
-                    Vector2 parent = Parent?.ChildSize ?? Vector2.One;
-                    if ((RelativeSizeAxes & Axes.X) > 0)
-                        size.X = size.X * parent.X;
-                    if ((RelativeSizeAxes & Axes.Y) > 0)
-                        size.Y = size.Y * parent.Y;
-                }
-
-                return size;
-            }
-        }
+        public Vector2 DrawSize => applyRelativeAxes(RelativeSizeAxes, Size);
 
         public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
 
@@ -428,6 +360,59 @@ namespace osu.Framework.Graphics
 
                 Invalidate(Invalidation.Geometry);
             }
+        }
+
+
+        private Vector2 position;
+        public Vector2 Position
+        {
+            get
+            {
+                return position;
+            }
+
+            set
+            {
+                if (position == value) return;
+                position = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        /// <summary>
+        /// The getter returns position of this drawable in its parent's space.
+        /// The setter accepts relative values in inheriting dimensions.
+        /// </summary>
+        public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
+
+
+        private Axes relativePositionAxes;
+
+        public Axes RelativePositionAxes
+        {
+            get { return relativePositionAxes; }
+            set
+            {
+                if (value == relativePositionAxes)
+                    return;
+                relativePositionAxes = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v)
+        {
+            if (relativeAxes != Axes.None)
+            {
+                Vector2 parent = Parent?.ChildSize ?? Vector2.One;
+                if ((relativeAxes & Axes.X) > 0)
+                    v.X *= parent.X;
+                if ((relativeAxes & Axes.Y) > 0)
+                    v.Y *= parent.Y;
+            }
+            return v;
         }
 
 
@@ -512,12 +497,24 @@ namespace osu.Framework.Graphics
             {
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
-                di.ApplyTransform(
-                    DrawPosition + AnchorPosition + Parent?.ChildOffset ?? Vector2.Zero,
-                    Scale * Parent?.ChildScale ?? Vector2.One, Rotation, Shear, OriginPosition);
+                Vector2 position = DrawPosition + AnchorPosition;
+                Vector2 scale = Scale;
+                BlendingMode blendingMode = BlendingMode;
 
-                di.Blending = new BlendingInfo(Parent != null && BlendingMode == BlendingMode.Inherit ? Parent.BlendingMode : BlendingMode);
+                if (Parent != null)
+                {
+                    position += Parent.ChildOffset;
+                    scale *= Parent.ChildScale;
 
+                    if (blendingMode == BlendingMode.Inherit)
+                        blendingMode = Parent.BlendingMode;
+                }
+
+                di.ApplyTransform(position, scale, Rotation, Shear, OriginPosition);
+                di.Blending = new BlendingInfo(blendingMode);
+
+                // We need an additional parent null check here, since the following block
+                // requires up-to-date matrices.
                 if (Parent == null)
                     di.Colour = ColourInfo;
                 else if (di.Colour.HasSingleColour)
@@ -544,7 +541,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 s = DrawSize;
-                return new RectangleF(margin.Left, margin.Top, s.X, s.Y);
+                return new RectangleF(0, 0, s.X, s.Y);
             }
         }
 
@@ -553,7 +550,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 s = LayoutSize;
-                return new RectangleF(0, 0, s.X, s.Y);
+                return new RectangleF(-margin.Left, -margin.Top, s.X, s.Y);
             }
         }
 
