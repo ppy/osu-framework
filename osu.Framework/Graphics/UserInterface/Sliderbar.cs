@@ -10,68 +10,68 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class Sliderbar : Container
+    public class SliderBar : Container
     {
-        public double KeyboardStep { get; set; }
+        public double KeyboardStep { get; set; } = 0.01;
 
         public double MinValue
         {
-            get { return SelectedValue.MinValue; }
+            get { return Bindable.MinValue; }
             set
             {
-                SelectedValue.MinValue = value;
-                selectedRange = SelectedValue - MinValue;
+                Bindable.MinValue = value;
+                sliderBarPartsSelected = Bindable - MinValue;
             }
         }
 
         public double MaxValue
         {
-            get { return SelectedValue.MaxValue; }
-            set { SelectedValue.MaxValue = value; }
+            get { return Bindable.MaxValue; }
+            set { Bindable.MaxValue = value; }
         }
 
-        public BindableDouble SelectedValue
+        public BindableDouble Bindable
         {
-            get { return selectedValue; }
+            get { return bindable; }
             set
             {
-                if (selectedValue != null)
-                    selectedValue.ValueChanged -= SelectedValue_ValueChanged;
-                selectedValue = value;
-                selectedRange = SelectedValue - MinValue;
-                selectedValue.ValueChanged += SelectedValue_ValueChanged;
+                if (bindable != null)
+                    bindable.ValueChanged -= bindableValueChanged;
+                bindable = value;
+                sliderBarPartsSelected = Bindable - MinValue;
+                bindable.ValueChanged += bindableValueChanged;
             }
         }
 
         public Color4 Color
         {
-            get { return sliderbarBox.Colour; }
-            set { sliderbarBox.Colour = value; }
+            get { return sliderBarBox.Colour; }
+            set { sliderBarBox.Colour = value; }
         }
 
         public Color4 SelectedRangeColor
         {
-            get { return selectedRangeBox.Colour; }
-            set { selectedRangeBox.Colour = value; }
+            get { return sliderBarSelectionBox.Colour; }
+            set { sliderBarSelectionBox.Colour = value; }
         }
 
-        private readonly Box selectedRangeBox;
-        private readonly Box sliderbarBox;
-        private double valuesRange => MaxValue - MinValue;
-        private double selectedRange;
-        private BindableDouble selectedValue;
+        private readonly Box sliderBarSelectionBox;
+        private readonly Box sliderBarBox;
+        private double sliderBarParts => MaxValue - MinValue;
+        private double sliderBarPartsSelected;
+        private BindableDouble bindable;
 
-        public Sliderbar()
+        public SliderBar()
         {
             Children = new Drawable[]
             {
-                sliderbarBox = new Box
+                sliderBarBox = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Origin = Anchor.CentreLeft,
                     Anchor = Anchor.CentreLeft
                 },
-                selectedRangeBox = new Box
+                sliderBarSelectionBox = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Origin = Anchor.CentreLeft,
@@ -82,15 +82,15 @@ namespace osu.Framework.Graphics.UserInterface
 
         #region Disposal
 
-        ~Sliderbar()
+        ~SliderBar()
         {
             Dispose(false);
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            if (SelectedValue != null)
-                SelectedValue.ValueChanged -= SelectedValue_ValueChanged;
+            if (Bindable != null)
+                Bindable.ValueChanged -= bindableValueChanged;
             base.Dispose(isDisposing);
         }
 
@@ -114,40 +114,41 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragStart(InputState state)
-        {
-            return true;
-        }
+        protected override bool OnDragStart(InputState state) => true;
 
-        protected override bool OnDragEnd(InputState state)
-        {
-            return true;
-        }
+        protected override bool OnDragEnd(InputState state) => true;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (args.Key == Key.Right)
-                SelectedValue.Value += KeyboardStep;
-            else if (args.Key == Key.Left)
-                SelectedValue.Value -= KeyboardStep;
-            return true;
+            double clampedBindable;
+            switch (args.Key)
+            {
+                case Key.Right:
+                    clampedBindable = MathHelper.Clamp(Bindable.Value + KeyboardStep, MinValue, MaxValue);
+                    sliderBarPartsSelected = clampedBindable - MinValue;
+                    Bindable.Value = clampedBindable;
+                    return true;
+                case Key.Left:
+                    clampedBindable = MathHelper.Clamp(Bindable.Value - KeyboardStep, MinValue, MaxValue);
+                    sliderBarPartsSelected = clampedBindable - MinValue;
+                    Bindable.Value = clampedBindable;
+                    return true;
+                default:
+                    return false;
+            }
         }
 
-        private void SelectedValue_ValueChanged(object sender, EventArgs e) => updateVisualization();
+        private void bindableValueChanged(object sender, EventArgs e) => updateVisualization();
 
         private void handleMouseInput(InputState state)
         {
             var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
-            xPosition = MathHelper.Clamp(xPosition, 0, sliderbarBox.DrawWidth);
-            double percentage = xPosition / sliderbarBox.DrawWidth;
-            selectedRange = valuesRange * percentage;
-            SelectedValue.Value = MinValue + selectedRange;
+            xPosition = MathHelper.Clamp(xPosition, 0, sliderBarBox.DrawWidth);
+            double percentage = xPosition / sliderBarBox.DrawWidth;
+            sliderBarPartsSelected = sliderBarParts * percentage;
+            Bindable.Value = MinValue + sliderBarPartsSelected;
         }
 
-        private void updateVisualization()
-        {
-            var percentage = selectedRange / valuesRange;
-            selectedRangeBox.ScaleTo(new Vector2((float)percentage, 1), 300, EasingTypes.OutQuint);
-        }
+        private void updateVisualization() => sliderBarSelectionBox.ScaleTo(new Vector2((float)(sliderBarPartsSelected / sliderBarParts), 1), 300, EasingTypes.OutQuint);
     }
 }
