@@ -127,7 +127,6 @@ namespace osu.Framework.Graphics.Performance
                             Origin = Anchor.TopRight,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
-                            Position = new Vector2(-2, 0),
                             Children = new[]
                             {
                                 labelText = new SpriteText
@@ -136,14 +135,14 @@ namespace osu.Framework.Graphics.Performance
                                     Origin = Anchor.BottomCentre,
                                     Anchor = Anchor.CentreLeft,
                                     Rotation = -90,
-                                    Position = new Vector2(-2, 0),
                                 },
-                                !hasCounters ? new Container() : new Container
+                                !hasCounters ? new Container() { Width = 2 } : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
                                     AutoSizeAxes = Axes.X,
                                     RelativeSizeAxes = Axes.Y,
+                                    Margin = new MarginPadding { Right = 2, Left = 2 },
                                     Children = new Drawable[]
                                     {
                                         counterBarBackground = new Sprite
@@ -484,7 +483,6 @@ namespace osu.Framework.Graphics.Performance
         class TimeBar : Container
         {
             public Sprite Sprite;
-            private TextureAtlas atlas;
 
             public TimeBar(TextureAtlas atlas)
             {
@@ -494,7 +492,6 @@ namespace osu.Framework.Graphics.Performance
                     Sprite = new Sprite()
                 };
 
-                this.atlas = atlas;
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
@@ -550,7 +547,7 @@ namespace osu.Framework.Graphics.Performance
                         Origin = Anchor.BottomLeft,
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
-                        Position = new Vector2(BAR_WIDTH + 1, 0),
+                        Position = new Vector2(-BAR_WIDTH - 1, 0),
                         TextSize = 16,
                     },
                     box = new Box

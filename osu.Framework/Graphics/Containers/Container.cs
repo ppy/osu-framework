@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Sprites;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Transformations;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -134,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle.Shrink(Margin),
+                MaskingRect = DrawRectangle,
                 ToMaskingSpace = DrawInfo.MatrixInverse,
                 CornerRadius = CornerRadius,
                 BorderThickness = BorderThickness,
@@ -208,26 +209,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private MarginPadding margin;
-        public MarginPadding Margin
-        {
-            get { return margin; }
-            set
-            {
-                if (margin.Equals(value)) return;
-
-                margin = value;
-
-                Invalidate(Invalidation.Geometry);
-            }
-        }
-
-        public override Vector2 DrawSize => base.DrawSize + new Vector2(Margin.TotalHorizontal, Margin.TotalVertical);
-
         /// <summary>
         /// The Size (coordinate space) revealed to Children.
         /// </summary>
-        public virtual Vector2 ChildSize => base.DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
         /// Scale which is only applied to Children.
@@ -237,7 +222,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
-        public virtual Vector2 ChildOffset => new Vector2(Padding.Left + Margin.Left, Padding.Top + Margin.Top);
+        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
 
         /// <summary>
@@ -580,14 +565,12 @@ namespace osu.Framework.Graphics.Containers
         public override bool Contains(Vector2 screenSpacePos)
         {
             float cornerRadius = CornerRadius;
-            Vector2 localPos = GetLocalPosition(screenSpacePos);
-            RectangleF inputRect = DrawRectangle.Shrink(Margin);
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cornerRadius == 0.0f)
-                return inputRect.Contains(localPos);
+                return base.Contains(screenSpacePos);
             else
-                return inputRect.Shrink(cornerRadius).DistanceSquared(localPos) <= cornerRadius * cornerRadius;
+                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(GetLocalPosition(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
         protected override RectangleF BoundingBox
@@ -598,7 +581,7 @@ namespace osu.Framework.Graphics.Containers
                 if (!Masking || cornerRadius == 0.0f)
                     return base.BoundingBox;
 
-                RectangleF drawRect = DrawRectangle.Shrink(cornerRadius);
+                RectangleF drawRect = LayoutRectangle.Shrink(cornerRadius);
 
                 // Inflate bounding box in parent space by the half-size of the bounding box of the
                 // ellipse obtained by transforming the unit circle into parent space.
@@ -616,6 +599,12 @@ namespace osu.Framework.Graphics.Containers
             Children?.ForEach(c => c.Dispose());
 
             base.Dispose(isDisposing);
+        }
+
+        public void FadeGlowTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformGlowAlpha));
+            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformGlowAlpha());
         }
     }
 }

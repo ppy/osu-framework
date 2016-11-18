@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Transformations;
 using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Graphics.Sprites
@@ -196,6 +197,23 @@ namespace osu.Framework.Graphics.Sprites
         public override string ToString()
         {
             return $@"""{Text}"" " + base.ToString();
+        }
+
+        public void TransformSpacingTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformSpacing));
+            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformSpacing());
+        }
+
+        public class TransformSpacing : TransformFloat
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                SpriteText t = d as SpriteText;
+
+                t.SpacingOverlap = CurrentValue;
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Configuration
 {
@@ -20,7 +21,7 @@ namespace osu.Framework.Configuration
             get { return value; }
             set
             {
-                if (this.value?.Equals(value) == true) return;
+                if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
                 this.value = value;
 

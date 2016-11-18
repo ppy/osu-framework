@@ -119,7 +119,11 @@
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
+    <Compile Include="Graphics\Transformations\TransformGlowAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownComboBox.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
+    <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Sliderbar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
@@ -172,7 +176,6 @@
     <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="GameModes\GameMode.cs" />
-    <Compile Include="Graphics\Sprites\NativeScaleSprite.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
