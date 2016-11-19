@@ -341,6 +341,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 DrawSize => applyRelativeAxes(RelativeSizeAxes, Size);
 
+        protected virtual Vector2 DrawScale => Scale;
+
         public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
 
         private Axes relativeSizeAxes;
@@ -498,7 +500,7 @@ namespace osu.Framework.Graphics
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
                 Vector2 position = DrawPosition + AnchorPosition;
-                Vector2 scale = Scale;
+                Vector2 scale = DrawScale;
                 BlendingMode blendingMode = BlendingMode;
 
                 if (Parent != null)

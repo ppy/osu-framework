@@ -58,8 +58,6 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        public override Vector2 ChildScale => new Vector2(TextSize);
-
         private float textSize = 20;
 
         public float TextSize
@@ -70,9 +68,12 @@ namespace osu.Framework.Graphics.Sprites
                 if (textSize == value) return;
 
                 textSize = value;
+
                 Invalidate(Invalidation.Geometry);
             }
         }
+
+        protected override Vector2 DrawScale => base.DrawScale * textSize;
 
         [BackgroundDependencyLoader]
         private void load(FontStore fonts)
