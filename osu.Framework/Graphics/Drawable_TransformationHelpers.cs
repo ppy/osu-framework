@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -198,7 +198,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             TransformColour transform = new TransformColour
             {
@@ -342,7 +342,7 @@ namespace osu.Framework.Graphics
                 Easing = easing
             };
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -365,7 +365,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             TransformColour transform = new TransformColour
             {
@@ -376,7 +376,7 @@ namespace osu.Framework.Graphics
                 Easing = easing
             };
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);

@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics
 
         IContainer Parent { get; set; }
 
+        bool HasTime { get; }
+
         FrameTimeInfo Time { get; }
 
         /// <summary>

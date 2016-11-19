@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics
         //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
         protected virtual IFrameBasedClock Clock => null;
 
-        private bool hasTimeAvailable => Clock != null || Parent != null;
+        public bool HasTime => Clock != null || (Parent?.HasTime ?? false);
 
         private FrameTimeInfo? time;
 
