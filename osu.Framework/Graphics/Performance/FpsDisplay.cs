@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Performance
 
                 if (aimWidth == 0)
                     Size = counter.DrawSize;
-                else if (counter.DrawWidth > aimWidth)
+                else if (Precision.AlmostBigger(counter.DrawWidth, aimWidth))
                     ResizeTo(counter.DrawSize, 200, EasingTypes.InOutSine);
                 else
                 {

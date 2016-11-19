@@ -341,6 +341,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 DrawSize => applyRelativeAxes(RelativeSizeAxes, Size);
 
+        protected virtual Vector2 DrawScale => Scale;
+
         public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
 
         private Axes relativeSizeAxes;
@@ -385,7 +387,6 @@ namespace osu.Framework.Graphics
         /// The setter accepts relative values in inheriting dimensions.
         /// </summary>
         public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
-
 
         private Axes relativePositionAxes;
 
@@ -498,13 +499,12 @@ namespace osu.Framework.Graphics
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
                 Vector2 position = DrawPosition + AnchorPosition;
-                Vector2 scale = Scale;
+                Vector2 scale = DrawScale;
                 BlendingMode blendingMode = BlendingMode;
 
                 if (Parent != null)
                 {
                     position += Parent.ChildOffset;
-                    scale *= Parent.ChildScale;
 
                     if (blendingMode == BlendingMode.Inherit)
                         blendingMode = Parent.BlendingMode;
@@ -557,6 +557,18 @@ namespace osu.Framework.Graphics
         public IContainer Parent { get; set; }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
+
+        private bool isProxied;
+
+        /// <summary>
+        /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
+        /// Will cause the original instance to not render itself.
+        /// </summary>
+        public ProxyDrawable CreateProxy()
+        {
+            isProxied = true;
+            return new ProxyDrawable(this);
+        }
 
         /// <summary>
         /// Checks if this drawable is a child of parent regardless of nesting depth.
@@ -672,6 +684,8 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
+            if (isProxied) return null;
+
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
             {

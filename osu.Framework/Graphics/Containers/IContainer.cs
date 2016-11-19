@@ -10,7 +10,6 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainer : IDrawable
     {
         Vector2 ChildSize { get; }
-        Vector2 ChildScale { get; }
         Vector2 ChildOffset { get; }
 
         void InvalidateFromChild(Invalidation invalidation, IDrawable source);
@@ -19,6 +18,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerEnumerable<out T> : IContainer
+        where T : IDrawable
     {
         IEnumerable<T> InternalChildren { get; }
         IEnumerable<T> Children { get; }
@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.Containers
     }
 
     public interface IContainerCollection<in T> : IContainer
+        where T : IDrawable
     {
         IEnumerable<T> InternalChildren { set; }
         IEnumerable<T> Children { set; }

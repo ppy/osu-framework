@@ -58,9 +58,9 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        public override Vector2 ChildScale => new Vector2(TextSize);
+        const float default_text_size = 20;
 
-        private float textSize = 20;
+        private float textSize = default_text_size;
 
         public float TextSize
         {
@@ -70,7 +70,9 @@ namespace osu.Framework.Graphics.Sprites
                 if (textSize == value) return;
 
                 textSize = value;
-                Invalidate(Invalidation.Geometry);
+
+                foreach (Drawable d in Children)
+                    d.Scale = new Vector2(textSize);
             }
         }
 
@@ -80,7 +82,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = fonts;
 
-            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
+            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? default_text_size;
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -156,6 +158,7 @@ namespace osu.Framework.Graphics.Sprites
                         s = new Container
                         {
                             Size = new Vector2(width),
+                            Scale = new Vector2(textSize),
                             Colour = Color4.Transparent,
                         };
                     }
@@ -172,6 +175,7 @@ namespace osu.Framework.Graphics.Sprites
                         var ctn = new Container
                         {
                             Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
+                            Scale = new Vector2(textSize),
                             Children = new[] { s }
                         };
 
