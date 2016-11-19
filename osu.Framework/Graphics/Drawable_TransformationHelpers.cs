@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics
 
         #region Vector2-based helpers
 
-        private void transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
+        protected void TransformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
             Type type = transform.GetType();
             if (transformationDelay == 0)
@@ -281,31 +281,31 @@ namespace osu.Framework.Graphics
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+            TransformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            transformVectorTo(Scale, newScale, duration, easing, new TransformScale());
+            TransformVectorTo(Scale, newScale, duration, easing, new TransformScale());
         }
 
         public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+            TransformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            transformVectorTo(Size, newSize, duration, easing, new TransformSize());
+            TransformVectorTo(Size, newSize, duration, easing, new TransformSize());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
-            transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
+            TransformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
