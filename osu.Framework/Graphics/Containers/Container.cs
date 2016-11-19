@@ -215,15 +215,9 @@ namespace osu.Framework.Graphics.Containers
         public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
-        /// Scale which is only applied to Children.
-        /// </summary>
-        public virtual Vector2 ChildScale => Vector2.One;
-
-        /// <summary>
         /// Offset which is only applied to Children.
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
-
 
         /// <summary>
         /// Add a Drawable to Content's children list, recursing until Content == this.

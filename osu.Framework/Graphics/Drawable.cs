@@ -506,7 +506,6 @@ namespace osu.Framework.Graphics
                 if (Parent != null)
                 {
                     position += Parent.ChildOffset;
-                    scale *= Parent.ChildScale;
 
                     if (blendingMode == BlendingMode.Inherit)
                         blendingMode = Parent.BlendingMode;

@@ -10,7 +10,6 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainer : IDrawable
     {
         Vector2 ChildSize { get; }
-        Vector2 ChildScale { get; }
         Vector2 ChildOffset { get; }
 
         void InvalidateFromChild(Invalidation invalidation, IDrawable source);
