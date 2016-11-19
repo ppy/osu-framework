@@ -48,11 +48,10 @@ namespace osu.Framework.Graphics
                 if (t.EndTime > maxTime)
                     maxTime = t.EndTime;
 
-            double offset = Time.Current - maxTime - 1;
+            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
             foreach (ITransform t in operateTransforms)
             {
-                t.Shift(offset);
-                t.UpdateTime(Time);
+                t.UpdateTime(maxTimeInfo);
                 t.Apply(this);
             }
 
