@@ -388,7 +388,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
 
-
         private Axes relativePositionAxes;
 
         public Axes RelativePositionAxes
@@ -559,6 +558,18 @@ namespace osu.Framework.Graphics
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
+        private bool isProxied;
+
+        /// <summary>
+        /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
+        /// Will cause the original instance to not render itself.
+        /// </summary>
+        public ProxyDrawable CreateProxy()
+        {
+            isProxied = true;
+            return new ProxyDrawable(this);
+        }
+
         /// <summary>
         /// Checks if this drawable is a child of parent regardless of nesting depth.
         /// </summary>
@@ -673,6 +684,8 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
+            if (isProxied) return null;
+
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
             {

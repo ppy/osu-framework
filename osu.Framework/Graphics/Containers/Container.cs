@@ -465,6 +465,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
+                while (drawable is ProxyDrawable)
+                    drawable = ((ProxyDrawable)drawable).Original;
+
                 if (!drawable.IsVisible)
                     continue;
 
