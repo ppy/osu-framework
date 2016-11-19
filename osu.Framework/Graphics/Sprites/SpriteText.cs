@@ -58,7 +58,9 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        private float textSize = 20;
+        const float default_text_size = 20;
+
+        private float textSize = default_text_size;
 
         public float TextSize
         {
@@ -69,11 +71,10 @@ namespace osu.Framework.Graphics.Sprites
 
                 textSize = value;
 
-                Invalidate(Invalidation.Geometry);
+                foreach (Drawable d in Children)
+                    d.Scale = new Vector2(textSize);
             }
         }
-
-        protected override Vector2 DrawScale => base.DrawScale * textSize;
 
         [BackgroundDependencyLoader]
         private void load(FontStore fonts)
@@ -81,7 +82,7 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = fonts;
 
-            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? 20;
+            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? default_text_size;
 
             if (!string.IsNullOrEmpty(text))
             {
@@ -157,6 +158,7 @@ namespace osu.Framework.Graphics.Sprites
                         s = new Container
                         {
                             Size = new Vector2(width),
+                            Scale = new Vector2(textSize),
                             Colour = Color4.Transparent,
                         };
                     }
@@ -173,6 +175,7 @@ namespace osu.Framework.Graphics.Sprites
                         var ctn = new Container
                         {
                             Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
+                            Scale = new Vector2(textSize),
                             Children = new[] { s }
                         };
 
