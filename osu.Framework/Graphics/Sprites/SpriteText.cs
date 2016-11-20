@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Sprite shadowSprite = getSprite(c);
                             shadowSprite.Position = new Vector2(-0.02f, 0.02f);
-                            shadowSprite.Colour = Color4.Black;
+                            shadowSprite.Colour = new Color4(0f, 0f, 0f, 0.5f);
                             shadowSprite.Depth = float.MinValue;
                             ctn.Add(shadowSprite);
                         }
