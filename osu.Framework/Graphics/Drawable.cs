@@ -447,28 +447,19 @@ namespace osu.Framework.Graphics
 
         public float Depth;
 
-        //todo: remove recursive lookup of clock
-        //we can use the private time value below once we isolate cases of it being used before it is updated (TransformHelpers).
-        protected virtual IFrameBasedClock Clock => null;
-
-        public bool HasTime => Clock != null || (Parent?.HasTime ?? false);
-
-        private FrameTimeInfo? time;
-
-        public FrameTimeInfo Time
+        private IFrameBasedClock customClock;
+        private IFrameBasedClock clock;
+        public IFrameBasedClock Clock
         {
-            get
+            get { return clock; }
+            set
             {
-                if (Clock != null)
-                    return Clock.TimeInfo;
-
-                if (!time.HasValue)
-                    time = Parent?.Time;
-
-                Debug.Assert(time.HasValue);
-                return time.HasValue ? time.Value : new FrameTimeInfo();
+                customClock = value;
+                UpdateClock(customClock);
             }
         }
+
+        public FrameTimeInfo Time => Clock.TimeInfo;
 
         const float visibility_cutoff = 0.0001f;
 
@@ -552,7 +543,23 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public IContainer Parent { get; set; }
+        private IContainer parent;
+        public IContainer Parent
+        {
+            get { return parent; }
+            set
+            {
+                if (parent == value) return;
+
+                parent = value;
+                UpdateClock(parent?.Clock ?? null);
+            }
+        }
+
+        internal virtual void UpdateClock(IFrameBasedClock clock)
+        {
+            this.clock = customClock ?? clock;
+        }
 
         protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
 
@@ -818,7 +825,6 @@ namespace osu.Framework.Graphics
 
         public void UpdateTime(FrameTimeInfo time)
         {
-            this.time = time;
         }
 
         /// <summary>

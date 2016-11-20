@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics
 
         IContainer Parent { get; set; }
 
-        bool HasTime { get; }
-
         FrameTimeInfo Time { get; }
+
+        IFrameBasedClock Clock { get; }
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.

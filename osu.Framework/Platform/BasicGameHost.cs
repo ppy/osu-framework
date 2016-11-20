@@ -128,8 +128,6 @@ namespace osu.Framework.Platform
         public Scheduler InputScheduler => inputThread.Scheduler;
         public Scheduler UpdateScheduler => updateThread.Scheduler;
 
-        protected override IFrameBasedClock Clock => updateThread.Clock;
-
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {
@@ -165,6 +163,8 @@ namespace osu.Framework.Platform
                 },
                 inputThread = new InputThread(null, @"MainThread") //never gets started.
             };
+
+            Clock = updateThread.Clock;
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;

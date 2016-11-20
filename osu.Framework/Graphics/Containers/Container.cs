@@ -16,6 +16,7 @@ using osu.Framework.Graphics.Sprites;
 using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -357,6 +358,16 @@ namespace osu.Framework.Graphics.Containers
                 autoSize.Invalidate();
 
             return changed;
+        }
+
+        internal override void UpdateClock(IFrameBasedClock clock)
+        {
+            if (Clock == clock)
+                return;
+
+            base.UpdateClock(clock);
+            foreach (Drawable child in InternalChildren)
+                child.UpdateClock(Clock);
         }
 
         protected internal override bool UpdateSubTree()
