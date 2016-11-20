@@ -48,11 +48,10 @@ namespace osu.Framework.Graphics
                 if (t.EndTime > maxTime)
                     maxTime = t.EndTime;
 
-            double offset = Time.Current - maxTime - 1;
+            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
             foreach (ITransform t in operateTransforms)
             {
-                t.Shift(offset);
-                t.UpdateTime(Time);
+                t.UpdateTime(maxTimeInfo);
                 t.Apply(this);
             }
 
@@ -190,7 +189,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -198,7 +197,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -242,7 +241,7 @@ namespace osu.Framework.Graphics
 
         #region Vector2-based helpers
 
-        private void transformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
+        protected void TransformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
         {
             Type type = transform.GetType();
             if (transformationDelay == 0)
@@ -255,7 +254,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -263,7 +262,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -282,31 +281,31 @@ namespace osu.Framework.Graphics
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            transformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+            TransformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            transformVectorTo(Scale, newScale, duration, easing, new TransformScale());
+            TransformVectorTo(Scale, newScale, duration, easing, new TransformScale());
         }
 
         public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            transformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+            TransformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            transformVectorTo(Size, newSize, duration, easing, new TransformSize());
+            TransformVectorTo(Size, newSize, duration, easing, new TransformSize());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
-            transformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
+            TransformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
@@ -331,7 +330,7 @@ namespace osu.Framework.Graphics
                     return;
             }
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             TransformColour transform = new TransformColour
             {
@@ -342,7 +341,7 @@ namespace osu.Framework.Graphics
                 Easing = easing
             };
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
@@ -365,7 +364,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = hasTimeAvailable ? (Time.Current + transformationDelay) : 0;
+            double startTime = HasTime ? (Time.Current + transformationDelay) : 0;
 
             TransformColour transform = new TransformColour
             {
@@ -376,7 +375,7 @@ namespace osu.Framework.Graphics
                 Easing = easing
             };
 
-            if (!hasTimeAvailable)
+            if (!HasTime)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);

@@ -13,6 +13,7 @@ using System;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Transformations;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -153,6 +154,21 @@ namespace osu.Framework.Graphics.Containers
               //  frameBuffer.Dispose();
 
             base.Dispose(isDisposing);
+        }
+
+        public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformBlurSigma));
+            TransformVectorTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
+        }
+
+        protected class TransformBlurSigma : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                (d as BufferedContainer).BlurSigma = CurrentValue;
+            }
         }
     }
 }
