@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void updateSpecifics()
         {
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
-            previewBox.Colour = Target.Colour;
+            previewBox.ColourInfo = Target.ColourInfo;
 
             int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
