@@ -34,6 +34,7 @@ namespace osu.Framework.Graphics.Containers
         public RectangleF ScreenSpaceDrawRectangle;
         public QuadBatch<TexturedVertex2D> Batch;
         public List<RenderbufferInternalFormat> Formats;
+        public All FilteringMode;
 
         private InvokeOnDisposal establishFrameBufferViewport(Vector2 roundedSize)
         {
@@ -63,7 +64,7 @@ namespace osu.Framework.Graphics.Containers
         private InvokeOnDisposal bindFrameBuffer(FrameBuffer frameBuffer, Vector2 requestedSize)
         {
             if (!frameBuffer.IsInitialized)
-                frameBuffer.Initialize();
+                frameBuffer.Initialize(true, FilteringMode);
 
             // These additional render buffers are only required if e.g. depth
             // or stencil information needs to also be stored somewhere.

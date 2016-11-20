@@ -490,7 +490,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected virtual bool? PixelSnapping { get; set; }
+        public virtual bool? PixelSnapping { get; set; }
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 

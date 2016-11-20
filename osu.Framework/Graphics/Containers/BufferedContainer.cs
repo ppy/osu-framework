@@ -14,6 +14,7 @@ using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -47,6 +48,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public override bool? PixelSnapping
+        {
+            get { return base.PixelSnapping; }
+            set
+            {
+                Debug.Assert(!frameBuffers[0].IsInitialized && !frameBuffers[1].IsInitialized,
+                    "May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                base.PixelSnapping = value;
+            }
+        }
         private Shader blurShader;
 
         public bool CacheDrawnFrameBuffer = false;
@@ -91,6 +102,7 @@ namespace osu.Framework.Graphics.Containers
             n.Batch = quadBatch;
             n.FrameBuffers = frameBuffers;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
+            n.FilteringMode = (PixelSnapping ?? false) ? All.Nearest : All.Linear;
 
             n.ForceRedraw = forceRedraw;
             n.BackgroundColour = BackgroundColour;
