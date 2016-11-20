@@ -175,10 +175,9 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Draw(IVertexBatch vertexBatch)
         {
-            if (ForceRedraw.Reset() > 0)
+            Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
+            if (ForceRedraw.Reset() > 0 || frameBufferSize != FrameBuffers[0].Size)
             {
-                Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
                     drawChildren(vertexBatch, frameBufferSize);
