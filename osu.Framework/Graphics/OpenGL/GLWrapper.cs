@@ -19,6 +19,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
@@ -42,10 +43,13 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static bool IsInitialized { get; private set; }
 
-        internal static void Initialize()
+        private static BasicGameHost host;
+
+        internal static void Initialize(BasicGameHost host)
         {
             if (IsInitialized) return;
 
+            GLWrapper.host = host;
             resetScheduler.SetCurrentThread();
 
             MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
@@ -56,6 +60,11 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Enable(EnableCap.ScissorTest);
 
             IsInitialized = true;
+        }
+
+        internal static void ScheduleDisposal(Action disposalAction)
+        {
+            host.UpdateScheduler.Add(() => resetScheduler.Add(disposalAction.Invoke));
         }
 
         internal static void Reset(Vector2 size)
@@ -459,7 +468,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (frameBuffer == -1) return;
 
             //todo: don't use scheduler
-            resetScheduler.Add(() => { GL.DeleteFramebuffer(frameBuffer); });
+            ScheduleDisposal(() => { GL.DeleteFramebuffer(frameBuffer); });
         }
 
         /// <summary>
@@ -469,7 +478,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteBuffer(int vboId)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() => { GL.DeleteBuffer(vboId); });
+            ScheduleDisposal(() => { GL.DeleteBuffer(vboId); });
         }
 
         /// <summary>
@@ -479,7 +488,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteTextures(params int[] ids)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() => { GL.DeleteTextures(ids.Length, ids); });
+            ScheduleDisposal(() => { GL.DeleteTextures(ids.Length, ids); });
         }
 
         /// <summary>
@@ -489,7 +498,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteProgram(Shader shader)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() => { GL.DeleteProgram(shader); });
+            ScheduleDisposal(() => { GL.DeleteProgram(shader); });
         }
 
         /// <summary>
@@ -499,7 +508,7 @@ namespace osu.Framework.Graphics.OpenGL
         internal static void DeleteShader(ShaderPart shaderPart)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() => { GL.DeleteShader(shaderPart); });
+            ScheduleDisposal(() => { GL.DeleteShader(shaderPart); });
         }
 
         private static int currentShader;

@@ -41,10 +41,12 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 return;
             isDisposed = true;
 
-            Unbind();
-
-            GLWrapper.DeleteFramebuffer(frameBuffer);
-            frameBuffer = -1;
+            GLWrapper.ScheduleDisposal(delegate
+            {
+                Unbind();
+                GLWrapper.DeleteFramebuffer(frameBuffer);
+                frameBuffer = -1;
+            });
         }
 
         #endregion

@@ -126,7 +126,7 @@ namespace osu.Framework.Platform
 
         //null here to construct early but bind to thread late.
         public Scheduler InputScheduler => inputThread.Scheduler;
-        protected Scheduler UpdateScheduler => updateThread.Scheduler;
+        public Scheduler UpdateScheduler => updateThread.Scheduler;
 
         protected override IFrameBasedClock Clock => updateThread.Clock;
 
@@ -235,7 +235,7 @@ namespace osu.Framework.Platform
         protected virtual void DrawInitialize()
         {
             Window.MakeCurrent();
-            GLWrapper.Initialize();
+            GLWrapper.Initialize(this);
 
             if (Window != null)
                 Window.VSync = VSyncMode.Off;
