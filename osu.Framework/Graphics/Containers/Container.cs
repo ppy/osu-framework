@@ -526,7 +526,11 @@ namespace osu.Framework.Graphics.Containers
                 return null;
 
             RectangleF childBounds = bounds;
-            if (Masking)
+            // If we are going to render a buffered container we need to make sure no children get masked away,
+            // even if they are off-screen.
+            if (this is BufferedContainer)
+                childBounds = ScreenSpaceDrawQuad.AABBf;
+            else if (Masking)
                 childBounds.Intersect(ScreenSpaceDrawQuad.AABBf);
 
             if (cNode.Children == null)
