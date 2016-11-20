@@ -51,13 +51,13 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public bool IsInitialized { get; private set; }
 
-        public void Initialize(bool withTexture = true)
+        public void Initialize(bool withTexture = true, All filteringMode = All.Linear)
         {
             frameBuffer = GL.GenFramebuffer();
 
             if (withTexture)
             {
-                Texture = new TextureGLSingle(1, 1, true, All.Linear);
+                Texture = new TextureGLSingle(1, 1, true, filteringMode);
                 Texture.SetData(new TextureUpload(new byte[0]));
                 Texture.Upload();
 

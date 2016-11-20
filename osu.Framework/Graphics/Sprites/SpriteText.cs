@@ -44,6 +44,19 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private bool shadow;
+        public bool Shadow
+        {
+            get { return shadow; }
+            set
+            {
+                if (shadow == value) return;
+
+                shadow = value;
+                internalSize.Invalidate(); // Trigger a layout refresh
+            }
+        }
+
         private Cached<Vector2> internalSize = new Cached<Vector2>();
 
         private float spaceWidth;
@@ -178,6 +191,15 @@ namespace osu.Framework.Graphics.Sprites
                             Scale = new Vector2(textSize),
                             Children = new[] { s }
                         };
+
+                        if (shadow)
+                        {
+                            Sprite shadowSprite = getSprite(c);
+                            shadowSprite.Position = new Vector2(-0.02f, 0.02f);
+                            shadowSprite.Colour = Color4.Black;
+                            shadowSprite.Depth = float.MinValue;
+                            ctn.Add(shadowSprite);
+                        }
 
                         s = ctn;
                     }
