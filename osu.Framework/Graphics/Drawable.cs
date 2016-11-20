@@ -490,8 +490,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public virtual bool? PixelSnapping { get; set; }
-
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate

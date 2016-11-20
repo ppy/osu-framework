@@ -48,14 +48,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public override bool? PixelSnapping
+        private bool pixelSnapping;
+        public bool PixelSnapping
         {
-            get { return base.PixelSnapping; }
+            get { return pixelSnapping; }
             set
             {
                 Debug.Assert(!frameBuffers[0].IsInitialized && !frameBuffers[1].IsInitialized,
                     "May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
-                base.PixelSnapping = value;
+                pixelSnapping = value;
             }
         }
         private Shader blurShader;
@@ -102,7 +103,7 @@ namespace osu.Framework.Graphics.Containers
             n.Batch = quadBatch;
             n.FrameBuffers = frameBuffers;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
-            n.FilteringMode = (PixelSnapping ?? false) ? All.Nearest : All.Linear;
+            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
             n.ForceRedraw = forceRedraw;
             n.BackgroundColour = BackgroundColour;
