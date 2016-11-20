@@ -2,10 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
-using OpenTK.Graphics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Primitives;
 using System.Diagnostics;
 
@@ -90,15 +87,17 @@ namespace osu.Framework.Graphics.Colour
             Debug.Assert(HasSingleColour);
             if (childColour.HasSingleColour)
             {
-                Colour = childColour.Colour * Colour;
+                Colour *= childColour.Colour;
             }
             else if (!childColour.HasSingleColour)
             {
                 HasSingleColour = false;
-                TopLeft = childColour.TopLeft * TopLeft;
                 BottomLeft = childColour.BottomLeft * TopLeft;
                 TopRight = childColour.TopRight * TopLeft;
                 BottomRight = childColour.BottomRight * TopLeft;
+
+                // Need to assign TopLeft last to keep correctness.
+                TopLeft = childColour.TopLeft * TopLeft;
             }
         }
 
@@ -153,6 +152,7 @@ namespace osu.Framework.Graphics.Colour
                     return false;
 
                 return
+                    HasSingleColour == other.HasSingleColour &&
                     TopLeft.Equals(other.TopLeft) &&
                     TopRight.Equals(other.TopRight) &&
                     BottomLeft.Equals(other.BottomLeft) &&

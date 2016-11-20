@@ -126,9 +126,7 @@ namespace osu.Framework.Platform
 
         //null here to construct early but bind to thread late.
         public Scheduler InputScheduler => inputThread.Scheduler;
-        protected Scheduler UpdateScheduler => updateThread.Scheduler;
-
-        protected override IFrameBasedClock Clock => updateThread.Clock;
+        public Scheduler UpdateScheduler => updateThread.Scheduler;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
@@ -165,6 +163,8 @@ namespace osu.Framework.Platform
                 },
                 inputThread = new InputThread(null, @"MainThread") //never gets started.
             };
+
+            Clock = updateThread.Clock;
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
@@ -235,7 +235,7 @@ namespace osu.Framework.Platform
         protected virtual void DrawInitialize()
         {
             Window.MakeCurrent();
-            GLWrapper.Initialize();
+            GLWrapper.Initialize(this);
 
             if (Window != null)
                 Window.VSync = VSyncMode.Off;
