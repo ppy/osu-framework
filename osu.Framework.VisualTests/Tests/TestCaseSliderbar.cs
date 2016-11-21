@@ -20,7 +20,11 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            sliderBarValue = new BindableDouble(8);
+            sliderBarValue = new BindableDouble(8)
+            {
+                MinValue = -10,
+                MaxValue = 10
+            };
             sliderBarValue.ValueChanged += sliderBarValueChanged;
 
             sliderbarText = new SpriteText
@@ -33,8 +37,6 @@ namespace osu.Framework.VisualTests.Tests
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
                 Bindable = sliderBarValue,
-                MinValue = -10,
-                MaxValue = 10,
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
                 KeyboardStep = 1

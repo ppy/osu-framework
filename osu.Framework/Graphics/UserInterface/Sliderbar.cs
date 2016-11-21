@@ -14,18 +14,6 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public double KeyboardStep { get; set; } = 0.01;
 
-        public double MinValue
-        {
-            get { return Bindable.MinValue; }
-            set { Bindable.MinValue = value; }
-        }
-
-        public double MaxValue
-        {
-            get { return Bindable.MaxValue; }
-            set { Bindable.MaxValue = value; }
-        }
-
         public BindableDouble Bindable
         {
             get { return bindable; }
@@ -112,10 +100,10 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Right:
-                    Bindable.Value = MathHelper.Clamp(Bindable.Value + KeyboardStep, MinValue, MaxValue);
+                    Bindable.Value = MathHelper.Clamp(Bindable.Value + KeyboardStep, Bindable.MinValue, Bindable.MaxValue);
                     return true;
                 case Key.Left:
-                    Bindable.Value = MathHelper.Clamp(Bindable.Value - KeyboardStep, MinValue, MaxValue);
+                    Bindable.Value = MathHelper.Clamp(Bindable.Value - KeyboardStep, Bindable.MinValue, Bindable.MaxValue);
                     return true;
                 default:
                     return false;
@@ -128,13 +116,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
             xPosition = MathHelper.Clamp(xPosition, 0, box.DrawWidth);
-            Bindable.Value = MinValue + (MaxValue - MinValue) * (xPosition / box.DrawWidth);
+            Bindable.Value = Bindable.MinValue + (Bindable.MaxValue - Bindable.MinValue) * (xPosition / box.DrawWidth);
         }
 
         private void updateVisualization()
         {
             selectionBox.ScaleTo(
-                new Vector2((float)((Bindable.Value - MinValue) / (MaxValue - MinValue)), 1),
+                new Vector2((float)((Bindable.Value - Bindable.MinValue) / (Bindable.MaxValue - Bindable.MinValue)), 1),
                 300, EasingTypes.OutQuint);
         }
     }
