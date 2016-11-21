@@ -12,41 +12,41 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Name => @"Sliderbar";
         public override string Description => @"Sliderbar tests.";
-        private SliderBar sliderbar;
-        private BindableDouble sliderBarSelectedValue;
+        private SliderBar sliderBar;
+        private BindableDouble sliderBarValue;
         private SpriteText sliderbarText;
 
         public override void Reset()
         {
             base.Reset();
 
-            sliderBarSelectedValue = new BindableDouble(8);
-            sliderBarSelectedValue.ValueChanged += sliderBarSelectedValueChanged;
+            sliderBarValue = new BindableDouble(8);
+            sliderBarValue.ValueChanged += sliderBarValueChanged;
 
             sliderbarText = new SpriteText
             {
-                Text = $"Selected value: {sliderBarSelectedValue.Value}",
+                Text = $"Selected value: {sliderBarValue.Value}",
                 Position = new Vector2(25, 0)
             };
-            sliderbar = new SliderBar
+            sliderBar = new SliderBar
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
-                Bindable = sliderBarSelectedValue,
+                Bindable = sliderBarValue,
                 MinValue = -10,
                 MaxValue = 10,
                 Color = Color4.White,
-                SelectedRangeColor = Color4.Pink,
+                SelectionColor = Color4.Pink,
                 KeyboardStep = 1
             };
 
-            Add(sliderbar);
+            Add(sliderBar);
             Add(sliderbarText);
         }
 
-        private void sliderBarSelectedValueChanged(object sender, EventArgs e)
+        private void sliderBarValueChanged(object sender, EventArgs e)
         {
-            sliderbarText.Text = $"Selected value: {sliderBarSelectedValue.Value:N}";
+            sliderbarText.Text = $"Selected value: {sliderBarValue.Value:N}";
         }
     }
 }

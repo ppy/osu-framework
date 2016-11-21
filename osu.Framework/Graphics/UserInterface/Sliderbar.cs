@@ -17,11 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         public double MinValue
         {
             get { return Bindable.MinValue; }
-            set
-            {
-                Bindable.MinValue = value;
-                sliderBarPartsSelected = Bindable - MinValue;
-            }
+            set { Bindable.MinValue = value; }
         }
 
         public double MaxValue
@@ -38,44 +34,37 @@ namespace osu.Framework.Graphics.UserInterface
                 if (bindable != null)
                     bindable.ValueChanged -= bindableValueChanged;
                 bindable = value;
-                sliderBarPartsSelected = Bindable - MinValue;
                 bindable.ValueChanged += bindableValueChanged;
             }
         }
 
         public Color4 Color
         {
-            get { return sliderBarBox.Colour; }
-            set { sliderBarBox.Colour = value; }
+            get { return box.Colour; }
+            set { box.Colour = value; }
         }
 
-        public Color4 SelectedRangeColor
+        public Color4 SelectionColor
         {
-            get { return sliderBarSelectionBox.Colour; }
-            set { sliderBarSelectionBox.Colour = value; }
+            get { return selectionBox.Colour; }
+            set { selectionBox.Colour = value; }
         }
 
-        private readonly Box sliderBarSelectionBox;
-        private readonly Box sliderBarBox;
-        private double sliderBarParts => MaxValue - MinValue;
-        private double sliderBarPartsSelected;
+        private readonly Box selectionBox;
+        private readonly Box box;
         private BindableDouble bindable;
 
         public SliderBar()
         {
             Children = new Drawable[]
             {
-                sliderBarBox = new Box
+                box = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Origin = Anchor.CentreLeft,
-                    Anchor = Anchor.CentreLeft
                 },
-                sliderBarSelectionBox = new Box
+                selectionBox = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Origin = Anchor.CentreLeft,
-                    Anchor = Anchor.CentreLeft
                 }
             };
         }
@@ -120,18 +109,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            double clampedBindable;
             switch (args.Key)
             {
                 case Key.Right:
-                    clampedBindable = MathHelper.Clamp(Bindable.Value + KeyboardStep, MinValue, MaxValue);
-                    sliderBarPartsSelected = clampedBindable - MinValue;
-                    Bindable.Value = clampedBindable;
+                    Bindable.Value = MathHelper.Clamp(Bindable.Value + KeyboardStep, MinValue, MaxValue);
                     return true;
                 case Key.Left:
-                    clampedBindable = MathHelper.Clamp(Bindable.Value - KeyboardStep, MinValue, MaxValue);
-                    sliderBarPartsSelected = clampedBindable - MinValue;
-                    Bindable.Value = clampedBindable;
+                    Bindable.Value = MathHelper.Clamp(Bindable.Value - KeyboardStep, MinValue, MaxValue);
                     return true;
                 default:
                     return false;
@@ -143,12 +127,15 @@ namespace osu.Framework.Graphics.UserInterface
         private void handleMouseInput(InputState state)
         {
             var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
-            xPosition = MathHelper.Clamp(xPosition, 0, sliderBarBox.DrawWidth);
-            double percentage = xPosition / sliderBarBox.DrawWidth;
-            sliderBarPartsSelected = sliderBarParts * percentage;
-            Bindable.Value = MinValue + sliderBarPartsSelected;
+            xPosition = MathHelper.Clamp(xPosition, 0, box.DrawWidth);
+            Bindable.Value = MinValue + (MaxValue - MinValue) * (xPosition / box.DrawWidth);
         }
 
-        private void updateVisualization() => sliderBarSelectionBox.ScaleTo(new Vector2((float)(sliderBarPartsSelected / sliderBarParts), 1), 300, EasingTypes.OutQuint);
+        private void updateVisualization()
+        {
+            selectionBox.ScaleTo(
+                new Vector2((float)((Bindable.Value - MinValue) / (MaxValue - MinValue)), 1),
+                300, EasingTypes.OutQuint);
+        }
     }
 }
