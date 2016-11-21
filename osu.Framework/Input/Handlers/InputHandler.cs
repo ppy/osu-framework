@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
 
@@ -14,7 +15,21 @@ namespace osu.Framework.Input.Handlers
         /// <returns>Success of the initialization.</returns>
         public abstract bool Initialize(BasicGameHost host);
 
-        public abstract List<InputState> GetPendingStates();
+        protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
+
+        public List<InputState> GetPendingStates()
+        {
+            lock (this)
+            {
+                List<InputState> pending = new List<InputState>();
+
+                InputState s;
+                while (PendingStates.TryDequeue(out s))
+                    pending.Add(s);
+
+                return pending;
+            }
+        }
 
         /// <summary>
         /// Indicates whether this InputHandler is currently delivering input by the user. When handling input the OsuGame uses the first InputHandler which is active.

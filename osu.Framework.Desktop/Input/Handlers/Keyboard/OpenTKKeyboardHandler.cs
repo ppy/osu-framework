@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
@@ -14,18 +15,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
     class OpenTKKeyboardHandler : InputHandler
     {
-        List<InputState> states = new List<InputState>();
-
-        public override List<InputState> GetPendingStates()
-        {
-            lock (this)
-            {
-                var pending = states;
-                states = new List<InputState>();
-                return pending;
-            }
-        }
-
         public override bool IsActive => true;
 
         public override int Priority => 0;
@@ -36,7 +25,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
             {
                 lock (this)
                 {
-                    states.Add(new InputState
+                    PendingStates.Enqueue(new InputState
                     {
                         Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
                     });

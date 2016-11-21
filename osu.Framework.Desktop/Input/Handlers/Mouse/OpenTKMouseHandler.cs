@@ -17,8 +17,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private BasicGameHost host;
 
-        List<InputState> states = new List<InputState>();
-
         public override bool Initialize(BasicGameHost host)
         {
             this.host = host;
@@ -34,20 +32,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 Vector2 pos = new Vector2(point.X, point.Y);
 
                 lock (this)
-                    states.Add(new InputState { Mouse = new TkMouseState(state, pos) });
+                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos) });
             }, 0, 0));
 
             return true;
-        }
-
-        public override List<InputState> GetPendingStates()
-        {
-            lock (this)
-            {
-                var pending = states;
-                states = new List<InputState>();
-                return pending;
-            }
         }
 
         /// <summary>
