@@ -215,12 +215,17 @@ namespace osu.Framework.Graphics.Containers
             if (averageDragTime <= 0.0)
                 return base.OnDragEnd(state);
 
-            // Significantly weigh down velocity if it is not recent.
-            double decay = Math.Pow(0.95, Time.Current - lastDragTime);
+            double velocity = averageDragDelta / averageDragTime;
+
+            // Detect whether we halted at the end of the drag and in fact should _not_
+            // perform a flick event.
+            const double VELOCITY_CUTOFF = 0.1;
+            if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < VELOCITY_CUTOFF)
+                velocity = 0;
 
             // Differentiate f(t) = distance * (1 - exp(-t)) w.r.t. "t" to obtain
             // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
-            double distance = decay * averageDragDelta / (averageDragTime * (1 - Math.Exp(-DistanceDecayDrag)));
+            double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
             offset((float)distance, true, DistanceDecayDrag);
 
