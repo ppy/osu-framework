@@ -9,18 +9,12 @@ namespace osu.Framework.Input
 {
     public class KeyboardState : IKeyboardState
     {
-        public IKeyboardState LastState;
-
-        public IEnumerable<Key> Keys { get; internal set; } = new Key[] { };
-
-        public KeyboardState(IKeyboardState last = null)
-        {
-            LastState = last;
-        }
+        public IEnumerable<Key> Keys { get; protected set; } = new Key[] { };
 
         public bool ControlPressed => Keys.Any(k => k == Key.LControl || k == Key.RControl);
         public bool AltPressed => Keys.Any(k => k == Key.LAlt || k == Key.RAlt);
         public bool ShiftPressed => Keys.Any(k => k == Key.LShift || k == Key.RShift);
+
         /// <summary>
         /// Win key on Windows, or Command key on Mac.
         /// </summary>

@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheel(InputState state)
         {
-            offset(-MouseWheelScrollDistance * state.Mouse.WheelDiff, true, DistanceDecayWheel);
+            offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
             return true;
         }
 

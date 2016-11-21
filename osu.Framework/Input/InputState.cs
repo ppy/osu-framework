@@ -9,17 +9,6 @@ namespace osu.Framework.Input
     {
         public IKeyboardState Keyboard;
         public IMouseState Mouse;
-
-        public InputState(InputState last = null)
-        {
-            Keyboard = new KeyboardState(last?.Keyboard);
-            Mouse = new MouseState(last?.Mouse);
-        }
-
-        public void ResetLastStates()
-        {
-            ((KeyboardState)Keyboard).LastState = null;
-            ((MouseState)Mouse).LastState = null;
-        }
+        public InputState Last;
     }
 }

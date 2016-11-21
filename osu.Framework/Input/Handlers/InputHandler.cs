@@ -14,23 +14,7 @@ namespace osu.Framework.Input.Handlers
         /// <returns>Success of the initialization.</returns>
         public abstract bool Initialize(BasicGameHost host);
 
-        /// <summary>
-        /// Used to clean up resources specific to this InputHandler. It gets called once and only after Initialize has been called and returned true.
-        /// </summary>
-        public abstract void Dispose();
-
-        /// <summary>
-        /// Gets called whenever the resolution of the OsuGame or the desktop changes.
-        /// </summary>
-        public virtual void OnResolutionChange()
-        {
-        }
-
-        /// <summary>
-        /// Gets called for every frame of the Game. This should be used to update the public state of this InputHandler according to external circumstances.
-        /// </summary>
-        /// <param name="isActive">Denotes whether this input is currently active and will be used for controlling the main cursor.</param>
-        public abstract void UpdateInput(bool isActive);
+        public abstract List<InputState> GetPendingStates();
 
         /// <summary>
         /// Indicates whether this InputHandler is currently delivering input by the user. When handling input the OsuGame uses the first InputHandler which is active.

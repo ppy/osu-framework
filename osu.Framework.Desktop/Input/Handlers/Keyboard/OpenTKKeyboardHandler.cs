@@ -3,51 +3,66 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
-using OpenTK.Input;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
+using OpenTK.Input;
+using KeyboardState = osu.Framework.Input.KeyboardState;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
-    class OpenTKKeyboardHandler : InputHandler, IKeyboardInputHandler
+    class OpenTKKeyboardHandler : InputHandler
     {
-        public override bool IsActive => true;
+        List<InputState> states = new List<InputState>();
 
-        private KeyboardState state;
+        public override List<InputState> GetPendingStates()
+        {
+            lock (this)
+            {
+                var pending = states;
+                states = new List<InputState>();
+                return pending;
+            }
+        }
+
+        public override bool IsActive => true;
 
         public override int Priority => 0;
 
-        public override void Dispose()
-        {
-        }
-
         public override bool Initialize(BasicGameHost host)
         {
-            PressedKeys = new List<Key>();
-
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
-                state = host.IsActive ? OpenTK.Input.Keyboard.GetState() : new KeyboardState();
+                lock (this)
+                {
+                    states.Add(new InputState
+                    {
+                        Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
+                    });
+                }
             }, 0, 0));
 
             return true;
         }
 
-        public override void UpdateInput(bool isActive)
+        class TkKeyboardState : KeyboardState
         {
-            PressedKeys.Clear();
-
-            if (state.IsAnyKeyDown)
+            public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
-                foreach (Key k in Enum.GetValues(typeof(Key)))
+                List<Key> keys = new List<Key>();
+
+                if (tkState.IsAnyKeyDown)
                 {
-                    if (state.IsKeyDown(k))
-                        PressedKeys.Add(k);
+                    foreach (Key k in Enum.GetValues(typeof(Key)))
+                    {
+                        if (tkState.IsKeyDown(k))
+                            keys.Add(k);
+                    }
                 }
+
+                Keys = keys;
             }
         }
-
-        public List<Key> PressedKeys { get; set; }
     }
 }

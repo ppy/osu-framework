@@ -247,8 +247,6 @@
     <Compile Include="Graphics\Textures\Texture.cs" />
     <Compile Include="Graphics\Textures\TextureAtlas.cs" />
     <Compile Include="Graphics\Textures\TextureLoader.cs" />
-    <Compile Include="Input\Handlers\ICursorInputHandler.cs" />
-    <Compile Include="Input\Handlers\IKeyboardInputHandler.cs" />
     <Compile Include="Input\Handlers\InputHandler.cs" />
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Input\InputState.cs" />

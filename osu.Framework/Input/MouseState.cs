@@ -30,26 +30,19 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public bool WheelUp { get; set; }
-        public bool WheelDown { get; set; }
+        public int WheelDelta => Wheel - (LastState?.Wheel ?? 0);
 
-        public int WheelDiff { get; set; }
+        public int Wheel { get; protected set; }
 
         public bool HasMainButtonPressed => LeftButton || RightButton;
 
         public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
 
-        public Vector2 Position { get; internal set; }
+        public Vector2 Position { get; protected set; }
 
         public Vector2 LastPosition => LastState?.Position ?? Position;
 
         public Vector2? PositionMouseDown { get; internal set; }
-
-        public MouseState(IMouseState last = null)
-        {
-            LastState = last;
-            PositionMouseDown = last?.PositionMouseDown;
-        }
 
         public class ButtonState
         {
@@ -61,6 +54,15 @@ namespace osu.Framework.Input
                 Button = button;
                 State = false;
             }
+        }
+
+        public void SetLast(IMouseState last)
+        {
+            (last as MouseState)?.SetLast(null);
+
+            LastState = last;
+            if (last != null)
+                PositionMouseDown = last.PositionMouseDown;
         }
     }
 }
