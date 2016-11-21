@@ -144,6 +144,8 @@ namespace osu.Framework.Input
                     if (hasKeyboard)
                         updateKeyboardEvents(inputState);
                 }
+
+                keyboardRepeatTime -= Time.Elapsed;
             }
 
             base.Update();
@@ -279,8 +281,6 @@ namespace osu.Framework.Input
 
             if (!keyboard.Keys.Any())
                 keyboardRepeatTime = 0;
-            else
-                keyboardRepeatTime -= Time.Elapsed;
 
             var last = state.Last?.Keyboard;
 
