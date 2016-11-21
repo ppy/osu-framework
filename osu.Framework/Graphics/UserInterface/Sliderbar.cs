@@ -100,10 +100,10 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Right:
-                    Bindable.Value = MathHelper.Clamp(Bindable.Value + KeyboardStep, Bindable.MinValue, Bindable.MaxValue);
+                    Bindable.Value += KeyboardStep;
                     return true;
                 case Key.Left:
-                    Bindable.Value = MathHelper.Clamp(Bindable.Value - KeyboardStep, Bindable.MinValue, Bindable.MaxValue);
+                    Bindable.Value -= KeyboardStep;
                     return true;
                 default:
                     return false;
@@ -115,7 +115,6 @@ namespace osu.Framework.Graphics.UserInterface
         private void handleMouseInput(InputState state)
         {
             var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
-            xPosition = MathHelper.Clamp(xPosition, 0, box.DrawWidth);
             Bindable.Value = Bindable.MinValue + (Bindable.MaxValue - Bindable.MinValue) * (xPosition / box.DrawWidth);
         }
 
