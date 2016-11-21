@@ -58,8 +58,8 @@ namespace osu.Framework.IO.Stores
 
             RawTexture page = getTexturePage(c.TexturePage);
 
-            int width = c.Bounds.Width + c.Offset.X;
-            int height = c.Bounds.Height + c.Offset.Y;
+            int width = c.Bounds.Width + c.Offset.X + 1;
+            int height = c.Bounds.Height + c.Offset.Y + 1;
             int length = width * height * 4;
             byte[] pixels = new byte[length];
 
