@@ -27,7 +27,14 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                 Vector2 pos = new Vector2(point.X, point.Y);
 
-                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos) });
+                var tkState = new TkMouseState(state, pos);
+                if (!host.IsActive)
+                {
+                    tkState.ButtonStates.ForEach(s => s.State = false);
+                    tkState.Wheel = tkState.LastState?.Wheel ?? 0;
+                }
+
+                PendingStates.Enqueue(new InputState { Mouse = tkState });
             }, 0, 0));
 
             return true;

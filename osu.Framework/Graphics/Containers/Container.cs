@@ -193,6 +193,11 @@ namespace osu.Framework.Graphics.Containers
         public Container()
         {
             children = new LifetimeList<T>(DepthComparer);
+            children.Removed += obj =>
+            {
+                if (obj.DisposeOnRemove) obj.Dispose();
+            };
+
         }
 
         private MarginPadding padding;

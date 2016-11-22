@@ -60,11 +60,18 @@ namespace osu.Framework.Graphics.Textures
 
         public override RawTexture Get(string name)
         {
-            using (var stream = store.GetStream(name))
+            try
             {
-                if (stream == null) return null;
+                using (var stream = store.GetStream(name))
+                {
+                    if (stream == null) return null;
 
-                return RawTexture.FromStream(stream);
+                    return RawTexture.FromStream(stream);
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
     }
