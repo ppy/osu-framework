@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
 
@@ -14,23 +15,21 @@ namespace osu.Framework.Input.Handlers
         /// <returns>Success of the initialization.</returns>
         public abstract bool Initialize(BasicGameHost host);
 
-        /// <summary>
-        /// Used to clean up resources specific to this InputHandler. It gets called once and only after Initialize has been called and returned true.
-        /// </summary>
-        public abstract void Dispose();
+        protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 
-        /// <summary>
-        /// Gets called whenever the resolution of the OsuGame or the desktop changes.
-        /// </summary>
-        public virtual void OnResolutionChange()
+        public List<InputState> GetPendingStates()
         {
-        }
+            lock (this)
+            {
+                List<InputState> pending = new List<InputState>();
 
-        /// <summary>
-        /// Gets called for every frame of the Game. This should be used to update the public state of this InputHandler according to external circumstances.
-        /// </summary>
-        /// <param name="isActive">Denotes whether this input is currently active and will be used for controlling the main cursor.</param>
-        public abstract void UpdateInput(bool isActive);
+                InputState s;
+                while (PendingStates.TryDequeue(out s))
+                    pending.Add(s);
+
+                return pending;
+            }
+        }
 
         /// <summary>
         /// Indicates whether this InputHandler is currently delivering input by the user. When handling input the OsuGame uses the first InputHandler which is active.

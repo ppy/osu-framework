@@ -7,6 +7,7 @@ using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
+using KeyboardState = osu.Framework.Input.KeyboardState;
 using osu.Framework.Graphics.Primitives;
 using System.Diagnostics;
 
@@ -128,7 +129,7 @@ namespace osu.Framework.Graphics
                 return;
 
             if (state == null)
-                state = new InputState();
+                state = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
 
             if (!isCallback) ourInputManager.ChangeFocus(null);
             OnFocusLost(state);
@@ -151,7 +152,7 @@ namespace osu.Framework.Graphics
         {
             return false;
         }
-        
+
         public bool TriggerMouseMove(InputState state) => OnMouseMove(getLocalState(state));
 
         protected virtual bool OnMouseMove(InputState state)
@@ -218,10 +219,8 @@ namespace osu.Framework.Graphics
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;
             public bool RightButton => NativeState.RightButton;
-
-            public bool WheelUp => NativeState.WheelUp;
-            public bool WheelDown => NativeState.WheelDown;
-            public int WheelDiff => NativeState.WheelDiff;
+            public int Wheel => NativeState.Wheel;
+            public int WheelDelta => NativeState.WheelDelta;
         }
     }
 
@@ -248,10 +247,4 @@ namespace osu.Framework.Graphics
     {
         public Key Key;
     }
-
-    public delegate bool MouseEventHandlerDelegate(object sender, InputState state);
-
-    internal delegate bool KeyDownEventHandlerDelegate(object sender, KeyDownEventArgs e, InputState state);
-
-    internal delegate bool KeyUpEventHandlerDelegate(object sender, KeyUpEventArgs e, InputState state);
 }

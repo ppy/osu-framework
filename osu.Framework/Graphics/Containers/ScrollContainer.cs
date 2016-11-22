@@ -163,6 +163,8 @@ namespace osu.Framework.Graphics.Containers
         protected override bool OnDragStart(InputState state)
         {
             lastDragTime = Time.Current;
+            averageDragDelta = averageDragTime = 0;
+
             isDragging = true;
             return true;
         }
@@ -177,12 +179,25 @@ namespace osu.Framework.Graphics.Containers
         // We keep track of this because input events may happen at different intervals than update frames
         // and we are interested in the time difference between drag _input_ events.
         private double lastDragTime;
-        private double lastDragTimeDelta;
+
+        // These keep track of a sliding average (w.r.t. time) of the time between drag events
+        // and the delta of drag events. Both of these moving averages are decayed at the same
+        // rate and thus the velocity remains constant across time. The overall magnitude
+        // of averageDragTime and averageDragDelta simple decreases such that more recent movements
+        // have a larger weight.
+        private double averageDragTime;
+        private double averageDragDelta;
 
         protected override bool OnDrag(InputState state)
         {
-            lastDragTimeDelta = Time.Current - lastDragTime;
-            lastDragTime = Time.Current;
+            double currentTime = Time.Current;
+            double timeDelta = currentTime - lastDragTime;
+            double decay = Math.Pow(0.95, timeDelta);
+
+            averageDragTime = averageDragTime * decay + timeDelta;
+            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta.Y;
+
+            lastDragTime = currentTime;
 
             Vector2 childDelta = GetLocalPosition(state.Mouse.NativeState.Position) - GetLocalPosition(state.Mouse.NativeState.LastPosition);
 
@@ -197,11 +212,21 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            if (lastDragTimeDelta <= 0.0)
+            if (averageDragTime <= 0.0)
                 return base.OnDragEnd(state);
 
-            // Solve exponential for distance, given delta and elapsed time during delta.
-            double distance = -state.Mouse.Delta.Y / (1 - Math.Exp(-DistanceDecayDrag * lastDragTimeDelta));
+            double velocity = averageDragDelta / averageDragTime;
+
+            // Detect whether we halted at the end of the drag and in fact should _not_
+            // perform a flick event.
+            const double VELOCITY_CUTOFF = 0.1;
+            if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < VELOCITY_CUTOFF)
+                velocity = 0;
+
+            // Differentiate f(t) = distance * (1 - exp(-t)) w.r.t. "t" to obtain
+            // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
+            double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
+
             offset((float)distance, true, DistanceDecayDrag);
 
             isDragging = false;
@@ -211,7 +236,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnWheel(InputState state)
         {
-            offset(-MouseWheelScrollDistance * state.Mouse.WheelDiff, true, DistanceDecayWheel);
+            offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
             return true;
         }
 

@@ -68,8 +68,6 @@ namespace osu.Framework.Input
 
         private bool isValidClick;
 
-        private ICursorInputHandler currentCursorHandler;
-
         /// <summary>
         /// The input state from the previous frame.
         /// </summary>
@@ -102,40 +100,59 @@ namespace osu.Framework.Input
             FocusedDrawable = focus;
         }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            foreach (InputHandler h in inputHandlers)
-                h.Dispose();
-
-            base.Dispose(isDisposing);
-        }
-
-        private void onResolutionChange(bool b)
-        {
-            foreach (InputHandler h in inputHandlers)
-                h.OnResolutionChange();
-        }
-
         protected override void Update()
         {
-            //todo: move resetting to InputState level.
-            inputState.ResetLastStates();
+            List<InputState> pendingStates = new List<InputState>();
+            foreach (var h in inputHandlers)
+            {
+                if (!h.IsActive) continue;
 
-            inputState = new InputState(inputState);
-
-            UpdateKeyboardState(inputState);
-            UpdateMouseState(inputState);
-
-            updateInputQueues(inputState);
+                foreach (var s in h.GetPendingStates())
+                    pendingStates.Add(s);
+            }
 
             if (!PassThrough)
             {
-                updateHoverEvents(inputState);
-                updateKeyboardEvents(inputState);
-                updateMouseEvents(inputState);
+                foreach (InputState s in pendingStates)
+                {
+                    bool hasKeyboard = s.Keyboard != null;
+                    bool hasMouse = s.Mouse != null;
+
+                    if (!hasKeyboard && !hasMouse) continue;
+
+                    var last = inputState;
+
+                    inputState = new InputState
+                    {
+                        Last = last,
+                        Keyboard = hasKeyboard ? s.Keyboard : last.Keyboard ?? new KeyboardState(),
+                        Mouse = hasMouse ? s.Mouse : last.Mouse ?? new MouseState()
+                    };
+
+                    TransformState(inputState);
+
+                    //move above?
+                    updateInputQueues(inputState);
+
+                    if (hasMouse)
+                    {
+                        (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
+                        updateHoverEvents(inputState);
+                        updateMouseEvents(inputState);
+                    }
+
+                    if (hasKeyboard)
+                        updateKeyboardEvents(inputState);
+                }
+
+                keyboardRepeatTime -= Time.Elapsed;
             }
 
             base.Update();
+        }
+
+        protected virtual void TransformState(InputState inputState)
+        {
         }
 
         private void updateInputQueues(InputState state)
@@ -258,104 +275,18 @@ namespace osu.Framework.Input
             }
         }
 
-        protected virtual void UpdateKeyboardState(InputState state)
-        {
-            if (PassThrough) return;
-
-            KeyboardState keyboard = (KeyboardState)state.Keyboard;
-
-            List<Key> keys = new List<Key>();
-
-            foreach (InputHandler h in inputHandlers)
-            {
-                if (!h.IsActive) continue;
-
-                IKeyboardInputHandler kh = h as IKeyboardInputHandler;
-
-                if (kh == null) continue;
-
-                h.UpdateInput(currentCursorHandler == h);
-
-                keys.AddRange(kh.PressedKeys);
-            }
-
-            keyboard.Keys = new List<Key>(keys);
-        }
-
-        protected virtual void UpdateMouseState(InputState state)
-        {
-            if (PassThrough) return;
-
-            MouseState mouse = (MouseState)state.Mouse;
-
-            currentCursorHandler = null;
-
-            foreach (InputHandler h in inputHandlers)
-            {
-                if (!h.IsActive) continue;
-
-                ICursorInputHandler ch = h as ICursorInputHandler;
-
-                if (ch == null) continue;
-
-                // Make first handler which is active the current handler. (Handlers are ordered by priority.)
-                if (currentCursorHandler == null && ch.Position != null)
-                    currentCursorHandler = ch;
-
-                h.UpdateInput(currentCursorHandler == h);
-
-                foreach (var b in mouse.ButtonStates)
-                {
-                    switch (b.Button)
-                    {
-                        case MouseButton.Left:
-                            b.State |= ch.Left ?? false;
-                            break;
-                        case MouseButton.Middle:
-                            b.State |= ch.Middle ?? false;
-                            break;
-                        case MouseButton.Right:
-                            b.State |= ch.Right ?? false;
-                            break;
-                        case MouseButton.Button1:
-                            b.State |= ch.Back ?? false;
-                            break;
-                        case MouseButton.Button2:
-                            b.State |= ch.Forward ?? false;
-                            break;
-                    }
-                }
-
-                mouse.WheelUp |= ch.WheelDiff.HasValue && ch.WheelDiff.Value > 0;
-                mouse.WheelDown |= ch.WheelDiff.HasValue && ch.WheelDiff.Value < 0;
-                mouse.WheelDiff += ch.WheelDiff ?? 0;
-            }
-
-            if (currentCursorHandler != null)
-            {
-                //convert inputhandler coordinates to inputmanager coordinates.
-                Vector2 pos = currentCursorHandler.Position ?? Vector2.Zero;
-
-                pos = Vector2.Multiply(pos, Vector2.Divide(Host.DrawSize, currentCursorHandler.Size));
-
-                mouse.Position = pos;
-            }
-            else
-                mouse.Position = Vector2.Zero;
-        }
-
         private void updateKeyboardEvents(InputState state)
         {
             KeyboardState keyboard = (KeyboardState)state.Keyboard;
 
             if (!keyboard.Keys.Any())
                 keyboardRepeatTime = 0;
-            else
-                keyboardRepeatTime -= Time.Elapsed;
 
-            if (keyboard.LastState != null)
+            var last = state.Last?.Keyboard;
+
+            if (last != null)
             {
-                foreach (var k in keyboard.LastState.Keys)
+                foreach (var k in last.Keys)
                 {
                     if (!keyboard.Keys.Contains(k))
                         handleKeyUp(state, k);
@@ -370,7 +301,7 @@ namespace osu.Framework.Input
 
                     LastActionTime = Time.Current;
 
-                    bool isRepetition = keyboard.LastState.Keys.Contains(k);
+                    bool isRepetition = last.Keys.Contains(k);
 
                     if (isModifier)
                     {
@@ -413,7 +344,7 @@ namespace osu.Framework.Input
 
             foreach (MouseState.ButtonState b in mouse.ButtonStates)
             {
-                if (b.State != (mouse.LastState as MouseState)?.ButtonStates.Find(c => c.Button == b.Button).State)
+                if (b.State != ((mouse.LastState as MouseState)?.ButtonStates.Find(c => c.Button == b.Button).State ?? false))
                 {
                     if (b.State)
                         handleMouseDown(state, b.Button);
@@ -422,7 +353,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.WheelUp || mouse.WheelDown)
+            if (mouse.Wheel != state.Last?.Mouse?.Wheel)
                 handleWheel(state);
 
             if (mouse.HasMainButtonPressed)
@@ -597,9 +528,6 @@ namespace osu.Framework.Input
 
                     inputHandlers.Insert(index, handler);
 
-                    //set the initial position to the current OsuGame position.
-                    (handler as ICursorInputHandler)?.SetPosition(inputState.Mouse.Position);
-
                     return true;
                 }
             }
@@ -608,17 +536,6 @@ namespace osu.Framework.Input
             }
 
             return false;
-        }
-
-        internal void SetCursorHandlerPositions(Vector2 pos)
-        {
-            foreach (InputHandler h in inputHandlers)
-            {
-                // We don't want to set the position of the currently active cursor handler since it is the one controlling out position
-                // in the first place. This is avoiding potential overhead with resetting its position. (Such as forcfully moving the windows cursor.)
-                if (h != currentCursorHandler)
-                    (h as ICursorInputHandler)?.SetPosition(pos);
-            }
         }
     }
 
