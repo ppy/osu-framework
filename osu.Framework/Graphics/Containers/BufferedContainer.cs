@@ -68,8 +68,14 @@ namespace osu.Framework.Graphics.Containers
         // ping-pong fashion going back and forth (reading from one buffer, writing into the other).
         private FrameBuffer[] frameBuffers = new FrameBuffer[2];
 
-        // If this counter contains a value larger then 0, then we have to redraw.
-        private AtomicCounter forceRedraw = new AtomicCounter();
+        // In order to signal the draw thread to re-draw the buffered container we version it.
+        // Our own version (update) keeps track of which version we are on, whereas the
+        // drawVersion keeps track of the version the draw thread is on.
+        // When forcing a redraw we increment updateVersion, pass it into each new drawnode
+        // and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
+        private long updateVersion = 0;
+        private AtomicCounter drawVersion = new AtomicCounter();
+
         private QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
 
         private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
@@ -105,7 +111,8 @@ namespace osu.Framework.Graphics.Containers
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
             n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
-            n.ForceRedraw = forceRedraw;
+            n.DrawVersion = drawVersion;
+            n.UpdateVersion = updateVersion;
             n.BackgroundColour = BackgroundColour;
 
             n.BlurSigma = BlurSigma;
@@ -129,7 +136,7 @@ namespace osu.Framework.Graphics.Containers
 
         public void ForceRedraw()
         {
-            forceRedraw.Increment();
+            ++updateVersion;
             Invalidate(Invalidation.DrawNode);
         }
 
