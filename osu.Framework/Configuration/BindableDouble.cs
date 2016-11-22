@@ -27,8 +27,8 @@ namespace osu.Framework.Configuration
             }
         }
 
-        internal double MinValue = double.MinValue;
-        internal double MaxValue = double.MaxValue;
+        public double MinValue { get; set; } = double.MinValue;
+        public double MaxValue { get; set; } = double.MaxValue;
 
         public BindableDouble(double value = 0)
             : base(value)
