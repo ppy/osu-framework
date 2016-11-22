@@ -579,6 +579,16 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
+        public int IndexOf(T drawable)
+        {
+            return children.IndexOf(drawable);
+        }
+
+        public bool Contains(T drawable)
+        {
+            return IndexOf(drawable) >= 0;
+        }
+
         public override bool Contains(Vector2 screenSpacePos)
         {
             float cornerRadius = CornerRadius;
