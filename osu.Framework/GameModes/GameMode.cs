@@ -30,6 +30,8 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
+        protected internal override bool DisposeOnRemove => true;
+
         /// <summary>
         /// Make this GameMode directly exited when resuming from a child.
         /// </summary>

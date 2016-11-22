@@ -994,6 +994,8 @@ namespace osu.Framework.Graphics
 
         private bool isDisposed;
 
+        protected internal virtual bool DisposeOnRemove => false;
+
         protected virtual void Dispose(bool isDisposing)
         {
             if (isDisposed)
