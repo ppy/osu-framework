@@ -200,11 +200,15 @@ namespace osu.Framework.Graphics.Containers
                 finalizeFrameBuffer();
             }
 
+            RectangleF drawRectangle = FilteringMode == All.Nearest ?
+                new RectangleF(ScreenSpaceDrawRectangle.X, ScreenSpaceDrawRectangle.Y, frameBufferSize.X, frameBufferSize.Y) :
+                ScreenSpaceDrawRectangle;
+
             // Blit the final framebuffer to screen.
             GLWrapper.SetBlend(DrawInfo.Blending);
 
             Shader.Bind();
-            drawFrameBufferToBackBuffer(FrameBuffers[0], ScreenSpaceDrawRectangle, DrawInfo.Colour);
+            drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, DrawInfo.Colour);
             Shader.Unbind();
         }
     }
