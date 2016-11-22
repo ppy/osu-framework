@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Containers
 
         public Shader BlurShader;
 
-        // If this counter contains a value larger then 0, then we have to redraw.
-        public AtomicCounter ForceRedraw;
+        public AtomicCounter DrawVersion;
+        public long UpdateVersion = -1;
 
         public RectangleF ScreenSpaceDrawRectangle;
         public QuadBatch<TexturedVertex2D> Batch;
@@ -176,8 +176,10 @@ namespace osu.Framework.Graphics.Containers
         public override void Draw(IVertexBatch vertexBatch)
         {
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
-            if (ForceRedraw.Reset() > 0 || frameBufferSize != FrameBuffers[0].Size)
+            if (UpdateVersion > DrawVersion.Value || frameBufferSize != FrameBuffers[0].Size)
             {
+                DrawVersion.Value = UpdateVersion;
+
                 using (establishFrameBufferViewport(frameBufferSize))
                 {
                     drawChildren(vertexBatch, frameBufferSize);
