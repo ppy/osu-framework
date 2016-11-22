@@ -15,24 +15,19 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     class OpenTKMouseHandler : InputHandler
     {
-        private BasicGameHost host;
-
         public override bool Initialize(BasicGameHost host)
         {
-            this.host = host;
-
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
                 OpenTK.Input.MouseState state = OpenTK.Input.Mouse.GetCursorState();
                 Point point = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                //todo: reimplement
+                //todo: reimplement if necessary
                 //Vector2 pos = Vector2.Multiply(point, Vector2.Divide(host.DrawSize, this.Size));
 
                 Vector2 pos = new Vector2(point.X, point.Y);
 
-                lock (this)
-                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos) });
+                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos) });
             }, 0, 0));
 
             return true;

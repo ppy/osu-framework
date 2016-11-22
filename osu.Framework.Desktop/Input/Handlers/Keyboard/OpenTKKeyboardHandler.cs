@@ -23,13 +23,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
         {
             host.InputScheduler.Add(new ScheduledDelegate(delegate
             {
-                lock (this)
+                PendingStates.Enqueue(new InputState
                 {
-                    PendingStates.Enqueue(new InputState
-                    {
-                        Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
-                    });
-                }
+                    Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
+                });
             }, 0, 0));
 
             return true;
