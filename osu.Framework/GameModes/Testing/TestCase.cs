@@ -23,11 +23,19 @@ namespace osu.Framework.GameModes.Testing
         public Container Contents;
 
         protected override Container<Drawable> Content => Contents;
+        
+        protected DependencyContainer Dependencies { get; private set; }
 
         public TestCase()
         {
             RelativeSizeAxes = Axes.Both;
             Masking = true;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(DependencyContainer deps)
+        {
+            Dependencies = deps;
         }
 
         public virtual void Reset()

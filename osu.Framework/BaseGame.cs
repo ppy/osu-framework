@@ -112,7 +112,7 @@ namespace osu.Framework
             Audio = Dependencies.Cache(new AudioManager(
                 new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
                 new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
-            Dependencies.Cache(Audio);
+            Dependencies.Cache(Audio, true);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
