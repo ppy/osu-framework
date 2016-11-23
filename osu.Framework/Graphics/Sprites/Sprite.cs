@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Sprites
                     $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
 
                 Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-                
+
                 inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
                 return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
             }
@@ -135,5 +135,38 @@ namespace osu.Framework.Graphics.Sprites
         {
             return base.ToString() + $" tex: {texture?.AssetName}";
         }
+
+        public FillMode FillMode { get; set; }
+
+        protected override Vector2 DrawScale
+        {
+            get
+            {
+                Vector2 modifier = Vector2.One;
+
+                switch (FillMode)
+                {
+                    case FillMode.Fill:
+                        Scale = new Vector2(Math.Max(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1)));
+                        break;
+                    case FillMode.Fit:
+                        Scale = new Vector2(Math.Min(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1)));
+                        break;
+                    case FillMode.Stretch:
+                        Scale = new Vector2(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1));
+                        break;
+                }
+
+                return base.DrawScale * modifier;
+            }
+        }
+    }
+
+    public enum FillMode
+    {
+        None,
+        Fill,
+        Fit,
+        Stretch
     }
 }
