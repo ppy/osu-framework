@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -34,20 +34,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         class TkKeyboardState : KeyboardState
         {
+            private static IEnumerable<Key> allKeys = Enum.GetValues(typeof(Key)).Cast<Key>();
+
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
-                List<Key> keys = new List<Key>();
-
                 if (tkState.IsAnyKeyDown)
-                {
-                    foreach (Key k in Enum.GetValues(typeof(Key)))
-                    {
-                        if (tkState.IsKeyDown(k))
-                            keys.Add(k);
-                    }
-                }
-
-                Keys = keys;
+                    Keys = allKeys.Where(tkState.IsKeyDown);
             }
         }
     }
