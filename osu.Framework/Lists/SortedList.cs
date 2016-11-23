@@ -28,6 +28,11 @@ namespace osu.Framework.Lists
             return index;
         }
 
+        private new int IndexOf(T value)
+        {
+            return BinarySearch(value, Comparer);
+        }
+
         /// <summary>
         /// Gets the first index of the element larger than value.
         /// </summary>

@@ -552,7 +552,8 @@ namespace osu.Framework.Graphics
                 if (parent == value) return;
 
                 parent = value;
-                UpdateClock(parent?.Clock ?? null);
+                if (parent != null)
+                    UpdateClock(parent.Clock);
             }
         }
 
