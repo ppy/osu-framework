@@ -28,7 +28,7 @@ namespace osu.Framework.GameModes
 
         public event Action<GameMode> Exited;
 
-        private bool hasExited;
+        public bool HasExited { get; private set; }
 
         protected internal override bool DisposeOnRemove => true;
 
@@ -59,7 +59,7 @@ namespace osu.Framework.GameModes
             });
         }
 
-        public override bool HandleInput => !hasExited;
+        public override bool HandleInput => !HasExited;
 
         /// <summary>
         /// Called when this GameMode is being entered. Only happens once, ever.
@@ -121,7 +121,7 @@ namespace osu.Framework.GameModes
             mode.ParentGameMode = this;
             childModeContainer.Add(mode);
 
-            if (mode.hasExited)
+            if (mode.HasExited)
             {
                 mode.Expire();
                 return false;
@@ -151,13 +151,13 @@ namespace osu.Framework.GameModes
         /// </summary>
         public void Exit()
         {
-            if (hasExited)
+            if (HasExited)
                 return;
 
             if (OnExiting(ParentGameMode))
                 return;
 
-            hasExited = true;
+            HasExited = true;
 
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
@@ -184,7 +184,7 @@ namespace osu.Framework.GameModes
         }
 
 
-        public void MakeCurrent()
+        public virtual void MakeCurrent()
         {
             if (IsCurrentGameMode) return;
 
