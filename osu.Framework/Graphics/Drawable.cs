@@ -445,7 +445,17 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public float Depth;
+        private float depth;
+        public float Depth
+        {
+            get { return depth; }
+            set
+            {
+                // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
+                Debug.Assert(Parent == null, "May not change depth while inside a parent container.");
+                depth = value;
+            }
+        }
 
         private IFrameBasedClock customClock;
         private IFrameBasedClock clock;
@@ -808,9 +818,9 @@ namespace osu.Framework.Graphics
 
         internal void ChangeParent(IContainer parent)
         {
-            if (parent == Parent) return;
+            if (Parent == parent) return;
 
-            Debug.Assert(Parent == null);
+            Debug.Assert(Parent == null, "May not add a drawable to multiple containers.");
             Parent = parent;
         }
 
