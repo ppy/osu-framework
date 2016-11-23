@@ -258,16 +258,18 @@ namespace osu.Framework.Graphics.Containers
         {
             Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
 
-            if (drawable.IsLoaded)
-            {
-                Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
-                drawable.ChangeParent(this);
-            }
-
             if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
             else
+            {
+                if (drawable.IsLoaded)
+                {
+                    Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
+                    drawable.ChangeParent(this);
+                }
+
                 children.Add(drawable);
+            }
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry, drawable);
