@@ -136,16 +136,7 @@ namespace osu.Framework.Graphics.Sprites
             return base.ToString() + $" tex: {texture?.AssetName}";
         }
 
-        private FillMode fillMode;
-
-        public FillMode FillMode
-        {
-            get { return fillMode; }
-            set
-            {
-                fillMode = value;
-            }
-        }
+        public FillMode FillMode { get; set; }
 
         protected override Vector2 DrawScale
         {
@@ -156,13 +147,13 @@ namespace osu.Framework.Graphics.Sprites
                 switch (FillMode)
                 {
                     case FillMode.Fill:
-                        Scale = new Vector2(Math.Max(Parent.DrawSize.X / Texture.Width, Parent.DrawSize.Y / Texture.Height));
+                        Scale = new Vector2(Math.Max(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1)));
                         break;
                     case FillMode.Fit:
-                        Scale = new Vector2(Math.Min(Parent.DrawSize.X / Texture.Width, Parent.DrawSize.Y / Texture.Height));
+                        Scale = new Vector2(Math.Min(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1)));
                         break;
                     case FillMode.Stretch:
-                        Scale = new Vector2(Parent.DrawSize.X / Texture.Width, Parent.DrawSize.Y / Texture.Height);
+                        Scale = new Vector2(Parent.DrawSize.X / (Texture?.Width ?? 1), Parent.DrawSize.Y / (Texture?.Height ?? 1));
                         break;
                 }
 
