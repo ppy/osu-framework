@@ -296,6 +296,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\Fonts\LICENSE.txt" />
+    <EmbeddedResource Include="Resources\Textures\sample-texture.png" />
     <EmbeddedResource Include="Resources\Shaders\sh_Utils.h" />
     <EmbeddedResource Include="Resources\Shaders\sh_Texture.fs" />
     <EmbeddedResource Include="Resources\Shaders\sh_ColourRounded.fs" />
