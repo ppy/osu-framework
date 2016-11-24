@@ -125,11 +125,14 @@ namespace osu.Framework.Input
                     CurrentState = new InputState
                     {
                         Last = last,
-                        Keyboard = hasKeyboard ? s.Keyboard : last.Keyboard ?? new KeyboardState(),
-                        Mouse = hasMouse ? s.Mouse : last.Mouse ?? new MouseState()
+                        Keyboard = s.Keyboard,
+                        Mouse = s.Mouse,
                     };
 
                     TransformState(CurrentState);
+
+                    if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
+                    if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
 
                     //move above?
                     updateInputQueues(CurrentState);
