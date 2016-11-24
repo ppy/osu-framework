@@ -166,20 +166,9 @@ namespace osu.Framework.Graphics
 
         internal bool Hovering;
 
-        /// <summary>
-        /// Convert a position to the local coordinate system from either native or local to another drawable.
-        /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
-        /// </summary>
-        /// <param name="screenSpacePos">The input position.</param>
-        /// <returns>The output position.</returns>
-        public Vector2 GetLocalPosition(Vector2 screenSpacePos)
-        {
-            return screenSpacePos * DrawInfo.MatrixInverse;
-        }
-
         public virtual bool Contains(Vector2 screenSpacePos)
         {
-            return DrawRectangle.Contains(GetLocalPosition(screenSpacePos));
+            return DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
         }
 
         private InputState getLocalState(InputState state)
@@ -210,11 +199,11 @@ namespace osu.Framework.Graphics
 
             public Vector2 Delta => Position - LastPosition;
 
-            public Vector2 Position => us.Parent?.GetLocalPosition(NativeState.Position) ?? NativeState.Position;
+            public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
 
-            public Vector2 LastPosition => us.Parent?.GetLocalPosition(NativeState.LastPosition) ?? NativeState.LastPosition;
+            public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.GetLocalPosition(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;

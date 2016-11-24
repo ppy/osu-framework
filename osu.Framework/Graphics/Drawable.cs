@@ -811,6 +811,17 @@ namespace osu.Framework.Graphics
             return Quad.FromRectangle(input) * DrawInfo.Matrix;
         }
 
+        /// <summary>
+        /// Convert a position to the local coordinate system from either native or local to another drawable.
+        /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
+        /// </summary>
+        /// <param name="screenSpacePos">The input position.</param>
+        /// <returns>The output position.</returns>
+        public Vector2 ToLocalSpace(Vector2 screenSpacePos)
+        {
+            return screenSpacePos * DrawInfo.MatrixInverse;
+        }
+
         protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
         {
             return false;
