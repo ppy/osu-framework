@@ -22,8 +22,9 @@ namespace osu.Framework.Graphics.Visualisation
 
             Width = 700;
             AutoSizeAxes = Axes.Y;
-            Origin = Anchor.BottomLeft;
+
             Anchor = Anchor.BottomLeft;
+            Origin = Anchor.BottomLeft;
 
             Margin = new MarginPadding(1);
 
@@ -48,7 +49,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Schedule(() =>
             {
-                var drawEntry = new DrawableLogEntry(entry) { Depth = -(float)Time.Current };
+                var drawEntry = new DrawableLogEntry(entry);
 
                 flow.Add(drawEntry);
 
@@ -86,9 +87,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
-
-            Anchor = Anchor.BottomLeft;
-            Origin = Anchor.BottomLeft;
 
             Margin = new MarginPadding(1);
 
