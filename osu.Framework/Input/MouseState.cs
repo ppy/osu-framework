@@ -30,7 +30,7 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public int WheelDelta => Wheel - (LastState?.Wheel ?? 0);
+        public virtual int WheelDelta => Wheel - (LastState?.Wheel ?? 0);
 
         public int Wheel { get; set; }
 
