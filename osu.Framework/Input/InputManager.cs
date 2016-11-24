@@ -353,7 +353,7 @@ namespace osu.Framework.Input
                 }
             }
 
-            if (mouse.Wheel != state.Last?.Mouse?.Wheel)
+            if (mouse.WheelDelta != 0)
                 handleWheel(state);
 
             if (mouse.HasMainButtonPressed)

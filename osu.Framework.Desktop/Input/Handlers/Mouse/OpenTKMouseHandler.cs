@@ -27,12 +27,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                 Vector2 pos = new Vector2(point.X, point.Y);
 
-                var tkState = new TkMouseState(state, pos);
-                if (!host.IsActive)
-                {
-                    tkState.ButtonStates.ForEach(s => s.State = false);
-                    tkState.Wheel = tkState.LastState?.Wheel ?? 0;
-                }
+                var tkState = new TkMouseState(state, pos, host.IsActive);
 
                 PendingStates.Enqueue(new InputState { Mouse = tkState });
             }, 0, 0));
@@ -52,27 +47,36 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         class TkMouseState : MouseState
         {
-            public TkMouseState(OpenTK.Input.MouseState tkState, Vector2 position)
+            public bool WasActive;
+
+            public override int WheelDelta => WasActive ? base.WheelDelta : 0;
+
+            public TkMouseState(OpenTK.Input.MouseState tkState, Vector2 position, bool active)
             {
-                foreach (var b in ButtonStates)
+                WasActive = active;
+
+                if (active)
                 {
-                    switch (b.Button)
+                    foreach (var b in ButtonStates)
                     {
-                        case MouseButton.Left:
-                            b.State |= tkState.LeftButton == OpenTK.Input.ButtonState.Pressed;
-                            break;
-                        case MouseButton.Middle:
-                            b.State |= tkState.MiddleButton == OpenTK.Input.ButtonState.Pressed;
-                            break;
-                        case MouseButton.Right:
-                            b.State |= tkState.RightButton == OpenTK.Input.ButtonState.Pressed;
-                            break;
-                        case MouseButton.Button1:
-                            b.State |= tkState.XButton1 == OpenTK.Input.ButtonState.Pressed;
-                            break;
-                        case MouseButton.Button2:
-                            b.State |= tkState.XButton2 == OpenTK.Input.ButtonState.Pressed;
-                            break;
+                        switch (b.Button)
+                        {
+                            case MouseButton.Left:
+                                b.State |= tkState.LeftButton == OpenTK.Input.ButtonState.Pressed;
+                                break;
+                            case MouseButton.Middle:
+                                b.State |= tkState.MiddleButton == OpenTK.Input.ButtonState.Pressed;
+                                break;
+                            case MouseButton.Right:
+                                b.State |= tkState.RightButton == OpenTK.Input.ButtonState.Pressed;
+                                break;
+                            case MouseButton.Button1:
+                                b.State |= tkState.XButton1 == OpenTK.Input.ButtonState.Pressed;
+                                break;
+                            case MouseButton.Button2:
+                                b.State |= tkState.XButton2 == OpenTK.Input.ButtonState.Pressed;
+                                break;
+                        }
                     }
                 }
 
