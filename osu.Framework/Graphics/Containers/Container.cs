@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics.Containers
             if (!Masking || cornerRadius == 0.0f)
                 return base.Contains(screenSpacePos);
             else
-                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(GetLocalPosition(screenSpacePos)) <= cornerRadius * cornerRadius;
+                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
         protected override RectangleF BoundingBox

@@ -179,6 +179,8 @@ namespace osu.Framework.Platform
             setActive(true);
 
             AddInternal(inputManager = new UserInputManager(this));
+
+            Dependencies.Cache(inputManager);
         }
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));

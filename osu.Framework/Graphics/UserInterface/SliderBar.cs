@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(InputState state)
         {
-            var xPosition = GetLocalPosition(state.Mouse.NativeState.Position).X;
+            var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
             Bindable.Value = Bindable.MinValue + (Bindable.MaxValue - Bindable.MinValue) * (xPosition / box.DrawWidth);
         }
 

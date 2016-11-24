@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.Cursor
     {
         protected Drawable ActiveCursor;
 
+        public override bool Contains(Vector2 screenSpacePos) => true;
+
         public CursorContainer()
         {
             Depth = float.MaxValue;
@@ -22,8 +24,6 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         protected virtual Drawable CreateCursor() => new Cursor();
-
-        public override bool Contains(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {
