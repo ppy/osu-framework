@@ -44,7 +44,7 @@ namespace osu.Framework.Configuration
         /// </summary>
         /// <param name="v">The foreign bindable to weld.</param>
         /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
-        public void Weld(Bindable<T> v, bool transferValue = true)
+        public virtual void Weld(Bindable<T> v, bool transferValue = true)
         {
             if (transferValue) Value = v.Value;
 
