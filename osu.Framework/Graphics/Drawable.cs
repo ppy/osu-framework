@@ -852,7 +852,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this drawable is alive.
         /// </summary>
-        public bool IsAlive
+        public virtual bool IsAlive
         {
             get
             {

@@ -25,47 +25,54 @@ namespace osu.Framework.Lists
         /// Updates the life status of this LifetimeList's children.
         /// </summary>
         /// <returns>Whether any alive states were changed.</returns>
-        public bool Update(FrameTimeInfo time)
+        public virtual bool Update(FrameTimeInfo time)
         {
             bool anyAliveChanged = false;
 
             for (int i = 0; i < Count; i++)
             {
                 var item = this[i];
-
                 item.UpdateTime(time);
-
-                if (item.IsAlive)
-                {
-                    if (!current[i])
-                    {
-                        LoadRequested?.Invoke(item);
-                        if (item.IsLoaded)
-                        {
-                            AliveItems.Add(item);
-                            current[i] = true;
-                            anyAliveChanged = true;
-                        }
-                    }
-                }
-                else
-                {
-                    if (current[i])
-                    {
-                        AliveItems.Remove(item);
-                        current[i] = false;
-                        anyAliveChanged = true;
-                    }
-
-                    if (item.RemoveWhenNotAlive)
-                    {
-                        RemoveAt(i--);
-                        Removed?.Invoke(item);
-                    }
-                }
+                anyAliveChanged |= CheckItem(item, ref i);
             }
 
             return anyAliveChanged;
+        }
+
+        protected bool CheckItem(T item, ref int i)
+        {
+            bool changed = false;
+
+            if (item.IsAlive)
+            {
+                if (!current[i])
+                {
+                    LoadRequested?.Invoke(item);
+                    if (item.IsLoaded)
+                    {
+                        AliveItems.Add(item);
+                        current[i] = true;
+                        changed = true;
+                    }
+                }
+            }
+            else
+            {
+                if (current[i])
+                {
+                    AliveItems.Remove(item);
+                    current[i] = false;
+                    changed = true;
+                }
+
+                if (item.RemoveWhenNotAlive)
+                {
+                    RemoveAt(i--);
+                    Removed?.Invoke(item);
+                }
+            }
+
+            return changed;
         }
 
         public new int Add(T item)
