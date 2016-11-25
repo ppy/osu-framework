@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using OpenTK;
 
@@ -33,6 +34,18 @@ namespace osu.Framework.Configuration
         public BindableDouble(double value = 0)
             : base(value)
         {
+        }
+        
+        public override void Weld(Bindable<double> v, bool transferValue = true)
+        {
+            var dbl = v as BindableDouble;
+            if (dbl != null)
+            {
+                MinValue = Math.Max(MinValue, dbl.MinValue);
+                MaxValue = Math.Min(MaxValue, dbl.MaxValue);
+                Debug.Assert(MinValue <= MaxValue);
+            }
+            base.Weld(v, transferValue);
         }
 
         public static implicit operator double(BindableDouble value) => value?.Value ?? 0;

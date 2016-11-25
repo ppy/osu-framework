@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Diagnostics;
 using System.Globalization;
 using OpenTK;
 
@@ -20,6 +22,18 @@ namespace osu.Framework.Configuration
         public BindableInt(int value = 0)
             : base(value)
         {
+        }
+        
+        public override void Weld(Bindable<int> v, bool transferValue = true)
+        {
+            var i = v as BindableInt;
+            if (i != null)
+            {
+                MinValue = Math.Max(MinValue, i.MinValue);
+                MaxValue = Math.Min(MaxValue, i.MaxValue);
+                Debug.Assert(MinValue <= MaxValue);
+            }
+            base.Weld(v, transferValue);
         }
 
         public static implicit operator int(BindableInt value) => value?.Value ?? 0;

@@ -105,8 +105,9 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// Caches an instance of a type. This instance will be returned each time you Get<T>.
         /// </summary>
-        public T Cache<T>(T instance = null, bool lazy = false) where T : class
+        public T Cache<T>(T instance = null, bool overwrite = false, bool lazy = false) where T : class
         {
+            Debug.Assert(overwrite || !cache.ContainsKey(typeof(T)), @"We have already cached one of these");
             if (instance == null)
                 instance = Get<T>(false, false);
             cacheable.Add(typeof(T));
