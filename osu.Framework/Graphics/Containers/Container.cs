@@ -164,6 +164,11 @@ namespace osu.Framework.Graphics.Containers
         private List<T> pendingChildrenInternal;
         private List<T> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<T>());
 
+        /// <summary>
+        /// Corresponds to internal children.
+        /// </summary>
+        public T this[int index] => children[index];
+
         public virtual IEnumerable<T> Children
         {
             get {
@@ -405,7 +410,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(BaseGame game, ShaderManager shaders)
         {
             if (shader == null)
-                shader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+                shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
             children.LoadRequested += i =>
             {

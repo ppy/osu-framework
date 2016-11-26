@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             if (blurShader == null)
-                blurShader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur));
+                blurShader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();

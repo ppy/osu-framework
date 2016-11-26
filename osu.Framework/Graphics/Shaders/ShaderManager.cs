@@ -136,9 +136,9 @@ namespace osu.Framework.Graphics.Shaders
             return shader;
         }
 
-        public Shader Load(ShaderDescriptor desc, bool continuousCompilation = false)
+        public Shader Load<T,U>(T vertexShader, U fragmentShader, bool continuousCompilation = false)
         {
-            return Load(desc.VertexShaderDescriptor.ToString(), desc.FragmentShaderDescriptor.ToString(), continuousCompilation);
+            return Load(vertexShader.ToString(), fragmentShader.ToString(), continuousCompilation);
         }
     }
 
@@ -158,17 +158,5 @@ namespace osu.Framework.Graphics.Shaders
         ColourRounded,
         Glow,
         Blur,
-    }
-
-    public struct ShaderDescriptor
-    {
-        public ShaderDescriptor(VertexShaderDescriptor vs, FragmentShaderDescriptor fs)
-        {
-            VertexShaderDescriptor = vs;
-            FragmentShaderDescriptor = fs;
-        }
-
-        public VertexShaderDescriptor VertexShaderDescriptor;
-        public FragmentShaderDescriptor FragmentShaderDescriptor;
     }
 }
