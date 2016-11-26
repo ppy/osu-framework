@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Batches;
 using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
+using System;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -83,6 +84,8 @@ namespace osu.Framework.Graphics.Containers
 
         private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
 
+        protected Action<TexturedVertex2D> CustomVertexAction => null;
+
         private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH;
 
         private void updateVertexBatch()
@@ -96,15 +99,20 @@ namespace osu.Framework.Graphics.Containers
                 Shared.VertexBatch = new QuadBatch<TexturedVertex2D>(clampedAmountChildren * 2, 500);
         }
 
-        public override void Draw(IVertexBatch vertexBatch)
+        public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            updateVertexBatch();
+            if (CustomVertexAction == null)
+            {
+                updateVertexBatch();
 
-            // Prefer to use own vertex batch instead of the parent-owned one.
-            if (Shared.VertexBatch != null)
-                vertexBatch = Shared.VertexBatch;
+                // Prefer to use own vertex batch instead of the parent-owned one.
+                if (Shared.VertexBatch != null)
+                    vertexAction = Shared.VertexBatch.Add;
+            }
+            else
+                vertexAction = CustomVertexAction;
 
-            base.Draw(vertexBatch);
+            base.Draw(vertexAction);
 
             drawEdgeEffect();
             if (MaskingInfo != null)
@@ -118,7 +126,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (Children != null)
                 foreach (DrawNode child in Children)
-                    child.Draw(vertexBatch);
+                    child.Draw(vertexAction);
 
             if (MaskingInfo != null)
                 GLWrapper.PopMaskingInfo();
