@@ -405,7 +405,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(BaseGame game, ShaderManager shaders)
         {
             if (shader == null)
-                shader = shaders?.Load(new ShaderDescriptor(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded));
+                shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
             children.LoadRequested += i =>
             {
