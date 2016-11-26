@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             Debug.Assert(!isDisposed);
 
@@ -154,32 +154,32 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (inflationPercentage.HasValue)
                 texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
 
-            if (spriteBatch == null)
+            if (vertexAction == null)
             {
                 if (TextureGLSingle.spriteBatch == null)
                     TextureGLSingle.spriteBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-                spriteBatch = TextureGLSingle.spriteBatch;
+                vertexAction = TextureGLSingle.spriteBatch.Add;
             }
-            
-            spriteBatch.Add(new TexturedVertex2D
+
+            vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
                 Colour = drawColour.BottomLeft.Linear,
             });
-            spriteBatch.Add(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
                 Colour = drawColour.BottomRight.Linear,
             });
-            spriteBatch.Add(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
                 TexturePosition = new Vector2(texRect.Right, texRect.Top),
                 Colour = drawColour.TopRight.Linear,
             });
-            spriteBatch.Add(new TexturedVertex2D
+            vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
                 TexturePosition = new Vector2(texRect.Left, texRect.Top),

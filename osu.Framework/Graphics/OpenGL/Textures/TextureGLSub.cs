@@ -65,9 +65,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null)
+        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, spriteBatch, inflationPercentage);
+            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
         internal override bool Upload()

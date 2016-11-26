@@ -25,9 +25,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool NeedsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
-        public override void Draw(IVertexBatch vertexBatch)
+        public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
-            base.Draw(vertexBatch);
+            base.Draw(vertexAction);
 
             if (Texture == null || Texture.IsDisposed)
                 return;
@@ -51,7 +51,8 @@ namespace osu.Framework.Graphics.Sprites
             shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
-            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexBatch as VertexBatch<TexturedVertex2D>,
+
+            Texture.Draw(ScreenSpaceDrawQuad, DrawInfo.Colour, null, vertexAction,
                 new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
 
             shader.Unbind();

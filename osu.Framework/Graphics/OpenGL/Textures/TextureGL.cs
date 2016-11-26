@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         /// <summary>
         /// Blits sprite to OpenGL display with specified parameters.
         /// </summary>
-        public abstract void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, VertexBatch<TexturedVertex2D> spriteBatch = null, Vector2? inflationPercentage = null);
+        public abstract void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null);
 
         /// <summary>
         /// Bind as active texture.

@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Batches;
+using System;
 
 namespace osu.Framework.Graphics
 {
@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics
         public DrawInfo DrawInfo;
         public long InvalidationID;
 
-        public virtual void Draw(IVertexBatch vertexBatch)
+        public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
             GLWrapper.SetBlend(DrawInfo.Blending);
         }
