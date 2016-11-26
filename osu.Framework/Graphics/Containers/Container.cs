@@ -190,9 +190,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public Container()
+        public Container(LifetimeList<T> lifetimeList = null)
         {
-            children = new LifetimeList<T>(DepthComparer);
+            children = lifetimeList ?? new LifetimeList<T>(DepthComparer);
             children.Removed += obj =>
             {
                 if (obj.DisposeOnRemove) obj.Dispose();
