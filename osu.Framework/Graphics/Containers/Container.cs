@@ -164,6 +164,11 @@ namespace osu.Framework.Graphics.Containers
         private List<T> pendingChildrenInternal;
         private List<T> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<T>());
 
+        /// <summary>
+        /// Corresponds to internal children.
+        /// </summary>
+        public T this[int index] => children[index];
+
         public virtual IEnumerable<T> Children
         {
             get {
