@@ -66,7 +66,7 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Segments = { new Line(Vector2.One * 50, Vector2.One * 100) },
+                                        Positions = { Vector2.One * 50, Vector2.One * 100 },
                                         Texture = gradientTexture,
                                         Colour = Color4.Green,
                                     },
@@ -87,12 +87,13 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Segments =
+                                        Positions =
                                         {
-                                            new Line(new Vector2(50, 50), new Vector2(50, 250)),
-                                            new Line(new Vector2(50, 250), new Vector2(250, 250)),
-                                            new Line(new Vector2(250, 250), new Vector2(250, 50)),
-                                            new Line(new Vector2(250, 50), new Vector2(50, 50)),
+                                            new Vector2(50, 50),
+                                            new Vector2(50, 250),
+                                            new Vector2(250, 250),
+                                            new Vector2(250, 50),
+                                            new Vector2(50, 50),
                                         },
                                         Texture = gradientTexture,
                                         Colour = Color4.Blue,
@@ -114,12 +115,13 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Segments =
+                                        Positions =
                                         {
-                                            new Line(new Vector2(50, 50), new Vector2(50, 250)),
-                                            new Line(new Vector2(50, 250), new Vector2(250, 250)),
-                                            new Line(new Vector2(250, 250), new Vector2(250, 150)),
-                                            new Line(new Vector2(250, 150), new Vector2(20, 150)),
+                                            new Vector2(50, 50),
+                                            new Vector2(50, 250),
+                                            new Vector2(250, 250),
+                                            new Vector2(250, 150),
+                                            new Vector2(20, 150),
                                         },
                                         Texture = gradientTexture,
                                         Colour = Color4.Red,
@@ -160,7 +162,8 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override bool OnDragStart(InputState state)
             {
-                oldPos = Segments.Count == 0 ? state.Mouse.Position : Segments.Last().EndPoint;
+                Positions.Add(state.Mouse.Position);
+                oldPos = state.Mouse.Position;
                 return true;
             }
 
@@ -169,7 +172,7 @@ namespace osu.Framework.VisualTests.Tests
                 Vector2 pos = state.Mouse.Position;
                 if ((pos - oldPos).Length > 10)
                 {
-                    Segments.Add(new Line(oldPos, pos));
+                    Positions.Add(pos);
                     oldPos = pos;
 
                     Invalidate(Invalidation.DrawNode);

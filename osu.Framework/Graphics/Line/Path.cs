@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Path : Drawable
     {
-        public List<Line> Segments = new List<Line>();
+        public List<Vector2> Positions = new List<Vector2>();
         public float PathWidth = 10f;
 
         private Shader roundedTextureShader;
@@ -51,10 +51,14 @@ namespace osu.Framework.Graphics.Sprites
             n.Shared = pathDrawNodeSharedData;
 
             n.Segments.Clear();
-            for (int i = 0; i < Segments.Count; ++i)
+
+            if (Positions.Count > 1)
             {
-                Line line = Segments[i];
-                n.Segments.Add(new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix));
+                for (int i = 0; i < Positions.Count - 1; ++i)
+                {
+                    Line line = new Line(Positions[i], Positions[i + 1]);
+                    n.Segments.Add(new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix));
+                }
             }
 
             base.ApplyDrawNode(node);
