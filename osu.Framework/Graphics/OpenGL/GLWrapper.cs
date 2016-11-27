@@ -73,6 +73,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             lastBoundTexture = null;
 
+            lastDepthTest = null;
+
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
@@ -189,8 +191,15 @@ namespace osu.Framework.Graphics.OpenGL
             }
         }
 
+        private static bool? lastDepthTest;
+
         public static void SetDepthTest(bool enabled)
         {
+            if (lastDepthTest == enabled)
+                return;
+
+            lastDepthTest = enabled;
+
             FlushCurrentBatch();
 
             if (enabled)

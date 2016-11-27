@@ -42,7 +42,8 @@ namespace osu.Framework.Graphics.Sprites
         protected override void ApplyDrawNode(DrawNode node)
         {
             PathDrawNode n = node as PathDrawNode;
-            
+
+            n.NeedsDepthTest = true;
             n.Texture = Texture;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
