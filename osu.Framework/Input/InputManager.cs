@@ -105,10 +105,8 @@ namespace osu.Framework.Input
             List<InputState> pendingStates = new List<InputState>();
             foreach (var h in inputHandlers)
             {
-                if (!h.IsActive) continue;
-
-                foreach (var s in h.GetPendingStates())
-                    pendingStates.Add(s);
+                if (h.IsActive)
+                    pendingStates.AddRange(h.GetPendingStates());
             }
 
             if (!PassThrough)
@@ -211,16 +209,7 @@ namespace osu.Framework.Input
                     buildMouseInputQueue(state, d);
         }
 
-        private bool checkIsHoverable(Drawable d, InputState state)
-        {
-            if (!d.HandleInput || !d.IsVisible || d.IsMaskedAway)
-                return false;
-
-            if (!d.Contains(state.Mouse.Position))
-                return false;
-
-            return true;
-        }
+        private bool checkIsHoverable(Drawable d, InputState state) => d.HandleInput && d.IsVisible && !d.IsMaskedAway && d.Contains(state.Mouse.Position);
 
         private void updateHoverEvents(InputState state)
         {
