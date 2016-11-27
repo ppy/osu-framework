@@ -82,7 +82,13 @@ namespace osu.Framework.Graphics.Visualisation
 
                     var contained = findTargetIn(c, state);
                     if (contained != null)
-                        containedTarget = contained;
+                    {
+                        if (containedTarget == null ||
+                            containedTarget.DrawWidth * containedTarget.DrawHeight > contained.DrawWidth * contained.DrawHeight)
+                        {
+                            containedTarget = contained;
+                        }
+                    }
                 }
             }
 
