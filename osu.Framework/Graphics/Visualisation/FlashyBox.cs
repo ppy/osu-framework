@@ -22,14 +22,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { set { target = value; } }
 
-        public override Quad ScreenSpaceDrawQuad => target.ScreenSpaceDrawQuad;
+        public override Quad ScreenSpaceDrawQuad => target?.ScreenSpaceDrawQuad ?? new Quad();
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            FadeColour(Color4.Red, 500);
-            Delay(500);
             FadeColour(Color4.White, 500);
+            Delay(500);
+            FadeColour(Color4.Red, 500);
             Delay(500);
             Loop();
         }

@@ -19,14 +19,13 @@ namespace osu.Framework.Graphics.Visualisation
 
             set
             {
-                if (target != null)
-                    target.OnInvalidate -= update;
-
                 target = value;
                 box.Target = target;
 
                 if (target != null)
-                    target.OnInvalidate += update;
+                    Alpha = 1;
+                else
+                    Alpha = 0;
             }
         }
 
@@ -42,11 +41,10 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
-        private void update()
+        protected override void Update()
         {
+            base.Update();
             box.Invalidate(Invalidation.DrawNode);
-            if (!target.IsAlive)
-                Expire();
         }
     }
 }
