@@ -34,16 +34,6 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 EndPoint;
 
         /// <summary>
-        /// This line's endpoint is important so always include it in optimizations.
-        /// </summary>
-        public bool ForceEnd;
-
-        /// <summary>
-        /// This line is part of a longer straight line so it's subject to more optimizations.
-        /// </summary>
-        public bool Straight;
-
-        /// <summary>
         /// The length of the line.
         /// </summary>
         public float Rho => (EndPoint - StartPoint).Length;
@@ -52,6 +42,18 @@ namespace osu.Framework.Graphics.Primitives
         /// The direction of the second point from the first.
         /// </summary>
         public float Theta => (float)Math.Atan2(EndPoint.Y - StartPoint.Y, EndPoint.X - StartPoint.X);
+
+        public Vector2 Direction => (EndPoint - StartPoint).Normalized();
+
+        public Vector2 OrthogonalDirection
+        {
+            get
+            {
+                Vector2 dir = Direction;
+                return new Vector2(-dir.Y, dir.X);
+            }
+        }
+        
 
         public Line(Vector2 p1, Vector2 p2)
         {

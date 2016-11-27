@@ -174,7 +174,7 @@ namespace osu.Framework.Platform
             // to be instantiated.
             FrameStatistics.RegisterCounters(this);
 
-            Environment.CurrentDirectory = Path.GetDirectoryName(FullPath);
+            Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
 
             setActive(true);
 
