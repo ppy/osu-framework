@@ -7,6 +7,7 @@ using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
+using System;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -20,9 +21,15 @@ namespace osu.Framework.Graphics.Sprites
                 if (positions == value) return;
 
                 positions = value;
-                Invalidate(Invalidation.DrawNode);
+                recomputeBounts();
+
+                Invalidate(Invalidation.Geometry);
             }
         }
+
+        public Vector2 HeadPosition => positions.Count == 0 ? Vector2.Zero : positions[0] - new Vector2(minX, minY);
+
+        public Vector2 FirstPosition => positions.Count == 0 ? Vector2.Zero : positions[0];
 
         public void ClearVertices()
         {
@@ -30,16 +37,64 @@ namespace osu.Framework.Graphics.Sprites
                 return;
 
             positions.Clear();
-            Invalidate(Invalidation.DrawNode);
+            resetBounds();
+
+            Invalidate(Invalidation.Geometry);
         }
 
         public void AddVertex(Vector2 pos)
         {
             positions.Add(pos);
-            Invalidate(Invalidation.DrawNode);
+            expandBounds(pos);
+
+            Invalidate(Invalidation.Geometry);
         }
 
-        public float PathWidth = 10f;
+        private float minX;
+        private float minY;
+        private float maxX;
+        private float maxY;
+
+        private RectangleF bounds => new RectangleF(minX, minY, maxX - minX, maxY - minY);
+
+        private void expandBounds(Vector2 pos)
+        {
+            if (pos.X - PathWidth < minX) minX = pos.X - PathWidth;
+            if (pos.Y - PathWidth < minY) minY = pos.Y - PathWidth;
+            if (pos.X + PathWidth > maxX) maxX = pos.X + PathWidth;
+            if (pos.Y + PathWidth > maxY) maxY = pos.Y + PathWidth;
+
+            RectangleF b = bounds;
+            if ((RelativeSizeAxes & Axes.X) == 0) Width = b.Width;
+            if ((RelativeSizeAxes & Axes.Y) == 0) Height = b.Height;
+        }
+
+        private void resetBounds()
+        {
+            minX = minY = maxX = maxY = 0;
+        }
+
+        private void recomputeBounts()
+        {
+            resetBounds();
+            foreach (Vector2 pos in positions)
+                expandBounds(pos);
+        }
+
+        private float pathWidth = 10f;
+        public float PathWidth
+        {
+            get { return pathWidth; }
+            set
+            {
+                if (pathWidth == value) return;
+
+                pathWidth = value;
+                recomputeBounts();
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
 
         private Shader roundedTextureShader;
         private Shader textureShader;
@@ -81,9 +136,10 @@ namespace osu.Framework.Graphics.Sprites
 
             if (positions.Count > 1)
             {
+                Vector2 offset = new Vector2(minX, minY);
                 for (int i = 0; i < positions.Count - 1; ++i)
                 {
-                    Line line = new Line(positions[i], positions[i + 1]);
+                    Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
                     n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
                 }
             }
