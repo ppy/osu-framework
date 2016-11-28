@@ -1,13 +1,16 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using System;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    class InfoOverlay : Container
+    class InfoOverlay : Container<FlashyBox>
     {
         private Drawable target;
         public Drawable Target
@@ -19,34 +22,64 @@ namespace osu.Framework.Graphics.Visualisation
 
             set
             {
-                if (target != null)
-                    target.OnInvalidate -= update;
-
+                if (target == value) return;
                 target = value;
-                box.Target = target;
+
+                foreach (FlashyBox c in Children)
+                    c.Target = target;
 
                 if (target != null)
-                    target.OnInvalidate += update;
+                    Alpha = 1;
+                else
+                    Alpha = 0;
+
+                Pulse();
             }
         }
 
-        private FlashyBox box;
+        private static Quad quadAroundPosition(Vector2 pos, float sideLength)
+        {
+            Vector2 size = new Vector2(sideLength);
+            return new Quad(pos.X - size.X / 2, pos.Y - size.Y / 2, size.X, size.Y);
+        }
+
+        private FlashyBox layout;
+        private FlashyBox shape;
 
         public InfoOverlay()
         {
             RelativeSizeAxes = Axes.Both;
 
-            Children = new Drawable[]
+            Children = new FlashyBox[]
             {
-                box = new FlashyBox(),
+                layout = new FlashyBox(d => d.ToScreenSpace(d.LayoutRectangle))
+                {
+                    Colour = Color4.Green,
+                    Alpha = 0.5f,
+                },
+                shape = new FlashyBox(d => d.ScreenSpaceDrawQuad)
+                {
+                    Colour = Color4.Red,
+                    Alpha = 0.5f,
+                },
+                // We're adding this guy twice to get a border in a somewhat hacky way.
+                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 5)) { Colour = Color4.Blue, },
+                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 3)) { Colour = Color4.Yellow, },
             };
         }
 
-        private void update()
+        public void Pulse()
         {
-            box.Invalidate(Invalidation.DrawNode);
-            if (!target.IsAlive)
-                Expire();
+            layout.FlashColour(Color4.White, 250);
+            shape.FlashColour(Color4.White, 250);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            foreach (FlashyBox c in Children)
+                c.Invalidate(Invalidation.DrawNode);
         }
     }
 }

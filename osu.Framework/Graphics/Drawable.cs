@@ -535,7 +535,7 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        protected RectangleF DrawRectangle
+        public RectangleF DrawRectangle
         {
             get
             {
@@ -544,7 +544,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected RectangleF LayoutRectangle
+        public RectangleF LayoutRectangle
         {
             get
             {
