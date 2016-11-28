@@ -6,13 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -74,14 +70,14 @@ namespace osu.Framework.Input
         public InputState CurrentState = new InputState();
 
         /// <summary>
-        /// The sequential list in which to handle mouse input.
+        /// The sequential collection in which to handle mouse input.
         /// </summary>
-        private List<Drawable> mouseInputQueue = new List<Drawable>();
+        private Stack<Drawable> mouseInputStack = new Stack<Drawable>();
 
         /// <summary>
-        /// The sequential list in which to handle keyboard input.
+        /// The sequential collection in which to handle keyboard input.
         /// </summary>
-        private List<Drawable> keyboardInputQueue = new List<Drawable>();
+        private Stack<Drawable> keyboardInputStack = new Stack<Drawable>();
 
         private Drawable draggingDrawable;
         private List<Drawable> hoveredDrawables = new List<Drawable>();
@@ -133,7 +129,7 @@ namespace osu.Framework.Input
                     if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
 
                     //move above?
-                    updateInputQueues(CurrentState);
+                    updateInputStacks(CurrentState);
 
                     if (hasMouse)
                     {
@@ -156,19 +152,16 @@ namespace osu.Framework.Input
         {
         }
 
-        private void updateInputQueues(InputState state)
+        private void updateInputStacks(InputState state)
         {
-            keyboardInputQueue.Clear();
-            mouseInputQueue.Clear();
+            keyboardInputStack.Clear();
+            mouseInputStack.Clear();
 
-            buildKeyboardInputQueue(this);
-            buildMouseInputQueue(state, this);
-
-            keyboardInputQueue.Reverse();
-            mouseInputQueue.Reverse();
+            buildKeyboardInputStack(this);
+            buildMouseInputStack(state, this);
         }
 
-        private void buildKeyboardInputQueue(Drawable current)
+        private void buildKeyboardInputStack(Drawable current)
         {
             if (!current.HandleInput || !current.IsVisible || current.IsMaskedAway)
                 return;
@@ -179,17 +172,17 @@ namespace osu.Framework.Input
                 if ((current as InputManager)?.PassThrough == false)
                     return;
 
-                keyboardInputQueue.Add(current);
+                keyboardInputStack.Push(current);
             }
 
             IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
                 foreach (Drawable d in currentContainer.AliveChildren)
-                    buildKeyboardInputQueue(d);
+                    buildKeyboardInputStack(d);
         }
 
-        private void buildMouseInputQueue(InputState state, Drawable current)
+        private void buildMouseInputStack(InputState state, Drawable current)
         {
             if (!checkIsHoverable(current, state)) return;
 
@@ -199,14 +192,14 @@ namespace osu.Framework.Input
                 if ((current as InputManager)?.PassThrough == false)
                     return;
 
-                mouseInputQueue.Add(current);
+                mouseInputStack.Push(current);
             }
 
             IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
 
             if (currentContainer != null)
                 foreach (Drawable d in currentContainer.AliveChildren)
-                    buildMouseInputQueue(state, d);
+                    buildMouseInputStack(state, d);
         }
 
         private bool checkIsHoverable(Drawable d, InputState state) => d.HandleInput && d.IsVisible && !d.IsMaskedAway && d.Contains(state.Mouse.Position);
@@ -220,7 +213,7 @@ namespace osu.Framework.Input
             hoveredDrawables.Clear();
 
             // Unconditionally unhover all that aren't directly hovered anymore
-            List<Drawable> newlyUnhoveredDrawables = lastHoveredDrawables.Except(mouseInputQueue).ToList();
+            List<Drawable> newlyUnhoveredDrawables = lastHoveredDrawables.Except(mouseInputStack).ToList();
             foreach (Drawable d in newlyUnhoveredDrawables)
             {
                 d.Hovering = false;
@@ -232,7 +225,7 @@ namespace osu.Framework.Input
 
             // lastHoveredDrawables now contain only drawables that were hovered in the previous frame
             // that may continue being hovered. We need to construct hoveredDrawables for the current frame
-            foreach (Drawable d in mouseInputQueue)
+            foreach (Drawable d in mouseInputStack)
             {
                 hoveredDrawables.Add(d);
                 lastHoveredDrawables.Remove(d);
@@ -402,9 +395,9 @@ namespace osu.Framework.Input
             };
 
             mouseDownState = state;
-            mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
+            mouseDownInputQueue = new List<Drawable>(mouseInputStack);
 
-            return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args)) != null;
+            return mouseInputStack.Any(target => target.TriggerMouseDown(state, args));
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -418,10 +411,7 @@ namespace osu.Framework.Input
             return mouseDownInputQueue.Any(target => target.IsAlive && target.IsVisible && target.TriggerMouseUp(state, args));
         }
 
-        private bool handleMouseMove(InputState state)
-        {
-            return mouseInputQueue.Any(target => target.TriggerMouseMove(state));
-        }
+        private bool handleMouseMove(InputState state) => mouseInputStack.Any(target => target.TriggerMouseMove(state));
 
         private bool handleMouseClick(InputState state)
         {
@@ -433,10 +423,7 @@ namespace osu.Framework.Input
             return false;
         }
 
-        private bool handleMouseDoubleClick(InputState state)
-        {
-            return mouseInputQueue.Any(target => target.TriggerDoubleClick(state));
-        }
+        private bool handleMouseDoubleClick(InputState state) => mouseInputStack.Any(target => target.TriggerDoubleClick(state));
 
         private bool handleMouseDrag(InputState state)
         {
@@ -461,10 +448,7 @@ namespace osu.Framework.Input
             return result;
         }
 
-        private bool handleWheel(InputState state)
-        {
-            return mouseInputQueue.Any(target => target.TriggerWheel(state));
-        }
+        private bool handleWheel(InputState state) => mouseInputStack.Any(target => target.TriggerWheel(state));
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
         {
@@ -485,7 +469,7 @@ namespace osu.Framework.Input
                     return true;
             }
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyDown(state, args));
+            return keyboardInputStack.Any(target => target.TriggerKeyDown(state, args));
         }
 
         private bool handleKeyUp(InputState state, Key key)
@@ -498,13 +482,10 @@ namespace osu.Framework.Input
             if (FocusedDrawable?.TriggerKeyUp(state, args) ?? false)
                 return true;
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
+            return keyboardInputStack.Any(target => target.TriggerKeyUp(state, args));
         }
 
-        public InputHandler GetHandler(Type handlerType)
-        {
-            return inputHandlers.Find(h => h.GetType() == handlerType);
-        }
+        public InputHandler GetHandler(Type handlerType) => inputHandlers.Find(h => h.GetType() == handlerType);
 
         protected bool AddHandler(InputHandler handler)
         {
