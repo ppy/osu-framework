@@ -8,11 +8,13 @@ namespace osu.Framework.Graphics
 {
     public class DrawNode
     {
+        public bool NeedsDepthTest = false;
         public DrawInfo DrawInfo;
         public long InvalidationID;
 
         public virtual void Draw(Action<TexturedVertex2D> vertexAction)
         {
+            GLWrapper.SetDepthTest(NeedsDepthTest);
             GLWrapper.SetBlend(DrawInfo.Blending);
         }
     }
