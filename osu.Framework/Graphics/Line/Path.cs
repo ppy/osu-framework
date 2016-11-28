@@ -12,7 +12,33 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class Path : Drawable
     {
-        public List<Vector2> Positions = new List<Vector2>();
+        private List<Vector2> positions = new List<Vector2>();
+        public List<Vector2> Positions
+        {
+            set
+            {
+                if (positions == value) return;
+
+                positions = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        public void ClearVertices()
+        {
+            if (positions.Count == 0)
+                return;
+
+            positions.Clear();
+            Invalidate(Invalidation.DrawNode);
+        }
+
+        public void AddVertex(Vector2 pos)
+        {
+            positions.Add(pos);
+            Invalidate(Invalidation.DrawNode);
+        }
+
         public float PathWidth = 10f;
 
         private Shader roundedTextureShader;
@@ -53,12 +79,12 @@ namespace osu.Framework.Graphics.Sprites
 
             n.Segments.Clear();
 
-            if (Positions.Count > 1)
+            if (positions.Count > 1)
             {
-                for (int i = 0; i < Positions.Count - 1; ++i)
+                for (int i = 0; i < positions.Count - 1; ++i)
                 {
-                    Line line = new Line(Positions[i], Positions[i + 1]);
-                    n.Segments.Add(new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix));
+                    Line line = new Line(positions[i], positions[i + 1]);
+                    n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
                 }
             }
 
@@ -87,9 +113,6 @@ namespace osu.Framework.Graphics.Sprites
 
                 texture = value;
                 Invalidate(Invalidation.DrawNode);
-
-                if (Size == Vector2.Zero)
-                    Size = new Vector2(texture?.DisplayWidth ?? 0, texture?.DisplayHeight ?? 0);
             }
         }
 

@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Input;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -66,7 +67,7 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Positions = { Vector2.One * 50, Vector2.One * 100 },
+                                        Positions = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
                                         Texture = gradientTexture,
                                         Colour = Color4.Green,
                                     },
@@ -87,7 +88,7 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Positions =
+                                        Positions = new List<Vector2>
                                         {
                                             new Vector2(50, 50),
                                             new Vector2(50, 250),
@@ -115,7 +116,7 @@ namespace osu.Framework.VisualTests.Tests
                                     new Path
                                     {
                                         RelativeSizeAxes = Axes.Both,
-                                        Positions =
+                                        Positions = new List<Vector2>
                                         {
                                             new Vector2(50, 50),
                                             new Vector2(50, 250),
@@ -162,7 +163,7 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override bool OnDragStart(InputState state)
             {
-                Positions.Add(state.Mouse.Position);
+                AddVertex(state.Mouse.Position);
                 oldPos = state.Mouse.Position;
                 return true;
             }
@@ -172,10 +173,8 @@ namespace osu.Framework.VisualTests.Tests
                 Vector2 pos = state.Mouse.Position;
                 if ((pos - oldPos).Length > 10)
                 {
-                    Positions.Add(pos);
+                    AddVertex(pos);
                     oldPos = pos;
-
-                    Invalidate(Invalidation.DrawNode);
                 }
 
                 return base.OnDrag(state);
