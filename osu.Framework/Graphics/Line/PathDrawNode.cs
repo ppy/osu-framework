@@ -52,14 +52,15 @@ namespace osu.Framework.Graphics.Sprites
             if (dir < 0)
                 theta += MathHelper.Pi;
 
-            Vector2 current = origin + pointOnCircle(theta) * Width;
+            Vector2 current = (origin + pointOnCircle(theta) * Width) * DrawInfo.Matrix;
+            Vector2 screenOrigin = origin * DrawInfo.Matrix;
 
             for (int i = 1; i * step <= target; i++)
             {
                 // Center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D()
                 {
-                    Position = new Vector3(origin.X, origin.Y, 1),
+                    Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
                     Colour = DrawInfo.Colour.Colour.Linear
                 });
@@ -72,7 +73,7 @@ namespace osu.Framework.Graphics.Sprites
                     Colour = DrawInfo.Colour.Colour.Linear
                 });
 
-                current = origin + pointOnCircle(theta + dir * i * step) * Width;
+                current = (origin + pointOnCircle(theta + dir * i * step) * Width) * DrawInfo.Matrix;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D()
@@ -86,8 +87,9 @@ namespace osu.Framework.Graphics.Sprites
         private void addLineQuads(Line line)
         {
             Vector2 ortho = line.OrthogonalDirection;
-            Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
-            Line lineRight = new Line(line.StartPoint - ortho * Width, line.EndPoint - ortho * Width);
+            Line lineLeft = new Line((line.StartPoint + ortho * Width) * DrawInfo.Matrix, (line.EndPoint + ortho * Width) * DrawInfo.Matrix);
+            Line lineRight = new Line((line.StartPoint - ortho * Width) * DrawInfo.Matrix, (line.EndPoint - ortho * Width) * DrawInfo.Matrix);
+            line = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
 
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
