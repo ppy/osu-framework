@@ -77,12 +77,12 @@ namespace osu.Framework
         {
             (DrawVisualiser = new DrawVisualiser()
             {
-                Depth = float.MaxValue / 2,
+                Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
 
             (LogOverlay = new LogOverlay()
             {
-                Depth = float.MaxValue / 2,
+                Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
         }
 
@@ -136,7 +136,7 @@ namespace osu.Framework
                 Spacing = new Vector2(10, 10),
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
-                Depth = float.MaxValue
+                Depth = float.MinValue
             }).Preload(this, AddInternal);
 
             addDebugTools();

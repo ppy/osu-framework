@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Visualisation
                 overlay = new InfoOverlay(),
                 treeContainer = new TreeContainer
                 {
-                    Depth = float.MaxValue,
+                    Depth = float.MinValue,
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
                 },

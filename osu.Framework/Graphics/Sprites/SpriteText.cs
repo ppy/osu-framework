@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Sprites
                             Sprite shadowSprite = getSprite(c);
                             shadowSprite.Position = new Vector2(-0.02f, 0.02f);
                             shadowSprite.Colour = shadowColour;
-                            shadowSprite.Depth = float.MinValue;
+                            shadowSprite.Depth = float.MaxValue;
                             ctn.Add(shadowSprite);
                         }
 

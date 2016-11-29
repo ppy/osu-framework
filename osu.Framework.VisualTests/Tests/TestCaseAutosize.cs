@@ -359,7 +359,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -391,7 +391,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -423,7 +423,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Padding = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -487,7 +487,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -519,7 +519,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -551,7 +551,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Margin = new MarginPadding(50),
                                                     Children = new Drawable[]
                                                     {
@@ -615,7 +615,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box1 = new InfofulBox
@@ -647,7 +647,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box2 = new InfofulBox
@@ -679,7 +679,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box3 = new InfofulBox
@@ -743,7 +743,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box1 = new Box
@@ -775,7 +775,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box2 = new Box
@@ -807,7 +807,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 new Container
                                                 {
                                                     AutoSizeAxes = Axes.Both,
-                                                    Depth = 1,
+                                                    Depth = -1,
                                                     Children = new Drawable[]
                                                     {
                                                         box3 = new Box
@@ -855,7 +855,7 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.TopLeft,
                 Anchor = Anchor.TopLeft,
                 AllowDrag = false,
-                Depth = 2,
+                Depth = -2,
                 Colour = colour ?? Color4.Red,
             });
 
@@ -866,7 +866,7 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.TopRight,
                 Anchor = Anchor.TopRight,
                 AllowDrag = false,
-                Depth = 2,
+                Depth = -2,
                 Colour = colour ?? Color4.Red,
             });
 
@@ -877,7 +877,7 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.BottomLeft,
                 Anchor = Anchor.BottomLeft,
                 AllowDrag = false,
-                Depth = 2,
+                Depth = -2,
                 Colour = colour ?? Color4.Red,
             });
 
@@ -888,7 +888,7 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.BottomRight,
                 Anchor = Anchor.BottomRight,
                 AllowDrag = false,
-                Depth = 2,
+                Depth = -2,
                 Colour = colour ?? Color4.Red,
             });
         }
@@ -906,7 +906,7 @@ namespace osu.Framework.VisualTests.Tests
             Add(new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Depth = float.MinValue,
+                Depth = float.MaxValue,
             });
         }
 
@@ -955,7 +955,7 @@ namespace osu.Framework.VisualTests.Tests
             Add(new Box
             {
                 RelativeSizeAxes = Axes.Both,
-                Depth = float.MinValue,
+                Depth = float.MaxValue,
             });
 
             debugInfo = new SpriteText
