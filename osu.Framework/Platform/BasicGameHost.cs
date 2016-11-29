@@ -366,6 +366,8 @@ namespace osu.Framework.Platform
                 {
                     InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
                 }
+
+                base.Size = value;
             }
         }
 
