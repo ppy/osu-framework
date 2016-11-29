@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Sprites
             set
             {
                 shadowColour = value;
-                if(shadow)
+                if (shadow)
                     internalSize.Invalidate();
             }
         }
