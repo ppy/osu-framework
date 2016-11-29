@@ -46,16 +46,18 @@ namespace osu.Framework.Graphics.Sprites
         {
             float step = MathHelper.Pi / MAXRES;
 
-            float target = Math.Abs(thetaDiff) + step;
-
             float dir = Math.Sign(thetaDiff);
+            thetaDiff = dir * thetaDiff;
+
+            int amountPoints = (int)Math.Ceiling(thetaDiff / step);
+
             if (dir < 0)
                 theta += MathHelper.Pi;
 
             Vector2 current = (origin + pointOnCircle(theta) * Width) * DrawInfo.Matrix;
             Vector2 screenOrigin = origin * DrawInfo.Matrix;
 
-            for (int i = 1; i * step <= target; i++)
+            for (int i = 1; i <= amountPoints; i++)
             {
                 // Center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D()
@@ -73,7 +75,8 @@ namespace osu.Framework.Graphics.Sprites
                     Colour = DrawInfo.Colour.Colour.Linear
                 });
 
-                current = (origin + pointOnCircle(theta + dir * i * step) * Width) * DrawInfo.Matrix;
+                float angularOffset = Math.Min(i * step, thetaDiff);
+                current = (origin + pointOnCircle(theta + dir * angularOffset) * Width) * DrawInfo.Matrix;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D()
