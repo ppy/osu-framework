@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Cursor
 
         public CursorContainer()
         {
-            Depth = float.MaxValue;
+            Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
             Add(ActiveCursor = CreateCursor());

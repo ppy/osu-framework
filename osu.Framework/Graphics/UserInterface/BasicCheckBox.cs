@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.UserInterface
                             {
                                 Left = 10
                             },
-                            Depth = float.MaxValue
+                            Depth = float.MinValue
                         },
                         box = new Box
                         {

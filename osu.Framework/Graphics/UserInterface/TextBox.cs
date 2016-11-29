@@ -302,7 +302,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             int i = selectionLeft;
             foreach (Drawable dd in textFlow.Children.Skip(selectionLeft).Take(InternalText.Length - selectionLeft))
-                dd.Depth = i + 1;
+                dd.Depth = -i - 1;
 
             Drawable ch;
 
@@ -310,7 +310,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Text = c.ToString(),
                 TextSize = DrawSize.Y,
-                Depth = selectionLeft,
+                Depth = -selectionLeft,
             });
 
             return ch;

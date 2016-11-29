@@ -106,7 +106,7 @@ namespace osu.Framework.VisualTests.Tests
                 Width = 150,
                 Position = new Vector2(200, 70),
                 Description = @"Drop-down menu with style",
-                Depth = -1,
+                Depth = 1,
                 Items = testItems,
                 SelectedIndex = 4,
             };

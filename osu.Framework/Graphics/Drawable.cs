@@ -1157,7 +1157,7 @@ namespace osu.Framework.Graphics
     {
         public int Compare(Drawable x, Drawable y)
         {
-            int i = x.Depth.CompareTo(y.Depth);
+            int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
             return x.CreationID.CompareTo(y.CreationID);
         }
