@@ -356,15 +356,18 @@ namespace osu.Framework.Platform
         {
             set
             {
-                if (!Window.Visible)
+                if (Window != null)
                 {
-                    //set aggressively as we haven't become visible yet
-                    Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                    Window.CentreToScreen();
-                }
-                else
-                {
-                    InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
+                    if (!Window.Visible)
+                    {
+                        //set aggressively as we haven't become visible yet
+                        Window.ClientSize = new Size((int)value.X, (int)value.Y);
+                        Window.CentreToScreen();
+                    }
+                    else
+                    {
+                        InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
+                    }
                 }
 
                 base.Size = value;
