@@ -22,8 +22,6 @@ namespace osu.Framework.VisualTests.Tests
         public override string Name => @"Drawable Paths";
         public override string Description => @"Various cases of drawable paths.";
 
-        private DrawablePath drawablePath;
-
         public override void Reset()
         {
             base.Reset();
@@ -141,7 +139,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    drawablePath = new DrawablePath
+                                    new DrawablePath
                                     {
                                         RelativeSizeAxes = Axes.Both,
                                         Texture = gradientTexture,
