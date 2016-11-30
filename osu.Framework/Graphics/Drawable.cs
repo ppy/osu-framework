@@ -1163,11 +1163,11 @@ namespace osu.Framework.Graphics
         }
     }
 
-    public class ReverseDepthComparer : IComparer<Drawable>
+    public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
     {
         public int Compare(Drawable x, Drawable y)
         {
-            int i = x.Depth.CompareTo(y.Depth);
+            int i = y.Depth.CompareTo(x.Depth);
             if (i != 0) return i;
             return y.CreationID.CompareTo(x.CreationID);
         }
