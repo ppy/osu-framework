@@ -48,7 +48,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            unload();
+
+            GLWrapper.ScheduleDisposal(unload);
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (disposableId <= 0)
                 return;
 
-            GLWrapper.DeleteTextures(disposableId);
+            GL.DeleteTextures(1, new[] { disposableId });
 
             textureId = 0;
         }
