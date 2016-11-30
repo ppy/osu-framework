@@ -1163,6 +1163,16 @@ namespace osu.Framework.Graphics
         }
     }
 
+    public class ReverseDepthComparer : IComparer<Drawable>
+    {
+        public int Compare(Drawable x, Drawable y)
+        {
+            int i = x.Depth.CompareTo(y.Depth);
+            if (i != 0) return i;
+            return y.CreationID.CompareTo(x.CreationID);
+        }
+    }
+
     public interface ILoadable<T>
     {
         void Load(T reference);
