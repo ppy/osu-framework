@@ -69,6 +69,9 @@ namespace osu.Framework.Threading
 
         private volatile bool exitRequested;
 
+        private volatile bool isInitialized;
+        public bool IsInitialized => isInitialized;
+
         public Action OnThreadStart;
 
         public GameThread(Action onNewFrame, string threadName)
@@ -90,6 +93,8 @@ namespace osu.Framework.Threading
             Scheduler.SetCurrentThread();
 
             OnThreadStart?.Invoke();
+
+            isInitialized = true;
 
             while (!exitRequested)
                 ProcessFrame();
