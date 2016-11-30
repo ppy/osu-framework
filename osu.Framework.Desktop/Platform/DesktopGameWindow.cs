@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Platform;
+using OpenTK;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -12,6 +13,15 @@ namespace osu.Framework.Desktop.Platform
 
         public DesktopGameWindow() : base(default_width, default_height)
         {
+        }
+
+        public override void CentreToScreen()
+        {
+            base.CentreToScreen();
+            Location = new System.Drawing.Point(
+                (DisplayDevice.Default.Width - Size.Width) / 2,
+                (DisplayDevice.Default.Height - Size.Height) / 2
+            );
         }
     }
 }

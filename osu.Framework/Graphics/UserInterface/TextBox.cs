@@ -17,6 +17,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -91,11 +92,11 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(BaseGame game, AudioManager audio)
+        private void load(BasicGameHost host, AudioManager audio)
         {
             this.audio = audio;
 
-            textInput = game.Host.GetTextInput();
+            textInput = host.GetTextInput();
             if (textInput != null)
             {
                 textInput.OnNewImeComposition += delegate (string s)

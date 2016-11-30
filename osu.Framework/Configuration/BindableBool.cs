@@ -19,7 +19,7 @@ namespace osu.Framework.Configuration
             string str = s as string;
             if (str == null) return false;
 
-            Value = str == @"1" || str == @"true";
+            Value = str == @"1" || str.Equals(@"true", System.StringComparison.OrdinalIgnoreCase);
             return true;
         }
 

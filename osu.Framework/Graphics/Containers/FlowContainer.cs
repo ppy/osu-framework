@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Transformations;
@@ -93,6 +94,8 @@ namespace osu.Framework.Graphics.Containers
             base.Add(drawable);
         }
 
+        protected virtual IEnumerable<T> SortedChildren => AliveChildren;
+
         protected override void UpdateLayout()
         {
             base.UpdateLayout();
@@ -119,7 +122,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     float rowMaxHeight = 0;
-                    foreach (Drawable d in AliveChildren)
+                    foreach (Drawable d in SortedChildren)
                     {
                         Vector2 size = Vector2.Zero;
 

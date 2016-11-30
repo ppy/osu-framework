@@ -356,15 +356,21 @@ namespace osu.Framework.Platform
         {
             set
             {
-                //this logic is shit, but necessary to make stuff not assert.
-                //it's high priority to figure a better way to handle this, but i'm leaving it this way so we have a working codebase for now.
-                UpdateScheduler.Add(delegate
+                if (Window != null)
                 {
-                    //update the underlying window size based on our new set size.
-                    //important we do this before the base.Size set otherwise Invalidate logic will overwrite out new setting.
-                    InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
-                    base.Size = value;
-                });
+                    if (!Window.Visible)
+                    {
+                        //set aggressively as we haven't become visible yet
+                        Window.ClientSize = new Size((int)value.X, (int)value.Y);
+                        Window.CentreToScreen();
+                    }
+                    else
+                    {
+                        InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
+                    }
+                }
+
+                base.Size = value;
             }
         }
 
