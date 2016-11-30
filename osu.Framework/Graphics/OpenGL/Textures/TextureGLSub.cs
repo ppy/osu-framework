@@ -25,6 +25,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public TextureGLSub(Rectangle bounds, TextureGLSingle parent)
         {
+            Debug.Assert(parent != null, "May not construct a subtexture without a parent texture to refer to.");
+
             this.bounds = bounds;
             this.parent = parent;
         }
