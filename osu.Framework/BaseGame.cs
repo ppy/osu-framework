@@ -96,8 +96,6 @@ namespace osu.Framework
             host.Exiting += OnExiting;
         }
 
-        protected internal override void PerformLoad(BaseGame game) => base.PerformLoad(this);
-
         [BackgroundDependencyLoader]
         private void load()
         {

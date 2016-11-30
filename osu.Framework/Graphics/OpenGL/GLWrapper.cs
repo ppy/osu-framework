@@ -39,14 +39,10 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static Scheduler resetScheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
-        public static bool IsInitialized { get; private set; }
-
         private static BasicGameHost host;
 
         internal static void Initialize(BasicGameHost host)
         {
-            if (IsInitialized) return;
-
             GLWrapper.host = host;
             resetScheduler.SetCurrentThread();
 
@@ -56,8 +52,6 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Disable(EnableCap.StencilTest);
             GL.Enable(EnableCap.Blend);
             GL.Enable(EnableCap.ScissorTest);
-
-            IsInitialized = true;
         }
 
         internal static void ScheduleDisposal(Action disposalAction)

@@ -220,7 +220,7 @@ namespace osu.Framework.Platform
         protected virtual void UpdateInitialize()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            while (!GLWrapper.IsInitialized)
+            while (!drawThread.IsInitialized)
                 Thread.Sleep(1);
         }
 
@@ -378,6 +378,10 @@ namespace osu.Framework.Platform
 
         public override void Add(Drawable drawable)
         {
+            // TODO: We may in the future want to hold off on performing _any_ action on game host
+            // before its threads have been launched. This requires changing the order from
+            // host.Run -> host.Add instead of host.Add -> host.Run.
+
             Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
 
             BaseGame game = drawable as BaseGame;
@@ -395,9 +399,14 @@ namespace osu.Framework.Platform
 
         protected virtual void LoadGame(BaseGame game)
         {
-            // We are passing "null" as a parameter to Load to make sure BasicGameHost can never
-            // depend on a Game object.
-            Task.Run(() => game.PerformLoad(null)).ContinueWith(obj => Schedule(() => base.Add(game)));
+            Task.Run(delegate
+            {
+                // Make sure we are not loading anything game-related before our threads have been initialized.
+                while (!updateThread.IsInitialized || !drawThread.IsInitialized)
+                    Thread.Sleep(1);
+
+                game.PerformLoad(game);
+            }).ContinueWith(obj => Schedule(() => base.Add(game)));
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
