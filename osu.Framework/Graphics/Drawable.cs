@@ -630,7 +630,10 @@ namespace osu.Framework.Graphics
             return false;
         }
 
-        protected virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBf;
+        /// <summary>
+        /// Computes the bounding box of this drawable in its parent's space.
+        /// </summary>
+        public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBf;
 
         private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
 

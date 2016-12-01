@@ -16,14 +16,16 @@ namespace osu.Framework.Graphics.Sprites
             Texture = Texture.WhitePixel;
         }
 
-        private static Primitives.Triangle screenSpaceTriangle(Quad screenSpaceDrawQuad) => new Primitives.Triangle(
-            (screenSpaceDrawQuad.TopLeft + screenSpaceDrawQuad.TopRight) / 2,
-            screenSpaceDrawQuad.BottomLeft,
-            screenSpaceDrawQuad.BottomRight);
+        public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBf;
+
+        private static Primitives.Triangle toTriangle(Quad q) => new Primitives.Triangle(
+            (q.TopLeft + q.TopRight) / 2,
+            q.BottomLeft,
+            q.BottomRight);
 
         public override bool Contains(Vector2 screenSpacePos)
         {
-            return screenSpaceTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
+            return toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
         }
 
         protected override DrawNode CreateDrawNode() => new TriangleDrawNode();
@@ -32,7 +34,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
             {
-                Texture.DrawTriangle(screenSpaceTriangle(ScreenSpaceDrawQuad), DrawInfo.Colour, null, null,
+                Texture.DrawTriangle(toTriangle(ScreenSpaceDrawQuad), DrawInfo.Colour, null, null,
                     new Vector2(InflationAmount.X / DrawRectangle.Width, InflationAmount.Y / DrawRectangle.Height));
             }
         }
