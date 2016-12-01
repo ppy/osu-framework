@@ -8,7 +8,7 @@ using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableInt : Bindable<int>
+    public class BindableInt : BindableNumber<int>
     {
         public override int Value
         {
@@ -16,12 +16,10 @@ namespace osu.Framework.Configuration
             set { base.Value = MathHelper.Clamp(value, MinValue, MaxValue); }
         }
 
-        internal int MinValue = int.MinValue;
-        internal int MaxValue = int.MaxValue;
-
-        public BindableInt(int value = 0)
-            : base(value)
+        public BindableInt(int value = 0) : base(value)
         {
+            MinValue = int.MinValue;
+            MaxValue = int.MaxValue;
         }
         
         public override void Weld(Bindable<int> v, bool transferValue = true)
@@ -35,8 +33,6 @@ namespace osu.Framework.Configuration
             }
             base.Weld(v, transferValue);
         }
-
-        public static implicit operator int(BindableInt value) => value?.Value ?? 0;
 
         public override bool Parse(object s)
         {

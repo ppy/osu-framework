@@ -10,11 +10,12 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class SliderBar : Container
+    public class SliderBar<T> : Container where T : struct,
+        IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
     {
         public double KeyboardStep { get; set; } = 0.01;
 
-        public BindableDouble Bindable
+        public BindableNumber<T> Bindable
         {
             get { return bindable; }
             set
@@ -40,7 +41,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly Box selectionBox;
         private readonly Box box;
-        private BindableDouble bindable;
+        private BindableNumber<T> bindable;
 
         public SliderBar()
         {
@@ -97,13 +98,16 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
+            var step = KeyboardStep;
+            if (Bindable.IsInteger)
+                step = Math.Ceiling(step);
             switch (args.Key)
             {
                 case Key.Right:
-                    Bindable.Value += KeyboardStep;
+                    Bindable.Add(step);
                     return true;
                 case Key.Left:
-                    Bindable.Value -= KeyboardStep;
+                    Bindable.Add(step);
                     return true;
                 default:
                     return false;
@@ -115,13 +119,16 @@ namespace osu.Framework.Graphics.UserInterface
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
-            Bindable.Value = Bindable.MinValue + (Bindable.MaxValue - Bindable.MinValue) * (xPosition / box.DrawWidth);
+            Bindable.SetProportional(xPosition / box.DrawWidth);
         }
 
         private void updateVisualization()
         {
+            var min = Convert.ToSingle(Bindable.MinValue);
+            var max = Convert.ToSingle(Bindable.MaxValue);
+            var val = Convert.ToSingle(Bindable.Value);
             selectionBox.ScaleTo(
-                new Vector2((float)((Bindable.Value - Bindable.MinValue) / (Bindable.MaxValue - Bindable.MinValue)), 1),
+                new Vector2((val - min) / (max - min), 1),
                 300, EasingTypes.OutQuint);
         }
     }

@@ -281,6 +281,7 @@
     <Compile Include="Timing\TimeInfo.cs" />
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
+    <Compile Include="Configuration\BindableNumber.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
