@@ -12,7 +12,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Name => @"Sliderbar";
         public override string Description => @"Sliderbar tests.";
-        private SliderBar sliderBar;
+        private SliderBar<double> sliderBar;
         private BindableDouble sliderBarValue;
         private SpriteText sliderbarText;
 
@@ -32,7 +32,7 @@ namespace osu.Framework.VisualTests.Tests
                 Text = $"Selected value: {sliderBarValue.Value}",
                 Position = new Vector2(25, 0)
             };
-            sliderBar = new SliderBar
+            sliderBar = new SliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
