@@ -65,12 +65,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return parent.GetTextureRect(BoundsInParent(textureRect));
         }
 
-        /// <summary>
-        /// Blits sprite to OpenGL display with specified parameters.
-        /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            parent.Draw(vertexQuad, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+        }
+
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        {
+            parent.DrawQuad(vertexQuad, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
         internal override bool Upload()

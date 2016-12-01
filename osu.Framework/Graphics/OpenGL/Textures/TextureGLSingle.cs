@@ -23,7 +23,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static VertexBatch<TexturedVertex2D> spriteBatch;
+        private static QuadBatch<TexturedVertex2D> quadBatch;
+        private static LinearBatch<TexturedVertex2D> triangleBatch;
 
         private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
@@ -143,10 +144,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return texRect;
         }
 
-        /// <summary>
-        /// Blits sprite to OpenGL display with specified parameters.
-        /// </summary>
-        public override void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             Debug.Assert(!isDisposed);
 
@@ -157,9 +155,47 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (vertexAction == null)
             {
-                if (spriteBatch == null)
-                    spriteBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-                vertexAction = spriteBatch.Add;
+                if (triangleBatch == null)
+                    triangleBatch = new LinearBatch<TexturedVertex2D>(512, 128, PrimitiveType.Triangles);
+                vertexAction = triangleBatch.Add;
+            }
+
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexTriangle.P0,
+                TexturePosition = new Vector2((texRect.Left + texRect.Right) / 2, texRect.Top),
+                Colour = drawColour.TopLeft.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexTriangle.P1,
+                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                Colour = drawColour.BottomLeft.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexTriangle.P2,
+                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                Colour = drawColour.BottomRight.Linear,
+            });
+
+            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexTriangle.ConservativeArea);
+        }
+
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        {
+            Debug.Assert(!isDisposed);
+
+            RectangleF texRect = GetTextureRect(textureRect);
+
+            if (inflationPercentage.HasValue)
+                texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
+
+            if (vertexAction == null)
+            {
+                if (quadBatch == null)
+                    quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
+                vertexAction = quadBatch.Add;
             }
 
             vertexAction(new TexturedVertex2D
