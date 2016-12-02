@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using osu.Framework.Input.Handlers;
 using OpenTK;
+using osu.Framework.Graphics;
 
 namespace osu.Framework.Desktop.Platform
 {
@@ -33,5 +35,7 @@ namespace osu.Framework.Desktop.Platform
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };
+
+        protected override bool ReadyToLoad => true;
     }
 }

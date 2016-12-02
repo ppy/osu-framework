@@ -397,12 +397,14 @@ namespace osu.Framework.Platform
             LoadGame(game);
         }
 
+        protected virtual bool ReadyToLoad => updateThread.IsInitialized && drawThread.IsInitialized;
+
         protected virtual void LoadGame(BaseGame game)
         {
             Task.Run(delegate
             {
                 // Make sure we are not loading anything game-related before our threads have been initialized.
-                while (!updateThread.IsInitialized || !drawThread.IsInitialized)
+                while (!ReadyToLoad)
                     Thread.Sleep(1);
 
                 game.PerformLoad(game);
