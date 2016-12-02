@@ -8,7 +8,7 @@ using OpenTK;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableDouble : Bindable<double>
+    public class BindableDouble : BindableNumber<double>
     {
         public override bool IsDefault => Math.Abs(Value - Default) < Precision;
 
@@ -28,12 +28,10 @@ namespace osu.Framework.Configuration
             }
         }
 
-        public double MinValue { get; set; } = double.MinValue;
-        public double MaxValue { get; set; } = double.MaxValue;
-
-        public BindableDouble(double value = 0)
-            : base(value)
+        public BindableDouble(double value = 0) : base(value)
         {
+            MinValue = double.MinValue;
+            MaxValue = double.MaxValue;
         }
         
         public override void Weld(Bindable<double> v, bool transferValue = true)
@@ -47,8 +45,6 @@ namespace osu.Framework.Configuration
             }
             base.Weld(v, transferValue);
         }
-
-        public static implicit operator double(BindableDouble value) => value?.Value ?? 0;
 
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
 
