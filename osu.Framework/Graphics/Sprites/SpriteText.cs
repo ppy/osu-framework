@@ -238,13 +238,13 @@ namespace osu.Framework.Graphics.Sprites
             return $@"""{Text}"" " + base.ToString();
         }
 
-        public void TransformSpacingTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void TransformSpacingOverlapTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformSpacing));
-            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformSpacing());
+            UpdateTransformsOfType(typeof(TransformSpacingOverlap));
+            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformSpacingOverlap());
         }
 
-        public class TransformSpacing : TransformFloat
+        public class TransformSpacingOverlap : TransformFloat
         {
             public override void Apply(Drawable d)
             {
