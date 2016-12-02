@@ -40,11 +40,11 @@ namespace osu.Framework.Graphics.Containers
                         break;
                 }
 
-                StateChanged?.Invoke();
+                StateChanged?.Invoke(this, state);
             }
         }
 
-        public event Action StateChanged;
+        public event Action<OverlayContainer, Visibility> StateChanged;
 
         protected abstract void PopIn();
 
