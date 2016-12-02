@@ -610,7 +610,7 @@ namespace osu.Framework.Graphics.Containers
                 return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
-        protected override RectangleF BoundingBox
+        public override RectangleF BoundingBox
         {
             get
             {

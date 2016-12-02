@@ -43,6 +43,27 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
+        public RectangleF AABBf
+        {
+            get
+            {
+                float xMin = Math.Min(P0.X, Math.Min(P1.X, P2.X));
+                float yMin = Math.Min(P0.Y, Math.Min(P1.Y, P2.Y));
+                float xMax = Math.Max(P0.X, Math.Max(P1.X, P2.X));
+                float yMax = Math.Max(P0.Y, Math.Max(P1.Y, P2.Y));
+
+                return new RectangleF(xMin, yMin, xMax - xMin, yMax - yMin);
+            }
+        }
+
+        public double ConservativeArea
+        {
+            get
+            {
+                return Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
+            }
+        }
+
         public double Area
         {
             get

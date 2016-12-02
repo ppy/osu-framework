@@ -122,6 +122,7 @@
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
+    <Compile Include="Graphics\Sprites\Triangle.cs" />
     <Compile Include="Graphics\Transformations\TransformGlowAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\DropDownComboBox.cs" />

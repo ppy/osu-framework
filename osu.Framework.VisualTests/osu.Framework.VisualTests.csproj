@@ -66,6 +66,7 @@
     <Compile Include="Tests\TestCaseTextBox.cs" />
     <Compile Include="Tests\TestCaseScrollableFlow.cs" />
     <Compile Include="Tests\TestCaseNestedHover.cs" />
+    <Compile Include="Tests\TestCaseTriangles.cs" />
     <Compile Include="VisualTestGame.cs" />
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>

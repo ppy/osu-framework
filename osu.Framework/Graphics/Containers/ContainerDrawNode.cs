@@ -75,7 +75,7 @@ namespace osu.Framework.Graphics.Containers
             colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
             colour.BottomRight.MultiplyAlpha(DrawInfo.Colour.BottomRight.Linear.A);
 
-            Texture.WhitePixel.Draw(ScreenSpaceMaskingQuad.Value, colour);
+            Texture.WhitePixel.DrawQuad(ScreenSpaceMaskingQuad.Value, colour);
 
             Shader.Unbind();
 

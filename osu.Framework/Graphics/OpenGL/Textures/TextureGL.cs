@@ -56,9 +56,14 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public abstract RectangleF GetTextureRect(RectangleF? textureRect);
 
         /// <summary>
-        /// Blits sprite to OpenGL display with specified parameters.
+        /// Blit a triangle to OpenGL display with specified parameters.
         /// </summary>
-        public abstract void Draw(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null);
+        public abstract void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null);
+
+        /// <summary>
+        /// Blit a quad to OpenGL display with specified parameters.
+        /// </summary>
+        public abstract void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null);
 
         /// <summary>
         /// Bind as active texture.
