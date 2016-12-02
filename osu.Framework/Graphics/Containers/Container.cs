@@ -180,7 +180,10 @@ namespace osu.Framework.Graphics.Containers
                 if (Content != this)
                     Content.Children = value;
                 else
-                    InternalChildren = value;
+                {
+                    Clear();
+                    Add(value);
+                }
             }
         }
 
