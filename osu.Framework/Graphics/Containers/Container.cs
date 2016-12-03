@@ -171,16 +171,15 @@ namespace osu.Framework.Graphics.Containers
 
         public virtual IEnumerable<T> Children
         {
-            get {
+            get
+            {
                 return Content != this ? Content.Children : children;
             }
 
             set
             {
-                if (Content != this)
-                    Content.Children = value;
-                else
-                    InternalChildren = value;
+                Clear();
+                Add(value);
             }
         }
 
@@ -629,7 +628,7 @@ namespace osu.Framework.Graphics.Containers
                 return ToParentSpace(drawRect).AABBf.Inflate(inflation);
             }
         }
-        
+
         protected override void Dispose(bool isDisposing)
         {
             //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
