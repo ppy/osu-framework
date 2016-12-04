@@ -238,21 +238,9 @@ namespace osu.Framework.Graphics.Sprites
             return $@"""{Text}"" " + base.ToString();
         }
 
-        public void TransformSpacingOverlapTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void TransformSpacingOverlapTo(float newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformSpacingOverlap));
-            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformSpacingOverlap());
-        }
-
-        public class TransformSpacingOverlap : TransformFloat
-        {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-                SpriteText t = d as SpriteText;
-
-                t.SpacingOverlap = CurrentValue;
-            }
+            TransformSpacingTo(new Vector2(newSpacing, 0), duration, easing);
         }
     }
 }
