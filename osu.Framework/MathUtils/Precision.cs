@@ -16,6 +16,11 @@ namespace osu.Framework.MathUtils
             return value1 > value2 - acceptableDifference;
         }
 
+        public static bool AlmostBigger(double value1, double value2, double acceptableDifference = DOUBLE_EPSILON)
+        {
+            return value1 > value2 - acceptableDifference;
+        }
+
         public static bool AlmostEquals(float value1, float value2, float acceptableDifference = FLOAT_EPSILON)
         {
             return Math.Abs(value1 - value2) <= acceptableDifference;

@@ -132,9 +132,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string textAtLastLayout = string.Empty;
 
-        protected override void UpdateLayout()
+        protected override void UpdateAfterChildren()
         {
-            base.UpdateLayout();
+            base.UpdateAfterChildren();
 
             //have to run this after children flow
             cursorAndLayout.Refresh(delegate

@@ -27,9 +27,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public Vector2 HeadPosition => positions.Count == 0 ? Vector2.Zero : positions[0] - new Vector2(minX, minY);
-
-        public Vector2 FirstPosition => positions.Count == 0 ? Vector2.Zero : positions[0];
+        public Vector2 PositionInBoundingBox(Vector2 pos) => pos - new Vector2(minX, minY);
 
         public void ClearVertices()
         {
@@ -123,8 +121,7 @@ namespace osu.Framework.Graphics.Sprites
         protected override void ApplyDrawNode(DrawNode node)
         {
             PathDrawNode n = node as PathDrawNode;
-
-            n.NeedsDepthTest = true;
+            
             n.Texture = Texture;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;

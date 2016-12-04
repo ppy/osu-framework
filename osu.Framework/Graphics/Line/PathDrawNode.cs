@@ -174,6 +174,8 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed || Segments.Count == 0)
                 return;
 
+            GLWrapper.SetDepthTest(true);
+
             Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
@@ -184,6 +186,8 @@ namespace osu.Framework.Graphics.Sprites
             updateVertexBuffer();
 
             shader.Unbind();
+
+            GLWrapper.SetDepthTest(false);
         }
     }
 }

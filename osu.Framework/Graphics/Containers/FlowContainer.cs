@@ -96,9 +96,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual IEnumerable<T> SortedChildren => AliveChildren;
 
-        protected override void UpdateLayout()
+        protected override void UpdateAfterChildren()
         {
-            base.UpdateLayout();
+            base.UpdateAfterChildren();
 
             if (!layout.EnsureValid())
             {

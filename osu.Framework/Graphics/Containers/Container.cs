@@ -398,7 +398,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
-            UpdateLayout();
+            UpdateAfterChildren();
 
             if (AutoSizeAxes != Axes.None)
                 updateAutoSize();
@@ -456,7 +456,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Perform any layout changes just before autosize is calculated.		
         /// </summary>		
-        protected virtual void UpdateLayout()
+        protected virtual void UpdateAfterChildren()
         {
         }
 
