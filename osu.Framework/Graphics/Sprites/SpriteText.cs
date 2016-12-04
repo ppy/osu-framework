@@ -237,10 +237,5 @@ namespace osu.Framework.Graphics.Sprites
         {
             return $@"""{Text}"" " + base.ToString();
         }
-
-        public void TransformSpacingOverlapTo(float newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformSpacingTo(new Vector2(newSpacing, 0), duration, easing);
-        }
     }
 }
