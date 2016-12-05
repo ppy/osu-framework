@@ -72,6 +72,8 @@ namespace osu.Framework.Threading
         private volatile bool isInitialized;
         public bool IsInitialized => isInitialized;
 
+        private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
+
         public Action OnThreadStart;
 
         public GameThread(Action onNewFrame, string threadName)
@@ -88,6 +90,11 @@ namespace osu.Framework.Threading
             Scheduler = new Scheduler(null);
         }
 
+        public void WaitTillInitialized()
+        {
+            initializedEvent.WaitOne();
+        }
+
         private void runWork()
         {
             Scheduler.SetCurrentThread();
@@ -95,6 +102,7 @@ namespace osu.Framework.Threading
             OnThreadStart?.Invoke();
 
             isInitialized = true;
+            initializedEvent.Set();
 
             while (!exitRequested)
                 ProcessFrame();

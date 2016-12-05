@@ -220,8 +220,7 @@ namespace osu.Framework.Platform
         protected virtual void UpdateInitialize()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            while (!drawThread.IsInitialized)
-                Thread.Sleep(1);
+            drawThread.WaitTillInitialized();
         }
 
         protected void UpdateFrame()
@@ -274,9 +273,7 @@ namespace osu.Framework.Platform
                 ExitRequested = true;
 
                 threads.ForEach(t => t.Exit());
-
-                while (threadsRunning)
-                    Thread.Sleep(1);
+                threads.Where(t => t.Thread.IsAlive).ForEach(t => t.Thread.Join());
                 Window?.Close();
             }, false);
         }
@@ -404,8 +401,8 @@ namespace osu.Framework.Platform
             Task.Run(delegate
             {
                 // Make sure we are not loading anything game-related before our threads have been initialized.
-                while (!ReadyToLoad)
-                    Thread.Sleep(1);
+                updateThread.WaitTillInitialized();
+                drawThread.WaitTillInitialized();
 
                 game.PerformLoad(game);
             }).ContinueWith(obj => Schedule(() => base.Add(game)));
