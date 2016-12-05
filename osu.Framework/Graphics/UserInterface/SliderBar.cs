@@ -24,6 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
                     bindable.ValueChanged -= bindableValueChanged;
                 bindable = value;
                 bindable.ValueChanged += bindableValueChanged;
+                updateVisualization();
             }
         }
 
