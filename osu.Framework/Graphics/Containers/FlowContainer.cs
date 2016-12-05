@@ -71,6 +71,23 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformSpacing));
+            TransformVectorTo(spacing, newSpacing, duration, easing, new TransformSpacing());
+        }
+
+        public class TransformSpacing : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                FlowContainer t = d as FlowContainer;
+
+                t.Spacing = CurrentValue;
+            }
+        }
+
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
