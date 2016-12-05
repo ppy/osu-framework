@@ -69,9 +69,6 @@ namespace osu.Framework.Threading
 
         private volatile bool exitRequested;
 
-        private volatile bool isInitialized;
-        public bool IsInitialized => isInitialized;
-
         private readonly ManualResetEvent initializedEvent = new ManualResetEvent(false);
 
         public Action OnThreadStart;
@@ -90,7 +87,7 @@ namespace osu.Framework.Threading
             Scheduler = new Scheduler(null);
         }
 
-        public void WaitTillInitialized()
+        public void WaitUntilInitialized()
         {
             initializedEvent.WaitOne();
         }
@@ -101,7 +98,6 @@ namespace osu.Framework.Threading
 
             OnThreadStart?.Invoke();
 
-            isInitialized = true;
             initializedEvent.Set();
 
             while (!exitRequested)
