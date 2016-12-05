@@ -271,7 +271,7 @@ namespace osu.Framework.Platform
                 ExitRequested = true;
 
                 threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Thread.IsAlive).ForEach(t => t.Thread.Join());
+                threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
             }, false);
         }
