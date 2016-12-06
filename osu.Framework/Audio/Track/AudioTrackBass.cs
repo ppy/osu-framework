@@ -115,8 +115,8 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            isPlayed = true;
             Update(); //ensure state is valid.
+            isPlayed = true;
             Bass.ChannelPlay(activeStream);
         }
 
@@ -137,7 +137,6 @@ namespace osu.Framework.Audio.Track
         {
             get
             {
-                if (Bass.ChannelIsActive(activeStream) == PlaybackState.Stopped) return 0;
                 double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
                 if (value == Length && !isPlayed) return 0;
                 else return value;
