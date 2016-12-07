@@ -10,10 +10,10 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class SliderBar<T> : Container where T : struct,
+    public abstract class SliderBar<T> : Container where T : struct,
         IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
     {
-        public double KeyboardStep { get; set; } = 0.01;
+        public float KeyboardStep { get; set; } = -1;
 
         public BindableNumber<T> Bindable
         {
@@ -24,48 +24,27 @@ namespace osu.Framework.Graphics.UserInterface
                     bindable.ValueChanged -= bindableValueChanged;
                 bindable = value;
                 bindable.ValueChanged += bindableValueChanged;
-                updateVisualization();
+                UpdateValue(NormalizedValue);
             }
         }
-
-        public Color4 Color
+        
+        protected float NormalizedValue
         {
-            get { return box.Colour; }
-            set { box.Colour = value; }
+            get
+            {
+                if (Bindable == null)
+                    return 0;
+                var min = Convert.ToSingle(Bindable.MinValue);
+                var max = Convert.ToSingle(Bindable.MaxValue);
+                var val = Convert.ToSingle(Bindable.Value);
+                return (val - min) / (max - min);
+            }
         }
-
-        public Color4 SelectionColor
-        {
-            get { return selectionBox.Colour; }
-            set { selectionBox.Colour = value; }
-        }
-
-        private readonly Box selectionBox;
-        private readonly Box box;
+        
         private BindableNumber<T> bindable;
 
-        public SliderBar()
-        {
-            Children = new Drawable[]
-            {
-                box = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                },
-                selectionBox = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                }
-            };
-        }
-
-        #region Disposal
-
-        ~SliderBar()
-        {
-            Dispose(false);
-        }
-
+        protected abstract void UpdateValue(float value);
+        
         protected override void Dispose(bool isDisposing)
         {
             if (Bindable != null)
@@ -73,12 +52,10 @@ namespace osu.Framework.Graphics.UserInterface
             base.Dispose(isDisposing);
         }
 
-        #endregion
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            updateVisualization();
+            UpdateValue(NormalizedValue);
         }
 
         protected override bool OnClick(InputState state)
@@ -100,37 +77,29 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             var step = KeyboardStep;
+            if (step == -1)
+                step = (Convert.ToSingle(Bindable.MaxValue) - Convert.ToSingle(Bindable.MinValue)) / 20;
             if (Bindable.IsInteger)
-                step = Math.Ceiling(step);
+                step = (float)Math.Ceiling(step);
             switch (args.Key)
             {
                 case Key.Right:
                     Bindable.Add(step);
                     return true;
                 case Key.Left:
-                    Bindable.Add(step);
+                    Bindable.Add(-step);
                     return true;
                 default:
                     return false;
             }
         }
 
-        private void bindableValueChanged(object sender, EventArgs e) => updateVisualization();
+        private void bindableValueChanged(object sender, EventArgs e) => UpdateValue(NormalizedValue);
 
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
-            Bindable.SetProportional(xPosition / box.DrawWidth);
-        }
-
-        private void updateVisualization()
-        {
-            var min = Convert.ToSingle(Bindable.MinValue);
-            var max = Convert.ToSingle(Bindable.MaxValue);
-            var val = Convert.ToSingle(Bindable.Value);
-            selectionBox.ScaleTo(
-                new Vector2((val - min) / (max - min), 1),
-                300, EasingTypes.OutQuint);
+            Bindable.SetProportional(xPosition / DrawWidth);
         }
     }
 }
