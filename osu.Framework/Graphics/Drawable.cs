@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry);
             }
         }
-        
+
         private ColourInfo colourInfo = ColourInfo.SingleColour(Color4.White);
 
         public ColourInfo ColourInfo
@@ -735,6 +735,9 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
+            if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+                customClock?.ProcessFrame();
+
             if (LoadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
