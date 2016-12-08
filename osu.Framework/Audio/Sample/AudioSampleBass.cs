@@ -11,9 +11,9 @@ namespace osu.Framework.Audio.Sample
         private int channel;
 
         bool hasChannel => channel != 0;
-        bool hasSample => sample != 0;
+        bool hasSample => SampleId != 0;
 
-        private int sample;
+        public int SampleId { get; private set; }
 
         float initialFrequency;
 
@@ -24,9 +24,9 @@ namespace osu.Framework.Audio.Sample
         {
         }
 
-        protected AudioSampleBass(int sampleId, bool freeWhenDone = false)
+        public AudioSampleBass(int sampleId, bool freeWhenDone = false)
         {
-            sample = sampleId;
+            SampleId = sampleId;
             this.freeWhenDone = freeWhenDone;
         }
 
@@ -36,7 +36,7 @@ namespace osu.Framework.Audio.Sample
 
             if (!hasChannel)
             {
-                channel = Bass.SampleGetChannel(sample);
+                channel = Bass.SampleGetChannel(SampleId);
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 InvalidateState();
             }
@@ -86,8 +86,8 @@ namespace osu.Framework.Audio.Sample
 
             if (freeWhenDone)
             {
-                Bass.SampleFree(sample);
-                sample = 0;
+                Bass.SampleFree(SampleId);
+                SampleId = 0;
             }
         }
 
