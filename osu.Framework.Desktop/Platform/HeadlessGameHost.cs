@@ -36,7 +36,7 @@ namespace osu.Framework.Desktop.Platform
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };
 
-        protected override void WaitTillReadyToLoad()
+        protected override void WaitUntilReadyToLoad()
         {
         }
     }

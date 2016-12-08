@@ -392,7 +392,7 @@ namespace osu.Framework.Platform
             LoadGame(game);
         }
 
-        protected virtual void WaitTillReadyToLoad()
+        protected virtual void WaitUntilReadyToLoad()
         {
             updateThread.WaitUntilInitialized();
             drawThread.WaitUntilInitialized();
@@ -403,7 +403,7 @@ namespace osu.Framework.Platform
             Task.Run(delegate
             {
                 // Make sure we are not loading anything game-related before our threads have been initialized.
-                WaitTillReadyToLoad();
+                WaitUntilReadyToLoad();
 
                 game.PerformLoad(game);
             }).ContinueWith(obj => Schedule(() => base.Add(game)));
