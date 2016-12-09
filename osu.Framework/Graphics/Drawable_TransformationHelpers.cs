@@ -228,13 +228,23 @@ namespace osu.Framework.Graphics
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPositionX));
-            TransformFloatTo(DrawPosition.X, destination, duration, easing, new TransformPositionX());
+
+            float start = DrawPosition.X;
+            Vector2 parentSize = Parent?.ChildSize ?? Vector2.One;
+            if ((RelativePositionAxes & Axes.X) > 0)
+                start /= parentSize.X;
+            TransformFloatTo(start, destination, duration, easing, new TransformPositionX());
         }
 
         public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPositionY));
-            TransformFloatTo(DrawPosition.Y, destination, duration, easing, new TransformPositionY());
+
+            float start = DrawPosition.Y;
+            Vector2 parentSize = Parent?.ChildSize ?? Vector2.One;
+            if ((RelativePositionAxes & Axes.Y) > 0)
+                start /= parentSize.Y;
+            TransformFloatTo(start, destination, duration, easing, new TransformPositionY());
         }
 
         #endregion
@@ -305,7 +315,18 @@ namespace osu.Framework.Graphics
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
-            TransformVectorTo(DrawPosition, newPosition, duration, easing, new TransformPosition());
+
+            Vector2 startPosition = DrawPosition;
+            if (RelativePositionAxes != Axes.None)
+            {
+                Vector2 parentSize = Parent?.ChildSize ?? Vector2.One;
+                if ((RelativePositionAxes & Axes.X) > 0)
+                    startPosition.X /= parentSize.X;
+                if ((RelativePositionAxes & Axes.Y) > 0)
+                    startPosition.Y /= parentSize.Y;
+            }
+
+            TransformVectorTo(startPosition/*DrawPosition*/, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToRelative(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
