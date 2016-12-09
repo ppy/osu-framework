@@ -474,7 +474,7 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
-            if (FocusedDrawable != null)
+            if (checkFocusedDrawable(state))
             {
                 if (args.Key == Key.Escape)
                 {
@@ -495,10 +495,27 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (FocusedDrawable?.TriggerKeyUp(state, args) ?? false)
+            if (checkFocusedDrawable(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
                 return true;
 
             return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
+        }
+
+        /// <summary>
+        /// Ensure the focused drawable is still in a valid state.
+        /// </summary>
+        private bool checkFocusedDrawable(InputState state)
+        {
+            if (FocusedDrawable == null) return false;
+
+            if (FocusedDrawable.Parent == null)
+            {
+                FocusedDrawable.TriggerFocusLost(state);
+                FocusedDrawable = null;
+                return false;
+            }
+
+            return true;
         }
 
         public InputHandler GetHandler(Type handlerType)
