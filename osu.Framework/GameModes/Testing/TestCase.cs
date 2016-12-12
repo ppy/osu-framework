@@ -16,7 +16,7 @@ namespace osu.Framework.GameModes.Testing
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
 
-        FlowContainer buttonsContainer;
+        protected FlowContainer ButtonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
@@ -48,7 +48,7 @@ namespace osu.Framework.GameModes.Testing
                     {
                         Children = new[]
                         {
-                            buttonsContainer = new FlowContainer
+                            ButtonsContainer = new FlowContainer
                             {
                                 Direction = FlowDirection.VerticalOnly,
                                 AutoSizeAxes = Axes.Both,
@@ -65,14 +65,14 @@ namespace osu.Framework.GameModes.Testing
             else
             {
                 Contents.Clear();
-                buttonsContainer.Clear();
+                ButtonsContainer.Clear();
             }
         }
 
         public Button AddButton(string text, Action action)
         {
             Button b;
-            buttonsContainer.Add(b = new Button
+            ButtonsContainer.Add(b = new Button
             {
                 Colour = Color4.LightBlue,
                 Size = new Vector2(150, 50),
@@ -86,7 +86,7 @@ namespace osu.Framework.GameModes.Testing
 
         public void AddToggle(string text, Action action)
         {
-            buttonsContainer.Add(new ToggleButton(action)
+            ButtonsContainer.Add(new ToggleButton(action)
             {
                 Text = text
             });

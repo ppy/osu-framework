@@ -340,6 +340,8 @@ namespace osu.Framework.Platform
             if (Window.WindowState == WindowState.Minimized) return;
 
             var size = Window.ClientSize;
+            //When minimizing, there will be an "size zero, but WindowState not Minimized" state.
+            if (size.IsEmpty) return;
             UpdateScheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
