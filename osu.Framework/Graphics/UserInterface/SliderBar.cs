@@ -13,7 +13,17 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class SliderBar<T> : Container where T : struct,
         IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
     {
-        public float KeyboardStep { get; set; } = -1;
+        private float keyboardStep;
+        public float KeyboardStep
+        {
+            get { return keyboardStep; }
+            set
+            {
+                keyboardStep = value;
+                stepInitialized = true;
+            }
+        }
+        private bool stepInitialized = false;
 
         public BindableNumber<T> Bindable
         {
@@ -76,9 +86,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
+            if (!stepInitialized)
+                KeyboardStep = (Convert.ToSingle(Bindable.MaxValue) - Convert.ToSingle(Bindable.MinValue)) / 20;
             var step = KeyboardStep;
-            if (step == -1)
-                step = (Convert.ToSingle(Bindable.MaxValue) - Convert.ToSingle(Bindable.MinValue)) / 20;
             if (Bindable.IsInteger)
                 step = (float)Math.Ceiling(step);
             switch (args.Key)
