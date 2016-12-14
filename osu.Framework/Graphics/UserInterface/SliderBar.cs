@@ -13,6 +13,13 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class SliderBar<T> : Container where T : struct,
         IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
     {
+        protected enum SliderBarEventSource
+        {
+            External,
+            Keyboard,
+            Mouse,
+        }
+    
         private float keyboardStep;
         public float KeyboardStep
         {
@@ -25,6 +32,8 @@ namespace osu.Framework.Graphics.UserInterface
         }
         private bool stepInitialized = false;
 
+        private SliderBarEventSource eventSource = SliderBarEventSource.External;
+
         public BindableNumber<T> Bindable
         {
             get { return bindable; }
@@ -34,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
                     bindable.ValueChanged -= bindableValueChanged;
                 bindable = value;
                 bindable.ValueChanged += bindableValueChanged;
-                UpdateValue(NormalizedValue);
+                UpdateValue(NormalizedValue, eventSource);
             }
         }
         
@@ -53,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface
         
         private BindableNumber<T> bindable;
 
-        protected abstract void UpdateValue(float value);
+        protected abstract void UpdateValue(float value, SliderBarEventSource eventSource);
         
         protected override void Dispose(bool isDisposing)
         {
@@ -65,7 +74,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            UpdateValue(NormalizedValue);
+            UpdateValue(NormalizedValue, eventSource);
         }
 
         protected override bool OnClick(InputState state)
@@ -91,25 +100,41 @@ namespace osu.Framework.Graphics.UserInterface
             var step = KeyboardStep;
             if (Bindable.IsInteger)
                 step = (float)Math.Ceiling(step);
-            switch (args.Key)
+            eventSource = SliderBarEventSource.Keyboard;
+            try
             {
-                case Key.Right:
-                    Bindable.Add(step);
-                    return true;
-                case Key.Left:
-                    Bindable.Add(-step);
-                    return true;
-                default:
-                    return false;
+                switch (args.Key)
+                {
+                    case Key.Right:
+                        Bindable.Add(step);
+                        return true;
+                    case Key.Left:
+                        Bindable.Add(-step);
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+            finally
+            {
+                eventSource = SliderBarEventSource.External;
             }
         }
 
-        private void bindableValueChanged(object sender, EventArgs e) => UpdateValue(NormalizedValue);
+        private void bindableValueChanged(object sender, EventArgs e) => UpdateValue(NormalizedValue, eventSource);
 
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
-            Bindable.SetProportional(xPosition / DrawWidth);
+            eventSource = SliderBarEventSource.Mouse;
+            try
+            {
+                Bindable.SetProportional(xPosition / DrawWidth);
+            }
+            finally
+            {
+                eventSource = SliderBarEventSource.External;
+            }
         }
     }
 }
