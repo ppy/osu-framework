@@ -80,7 +80,7 @@ namespace osu.Framework.VisualTests.Tests
                 };
             }
 
-            protected override void UpdateValue(float value)
+            protected override void UpdateValue(float value, SliderBarEventSource eventSource)
             {
                 SelectionBox.ScaleTo(
                     new Vector2(value, 1),
