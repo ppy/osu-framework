@@ -79,6 +79,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public void Expire(bool calculateLifetimeStart = false)
         {
+            if (clock == null)
+            {
+                LifetimeEnd = double.MinValue;
+                return;
+            }
+
             //expiry should happen either at the end of the last transformation or using the current sequence delay (whichever is highest).
             double max = Time.Current + transformationDelay;
             foreach (ITransform t in Transforms)
