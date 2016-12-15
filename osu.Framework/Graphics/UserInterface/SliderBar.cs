@@ -85,6 +85,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
+            if (!Hovering)
+                return false;
             if (!stepInitialized)
                 KeyboardStep = (Convert.ToSingle(Bindable.MaxValue) - Convert.ToSingle(Bindable.MinValue)) / 20;
             var step = KeyboardStep;
