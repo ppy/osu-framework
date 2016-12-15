@@ -61,6 +61,8 @@ namespace osu.Framework.Platform
             throw new NotImplementedException("This platform does not implement IPC.");
         }
 
+        public virtual Clipboard GetClipboard() => null;
+
         public virtual BasicStorage Storage { get; protected set; } //public set currently required for visualtests setup.
 
         public override bool IsVisible => true;

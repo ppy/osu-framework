@@ -49,6 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool ReadOnly;
 
         private TextInputSource textInput;
+        private Clipboard clipboard;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
@@ -97,6 +98,8 @@ namespace osu.Framework.Graphics.UserInterface
             this.audio = audio;
 
             textInput = host.GetTextInput();
+            clipboard = host.GetClipboard();
+
             if (textInput != null)
             {
                 textInput.OnNewImeComposition += delegate (string s)
@@ -528,18 +531,24 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     case Key.C:
                         if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-                        //System.Windows.Forms.Clipboard.SetText(SelectedText);
+
+                        clipboard?.SetText(SelectedText);
                         return true;
                     case Key.X:
-                        if (string.IsNullOrEmpty(SelectedText)) return true;
+                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
 
-                        //if (AllowClipboardExport)
-                        //    System.Windows.Forms.Clipboard.SetText(SelectedText);
+                        clipboard?.SetText(SelectedText);
                         removeCharacterOrSelection();
                         return true;
                     case Key.V:
-                        //the text is pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        insertString(textInput?.GetPendingText());
+
+                        //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        string text = textInput?.GetPendingText();
+
+                        if (string.IsNullOrEmpty(text))
+                            text = clipboard?.GetText();
+
+                        insertString(text);
                         return true;
                 }
 
