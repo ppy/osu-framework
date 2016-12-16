@@ -6,6 +6,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using OpenTK.Input;
+using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -78,7 +79,12 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected override bool OnDragStart(InputState state) => true;
+        protected override bool OnDragStart(InputState state)
+        {
+            Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
+
+            return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
+        }
 
         protected override bool OnDragEnd(InputState state) => true;
 
