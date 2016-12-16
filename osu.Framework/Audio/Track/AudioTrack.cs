@@ -59,6 +59,21 @@ namespace osu.Framework.Audio.Track
 
         public abstract void Stop();
 
+        /// <summary>
+        /// Fade-in the actual playing track.
+        /// </summary>
+        /// <param name="start">From where to start Fading</param>
+        /// <param name="time">The lenght in miliseconds that should take the Fade</param>
+        /// <returns>Whether the fade was succesful</returns>
+        public abstract void FadeIn(double start, int time);
+
+        /// <summary>
+        /// Fade-out the actual playing track.
+        /// </summary>
+        /// <param name="time">The lenght in miliseconds that should take the Fade</param>
+        /// <returns>Whether the fade was succesful</returns>
+        public abstract void FadeOut(int time);
+
         public abstract bool IsRunning { get; }
 
         /// <summary>

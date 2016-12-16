@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -40,6 +41,16 @@ namespace osu.Framework.Audio.Track
         public override void Stop()
         {
             clock.Stop();
+        }
+
+        public override void FadeIn(double start, int time)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void FadeOut(int time)
+        {
+            throw new NotImplementedException();
         }
 
         public override bool IsRunning => clock.IsRunning;

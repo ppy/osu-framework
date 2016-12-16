@@ -76,6 +76,17 @@ namespace osu.Framework.Audio.Track
             base.Reset();
         }
 
+        public override void FadeIn(double start = 0, int time = 100)
+        {
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Volume, start);
+            Bass.ChannelSlideAttribute(activeStream, ChannelAttribute.Volume, (float)VolumeCalculated, time);
+        }
+
+        public override void FadeOut(int time)
+        {
+            Bass.ChannelSlideAttribute(activeStream, ChannelAttribute.Volume, 0, time);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (activeStream != 0) Bass.ChannelStop(activeStream);
