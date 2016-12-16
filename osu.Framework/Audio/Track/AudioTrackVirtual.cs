@@ -43,15 +43,9 @@ namespace osu.Framework.Audio.Track
             clock.Stop();
         }
 
-        public override void FadeIn(double start, int time)
-        {
-            throw new NotImplementedException();
-        }
+        public override void FadeIn(double lenght, double start) { }
 
-        public override void FadeOut(int time)
-        {
-            throw new NotImplementedException();
-        }
+        public override void FadeOut(int time) { }
 
         public override bool IsRunning => clock.IsRunning;
 
