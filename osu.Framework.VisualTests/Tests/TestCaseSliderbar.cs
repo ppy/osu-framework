@@ -53,8 +53,7 @@ namespace osu.Framework.VisualTests.Tests
             sliderbarText.Text = $"Selected value: {sliderBarValue.Value:N}";
         }
         
-        private class TestSliderBar<T> : SliderBar<T> where T : struct,
-            IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
+        private class TestSliderBar<T> : SliderBar<T> where T : struct
         {
             public Color4 Color
             {

@@ -9,8 +9,7 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class SliderBar<T> : Container where T : struct,
-        IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
+    public abstract class SliderBar<T> : Container where T : struct
     {    
         private float keyboardStep;
         public float KeyboardStep
