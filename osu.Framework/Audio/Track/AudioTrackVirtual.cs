@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Track
             clock.Stop();
         }
 
-        public override void FadeIn(double lenght, double start) { }
+        public override void FadeIn(double length) { }
 
         public override void FadeOut(int time) { }
 
