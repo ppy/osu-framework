@@ -5,6 +5,8 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Transformations;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -32,7 +34,7 @@ namespace osu.Framework.VisualTests.Tests
                 Text = $"Selected value: {sliderBarValue.Value}",
                 Position = new Vector2(25, 0)
             };
-            sliderBar = new SliderBar<double>
+            sliderBar = new TestSliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
@@ -49,6 +51,40 @@ namespace osu.Framework.VisualTests.Tests
         private void sliderBarValueChanged(object sender, EventArgs e)
         {
             sliderbarText.Text = $"Selected value: {sliderBarValue.Value:N}";
+        }
+        
+        private class TestSliderBar<T> : SliderBar<T> where T : struct
+        {
+            public Color4 Color
+            {
+                get { return Box.Colour; }
+                set { Box.Colour = value; }
+            }
+    
+            public Color4 SelectionColor
+            {
+                get { return SelectionBox.Colour; }
+                set { SelectionBox.Colour = value; }
+            }
+    
+            protected readonly Box SelectionBox;
+            protected readonly Box Box;
+    
+            public TestSliderBar()
+            {
+                Children = new Drawable[]
+                {
+                    Box = new Box { RelativeSizeAxes = Axes.Both },
+                    SelectionBox = new Box { RelativeSizeAxes = Axes.Both }
+                };
+            }
+
+            protected override void UpdateValue(float value)
+            {
+                SelectionBox.ScaleTo(
+                    new Vector2(value, 1),
+                    300, EasingTypes.OutQuint);
+            }
         }
     }
 }

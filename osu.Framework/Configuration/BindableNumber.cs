@@ -2,9 +2,7 @@
 
 namespace osu.Framework.Configuration
 {
-    // Note: this type constraint doesn't quite limit us to just number but it's as close as is possible to get
-    public abstract class BindableNumber<T> : Bindable<T> where T : struct,
-        IComparable, IFormattable, IConvertible, IComparable<T>, IEquatable<T>
+    public abstract class BindableNumber<T> : Bindable<T> where T : struct
     {
         protected BindableNumber(T value = default(T)) : base(value)
         {
