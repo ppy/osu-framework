@@ -22,7 +22,7 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Should this track only be used for preview purposes? This suggests it has not yet been fully loaded.
         /// </summary>
-        public bool Preview { get; }
+        public bool Preview { get; private set; }
 
         /// <summary>
         /// The handle for this track, if there is one.
@@ -37,35 +37,38 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        public AudioTrackBass(Stream data, bool quick = false)
+        public AudioTrackBass(Stream data, bool quick = true)
         {
-            Preview = quick;
-
-            BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
-
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
-            //encapsulate incoming stream with async buffer if it isn't already.
-            dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
-
-            procs = new DataStreamFileProcedures(dataStream);
-
-            audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
-
-            if (Preview)
-                activeStream = audioStreamPrefilter;
-            else
+            PendingActions.Enqueue(() =>
             {
-                activeStream = BassFx.TempoCreate(audioStreamPrefilter, BassFlags.Decode);
-                activeStream = BassFx.ReverseCreate(activeStream, 5f, BassFlags.Default);
+                Preview = quick;
 
-                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
-                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
-                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
-            }
+                BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
 
-            Length = (Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000);
-            Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
+                if (data == null)
+                    throw new ArgumentNullException(nameof(data));
+                //encapsulate incoming stream with async buffer if it isn't already.
+                dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
+
+                procs = new DataStreamFileProcedures(dataStream);
+
+                audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+
+                if (Preview)
+                    activeStream = audioStreamPrefilter;
+                else
+                {
+                    activeStream = BassFx.TempoCreate(audioStreamPrefilter, BassFlags.Decode);
+                    activeStream = BassFx.ReverseCreate(activeStream, 5f, BassFlags.Default);
+
+                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoUseQuickAlgorithm, 1);
+                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoOverlapMilliseconds, 4);
+                    Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
+                }
+
+                Length = (Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000);
+                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
+            });
         }
 
         public override void Reset()
@@ -96,8 +99,11 @@ namespace osu.Framework.Audio.Track
         public override void Stop()
         {
             isPlayed = false;
-            if (IsRunning)
-                Bass.ChannelPause(activeStream);
+            PendingActions.Enqueue(() =>
+            {
+                if (IsRunning)
+                    Bass.ChannelPause(activeStream);
+            });
         }
 
         private int direction;
@@ -110,25 +116,34 @@ namespace osu.Framework.Audio.Track
 
             direction = newDirection;
 
-            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.ReverseDirection, direction);
+            PendingActions.Enqueue(() =>
+            {
+                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.ReverseDirection, direction);
+            });
         }
 
         public override void Start()
         {
             Update(); //ensure state is valid.
             isPlayed = true;
-            Bass.ChannelPlay(activeStream);
+            PendingActions.Enqueue(() =>
+            {
+                Bass.ChannelPlay(activeStream);
+            });
         }
 
         public override bool Seek(double seek)
         {
             double clamped = MathHelper.Clamp(seek, 0, Length);
 
-            if (clamped != CurrentTime)
+            PendingActions.Enqueue(() =>
             {
-                long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
-                Bass.ChannelSetPosition(activeStream, pos);
-            }
+                if (clamped != CurrentTime)
+                {
+                    long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
+                    Bass.ChannelSetPosition(activeStream, pos);
+                }
+            });
 
             return clamped == seek;
         }

@@ -17,6 +17,8 @@ namespace osu.Framework.Audio
         public TrackManager Track => GetTrackManager();
         public SampleManager Sample => GetSampleManager();
 
+        internal GameThread Thread;
+
         internal event Action AvailableDevicesChanged;
 
         internal List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
@@ -43,7 +45,7 @@ namespace osu.Framework.Audio
             MaxValue = 1
         };
 
-        private Scheduler scheduler = new Scheduler();
+        private Scheduler scheduler => Thread.Scheduler;
 
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
@@ -52,17 +54,22 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            globalTrackManager = GetTrackManager(trackStore);
-            globalSampleManager = GetSampleManager(sampleStore);
+            Thread = new GameThread(Update, @"Audio");
+            Thread.Start();
 
-            try
+            scheduler.Add(() =>
             {
-                SetAudioDevice();
-            }
-            catch
-            {
-                return;
-            }
+                globalTrackManager = GetTrackManager(trackStore);
+                globalSampleManager = GetSampleManager(sampleStore);
+
+                try
+                {
+                    SetAudioDevice();
+                }
+                catch
+                {
+                }
+            });
 
             scheduler.AddDelayed(checkAudioDeviceChanged, 1000, true);
         }

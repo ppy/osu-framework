@@ -111,7 +111,8 @@ namespace osu.Framework.Threading
             using (Monitor.BeginCollecting(PerformanceCollectionType.Scheduler))
                 Scheduler.Update();
 
-            onNewFrame?.Invoke();
+            using (Monitor.BeginCollecting(PerformanceCollectionType.Work))
+                onNewFrame?.Invoke();
 
             using (Monitor.BeginCollecting(PerformanceCollectionType.Sleep))
                 Clock.ProcessFrame();

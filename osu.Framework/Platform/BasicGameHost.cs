@@ -43,7 +43,7 @@ namespace osu.Framework.Platform
                 Deactivated?.Invoke();
         }
 
-        public bool IsActive => inputThread.IsActive;
+        public bool IsActive => InputThread.IsActive;
 
         public bool IsPrimaryInstance { get; protected set; } = true;
 
@@ -69,14 +69,9 @@ namespace osu.Framework.Platform
 
         private GameThread[] threads;
 
-        private static GameThread drawThread;
-        private static GameThread updateThread;
-        private static InputThread inputThread;
-
-        private static Thread startupThread = Thread.CurrentThread;
-
-        internal static Thread DrawThread => drawThread.Thread;
-        internal static Thread UpdateThread => updateThread?.Thread.IsAlive ?? false ? updateThread.Thread : startupThread; //todo: check we still need this logic
+        internal static GameThread DrawThread;
+        internal static GameThread UpdateThread;
+        internal static InputThread InputThread;
 
         private double maximumUpdateHz;
 
@@ -89,7 +84,7 @@ namespace osu.Framework.Platform
 
             set
             {
-                updateThread.ActiveHz = maximumUpdateHz = value;
+                UpdateThread.ActiveHz = maximumUpdateHz = value;
             }
         }
 
@@ -104,7 +99,7 @@ namespace osu.Framework.Platform
 
             set
             {
-                drawThread.ActiveHz = maximumDrawHz = value;
+                DrawThread.ActiveHz = maximumDrawHz = value;
             }
         }
 
@@ -112,23 +107,23 @@ namespace osu.Framework.Platform
         {
             get
             {
-                return drawThread.InactiveHz;
+                return DrawThread.InactiveHz;
             }
 
             set
             {
-                drawThread.InactiveHz = value;
-                updateThread.InactiveHz = value;
+                DrawThread.InactiveHz = value;
+                UpdateThread.InactiveHz = value;
             }
         }
 
-        protected internal PerformanceMonitor InputMonitor => inputThread.Monitor;
-        protected internal PerformanceMonitor UpdateMonitor => updateThread.Monitor;
-        protected internal PerformanceMonitor DrawMonitor => drawThread.Monitor;
+        protected internal PerformanceMonitor InputMonitor => InputThread.Monitor;
+        protected internal PerformanceMonitor UpdateMonitor => UpdateThread.Monitor;
+        protected internal PerformanceMonitor DrawMonitor => DrawThread.Monitor;
 
         //null here to construct early but bind to thread late.
-        public Scheduler InputScheduler => inputThread.Scheduler;
-        public Scheduler UpdateScheduler => updateThread.Scheduler;
+        public Scheduler InputScheduler => InputThread.Scheduler;
+        public Scheduler UpdateScheduler => UpdateThread.Scheduler;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
@@ -154,19 +149,19 @@ namespace osu.Framework.Platform
 
             threads = new[]
             {
-                drawThread = new GameThread(DrawFrame, @"DrawThread")
+                DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
                 },
-                updateThread = new GameThread(UpdateFrame, @"UpdateThread")
+                UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true }
                 },
-                inputThread = new InputThread(null, @"MainThread") //never gets started.
+                InputThread = new InputThread(null, @"Input") //never gets started.
             };
 
-            Clock = updateThread.Clock;
+            Clock = UpdateThread.Clock;
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
@@ -222,17 +217,14 @@ namespace osu.Framework.Platform
         protected virtual void UpdateInitialize()
         {
             //this was added due to the dependency on GLWrapper.MaxTextureSize begin initialised.
-            drawThread.WaitUntilInitialized();
+            DrawThread.WaitUntilInitialized();
         }
 
         protected void UpdateFrame()
         {
-            using (UpdateMonitor.BeginCollecting(PerformanceCollectionType.Update))
-            {
-                UpdateSubTree();
-                using (var buffer = DrawRoots.Get(UsageType.Write))
-                    buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBf);
-            }
+            UpdateSubTree();
+            using (var buffer = DrawRoots.Get(UsageType.Write))
+                buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBf);
         }
 
         protected virtual void DrawInitialize()
@@ -252,13 +244,10 @@ namespace osu.Framework.Platform
                 GLWrapper.ClearColour(Color4.Black);
             }
 
-            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.Draw))
-            {
-                using (var buffer = DrawRoots.Get(UsageType.Read))
-                    buffer?.Object?.Draw(null);
+            using (var buffer = DrawRoots.Get(UsageType.Read))
+                buffer?.Object?.Draw(null);
 
-                GLWrapper.FlushCurrentBatch();
-            }
+            GLWrapper.FlushCurrentBatch();
 
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 Window.SwapBuffers();
@@ -282,8 +271,8 @@ namespace osu.Framework.Platform
         {
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
 
-            drawThread.Start();
-            updateThread.Start();
+            DrawThread.Start();
+            UpdateThread.Start();
 
             if (Window != null)
             {
@@ -300,7 +289,7 @@ namespace osu.Framework.Platform
                     Window.UpdateFrame += delegate
                     {
                         inputPerformanceCollectionPeriod?.Dispose();
-                        inputThread.RunUpdate();
+                        InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
                     Window.Run();
@@ -312,7 +301,7 @@ namespace osu.Framework.Platform
             else
             {
                 while (!ExitRequested)
-                    inputThread.RunUpdate();
+                    InputThread.RunUpdate();
             }
         }
 
@@ -323,15 +312,15 @@ namespace osu.Framework.Platform
             switch (e.Key)
             {
                 case Key.F7:
-                    if (updateThread.ActiveHz == maximumUpdateHz)
+                    if (UpdateThread.ActiveHz == maximumUpdateHz)
                     {
-                        updateThread.ActiveHz = double.MaxValue;
-                        drawThread.ActiveHz = double.MaxValue;
+                        UpdateThread.ActiveHz = double.MaxValue;
+                        DrawThread.ActiveHz = double.MaxValue;
                     }
                     else
                     {
-                        updateThread.ActiveHz = maximumUpdateHz;
-                        drawThread.ActiveHz = maximumDrawHz;
+                        UpdateThread.ActiveHz = maximumUpdateHz;
+                        DrawThread.ActiveHz = maximumDrawHz;
                     }
                     break;
             }
@@ -398,8 +387,8 @@ namespace osu.Framework.Platform
 
         protected virtual void WaitUntilReadyToLoad()
         {
-            updateThread.WaitUntilInitialized();
-            drawThread.WaitUntilInitialized();
+            UpdateThread.WaitUntilInitialized();
+            DrawThread.WaitUntilInitialized();
         }
 
         protected virtual void LoadGame(BaseGame game)
