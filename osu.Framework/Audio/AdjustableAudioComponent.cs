@@ -8,6 +8,7 @@ using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
 using osu.Framework.Threading;
+using osu.Framework.DebugUtils;
 
 namespace osu.Framework.Audio
 {
@@ -59,11 +60,6 @@ namespace osu.Framework.Audio
 
         protected readonly BindableDouble FrequencyCalculated = new BindableDouble(1);
 
-        /// <summary>
-        /// Handles invalidation of the component's state.
-        /// </summary>
-        private Cached<double> componentState = new Cached<double>();
-
         protected AdjustableAudioComponent(Scheduler scheduler = null)
         {
             Volume.ValueChanged += InvalidateState;
@@ -78,10 +74,7 @@ namespace osu.Framework.Audio
 
         protected void InvalidateState(object sender = null, EventArgs e = null)
         {
-            //todo: probably change the way invalidation works here to make more sense.
-            //added the explicit update to ensure values propagate instantly rather than at next update (which can be too late for newly played samples).
-            componentState.Invalidate();
-            Update();
+            PendingActions.Enqueue(() => OnStateChanged(this, null));
         }
 
         protected virtual void OnStateChanged(object sender, EventArgs e)
@@ -138,11 +131,7 @@ namespace osu.Framework.Audio
 
         public virtual void Update()
         {
-            componentState.Refresh(delegate
-            {
-                OnStateChanged(this, null);
-                return 1;
-            });
+            ThreadSafety.EnsureNotUpdateThread();
 
             Action action;
             while (PendingActions.TryDequeue(out action))

@@ -37,7 +37,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        public AudioTrackBass(Stream data, bool quick = true)
+        public AudioTrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
             {
@@ -69,6 +69,8 @@ namespace osu.Framework.Audio.Track
                 Length = (Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000);
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
             });
+
+            InvalidateState();
         }
 
         public override void Reset()
@@ -110,21 +112,12 @@ namespace osu.Framework.Audio.Track
 
         private void setDirection(bool reverse)
         {
-            int newDirection = reverse ? -1 : 1;
-
-            if (direction == newDirection) return;
-
-            direction = newDirection;
-
-            PendingActions.Enqueue(() =>
-            {
-                Bass.ChannelSetAttribute(activeStream, ChannelAttribute.ReverseDirection, direction);
-            });
+            direction = reverse ? -1 : 1;
+            Bass.ChannelSetAttribute(activeStream, ChannelAttribute.ReverseDirection, direction);
         }
 
         public override void Start()
         {
-            Update(); //ensure state is valid.
             isPlayed = true;
             PendingActions.Enqueue(() =>
             {
@@ -134,10 +127,15 @@ namespace osu.Framework.Audio.Track
 
         public override bool Seek(double seek)
         {
-            double clamped = MathHelper.Clamp(seek, 0, Length);
+            // At this point the track may not yet be loaded which is indicated by a 0 length.
+            // In that case we still want to return true, hence the conservative length.
+            double conservativeLength = Length == 0 ? double.MaxValue : Length;
+            double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
             PendingActions.Enqueue(() =>
             {
+                double clamped = MathHelper.Clamp(seek, 0, Length);
+
                 if (clamped != CurrentTime)
                 {
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
@@ -145,7 +143,7 @@ namespace osu.Framework.Audio.Track
                 }
             });
 
-            return clamped == seek;
+            return conservativeClamped == seek;
         }
 
         public override double CurrentTime

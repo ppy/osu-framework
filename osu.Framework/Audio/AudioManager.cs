@@ -256,12 +256,5 @@ namespace osu.Framework.Audio
 
             lastDeviceCount = availableDevices;
         }
-
-        public override void Update()
-        {
-            base.Update();
-
-            scheduler.Update();
-        }
     }
 }
