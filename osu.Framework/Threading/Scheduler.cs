@@ -2,8 +2,10 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using osu.Framework.Extensions;
 
@@ -14,7 +16,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class Scheduler : IDisposable
     {
-        private readonly Queue<Action> schedulerQueue = new Queue<Action>();
+        private readonly ConcurrentQueue<Action> schedulerQueue = new ConcurrentQueue<Action>();
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
@@ -49,69 +51,58 @@ namespace osu.Framework.Threading
         /// <returns>true if any tasks were run.</returns>
         public int Update()
         {
-            Action[] runnable;
-            int count;
-
-            lock (schedulerQueue)
+            //purge any waiting timed tasks to the main schedulerQueue.
+            lock (timedTasks)
             {
-                //purge any waiting timed tasks to the main schedulerQueue.
-                lock (timedTasks)
+                long currentTime = timer.ElapsedMilliseconds;
+                ScheduledDelegate sd;
+
+                while (timedTasks.Count > 0 && (sd = timedTasks[0]).WaitTime <= currentTime)
                 {
-                    long currentTime = timer.ElapsedMilliseconds;
-                    ScheduledDelegate sd;
+                    timedTasks.RemoveAt(0);
+                    if (sd.Cancelled) continue;
 
-                    while (timedTasks.Count > 0 && (sd = timedTasks[0]).WaitTime <= currentTime)
+                    schedulerQueue.Enqueue(sd.RunTask);
+
+                    if (sd.RepeatInterval > 0)
                     {
-                        timedTasks.RemoveAt(0);
-                        if (sd.Cancelled) continue;
-
-                        schedulerQueue.Enqueue(sd.RunTask);
-
-                        if (sd.RepeatInterval > 0)
+                        if (timedTasks.Count < 1000)
+                            sd.WaitTime += sd.RepeatInterval;
+                        // This should never ever happen... but if it does, let's not overflow on queued tasks.
+                        else
                         {
-                            if (timedTasks.Count < 1000)
-                                sd.WaitTime += sd.RepeatInterval;
-                            // This should never ever happen... but if it does, let's not overflow on queued tasks.
-                            else
-                            {
-                                Debug.Print("Timed tasks are overflowing. Can not keep up with periodic tasks.");
-                                sd.WaitTime = timer.ElapsedMilliseconds + sd.RepeatInterval;
-                            }
-
-                            timedTasks.AddInPlace(sd);
-                        }
-                    }
-
-                    for (int i = 0; i < perUpdateTasks.Count; i++)
-                    {
-                        ScheduledDelegate task = perUpdateTasks[i];
-                        if (task.Cancelled)
-                        {
-                            perUpdateTasks.RemoveAt(i--);
-                            continue;
+                            Debug.Print("Timed tasks are overflowing. Can not keep up with periodic tasks.");
+                            sd.WaitTime = timer.ElapsedMilliseconds + sd.RepeatInterval;
                         }
 
-                        schedulerQueue.Enqueue(task.RunTask);
+                        timedTasks.AddInPlace(sd);
                     }
                 }
 
-                count = schedulerQueue.Count;
-                if (count == 0)
-                    return 0;
+                for (int i = 0; i < perUpdateTasks.Count; i++)
+                {
+                    ScheduledDelegate task = perUpdateTasks[i];
+                    if (task.Cancelled)
+                    {
+                        perUpdateTasks.RemoveAt(i--);
+                        continue;
+                    }
 
-                //create a safe copy of pending tasks.
-                runnable = new Action[count];
-                schedulerQueue.CopyTo(runnable, 0);
-                schedulerQueue.Clear();
+                    schedulerQueue.Enqueue(task.RunTask);
+                }
             }
 
-            foreach (Action v in runnable)
+            int countRun = 0;
+
+            Action action;
+            while (schedulerQueue.TryDequeue(out action))
             {
                 //todo: error handling
-                v.Invoke();
+                action.Invoke();
+                countRun++;
             }
 
-            return count;
+            return countRun;
         }
 
         internal void SetCurrentThread(Thread thread)
@@ -139,8 +130,7 @@ namespace osu.Framework.Threading
                 return true;
             }
 
-            lock (schedulerQueue)
-                schedulerQueue.Enqueue(task);
+            schedulerQueue.Enqueue(task);
 
             return false;
         }
@@ -180,8 +170,7 @@ namespace osu.Framework.Threading
             if (schedulerQueue.Contains(task))
                 return false;
 
-            lock (schedulerQueue)
-                schedulerQueue.Enqueue(task);
+            schedulerQueue.Enqueue(task);
 
             return true;
         }
