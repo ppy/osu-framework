@@ -72,6 +72,7 @@
     <Compile Include="Platform\Windows\Native\Input.cs" />
     <Compile Include="Platform\Windows\Native\Registry.cs" />
     <Compile Include="Platform\Windows\TimePeriod.cs" />
+    <Compile Include="Platform\Windows\WindowsClipboard.cs" />
     <Compile Include="Platform\Windows\WindowsGameHost.cs" />
     <Compile Include="Platform\Windows\WindowsGameWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

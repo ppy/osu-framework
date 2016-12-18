@@ -7,12 +7,15 @@ using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Input.Handlers;
 using OpenTK.Graphics;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {
         private TimePeriod timePeriod;
+
+        public override Clipboard GetClipboard() => new WindowsClipboard();
 
         internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {

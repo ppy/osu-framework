@@ -259,6 +259,7 @@
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
     <Compile Include="IUpdateable.cs" />
+    <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
     <Compile Include="Threading\GameThread.cs" />
     <Compile Include="Threading\InputThread.cs" />
