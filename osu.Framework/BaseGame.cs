@@ -138,6 +138,7 @@ namespace osu.Framework
             }).Preload(this, AddInternal);
 
             performanceContainer.AddThread(BasicGameHost.InputThread);
+            performanceContainer.AddThread(Audio.Thread);
             performanceContainer.AddThread(BasicGameHost.UpdateThread);
             performanceContainer.AddThread(BasicGameHost.DrawThread);
 
