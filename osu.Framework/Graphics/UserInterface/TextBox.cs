@@ -304,18 +304,29 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
-            int i = selectionLeft;
-            foreach (Drawable dd in textFlow.Children.Skip(selectionLeft).Take(InternalText.Length - selectionLeft))
-                dd.Depth = -i - 1;
+            // Remove all characters to the right and store them in a local list,
+            // such that their depth can be updated.
+            List<Drawable> charsRight = new List<Drawable>();
+            foreach (Drawable d in textFlow.Children.Skip(selectionLeft))
+                charsRight.Add(d);
+            textFlow.Remove(charsRight);
 
+            // Update their depth to make room for the to-be inserted character.
+            int i = -selectionLeft;
+            foreach (Drawable d in charsRight)
+                d.Depth = --i;
+
+            // Add the character
             Drawable ch;
-
             textFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
                 TextSize = DrawSize.Y,
                 Depth = -selectionLeft,
             });
+
+            // Add back all the previously removed characters
+            textFlow.Add(charsRight);
 
             return ch;
         }
