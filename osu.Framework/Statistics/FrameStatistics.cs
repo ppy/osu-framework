@@ -84,8 +84,7 @@ namespace osu.Framework.Statistics
 
     public enum PerformanceCollectionType
     {
-        Update = 0,
-        Draw,
+        Work = 0,
         SwapBuffer,
         WndProc,
         Debug,

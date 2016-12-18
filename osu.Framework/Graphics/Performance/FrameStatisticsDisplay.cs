@@ -19,6 +19,7 @@ using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -101,10 +102,10 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public FrameStatisticsDisplay(string name, PerformanceMonitor monitor, TextureAtlas atlas)
+        public FrameStatisticsDisplay(GameThread thread, TextureAtlas atlas)
         {
-            Name = name;
-            this.monitor = monitor;
+            Name = thread.Thread.Name;
+            monitor = thread.Monitor;
 
             Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
@@ -384,10 +385,8 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case PerformanceCollectionType.Update:
+                case PerformanceCollectionType.Work:
                     return Color4.YellowGreen;
-                case PerformanceCollectionType.Draw:
-                    return Color4.BlueViolet;
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
 #if DEBUG

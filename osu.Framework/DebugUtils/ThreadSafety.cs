@@ -27,8 +27,8 @@ namespace osu.Framework.DebugUtils
             Debug.Assert(IsDrawThread);
         }
 
-        public static bool IsUpdateThread => Thread.CurrentThread == BasicGameHost.UpdateThread;
+        public static bool IsUpdateThread => Thread.CurrentThread == BasicGameHost.UpdateThread.Thread;
 
-        public static bool IsDrawThread => Thread.CurrentThread == BasicGameHost.DrawThread;
+        public static bool IsDrawThread => Thread.CurrentThread == BasicGameHost.DrawThread.Thread;
     }
 }

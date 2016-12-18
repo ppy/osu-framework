@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Allocation;
 using osu.Framework.Platform;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -47,16 +48,12 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        [BackgroundDependencyLoader]
-        private void load(BasicGameHost host)
+        public void AddThread(GameThread thread) => Add(new FrameStatisticsDisplay(thread, atlas));
+
+        public PerformanceOverlay()
         {
-            atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
-
-            Add(new FrameStatisticsDisplay(@"Input", host.InputMonitor, atlas));
-            Add(new FrameStatisticsDisplay(@"Update", host.UpdateMonitor, atlas));
-            Add(new FrameStatisticsDisplay(@"Draw", host.DrawMonitor, atlas));
-
             Direction = FlowDirection.VerticalOnly;
+            atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
         }
     }
 

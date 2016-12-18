@@ -137,13 +137,11 @@ namespace osu.Framework
                 Depth = float.MinValue
             }).Preload(this, AddInternal);
 
-            addDebugTools();
-        }
+            performanceContainer.AddThread(BasicGameHost.InputThread);
+            performanceContainer.AddThread(BasicGameHost.UpdateThread);
+            performanceContainer.AddThread(BasicGameHost.DrawThread);
 
-        protected override void Update()
-        {
-            Audio.Update();
-            base.Update();
+            addDebugTools();
         }
 
         private void dragDrop(object sender, DragEventArgs e)
