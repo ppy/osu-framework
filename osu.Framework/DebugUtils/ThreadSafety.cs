@@ -19,6 +19,15 @@ namespace osu.Framework.DebugUtils
         }
 
         [Conditional("DEBUG")]
+        internal static void EnsureNotUpdateThread()
+        {
+            //This check is very intrusive on performance, so let's only run when a debugger is actually attached.
+            if (!Debugger.IsAttached) return;
+
+            Debug.Assert(!IsUpdateThread);
+        }
+
+        [Conditional("DEBUG")]
         internal static void EnsureDrawThread()
         {
             //This check is very intrusive on performance, so let's only run when a debugger is actually attached.

@@ -114,13 +114,11 @@ namespace osu.Framework.IO
                     isLoaded |= blockLoadedStatus.All(loaded => loaded);
                 }
 
-                isLoaded = true;
+                if (!isClosed) underlyingStream?.Close();
             }
             catch (ThreadAbortException)
             {
             }
-
-            if (!isClosed) underlyingStream?.Close();
         }
 
         private int nextBlockToLoad
@@ -142,8 +140,11 @@ namespace osu.Framework.IO
             }
         }
 
+        private volatile bool isDisposed = false;
         protected override void Dispose(bool disposing)
         {
+            isDisposed = true;
+
             loadThread?.Abort();
 
             if (!isClosed) Close();
@@ -192,7 +193,11 @@ namespace osu.Framework.IO
             for (int i = startBlock; i <= endBlock; i++)
             {
                 while (!blockLoadedStatus[i])
+                {
                     Thread.Sleep(1);
+                    if (isDisposed)
+                        return 0;
+                }
             }
 
             Array.Copy(data, position, buffer, offset, amountBytesToRead);

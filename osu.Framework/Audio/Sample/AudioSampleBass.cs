@@ -36,12 +36,9 @@ namespace osu.Framework.Audio.Sample
 
             if (hasChannel)
             {
-                PendingActions.Enqueue(() =>
-                {
-                    Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated);
-                    Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated);
-                    Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * FrequencyCalculated);
-                });
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated);
+                Bass.ChannelSetAttribute(channel, ChannelAttribute.Frequency, initialFrequency * FrequencyCalculated);
             }
         }
 
@@ -64,9 +61,13 @@ namespace osu.Framework.Audio.Sample
                 {
                     channel = Bass.SampleGetChannel(SampleId);
                     Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
-                    InvalidateState();
                 }
+            });
 
+            InvalidateState();
+
+            PendingActions.Enqueue(() =>
+            {
                 Bass.ChannelPlay(channel, restart);
             });
         }
