@@ -31,6 +31,8 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container, IIpcHost
     {
+        public static BasicGameHost Instance;
+
         public BasicGameWindow Window;
 
         private void setActive(bool isActive)
@@ -69,9 +71,9 @@ namespace osu.Framework.Platform
 
         private GameThread[] threads;
 
-        protected internal static GameThread DrawThread;
-        protected internal static GameThread UpdateThread;
-        protected internal static InputThread InputThread;
+        public GameThread DrawThread;
+        public GameThread UpdateThread;
+        public InputThread InputThread;
 
         private double maximumUpdateHz;
 
@@ -140,6 +142,9 @@ namespace osu.Framework.Platform
 
         protected BasicGameHost(string gameName = @"")
         {
+            Debug.Assert(Instance == null);
+            Instance = this;
+
             Dependencies.Cache(this);
             name = gameName;
 

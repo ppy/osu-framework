@@ -137,10 +137,10 @@ namespace osu.Framework
                 Depth = float.MinValue
             }).Preload(this, AddInternal);
 
-            performanceContainer.AddThread(BasicGameHost.InputThread);
+            performanceContainer.AddThread(host.InputThread);
             performanceContainer.AddThread(Audio.Thread);
-            performanceContainer.AddThread(BasicGameHost.UpdateThread);
-            performanceContainer.AddThread(BasicGameHost.DrawThread);
+            performanceContainer.AddThread(host.UpdateThread);
+            performanceContainer.AddThread(host.DrawThread);
 
             addDebugTools();
         }

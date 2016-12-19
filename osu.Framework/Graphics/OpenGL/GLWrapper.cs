@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            BasicGameHost.UpdateThread.Scheduler.Add(() => resetScheduler.Add(disposalAction.Invoke));
+            host.UpdateThread.Scheduler.Add(() => resetScheduler.Add(disposalAction.Invoke));
         }
 
         internal static void Reset(Vector2 size)
