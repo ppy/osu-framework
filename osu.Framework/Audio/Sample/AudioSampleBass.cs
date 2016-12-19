@@ -20,8 +20,10 @@ namespace osu.Framework.Audio.Sample
         private bool freeWhenDone;
 
         public AudioSampleBass(byte[] data)
-            : this(Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default))
         {
+            PendingActions.Enqueue(() => {
+                SampleId = Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default);
+            });
         }
 
         public AudioSampleBass(int sampleId, bool freeWhenDone = false)
