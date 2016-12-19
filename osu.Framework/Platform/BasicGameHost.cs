@@ -142,7 +142,6 @@ namespace osu.Framework.Platform
 
         protected BasicGameHost(string gameName = @"")
         {
-            Debug.Assert(Instance == null);
             Instance = this;
 
             Dependencies.Cache(this);
