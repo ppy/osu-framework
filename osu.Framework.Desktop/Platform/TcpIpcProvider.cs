@@ -20,7 +20,8 @@ namespace osu.Framework.Desktop.Platform
         private TcpListener listener;
         private CancellationTokenSource cancelListener;
         private CancellationToken token;
-        public event Action<IpcMessage> MessageReceived;
+
+        public event Action<IpcMessage> MessageReceived;
     
         public bool Bind()
         {
@@ -82,7 +83,8 @@ namespace osu.Framework.Desktop.Platform
                 }
             }
         }
-        public async Task SendMessage(IpcMessage message)
+
+        public async Task SendMessage(IpcMessage message)
         {
             using (var client = new TcpClient())
             {
@@ -90,9 +92,9 @@ namespace osu.Framework.Desktop.Platform
                 using (var stream = client.GetStream())
                 {
                     var str = JsonConvert.SerializeObject(message, Formatting.None);
-                    byte[] header = BitConverter.GetBytes(str.Length);
-                    await stream.WriteAsync(header, 0, header.Length);
                     byte[] data = Encoding.UTF8.GetBytes(str);
+                    byte[] header = BitConverter.GetBytes(data.Length);
+                    await stream.WriteAsync(header, 0, header.Length);
                     await stream.WriteAsync(data, 0, data.Length);
                     await stream.FlushAsync();
                 }
