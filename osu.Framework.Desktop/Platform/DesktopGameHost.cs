@@ -35,7 +35,7 @@ namespace osu.Framework.Desktop.Platform
             //delay load until we have a size.
             if (Size == Vector2.Zero)
             {
-                UpdateScheduler.Add(delegate { LoadGame(game); });
+                UpdateThread.Scheduler.Add(delegate { LoadGame(game); });
                 return;
             }
 
