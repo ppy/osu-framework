@@ -212,9 +212,10 @@ namespace osu.Framework.Audio
 
             if (useDefault)
             {
-                int currentDevice = Bass.CurrentDevice;
                 try
                 {
+                    int currentDevice = Bass.CurrentDevice;
+
                     DeviceInfo device = Bass.GetDeviceInfo(currentDevice);
                     if (device.IsDefault && device.IsEnabled)
                         return; //early return when nothing has changed.
