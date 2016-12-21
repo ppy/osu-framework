@@ -39,16 +39,37 @@ namespace osu.Framework.Graphics
         {
         }
 
-        public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null) => OnMouseDown(getLocalState(state), args);
-
+        public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null)
+        {
+            if (state == null || state.Mouse.HasMainButtonPressed)
+                return OnMouseDown(getLocalState(state), args);
+            else
+                return OnAuxMouseDown(getLocalState(state), args);
+        }
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             return false;
         }
 
-        public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null) => OnMouseUp(getLocalState(state), args);
+        protected virtual bool OnAuxMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            return false;
+        }
+
+        public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null)
+        {
+            if (state == null || state.Last.Mouse.HasMainButtonPressed)
+                return OnMouseUp(getLocalState(state), args);
+            else
+                return OnAuxMouseUp(getLocalState(state), args);
+        }
 
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        {
+            return false;
+        }
+
+        protected virtual bool OnAuxMouseUp(InputState state, MouseUpEventArgs args)
         {
             return false;
         }
@@ -205,6 +226,7 @@ namespace osu.Framework.Graphics
 
             public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+            public bool HasButtonPressed => NativeState.HasButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;
             public bool RightButton => NativeState.RightButton;

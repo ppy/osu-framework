@@ -383,7 +383,8 @@ namespace osu.Framework.Input
                 if (isValidClick)
                     handleMouseClick(state);
 
-                mouseDownInputQueue = null;
+                if(mouse.LastState?.HasButtonPressed != true)
+                    mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
 
                 if (isDragging)

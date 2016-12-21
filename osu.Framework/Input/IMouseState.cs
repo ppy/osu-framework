@@ -20,6 +20,7 @@ namespace osu.Framework.Input
         Vector2? PositionMouseDown { get; }
 
         bool HasMainButtonPressed { get; }
+        bool HasButtonPressed { get; }
 
         bool LeftButton { get; }
         bool MiddleButton { get; }
