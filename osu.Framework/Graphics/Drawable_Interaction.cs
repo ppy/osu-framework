@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics
 
         public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null)
         {
-            if (state == null || state.Mouse.HasMainButtonPressed)
+            if (args == null || args.Button == MouseButton.Left || args.Button == MouseButton.Right)
                 return OnMouseDown(getLocalState(state), args);
             else
                 return OnAuxMouseDown(getLocalState(state), args);
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics
 
         public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null)
         {
-            if (state == null || state.Last.Mouse.HasMainButtonPressed)
+            if (args == null || args.Button == MouseButton.Left || args.Button == MouseButton.Right)
                 return OnMouseUp(getLocalState(state), args);
             else
                 return OnAuxMouseUp(getLocalState(state), args);
