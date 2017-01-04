@@ -65,6 +65,7 @@ namespace osu.Framework.IO
 
             loadThread = new Thread(loadRequiredBlocks)
             {
+                Name = @"AsyncBufferStream_Load",
                 IsBackground = true
             };
             loadThread.Start();
