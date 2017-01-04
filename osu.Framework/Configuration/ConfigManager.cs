@@ -134,7 +134,7 @@ namespace osu.Framework.Configuration
 
         public void Load()
         {
-            using (var stream = storage.GetStream(Filename))
+            using (var stream = storage?.GetStream(Filename))
             {
                 if (stream == null)
                     return;
