@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         Opened,
     }
 
-    public class DropDownMenu<T> : Container, IBindable, IStateful<DropDownMenuState>
+    public abstract class DropDownMenu<T> : Container, IBindable, IStateful<DropDownMenuState>
     {
         private bool opened;
         private bool listInitialized = false;
@@ -51,10 +51,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Box DropDownBackground;
         protected virtual float DropDownListSpacing => 0;
 
-        protected virtual DropDownComboBox CreateComboBox()
-        {
-            return new DropDownComboBox();
-        }
+        protected abstract DropDownComboBox CreateComboBox();
 
         private int maxDropDownHeight = 100;
 
@@ -196,7 +193,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            ComboBox.UpdateLabel(SelectedItem?.DisplayText);
+            ComboBox.Label = SelectedItem?.DisplayText;
         }
 
         public void Open()
@@ -238,7 +235,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void TriggerValueChanged()
         {
-            ComboBox.UpdateLabel(SelectedItem?.DisplayText);
+            ComboBox.Label = SelectedItem?.DisplayText;
             Close();
             ValueChanged?.Invoke(this, null);
         }
