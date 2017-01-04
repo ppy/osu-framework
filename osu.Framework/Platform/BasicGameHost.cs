@@ -31,6 +31,8 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container, IIpcHost
     {
+        public static BasicGameHost Instance;
+
         public BasicGameWindow Window;
 
         private void setActive(bool isActive)
@@ -69,9 +71,9 @@ namespace osu.Framework.Platform
 
         private GameThread[] threads;
 
-        internal static GameThread DrawThread;
-        internal static GameThread UpdateThread;
-        internal static InputThread InputThread;
+        public GameThread DrawThread;
+        public GameThread UpdateThread;
+        public InputThread InputThread;
 
         private double maximumUpdateHz;
 
@@ -121,10 +123,6 @@ namespace osu.Framework.Platform
         protected internal PerformanceMonitor UpdateMonitor => UpdateThread.Monitor;
         protected internal PerformanceMonitor DrawMonitor => DrawThread.Monitor;
 
-        //null here to construct early but bind to thread late.
-        public Scheduler InputScheduler => InputThread.Scheduler;
-        public Scheduler UpdateScheduler => UpdateThread.Scheduler;
-
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {
@@ -144,6 +142,8 @@ namespace osu.Framework.Platform
 
         protected BasicGameHost(string gameName = @"")
         {
+            Instance = this;
+
             Dependencies.Cache(this);
             name = gameName;
 
@@ -191,7 +191,7 @@ namespace osu.Framework.Platform
 
             bool? response = null;
 
-            UpdateScheduler.Add(delegate
+            UpdateThread.Scheduler.Add(delegate
             {
                 response = Exiting?.Invoke() == true;
             });
@@ -257,7 +257,7 @@ namespace osu.Framework.Platform
 
         public void Exit()
         {
-            InputScheduler.Add(delegate
+            InputThread.Scheduler.Add(delegate
             {
                 ExitRequested = true;
 
@@ -333,7 +333,7 @@ namespace osu.Framework.Platform
             var size = Window.ClientSize;
             //When minimizing, there will be an "size zero, but WindowState not Minimized" state.
             if (size.IsEmpty) return;
-            UpdateScheduler.Add(delegate
+            UpdateThread.Scheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
                 base.Size = new Vector2(size.Width, size.Height);
@@ -354,7 +354,7 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
-                        InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
+                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
                     }
                 }
 

@@ -21,7 +21,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         public override bool Initialize(BasicGameHost host)
         {
-            host.InputScheduler.Add(new ScheduledDelegate(delegate
+            host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
             {
                 PendingStates.Enqueue(new InputState
                 {
