@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -26,19 +27,21 @@ namespace osu.Framework.Graphics.UserInterface
         private List<DropDownMenuItem<T>> internalItems = new List<DropDownMenuItem<T>>();
         private readonly Dictionary<T, int> itemDictionary = new Dictionary<T, int>();
 
-        public IEnumerable<DropDownMenuItem<T>> Items
+        protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<T> values);
+
+        public IEnumerable<T> Items
         {
             get
             {
-                return internalItems;
+                return internalItems.Select(i => i.Value);
             }
             set
             {
                 ClearItems();
-                internalItems = new List<DropDownMenuItem<T>>(value);
-                for (int i = 0; i < internalItems.Count; i++)
+                foreach (var item in GetDropDownItems(value))
                 {
-                    addMenuItem(internalItems[i], i);
+                    internalItems.Add(item);
+                    addMenuItem(item, internalItems.Count - 1);
                 }
             }
         }

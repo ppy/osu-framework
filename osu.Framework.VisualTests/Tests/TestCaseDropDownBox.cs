@@ -10,6 +10,8 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -24,9 +26,9 @@ namespace osu.Framework.VisualTests.Tests
         public override void Reset()
         {
             base.Reset();
-            StyledDropDownMenuItem[] testItems = new StyledDropDownMenuItem[10];
+            string[] testItems = new string[10];
             for (int i = 0; i < 10; i++)
-                testItems[i] = new StyledDropDownMenuItem(@"test " + i);
+                testItems[i] = @"test " + i;
             styledDropDownMenu = new StyledDropDownMenu
             {
                 Width = 150,
@@ -46,6 +48,11 @@ namespace osu.Framework.VisualTests.Tests
             protected override DropDownComboBox CreateComboBox()
             {
                 return new StyledDropDownComboBox();
+            }
+            
+            protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<string> values)
+            {
+                return values.Select(v => new StyledDropDownMenuItem(v));
             }
 
             public StyledDropDownMenu()
@@ -98,8 +105,6 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropDownMenuItem : DropDownMenuItem<string>
         {
-            private SpriteText caret, label;
-        
             public StyledDropDownMenuItem(string text) : base(text, text)
             {
                 AutoSizeAxes = Axes.None;
@@ -108,37 +113,8 @@ namespace osu.Framework.VisualTests.Tests
 
                 Children = new[]
                 {
-                    caret = new SpriteText(),
-                    label = new SpriteText
-                    {
-                        Margin = new MarginPadding { Left = 15 },
-                    },
+                    new SpriteText { Text = text },
                 };
-                formatCaret();
-                formatLabel();
-            }
-
-            protected override void OnSelectChange()
-            {
-                if (!IsLoaded)
-                    return;
-
-                FormatBackground();
-                formatCaret();
-                formatLabel();
-            }
-
-            private void formatCaret()
-            {
-                caret.Text = IsSelected ? @"+" : @"-";
-            }
-
-            private void formatLabel()
-            {
-                if (IsSelected)
-                    label.Text = @"*" + Value + @"*";
-                else
-                    label.Text = Value.ToString();
             }
         }
     }
