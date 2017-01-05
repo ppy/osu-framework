@@ -63,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void AnimateOpen()
             {
-                foreach (StyledDropDownMenuItem child in DropDownList.Children)
+                foreach (StyledDropDownMenuItem child in DropDownItemsContainer.Children)
                 {
                     child.FadeIn(200);
                     child.ResizeTo(new Vector2(1, 24), 200);
@@ -73,7 +73,7 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void AnimateClose()
             {
-                foreach (StyledDropDownMenuItem child in DropDownList.Children)
+                foreach (StyledDropDownMenuItem child in DropDownItemsContainer.Children)
                 {
                     child.ResizeTo(new Vector2(1, 0), 200);
                     child.FadeOut(200);
