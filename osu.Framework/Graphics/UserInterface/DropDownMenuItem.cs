@@ -68,7 +68,6 @@ namespace osu.Framework.Graphics.UserInterface
             RelativeSizeAxes = Axes.X;
             Width = 1;
             AutoSizeAxes = Axes.Y;
-            Masking = true;
             DisplayText = text;
             Value = value;
 
