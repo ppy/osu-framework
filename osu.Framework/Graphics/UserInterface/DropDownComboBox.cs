@@ -9,14 +9,16 @@ using System;
  
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class DropDownComboBox : ClickableContainer
+    public abstract class DropDownComboBox : ClickableContainer
     {
         protected Box Background;
         protected virtual Color4 BackgroundColour => Color4.DarkGray;
         protected virtual Color4 BackgroundColourHover => Color4.Gray;
         protected Container Foreground;
-        protected Drawable Label;
-        protected Drawable Caret;
+
+        protected override Container<Drawable> Content => Foreground;
+
+        protected internal abstract string Label { get; set; }
 
         public Action CloseAction;
 
@@ -26,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Width = 1;
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Background = new Box
                 {
@@ -36,20 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Foreground = new Container
                 {
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Children = new Drawable[]
-                    {
-                        Label = new SpriteText
-                        {
-                            Text = @"",
-                        },
-                        Caret = new SpriteText
-                        {
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            Text = @"+",
-                        },
-                    }
+                    AutoSizeAxes = Axes.Y
                 },
             };
         }
@@ -74,11 +63,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Background.Colour = BackgroundColour;
             base.OnHoverLost(state);
-        }
-
-        public void UpdateLabel(string label)
-        {
-            (Label as SpriteText).Text = label;
         }
     }
 }
