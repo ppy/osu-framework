@@ -14,8 +14,8 @@ namespace osu.Framework.Configuration
 
         public BindableLong(int value = 0) : base(value)
         {
-            MinValue = int.MinValue;
-            MaxValue = int.MaxValue;
+            MinValue = long.MinValue;
+            MaxValue = long.MaxValue;
         }
 
         public override void Weld(Bindable<long> v, bool transferValue = true)
