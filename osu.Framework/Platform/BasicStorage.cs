@@ -13,7 +13,7 @@ namespace osu.Framework.Platform
     
         protected BasicStorage(string baseName)
         {
-            BaseName = FileSafety.WindowsFilenameStrip(baseName);
+            BaseName = FileSafety.FilenameStrip(baseName);
         }
 
         public abstract bool Exists(string path);

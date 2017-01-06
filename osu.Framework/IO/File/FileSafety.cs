@@ -17,14 +17,14 @@ namespace osu.Framework.IO.File
 
         public const string CLEANUP_DIRECTORY = @"_cleanup";
 
-        public static string WindowsFilenameStrip(string entry)
+        public static string FilenameStrip(string entry)
         {
             foreach (char c in Path.GetInvalidFileNameChars())
                 entry = entry.Replace(c.ToString(), string.Empty);
             return entry;
         }
 
-        public static string WindowsPathStrip(string entry)
+        public static string PathStrip(string entry)
         {
             foreach (char c in Path.GetInvalidFileNameChars())
                 entry = entry.Replace(c.ToString(), string.Empty);
