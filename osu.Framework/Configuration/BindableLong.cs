@@ -12,7 +12,7 @@ namespace osu.Framework.Configuration
             set { base.Value = Math.Max(MinValue, Math.Min(MaxValue, value)); }
         }
 
-        public BindableLong(int value = 0) : base(value)
+        public BindableLong(long value = 0) : base(value)
         {
             MinValue = long.MinValue;
             MaxValue = long.MaxValue;
