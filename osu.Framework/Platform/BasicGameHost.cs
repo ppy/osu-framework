@@ -250,10 +250,7 @@ namespace osu.Framework.Platform
             GLWrapper.FlushCurrentBatch();
 
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-            {
-                if (!Window.IsExiting)
-                    Window.SwapBuffers();
-            }
+                Window.SwapBuffers();
         }
 
         protected volatile bool ExitRequested;
@@ -283,7 +280,7 @@ namespace osu.Framework.Platform
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
-                Window.Title = Name; //$@"osu.Framework (running ""{Name}"")";
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
                 Window.FocusedChanged += delegate { setActive(Window.Focused); };
                 window_ClientSizeChanged(null, null);
 
