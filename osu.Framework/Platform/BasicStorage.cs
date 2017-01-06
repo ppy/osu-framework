@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.IO;
+using osu.Framework.IO.File;
 using SQLite.Net;
 
 namespace osu.Framework.Platform
@@ -13,7 +13,7 @@ namespace osu.Framework.Platform
     
         protected BasicStorage(string baseName)
         {
-            BaseName = baseName;
+            BaseName = FileSafety.FilenameStrip(baseName);
         }
 
         public abstract bool Exists(string path);
