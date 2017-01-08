@@ -673,7 +673,7 @@ namespace osu.Framework.Graphics
 
         #endregion
 
-        #region Colour / Alpha / Blending / Pixel snapping
+        #region Colour / Alpha / Blending
 
         private ColourInfo colourInfo = ColourInfo.SingleColour(Color4.White);
 
@@ -758,14 +758,6 @@ namespace osu.Framework.Graphics
                 blendingMode = value;
                 Invalidate(Invalidation.Colour);
             }
-        }
-
-        /// <summary>
-        /// Currently not used.
-        /// </summary>
-        protected virtual bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
-        {
-            return false;
         }
 
         #endregion
