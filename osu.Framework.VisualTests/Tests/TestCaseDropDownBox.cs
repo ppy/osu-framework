@@ -83,9 +83,6 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropDownComboBox : DropDownComboBox
         {
-            protected override Color4 BackgroundColour => new Color4(255, 255, 255, 100);
-            protected override Color4 BackgroundColourHover => Color4.HotPink;
-
             private SpriteText label;
             protected override string Label
             {
@@ -96,6 +93,8 @@ namespace osu.Framework.VisualTests.Tests
             public StyledDropDownComboBox()
             {
                 Foreground.Padding = new MarginPadding(4);
+                BackgroundColour = new Color4(255, 255, 255, 100);
+                BackgroundColourHover = Color4.HotPink;
                 Children = new[]
                 {
                     label = new SpriteText(),
