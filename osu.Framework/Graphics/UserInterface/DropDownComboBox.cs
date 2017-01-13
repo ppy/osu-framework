@@ -12,9 +12,19 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class DropDownComboBox : ClickableContainer
     {
         protected Box Background;
-        protected virtual Color4 BackgroundColour => Color4.DarkGray;
-        protected virtual Color4 BackgroundColourHover => Color4.Gray;
         protected Container Foreground;
+
+        private Color4 backgroundColour = Color4.DarkGray;
+        protected Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+            set
+            {
+                backgroundColour = value;
+                Background.Colour = value;
+            }
+        }
+        protected Color4 BackgroundColourHover { get; set; } = Color4.Gray;
 
         protected override Container<Drawable> Content => Foreground;
 
@@ -33,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = BackgroundColour,
+                    Colour = Color4.DarkGray,
                 },
                 Foreground = new Container
                 {

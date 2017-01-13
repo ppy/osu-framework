@@ -56,10 +56,20 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected Box Background;
-        protected virtual Color4 BackgroundColour => Color4.DarkSlateGray;
-        protected virtual Color4 BackgroundColourSelected => Color4.SlateGray;
-        protected virtual Color4 BackgroundColourHover => Color4.DarkGray;
         protected Container Foreground;
+        
+        private Color4 backgroundColour = Color4.DarkSlateGray;
+        protected Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+            set
+            {
+                backgroundColour = value;
+                FormatBackground();
+            }
+        }
+        protected Color4 BackgroundColourHover { get; set; } = Color4.DarkGray;
+        protected Color4 BackgroundColourSelected { get; set; } = Color4.SlateGray;
 
         protected override Container<Drawable> Content => Foreground;
 
