@@ -109,6 +109,9 @@ namespace osu.Framework.Input
                     pendingStates.AddRange(h.GetPendingStates());
             }
 
+            //may have lost focus due to visibility changes in hierarchy.
+            checkFocusedDrawable(CurrentState);
+
             if (!PassThrough)
             {
                 foreach (InputState s in pendingStates)
@@ -508,14 +511,29 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return false;
 
-            if (FocusedDrawable.Parent == null)
+            bool stillValid = FocusedDrawable.Parent != null;
+
+            if (stillValid)
             {
-                FocusedDrawable.TriggerFocusLost(state);
-                FocusedDrawable = null;
-                return false;
+                //ensure we are visible
+                IContainer d = FocusedDrawable.Parent;
+                while (d != null)
+                {
+                    if (!d.IsVisible)
+                    {
+                        stillValid = false;
+                        break;
+                    }
+                    d = d.Parent;
+                }
             }
 
-            return true;
+            if (stillValid)
+                return true;
+
+            FocusedDrawable.TriggerFocusLost(state);
+            FocusedDrawable = null;
+            return false;
         }
 
         public InputHandler GetHandler(Type handlerType)
