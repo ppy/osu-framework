@@ -250,7 +250,10 @@ namespace osu.Framework.Platform
             GLWrapper.FlushCurrentBatch();
 
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
-                Window.SwapBuffers();
+            {
+                if (!Window.IsExiting)
+                    Window.SwapBuffers();
+            }
         }
 
         protected volatile bool ExitRequested;

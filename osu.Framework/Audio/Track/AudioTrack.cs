@@ -42,6 +42,11 @@ namespace osu.Framework.Audio.Track
         public abstract double CurrentTime { get; }
 
         /// <summary>
+        /// Current position in microseconds.
+        /// </summary>
+        public virtual long CurrentTimeMicro => (long) (CurrentTime * 1000);
+
+        /// <summary>
         /// Lenth of the track in milliseconds.
         /// </summary>
         public double Length { get; protected set; }
