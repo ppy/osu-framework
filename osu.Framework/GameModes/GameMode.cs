@@ -92,6 +92,15 @@ namespace osu.Framework.GameModes
             base.PerformLoad(game);
         }
 
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
+            if (ParentGameMode == null)
+                OnEntering(null);
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
