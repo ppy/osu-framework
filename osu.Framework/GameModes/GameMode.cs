@@ -113,12 +113,6 @@ namespace osu.Framework.GameModes
             return base.OnKeyDown(state, args);
         }
 
-        public void DisplayAsRoot()
-        {
-            Debug.Assert(ParentGameMode == null);
-            OnEntering(null);
-        }
-
         /// <summary>
         /// Changes to a new GameMode.
         /// </summary>
