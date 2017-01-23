@@ -24,6 +24,8 @@ namespace osu.Framework.Platform
 
         public abstract SQLiteConnection GetDatabase(string name);
 
+        public abstract void DeleteDatabase(string name);
+
         public abstract void OpenInNativeExplorer();
     }
 }
