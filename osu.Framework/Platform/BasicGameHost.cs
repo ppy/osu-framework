@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -192,7 +193,10 @@ namespace osu.Framework.Platform
             if (ExceptionThrown != null)
                 ExceptionThrown.Invoke(exception);
             else
+            {
+                AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
                 throw exception;
+            }
         }
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));
