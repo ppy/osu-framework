@@ -8,9 +8,11 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Threading.Tasks;
 
 // this is an abusive thing to do, but it increases the visibility of Extension Methods to virtually every file.
 
@@ -146,5 +148,11 @@ namespace osu.Framework.Extensions
         public static string GetDescription(this Enum value)
             => value.GetType().GetField(value.ToString())
             .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+
+        public static void ThrowIfFaulted(this Task task)
+        {
+            if (task.IsFaulted)
+                ExceptionDispatchInfo.Capture(task.Exception.InnerException).Throw();
+        }
     }
 }

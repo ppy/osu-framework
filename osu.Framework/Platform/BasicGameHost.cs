@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -22,6 +23,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Input;
@@ -53,6 +55,8 @@ namespace osu.Framework.Platform
         public event Action Deactivated;
         public event Func<bool> Exiting;
         public event Action Exited;
+
+        public event Action<Exception> ExceptionThrown;
 
         public event Action<IpcMessage> MessageReceived;
 
@@ -144,6 +148,8 @@ namespace osu.Framework.Platform
         {
             Instance = this;
 
+            AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
+
             Dependencies.Cache(this);
             name = gameName;
 
@@ -178,6 +184,19 @@ namespace osu.Framework.Platform
             AddInternal(inputManager = new UserInputManager(this));
 
             Dependencies.Cache(inputManager);
+        }
+
+        private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+
+            if (ExceptionThrown != null)
+                ExceptionThrown.Invoke(exception);
+            else
+            {
+                AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+                throw exception;
+            }
         }
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));
@@ -399,11 +418,15 @@ namespace osu.Framework.Platform
                 WaitUntilReadyToLoad();
 
                 game.PerformLoad(game);
-            }).ContinueWith(obj => Schedule(() => base.Add(game)));
+            }).ContinueWith(task => Schedule(() =>
+            {
+                task.ThrowIfFaulted();
+                base.Add(game);
+            }));
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+    public abstract IEnumerable<InputHandler> GetInputHandlers();
 
-        public abstract TextInputSource GetTextInput();
-    }
+    public abstract TextInputSource GetTextInput();
+}
 }

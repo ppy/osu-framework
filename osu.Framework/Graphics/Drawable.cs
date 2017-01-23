@@ -17,6 +17,7 @@ using osu.Framework.Threading;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
@@ -1186,7 +1187,11 @@ namespace osu.Framework.Graphics
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
             if (LoadState == LoadState.NotLoaded)
-                return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
+                return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
+                {
+                    task.ThrowIfFaulted();
+                    onLoaded?.Invoke(this);
+                }));
 
             Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
             onLoaded?.Invoke(this);
@@ -1214,7 +1219,7 @@ namespace osu.Framework.Graphics
             double t1 = perf.CurrentTime;
             game.Dependencies.Initialize(this);
             double elapsed = perf.CurrentTime - t1;
-            if (elapsed > 50 && ThreadSafety.IsUpdateThread)
+            if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                 Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
             LoadState = LoadState.Loaded;
         }
