@@ -1187,7 +1187,7 @@ namespace osu.Framework.Graphics
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
             if (LoadState == LoadState.NotLoaded)
-                return Task.Run(() => PerformLoad(game)).ContinueWith(task => Schedule(() =>
+                return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
                 {
                     task.ThrowIfFaulted();
                     onLoaded?.Invoke(this);
