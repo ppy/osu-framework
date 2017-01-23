@@ -413,11 +413,16 @@ namespace osu.Framework.Platform
                 WaitUntilReadyToLoad();
 
                 game.PerformLoad(game);
-            }).ContinueWith(obj => Schedule(() => base.Add(game)));
+            }).ContinueWith(task => Schedule(() =>
+            {
+                if (task.IsFaulted)
+                    throw task.Exception;
+                base.Add(game);
+            }));
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+    public abstract IEnumerable<InputHandler> GetInputHandlers();
 
-        public abstract TextInputSource GetTextInput();
-    }
+    public abstract TextInputSource GetTextInput();
+}
 }

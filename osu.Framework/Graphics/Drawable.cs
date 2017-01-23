@@ -1186,7 +1186,12 @@ namespace osu.Framework.Graphics
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
             if (LoadState == LoadState.NotLoaded)
-                return Task.Run(() => PerformLoad(game)).ContinueWith(obj => game.Schedule(() => onLoaded?.Invoke(this)));
+                return Task.Run(() => PerformLoad(game)).ContinueWith(task => Schedule(() =>
+                {
+                    if (task.IsFaulted)
+                        throw task.Exception;
+                    onLoaded?.Invoke(this);
+                }));
 
             Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
             onLoaded?.Invoke(this);
