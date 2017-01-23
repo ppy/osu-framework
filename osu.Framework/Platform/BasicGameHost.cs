@@ -54,6 +54,8 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
+        public event Action<Exception> ExceptionThrown;
+
         public event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
@@ -144,6 +146,8 @@ namespace osu.Framework.Platform
         {
             Instance = this;
 
+            AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
+
             Dependencies.Cache(this);
             name = gameName;
 
@@ -178,6 +182,16 @@ namespace osu.Framework.Platform
             AddInternal(inputManager = new UserInputManager(this));
 
             Dependencies.Cache(inputManager);
+        }
+
+        private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+
+            if (ExceptionThrown != null)
+                ExceptionThrown.Invoke(exception);
+            else
+                throw exception;
         }
 
         protected virtual void OnActivated() => Schedule(() => setActive(true));
