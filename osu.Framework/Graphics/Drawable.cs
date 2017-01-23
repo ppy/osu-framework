@@ -1214,7 +1214,7 @@ namespace osu.Framework.Graphics
             double t1 = perf.CurrentTime;
             game.Dependencies.Initialize(this);
             double elapsed = perf.CurrentTime - t1;
-            if (elapsed > 50 && ThreadSafety.IsUpdateThread)
+            if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                 Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
             LoadState = LoadState.Loaded;
         }
