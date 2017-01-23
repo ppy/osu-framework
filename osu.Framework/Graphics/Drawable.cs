@@ -17,6 +17,7 @@ using osu.Framework.Threading;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
@@ -1188,8 +1189,7 @@ namespace osu.Framework.Graphics
             if (LoadState == LoadState.NotLoaded)
                 return Task.Run(() => PerformLoad(game)).ContinueWith(task => Schedule(() =>
                 {
-                    if (task.IsFaulted)
-                        throw task.Exception;
+                    task.ThrowIfFaulted();
                     onLoaded?.Invoke(this);
                 }));
 

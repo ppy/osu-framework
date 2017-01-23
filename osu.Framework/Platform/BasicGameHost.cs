@@ -22,6 +22,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Input;
@@ -415,8 +416,7 @@ namespace osu.Framework.Platform
                 game.PerformLoad(game);
             }).ContinueWith(task => Schedule(() =>
             {
-                if (task.IsFaulted)
-                    throw task.Exception;
+                task.ThrowIfFaulted();
                 base.Add(game);
             }));
         }
