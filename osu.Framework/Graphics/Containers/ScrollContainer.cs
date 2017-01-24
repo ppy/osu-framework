@@ -148,11 +148,12 @@ namespace osu.Framework.Graphics.Containers
         {
             scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
             scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
+            updatePadding();
         }
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent)
+            if (scrollbarOverlapsContent || availableContent <= displayableContent)
                 content.Padding = new MarginPadding();
             else
                 content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
