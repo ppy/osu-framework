@@ -267,11 +267,9 @@ namespace osu.Framework.Graphics.Containers
             else
             {
                 if (drawable.IsLoaded)
-                {
                     Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
-                    drawable.ChangeParent(this);
-                }
 
+                drawable.ChangeParent(this);
                 children.Add(drawable);
             }
 
