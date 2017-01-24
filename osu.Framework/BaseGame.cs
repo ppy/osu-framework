@@ -18,6 +18,7 @@ using OpenTK.Input;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Primitives;
+using osu.Game.Configuration;
 
 namespace osu.Framework
 {
@@ -53,6 +54,8 @@ namespace osu.Framework
         internal DrawVisualiser DrawVisualiser;
 
         private LogOverlay LogOverlay;
+
+        private FrameworkConfigManager Config;
 
         protected override Container<Drawable> Content => content;
 
@@ -92,6 +95,9 @@ namespace osu.Framework
         /// <param name="host"></param>
         public virtual void SetHost(BasicGameHost host)
         {
+            if (Config == null)
+                Config = new FrameworkConfigManager(host.Storage);
+
             this.host = host;
             host.Exiting += OnExiting;
         }
@@ -99,6 +105,8 @@ namespace osu.Framework
         [BackgroundDependencyLoader]
         private void load()
         {
+            Dependencies.Cache(Config);
+
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
