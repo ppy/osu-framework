@@ -17,8 +17,8 @@ using OpenTK;
 using OpenTK.Input;
 using FlowDirection = osu.Framework.Graphics.Containers.FlowDirection;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Primitives;
-using osu.Game.Configuration;
 
 namespace osu.Framework
 {
@@ -55,7 +55,7 @@ namespace osu.Framework
 
         private LogOverlay LogOverlay;
 
-        private FrameworkConfigManager Config;
+        protected FrameworkConfigManager Config;
 
         protected override Container<Drawable> Content => content;
 
@@ -89,6 +89,18 @@ namespace osu.Framework
             }).Preload(this, AddInternal);
         }
 
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if (!base.Invalidate(invalidation, source, shallPropagate)) return false;
+
+            if (Parent != null)
+            {
+                Config.Set(FrameworkConfig.Width, DrawSize.X);
+                Config.Set(FrameworkConfig.Height, DrawSize.Y);
+            }
+            return true;
+        }
+
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
         /// </summary>
@@ -99,6 +111,7 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
+            host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
             host.Exiting += OnExiting;
         }
 
@@ -118,6 +131,11 @@ namespace osu.Framework
             Audio = Dependencies.Cache(new AudioManager(
                 new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
                 new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
+
+            //attach our bindables to the audio subsystem.
+            Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
+            Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
+            Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);

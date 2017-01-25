@@ -1,11 +1,9 @@
 ﻿//Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 //Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu/master/LICENCE
 
-using System;
-using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
-namespace osu.Game.Configuration
+namespace osu.Framework.Configuration
 {
     public class FrameworkConfigManager : ConfigManager<FrameworkConfig>
     {
@@ -15,6 +13,19 @@ namespace osu.Game.Configuration
         {
 #pragma warning disable CS0612 // Type or member is obsolete
             Set(FrameworkConfig.ShowLogOverlay, true);
+
+            Set(FrameworkConfig.Width, 1366, 640);
+            Set(FrameworkConfig.Height, 768, 480);
+            Set(FrameworkConfig.VolumeUniversal, 1.0, 0, 1);
+            Set(FrameworkConfig.VolumeMusic, 1.0, 0, 1);
+            Set(FrameworkConfig.VolumeEffect, 1.0, 0, 1);
+            Set(FrameworkConfig.HeightFullscreen, 9999, 240, 9999);
+            Set(FrameworkConfig.WidthFullscreen, 9999, 320, 9999);
+            Set(FrameworkConfig.Letterboxing, true);
+            Set(FrameworkConfig.LetterboxPositionX, 0, -100, 100);
+            Set(FrameworkConfig.LetterboxPositionY, 0, -100, 100);
+            Set(FrameworkConfig.FrameSync, FrameSync.Limit120);
+            Set(FrameworkConfig.Fullscreen, true);
 #pragma warning restore CS0612 // Type or member is obsolete
         }
 
@@ -25,6 +36,22 @@ namespace osu.Game.Configuration
 
     public enum FrameworkConfig
     {
-        ShowLogOverlay
+        ShowLogOverlay,
+
+        VolumeUniversal,
+        VolumeEffect,
+        VolumeMusic,
+
+        Width,
+        Height,
+
+        HeightFullscreen,
+        WidthFullscreen,
+
+        Fullscreen,
+        Letterboxing,
+        LetterboxPositionX,
+        LetterboxPositionY,
+        FrameSync,
     }
 }
