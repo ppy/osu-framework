@@ -42,7 +42,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
         protected override void Dispose(bool isDisposing)
         {
-            timePeriod.Dispose();
+            timePeriod?.Dispose();
             base.Dispose(isDisposing);
         }
 
