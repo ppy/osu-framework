@@ -10,7 +10,6 @@ using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Game.Configuration;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Visualisation
