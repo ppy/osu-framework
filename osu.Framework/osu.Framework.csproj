@@ -86,6 +86,7 @@
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
+    <Compile Include="Configuration\FrameworkConfigManager.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
