@@ -158,15 +158,17 @@ namespace osu.Framework.Graphics.UserInterface
 
                 float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
+                const float padding = 5;
+
                 //we only want to reposition the view when the cursor reaches near the extremities.
                 if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
                 {
-                    textContainerPosX = cursorPosEnd - DrawWidth / 2;
+                    textContainerPosX = cursorPosEnd - DrawWidth / 2 + padding * 2;
                 }
 
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth));
+                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + padding * 2));
 
-                TextContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
+                TextContainer.MoveToX(padding - textContainerPosX, 300, EasingTypes.OutExpo);
 
                 if (HasFocus)
                 {
