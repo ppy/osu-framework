@@ -73,6 +73,8 @@ namespace osu.Framework.Graphics.UserInterface
                 TextContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     Children = new Drawable[]
                     {
                         Caret = new Box
