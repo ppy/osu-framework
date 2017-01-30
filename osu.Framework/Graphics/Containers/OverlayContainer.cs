@@ -10,7 +10,6 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class OverlayContainer : Container, IStateful<Visibility>
     {
-
         protected override void LoadComplete()
         {
             if (state == Visibility.Hidden)
