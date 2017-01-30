@@ -77,8 +77,10 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Caret = new Box
                         {
-                            Size = Vector2.One,
+                            Size = new Vector2(1, 0.9f),
                             Colour = Color4.Transparent,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
                             RelativeSizeAxes = Axes.Y,
                             Alpha = 0,
                         },
@@ -183,12 +185,12 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                     else
                     {
-                        Caret.FadeTo(0.5f, 200, EasingTypes.Out);
+                        Caret.FadeTo(0.7f, 200, EasingTypes.Out);
                         Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
                         Caret.Transforms.Add(new TransformAlpha
                         {
-                            StartValue = 0.5f,
-                            EndValue = 0.2f,
+                            StartValue = 0.7f,
+                            EndValue = 0.4f,
                             StartTime = Time.Current,
                             EndTime = Time.Current + 500,
                             Easing = EasingTypes.InOutSine,
