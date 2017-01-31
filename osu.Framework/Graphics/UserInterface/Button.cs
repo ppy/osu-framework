@@ -27,19 +27,31 @@ namespace osu.Framework.Graphics.UserInterface
             set { Background.Colour = value; }
         }
 
+        protected override Container<Drawable> Content => content;
+
+        private Container content;
+
         protected Box Background;
         protected SpriteText SpriteText;
         
         public Button()
         {
-            Children = new Drawable[]
+            AddInternal(content = new Container
             {
-                Background = new Box
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                },
-                SpriteText = CreateText(),
-            };
+                    Background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    },
+                    SpriteText = CreateText(),
+                }
+            });
         }
 
         protected virtual SpriteText CreateText() => new SpriteText
