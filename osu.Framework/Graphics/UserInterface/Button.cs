@@ -38,14 +38,16 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                 },
-                SpriteText = new SpriteText
-                {
-                    Depth = -1,
-                    Origin = Anchor.Centre,
-                    Anchor = Anchor.Centre,
-                }
+                SpriteText = CreateText(),
             };
         }
+
+        protected virtual SpriteText CreateText() => new SpriteText
+        {
+            Depth = -1,
+            Origin = Anchor.Centre,
+            Anchor = Anchor.Centre,
+        };
 
         protected override bool OnClick(InputState state)
         {
