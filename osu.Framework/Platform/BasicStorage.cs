@@ -20,7 +20,7 @@ namespace osu.Framework.Platform
 
         public abstract void Delete(string path);
 
-        public abstract Stream GetStream(string path, FileAccess mode = FileAccess.Read);
+        public abstract Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate);
 
         public abstract SQLiteConnection GetDatabase(string name);
 

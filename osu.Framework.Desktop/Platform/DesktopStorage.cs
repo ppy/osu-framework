@@ -32,18 +32,18 @@ namespace osu.Framework.Desktop.Platform
             Process.Start(BasePath);
         }
 
-        public override Stream GetStream(string path, FileAccess mode = FileAccess.Read)
+        public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
             path = Path.Combine(BasePath, path);
-            switch (mode)
+            switch (access)
             {
                 case FileAccess.Read:
                     if (!File.Exists(path))
                         return null;
-                    return File.Open(path, FileMode.Open, mode, FileShare.Read);
+                    return File.Open(path, FileMode.Open, access, FileShare.Read);
                 default:
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
-                    return File.Open(path, FileMode.Create, mode);
+                    return File.Open(path, mode, access);
             }
         }
         
