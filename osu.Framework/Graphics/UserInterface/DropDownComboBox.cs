@@ -47,6 +47,8 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 Foreground = new Container
                 {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
                 },
