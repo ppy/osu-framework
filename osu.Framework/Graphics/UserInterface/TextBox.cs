@@ -73,12 +73,16 @@ namespace osu.Framework.Graphics.UserInterface
                 TextContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     Children = new Drawable[]
                     {
                         Caret = new Box
                         {
-                            Size = Vector2.One,
+                            Size = new Vector2(1, 0.9f),
                             Colour = Color4.Transparent,
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
                             RelativeSizeAxes = Axes.Y,
                             Alpha = 0,
                         },
@@ -158,15 +162,17 @@ namespace osu.Framework.Graphics.UserInterface
 
                 float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
 
+                const float padding = 5;
+
                 //we only want to reposition the view when the cursor reaches near the extremities.
                 if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
                 {
-                    textContainerPosX = cursorPosEnd - DrawWidth / 2;
+                    textContainerPosX = cursorPosEnd - DrawWidth / 2 + padding * 2;
                 }
 
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth));
+                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + padding * 2));
 
-                TextContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
+                TextContainer.MoveToX(padding - textContainerPosX, 300, EasingTypes.OutExpo);
 
                 if (HasFocus)
                 {
@@ -181,12 +187,12 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                     else
                     {
-                        Caret.FadeTo(0.5f, 200, EasingTypes.Out);
+                        Caret.FadeTo(0.7f, 200, EasingTypes.Out);
                         Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
                         Caret.Transforms.Add(new TransformAlpha
                         {
-                            StartValue = 0.5f,
-                            EndValue = 0.2f,
+                            StartValue = 0.7f,
+                            EndValue = 0.4f,
                             StartTime = Time.Current,
                             EndTime = Time.Current + 500,
                             Easing = EasingTypes.InOutSine,

@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 spriteText = new SpriteText
                 {
+                    Depth = -1,
                     Origin = Anchor.Centre,
                     Anchor = Anchor.Centre,
                 }
