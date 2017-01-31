@@ -173,7 +173,7 @@ namespace osu.Framework.Configuration
 
             try
             {
-                using (Stream stream = storage.GetStream(Filename, FileAccess.Write))
+                using (Stream stream = storage.GetStream(Filename, FileAccess.Write, FileMode.Create))
                 using (StreamWriter w = new StreamWriter(stream))
                 {
                     foreach (KeyValuePair<T, IBindable> p in configStore)
