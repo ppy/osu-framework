@@ -16,6 +16,8 @@ namespace osu.Framework.Graphics
 
         IContainer Parent { get; set; }
 
+        bool IsVisible { get; }
+
         FrameTimeInfo Time { get; }
 
         IFrameBasedClock Clock { get; }

@@ -324,17 +324,20 @@ namespace osu.Framework.Graphics
 
         #region Color4-based helpers
 
-        public void FadeColour(SRGBColour newColour, int duration, EasingTypes easing = EasingTypes.None)
+        public void FadeColour(SRGBColour newColour, int duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformColour));
-            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
 
+            Color4 startValue = Colour.Linear;
             if (transformationDelay == 0)
             {
                 Transforms.RemoveAll(t => t is TransformColour);
+
                 if (startValue == newColour)
                     return;
             }
+            else
+                startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
             double startTime = Clock != null ? (Time.Current + transformationDelay) : 0;
 

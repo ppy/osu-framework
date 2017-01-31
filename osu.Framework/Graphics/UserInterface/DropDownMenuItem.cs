@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         Selected,
     }
 
-    public class DropDownMenuItem<T> : ClickableContainer, IStateful<DropDownMenuItemState>
+    public abstract class DropDownMenuItem<T> : ClickableContainer, IStateful<DropDownMenuItemState>
     {
         public int Index;
         public int PositionIndex;
@@ -56,24 +56,32 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         protected Box Background;
-        protected virtual Color4 BackgroundColour => Color4.DarkSlateGray;
-        protected virtual Color4 BackgroundColourSelected => Color4.SlateGray;
-        protected virtual Color4 BackgroundColourHover => Color4.DarkGray;
         protected Container Foreground;
-        protected Drawable Label;
-        protected Drawable Caret;
-        protected virtual float CaretSpacing => 15;
+        
+        private Color4 backgroundColour = Color4.DarkSlateGray;
+        protected Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+            set
+            {
+                backgroundColour = value;
+                FormatBackground();
+            }
+        }
+        protected Color4 BackgroundColourHover { get; set; } = Color4.DarkGray;
+        protected Color4 BackgroundColourSelected { get; set; } = Color4.SlateGray;
+
+        protected override Container<Drawable> Content => Foreground;
 
         public DropDownMenuItem(string text, T value)
         {
             RelativeSizeAxes = Axes.X;
             Width = 1;
             AutoSizeAxes = Axes.Y;
-            Masking = true;
             DisplayText = text;
             Value = value;
 
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Background = new Box
                 {
@@ -83,14 +91,6 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Children = new Drawable[]
-                    {
-                        Caret = new SpriteText(),
-                        Label = new SpriteText
-                        {
-                            Margin = new MarginPadding { Left = CaretSpacing }
-                        },
-                    },
                 },
             };
         }
@@ -99,7 +99,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!IsLoaded)
                 return;
-
             FormatBackground();
         }
 
@@ -108,22 +107,10 @@ namespace osu.Framework.Graphics.UserInterface
             Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour), 0);
         }
 
-        protected virtual void FormatCaret()
-        {
-            (Caret as SpriteText).Text = @">";
-        }
-
-        protected virtual void FormatLabel()
-        {
-            (Label as SpriteText).Text = DisplayText;
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
             Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
-            FormatCaret();
-            FormatLabel();
         }
 
         protected override bool OnHover(InputState state)

@@ -17,7 +17,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         public override bool Initialize(BasicGameHost host)
         {
-            host.InputScheduler.Add(new ScheduledDelegate(delegate
+            host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
             {
                 OpenTK.Input.MouseState state = OpenTK.Input.Mouse.GetCursorState();
                 Point point = host.Window.PointToClient(new Point(state.X, state.Y));

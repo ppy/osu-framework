@@ -9,12 +9,16 @@ using osu.Framework.Graphics.Transformations;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     class LogOverlay : OverlayContainer
     {
         private FlowContainer flow;
+
+        private Bindable<bool> enabled;
 
         public LogOverlay()
         {
@@ -62,19 +66,23 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        protected override void LoadComplete()
+        [BackgroundDependencyLoader]
+        private void load(FrameworkConfigManager config)
         {
-            base.LoadComplete();
-            Show();
+            enabled = config.GetBindable<bool>(FrameworkConfig.ShowLogOverlay);
+            State = enabled.Value ? Visibility.Visible : Visibility.Hidden;
+
         }
 
         protected override void PopIn()
         {
+            enabled.Value = true;
             FadeIn(500);
         }
 
         protected override void PopOut()
         {
+            enabled.Value = false;
             FadeOut(500);
         }
     }

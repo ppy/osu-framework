@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -17,28 +18,42 @@ namespace osu.Framework.Graphics.UserInterface
         Opened,
     }
 
-    public class DropDownMenu<T> : Container, IBindable, IStateful<DropDownMenuState>
+    public abstract class DropDownMenu<T> : Container, IBindable, IStateful<DropDownMenuState>
     {
         private bool opened;
         private bool listInitialized = false;
 
         private readonly List<DropDownMenuItem<T>> selectableItems = new List<DropDownMenuItem<T>>();
-        private List<DropDownMenuItem<T>> internalItems = new List<DropDownMenuItem<T>>();
+        private List<DropDownMenuItem<T>> items = new List<DropDownMenuItem<T>>();
         private readonly Dictionary<T, int> itemDictionary = new Dictionary<T, int>();
 
-        public IEnumerable<DropDownMenuItem<T>> Items
+        protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<T> values);
+
+        public IEnumerable<T> Items
         {
             get
             {
-                return internalItems;
+                return items.Select(i => i.Value);
             }
             set
             {
+                listInitialized = false;
                 ClearItems();
-                internalItems = new List<DropDownMenuItem<T>>(value);
-                for (int i = 0; i < internalItems.Count; i++)
+                foreach (var item in GetDropDownItems(value))
                 {
-                    addMenuItem(internalItems[i], i);
+                    item.PositionIndex = items.Count - 1;
+                    items.Add(item);
+                    if (item.CanSelect)
+                    {
+                        item.Index = selectableItems.Count;
+                        item.Action = delegate
+                        {
+                            if (opened)
+                                SelectedIndex = item.Index;
+                        };
+                        selectableItems.Add(item);
+                        itemDictionary[item.Value] = item.Index;
+                    }
                 }
             }
         }
@@ -47,14 +62,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Container DropDown;
         protected ScrollContainer DropDownScroll;
-        protected FlowContainer<DropDownMenuItem<T>> DropDownList;
+        protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
         protected Box DropDownBackground;
         protected virtual float DropDownListSpacing => 0;
 
-        protected virtual DropDownComboBox CreateComboBox()
-        {
-            return new DropDownComboBox();
-        }
+        protected abstract DropDownComboBox CreateComboBox();
 
         private int maxDropDownHeight = 100;
 
@@ -172,9 +184,10 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         DropDownScroll = new ScrollContainer
                         {
+                            Masking = false,
                             Children = new Drawable[]
                             {
-                                DropDownList = new FlowContainer<DropDownMenuItem<T>>
+                                DropDownItemsContainer = new FlowContainer<DropDownMenuItem<T>>
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
@@ -189,14 +202,14 @@ namespace osu.Framework.Graphics.UserInterface
             ComboBox.Action = Toggle;
             ComboBox.CloseAction = Close;
 
-            DropDownList.OnAutoSize += updateDropDownListSize;
+            DropDownItemsContainer.OnAutoSize += updateDropDownListSize;
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            ComboBox.UpdateLabel(SelectedItem?.DisplayText);
+            ComboBox.Label = SelectedItem?.DisplayText;
         }
 
         public void Open()
@@ -238,21 +251,21 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void TriggerValueChanged()
         {
-            ComboBox.UpdateLabel(SelectedItem?.DisplayText);
+            ComboBox.Label = SelectedItem?.DisplayText;
             Close();
             ValueChanged?.Invoke(this, null);
         }
 
         protected virtual void AnimateOpen()
         {
-            foreach (DropDownMenuItem<T> child in DropDownList.Children)
+            foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
                 child.Show();
             DropDown.Show();
         }
 
         protected virtual void AnimateClose()
         {
-            foreach (DropDownMenuItem<T> child in DropDownList.Children)
+            foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
                 child.Hide();
             DropDown.Hide();
         }
@@ -265,53 +278,21 @@ namespace osu.Framework.Graphics.UserInterface
                 Open();
         }
 
-        public void AddItem(DropDownMenuItem<T> item)
-        {
-            addMenuItem(item, internalItems.Count);
-            internalItems.Add(item);
-            if (listInitialized)
-                DropDownList.Add(item);
-        }
-
-        public void AddItemRange(IEnumerable<DropDownMenuItem<T>> range)
-        {
-            foreach (DropDownMenuItem<T> item in range)
-            {
-                AddItem(item);
-            }
-        }
-
         public void ClearItems()
         {
-            internalItems.Clear();
+            items.Clear();
             selectableItems.Clear();
             itemDictionary.Clear();
-            DropDownList.Clear();
-        }
-
-        private void addMenuItem(DropDownMenuItem<T> item, int index)
-        {
-            item.PositionIndex = index;
-            if (item.CanSelect)
-            {
-                item.Index = selectableItems.Count;
-                item.Action = delegate
-                {
-                    if (opened)
-                        SelectedIndex = item.Index;
-                };
-                selectableItems.Add(item);
-                itemDictionary[item.Value] = item.Index;
-            }
+            DropDownItemsContainer.Clear();
         }
 
         private void initializeDropDownList()
         {
-            if (DropDownList == null || !DropDownList.IsLoaded)
+            if (DropDownItemsContainer == null || !DropDownItemsContainer.IsLoaded)
                 return;
 
-            for (int i = 0; i < internalItems.Count; i++)
-                DropDownList.Add(internalItems[i]);
+            for (int i = 0; i < items.Count; i++)
+                DropDownItemsContainer.Add(items[i]);
 
             DropDown.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
 
@@ -320,7 +301,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void updateDropDownListSize()
         {
-            DropDown.Height = Math.Min(DropDownList.Height, MaxDropDownHeight);
+            DropDown.Height = Math.Min(DropDownItemsContainer.Height, MaxDropDownHeight);
         }
     }
 }

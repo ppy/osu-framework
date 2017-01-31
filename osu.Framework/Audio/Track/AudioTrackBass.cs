@@ -83,15 +83,18 @@ namespace osu.Framework.Audio.Track
 
         protected override void Dispose(bool disposing)
         {
-            if (activeStream != 0) Bass.ChannelStop(activeStream);
+            PendingActions.Enqueue(() =>
+            {
+                if (activeStream != 0) Bass.ChannelStop(activeStream);
 
-            if (audioStreamPrefilter != 0) Bass.StreamFree(audioStreamPrefilter);
+                if (audioStreamPrefilter != 0) Bass.StreamFree(audioStreamPrefilter);
 
-            activeStream = 0;
-            audioStreamPrefilter = 0;
+                activeStream = 0;
+                audioStreamPrefilter = 0;
 
-            dataStream?.Dispose();
-            dataStream = null;
+                dataStream?.Dispose();
+                dataStream = null;
+            });
 
             base.Dispose(disposing);
         }

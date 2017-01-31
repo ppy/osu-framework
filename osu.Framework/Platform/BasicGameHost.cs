@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -22,6 +23,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Sprites;
 using OpenTK.Input;
@@ -31,6 +33,8 @@ namespace osu.Framework.Platform
 {
     public abstract class BasicGameHost : Container, IIpcHost
     {
+        public static BasicGameHost Instance;
+
         public BasicGameWindow Window;
 
         private void setActive(bool isActive)
@@ -52,6 +56,8 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
+        public event Action<Exception> ExceptionThrown;
+
         public event Action<IpcMessage> MessageReceived;
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
@@ -69,9 +75,9 @@ namespace osu.Framework.Platform
 
         private GameThread[] threads;
 
-        internal static GameThread DrawThread;
-        internal static GameThread UpdateThread;
-        internal static InputThread InputThread;
+        public GameThread DrawThread;
+        public GameThread UpdateThread;
+        public InputThread InputThread;
 
         private double maximumUpdateHz;
 
@@ -121,10 +127,6 @@ namespace osu.Framework.Platform
         protected internal PerformanceMonitor UpdateMonitor => UpdateThread.Monitor;
         protected internal PerformanceMonitor DrawMonitor => DrawThread.Monitor;
 
-        //null here to construct early but bind to thread late.
-        public Scheduler InputScheduler => InputThread.Scheduler;
-        public Scheduler UpdateScheduler => UpdateThread.Scheduler;
-
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
         {
@@ -144,6 +146,10 @@ namespace osu.Framework.Platform
 
         protected BasicGameHost(string gameName = @"")
         {
+            Instance = this;
+
+            AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
+
             Dependencies.Cache(this);
             name = gameName;
 
@@ -180,6 +186,19 @@ namespace osu.Framework.Platform
             Dependencies.Cache(inputManager);
         }
 
+        private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            var exception = e.ExceptionObject as Exception;
+
+            if (ExceptionThrown != null)
+                ExceptionThrown.Invoke(exception);
+            else
+            {
+                AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
+                throw exception;
+            }
+        }
+
         protected virtual void OnActivated() => Schedule(() => setActive(true));
 
         protected virtual void OnDeactivated() => Schedule(() => setActive(false));
@@ -191,7 +210,7 @@ namespace osu.Framework.Platform
 
             bool? response = null;
 
-            UpdateScheduler.Add(delegate
+            UpdateThread.Scheduler.Add(delegate
             {
                 response = Exiting?.Invoke() == true;
             });
@@ -257,7 +276,7 @@ namespace osu.Framework.Platform
 
         public void Exit()
         {
-            InputScheduler.Add(delegate
+            InputThread.Scheduler.Add(delegate
             {
                 ExitRequested = true;
 
@@ -333,7 +352,7 @@ namespace osu.Framework.Platform
             var size = Window.ClientSize;
             //When minimizing, there will be an "size zero, but WindowState not Minimized" state.
             if (size.IsEmpty) return;
-            UpdateScheduler.Add(delegate
+            UpdateThread.Scheduler.Add(delegate
             {
                 //set base.Size here to avoid the override below, which would cause a recursive loop.
                 base.Size = new Vector2(size.Width, size.Height);
@@ -354,7 +373,7 @@ namespace osu.Framework.Platform
                     }
                     else
                     {
-                        InputScheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
+                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
                     }
                 }
 
@@ -399,11 +418,15 @@ namespace osu.Framework.Platform
                 WaitUntilReadyToLoad();
 
                 game.PerformLoad(game);
-            }).ContinueWith(obj => Schedule(() => base.Add(game)));
+            }).ContinueWith(task => Schedule(() =>
+            {
+                task.ThrowIfFaulted();
+                base.Add(game);
+            }));
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+    public abstract IEnumerable<InputHandler> GetInputHandlers();
 
-        public abstract TextInputSource GetTextInput();
-    }
+    public abstract TextInputSource GetTextInput();
+}
 }

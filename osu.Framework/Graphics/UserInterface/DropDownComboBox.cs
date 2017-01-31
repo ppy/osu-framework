@@ -9,14 +9,26 @@ using System;
  
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class DropDownComboBox : ClickableContainer
+    public abstract class DropDownComboBox : ClickableContainer
     {
         protected Box Background;
-        protected virtual Color4 BackgroundColour => Color4.DarkGray;
-        protected virtual Color4 BackgroundColourHover => Color4.Gray;
         protected Container Foreground;
-        protected Drawable Label;
-        protected Drawable Caret;
+
+        private Color4 backgroundColour = Color4.DarkGray;
+        protected Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+            set
+            {
+                backgroundColour = value;
+                Background.Colour = value;
+            }
+        }
+        protected Color4 BackgroundColourHover { get; set; } = Color4.Gray;
+
+        protected override Container<Drawable> Content => Foreground;
+
+        protected internal abstract string Label { get; set; }
 
         public Action CloseAction;
 
@@ -26,30 +38,17 @@ namespace osu.Framework.Graphics.UserInterface
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
             Width = 1;
-            Children = new Drawable[]
+            InternalChildren = new Drawable[]
             {
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = BackgroundColour,
+                    Colour = Color4.DarkGray,
                 },
                 Foreground = new Container
                 {
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                    Children = new Drawable[]
-                    {
-                        Label = new SpriteText
-                        {
-                            Text = @"",
-                        },
-                        Caret = new SpriteText
-                        {
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            Text = @"+",
-                        },
-                    }
+                    AutoSizeAxes = Axes.Y
                 },
             };
         }
@@ -74,11 +73,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Background.Colour = BackgroundColour;
             base.OnHoverLost(state);
-        }
-
-        public void UpdateLabel(string label)
-        {
-            (Label as SpriteText).Text = label;
         }
     }
 }

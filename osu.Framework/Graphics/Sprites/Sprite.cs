@@ -69,14 +69,6 @@ namespace osu.Framework.Graphics.Sprites
             roundedTextureShader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
         }
 
-        protected override bool CheckForcedPixelSnapping(Quad screenSpaceQuad)
-        {
-            return
-                Rotation == 0
-                && Math.Abs(screenSpaceQuad.Width - Math.Round(screenSpaceQuad.Width)) < 0.1f
-                && Math.Abs(screenSpaceQuad.Height - Math.Round(screenSpaceQuad.Height)) < 0.1f;
-        }
-
         private Texture texture;
 
         public Texture Texture

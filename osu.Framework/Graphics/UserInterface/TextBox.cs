@@ -23,10 +23,10 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class TextBox : Container
     {
-        private FlowContainer textFlow;
-        private Box background;
-        private Box cursor;
-        private Container textContainer;
+        protected FlowContainer TextFlow;
+        protected Box Background;
+        protected Box Caret;
+        protected Container TextContainer;
 
         public int? LengthLimit;
 
@@ -65,27 +65,28 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(new Drawable[]
             {
-                background = new Box
+                Background = new Box
                 {
                     Colour = BackgroundUnfocused,
                     RelativeSizeAxes = Axes.Both,
                 },
-                textContainer = new Container
+                TextContainer = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        cursor = new Box
+                        Caret = new Box
                         {
                             Size = Vector2.One,
                             Colour = Color4.Transparent,
                             RelativeSizeAxes = Axes.Y,
                             Alpha = 0,
                         },
-                        textFlow = new FlowContainer
+                        TextFlow = new FlowContainer
                         {
                             Direction = FlowDirection.HorizontalOnly,
-                            AutoSizeAxes = Axes.Both,
+                            AutoSizeAxes = Axes.X,
+                            RelativeSizeAxes = Axes.Y,
                         },
                     },
                 },
@@ -163,26 +164,26 @@ namespace osu.Framework.Graphics.UserInterface
                     textContainerPosX = cursorPosEnd - DrawWidth / 2;
                 }
 
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, textFlow.DrawWidth - DrawWidth));
+                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth));
 
-                textContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
+                TextContainer.MoveToX(-textContainerPosX, 300, EasingTypes.OutExpo);
 
                 if (HasFocus)
                 {
-                    cursor.ClearTransformations();
-                    cursor.MoveTo(cursorPos, 60, EasingTypes.Out);
-                    cursor.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
+                    Caret.ClearTransformations();
+                    Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
+                    Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
 
                     if (selectionLength > 0)
                     {
-                        cursor.FadeTo(0.5f, 200, EasingTypes.Out);
-                        cursor.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
+                        Caret.FadeTo(0.5f, 200, EasingTypes.Out);
+                        Caret.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                     }
                     else
                     {
-                        cursor.FadeTo(0.5f, 200, EasingTypes.Out);
-                        cursor.FadeColour(Color4.White, 200, EasingTypes.Out);
-                        cursor.Transforms.Add(new TransformAlpha
+                        Caret.FadeTo(0.5f, 200, EasingTypes.Out);
+                        Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
+                        Caret.Transforms.Add(new TransformAlpha
                         {
                             StartValue = 0.5f,
                             EndValue = 0.2f,
@@ -206,19 +207,19 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < InternalText.Length)
-                    return textFlow.Children.ElementAt(index).DrawPosition.X + textFlow.DrawPosition.X;
-                var d = textFlow.Children.ElementAt(index - 1);
-                return d.DrawPosition.X + d.DrawSize.X + textFlow.Spacing.X + textFlow.DrawPosition.X;
+                    return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
+                var d = TextFlow.Children.ElementAt(index - 1);
+                return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
             return 0;
         }
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = textFlow.ToLocalSpace(pos * DrawInfo.Matrix);
+            pos = TextFlow.ToLocalSpace(pos * DrawInfo.Matrix);
 
             int i = 0;
-            foreach (Drawable d in textFlow.Children)
+            foreach (Drawable d in TextFlow.Children)
             {
                 if (d.DrawPosition.X + d.DrawSize.X / 2 > pos.X)
                     break;
@@ -281,11 +282,11 @@ namespace osu.Framework.Graphics.UserInterface
             if (sound)
                 audio.Sample.Get(@"Keyboard/key-delete")?.Play();
 
-            foreach (var d in textFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
+            foreach (var d in TextFlow.Children.Skip(start).Take(count).ToArray()) //ToArray since we are removing items from the children in this block.
             {
-                textFlow.Remove(d);
+                TextFlow.Remove(d);
 
-                textContainer.Add(d);
+                TextContainer.Add(d);
                 d.FadeOut(200);
                 d.MoveToY(d.DrawSize.Y, 200, EasingTypes.InExpo);
                 d.Expire();
@@ -307,9 +308,9 @@ namespace osu.Framework.Graphics.UserInterface
             // Remove all characters to the right and store them in a local list,
             // such that their depth can be updated.
             List<Drawable> charsRight = new List<Drawable>();
-            foreach (Drawable d in textFlow.Children.Skip(selectionLeft))
+            foreach (Drawable d in TextFlow.Children.Skip(selectionLeft))
                 charsRight.Add(d);
-            textFlow.Remove(charsRight);
+            TextFlow.Remove(charsRight);
 
             // Update their depth to make room for the to-be inserted character.
             int i = -selectionLeft;
@@ -318,15 +319,15 @@ namespace osu.Framework.Graphics.UserInterface
 
             // Add the character
             Drawable ch;
-            textFlow.Add(ch = new SpriteText
+            TextFlow.Add(ch = new SpriteText
             {
                 Text = c.ToString(),
-                TextSize = DrawSize.Y,
+                TextSize = TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom),
                 Depth = -selectionLeft,
             });
 
             // Add back all the previously removed characters
-            textFlow.Add(charsRight);
+            TextFlow.Add(charsRight);
 
             return ch;
         }
@@ -352,10 +353,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (InternalText.Length + 1 > LengthLimit)
             {
-                if (background.Alpha > 0)
-                    background.FlashColour(Color4.Red, 200);
+                if (Background.Alpha > 0)
+                    Background.FlashColour(Color4.Red, 200);
                 else
-                    textFlow.FlashColour(Color4.Red, 200);
+                    TextFlow.FlashColour(Color4.Red, 200);
                 return null;
             }
 
@@ -394,7 +395,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     int startBefore = selectionStart;
                     selectionStart = selectionEnd = 0;
-                    textFlow?.Clear();
+                    TextFlow?.Clear();
                     InternalText = string.Empty;
 
                     foreach (char c in value)
@@ -574,9 +575,10 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
                 insertString(str);
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         protected override bool OnDrag(InputState state)
@@ -684,22 +686,22 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            cursor.ClearTransformations();
-            cursor.FadeOut(200);
+            Caret.ClearTransformations();
+            Caret.FadeOut(200);
 
             if (state.Keyboard.Keys.Contains(Key.Enter))
             {
-                background.Colour = BackgroundUnfocused;
-                background.ClearTransformations();
-                background.FlashColour(BackgroundCommit, 400);
+                Background.Colour = BackgroundUnfocused;
+                Background.ClearTransformations();
+                Background.FlashColour(BackgroundCommit, 400);
 
                 audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                 OnCommit?.Invoke(this, true);
             }
             else
             {
-                background.ClearTransformations();
-                background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
+                Background.ClearTransformations();
+                Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
             }
 
             cursorAndLayout.Invalidate();
@@ -711,8 +713,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             bindInput();
 
-            background.ClearTransformations();
-            background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
+            Background.ClearTransformations();
+            Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
             return true;

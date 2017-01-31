@@ -17,7 +17,7 @@ namespace osu.Framework.Desktop.Platform
         public HeadlessGameHost(string gameName = @"", bool bindIPC = false) : base(gameName, bindIPC)
         {
             Size = Vector2.One; //we may be expected to have a non-zero size by components we run.
-            UpdateScheduler.Update();
+            UpdateThread.Scheduler.Update();
             Dependencies.Cache(Storage = new DesktopStorage(string.Empty));
         }
 

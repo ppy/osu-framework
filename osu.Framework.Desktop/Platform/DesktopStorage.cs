@@ -26,7 +26,7 @@ namespace osu.Framework.Desktop.Platform
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
 
         public override void Delete(string path) => File.Delete(Path.Combine(BasePath, path));
-        
+
         public override void OpenInNativeExplorer()
         {
             Process.Start(BasePath);
@@ -57,5 +57,7 @@ namespace osu.Framework.Desktop.Platform
                 platform = new SQLitePlatformGeneric();
             return new SQLiteConnection(platform, Path.Combine(BasePath, $@"{name}.db"));
         }
+
+        public override void DeleteDatabase(string name) => Delete($@"{name}.db");
     }
 }
