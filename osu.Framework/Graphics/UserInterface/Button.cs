@@ -13,39 +13,53 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public string Text
         {
-            get { return spriteText?.Text; }
+            get { return SpriteText?.Text; }
             set
             {
-                if (spriteText != null)
-                    spriteText.Text = value;
+                if (SpriteText != null)
+                    SpriteText.Text = value;
             }
         }
 
         public new Color4 Colour
         {
-            get { return box.Colour; }
-            set { box.Colour = value; }
+            get { return Background.Colour; }
+            set { Background.Colour = value; }
         }
 
-        private Box box;
-        private SpriteText spriteText;
+        protected override Container<Drawable> Content => content;
+
+        private Container content;
+
+        protected Box Background;
+        protected SpriteText SpriteText;
         
         public Button()
         {
-            Children = new Drawable[]
+            AddInternal(content = new Container
             {
-                box = new Box
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                },
-                spriteText = new SpriteText
-                {
-                    Depth = -1,
-                    Origin = Anchor.Centre,
-                    Anchor = Anchor.Centre,
+                    Background = new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                    },
+                    SpriteText = CreateText(),
                 }
-            };
+            });
         }
+
+        protected virtual SpriteText CreateText() => new SpriteText
+        {
+            Depth = -1,
+            Origin = Anchor.Centre,
+            Anchor = Anchor.Centre,
+        };
 
         protected override bool OnClick(InputState state)
         {
@@ -56,7 +70,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Add(flash);
 
-            flash.Colour = box.Colour;
+            flash.Colour = Background.Colour;
             flash.BlendingMode = BlendingMode.Additive;
             flash.Alpha = 0.3f;
             flash.FadeOutFromOne(200);
