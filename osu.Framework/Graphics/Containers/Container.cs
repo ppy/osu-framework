@@ -625,7 +625,15 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 u = ToParentSpace(new Vector2(cornerRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
-                return ToParentSpace(drawRect).AABBf.Inflate(inflation);
+
+                RectangleF result = ToParentSpace(drawRect).AABBf.Inflate(inflation);
+                // The above algorithm will return incorrect results if the rounded corners are not fully visible.
+                // To limit bad behavior we at least enforce here, that the bounding box with rounded corners
+                // is never larger than the bounding box without.
+                if (DrawSize.X < CornerRadius * 2 || DrawSize.Y < CornerRadius * 2)
+                    result.Intersect(base.BoundingBox);
+
+                return result;
             }
         }
 
