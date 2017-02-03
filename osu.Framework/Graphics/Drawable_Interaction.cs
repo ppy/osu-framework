@@ -96,6 +96,17 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Request focus, but only receive if nothing else already has focus.
+        /// </summary>
+        /// <returns>Whether we received focus.</returns>
+        protected bool RequestFocus()
+        {
+            if (ourInputManager.FocusedDrawable != null) return false;
+
+            return TriggerFocus();
+        }
+
+        /// <summary>
         /// Focuses this drawable.
         /// </summary>
         /// <param name="state">The input state.</param>
@@ -104,6 +115,9 @@ namespace osu.Framework.Graphics
         {
             if (HasFocus)
                 return true;
+
+            if (!IsVisible)
+                return false;
 
             if (checkCanFocus & !OnFocus(state))
                 return false;
