@@ -130,6 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private DropDownMenuState state = DropDownMenuState.Closed;
+        protected Box ContentBackground;
 
         public DropDownMenuState State
         {
@@ -179,11 +180,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Masking = true,
                     Children = new Drawable[]
                     {
-                        new Box
+                        ContentBackground = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black,
-                            Alpha = 0.8f,
                         },
                         new ScrollContainer
                         {
