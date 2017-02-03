@@ -133,20 +133,15 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-
         private void updateSize()
         {
-            float contentSize = content.DrawSize.Y;
-            if (Precision.AlmostEquals(availableContent, contentSize))
-                return;
-
-            availableContent = contentSize;
-            updateScrollDragger(); 
+            availableContent = content.DrawSize.Y;
+            updateScrollDragger();
         }
 
         private void updateScrollDragger()
         {
-            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
+            scrollDragger.Height = Math.Min(1, displayableContent / availableContent);
             scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
             updatePadding();
         }
