@@ -63,7 +63,8 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                Debug.Assert((AutoSizeAxes & Axes.Both) == 0, @"The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                //transform check here is to allow AutoSizeDuration to work below.
+                Debug.Assert(Transforms.Find(t => t is TransformSize) != null || (AutoSizeAxes & Axes.Both) == 0, @"The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
             }
         }
