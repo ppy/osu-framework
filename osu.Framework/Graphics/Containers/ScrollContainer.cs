@@ -249,7 +249,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
-        public void ScrollTo(float value) => scrollTo(value, true, DistanceDecayJump);
+        public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
         {
