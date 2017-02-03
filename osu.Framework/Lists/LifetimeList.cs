@@ -67,8 +67,8 @@ namespace osu.Framework.Lists
 
                 if (item.RemoveWhenNotAlive)
                 {
-                    RemoveAt(i--);
                     Removed?.Invoke(item);
+                    RemoveAt(i--);
                 }
             }
 
