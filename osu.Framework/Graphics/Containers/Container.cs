@@ -43,6 +43,24 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Only has an effect when Masking == true.
+        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// </summary>
+        private float maskingSmoothness = 1;
+        public float MaskingSmoothness
+        {
+            get { return maskingSmoothness; }
+            set
+            {
+                if (maskingSmoothness == value)
+                    return;
+
+                maskingSmoothness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         private float cornerRadius;
 
         /// <summary>
@@ -144,7 +162,8 @@ namespace osu.Framework.Graphics.Containers
                 // We are setting the linear blend range to the approximate size of a _pixel_ here.
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
-                BlendRange = (scale.X + scale.Y) / 2,
+                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                AlphaExponent = 1,
             };
 
             n.EdgeEffect = EdgeEffect;

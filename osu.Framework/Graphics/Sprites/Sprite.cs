@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.OpenGL;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 
@@ -24,6 +23,9 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Determines over how many pixels of width the border of the sprite is smoothed
         /// in X and Y direction respectively.
+        /// IMPORTANT: When masking an edge-smoothed sprite some of the smooth transition
+        /// may be masked away. This should be counteracted by setting the MaskingSmoothness
+        /// of the masking container to a slightly larger value than EdgeSmoothness.
         /// </summary>
         public Vector2 EdgeSmoothness = Vector2.Zero;
 
