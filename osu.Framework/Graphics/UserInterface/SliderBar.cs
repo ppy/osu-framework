@@ -11,7 +11,16 @@ using OpenTK;
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container where T : struct
-    {    
+    {
+        /// <summary>
+        /// Range padding reduces the range of movement a slider bar is allowed to have
+        /// while still receiving input in the padded region. This behavior is necessary
+        /// for finite-sized nubs and can not be achieved (currently) by existing
+        /// scene graph padding / margin functionality.
+        /// </summary>
+        public float RangePadding;
+        public float UsableWidth => DrawWidth - 2 * RangePadding;
+
         private float keyboardStep;
         public float KeyboardStep
         {
@@ -114,8 +123,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(InputState state)
         {
-            var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
-            Bindable.SetProportional(xPosition / DrawWidth);
+            var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
+            Bindable.SetProportional(xPosition / UsableWidth);
         }
     }
 }
