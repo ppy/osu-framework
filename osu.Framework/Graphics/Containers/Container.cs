@@ -53,6 +53,9 @@ namespace osu.Framework.Graphics.Containers
             get { return maskingSmoothness; }
             set
             {
+                //must be above zero to avoid a div-by-zero in the shader logic.
+                value = Math.Max(0.01f, value);
+
                 if (maskingSmoothness == value)
                     return;
 
