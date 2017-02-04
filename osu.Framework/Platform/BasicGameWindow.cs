@@ -88,16 +88,10 @@ namespace osu.Framework.Platform
         public event Func<bool> ExitRequested;
 
         public event Action Exited;
-        
-        protected void OnExited()
-        {
-            Exited?.Invoke();
-        }
 
-        protected bool OnExitRequested()
-        {
-            return ExitRequested?.Invoke() ?? false;
-        }
+        protected void OnExited() => Exited?.Invoke();
+
+        protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
 
         public virtual void CentreToScreen()
         {
