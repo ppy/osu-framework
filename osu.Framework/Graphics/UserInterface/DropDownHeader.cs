@@ -9,7 +9,7 @@ using System;
  
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownComboBox : ClickableContainer
+    public abstract class DropDownHeader : ClickableContainer
     {
         protected Box Background;
         protected Container Foreground;
@@ -30,9 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract string Label { get; set; }
 
-        public Action CloseAction;
-
-        public DropDownComboBox()
+        public DropDownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;
@@ -53,16 +51,6 @@ namespace osu.Framework.Graphics.UserInterface
                     AutoSizeAxes = Axes.Y
                 },
             };
-        }
-
-        protected override bool OnFocus(InputState state)
-        {
-            return true;
-        }
-
-        protected override void OnFocusLost(InputState state)
-        {
-            CloseAction?.Invoke();
         }
 
         protected override bool OnHover(InputState state)

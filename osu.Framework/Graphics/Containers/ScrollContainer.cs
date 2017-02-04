@@ -133,21 +133,17 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-
         private void updateSize()
         {
-            float contentSize = content.DrawSize.Y;
-            if (Precision.AlmostEquals(availableContent, contentSize))
-                return;
-
-            availableContent = contentSize;
-            updateScrollDragger(); 
+            //todo: can limit this to when displayableContent or availableContent changed.
+            availableContent = content.DrawSize.Y;
+            updateScrollDragger();
         }
 
         private void updateScrollDragger()
         {
-            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, displayableContent / availableContent)), 200, EasingTypes.OutExpo);
-            scrollDragger.Alpha = ScrollDraggerVisible && availableContent > displayableContent ? 1 : 0;
+            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0)), 200, EasingTypes.OutQuint);
+            scrollDragger.FadeTo(ScrollDraggerVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
 

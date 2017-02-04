@@ -9,19 +9,13 @@ using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public enum DropDownMenuState
+    public abstract class DropDownMenu<T> : FlowContainer, IBindable, IStateful<DropDownMenuState>
     {
-        Closed,
-        Opened,
-    }
-
-    public abstract class DropDownMenu<T> : Container, IBindable, IStateful<DropDownMenuState>
-    {
-        private bool opened;
-        private bool listInitialized = false;
+        private bool listInitialized;
 
         private readonly List<DropDownMenuItem<T>> selectableItems = new List<DropDownMenuItem<T>>();
         private List<DropDownMenuItem<T>> items = new List<DropDownMenuItem<T>>();
@@ -48,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
                         item.Index = selectableItems.Count;
                         item.Action = delegate
                         {
-                            if (opened)
+                            if (State == DropDownMenuState.Opened)
                                 SelectedIndex = item.Index;
                         };
                         selectableItems.Add(item);
@@ -58,15 +52,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected DropDownComboBox ComboBox;
+        protected DropDownHeader Header;
 
-        protected Container DropDown;
-        protected ScrollContainer DropDownScroll;
+        protected Container ContentContainer;
         protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
-        protected Box DropDownBackground;
-        protected virtual float DropDownListSpacing => 0;
 
-        protected abstract DropDownComboBox CreateComboBox();
+        protected abstract DropDownHeader CreateHeader();
 
         private int maxDropDownHeight = 100;
 
@@ -82,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 maxDropDownHeight = value;
-                updateDropDownListSize();
+                UpdateContentHeight();
             }
         }
 
@@ -138,23 +129,35 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        private DropDownMenuState state = DropDownMenuState.Closed;
+        protected Box ContentBackground;
+
         public DropDownMenuState State
         {
             get
             {
-                return opened ? DropDownMenuState.Opened : DropDownMenuState.Closed;
+                return state;
             }
             set
             {
+                if (state == value) return;
+                state = value;
+
                 switch (value)
                 {
                     case DropDownMenuState.Closed:
-                        Close();
+                        TriggerFocusLost();
+                        AnimateClose();
                         break;
                     case DropDownMenuState.Opened:
-                        Open();
+                        TriggerFocus();
+                        if (!listInitialized)
+                            initializeDropDownList();
+                        AnimateOpen();
                         break;
                 }
+
+                UpdateContentHeight();
             }
         }
 
@@ -166,23 +169,23 @@ namespace osu.Framework.Graphics.UserInterface
         public DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
+            Direction = FlowDirection.VerticalOnly;
 
             Children = new Drawable[]
             {
-                ComboBox = CreateComboBox(),
-                DropDown = new Container
+                Header = CreateHeader(),
+                ContentContainer = new Container
                 {
                     RelativeSizeAxes = Axes.X,
                     Masking = true,
                     Children = new Drawable[]
                     {
-                        DropDownBackground = new Box
+                        ContentBackground = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black,
-                            Alpha = 0.8f,
                         },
-                        DropDownScroll = new ScrollContainer
+                        new ScrollContainer
                         {
                             Masking = false,
                             Children = new Drawable[]
@@ -199,35 +202,25 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             };
 
-            ComboBox.Action = Toggle;
-            ComboBox.CloseAction = Close;
+            Header.Action = Toggle;
 
-            DropDownItemsContainer.OnAutoSize += updateDropDownListSize;
+            DropDownItemsContainer.OnAutoSize += UpdateContentHeight;
         }
+
+        protected virtual void UpdateContentHeight()
+        {
+            ContentContainer.Height = ContentHeight;
+        }
+
+        protected override bool OnFocus(InputState state) => true;
+
+        protected override void OnFocusLost(InputState state) => State = DropDownMenuState.Closed;
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            ComboBox.Label = SelectedItem?.DisplayText;
-        }
-
-        public void Open()
-        {
-            if (!IsLoaded)
-                return;
-
-            opened = true;
-            if (!listInitialized)
-                initializeDropDownList();
-            AnimateOpen();
-        }
-
-        public void Close()
-        {
-            opened = false;
-            if (IsLoaded)
-                AnimateClose();
+            Header.Label = SelectedItem?.DisplayText;
         }
 
         public bool Parse(object value)
@@ -251,8 +244,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void TriggerValueChanged()
         {
-            ComboBox.Label = SelectedItem?.DisplayText;
-            Close();
+            Header.Label = SelectedItem?.DisplayText;
+            State = DropDownMenuState.Closed;
             ValueChanged?.Invoke(this, null);
         }
 
@@ -260,23 +253,17 @@ namespace osu.Framework.Graphics.UserInterface
         {
             foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
                 child.Show();
-            DropDown.Show();
+            ContentContainer.Show();
         }
 
         protected virtual void AnimateClose()
         {
             foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
                 child.Hide();
-            DropDown.Hide();
+            ContentContainer.Hide();
         }
 
-        public void Toggle()
-        {
-            if (opened)
-                Close();
-            else
-                Open();
-        }
+        public void Toggle() => State = State == DropDownMenuState.Closed ? DropDownMenuState.Opened : DropDownMenuState.Closed;
 
         public void ClearItems()
         {
@@ -294,14 +281,15 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = 0; i < items.Count; i++)
                 DropDownItemsContainer.Add(items[i]);
 
-            DropDown.Position = new Vector2(0, ComboBox.Height + DropDownListSpacing);
-
             listInitialized = true;
         }
 
-        private void updateDropDownListSize()
-        {
-            DropDown.Height = Math.Min(DropDownItemsContainer.Height, MaxDropDownHeight);
-        }
+        protected float ContentHeight => Math.Min(DropDownItemsContainer.Height, MaxDropDownHeight);
+    }
+
+    public enum DropDownMenuState
+    {
+        Closed,
+        Opened,
     }
 }

@@ -43,11 +43,9 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropDownMenu : DropDownMenu<string>
         {
-            protected override float DropDownListSpacing => 4;
-
-            protected override DropDownComboBox CreateComboBox()
+            protected override DropDownHeader CreateHeader()
             {
-                return new StyledDropDownComboBox();
+                return new StyledDropDownHeader();
             }
             
             protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<string> values)
@@ -57,31 +55,22 @@ namespace osu.Framework.VisualTests.Tests
 
             public StyledDropDownMenu()
             {
-                ComboBox.CornerRadius = 4;
-                DropDown.CornerRadius = 4;
+                Header.CornerRadius = 4;
+                ContentContainer.CornerRadius = 4;
             }
 
             protected override void AnimateOpen()
             {
-                foreach (StyledDropDownMenuItem child in DropDownItemsContainer.Children)
-                {
-                    child.FadeIn(200);
-                    child.ResizeTo(new Vector2(1, 24), 200);
-                }
-                DropDown.Show();
+                ContentContainer.Show();
             }
 
             protected override void AnimateClose()
             {
-                foreach (StyledDropDownMenuItem child in DropDownItemsContainer.Children)
-                {
-                    child.ResizeTo(new Vector2(1, 0), 200);
-                    child.FadeOut(200);
-                }
+                ContentContainer.Hide();
             }
         }
 
-        private class StyledDropDownComboBox : DropDownComboBox
+        private class StyledDropDownHeader : DropDownHeader
         {
             private SpriteText label;
             protected override string Label
@@ -90,7 +79,7 @@ namespace osu.Framework.VisualTests.Tests
                 set { label.Text = value; }
             }
 
-            public StyledDropDownComboBox()
+            public StyledDropDownHeader()
             {
                 Foreground.Padding = new MarginPadding(4);
                 BackgroundColour = new Color4(255, 255, 255, 100);
@@ -106,8 +95,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             public StyledDropDownMenuItem(string text) : base(text, text)
             {
-                AutoSizeAxes = Axes.None;
-                Height = 0;
+                AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
 
                 Children = new[]

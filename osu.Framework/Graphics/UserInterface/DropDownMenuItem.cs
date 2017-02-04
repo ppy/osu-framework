@@ -76,7 +76,6 @@ namespace osu.Framework.Graphics.UserInterface
         public DropDownMenuItem(string text, T value)
         {
             RelativeSizeAxes = Axes.X;
-            Width = 1;
             AutoSizeAxes = Axes.Y;
             DisplayText = text;
             Value = value;
