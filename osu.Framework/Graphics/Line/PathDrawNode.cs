@@ -52,6 +52,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private Color4 ColourAt(Vector2 localPos)
         {
+            if (DrawInfo.Colour.HasSingleColour)
+                return DrawInfo.Colour.Colour.Linear;
+
             return DrawInfo.Colour.Interpolate(RelativePosition(localPos)).Linear;
         }
 
