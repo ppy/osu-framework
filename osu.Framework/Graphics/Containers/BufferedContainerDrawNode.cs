@@ -48,7 +48,8 @@ namespace osu.Framework.Graphics.Containers
                 ScreenSpaceAABB = screenSpaceMaskingRect,
                 MaskingRect = ScreenSpaceDrawRectangle,
                 ToMaskingSpace = Matrix3.Identity,
-                BlendRange = 1.0f,
+                BlendRange = 1,
+                AlphaExponent = 1,
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.

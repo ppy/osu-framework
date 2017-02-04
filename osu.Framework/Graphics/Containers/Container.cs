@@ -145,6 +145,7 @@ namespace osu.Framework.Graphics.Containers
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
                 BlendRange = (scale.X + scale.Y) / 2,
+                AlphaExponent = 1,
             };
 
             n.EdgeEffect = EdgeEffect;

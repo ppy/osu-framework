@@ -20,6 +20,8 @@ uniform float g_MaskingBlendRange;
 uniform vec4 g_DrawingRect;
 uniform vec2 g_DrawingBlendRange;
 
+uniform float g_AlphaExponent;
+
 float distanceFromRoundedRect()
 {
 	// Compute offset distance from masking rect in masking space.
@@ -69,7 +71,7 @@ void main(void)
 	}
 
 	// This ends up softening glow without negatively affecting edge smoothness much.
-	alphaFactor *= alphaFactor;
+	alphaFactor = pow(alphaFactor, g_AlphaExponent);
 
 	float borderStart = 1.0 + fadeStart - g_BorderThickness;
 	float colourWeight = min(borderStart - dist, 1.0);
