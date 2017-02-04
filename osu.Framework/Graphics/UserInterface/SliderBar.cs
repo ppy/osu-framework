@@ -12,6 +12,10 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container where T : struct
     {
+        // Range padding reduces the range of movement a slider bar is allowed to have
+        // while still receiving input in the padded region. This behavior is necessary
+        // for finite-sized nubs and can not be achieved (currently) by existing
+        // scene graph padding / margin functionality.
         public float RangePadding;
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
