@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Threading;
 
 namespace osu.Framework.Allocation
 {
@@ -16,6 +17,8 @@ namespace osu.Framework.Allocation
         int read;
         int write;
         int lastWrite = -1;
+
+        long currentFrame;
 
         Action<ObjectUsage<T>, UsageType> finishDelegate;
 
@@ -50,6 +53,7 @@ namespace osu.Framework.Allocation
                         buffers[write].Usage = UsageType.Write;
                     }
 
+                    buffers[write].FrameId = Interlocked.Increment(ref currentFrame);
                     return buffers[write];
                 case UsageType.Read:
                     if (lastWrite < 0) return null;
