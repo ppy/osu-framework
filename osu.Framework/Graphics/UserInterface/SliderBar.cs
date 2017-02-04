@@ -11,7 +11,10 @@ using OpenTK;
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class SliderBar<T> : Container where T : struct
-    {    
+    {
+        public float RangePadding;
+        public float UsableWidth => DrawWidth - 2 * RangePadding;
+
         private float keyboardStep;
         public float KeyboardStep
         {
@@ -114,8 +117,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void handleMouseInput(InputState state)
         {
-            var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X;
-            Bindable.SetProportional(xPosition / DrawWidth);
+            var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
+            Bindable.SetProportional(xPosition / UsableWidth);
         }
     }
 }
