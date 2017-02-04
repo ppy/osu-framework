@@ -39,24 +39,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool NeedsRoundedShader => GLWrapper.IsMaskingActive;
 
+        private Vector2 pointOnCircle(float angle) => new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
 
-        private Vector2 pointOnCircle(float angle)
-        {
-            return new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
-        }
+        private Vector2 RelativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
-        private Vector2 RelativePosition(Vector2 localPos)
-        {
-            return Vector2.Divide(localPos, DrawSize);
-        }
-
-        private Color4 ColourAt(Vector2 localPos)
-        {
-            if (DrawInfo.Colour.HasSingleColour)
-                return DrawInfo.Colour.Colour.Linear;
-
-            return DrawInfo.Colour.Interpolate(RelativePosition(localPos)).Linear;
-        }
+        private Color4 ColourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour ?
+            DrawInfo.Colour.Colour.Linear :
+            DrawInfo.Colour.Interpolate(RelativePosition(localPos)).Linear;
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
