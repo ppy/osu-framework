@@ -255,6 +255,8 @@ namespace osu.Framework.Platform
                 Window.VSync = VSyncMode.Off;
         }
 
+        long lastDrawFrameId;
+
         protected virtual void DrawFrame()
         {
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
@@ -263,8 +265,20 @@ namespace osu.Framework.Platform
                 GLWrapper.ClearColour(Color4.Black);
             }
 
-            using (var buffer = DrawRoots.Get(UsageType.Read))
-                buffer?.Object?.Draw(null);
+            while (true)
+            {
+                using (var buffer = DrawRoots.Get(UsageType.Read))
+                {
+                    if (buffer?.Object != null && buffer.FrameId != lastDrawFrameId)
+                    {
+                        buffer.Object.Draw(null);
+                        lastDrawFrameId = buffer.FrameId;
+                        break;
+                    }
+                }
+
+                Thread.Sleep(1);
+            }
 
             GLWrapper.FlushCurrentBatch();
 
@@ -425,8 +439,8 @@ namespace osu.Framework.Platform
             }));
         }
 
-    public abstract IEnumerable<InputHandler> GetInputHandlers();
+        public abstract IEnumerable<InputHandler> GetInputHandlers();
 
-    public abstract TextInputSource GetTextInput();
-}
+        public abstract TextInputSource GetTextInput();
+    }
 }

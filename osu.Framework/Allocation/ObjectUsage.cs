@@ -10,6 +10,8 @@ namespace osu.Framework.Allocation
         public T Object;
         public int Index;
 
+        public long FrameId;
+
         internal Action<ObjectUsage<T>, UsageType> Finish;
 
         public UsageType Usage;
