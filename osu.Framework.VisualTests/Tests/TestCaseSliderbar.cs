@@ -46,6 +46,17 @@ namespace osu.Framework.VisualTests.Tests
 
             Add(sliderBar);
             Add(sliderbarText);
+
+            Add(new TestSliderBar<double>
+            {
+                Size = new Vector2(200, 10),
+                RangePadding = 20,
+                Position = new Vector2(25, 45),
+                Color = Color4.White,
+                SelectionColor = Color4.Pink,
+                KeyboardStep = 1,
+                Bindable = sliderBarValue,
+            });
         }
 
         private void sliderBarValueChanged(object sender, EventArgs e)
