@@ -1,8 +1,10 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Audio.Track;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Audio
 {
@@ -20,6 +22,14 @@ namespace osu.Framework.Audio
 
             item.AddAdjustmentDependency(this);
             Items.Add(item);
+        }
+
+        public virtual void UpdateDevice(int deviceIndex)
+        {
+            foreach (var item in Items.OfType<IBassAudio>())
+            {
+                item.UpdateDevice(deviceIndex);
+            }
         }
 
         public override void Update()

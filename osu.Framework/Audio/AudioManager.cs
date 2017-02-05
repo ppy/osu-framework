@@ -169,14 +169,7 @@ namespace osu.Framework.Audio
                 return true;
             }
 
-            if (newDevice != null && oldDevice != null)
-            {
-                //we are preparing to load a new device, so let's clean up any existing device.
-                clearAllCaches();
-                Bass.Free();
-            }
-
-            if (!Bass.Init(newDeviceIndex))
+            if (!Bass.Init(newDeviceIndex) && Bass.LastError != Errors.Already)
             {
                 //the new device didn't go as planned. we need another option.
 
@@ -190,9 +183,15 @@ namespace osu.Framework.Audio
                 //let's try again using the default device.
                 return SetAudioDevice();
             }
+            else if(Bass.LastError == Errors.Already)
+            {
+                Bass.CurrentDevice = newDeviceIndex;
+            }
 
             //we have successfully initialised a new device.
             CurrentAudioDevice = newDevice;
+
+            UpdateDevice(newDeviceIndex);
 
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
@@ -200,8 +199,10 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        private void clearAllCaches()
+        public override void UpdateDevice(int newDeviceIndex)
         {
+            Sample.UpdateDevice(newDeviceIndex);
+            Track.UpdateDevice(newDeviceIndex);
         }
 
         private int lastDeviceCount;

@@ -11,7 +11,7 @@ using osu.Framework.IO;
 
 namespace osu.Framework.Audio.Track
 {
-    public class AudioTrackBass : AudioTrack
+    public class AudioTrackBass : AudioTrack, IBassAudio
     {
         private float initialFrequency;
 
@@ -43,8 +43,6 @@ namespace osu.Framework.Audio.Track
             {
                 Preview = quick;
 
-                BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
-
                 if (data == null)
                     throw new ArgumentNullException(nameof(data));
                 //encapsulate incoming stream with async buffer if it isn't already.
@@ -52,6 +50,7 @@ namespace osu.Framework.Audio.Track
 
                 procs = new DataStreamFileProcedures(dataStream);
 
+                BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
                 audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
                 if (Preview)
@@ -71,6 +70,11 @@ namespace osu.Framework.Audio.Track
             });
 
             InvalidateState();
+        }
+
+        void IBassAudio.UpdateDevice(int deviceIndex)
+        {
+            Bass.ChannelSetDevice(activeStream, deviceIndex);
         }
 
         public override void Reset()
