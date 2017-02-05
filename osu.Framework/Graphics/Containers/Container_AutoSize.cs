@@ -126,10 +126,10 @@ namespace osu.Framework.Graphics.Containers
 
                     Vector2 cBound = c.BoundingSize;
 
-                    if ((c.RelativeSizeAxes & Axes.X) == 0 && (c.RelativePositionAxes & Axes.X) == 0)
+                    if ((c.BypassAutoSizeAxes & Axes.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
 
-                    if ((c.RelativeSizeAxes & Axes.Y) == 0 && (c.RelativePositionAxes & Axes.Y) == 0)
+                    if ((c.BypassAutoSizeAxes & Axes.Y) == 0)
                         maxBoundSize.Y = Math.Max(maxBoundSize.Y, cBound.Y);
                 }
 

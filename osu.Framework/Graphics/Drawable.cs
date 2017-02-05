@@ -472,6 +472,25 @@ namespace osu.Framework.Graphics
             return v;
         }
 
+        private Axes bypassAutoSizeAxes;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are ignored by parent <see cref="Parent"/>'s auto size containers.
+        /// </summary>
+        public Axes BypassAutoSizeAxes
+        {
+            get { return bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes; }
+
+            set
+            {
+                if (value == bypassAutoSizeAxes)
+                    return;
+
+                bypassAutoSizeAxes = value;
+                Parent?.InvalidateFromChild(Invalidation.Geometry, this);
+            }
+        }
+
         #endregion
 
         #region Scale / Shear / Rotation
