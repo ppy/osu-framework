@@ -144,12 +144,12 @@ namespace osu.Framework.Graphics.Visualisation
 
             int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
-            text.Text = Target + (!Flow.IsVisible && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
+            text.Text = Target + (!Flow.IsPresent && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
 
         protected override void Update()
         {
-            text.Colour = !Flow.IsVisible ? Color4.LightBlue : Color4.White;
+            text.Colour = !Flow.IsPresent ? Color4.LightBlue : Color4.White;
             base.Update();
         }
 
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Visualisation
                 return false;
             }
 
-            Alpha = Target.IsVisible ? 1 : 0.3f;
+            Alpha = Target.IsPresent ? 1 : 0.3f;
             return true;
         }
     }

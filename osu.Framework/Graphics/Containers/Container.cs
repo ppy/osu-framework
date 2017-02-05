@@ -415,7 +415,7 @@ namespace osu.Framework.Graphics.Containers
             // generalization in the future.
             updateChildrenLife();
 
-            if (!IsVisible) return false;
+            if (!IsPresent) return false;
 
             foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
@@ -515,7 +515,7 @@ namespace osu.Framework.Graphics.Containers
                 while (drawable is ProxyDrawable)
                     drawable = ((ProxyDrawable)drawable).Original;
 
-                if (!drawable.IsVisible)
+                if (!drawable.IsPresent)
                     continue;
 
                 // We are consciously missing out on potential flattening (due to lack of covariance)

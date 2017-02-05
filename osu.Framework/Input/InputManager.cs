@@ -173,7 +173,7 @@ namespace osu.Framework.Input
 
         private void buildKeyboardInputQueue(Drawable current)
         {
-            if (!current.HandleInput || !current.IsVisible || current.IsMaskedAway)
+            if (!current.HandleInput || !current.IsPresent || current.IsMaskedAway)
                 return;
 
             if (current != this)
@@ -212,7 +212,7 @@ namespace osu.Framework.Input
                     buildMouseInputQueue(state, d);
         }
 
-        private bool checkIsHoverable(Drawable d, InputState state) => d.HandleInput && d.IsVisible && !d.IsMaskedAway && d.Contains(state.Mouse.Position);
+        private bool checkIsHoverable(Drawable d, InputState state) => d.HandleInput && d.IsPresent && !d.IsMaskedAway && d.Contains(state.Mouse.Position);
 
         private void updateHoverEvents(InputState state)
         {
@@ -418,7 +418,7 @@ namespace osu.Framework.Input
             };
 
             //extra check for IsAlive because we are using an outdated queue.
-            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsVisible && target.TriggerMouseUp(state, args));
+            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerMouseUp(state, args));
         }
 
         private bool handleMouseMove(InputState state)
@@ -511,7 +511,7 @@ namespace osu.Framework.Input
         {
             if (FocusedDrawable == null) return false;
 
-            bool stillValid = FocusedDrawable.IsVisible && FocusedDrawable.Parent != null;
+            bool stillValid = FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
 
             if (stillValid)
             {
@@ -519,7 +519,7 @@ namespace osu.Framework.Input
                 IContainer d = FocusedDrawable.Parent;
                 while (d != null)
                 {
-                    if (!d.IsVisible)
+                    if (!d.IsPresent)
                     {
                         stillValid = false;
                         break;

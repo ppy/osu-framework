@@ -12,6 +12,6 @@ namespace osu.Framework.Graphics
             Original = original;
         }
 
-        public override bool IsVisible => false;
+        public override bool IsPresent => false;
     }
 }

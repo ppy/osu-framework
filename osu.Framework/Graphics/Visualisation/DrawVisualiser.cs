@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (d is DrawVisualiser) return null;
             if (d is CursorContainer) return null;
 
-            if (!d.IsVisible) return null;
+            if (!d.IsPresent) return null;
 
             var dAsContainer = d as IContainerEnumerable<Drawable>;
 

@@ -16,7 +16,12 @@ namespace osu.Framework.Graphics
 
         IContainer Parent { get; set; }
 
-        bool IsVisible { get; }
+        /// <summary>
+        /// Whether this drawable is present for any sort of user-interaction.
+        /// If this is false, then this drawable will not be drawn, it will not handle input,
+        /// and it will not affect layouting (e.g. autosizing and flow).
+        /// </summary>
+        bool IsPresent { get; }
 
         FrameTimeInfo Time { get; }
 

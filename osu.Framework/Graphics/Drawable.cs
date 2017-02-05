@@ -228,7 +228,7 @@ namespace osu.Framework.Graphics
             //todo: this should be moved to after the IsVisible condition once we have TOL for transformations (and some better logic).
             updateTransforms();
 
-            if (!IsVisible)
+            if (!IsPresent)
                 return true;
 
             if (scheduler != null)
@@ -738,10 +738,9 @@ namespace osu.Framework.Graphics
         const float visibility_cutoff = 0.0001f;
 
         /// <summary>
-        /// Determines whether this Drawable is visible based on its <see cref="Alpha"/> value.
-        /// This is primarily used for optimization purposes, but also affects other behaviour.
+        /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
         /// </summary>
-        public virtual bool IsVisible => Alpha > visibility_cutoff;
+        public virtual bool IsPresent => Alpha > visibility_cutoff;
 
         private BlendingMode blendingMode;
 

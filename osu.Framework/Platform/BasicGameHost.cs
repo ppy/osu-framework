@@ -71,7 +71,7 @@ namespace osu.Framework.Platform
 
         public virtual BasicStorage Storage { get; protected set; } //public set currently required for visualtests setup.
 
-        public override bool IsVisible => true;
+        public override bool IsPresent => true;
 
         private GameThread[] threads;
 
