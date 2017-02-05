@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Windows.Forms;
+using System.Linq;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -171,28 +171,6 @@ namespace osu.Framework
             addDebugTools();
         }
 
-        private void dragDrop(object sender, DragEventArgs e)
-        {
-            Array fileDrop = e.Data.GetData(DataFormats.FileDrop) as Array;
-            string textDrop = e.Data.GetData(DataFormats.Text) as string;
-
-            if (fileDrop != null)
-            {
-                for (int i = 0; i < fileDrop.Length; i++)
-                    OnDroppedFile(fileDrop.GetValue(i).ToString());
-            }
-
-            if (!string.IsNullOrEmpty(textDrop))
-                OnDroppedText(textDrop);
-        }
-
-        private void dragEnter(object sender, DragEventArgs e)
-        {
-            bool isFile = e.Data.GetDataPresent(DataFormats.FileDrop);
-            bool isUrl = e.Data.GetDataPresent(DataFormats.Text);
-            e.Effect = isFile || isUrl ? DragDropEffects.Copy : DragDropEffects.None;
-        }
-
         /// <summary>
         /// Whether the Game environment is active (in the foreground).
         /// </summary>
@@ -248,22 +226,6 @@ namespace osu.Framework
         public void Exit()
         {
             host.Exit();
-        }
-
-        protected virtual void OnDroppedText(string text)
-        {
-        }
-
-        protected virtual void OnDroppedFile(string file)
-        {
-        }
-
-        protected virtual void OnFormClosing(object sender, FormClosingEventArgs args)
-        {
-        }
-
-        protected virtual void OnDragEnter(object sender, EventArgs args)
-        {
         }
 
         protected virtual void OnActivated()
