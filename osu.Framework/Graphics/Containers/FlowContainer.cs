@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
                     {
                         Vector2 size = Vector2.Zero;
 
-                        if (d.IsVisible)
+                        if (d.IsPresent)
                         {
                             size = d.LayoutSize * d.Scale;
 

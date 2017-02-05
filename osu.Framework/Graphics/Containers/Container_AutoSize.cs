@@ -121,7 +121,7 @@ namespace osu.Framework.Graphics.Containers
                 // Find the maximum width/height of children
                 foreach (T c in AliveChildren)
                 {
-                    if (!c.IsVisible)
+                    if (!c.IsPresent)
                         continue;
 
                     Vector2 cBound = c.BoundingSize;

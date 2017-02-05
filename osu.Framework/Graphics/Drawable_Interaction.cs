@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics
             if (HasFocus)
                 return true;
 
-            if (!IsVisible)
+            if (!IsPresent)
                 return false;
 
             if (checkCanFocus & !OnFocus(state))

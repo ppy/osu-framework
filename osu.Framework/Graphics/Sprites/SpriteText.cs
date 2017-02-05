@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override bool IsVisible => base.IsVisible && !string.IsNullOrEmpty(text);
+        public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
 
         private string font;
 
