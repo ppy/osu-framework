@@ -27,9 +27,9 @@ namespace osu.Framework.Desktop.Platform.Windows
                 // us the trouble of creating and using our own custom-built COM-Wrapper for drag&drop
                 // and generally makes our lives much easier (trust me, you don't want to implement drag&drop with win32).
 
-                var windowsFormsTypes = typeof(System.Windows.Forms.Form).Assembly.GetTypes();
+                var windowsFormsTypes = typeof(Form).Assembly.GetTypes();
                 // Internal DropTarget. This is a COM-object that we can use for RegisterDragDrop which does the bulk of win32 API interaction for us.
-                var dropTarget = Activator.CreateInstance(windowsFormsTypes.Single(x => x.Name == "DropTarget"), (IDropTarget)this);
+                var dropTarget = Activator.CreateInstance(windowsFormsTypes.Single(x => x.Name == "DropTarget"), this);
                 var unsafeNativeMethods = windowsFormsTypes.Single(x => x.Name == "UnsafeNativeMethods");
                 var oleInitializeMethod = unsafeNativeMethods.GetMethod("OleInitialize", BindingFlags.Static | BindingFlags.Public);
                 var registerDragDropMethod = unsafeNativeMethods.GetMethod("RegisterDragDrop", BindingFlags.Static | BindingFlags.Public);
