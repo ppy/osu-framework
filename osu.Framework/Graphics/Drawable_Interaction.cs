@@ -8,8 +8,6 @@ using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
 using KeyboardState = osu.Framework.Input.KeyboardState;
-using osu.Framework.Graphics.Primitives;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics
 {
@@ -20,80 +18,47 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
 
-        public bool TriggerHover(InputState state)
-        {
-            return OnHover(state);
-        }
+        public bool TriggerHover(InputState screenSpaceState) => OnHover(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnHover(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnHover(InputState state) => false;
 
-        public void TriggerHoverLost(InputState state)
-        {
-            OnHoverLost(state);
-        }
+        public void TriggerHoverLost(InputState screenSpaceState) => OnHoverLost(toParentSpace(screenSpaceState));
 
         protected virtual void OnHoverLost(InputState state)
         {
         }
 
-        public bool TriggerMouseDown(InputState state = null, MouseDownEventArgs args = null) => OnMouseDown(getLocalState(state), args);
+        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(toParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            return false;
-        }
+        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
-        public bool TriggerMouseUp(InputState state = null, MouseUpEventArgs args = null) => OnMouseUp(getLocalState(state), args);
+        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(toParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args)
-        {
-            return false;
-        }
+        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
-        public bool TriggerClick(InputState state = null) => OnClick(getLocalState(state));
+        public bool TriggerClick(InputState screenSpaceState = null) => OnClick(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnClick(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnClick(InputState state) => false;
 
-        public bool TriggerDoubleClick(InputState state) => OnDoubleClick(getLocalState(state));
+        public bool TriggerDoubleClick(InputState screenSpaceState) => OnDoubleClick(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnDoubleClick(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnDoubleClick(InputState state) => false;
 
-        public bool TriggerDragStart(InputState state) => OnDragStart(getLocalState(state));
+        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnDragStart(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnDragStart(InputState state) => false;
 
-        public bool TriggerDrag(InputState state) => OnDrag(getLocalState(state));
+        public bool TriggerDrag(InputState screenSpaceState) => OnDrag(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnDrag(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnDrag(InputState state) => false;
 
-        public bool TriggerDragEnd(InputState state) => OnDragEnd(getLocalState(state));
+        public bool TriggerDragEnd(InputState screenSpaceState) => OnDragEnd(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnDragEnd(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnDragEnd(InputState state) => false;
 
-        public bool TriggerWheel(InputState state) => OnWheel(getLocalState(state));
+        public bool TriggerWheel(InputState screenSpaceState) => OnWheel(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnWheel(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
         /// Request focus, but only receive if nothing else already has focus.
@@ -109,9 +74,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Focuses this drawable.
         /// </summary>
-        /// <param name="state">The input state.</param>
+        /// <param name="screenSpaceState">The input state.</param>
         /// <param name="checkCanFocus">Whether we should check this Drawable's OnFocus returns true before actually providing focus.</param>
-        public bool TriggerFocus(InputState state = null, bool checkCanFocus = false)
+        public bool TriggerFocus(InputState screenSpaceState = null, bool checkCanFocus = false)
         {
             if (HasFocus)
                 return true;
@@ -119,7 +84,7 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return false;
 
-            if (checkCanFocus & !OnFocus(state))
+            if (checkCanFocus & !OnFocus(toParentSpace(screenSpaceState)))
                 return false;
 
             ourInputManager?.ChangeFocus(this);
@@ -127,72 +92,72 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        protected virtual bool OnFocus(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnFocus(InputState state) => false;
 
         /// <summary>
         /// Unfocuses this drawable.
         /// </summary>
-        /// <param name="state">The input state.</param>
+        /// <param name="screenSpaceState">The input state.</param>
         /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
-        public void TriggerFocusLost(InputState state = null, bool isCallback = false)
+        public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
         {
             if (!HasFocus)
                 return;
 
-            if (state == null)
-                state = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
+            if (screenSpaceState == null)
+                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
 
             if (!isCallback) ourInputManager.ChangeFocus(null);
-            OnFocusLost(state);
+            OnFocusLost(toParentSpace(screenSpaceState));
         }
 
         protected virtual void OnFocusLost(InputState state)
         {
         }
 
-        public bool TriggerKeyDown(InputState state, KeyDownEventArgs args) => OnKeyDown(getLocalState(state), args);
+        public bool TriggerKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(toParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            return false;
-        }
+        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
-        public bool TriggerKeyUp(InputState state, KeyUpEventArgs args) => OnKeyUp(getLocalState(state), args);
+        public bool TriggerKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(toParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args)
-        {
-            return false;
-        }
+        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
-        public bool TriggerMouseMove(InputState state) => OnMouseMove(getLocalState(state));
+        public bool TriggerMouseMove(InputState screenSpaceState) => OnMouseMove(toParentSpace(screenSpaceState));
 
-        protected virtual bool OnMouseMove(InputState state)
-        {
-            return false;
-        }
+        protected virtual bool OnMouseMove(InputState state) => false;
 
+        /// <summary>
+        /// This drawable only receives input events if HandleInput is true.
+        /// </summary>
         public virtual bool HandleInput => false;
 
         public virtual bool HasFocus => ourInputManager?.FocusedDrawable == this;
 
         internal bool Hovering;
 
-        public virtual bool Contains(Vector2 screenSpacePos)
-        {
-            return DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
-        }
+        /// <summary>
+        /// Computes whether a given screen-space position is contained within this drawable.
+        /// Mouse input events are only received when this function is true, or when the drawable
+        /// is in focus.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
+        /// <returns>Whether the given position is contained within this drawable.</returns>
+        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
-        private InputState getLocalState(InputState state)
+        /// <summary>
+        /// Transforms a screen-space input state to the parent's space of this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The screen-space input state to be transformed.</param>
+        /// <returns>The transformed state in parent space.</returns>
+        private InputState toParentSpace(InputState screenSpaceState)
         {
-            if (state == null) return null;
+            if (screenSpaceState == null) return null;
 
             return new InputState
             {
-                Keyboard = state.Keyboard,
-                Mouse = new LocalMouseState(state.Mouse, this)
+                Keyboard = screenSpaceState.Keyboard,
+                Mouse = new LocalMouseState(screenSpaceState.Mouse, this)
             };
         }
 
