@@ -739,8 +739,30 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
+        /// Can be forced always on with <see cref="AlwaysPresent"/>.
         /// </summary>
-        public virtual bool IsPresent => Alpha > visibility_cutoff;
+        public virtual bool IsPresent => AlwaysPresent || Alpha > visibility_cutoff;
+
+        private bool alwaysPresent;
+
+        /// <summary>
+        /// If true, forces <see cref="IsPresent"/> to always be true. In other words,
+        /// this drawable is always considered for layout, input, and drawing, regardless
+        /// of alpha value.
+        /// </summary>
+        public bool AlwaysPresent
+        {
+            get { return alwaysPresent; }
+
+            set
+            {
+                if (alwaysPresent == value) return;
+
+                Invalidate(Invalidation.Colour);
+
+                alwaysPresent = value;
+            }
+        }
 
         private BlendingMode blendingMode;
 
