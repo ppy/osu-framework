@@ -126,6 +126,7 @@ namespace osu.Framework.Graphics.Sprites
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
             n.Width = PathWidth;
+            n.DrawSize = DrawSize;
 
             n.Shared = pathDrawNodeSharedData;
 

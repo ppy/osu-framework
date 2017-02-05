@@ -86,10 +86,8 @@ namespace osu.Framework.Graphics.Colour
         {
             Debug.Assert(HasSingleColour);
             if (childColour.HasSingleColour)
-            {
                 Colour *= childColour.Colour;
-            }
-            else if (!childColour.HasSingleColour)
+            else
             {
                 HasSingleColour = false;
                 BottomLeft = childColour.BottomLeft * TopLeft;

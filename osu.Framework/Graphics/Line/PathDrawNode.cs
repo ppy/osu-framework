@@ -10,6 +10,7 @@ using OpenTK;
 using System;
 using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -27,6 +28,7 @@ namespace osu.Framework.Graphics.Sprites
         public const int MAXRES = 24;
         public List<Line> Segments = new List<Line>();
 
+        public Vector2 DrawSize;
         public float Width;
         public Texture Texture;
 
@@ -37,11 +39,13 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool NeedsRoundedShader => GLWrapper.IsMaskingActive;
 
+        private Vector2 pointOnCircle(float angle) => new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
 
-        private Vector2 pointOnCircle(float angle)
-        {
-            return new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
-        }
+        private Vector2 RelativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
+
+        private Color4 ColourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour ?
+            DrawInfo.Colour.Colour.Linear :
+            DrawInfo.Colour.Interpolate(RelativePosition(localPos)).Linear;
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
@@ -55,8 +59,12 @@ namespace osu.Framework.Graphics.Sprites
             if (dir < 0)
                 theta += MathHelper.Pi;
 
-            Vector2 current = (origin + pointOnCircle(theta) * Width) * DrawInfo.Matrix;
+            Vector2 current = origin + pointOnCircle(theta) * Width;
+            Color4 currentColour = ColourAt(current);
+            current *= DrawInfo.Matrix;
+
             Vector2 screenOrigin = origin * DrawInfo.Matrix;
+            Color4 originColour = ColourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
             {
@@ -65,7 +73,7 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
-                    Colour = DrawInfo.Colour.Colour.Linear
+                    Colour = originColour
                 });
 
                 // First outer point
@@ -73,46 +81,53 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(0, 0),
-                    Colour = DrawInfo.Colour.Colour.Linear
+                    Colour = currentColour
                 });
 
                 float angularOffset = Math.Min(i * step, thetaDiff);
-                current = (origin + pointOnCircle(theta + dir * angularOffset) * Width) * DrawInfo.Matrix;
+                current = origin + pointOnCircle(theta + dir * angularOffset) * Width;
+                currentColour = ColourAt(current);
+                current *= DrawInfo.Matrix;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex3D()
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(0, 0),
-                    Colour = DrawInfo.Colour.Colour.Linear
+                    Colour = currentColour
                 });
             }
         }
         private void addLineQuads(Line line)
         {
             Vector2 ortho = line.OrthogonalDirection;
-            Line lineLeft = new Line((line.StartPoint + ortho * Width) * DrawInfo.Matrix, (line.EndPoint + ortho * Width) * DrawInfo.Matrix);
-            Line lineRight = new Line((line.StartPoint - ortho * Width) * DrawInfo.Matrix, (line.EndPoint - ortho * Width) * DrawInfo.Matrix);
-            line = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
+            Line lineLeft = new Line(line.StartPoint + ortho * Width, line.EndPoint + ortho * Width);
+            Line lineRight = new Line(line.StartPoint - ortho * Width, line.EndPoint - ortho * Width);
+
+            Line screenLineLeft = new Line(lineLeft.StartPoint * DrawInfo.Matrix, lineLeft.EndPoint * DrawInfo.Matrix);
+            Line screenLineRight = new Line(lineRight.StartPoint * DrawInfo.Matrix, lineRight.EndPoint * DrawInfo.Matrix);
+            Line screenLine = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
 
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
-                Position = new Vector3(lineRight.EndPoint.X, lineRight.EndPoint.Y, 0),
+                Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = DrawInfo.Colour.Colour.Linear
+                Colour = ColourAt(lineRight.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
-                Position = new Vector3(lineRight.StartPoint.X, lineRight.StartPoint.Y, 0),
+                Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = DrawInfo.Colour.Colour.Linear
+                Colour = ColourAt(lineRight.StartPoint)
             });
 
             // Each "quad" of the slider is actually rendered as 2 quads, being split in half along the approximating line.
             // On this line the depth is 1 instead of 0, which is done properly handle self-overlap using the depth buffer.
             // Thus the middle vertices need to be added twice (once for each quad).
-            Vector3 firstMiddlePoint = new Vector3(line.StartPoint.X, line.StartPoint.Y, 1);
-            Vector3 secondMiddlePoint = new Vector3(line.EndPoint.X, line.EndPoint.Y, 1);
+            Vector3 firstMiddlePoint = new Vector3(screenLine.StartPoint.X, screenLine.StartPoint.Y, 1);
+            Vector3 secondMiddlePoint = new Vector3(screenLine.EndPoint.X, screenLine.EndPoint.Y, 1);
+            Color4 firstMiddleColour = ColourAt(line.StartPoint);
+            Color4 secondMiddleColour = ColourAt(line.EndPoint);
 
             for (int i = 0; i < 2; ++i)
             {
@@ -120,27 +135,27 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
-                    Colour = DrawInfo.Colour.Colour.Linear
+                    Colour = firstMiddleColour
                 });
                 Shared.QuadBatch.Add(new TexturedVertex3D()
                 {
                     Position = secondMiddlePoint,
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
-                    Colour = DrawInfo.Colour.Colour.Linear
+                    Colour = secondMiddleColour
                 });
             }
 
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
-                Position = new Vector3(lineLeft.EndPoint.X, lineLeft.EndPoint.Y, 0),
+                Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = DrawInfo.Colour.Colour.Linear
+                Colour = ColourAt(lineLeft.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
-                Position = new Vector3(lineLeft.StartPoint.X, lineLeft.StartPoint.Y, 0),
+                Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = DrawInfo.Colour.Colour.Linear
+                Colour = ColourAt(lineLeft.StartPoint)
             });
         }
 
