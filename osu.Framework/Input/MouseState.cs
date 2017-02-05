@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using osu.Framework.Lists;
 using OpenTK;
 using OpenTK.Input;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
@@ -35,6 +36,7 @@ namespace osu.Framework.Input
         public int Wheel { get; set; }
 
         public bool HasMainButtonPressed => LeftButton || RightButton;
+        public bool HasButtonPressed => ButtonStates.Any(b => b.State);
 
         public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
 
