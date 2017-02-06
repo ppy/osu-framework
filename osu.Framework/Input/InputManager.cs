@@ -45,11 +45,6 @@ namespace osu.Framework.Input
         private const float drag_start_distance = 0;
 
         /// <summary>
-        /// The distance that can be moved between MouseDown and MouseUp to consider a click valid to take action on.
-        /// </summary>
-        private const float click_confirmation_distance = 10;
-
-        /// <summary>
         /// The time of the last input action.
         /// </summary>
         public double LastActionTime;
@@ -377,9 +372,6 @@ namespace osu.Framework.Input
                     isDragging = true;
                     handleMouseDragStart(state);
                 }
-
-                if (isValidClick && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > click_confirmation_distance)
-                    isValidClick = false;
             }
             else if (mouse.LastState?.HasMainButtonPressed == true)
             {
@@ -429,7 +421,7 @@ namespace osu.Framework.Input
         private bool handleMouseClick(InputState state)
         {
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseDownInputQueue.Any(target => checkIsHoverable(target, mouseDownState) && (target.TriggerClick(mouseDownState) | target.TriggerFocus(mouseDownState, true))))
+            if (mouseDownInputQueue.Intersect(mouseInputQueue).Any(target => checkIsHoverable(target, mouseDownState) && (target.TriggerClick(mouseDownState) | target.TriggerFocus(mouseDownState, true))))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();
