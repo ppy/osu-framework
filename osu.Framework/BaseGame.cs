@@ -133,6 +133,7 @@ namespace osu.Framework
                 new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
 
             //attach our bindables to the audio subsystem.
+            Audio.AudioDevice.Weld(Config.GetBindable<string>(FrameworkConfig.AudioDevice));
             Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
             Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
             Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
