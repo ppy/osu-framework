@@ -39,12 +39,17 @@ namespace osu.Framework.Graphics.Textures
         public TextureGL TextureGL;
         public string Filename;
         public string AssetName;
-        public float DpiScale = 1;
+
+        /// <summary>
+        /// At what multiple of our expected resolution is our underlying texture?
+        /// </summary>
+        public float ScaleAdjust = 1;
+
         public bool Disposable = true;
         public bool IsDisposed { get; private set; }
 
-        public float DisplayWidth => Width / DpiScale;
-        public float DisplayHeight => Height / DpiScale;
+        public float DisplayWidth => Width / ScaleAdjust;
+        public float DisplayHeight => Height / ScaleAdjust;
 
         public Texture(TextureGL textureGl)
         {
@@ -177,12 +182,12 @@ namespace osu.Framework.Graphics.Textures
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
-            if (DpiScale != 1)
+            if (ScaleAdjust != 1)
             {
-                texRect.Width *= DpiScale;
-                texRect.Height *= DpiScale;
-                texRect.X *= DpiScale;
-                texRect.Y *= DpiScale;
+                texRect.Width *= ScaleAdjust;
+                texRect.Height *= ScaleAdjust;
+                texRect.X *= ScaleAdjust;
+                texRect.Y *= ScaleAdjust;
             }
 
             return texRect;

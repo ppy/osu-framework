@@ -142,7 +142,7 @@ namespace osu.Framework
 
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
             {
-                ScaleAdjust = 1 / 100f
+                ScaleAdjust = 100
             };
             Dependencies.Cache(Fonts);
         }

@@ -28,6 +28,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected Box Caret;
         protected Container TextContainer;
 
+        const float padding = 5;
+
         public int? LengthLimit;
 
         public bool AllowClipboardExport => true;
@@ -75,6 +77,7 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
+                    Position = new Vector2(padding, 0),
                     Children = new Drawable[]
                     {
                         Caret = new Box
@@ -161,8 +164,6 @@ namespace osu.Framework.Graphics.UserInterface
                     cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
 
                 float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
-
-                const float padding = 5;
 
                 //we only want to reposition the view when the cursor reaches near the extremities.
                 if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
