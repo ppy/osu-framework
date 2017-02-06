@@ -92,6 +92,7 @@ namespace osu.Framework.Audio
         /// </summary>
         /// <remarks>The No Sound device that is in the list of Audio Devices that are stored internally is not returned.</remarks>
         /// <returns>A list of the names of recognized audio devices.</returns>
+        // Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
         public IEnumerable<string> GetDeviceNames() => AudioDevices.Skip(1).Select(d => d.Name);
 
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
