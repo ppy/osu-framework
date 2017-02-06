@@ -15,7 +15,11 @@ namespace osu.Framework.Graphics.Textures
 
         private TextureAtlas atlas;
 
-        public float ScaleAdjust = 1;
+        /// <summary>
+        /// Decides at what resolution multiple this texturestore is providing sprites at.
+        /// ie. if we are providing high resolution (at 2x the resolution of standard 1366x768) sprites this should be 2.
+        /// </summary>
+        public float ScaleAdjust = 2;
 
         public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true) : base(store)
         {
@@ -106,7 +110,7 @@ namespace osu.Framework.Graphics.Textures
                 finally
                 {
                     if (tex != null && ScaleAdjust != 1)
-                        tex.DpiScale = 1 / ScaleAdjust;
+                        tex.ScaleAdjust = ScaleAdjust;
                 }
             }
         }
