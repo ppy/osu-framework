@@ -83,11 +83,11 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.PopMaskingInfo();
         }
 
-        private const int MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH = 5;
+        private const int min_amount_children_to_warrant_batch = 5;
 
         protected Action<TexturedVertex2D> CustomVertexAction => null;
 
-        private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= MIN_AMOUNT_CHILDREN_TO_WARRANT_BATCH;
+        private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;
 
         private void updateVertexBatch()
         {

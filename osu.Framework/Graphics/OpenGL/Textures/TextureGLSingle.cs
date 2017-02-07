@@ -82,13 +82,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 return height;
             }
 
             set
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 height = value;
             }
         }
@@ -99,13 +99,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 return width;
             }
 
             set
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 width = value;
             }
         }
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 Debug.Assert(textureId > 0);
 
                 return textureId;
@@ -146,7 +146,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
 
@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
 
@@ -231,7 +231,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateWrapMode()
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             internalWrapMode = WrapMode;
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)internalWrapMode);
@@ -240,7 +240,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(TextureUpload upload)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             if (upload.Bounds == Rectangle.Empty)
                 upload.Bounds = new Rectangle(0, 0, width, height);
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             Upload();
 
@@ -280,7 +280,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
 
-            if (isDisposed)
+            if (IsDisposed)
                 return false;
 
             IntPtr dataPointer;

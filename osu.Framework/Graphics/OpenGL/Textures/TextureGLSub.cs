@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             set { bounds.Width = value; }
         }
 
-        private RectangleF BoundsInParent(RectangleF? textureRect)
+        private RectangleF boundsInParent(RectangleF? textureRect)
         {
             RectangleF actualBounds = bounds;
 
@@ -62,17 +62,17 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override RectangleF GetTextureRect(RectangleF? textureRect)
         {
-            return parent.GetTextureRect(BoundsInParent(textureRect));
+            return parent.GetTextureRect(boundsInParent(textureRect));
         }
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            parent.DrawTriangle(vertexTriangle, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawTriangle(vertexTriangle, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            parent.DrawQuad(vertexQuad, BoundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
         internal override bool Upload()
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             Upload();
 

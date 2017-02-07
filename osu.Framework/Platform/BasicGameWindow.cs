@@ -25,7 +25,7 @@ namespace osu.Framework.Platform
             MakeCurrent();
 
             string version = GL.GetString(StringName.Version);
-            string versionNumberSubstring = GetVersionNumberSubstring(version);
+            string versionNumberSubstring = getVersionNumberSubstring(version);
             GLVersion = new Version(versionNumberSubstring);
             version = GL.GetString(StringName.ShadingLanguageVersion);
             if (!string.IsNullOrEmpty(version))
@@ -59,7 +59,7 @@ namespace osu.Framework.Platform
             Context.MakeCurrent(null);
         }
 
-        private string GetVersionNumberSubstring(string version)
+        private string getVersionNumberSubstring(string version)
         {
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;

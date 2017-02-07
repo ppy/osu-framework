@@ -53,7 +53,7 @@ namespace osu.Framework
         private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
 
-        private LogOverlay LogOverlay;
+        private LogOverlay logOverlay;
 
         protected FrameworkConfigManager Config;
 
@@ -83,7 +83,7 @@ namespace osu.Framework
                 Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
 
-            (LogOverlay = new LogOverlay()
+            (logOverlay = new LogOverlay()
             {
                 Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
@@ -214,7 +214,7 @@ namespace osu.Framework
                         DrawVisualiser.ToggleVisibility();
                         return true;
                     case Key.F10:
-                        LogOverlay.ToggleVisibility();
+                        logOverlay.ToggleVisibility();
                         return true;
                 }
             }

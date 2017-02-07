@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
             Texture = Texture.WhitePixel;
         }
 
-        public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBf;
+        public override RectangleF BoundingBox => toTriangle(ToParentSpace(LayoutRectangle)).AABBFloat;
 
         private static Primitives.Triangle toTriangle(Quad q) => new Primitives.Triangle(
             (q.TopLeft + q.TopRight) / 2,

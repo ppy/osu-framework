@@ -51,23 +51,23 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool isDisposed;
+        protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
             Unbind();
 
             GLWrapper.DeleteBuffer(vboId);
 
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         private void resize(int amountVertices)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             T[] oldVertices = Vertices;
             Vertices = new T[amountVertices];
@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public virtual void Bind(bool forRendering)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 bindAttributes();

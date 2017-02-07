@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
         // We are adding an extra padding on top of the padding required by
         // mipmap blending in order to support smooth edges without antialiasing which requires
         // inflating texture rectangles.
-        private const int PADDING = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
+        private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
         private List<Rectangle> subTextureBounds = new List<Rectangle>();
         private TextureGLSingle atlasTexture;
@@ -73,14 +73,14 @@ namespace osu.Framework.Graphics.Textures
             foreach (Rectangle bounds in subTextureBounds)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                res.X = Math.Max(res.X, bounds.Right + PADDING);
+                res.X = Math.Max(res.X, bounds.Right + padding);
                 maxY = Math.Max(maxY, bounds.Bottom);
             }
 
             if (res.X + width > atlasWidth)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
-                currentY = maxY + PADDING;
+                currentY = maxY + padding;
                 subTextureBounds.Clear();
                 res = findPosition(width, height);
             }

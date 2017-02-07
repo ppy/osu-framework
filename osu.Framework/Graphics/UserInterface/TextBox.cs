@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
-        private TextInputSource textInput;
+        private ITextInputSource textInput;
         private Clipboard clipboard;
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);

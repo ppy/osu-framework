@@ -28,14 +28,11 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Applies a transformation to the current DrawInfo.
         /// </summary>
-        /// <param name="target">The DrawInfo instance to be filled with the result.</param>
         /// <param name="translation">The amount by which to translate the current position.</param>
         /// <param name="scale">The amount by which to scale.</param>
         /// <param name="rotation">The amount by which to rotate.</param>
-        /// <param name="origin">The center of rotation and scale.</param>
         /// <param name="shear">The shear amounts for both directions.</param>
-        /// <param name="colour">An optional color to be applied multiplicatively.</param>
-        /// <param name="blending">An optional blending change.</param>
+        /// <param name="origin">The center of rotation and scale.</param>
         public void ApplyTransform(Vector2 translation, Vector2 scale, float rotation, Vector2 shear, Vector2 origin)
         {
             if (translation != Vector2.Zero)
