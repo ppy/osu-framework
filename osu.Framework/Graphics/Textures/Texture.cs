@@ -222,7 +222,7 @@ namespace osu.Framework.Graphics.Textures
 
         protected override RectangleF TextureBounds(RectangleF? textureRect = default(RectangleF?))
         {
-            return new RectangleF();
+            return new RectangleF(0, 0, 0.0001f, 0.0001f);
         }
     }
 }
