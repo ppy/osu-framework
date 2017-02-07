@@ -46,9 +46,6 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
-            if (!hasSample)
-                return;
-
             base.Play();
 
             PendingActions.Enqueue(() =>
