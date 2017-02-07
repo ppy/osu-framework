@@ -109,7 +109,7 @@ namespace osu.Framework.Allocation
         {
             Debug.Assert(overwrite || !cache.ContainsKey(typeof(T)), @"We have already cached one of these");
             if (instance == null)
-                instance = Get<T>(false, false);
+                instance = Get<T>(false);
             cacheable.Add(typeof(T));
             cache[typeof(T)] = instance;
             return instance;
@@ -141,7 +141,7 @@ namespace osu.Framework.Allocation
             return instance;
         }
 
-        public T Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
+        public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
             if (autoRegister && !activators.ContainsKey(type))
@@ -152,7 +152,7 @@ namespace osu.Framework.Allocation
             if (!activators.TryGetValue(type, out activator))
                 throw new Exception("DI Initialisation failed badly.");
 
-            return (T)activator(this, instance);
+            activator(this, instance);
         }
     }
 }
