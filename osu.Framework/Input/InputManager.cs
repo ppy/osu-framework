@@ -45,6 +45,11 @@ namespace osu.Framework.Input
         private const float drag_start_distance = 0;
 
         /// <summary>
+        /// The distance that must be moved until a dragged click becomes invalid.
+        /// </summary>
+        private const float click_drag_distance = 40;
+
+        /// <summary>
         /// The time of the last input action.
         /// </summary>
         public double LastActionTime;
@@ -375,7 +380,7 @@ namespace osu.Framework.Input
             }
             else if (mouse.LastState?.HasMainButtonPressed == true)
             {
-                if (isValidClick)
+                if (isValidClick && (draggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
