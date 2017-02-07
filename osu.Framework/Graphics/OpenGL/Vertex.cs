@@ -90,23 +90,33 @@ namespace osu.Framework.Graphics.OpenGL
         public Vector2 Position;
         public Color4 Colour;
         public Vector2 TexturePosition;
+        public Vector4 TextureRect;
+        public Vector2 BlendRange;
 
         private static readonly IntPtr positionOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "Position");
         private static readonly IntPtr colourOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "Colour");
         private static readonly IntPtr texturePositionOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "TexturePosition");
+        private static readonly IntPtr textureRectOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "TextureRect");
+        private static readonly IntPtr blendRangeOffset = Marshal.OffsetOf(typeof(TexturedVertex2D), "BlendRange");
 
         public bool Equals(TexturedVertex2D other)
         {
-            return Position.Equals(other.Position) && TexturePosition.Equals(other.TexturePosition) && Colour.Equals(other.Colour);
+            return Position.Equals(other.Position)
+                && TexturePosition.Equals(other.TexturePosition)
+                && Colour.Equals(other.Colour)
+                && TextureRect.Equals(other.TextureRect)
+                && BlendRange.Equals(other.BlendRange);
         }
 
         public static void Bind()
         {
-            Vertex.EnableAttributes(3);
+            Vertex.EnableAttributes(5);
 
             GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, Stride, positionOffset);
             GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, Stride, colourOffset);
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, Stride, texturePositionOffset);
+            GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, Stride, textureRectOffset);
+            GL.VertexAttribPointer(4, 2, VertexAttribPointerType.Float, false, Stride, blendRangeOffset);
         }
 
         public static readonly int Stride = BlittableValueType.StrideOf(new TexturedVertex2D());

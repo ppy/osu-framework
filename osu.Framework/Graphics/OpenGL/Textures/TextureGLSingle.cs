@@ -149,9 +149,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
-
-            if (inflationPercentage.HasValue)
-                texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
             {
@@ -166,19 +165,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2((texRect.Left + texRect.Right) / 2, texRect.Top),
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P1,
-                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
-                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomRight.Linear,
             });
 
@@ -190,9 +195,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
-
-            if (inflationPercentage.HasValue)
-                texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
             {
@@ -204,25 +208,33 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
-                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
-                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomRight.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
-                TexturePosition = new Vector2(texRect.Right, texRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopRight.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
-                TexturePosition = new Vector2(texRect.Left, texRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopLeft.Linear,
             });
 

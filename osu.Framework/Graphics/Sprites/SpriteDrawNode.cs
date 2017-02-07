@@ -39,20 +39,6 @@ namespace osu.Framework.Graphics.Sprites
 
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
-            if (InflationAmount != Vector2.Zero)
-            {
-                // The shader currently cannot deal with negative width and height.
-                RectangleF drawRect = DrawRectangle.WithPositiveExtent;
-                RoundedTextureShader.GetUniform<Vector4>(@"g_DrawingRect").Value = new Vector4(
-                    drawRect.Left,
-                    drawRect.Top,
-                    drawRect.Right,
-                    drawRect.Bottom);
-
-                RoundedTextureShader.GetUniform<Matrix3>(@"g_ToDrawingSpace").Value = DrawInfo.MatrixInverse;
-                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = InflationAmount;
-            }
-
             shader.Bind();
 
             Texture.TextureGL.WrapMode = WrapTexture ? TextureWrapMode.Repeat : TextureWrapMode.ClampToEdge;
@@ -60,9 +46,6 @@ namespace osu.Framework.Graphics.Sprites
             Blit(vertexAction);
 
             shader.Unbind();
-
-            if (InflationAmount != Vector2.Zero)
-                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = Vector2.Zero;
         }
     }
 }

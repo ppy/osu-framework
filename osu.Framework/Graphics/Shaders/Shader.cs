@@ -83,8 +83,8 @@ namespace osu.Framework.Graphics.Shaders
             GL.BindAttribLocation(this, 0, "m_Position");
             GL.BindAttribLocation(this, 1, "m_Colour");
             GL.BindAttribLocation(this, 2, "m_TexCoord");
-            GL.BindAttribLocation(this, 3, "m_Time");
-            GL.BindAttribLocation(this, 4, "m_Direction");
+            GL.BindAttribLocation(this, 3, "m_TexRect");
+            GL.BindAttribLocation(this, 4, "m_BlendRange");
 
             GL.LinkProgram(this);
 
