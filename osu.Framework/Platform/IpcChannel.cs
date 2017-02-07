@@ -16,7 +16,8 @@ namespace osu.Framework.Platform
             this.host = host;
             this.host.MessageReceived += handleMessage;
         }
-        public async Task SendMessage(T message)
+
+        public async Task SendMessage(T message)
         {
             var msg = new IpcMessage
             {
@@ -25,7 +26,8 @@ namespace osu.Framework.Platform
             };
             await host.SendMessage(msg);
         }
-        private void handleMessage(IpcMessage message)
+
+        private void handleMessage(IpcMessage message)
         {
             if (message.Type != typeof(T).AssemblyQualifiedName)
                 return;
