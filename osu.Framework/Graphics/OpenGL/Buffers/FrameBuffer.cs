@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public TextureGL Texture { get; private set; }
 
-        private bool IsBound => lastFramebuffer != -1;
+        private bool isBound => lastFramebuffer != -1;
 
         private List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
@@ -133,7 +133,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// </summary>
         public void Unbind()
         {
-            if (!IsBound)
+            if (!isBound)
                 return;
 
             GLWrapper.BindFrameBuffer(lastFramebuffer);

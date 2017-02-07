@@ -7,7 +7,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Input
 {
-    public class GameWindowTextInput : TextInputSource
+    public class GameWindowTextInput : ITextInputSource
     {
         private BasicGameWindow window;
 

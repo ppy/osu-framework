@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Sprites
         public Shader TextureShader;
         public Shader RoundedTextureShader;
 
-        private bool NeedsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
+        private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
+            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             if (InflationAmount != Vector2.Zero)
             {

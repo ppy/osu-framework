@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// The static Bind method of vertex type T, used to bind the correct vertex attribute locations for use in shaders.
         /// We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
         /// </summary>
-        private static readonly Action bindAttributes =
+        private static readonly Action bind_attributes =
             (Action)Delegate.CreateDelegate(
                 typeof(Action),
                 null,
@@ -51,23 +51,23 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             GC.SuppressFinalize(this);
         }
 
-        protected bool isDisposed;
+        protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
             Unbind();
 
             GLWrapper.DeleteBuffer(vboId);
 
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         private void resize(int amountVertices)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             T[] oldVertices = Vertices;
             Vertices = new T[amountVertices];
@@ -77,17 +77,17 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     Vertices[i] = oldVertices[i];
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                bindAttributes();
+                bind_attributes();
 
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * stride), IntPtr.Zero, usage);
         }
 
         public virtual void Bind(bool forRendering)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                bindAttributes();
+                bind_attributes();
         }
 
         public virtual void Unbind()

@@ -37,15 +37,15 @@ namespace osu.Framework.Graphics.Sprites
 
         public PathDrawNodeSharedData Shared;
 
-        private bool NeedsRoundedShader => GLWrapper.IsMaskingActive;
+        private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
         private Vector2 pointOnCircle(float angle) => new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
 
-        private Vector2 RelativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
+        private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
-        private Color4 ColourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour ?
+        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour ?
             DrawInfo.Colour.Colour.Linear :
-            DrawInfo.Colour.Interpolate(RelativePosition(localPos)).Linear;
+            DrawInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
@@ -60,11 +60,11 @@ namespace osu.Framework.Graphics.Sprites
                 theta += MathHelper.Pi;
 
             Vector2 current = origin + pointOnCircle(theta) * Width;
-            Color4 currentColour = ColourAt(current);
+            Color4 currentColour = colourAt(current);
             current *= DrawInfo.Matrix;
 
             Vector2 screenOrigin = origin * DrawInfo.Matrix;
-            Color4 originColour = ColourAt(origin);
+            Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
             {
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Sprites
 
                 float angularOffset = Math.Min(i * step, thetaDiff);
                 current = origin + pointOnCircle(theta + dir * angularOffset) * Width;
-                currentColour = ColourAt(current);
+                currentColour = colourAt(current);
                 current *= DrawInfo.Matrix;
 
                 // Second outer point
@@ -112,13 +112,13 @@ namespace osu.Framework.Graphics.Sprites
             {
                 Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = ColourAt(lineRight.EndPoint)
+                Colour = colourAt(lineRight.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
                 Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = ColourAt(lineRight.StartPoint)
+                Colour = colourAt(lineRight.StartPoint)
             });
 
             // Each "quad" of the slider is actually rendered as 2 quads, being split in half along the approximating line.
@@ -126,8 +126,8 @@ namespace osu.Framework.Graphics.Sprites
             // Thus the middle vertices need to be added twice (once for each quad).
             Vector3 firstMiddlePoint = new Vector3(screenLine.StartPoint.X, screenLine.StartPoint.Y, 1);
             Vector3 secondMiddlePoint = new Vector3(screenLine.EndPoint.X, screenLine.EndPoint.Y, 1);
-            Color4 firstMiddleColour = ColourAt(line.StartPoint);
-            Color4 secondMiddleColour = ColourAt(line.EndPoint);
+            Color4 firstMiddleColour = colourAt(line.StartPoint);
+            Color4 secondMiddleColour = colourAt(line.EndPoint);
 
             for (int i = 0; i < 2; ++i)
             {
@@ -149,13 +149,13 @@ namespace osu.Framework.Graphics.Sprites
             {
                 Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = ColourAt(lineLeft.EndPoint)
+                Colour = colourAt(lineLeft.EndPoint)
             });
             Shared.QuadBatch.Add(new TexturedVertex3D()
             {
                 Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
-                Colour = ColourAt(lineLeft.StartPoint)
+                Colour = colourAt(lineLeft.StartPoint)
             });
         }
 
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Sprites
 
             GLWrapper.SetDepthTest(true);
 
-            Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
+            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 

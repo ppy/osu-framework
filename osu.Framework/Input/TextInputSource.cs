@@ -9,7 +9,7 @@ namespace osu.Framework.Input
     /// A source from which we can retrieve user text input.
     /// Generally hides a native implementation from the game framework.
     /// </summary>
-    public interface TextInputSource
+    public interface ITextInputSource
     {
         bool ImeActive { get; }
 

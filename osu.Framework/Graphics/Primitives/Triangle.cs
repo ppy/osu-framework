@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
-        public RectangleF AABBf
+        public RectangleF AABBFloat
         {
             get
             {

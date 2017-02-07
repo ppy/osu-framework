@@ -494,7 +494,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected virtual bool CanBeFlattened => !Masking;
 
-        private const int AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK = 2;
+        private const int amount_children_required_for_masking_check = 2;
 
         /// <summary>
         /// This function adds all children's DrawNodes to a target List, flattening the children of certain types
@@ -526,8 +526,8 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    container.IsMaskedAway = container.children.AliveItems.Count >= AMOUNT_CHILDREN_REQUIRED_FOR_MASKING_CHECK &&
-                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf);
+                    container.IsMaskedAway = container.children.AliveItems.Count >= amount_children_required_for_masking_check &&
+                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
@@ -535,7 +535,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
                 }
 
-                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBf))
+                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat))
                     continue;
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
@@ -565,9 +565,9 @@ namespace osu.Framework.Graphics.Containers
             // If we are going to render a buffered container we need to make sure no children get masked away,
             // even if they are off-screen.
             if (this is BufferedContainer)
-                childBounds = ScreenSpaceDrawQuad.AABBf;
+                childBounds = ScreenSpaceDrawQuad.AABBFloat;
             else if (Masking)
-                childBounds.Intersect(ScreenSpaceDrawQuad.AABBf);
+                childBounds.Intersect(ScreenSpaceDrawQuad.AABBFloat);
 
             if (cNode.Children == null)
                 cNode.Children = new List<DrawNode>(children.AliveItems.Count);
@@ -648,7 +648,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 v = ToParentSpace(new Vector2(0, cornerRadius)) - offset;
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
 
-                RectangleF result = ToParentSpace(drawRect).AABBf.Inflate(inflation);
+                RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);
                 // The above algorithm will return incorrect results if the rounded corners are not fully visible.
                 // To limit bad behavior we at least enforce here, that the bounding box with rounded corners
                 // is never larger than the bounding box without.

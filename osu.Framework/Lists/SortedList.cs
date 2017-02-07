@@ -28,7 +28,7 @@ namespace osu.Framework.Lists
             return index;
         }
 
-        private new int IndexOf(T value)
+        public new int IndexOf(T value)
         {
             return BinarySearch(value, Comparer);
         }

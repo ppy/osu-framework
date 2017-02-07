@@ -91,22 +91,22 @@ namespace osu.Framework.Graphics.Containers
 
         private double evalGaussian(float x, float sigma)
         {
-            const double INV_SQRT_2PI = 0.39894;
-            return INV_SQRT_2PI * Math.Exp(-0.5 * x * x / (sigma * sigma)) / sigma;
+            const double inv_sqrt_2_pi = 0.39894;
+            return inv_sqrt_2_pi * Math.Exp(-0.5 * x * x / (sigma * sigma)) / sigma;
         }
 
         private int findBlurRadius(float sigma)
         {
-            const float GAUSS_THRESHOLD = 0.1f;
-            const int MAX_RADIUS = 200;
+            const float gauss_threshold = 0.1f;
+            const int max_radius = 200;
 
             double center = evalGaussian(0, sigma);
-            double threshold = GAUSS_THRESHOLD * center;
-            for (int i = 0; i < MAX_RADIUS; ++i)
+            double threshold = gauss_threshold * center;
+            for (int i = 0; i < max_radius; ++i)
                 if (evalGaussian(i, sigma) < threshold)
                     return Math.Max(i-1, 0);
 
-            return MAX_RADIUS;
+            return max_radius;
         }
 
         private void drawChildren(Action<TexturedVertex2D> vertexAction, Vector2 frameBufferSize)

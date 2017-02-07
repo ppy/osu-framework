@@ -15,11 +15,11 @@ namespace osu.Framework.Statistics
     {
         private StopwatchClock ourClock = new StopwatchClock(true);
 
-        private Stack<PerformanceCollectionType> CurrentCollectionTypeStack = new Stack<PerformanceCollectionType>();
+        private Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
         private FrameStatistics currentFrame;
 
-        private const int spikeTime = 100;
+        private const int spike_time = 100;
 
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
@@ -48,26 +48,26 @@ namespace osu.Framework.Statistics
         /// </summary>
         public InvokeOnDisposal BeginCollecting(PerformanceCollectionType type)
         {
-            if (CurrentCollectionTypeStack.Count > 0)
+            if (currentCollectionTypeStack.Count > 0)
             {
-                PerformanceCollectionType t = CurrentCollectionTypeStack.Peek();
+                PerformanceCollectionType t = currentCollectionTypeStack.Peek();
 
                 if (!currentFrame.CollectedTimes.ContainsKey(t)) currentFrame.CollectedTimes[t] = 0;
                 currentFrame.CollectedTimes[t] += consumeStopwatchElapsedTime();
             }
 
-            CurrentCollectionTypeStack.Push(type);
+            currentCollectionTypeStack.Push(type);
 
-            return new InvokeOnDisposal(() => EndCollecting(type));
+            return new InvokeOnDisposal(() => endCollecting(type));
         }
 
         /// <summary>
         /// End collecting a type of passing time (that was previously started).
         /// </summary>
         /// <param name="type"></param>
-        private void EndCollecting(PerformanceCollectionType type)
+        private void endCollecting(PerformanceCollectionType type)
         {
-            CurrentCollectionTypeStack.Pop();
+            currentCollectionTypeStack.Pop();
 
             if (!currentFrame.CollectedTimes.ContainsKey(type)) currentFrame.CollectedTimes[type] = 0;
             currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
@@ -119,11 +119,11 @@ namespace osu.Framework.Statistics
             }
 
             //check for dropped (stutter) frames
-            if (Clock.ElapsedFrameTime > spikeTime)
+            if (Clock.ElapsedFrameTime > spike_time)
                 newDroppedFrame();
 
             //reset frame totals
-            CurrentCollectionTypeStack.Clear();
+            currentCollectionTypeStack.Clear();
             //backgroundMonitorStackTrace = null;
             consumeStopwatchElapsedTime();
         }

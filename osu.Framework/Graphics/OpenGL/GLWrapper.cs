@@ -215,8 +215,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <summary>
         /// Sets the blending function to draw with.
         /// </summary>
-        /// <param name="src">The source blending factor.</param>
-        /// <param name="dest">The destination blending factor.</param>
+        /// <param name="blendingInfo">The infor we should use to update the active state.</param>
         public static void SetBlend(BlendingInfo blendingInfo)
         {
             if (lastBlendingInfo.Equals(blendingInfo))

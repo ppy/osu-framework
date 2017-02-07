@@ -73,12 +73,12 @@ namespace osu.Framework.Graphics.Containers
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float CLAMP_EXTENSION = 500;
+        private const float clamp_extension = 500;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
         /// </summary>
-        private const double DISTANCE_DECAY_CLAMPING = 0.012;
+        private const double distance_decay_clamping = 0.012;
 
         /// <summary>
         /// Controls the rate with which the target position is approached after ending a drag.
@@ -222,8 +222,8 @@ namespace osu.Framework.Graphics.Containers
 
             // Detect whether we halted at the end of the drag and in fact should _not_
             // perform a flick event.
-            const double VELOCITY_CUTOFF = 0.1;
-            if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < VELOCITY_CUTOFF)
+            const double velocity_cutoff = 0.1;
+            if (Math.Abs(Math.Pow(0.95, Time.Current - lastDragTime) * velocity) < velocity_cutoff)
                 velocity = 0;
 
             // Differentiate f(t) = distance * (1 - exp(-t)) w.r.t. "t" to obtain
@@ -273,15 +273,15 @@ namespace osu.Framework.Graphics.Containers
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
-                target = clamp(target, CLAMP_EXTENSION);
+                target = clamp(target, clamp_extension);
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
                 if ((Current < target && target < 0) || (Current > target && target > scrollableExtent))
-                    localDistanceDecay = DISTANCE_DECAY_CLAMPING * 2;
+                    localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
-                target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-DISTANCE_DECAY_CLAMPING * Time.Elapsed));
+                target = (float)Interpolation.Lerp(clamp(target), target, Math.Exp(-distance_decay_clamping * Time.Elapsed));
 
                 float clampedTarget = clamp(target);
                 if (Precision.AlmostEquals(clampedTarget, target))

@@ -15,8 +15,8 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {
-        private TcpIpcProvider IpcProvider;
-        private Task IpcTask;
+        private TcpIpcProvider ipcProvider;
+        private Task ipcTask;
 
         public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
@@ -32,12 +32,12 @@ namespace osu.Framework.Desktop.Platform
 
             if (bindIPCPort)
             {
-                IpcProvider = new TcpIpcProvider();
-                IsPrimaryInstance = IpcProvider.Bind();
+                ipcProvider = new TcpIpcProvider();
+                IsPrimaryInstance = ipcProvider.Bind();
                 if (IsPrimaryInstance)
                 {
-                    IpcProvider.MessageReceived += msg => OnMessageReceived(msg);
-                    IpcTask = IpcProvider.Start();
+                    ipcProvider.MessageReceived += msg => OnMessageReceived(msg);
+                    ipcTask = ipcProvider.Start();
                 }
             }
         }
@@ -87,7 +87,7 @@ namespace osu.Framework.Desktop.Platform
             Environment.Exit(0);
         }
 
-        public override TextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
+        public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
         protected override void LoadGame(BaseGame game)
         {
@@ -103,13 +103,13 @@ namespace osu.Framework.Desktop.Platform
 
         public override async Task SendMessage(IpcMessage message)
         {
-            await IpcProvider.SendMessage(message);
+            await ipcProvider.SendMessage(message);
         }
 
         protected override void Dispose(bool isDisposing)
         {
-            IpcProvider?.Dispose();
-            IpcTask?.Wait(50);
+            ipcProvider?.Dispose();
+            ipcTask?.Wait(50);
             base.Dispose(isDisposing);
         }
     }

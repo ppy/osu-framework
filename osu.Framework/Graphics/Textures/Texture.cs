@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Textures
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposing)
+        protected void Dispose(bool isDisposing)
         {
             if (IsDisposed)
                 return;
@@ -178,7 +178,7 @@ namespace osu.Framework.Graphics.Textures
                 upload.Dispose();
         }
 
-        protected virtual RectangleF textureBounds(RectangleF? textureRect = null)
+        protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
@@ -195,21 +195,21 @@ namespace osu.Framework.Graphics.Textures
 
         public RectangleF GetTextureRect(RectangleF? textureRect = null)
         {
-            return TextureGL.GetTextureRect(textureBounds(textureRect));
+            return TextureGL.GetTextureRect(TextureBounds(textureRect));
         }
 
         public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, textureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
 
         public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, textureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
     }
 
@@ -220,7 +220,7 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
-        protected override RectangleF textureBounds(RectangleF? textureRect = default(RectangleF?))
+        protected override RectangleF TextureBounds(RectangleF? textureRect = default(RectangleF?))
         {
             return new RectangleF();
         }

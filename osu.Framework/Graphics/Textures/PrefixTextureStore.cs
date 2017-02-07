@@ -7,17 +7,17 @@ namespace osu.Framework.Graphics.Textures
 {
     public class PrefixTextureStore : TextureStore
     {
-        string Prefix;
+        private string prefix;
 
         public PrefixTextureStore(string prefix, IResourceStore<RawTexture> stores)
             : base(stores)
         {
-            Prefix = prefix;
+            this.prefix = prefix;
         }
 
         public override Texture Get(string name)
         {
-            return base.Get($@"{Prefix}-{name}");
+            return base.Get($@"{prefix}-{name}");
         }
     }
 }

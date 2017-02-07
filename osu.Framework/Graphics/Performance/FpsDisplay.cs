@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Performance
         SpriteText counter;
 
         private IFrameBasedClock clock;
-        private double displayFPS;
+        private double displayFps;
 
         public bool Counting = true;
 
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            displayFPS = Interpolation.Damp(displayFPS, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
+            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
 
             if (counter.DrawWidth != aimWidth)
             {
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Performance
                 aimWidth = counter.DrawWidth;
             }
 
-            counter.Text = displayFPS.ToString(@"0");
+            counter.Text = displayFps.ToString(@"0");
         }
     }
 }

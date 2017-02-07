@@ -10,10 +10,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         static LinearIndexData()
         {
-            GL.GenBuffers(1, out EboId);
+            GL.GenBuffers(1, out EBO_ID);
         }
 
-        public static readonly int EboId;
+        public static readonly int EBO_ID;
         public static int MaxAmountIndices;
     }
 
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 for (ushort i = 0; i < amountVertices; i++)
                     indices[i] = i;
 
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EboId);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(amountVertices * sizeof(ushort)), indices, BufferUsageHint.StaticDraw);
 
                 LinearIndexData.MaxAmountIndices = amountVertices;
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             base.Bind(forRendering);
 
             if (forRendering)
-                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EboId);
+                GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
         }
 
         protected override PrimitiveType Type => type;

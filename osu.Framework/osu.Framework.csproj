@@ -102,7 +102,7 @@
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
-    <Compile Include="Extensions\IEnumerableExtensions\IEnumerableExtensions.cs" />
+    <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="GameModes\Testing\TestBrowser.cs" />
     <Compile Include="GameModes\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />

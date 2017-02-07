@@ -243,7 +243,7 @@ namespace osu.Framework.Platform
         {
             UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBf);
+                buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBFloat);
         }
 
         protected virtual void DrawInitialize()
@@ -441,6 +441,6 @@ namespace osu.Framework.Platform
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
 
-        public abstract TextInputSource GetTextInput();
+        public abstract ITextInputSource GetTextInput();
     }
 }

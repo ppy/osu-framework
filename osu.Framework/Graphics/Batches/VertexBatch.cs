@@ -22,13 +22,13 @@ namespace osu.Framework.Graphics.Batches
         private int changeBeginIndex = -1;
         private int changeEndIndex = -1;
 
-        private int currentVertexBuffer;
+        private int currentIndex;
         private int currentVertex;
         private int lastVertex;
 
         private int maxBuffers;
 
-        private VertexBuffer<T> CurrentVertexBuffer => VertexBuffers[currentVertexBuffer];
+        private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentIndex];
 
         protected VertexBatch(int bufferSize, int maxBuffers)
         {
@@ -64,7 +64,7 @@ namespace osu.Framework.Graphics.Batches
         public void ResetCounters()
         {
             changeBeginIndex = -1;
-            currentVertexBuffer = 0;
+            currentIndex = 0;
             currentVertex = 0;
             lastVertex = 0;
         }
@@ -75,10 +75,10 @@ namespace osu.Framework.Graphics.Batches
         {
             GLWrapper.SetActiveBatch(this);
 
-            while (currentVertexBuffer >= VertexBuffers.Count)
+            while (currentIndex >= VertexBuffers.Count)
                 VertexBuffers.Add(CreateVertexBuffer());
 
-            VertexBuffer<T> vertexBuffer = CurrentVertexBuffer;
+            VertexBuffer<T> vertexBuffer = currentVertexBuffer;
 
             if (!vertexBuffer.Vertices[currentVertex].Equals(v))
             {
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Batches
             if (currentVertex == lastVertex)
                 return 0;
 
-            VertexBuffer<T> vertexBuffer = CurrentVertexBuffer;
+            VertexBuffer<T> vertexBuffer = currentVertexBuffer;
             if (changeBeginIndex >= 0)
                 vertexBuffer.UpdateRange(changeBeginIndex, changeEndIndex);
 
@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Batches
 
             // When using multiple buffers we advance to the next one with every draw to prevent contention on the same buffer with future vertex updates.
             //TODO: let us know if we exceed and roll over to zero here.
-            currentVertexBuffer = (currentVertexBuffer + 1) % maxBuffers;
+            currentIndex = (currentIndex + 1) % maxBuffers;
             currentVertex = 0;
 
             lastVertex = currentVertex;
