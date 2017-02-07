@@ -222,7 +222,11 @@ namespace osu.Framework.Graphics.Textures
 
         protected override RectangleF TextureBounds(RectangleF? textureRect = default(RectangleF?))
         {
-            return new RectangleF(0, 0, 0.0001f, 0.0001f);
+            // We need non-zero texture bounds for EdgeSmoothness to work correctly.
+            // Let's be very conservative and use a tenth of the size of a pixel in the
+            // largest possible texture.
+            float smallestPixelTenth = 0.1f / GLWrapper.MaxTextureSize;
+            return new RectangleF(0, 0, smallestPixelTenth, smallestPixelTenth);
         }
     }
 }
