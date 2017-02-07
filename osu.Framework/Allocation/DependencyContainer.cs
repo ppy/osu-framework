@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,11 +12,10 @@ namespace osu.Framework.Allocation
 {
     public class DependencyContainer
     {
-        // Activators are object Activate(DependencyContainer container, object instance),
-        // where the latter may be null.
-        private Dictionary<Type, Func<DependencyContainer, object, object>> activators =
-            new Dictionary<Type, Func<DependencyContainer, object, object>>();
-        private Dictionary<Type, object> cache = new Dictionary<Type, object>();
+        public delegate object ObjectActivator(DependencyContainer dc, object instance);
+
+        private ConcurrentDictionary<Type, ObjectActivator> activators =new ConcurrentDictionary<Type, ObjectActivator>();
+        private ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private HashSet<Type> cacheable = new HashSet<Type>();
 
         public DependencyContainer()
@@ -146,7 +146,13 @@ namespace osu.Framework.Allocation
             var type = instance.GetType();
             if (autoRegister && !activators.ContainsKey(type))
                 register(type, lazy);
-            return (T)activators[type](this, instance);
+
+            ObjectActivator activator;
+
+            if (!activators.TryGetValue(type, out activator))
+                throw new Exception("DI Initialisation failed badly.");
+
+            return (T)activator(this, instance);
         }
     }
 }
