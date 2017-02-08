@@ -230,8 +230,7 @@ namespace osu.Framework.Graphics.Sprites
         {
             Origin = Anchor.Centre,
             Anchor = Anchor.Centre,
-            Size = new Vector2(0.95f),
-            Scale = new Vector2(0.8f)
+            Scale = new Vector2(0.7f)
         };
 
         protected virtual Drawable GetDrawableCharacter(char c)
