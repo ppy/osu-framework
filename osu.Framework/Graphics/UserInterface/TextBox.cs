@@ -310,6 +310,8 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
+        protected virtual SpriteText GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString() };
+
         protected virtual Drawable AddCharacterToFlow(char c)
         {
             // Remove all characters to the right and store them in a local list,
@@ -325,13 +327,11 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Depth = --i;
 
             // Add the character
-            Drawable ch;
-            TextFlow.Add(ch = new SpriteText
-            {
-                Text = c.ToString(),
-                TextSize = TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom),
-                Depth = -selectionLeft,
-            });
+            SpriteText ch = GetDrawableCharacter(c);
+            ch.TextSize = TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+            ch.Depth = -selectionLeft;
+
+            TextFlow.Add(ch);
 
             // Add back all the previously removed characters
             TextFlow.Add(charsRight);
