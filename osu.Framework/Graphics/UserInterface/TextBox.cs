@@ -151,8 +151,7 @@ namespace osu.Framework.Graphics.UserInterface
             //have to run this after children flow
             cursorAndLayout.Refresh(delegate
             {
-                if (Placeholder.Alpha > 0)
-                    Placeholder.TextSize = CalculatedTextSize;
+                Placeholder.TextSize = CalculatedTextSize;
 
                 textUpdateScheduler.Update();
 
@@ -421,6 +420,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (value == InternalText)
                     return;
+
+                Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
                 textUpdateScheduler.Add(delegate
                 {
