@@ -28,6 +28,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected Box Caret;
         protected Container TextContainer;
 
+        /// <summary>
+        /// Padding to be used within the TextContainer. Requires special handling due to the sideways scrolling of text content.
+        /// </summary>
         protected virtual float LeftRightPadding => 5;
 
         public int? LengthLimit;
