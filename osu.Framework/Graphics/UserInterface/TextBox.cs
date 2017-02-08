@@ -210,9 +210,10 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 OnChange?.Invoke(this, textAtLastLayout != text);
-                textAtLastLayout = text;
+                if (textAtLastLayout.Length == 0 || text.Length == 0)
+                    Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
 
-                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
+                textAtLastLayout = text;
 
                 return cursorPos;
             });
