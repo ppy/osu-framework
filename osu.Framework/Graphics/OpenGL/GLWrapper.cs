@@ -90,6 +90,9 @@ namespace osu.Framework.Graphics.OpenGL
             viewportStack.Clear();
             orthoStack.Clear();
             maskingStack.Clear();
+            scissorRectStack.Clear();
+
+            scissorRectStack.Push(new Rectangle(0, 0, (int)size.X, (int)size.Y));
 
             Viewport = Rectangle.Empty;
             Ortho = Rectangle.Empty;
@@ -329,10 +332,9 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="ortho">The orthographic projection rectangle.</param>
         public static void PushOrtho(RectangleF ortho)
         {
-            orthoStack.Push(ortho);
-
             FlushCurrentBatch();
 
+            orthoStack.Push(ortho);
             if (Ortho == ortho)
                 return;
             Ortho = ortho;
@@ -366,13 +368,14 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
-        private static Rectangle currentScissorRect;
+        private static Stack<Rectangle> scissorRectStack = new Stack<Rectangle>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
-            RectangleF actualRect = Viewport;
+            RectangleF viewportRect = Viewport;
+            Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
 
-            Vector2 offset = actualRect.TopLeft - Ortho.TopLeft;
+            Rectangle currentScissorRect = scissorRectStack.Peek();
 
             Rectangle scissorRect = new Rectangle(
                 currentScissorRect.X + (int)Math.Floor(offset.X),
@@ -389,7 +392,7 @@ namespace osu.Framework.Graphics.OpenGL
             GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
         }
 
-        private static void setMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor)
+        private static void setMaskingInfo(MaskingInfo maskingInfo, bool isPushing, bool overwritePreviousScissor)
         {
             FlushCurrentBatch();
 
@@ -429,10 +432,24 @@ namespace osu.Framework.Graphics.OpenGL
                 actualRect.Height = -actualRect.Height;
             }
 
-            if (overwritePreviousScissor)
-                currentScissorRect = actualRect;
+            if (isPushing)
+            {
+                Rectangle currentScissorRect;
+                if (overwritePreviousScissor)
+                    currentScissorRect = actualRect;
+                else
+                {
+                    currentScissorRect = scissorRectStack.Peek();
+                    currentScissorRect.Intersect(actualRect);
+                }
+
+                scissorRectStack.Push(currentScissorRect);
+            }
             else
-                currentScissorRect.Intersect(actualRect);
+            {
+                Debug.Assert(scissorRectStack.Count > 1);
+                scissorRectStack.Pop();
+            }
 
             UpdateScissorToCurrentViewportAndOrtho();
         }
@@ -456,7 +473,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo, overwritePreviousScissor);
+            setMaskingInfo(CurrentMaskingInfo, true, overwritePreviousScissor);
         }
 
         /// <summary>
@@ -473,7 +490,7 @@ namespace osu.Framework.Graphics.OpenGL
                 return;
 
             CurrentMaskingInfo = maskingInfo;
-            setMaskingInfo(CurrentMaskingInfo, true);
+            setMaskingInfo(CurrentMaskingInfo, false, true);
         }
 
         /// <summary>
