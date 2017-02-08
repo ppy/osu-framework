@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.UserInterface
                 textUpdateScheduler.Update();
 
                 Vector2 cursorPos = Vector2.Zero;
-                if (InternalText?.Length > 0)
+                if (text?.Length > 0)
                     cursorPos.X = getPositionAt(selectionLeft);
 
                 float cursorPosEnd = getPositionAt(selectionEnd);
@@ -205,8 +205,10 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                OnChange?.Invoke(this, textAtLastLayout != InternalText);
-                textAtLastLayout = InternalText;
+                OnChange?.Invoke(this, textAtLastLayout != text);
+                textAtLastLayout = text;
+
+                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
 
                 return cursorPos;
             });
@@ -216,7 +218,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (index > 0)
             {
-                if (index < InternalText.Length)
+                if (index < text.Length)
                     return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
                 var d = TextFlow.Children.ElementAt(index - 1);
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
@@ -257,7 +259,7 @@ namespace osu.Framework.Graphics.UserInterface
             int oldEnd = selectionEnd;
 
             if (expand)
-                selectionEnd = MathHelper.Clamp(selectionEnd + offset, 0, InternalText.Length);
+                selectionEnd = MathHelper.Clamp(selectionEnd + offset, 0, text.Length);
             else
             {
                 if (selectionLength > 0 && Math.Abs(offset) <= 1)
@@ -269,7 +271,7 @@ namespace osu.Framework.Graphics.UserInterface
                         selectionEnd = selectionStart = selectionLeft;
                 }
                 else
-                    selectionEnd = selectionStart = MathHelper.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, InternalText.Length);
+                    selectionEnd = selectionStart = MathHelper.Clamp((offset > 0 ? selectionRight : selectionLeft) + offset, 0, text.Length);
             }
 
             if (oldStart != selectionStart || oldEnd != selectionEnd)
@@ -281,11 +283,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         private bool removeCharacterOrSelection(bool sound = true)
         {
-            if (InternalText.Length == 0) return false;
+            if (text.Length == 0) return false;
             if (selectionLength == 0 && selectionLeft == 0) return false;
 
-            int count = MathHelper.Clamp(selectionLength, 1, InternalText.Length);
-            int start = MathHelper.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, InternalText.Length - count);
+            int count = MathHelper.Clamp(selectionLength, 1, text.Length);
+            int start = MathHelper.Clamp(selectionLength > 0 ? selectionLeft : selectionLeft - 1, 0, text.Length - count);
 
             if (count == 0) return false;
 
@@ -302,7 +304,7 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Expire();
             }
 
-            InternalText = InternalText.Remove(start, count);
+            text = text.Remove(start, count);
 
             if (selectionLength > 0)
                 selectionStart = selectionEnd = selectionLeft;
@@ -363,7 +365,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (selectionLength > 0)
                 removeCharacterOrSelection();
 
-            if (InternalText.Length + 1 > LengthLimit)
+            if (text.Length + 1 > LengthLimit)
             {
                 if (Background.Alpha > 0)
                     Background.FlashColour(Color4.Red, 200);
@@ -374,7 +376,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            InternalText = InternalText.Insert(selectionLeft, c.ToString());
+            text = text.Insert(selectionLeft, c.ToString());
             selectionStart = selectionEnd = selectionLeft + 1;
 
             cursorAndLayout.Invalidate();
@@ -400,25 +402,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string text = string.Empty;
 
-        protected string InternalText
+        public virtual string Text
         {
             get { return text; }
             set
             {
-                if (text.Length == 0 || value.Length == 0)
-                    Placeholder.FadeTo(value.Length == 0 ? 1 : 0, 200);
-                text = value;
-            }
-        }
-
-        public virtual string Text
-        {
-            get { return InternalText; }
-            set
-            {
                 Debug.Assert(value != null);
 
-                if (value == InternalText)
+                if (value == text)
                     return;
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
@@ -428,12 +419,12 @@ namespace osu.Framework.Graphics.UserInterface
                     int startBefore = selectionStart;
                     selectionStart = selectionEnd = 0;
                     TextFlow?.Clear();
-                    InternalText = string.Empty;
+                    text = string.Empty;
 
                     foreach (char c in value)
                         addCharacter(c);
 
-                    selectionStart = MathHelper.Clamp(startBefore, 0, InternalText.Length);
+                    selectionStart = MathHelper.Clamp(startBefore, 0, text.Length);
                 });
 
                 cursorAndLayout.Invalidate();
@@ -454,10 +445,10 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Tab:
                     return false;
                 case Key.End:
-                    moveSelection(InternalText.Length, state.Keyboard.ShiftPressed);
+                    moveSelection(text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Home:
-                    moveSelection(-InternalText.Length, state.Keyboard.ShiftPressed);
+                    moveSelection(-text.Length, state.Keyboard.ShiftPressed);
                     return true;
                 case Key.Left:
                     {
@@ -474,7 +465,7 @@ namespace osu.Framework.Graphics.UserInterface
                         int amount = 1;
                         if (state.Keyboard.ControlPressed)
                         {
-                            int lastSpace = InternalText.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
+                            int lastSpace = text.LastIndexOf(' ', Math.Max(0, selectionEnd - 2));
                             if (lastSpace >= 0)
                             {
                                 //if you have something selected and shift is not held down
@@ -494,7 +485,7 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         if (!HandleLeftRightArrows) return false;
 
-                        if (selectionEnd == InternalText.Length)
+                        if (selectionEnd == text.Length)
                         {
                             if (!state.Keyboard.ShiftPressed)
                                 resetSelection();
@@ -504,7 +495,7 @@ namespace osu.Framework.Graphics.UserInterface
                         int amount = 1;
                         if (state.Keyboard.ControlPressed)
                         {
-                            int nextSpace = InternalText.IndexOf(' ', selectionEnd + 1);
+                            int nextSpace = text.IndexOf(' ', selectionEnd + 1);
                             if (nextSpace >= 0)
                             {
                                 if (!state.Keyboard.ShiftPressed)
@@ -512,7 +503,7 @@ namespace osu.Framework.Graphics.UserInterface
                                 amount = nextSpace - selectionEnd;
                             }
                             else
-                                amount = InternalText.Length - selectionEnd;
+                                amount = text.Length - selectionEnd;
                         }
 
                         moveSelection(amount, state.Keyboard.ShiftPressed);
@@ -525,20 +516,20 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Delete:
                     if (selectionLength == 0)
                     {
-                        if (InternalText.Length == selectionStart)
+                        if (text.Length == selectionStart)
                             return true;
 
                         if (state.Keyboard.ControlPressed)
                         {
                             int spacePos = selectionStart;
-                            while (InternalText[spacePos] == ' ' && spacePos < InternalText.Length)
+                            while (text[spacePos] == ' ' && spacePos < text.Length)
                                 spacePos++;
 
-                            spacePos = MathHelper.Clamp(InternalText.IndexOf(' ', spacePos), 0, InternalText.Length);
+                            spacePos = MathHelper.Clamp(text.IndexOf(' ', spacePos), 0, text.Length);
                             selectionEnd = spacePos;
 
                             if (selectionStart == 0 && spacePos == 0)
-                                selectionEnd = InternalText.Length;
+                                selectionEnd = text.Length;
 
                             if (selectionLength == 0)
                                 return true;
@@ -555,7 +546,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Back:
                     if (selectionLength == 0 && state.Keyboard.ControlPressed)
                     {
-                        int spacePos = selectionLeft >= 2 ? Math.Max(0, InternalText.LastIndexOf(' ', selectionLeft - 2) + 1) : 0;
+                        int spacePos = selectionLeft >= 2 ? Math.Max(0, text.LastIndexOf(' ', selectionLeft - 2) + 1) : 0;
                         selectionStart = spacePos;
                     }
 
@@ -570,7 +561,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     case Key.A:
                         selectionStart = 0;
-                        selectionEnd = InternalText.Length;
+                        selectionEnd = this.text.Length;
                         cursorAndLayout.Invalidate();
                         return true;
                     case Key.C:
@@ -622,13 +613,13 @@ namespace osu.Framework.Graphics.UserInterface
                 if (getCharacterClosestTo(state.Mouse.Position) > doubleClickWord[1])
                 {
                     selectionStart = doubleClickWord[0];
-                    selectionEnd = findSeparatorIndex(InternalText, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
-                    selectionEnd = selectionEnd >= 0 ? selectionEnd : InternalText.Length;
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position) - 1, 1);
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd : text.Length;
                 }
                 else if (getCharacterClosestTo(state.Mouse.Position) < doubleClickWord[0])
                 {
                     selectionStart = doubleClickWord[1];
-                    selectionEnd = findSeparatorIndex(InternalText, getCharacterClosestTo(state.Mouse.Position), -1);
+                    selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
                     selectionEnd = selectionEnd >= 0 ? (selectionEnd + 1) : 0;
                 }
                 else
@@ -641,7 +632,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                if (InternalText.Length == 0) return true;
+                if (text.Length == 0) return true;
 
                 selectionEnd = getCharacterClosestTo(state.Mouse.Position);
                 if (selectionLength > 0)
@@ -666,15 +657,15 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (textInput?.ImeActive == true) return true;
 
-            if (InternalText.Length == 0) return true;
+            if (text.Length == 0) return true;
 
-            int hover = Math.Min(InternalText.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
 
-            int lastSeparator = findSeparatorIndex(InternalText, hover, -1);
-            int nextSeparator = findSeparatorIndex(InternalText, hover, 1);
+            int lastSeparator = findSeparatorIndex(text, hover, -1);
+            int nextSeparator = findSeparatorIndex(text, hover, 1);
 
             selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-            selectionEnd = nextSeparator >= 0 ? nextSeparator : InternalText.Length;
+            selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
 
             //in order to keep the home word selected
             doubleClickWord = new int[] { selectionStart, selectionEnd };
@@ -789,14 +780,14 @@ namespace osu.Framework.Graphics.UserInterface
             bool matching = true;
             bool didDelete = false;
 
-            int searchStart = InternalText.Length - imeDrawables.Count;
+            int searchStart = text.Length - imeDrawables.Count;
 
             //we want to keep processing to the end of the longest string (the current displayed or the new composition).
             int maxLength = Math.Max(imeDrawables.Count, s.Length);
 
             for (int i = 0; i < maxLength; i++)
             {
-                if (matching && searchStart + i < InternalText.Length && i < s.Length && InternalText[searchStart + i] == s[i])
+                if (matching && searchStart + i < text.Length && i < s.Length && text[searchStart + i] == s[i])
                 {
                     matchCount = i + 1;
                     continue;
