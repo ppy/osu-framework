@@ -208,11 +208,11 @@ namespace osu.Framework.Graphics.Sprites
 
                         if (shadow)
                         {
-                            Drawable shadowSprite = GetDrawableCharacter(c);
-                            shadowSprite.Position = new Vector2(0, 0.06f);
-                            shadowSprite.Colour = shadowColour;
-                            shadowSprite.Depth = float.MaxValue;
-                            ctn.Add(shadowSprite);
+                            Drawable shadowDrawable = GetDrawableCharacter(c);
+                            shadowDrawable.Position = new Vector2(0, 0.06f);
+                            shadowDrawable.Colour = shadowColour;
+                            shadowDrawable.Depth = float.MaxValue;
+                            ctn.Add(shadowDrawable);
                         }
 
                         s = ctn;
