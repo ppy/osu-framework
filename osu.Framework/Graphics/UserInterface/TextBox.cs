@@ -315,7 +315,7 @@ namespace osu.Framework.Graphics.UserInterface
             return true;
         }
 
-        protected virtual SpriteText GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString() };
+        protected virtual Drawable GetDrawableCharacter(char c) => new SpriteText { Text = c.ToString(), TextSize = CalculatedTextSize };
 
         protected virtual Drawable AddCharacterToFlow(char c)
         {
@@ -332,8 +332,7 @@ namespace osu.Framework.Graphics.UserInterface
                 d.Depth = --i;
 
             // Add the character
-            SpriteText ch = GetDrawableCharacter(c);
-            ch.TextSize = CalculatedTextSize;
+            Drawable ch = GetDrawableCharacter(c);
             ch.Depth = -selectionLeft;
 
             TextFlow.Add(ch);
@@ -344,7 +343,7 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
-        public float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+        protected float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
