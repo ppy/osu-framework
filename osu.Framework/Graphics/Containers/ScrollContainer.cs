@@ -111,7 +111,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float target;
 
-        private float scrollableExtent => (float)Math.Max(availableContent - displayableContent, 0);
+        private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
         private float clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
 
         protected override Container<Drawable> Content => content;
