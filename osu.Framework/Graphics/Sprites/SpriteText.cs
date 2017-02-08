@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     char c = text[index];
 
-                    Drawable s;
+                    Drawable d;
 
                     if (char.IsWhiteSpace(c))
                     {
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Sprites
                                 break;
                         }
 
-                        s = new Container
+                        d = new Container
                         {
                             Size = new Vector2(width),
                             Scale = new Vector2(textSize),
@@ -191,19 +191,19 @@ namespace osu.Framework.Graphics.Sprites
                     }
                     else
                     {
-                        s = GetDrawableCharacter(c);
+                        d = GetDrawableCharacter(c);
 
                         if (FixedWidth)
                         {
-                            s.Anchor = Anchor.TopCentre;
-                            s.Origin = Anchor.TopCentre;
+                            d.Anchor = Anchor.TopCentre;
+                            d.Origin = Anchor.TopCentre;
                         }
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, 1f),
                             Scale = new Vector2(textSize),
-                            Children = new[] { s }
+                            Children = new[] { d }
                         };
 
                         if (shadow)
@@ -215,10 +215,10 @@ namespace osu.Framework.Graphics.Sprites
                             ctn.Add(shadowDrawable);
                         }
 
-                        s = ctn;
+                        d = ctn;
                     }
 
-                    Add(s);
+                    Add(d);
                 }
 
                 lastText = text;
