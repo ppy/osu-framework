@@ -80,6 +80,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Position = new Vector2(LeftRightPadding, 0),
                     Children = new Drawable[]
                     {
+                        Placeholder = CreatePlaceholder(),
                         Caret = new Box
                         {
                             Size = new Vector2(1, 0.9f),
@@ -150,6 +151,9 @@ namespace osu.Framework.Graphics.UserInterface
             //have to run this after children flow
             cursorAndLayout.Refresh(delegate
             {
+                if (Placeholder.Alpha > 0)
+                    Placeholder.TextSize = CalculatedTextSize;
+
                 textUpdateScheduler.Update();
 
                 Vector2 cursorPos = Vector2.Zero;
@@ -328,7 +332,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             // Add the character
             SpriteText ch = GetDrawableCharacter(c);
-            ch.TextSize = TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
+            ch.TextSize = CalculatedTextSize;
             ch.Depth = -selectionLeft;
 
             TextFlow.Add(ch);
@@ -338,6 +342,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             return ch;
         }
+
+        public float CalculatedTextSize => TextFlow.DrawSize.Y - (TextFlow.Padding.Top + TextFlow.Padding.Bottom);
 
         /// <summary>
         /// Insert an arbitrary string into the text at the current position.
@@ -380,12 +386,33 @@ namespace osu.Framework.Graphics.UserInterface
             return ch;
         }
 
+        protected virtual SpriteText CreatePlaceholder() => new SpriteText
+        {
+            Colour = Color4.Gray,
+        };
+
+        protected SpriteText Placeholder;
+
+        public string PlaceholderText
+        {
+            get { return Placeholder.Text; }
+            set
+            {
+                Placeholder.Text = value;
+            }
+        }
+
         private string text = string.Empty;
 
         protected virtual string InternalText
         {
             get { return text; }
-            set { text = value; }
+            set
+            {
+                if (text.Length == 0 || value.Length == 0)
+                    Placeholder.FadeTo(value.Length == 0 ? 1 : 0, 200);
+                text = value;
+            }
         }
 
         public virtual string Text
