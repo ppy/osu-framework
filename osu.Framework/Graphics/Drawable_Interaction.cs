@@ -131,6 +131,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool HandleInput => false;
 
+        /// <summary>
+        /// Check whether we have active focus. Walks up the drawable tree; use sparingly.
+        /// </summary>
         public bool HasFocus => ourInputManager?.FocusedDrawable == this;
 
         /// <summary>
