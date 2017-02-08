@@ -386,6 +386,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
         {
             Colour = Color4.Gray,
+            Alpha = 0,
         };
 
         protected SpriteText Placeholder;
