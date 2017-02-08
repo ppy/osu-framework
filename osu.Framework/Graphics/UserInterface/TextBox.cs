@@ -567,7 +567,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     case Key.A:
                         selectionStart = 0;
-                        selectionEnd = this.text.Length;
+                        selectionEnd = text.Length;
                         cursorAndLayout.Invalidate();
                         return true;
                     case Key.C:
@@ -584,12 +584,12 @@ namespace osu.Framework.Graphics.UserInterface
                     case Key.V:
 
                         //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        string text = textInput?.GetPendingText();
+                        string pending = textInput?.GetPendingText();
 
-                        if (string.IsNullOrEmpty(text))
-                            text = clipboard?.GetText();
+                        if (string.IsNullOrEmpty(pending))
+                            pending = clipboard?.GetText();
 
-                        insertString(text);
+                        insertString(pending);
                         return true;
                 }
 
