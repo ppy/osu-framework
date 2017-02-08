@@ -440,6 +440,9 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput?.ImeActive == true) return true;
 
+            if (args.Key >= Key.F1 && args.Key <= Key.F35)
+                return false;
+
             switch (args.Key)
             {
                 case Key.Tab:
