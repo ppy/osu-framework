@@ -115,8 +115,7 @@ namespace osu.Framework.Input
                     pendingStates.AddRange(h.GetPendingStates());
             }
 
-            //may have lost focus due to visibility changes in hierarchy.
-            checkFocusedDrawable(CurrentState);
+            unfocusIsNoLongerValid(CurrentState);
 
             if (FocusedDrawable == null)
                 focusTopMostRequestingDrawable(CurrentState);
@@ -483,7 +482,7 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
-            if (checkFocusedDrawable(state))
+            if (!unfocusIsNoLongerValid(state))
             {
                 if (args.Key == Key.Escape)
                 {
@@ -504,18 +503,19 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (checkFocusedDrawable(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
+            if (!unfocusIsNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
                 return true;
 
             return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
         }
 
         /// <summary>
-        /// Ensure the focused drawable is still in a valid state.
+        /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
-        private bool checkFocusedDrawable(InputState state)
+        /// <returns>true if there is no longer a focus.</returns>
+        private bool unfocusIsNoLongerValid(InputState state)
         {
-            if (FocusedDrawable == null) return false;
+            if (FocusedDrawable == null) return true;
 
             bool stillValid = FocusedDrawable.IsPresent && FocusedDrawable.Parent != null;
 
@@ -535,11 +535,11 @@ namespace osu.Framework.Input
             }
 
             if (stillValid)
-                return true;
+                return false;
 
             FocusedDrawable.TriggerFocusLost(state);
             FocusedDrawable = null;
-            return false;
+            return true;
         }
 
         private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
