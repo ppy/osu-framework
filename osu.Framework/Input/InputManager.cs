@@ -118,7 +118,8 @@ namespace osu.Framework.Input
             //may have lost focus due to visibility changes in hierarchy.
             checkFocusedDrawable(CurrentState);
 
-            checkFocusRequests(CurrentState);
+            if (FocusedDrawable == null)
+                focusTopMostRequestingDrawable(CurrentState);
 
             if (!PassThrough)
             {
@@ -541,12 +542,7 @@ namespace osu.Framework.Input
             return false;
         }
 
-        private void checkFocusRequests(InputState state)
-        {
-            if (FocusedDrawable != null) return;
-
-            keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
-        }
+        private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
 
         public InputHandler GetHandler(Type handlerType)
         {
