@@ -400,7 +400,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string text = string.Empty;
 
-        protected virtual string InternalText
+        protected string InternalText
         {
             get { return text; }
             set
