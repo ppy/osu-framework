@@ -12,6 +12,7 @@ using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.IO.Stores;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -108,13 +109,13 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = fonts;
 
-            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? default_text_size;
+            spaceWidth = GetDrawableCharacter('.')?.DrawWidth * 2 ?? default_text_size;
 
             if (!string.IsNullOrEmpty(text))
             {
                 //this is used to prepare the initial string (useful for intial preloading).
                 foreach (char c in text)
-                    if (!char.IsWhiteSpace(c)) getSprite(c);
+                    if (!char.IsWhiteSpace(c)) GetDrawableCharacter(c);
             }
         }
 
@@ -151,7 +152,7 @@ namespace osu.Framework.Graphics.Sprites
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)
-                    constantWidth = getSprite('D').DrawWidth;
+                    constantWidth = GetDrawableCharacter('D').DrawWidth;
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
@@ -190,7 +191,7 @@ namespace osu.Framework.Graphics.Sprites
                     }
                     else
                     {
-                        s = getSprite(c);
+                        s = GetDrawableCharacter(c);
 
                         if (FixedWidth)
                         {
@@ -207,7 +208,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         if (shadow)
                         {
-                            Sprite shadowSprite = getSprite(c);
+                            Drawable shadowSprite = GetDrawableCharacter(c);
                             shadowSprite.Position = new Vector2(0, 0.06f);
                             shadowSprite.Colour = shadowColour;
                             shadowSprite.Depth = float.MaxValue;
@@ -225,12 +226,28 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Sprite getSprite(char c) => new Sprite
+        protected virtual Drawable GetUndrawableCharacter() => new Box
         {
-            Texture = getTexture(c)
+            Origin = Anchor.Centre,
+            Anchor = Anchor.Centre,
+            Size = new Vector2(0.95f),
+            Scale = new Vector2(0.8f)
         };
 
-        private Texture getTexture(char c) => store?.Get(getTextureName(c));
+        protected virtual Drawable GetDrawableCharacter(char c)
+        {
+            var tex = GetTextureForCharacter(c);
+            if (tex != null)
+                return new Sprite { Texture = tex };
+
+            return GetUndrawableCharacter();
+        }
+
+        protected Texture GetTextureForCharacter(char c)
+        {
+            return store?.Get(getTextureName(c));
+        }
+
         private string getTextureName(char c) => string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
