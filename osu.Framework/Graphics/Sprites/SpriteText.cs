@@ -109,13 +109,13 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = fonts;
 
-            spaceWidth = GetDrawableCharacter('.')?.DrawWidth * 2 ?? default_text_size;
+            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             if (!string.IsNullOrEmpty(text))
             {
                 //this is used to prepare the initial string (useful for intial preloading).
                 foreach (char c in text)
-                    if (!char.IsWhiteSpace(c)) GetDrawableCharacter(c);
+                    if (!char.IsWhiteSpace(c)) CreateCharacterDrawable(c);
             }
         }
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Sprites
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)
-                    constantWidth = GetDrawableCharacter('D').DrawWidth;
+                    constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Sprites
                     }
                     else
                     {
-                        d = GetDrawableCharacter(c);
+                        d = CreateCharacterDrawable(c);
 
                         if (FixedWidth)
                         {
@@ -208,7 +208,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         if (shadow)
                         {
-                            Drawable shadowDrawable = GetDrawableCharacter(c);
+                            Drawable shadowDrawable = CreateCharacterDrawable(c);
                             shadowDrawable.Position = new Vector2(0, 0.06f);
                             shadowDrawable.Colour = shadowColour;
                             shadowDrawable.Depth = float.MaxValue;
@@ -226,20 +226,20 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        protected virtual Drawable GetUndrawableCharacter() => new Box
+        protected virtual Drawable CreateFallbackCharacterDrawable() => new Box
         {
             Origin = Anchor.Centre,
             Anchor = Anchor.Centre,
             Scale = new Vector2(0.7f)
         };
 
-        protected virtual Drawable GetDrawableCharacter(char c)
+        protected virtual Drawable CreateCharacterDrawable(char c)
         {
             var tex = GetTextureForCharacter(c);
             if (tex != null)
                 return new Sprite { Texture = tex };
 
-            return GetUndrawableCharacter();
+            return CreateFallbackCharacterDrawable();
         }
 
         protected Texture GetTextureForCharacter(char c)
