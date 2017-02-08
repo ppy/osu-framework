@@ -77,7 +77,8 @@ namespace osu.Framework.Graphics.UserInterface
                 },
                 TextContainer = new Container
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    AutoSizeAxes = Axes.X,
+                    RelativeSizeAxes = Axes.Y,
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Position = new Vector2(LeftRightPadding, 0),
