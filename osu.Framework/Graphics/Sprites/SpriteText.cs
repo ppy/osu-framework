@@ -91,7 +91,10 @@ namespace osu.Framework.Graphics.Sprites
 
         public float TextSize
         {
-            get { return textSize; }
+            get
+            {
+                return textSize;
+            }
             set
             {
                 if (textSize == value) return;
@@ -185,7 +188,7 @@ namespace osu.Framework.Graphics.Sprites
                         d = new Container
                         {
                             Size = new Vector2(width),
-                            Scale = new Vector2(textSize),
+                            Scale = new Vector2(TextSize),
                             Colour = Color4.Transparent,
                         };
                     }
@@ -202,7 +205,7 @@ namespace osu.Framework.Graphics.Sprites
                         var ctn = new Container
                         {
                             Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, 1f),
-                            Scale = new Vector2(textSize),
+                            Scale = new Vector2(TextSize),
                             Children = new[] { d }
                         };
 
