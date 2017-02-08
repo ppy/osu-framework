@@ -102,7 +102,7 @@ namespace osu.Framework.IO.Stores
             RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
             {
-                using (var stream = store.GetStream($@"{assetName}_{texturePage}.png"))
+                using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
                     texturePages[texturePage] = t = RawTexture.FromStream(stream);
             }
 
