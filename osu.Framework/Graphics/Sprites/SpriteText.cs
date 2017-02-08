@@ -247,10 +247,10 @@ namespace osu.Framework.Graphics.Sprites
 
         protected Texture GetTextureForCharacter(char c)
         {
-            return store?.Get(getTextureName(c));
+            return store?.Get(getTextureName(c)) ?? store?.Get(getTextureName(c, false));
         }
 
-        private string getTextureName(char c) => string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
+        private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
         {
