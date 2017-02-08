@@ -651,7 +651,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(InputState state)
         {
-
             if (HasFocus) return true;
 
             Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
