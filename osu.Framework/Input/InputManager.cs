@@ -92,12 +92,18 @@ namespace osu.Framework.Input
             RelativeSizeAxes = Axes.Both;
         }
 
+        /// <summary>
+        /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
+        /// Usually you'd want to call TriggerFocus on the drawable directly instead.
+        /// </summary>
+        /// <param name="focus">The drawable to become focused.</param>
         internal void ChangeFocus(Drawable focus)
         {
             if (focus == FocusedDrawable) return;
 
             FocusedDrawable?.TriggerFocusLost(null, true);
             FocusedDrawable = focus;
+            FocusedDrawable?.TriggerFocus(CurrentState, true);
         }
 
         protected override void Update()
@@ -111,6 +117,8 @@ namespace osu.Framework.Input
 
             //may have lost focus due to visibility changes in hierarchy.
             checkFocusedDrawable(CurrentState);
+
+            checkFocusRequests(CurrentState);
 
             if (!PassThrough)
             {
@@ -531,6 +539,13 @@ namespace osu.Framework.Input
             FocusedDrawable.TriggerFocusLost(state);
             FocusedDrawable = null;
             return false;
+        }
+
+        private void checkFocusRequests(InputState state)
+        {
+            if (FocusedDrawable != null) return;
+
+            keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
         }
 
         public InputHandler GetHandler(Type handlerType)

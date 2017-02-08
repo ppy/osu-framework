@@ -61,17 +61,6 @@ namespace osu.Framework.Graphics
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
-        /// Request focus, but only receive if nothing else already has focus.
-        /// </summary>
-        /// <returns>Whether we received focus.</returns>
-        protected bool RequestFocus()
-        {
-            if (ourInputManager.FocusedDrawable != null) return false;
-
-            return TriggerFocus();
-        }
-
-        /// <summary>
         /// Focuses this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
@@ -90,6 +79,16 @@ namespace osu.Framework.Graphics
             ourInputManager?.ChangeFocus(this);
 
             return true;
+        }
+
+        /// <summary>
+        /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
+        /// Useful in combination with <see cref="RequestingFocus"/>
+        /// </summary>
+        protected void TriggerFocusContention()
+        {
+            if (ourInputManager.FocusedDrawable != this)
+                ourInputManager.ChangeFocus(null);
         }
 
         protected virtual bool OnFocus(InputState state) => false;
@@ -132,7 +131,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool HandleInput => false;
 
-        public virtual bool HasFocus => ourInputManager?.FocusedDrawable == this;
+        public bool HasFocus => ourInputManager?.FocusedDrawable == this;
+
+        /// <summary>
+        /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
+        /// </summary>
+        public virtual bool RequestingFocus => false;
 
         internal bool Hovering;
 
