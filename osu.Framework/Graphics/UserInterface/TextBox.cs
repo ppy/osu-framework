@@ -375,9 +375,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             Drawable ch = AddCharacterToFlow(c);
 
-            ch.Position = new Vector2(0, DrawSize.Y);
-            ch.MoveToY(0, 200, EasingTypes.OutExpo);
-
             InternalText = InternalText.Insert(selectionLeft, c.ToString());
             selectionStart = selectionEnd = selectionLeft + 1;
 
