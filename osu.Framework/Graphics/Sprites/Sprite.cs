@@ -138,13 +138,13 @@ namespace osu.Framework.Graphics.Sprites
                 switch (FillMode)
                 {
                     case FillMode.Fill:
-                        Scale = new Vector2(Math.Max(Parent.DrawSize.X / (Texture?.DisplayWidth ?? 1), Parent.DrawSize.Y / (Texture?.DisplayHeight ?? 1)));
+                        modifier = new Vector2(Math.Max(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight));
                         break;
                     case FillMode.Fit:
-                        Scale = new Vector2(Math.Min(Parent.DrawSize.X / (Texture?.DisplayWidth ?? 1), Parent.DrawSize.Y / (Texture?.DisplayHeight ?? 1)));
+                        modifier = new Vector2(Math.Min(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight));
                         break;
                     case FillMode.Stretch:
-                        Scale = new Vector2(Parent.DrawSize.X / (Texture?.DisplayWidth ?? 1), Parent.DrawSize.Y / (Texture?.DisplayHeight ?? 1));
+                        modifier = new Vector2(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight);
                         break;
                 }
 
