@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             }
 
             // We split the triangle into two, such that we can obtain smooth edges with our
-            // texture coordinate trick. We might want to revert this so drawing a single
+            // texture coordinate trick. We might want to revert this to drawing a single
             // triangle in case we ever need proper texturing, or if the additional vertices
             // end up becoming an overhead (unlikely).
             SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
