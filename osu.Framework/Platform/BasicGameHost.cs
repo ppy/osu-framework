@@ -383,7 +383,6 @@ namespace osu.Framework.Platform
                     {
                         //set aggressively as we haven't become visible yet
                         Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                        Window.CentreToScreen();
                     }
                     else
                     {
@@ -392,6 +391,77 @@ namespace osu.Framework.Platform
                 }
 
                 base.Size = value;
+            }
+        }
+
+        public virtual Vector2 ViewPosition
+        {
+            set
+            {
+                if (Window != null)
+                {
+                    if (!Window.Visible)
+                    {
+                        //set aggressively as we haven't become visible yet
+                        Window.Position = value;
+                    }
+                    else
+                    {
+                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Position = value; });
+                    }
+                }
+            }
+
+            get
+            {
+                return Window != null ? Window.Position : new Vector2();
+            }
+        }
+
+        public bool Fullscreen
+        {
+            set
+            {
+                if (Window != null) {
+                    if (!Window.Visible)
+                    {
+                        //set aggressively as we haven't become visible yet
+                        Window.Fullscreen = value;
+                    }
+                    else
+                    {
+                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Fullscreen = value; });
+                    }
+                }
+            }
+
+            get
+            {
+                return Window != null ? Window.Fullscreen : false;
+            }
+        }
+
+        public bool Maximized
+        {
+            set
+            {
+                if (Window != null)
+                {
+                    if (!Window.Visible)
+                    {
+                        //set aggressively as we haven't become visible yet
+                        Window.Maximized = value;
+                    }
+                    else
+                    {
+                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Maximized = value; });
+                    }
+                }
+            }
+
+            get
+            {
+                return Window != null ? Window.Maximized : false;
             }
         }
 

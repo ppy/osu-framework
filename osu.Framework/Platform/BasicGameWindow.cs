@@ -68,12 +68,6 @@ namespace osu.Framework.Platform
 
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-            if (e.Alt && e.Key == Key.Enter)
-            {
-                WindowState = WindowState == WindowState.Fullscreen ? WindowState = WindowState.Normal : WindowState.Fullscreen;
-                return;
-            }
-
             base.OnKeyDown(e);
         }
 
@@ -93,8 +87,10 @@ namespace osu.Framework.Platform
 
         protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
 
-        public virtual void CentreToScreen()
-        {
-        }
+        public virtual Vector2 Position { get; set; }
+
+        public virtual bool Fullscreen { get; set; }
+
+        public virtual bool Maximized { get; set; }
     }
 }

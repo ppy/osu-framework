@@ -16,12 +16,15 @@ namespace osu.Framework.Configuration
 
             Set(FrameworkConfig.Width, 1366, 640);
             Set(FrameworkConfig.Height, 768, 480);
+            Set(FrameworkConfig.WindowedPositionX, 0.5, -0.1, 1.1);
+            Set(FrameworkConfig.WindowedPositionY, 0.5, -0.1, 1.1);
+            Set(FrameworkConfig.Maximized, false);
             Set(FrameworkConfig.AudioDevice, string.Empty);
             Set(FrameworkConfig.VolumeUniversal, 1.0, 0, 1);
             Set(FrameworkConfig.VolumeMusic, 1.0, 0, 1);
             Set(FrameworkConfig.VolumeEffect, 1.0, 0, 1);
-            Set(FrameworkConfig.HeightFullscreen, 9999, 240, 9999);
             Set(FrameworkConfig.WidthFullscreen, 9999, 320, 9999);
+            Set(FrameworkConfig.HeightFullscreen, 9999, 240, 9999);
             Set(FrameworkConfig.Letterboxing, true);
             Set(FrameworkConfig.LetterboxPositionX, 0, -100, 100);
             Set(FrameworkConfig.LetterboxPositionY, 0, -100, 100);
@@ -46,6 +49,9 @@ namespace osu.Framework.Configuration
 
         Width,
         Height,
+        WindowedPositionX,
+        WindowedPositionY,
+        Maximized,
 
         HeightFullscreen,
         WidthFullscreen,

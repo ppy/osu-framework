@@ -95,8 +95,19 @@ namespace osu.Framework
 
             if (Parent != null)
             {
-                Config.Set(FrameworkConfig.Width, DrawSize.X);
-                Config.Set(FrameworkConfig.Height, DrawSize.Y);
+                if (!host.Fullscreen) {
+                    Config.Set(FrameworkConfig.Maximized, host.Maximized);
+
+                    if (!host.Maximized) {
+                        Config.Set(FrameworkConfig.Width, DrawSize.X);
+                        Config.Set(FrameworkConfig.Height, DrawSize.Y);
+
+                        Vector2 viewPosition = host.ViewPosition;
+
+                        Config.Set(FrameworkConfig.WindowedPositionX, viewPosition.X);
+                        Config.Set(FrameworkConfig.WindowedPositionY, viewPosition.Y);
+                    }
+                }
             }
             return true;
         }
@@ -111,7 +122,12 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
+
             host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
+            host.ViewPosition = new Vector2((float)Config.Get<double>(FrameworkConfig.WindowedPositionX), (float)Config.Get<double>(FrameworkConfig.WindowedPositionY));
+            host.Fullscreen = Config.Get<bool>(FrameworkConfig.Fullscreen);
+            host.Maximized = Config.Get<bool>(FrameworkConfig.Maximized);
+
             host.Exiting += OnExiting;
         }
 
@@ -137,6 +153,11 @@ namespace osu.Framework
             Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
             Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
             Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
+
+            Config.GetBindable<bool>(FrameworkConfig.Fullscreen).ValueChanged += delegate(object sender, EventArgs e)
+                {
+                    host.Fullscreen = ((Bindable<bool>)sender).Value;
+                };
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
@@ -218,6 +239,12 @@ namespace osu.Framework
                         logOverlay.ToggleVisibility();
                         return true;
                 }
+            }
+
+            if (state.Keyboard.AltPressed && args.Key == Key.Enter)
+            {
+                Config.Set<bool>(FrameworkConfig.Fullscreen, !Window.Fullscreen);
+                return true;
             }
 
             return base.OnKeyDown(state, args);

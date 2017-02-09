@@ -22,13 +22,49 @@ namespace osu.Framework.Desktop.Platform
         {
         }
 
-        public override void CentreToScreen()
+        public override Vector2 Position
         {
-            base.CentreToScreen();
-            Location = new System.Drawing.Point(
-                (DisplayDevice.Default.Width - Size.Width) / 2,
-                (DisplayDevice.Default.Height - Size.Height) / 2
-            );
+            set
+            {
+                Location = new System.Drawing.Point(
+                    (int)Math.Round((DisplayDevice.Default.Width - Size.Width) * value.X),
+                    (int)Math.Round((DisplayDevice.Default.Height - Size.Height) * value.Y));
+            }
+
+            get
+            {
+                return new Vector2((float) Location.X / (DisplayDevice.Default.Width - Size.Width),
+                                   (float) Location.Y / (DisplayDevice.Default.Height - Size.Height));
+            }
+        }
+
+        public override bool Fullscreen
+        {
+            set
+            {
+                WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
+            }
+
+            get
+            {
+                return WindowState == WindowState.Fullscreen;
+            }
+        }
+
+        public override bool Maximized
+        {
+            set
+            {
+                if (WindowState != WindowState.Fullscreen)
+                {
+                    WindowState = value ? WindowState.Maximized : WindowState.Normal;
+                }
+            }
+
+            get
+            {
+                return WindowState == WindowState.Maximized;
+            }
         }
 
         public void OnDragEnter(DragEventArgs e) => DragEnter?.Invoke(e);
