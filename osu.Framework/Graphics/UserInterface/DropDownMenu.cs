@@ -21,13 +21,13 @@ namespace osu.Framework.Graphics.UserInterface
         private List<DropDownMenuItem<T>> items = new List<DropDownMenuItem<T>>();
         private readonly Dictionary<T, int> itemDictionary = new Dictionary<T, int>();
 
-        protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<T> values);
+        protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<KeyValuePair<string, T>> values);
 
-        public IEnumerable<T> Items
+        public IEnumerable<KeyValuePair<string, T>> Items
         {
             get
             {
-                return items.Select(i => i.Value);
+                return items.Select(i => new KeyValuePair<string, T>(i.DisplayText, i.Value));
             }
             set
             {

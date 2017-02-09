@@ -35,7 +35,7 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(200, 70),
                 Description = @"Drop-down menu",
                 Depth = 1,
-                Items = testItems,
+                Items = testItems.Select(i => new KeyValuePair<string, string>(i, i)),
                 SelectedIndex = 4,
             };
             Add(styledDropDownMenu);
@@ -48,9 +48,9 @@ namespace osu.Framework.VisualTests.Tests
                 return new StyledDropDownHeader();
             }
             
-            protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<string> values)
+            protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<KeyValuePair<string, string>> values)
             {
-                return values.Select(v => new StyledDropDownMenuItem(v));
+                return values.Select(v => new StyledDropDownMenuItem(v.Key));
             }
 
             public StyledDropDownMenu()
