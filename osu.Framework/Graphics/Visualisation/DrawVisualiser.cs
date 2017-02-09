@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Visualisation
             return containedTarget ?? (d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position) ? d : null);
         }
 
-        private VisualisedDrawable targetVD;
+        private VisualisedDrawable targetDrawable;
 
         private IDrawable target;
         public IDrawable Target
@@ -104,19 +104,19 @@ namespace osu.Framework.Graphics.Visualisation
             get { return target; }
             set
             {
-                if (targetVD != null)
+                if (targetDrawable != null)
                 {
-                    treeContainer.Remove(targetVD);
-                    targetVD.Dispose();
-                    targetVD = null;
+                    treeContainer.Remove(targetDrawable);
+                    targetDrawable.Dispose();
+                    targetDrawable = null;
                 }
 
                 target = value;
 
                 if (target != null)
                 {
-                    targetVD = new VisualisedDrawable(target as Drawable);
-                    treeContainer.Add(targetVD);
+                    targetDrawable = new VisualisedDrawable(target as Drawable);
+                    treeContainer.Add(targetDrawable);
                 }
             }
         }
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (Target == null) return;
 
-            visualise(Target, targetVD);
+            visualise(Target, targetDrawable);
         }
 
         private void visualise(IDrawable d, VisualisedDrawable vis)

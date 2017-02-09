@@ -12,6 +12,7 @@ using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.IO.Stores;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -90,7 +91,10 @@ namespace osu.Framework.Graphics.Sprites
 
         public float TextSize
         {
-            get { return textSize; }
+            get
+            {
+                return textSize;
+            }
             set
             {
                 if (textSize == value) return;
@@ -108,13 +112,13 @@ namespace osu.Framework.Graphics.Sprites
             if (store == null)
                 store = fonts;
 
-            spaceWidth = getSprite('.')?.DrawWidth * 2 ?? default_text_size;
+            spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
             if (!string.IsNullOrEmpty(text))
             {
                 //this is used to prepare the initial string (useful for intial preloading).
                 foreach (char c in text)
-                    if (!char.IsWhiteSpace(c)) getSprite(c);
+                    if (!char.IsWhiteSpace(c)) CreateCharacterDrawable(c);
             }
         }
 
@@ -151,7 +155,7 @@ namespace osu.Framework.Graphics.Sprites
             internalSize.Refresh(delegate
             {
                 if (FixedWidth && !constantWidth.HasValue)
-                    constantWidth = getSprite('D').DrawWidth;
+                    constantWidth = CreateCharacterDrawable('D').DrawWidth;
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
@@ -168,7 +172,7 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     char c = text[index];
 
-                    Drawable s;
+                    Drawable d;
 
                     if (char.IsWhiteSpace(c))
                     {
@@ -181,43 +185,43 @@ namespace osu.Framework.Graphics.Sprites
                                 break;
                         }
 
-                        s = new Container
+                        d = new Container
                         {
                             Size = new Vector2(width),
-                            Scale = new Vector2(textSize),
+                            Scale = new Vector2(TextSize),
                             Colour = Color4.Transparent,
                         };
                     }
                     else
                     {
-                        s = getSprite(c);
+                        d = CreateCharacterDrawable(c);
 
                         if (FixedWidth)
                         {
-                            s.Anchor = Anchor.TopCentre;
-                            s.Origin = Anchor.TopCentre;
+                            d.Anchor = Anchor.TopCentre;
+                            d.Origin = Anchor.TopCentre;
                         }
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : s.DrawSize.X, 1f),
-                            Scale = new Vector2(textSize),
-                            Children = new[] { s }
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, 1f),
+                            Scale = new Vector2(TextSize),
+                            Children = new[] { d }
                         };
 
                         if (shadow)
                         {
-                            Sprite shadowSprite = getSprite(c);
-                            shadowSprite.Position = new Vector2(0, 0.06f);
-                            shadowSprite.Colour = shadowColour;
-                            shadowSprite.Depth = float.MaxValue;
-                            ctn.Add(shadowSprite);
+                            Drawable shadowDrawable = CreateCharacterDrawable(c);
+                            shadowDrawable.Position = new Vector2(0, 0.06f);
+                            shadowDrawable.Colour = shadowColour;
+                            shadowDrawable.Depth = float.MaxValue;
+                            ctn.Add(shadowDrawable);
                         }
 
-                        s = ctn;
+                        d = ctn;
                     }
 
-                    Add(s);
+                    Add(d);
                 }
 
                 lastText = text;
@@ -225,13 +229,28 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
-        private Sprite getSprite(char c) => new Sprite
+        protected virtual Drawable CreateFallbackCharacterDrawable() => new Box
         {
-            Texture = getTexture(c)
+            Origin = Anchor.Centre,
+            Anchor = Anchor.Centre,
+            Scale = new Vector2(0.7f)
         };
 
-        private Texture getTexture(char c) => store?.Get(getTextureName(c));
-        private string getTextureName(char c) => string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
+        protected virtual Drawable CreateCharacterDrawable(char c)
+        {
+            var tex = GetTextureForCharacter(c);
+            if (tex != null)
+                return new Sprite { Texture = tex };
+
+            return CreateFallbackCharacterDrawable();
+        }
+
+        protected Texture GetTextureForCharacter(char c)
+        {
+            return store?.Get(getTextureName(c)) ?? store?.Get(getTextureName(c, false));
+        }
+
+        private string getTextureName(char c, bool useFont = true) => !useFont || string.IsNullOrEmpty(Font) ? c.ToString() : $@"{Font}/{c}";
 
         public override string ToString()
         {

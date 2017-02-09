@@ -19,5 +19,6 @@ namespace osu.Framework.Desktop.Platform.Windows
                 string appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 return Path.Combine(appdata, BaseName);
             }
-        }    }
+        }
+    }
 }

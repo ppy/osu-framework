@@ -17,12 +17,12 @@ namespace osu.Framework.Threading
 
         public override bool Add(Action d, bool forceDelayed = true)
         {
-            if (!sleeper.IsSleeping || isMainThread)
+            if (!sleeper.IsSleeping || IsMainThread)
             {
                 base.Add(d, forceDelayed);
                 return true;
             }
-            ThreadPool.QueueUserWorkItem(State =>
+            ThreadPool.QueueUserWorkItem(state =>
             {
                 if (sleeper.IsSleeping)
                     sleeper.Invoke(d);

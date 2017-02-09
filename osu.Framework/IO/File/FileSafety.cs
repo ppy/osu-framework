@@ -33,21 +33,15 @@ namespace osu.Framework.IO.File
         }
 
         // Adds an ACL entry on the specified directory for the specified account.
-        public static void AddDirectorySecurity(string FileName, string Account, FileSystemRights Rights,
-                                                InheritanceFlags Inheritance, PropagationFlags Propogation,
-                                                AccessControlType ControlType)
+        public static void AddDirectorySecurity(string filename, string account, FileSystemRights rights, InheritanceFlags inheritance, PropagationFlags propagation, AccessControlType controlType)
         {
             // Create a new DirectoryInfo object.
-            DirectoryInfo dInfo = new DirectoryInfo(FileName);
+            DirectoryInfo dInfo = new DirectoryInfo(filename);
             // Get a DirectorySecurity object that represents the
             // current security settings.
             DirectorySecurity dSecurity = dInfo.GetAccessControl();
             // Add the FileSystemAccessRule to the security settings.
-            dSecurity.AddAccessRule(new FileSystemAccessRule(Account,
-                Rights,
-                Inheritance,
-                Propogation,
-                ControlType));
+            dSecurity.AddAccessRule(new FileSystemAccessRule(account, rights, inheritance, propagation, controlType));
             // Set the new access settings.
             dInfo.SetAccessControl(dSecurity);
         }
@@ -358,7 +352,7 @@ namespace osu.Framework.IO.File
         }
 
         //This is better than encoding as it doesn't check for origin specific data or remove invalid chars.
-        public static unsafe string rawBytesToString(byte[] encoded)
+        public static unsafe string RawBytesToString(byte[] encoded)
         {
             if (encoded.Length == 0)
                 return string.Empty;

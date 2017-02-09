@@ -4,10 +4,11 @@
 
 #include "sh_Utils.h"
 
-varying vec2 v_DrawingPosition;
 varying vec2 v_MaskingPosition;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
+varying vec4 v_TexRect;
+varying vec2 v_BlendRange;
 
 uniform sampler2D m_Sampler;
 uniform float g_CornerRadius;
@@ -16,9 +17,6 @@ uniform float g_BorderThickness;
 uniform vec4 g_BorderColour;
 
 uniform float g_MaskingBlendRange;
-
-uniform vec4 g_DrawingRect;
-uniform vec2 g_DrawingBlendRange;
 
 uniform float g_AlphaExponent;
 
@@ -44,12 +42,18 @@ float distanceFromRoundedRect()
 
 float distanceFromDrawingRect()
 {
-	vec2 topLeftOffset = g_DrawingRect.xy - v_DrawingPosition;
-	vec2 bottomRightOffset = v_DrawingPosition - g_DrawingRect.zw;
+	vec2 topLeftOffset = v_TexRect.xy - v_TexCoord;
+	topLeftOffset = vec2(
+		v_BlendRange.x > 0.0 ? topLeftOffset.x / v_BlendRange.x : 0.0,
+		v_BlendRange.y > 0.0 ? topLeftOffset.y / v_BlendRange.y : 0.0);
+
+	vec2 bottomRightOffset = v_TexCoord - v_TexRect.zw;
+	bottomRightOffset = vec2(
+		v_BlendRange.x > 0.0 ? bottomRightOffset.x / v_BlendRange.x : 0.0,
+		v_BlendRange.y > 0.0 ? bottomRightOffset.y / v_BlendRange.y : 0.0);
+
 	vec2 xyDistance = max(topLeftOffset, bottomRightOffset);
-	return max(
-		g_DrawingBlendRange.x > 0.0 ? xyDistance.x / g_DrawingBlendRange.x : 0.0,
-		g_DrawingBlendRange.y > 0.0 ? xyDistance.y / g_DrawingBlendRange.y : 0.0);
+	return max(xyDistance.x, xyDistance.y);
 }
 
 void main(void)
@@ -61,7 +65,7 @@ void main(void)
 	float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
 	float alphaFactor = min(fadeStart - dist, 1.0);
 
-	if (g_DrawingBlendRange.x > 0.0 || g_DrawingBlendRange.y > 0.0)
+	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
 		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(), 0.0, 1.0);
 
 	if (alphaFactor <= 0.0)

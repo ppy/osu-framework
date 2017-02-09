@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public RectangleF AABBf
+        public RectangleF AABBFloat
         {
             get
             {
@@ -148,12 +148,12 @@ namespace osu.Framework.Graphics.Primitives
                 //return Math.Sqrt(Vector2.DistanceSquared(TopLeft, TopRight) * Vector2.DistanceSquared(TopLeft, BottomLeft));
 
                 Vector2 d1 = TopLeft - TopRight;
-                float l1sq = d1.LengthSquared;
+                float lsq1 = d1.LengthSquared;
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float l2sq = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * (MathHelper.InverseSqrtFast(l1sq))));
+                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * (MathHelper.InverseSqrtFast(lsq1))));
 
-                return (float)Math.Sqrt(l1sq * l2sq);
+                return (float)Math.Sqrt(lsq1 * lsq2);
             }
         }
 

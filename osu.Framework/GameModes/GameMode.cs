@@ -103,6 +103,8 @@ namespace osu.Framework.GameModes
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
+            if (args.Repeat) return false;
+
             switch (args.Key)
             {
                 case Key.Escape:

@@ -105,7 +105,7 @@ namespace osu.Framework.Graphics.Containers
         {
             BufferedContainerDrawNode n = node as BufferedContainerDrawNode;
 
-            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBf;
+            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
             n.Batch = quadBatch;
             n.FrameBuffers = frameBuffers;
             n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);

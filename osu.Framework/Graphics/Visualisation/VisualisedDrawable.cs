@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Visualisation
                 previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
                 {
                     Texture = sprite.Texture,
-                    Scale = new Vector2((float)sprite.Texture.Width / sprite.Texture.Height, 1),
+                    Scale = new Vector2((float)sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                 },
                 text = new SpriteText
                 {

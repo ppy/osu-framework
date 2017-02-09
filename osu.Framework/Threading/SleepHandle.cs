@@ -22,7 +22,7 @@ namespace osu.Framework.Threading
         }
 
         //sleep until we get disrupted and have a task
-        public void Sleep(int timeMS)
+        public void Sleep(int milliseconds)
         {
             IsSleeping = true;
             //we use datetime as it's a lot faster than the stopwatch and we don't need the accuracy.
@@ -34,10 +34,10 @@ namespace osu.Framework.Threading
                     taskDone.Set();
                     cleanLater = false;
                 }
-                sleepTimeOut.WaitOne(timeMS);
+                sleepTimeOut.WaitOne(milliseconds);
                 if (task != null)
                     executeTask(false);
-            } while ((DateTime.Now - before).TotalMilliseconds < timeMS);
+            } while ((DateTime.Now - before).TotalMilliseconds < milliseconds);
             IsSleeping = false;
             // in case task was trying to be inoked right after a an other task got executed
             if (task != null)

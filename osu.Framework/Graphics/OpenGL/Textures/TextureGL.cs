@@ -23,16 +23,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Dispose(false);
         }
 
-        protected bool isDisposed;
+        protected bool IsDisposed;
 
         protected virtual void Dispose(bool isDisposing)
         {
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         public void Dispose()
         {
-            if (isDisposed)
+            if (IsDisposed)
                 return;
 
             Dispose(true);

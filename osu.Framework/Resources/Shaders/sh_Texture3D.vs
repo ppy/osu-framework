@@ -4,14 +4,14 @@ attribute vec3 m_Position;
 attribute vec4 m_Colour;
 attribute vec2 m_TexCoord;
 
-varying vec2 v_DrawingPosition;
 varying vec2 v_MaskingPosition;
 varying vec4 v_Colour;
 varying vec2 v_TexCoord;
+varying vec4 v_TexRect;
+varying vec2 v_BlendRange;
 
 uniform mat4 g_ProjMatrix;
 uniform mat3 g_ToMaskingSpace;
-uniform mat3 g_ToDrawingSpace;
 
 void main(void)
 {
@@ -19,8 +19,8 @@ void main(void)
 	vec3 maskingPos = g_ToMaskingSpace * vec3(m_Position.xy, 1.0);
 	v_MaskingPosition = maskingPos.xy / maskingPos.z;
 
-	vec3 drawingPos = g_ToDrawingSpace * vec3(m_Position.xy, 1.0);
-	v_DrawingPosition = drawingPos.xy / drawingPos.z;
+	v_TexRect = vec4(0.0);
+	v_BlendRange = vec2(0.0);
 
 	v_Colour = m_Colour;
 	v_TexCoord = m_TexCoord;

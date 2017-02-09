@@ -43,7 +43,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// Returns whether we are on the main thread or not.
         /// </summary>
-        protected virtual bool isMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
+        protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
         /// <summary>
         /// Run any pending work tasks.
@@ -123,7 +123,7 @@ namespace osu.Framework.Threading
         /// <returns>Whether we could run without scheduling</returns>
         public virtual bool Add(Action task, bool forceScheduled = true)
         {
-            if (!forceScheduled && isMainThread)
+            if (!forceScheduled && IsMainThread)
             {
                 //We are on the main thread already - don't need to schedule.
                 task.Invoke();
@@ -289,6 +289,6 @@ namespace osu.Framework.Threading
             base.Dispose(disposing);
         }
 
-        protected override bool isMainThread => false;
+        protected override bool IsMainThread => false;
     }
 }

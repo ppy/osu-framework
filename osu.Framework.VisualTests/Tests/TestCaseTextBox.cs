@@ -54,6 +54,20 @@ namespace osu.Framework.VisualTests.Tests
                 Size = new Vector2(500, 30),
             });
 
+            textBoxes.Add(new TextBox
+            {
+                PlaceholderText = @"Placeholder text",
+                Size = new Vector2(500, 30),
+            });
+
+            textBoxes.Add(new TextBox
+            {
+                Text = @"prefilled placeholder",
+                PlaceholderText = @"Placeholder text",
+                Size = new Vector2(500, 30),
+            });
+
+
             //textBoxes.Add(tb = new PasswordTextBox(@"", 14, Vector2.Zero, 300));
         }
     }

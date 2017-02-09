@@ -932,7 +932,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         private SpriteText debugInfo;
 
-        public bool chameleon = false;
+        public bool Chameleon = false;
         public bool AllowDrag = true;
 
         protected override bool OnDrag(InputState state)
@@ -969,7 +969,7 @@ namespace osu.Framework.VisualTests.Tests
 
         protected override void Update()
         {
-            if (chameleon && (int)Time.Current / 1000 != lastSwitch)
+            if (Chameleon && (int)Time.Current / 1000 != lastSwitch)
             {
                 lastSwitch = (int)Time.Current / 1000;
                 switch (lastSwitch % 6)

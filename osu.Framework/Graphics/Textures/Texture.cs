@@ -39,12 +39,17 @@ namespace osu.Framework.Graphics.Textures
         public TextureGL TextureGL;
         public string Filename;
         public string AssetName;
-        public float DpiScale = 1;
+
+        /// <summary>
+        /// At what multiple of our expected resolution is our underlying texture?
+        /// </summary>
+        public float ScaleAdjust = 1;
+
         public bool Disposable = true;
         public bool IsDisposed { get; private set; }
 
-        public float DisplayWidth => Width / DpiScale;
-        public float DisplayHeight => Height / DpiScale;
+        public float DisplayWidth => Width / ScaleAdjust;
+        public float DisplayHeight => Height / ScaleAdjust;
 
         public Texture(TextureGL textureGl)
         {
@@ -71,7 +76,7 @@ namespace osu.Framework.Graphics.Textures
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposing)
+        protected void Dispose(bool isDisposing)
         {
             if (IsDisposed)
                 return;
@@ -173,16 +178,16 @@ namespace osu.Framework.Graphics.Textures
                 upload.Dispose();
         }
 
-        protected virtual RectangleF textureBounds(RectangleF? textureRect = null)
+        protected virtual RectangleF TextureBounds(RectangleF? textureRect = null)
         {
             RectangleF texRect = textureRect ?? new RectangleF(0, 0, DisplayWidth, DisplayHeight);
 
-            if (DpiScale != 1)
+            if (ScaleAdjust != 1)
             {
-                texRect.Width *= DpiScale;
-                texRect.Height *= DpiScale;
-                texRect.X *= DpiScale;
-                texRect.Y *= DpiScale;
+                texRect.Width *= ScaleAdjust;
+                texRect.Height *= ScaleAdjust;
+                texRect.X *= ScaleAdjust;
+                texRect.Y *= ScaleAdjust;
             }
 
             return texRect;
@@ -190,21 +195,21 @@ namespace osu.Framework.Graphics.Textures
 
         public RectangleF GetTextureRect(RectangleF? textureRect = null)
         {
-            return TextureGL.GetTextureRect(textureBounds(textureRect));
+            return TextureGL.GetTextureRect(TextureBounds(textureRect));
         }
 
         public void DrawTriangle(Triangle vertexTriangle, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawTriangle(vertexTriangle, textureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
 
         public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, textureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
     }
 
@@ -215,9 +220,13 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
-        protected override RectangleF textureBounds(RectangleF? textureRect = default(RectangleF?))
+        protected override RectangleF TextureBounds(RectangleF? textureRect = default(RectangleF?))
         {
-            return new RectangleF();
+            // We need non-zero texture bounds for EdgeSmoothness to work correctly.
+            // Let's be very conservative and use a tenth of the size of a pixel in the
+            // largest possible texture.
+            float smallestPixelTenth = 0.1f / GLWrapper.MaxTextureSize;
+            return new RectangleF(0, 0, smallestPixelTenth, smallestPixelTenth);
         }
     }
 }

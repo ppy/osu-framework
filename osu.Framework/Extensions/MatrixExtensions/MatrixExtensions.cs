@@ -42,9 +42,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float sin = (float)Math.Sin(radians);
 
             //Vector3 column0 = m.Column0 * cos + m.Column1 * sin;
-            float M11 = m.M11 * cos - m.M12 * sin;
-            float M21 = m.M21 * cos - m.M22 * sin;
-            float M31 = m.M31 * cos - m.M32 * sin;
+            float m11 = m.M11 * cos - m.M12 * sin;
+            float m21 = m.M21 * cos - m.M22 * sin;
+            float m31 = m.M31 * cos - m.M32 * sin;
 
             //m.Column1 = m.Column1 * cos - m.Column0 * sin;
             m.M12 = m.M12 * cos + m.M11 * sin;
@@ -52,9 +52,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
             m.M32 = m.M32 * cos + m.M31 * sin;
 
             //m.Column0 = row0;
-            m.M11 = M11;
-            m.M21 = M21;
-            m.M31 = M31;
+            m.M11 = m11;
+            m.M21 = m21;
+            m.M31 = m31;
         }
 
         public static void ScaleFromLeft(ref Matrix3 m, Vector2 v)
@@ -102,18 +102,18 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float xy = v.X * v.Y;
 
             //m.Column0 += m.Column1 * v.X;
-            float M11 = m.M11 + m.M12 * v.X;
-            float M21 = m.M21 + m.M22 * v.X;
-            float M31 = m.M31 + m.M32 * v.X;
+            float m11 = m.M11 + m.M12 * v.X;
+            float m21 = m.M21 + m.M22 * v.X;
+            float m31 = m.M31 + m.M32 * v.X;
 
             //m.Column1 += m.Column0 * v.Y + m.Column1 * xy;
             m.M12 += m.M11 * v.Y + m.M12 * xy;
             m.M22 += m.M21 * v.Y + m.M22 * xy;
             m.M32 += m.M31 * v.Y + m.M32 * xy;
 
-            m.M11 = M11;
-            m.M21 = M21;
-            m.M31 = M31;
+            m.M11 = m11;
+            m.M21 = m21;
+            m.M31 = m31;
         }
 
         public static void FastInvert(ref Matrix3 value)

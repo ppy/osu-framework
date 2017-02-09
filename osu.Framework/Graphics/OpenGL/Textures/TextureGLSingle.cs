@@ -82,13 +82,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 return height;
             }
 
             set
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 height = value;
             }
         }
@@ -99,13 +99,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 return width;
             }
 
             set
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 width = value;
             }
         }
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!isDisposed);
+                Debug.Assert(!IsDisposed);
                 Debug.Assert(textureId > 0);
 
                 return textureId;
@@ -146,12 +146,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
-
-            if (inflationPercentage.HasValue)
-                texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
             {
@@ -166,19 +165,25 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2((texRect.Left + texRect.Right) / 2, texRect.Top),
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P1,
-                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P2,
-                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomRight.Linear,
             });
 
@@ -187,12 +192,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             RectangleF texRect = GetTextureRect(textureRect);
-
-            if (inflationPercentage.HasValue)
-                texRect = texRect.Inflate(new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height));
+            Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
+            RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
             {
@@ -204,25 +208,33 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomLeft,
-                TexturePosition = new Vector2(texRect.Left, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.BottomRight,
-                TexturePosition = new Vector2(texRect.Right, texRect.Bottom),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.BottomRight.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopRight,
-                TexturePosition = new Vector2(texRect.Right, texRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopRight.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexQuad.TopLeft,
-                TexturePosition = new Vector2(texRect.Left, texRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
                 Colour = drawColour.TopLeft.Linear,
             });
 
@@ -231,7 +243,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateWrapMode()
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             internalWrapMode = WrapMode;
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)internalWrapMode);
@@ -240,7 +252,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(TextureUpload upload)
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             if (upload.Bounds == Rectangle.Empty)
                 upload.Bounds = new Rectangle(0, 0, width, height);
@@ -255,7 +267,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            Debug.Assert(!isDisposed);
+            Debug.Assert(!IsDisposed);
 
             Upload();
 
@@ -280,7 +292,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             // We should never run raw OGL calls on another thread than the main thread due to race conditions.
             ThreadSafety.EnsureDrawThread();
 
-            if (isDisposed)
+            if (IsDisposed)
                 return false;
 
             IntPtr dataPointer;

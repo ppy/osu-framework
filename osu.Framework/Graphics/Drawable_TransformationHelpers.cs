@@ -48,7 +48,8 @@ namespace osu.Framework.Graphics
                 if (t.EndTime > maxTime)
                     maxTime = t.EndTime;
 
-            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
+            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
+
             foreach (ITransform t in operateTransforms)
             {
                 t.UpdateTime(maxTimeInfo);

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Extensions.IEnumerableExtensions
 {
-    public static class IEnumerableExtensions
+    public static class EnumerableExtensions
     {
         /// <summary>
         /// Performs an action on all the items in an IEnumearble collection.

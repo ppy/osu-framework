@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Shaders
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected void Dispose(bool disposing)
         {
             if (!disposing || partID == -1) return;
 

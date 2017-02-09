@@ -12,11 +12,11 @@ namespace osu.Framework.Desktop.Platform.Windows
     /// </summary>
     internal class TimePeriod : IDisposable
     {
-        private static TIMECAPS timeCapabilities;
+        private static TimeCaps timeCapabilities;
         private readonly int period;
 
         [DllImport(@"winmm.dll", ExactSpelling = true)]
-        private static extern int timeGetDevCaps(ref TIMECAPS ptc, int cbtc);
+        private static extern int timeGetDevCaps(ref TimeCaps ptc, int cbtc);
 
         [DllImport(@"winmm.dll", ExactSpelling = true)]
         private static extern int timeBeginPeriod(int uPeriod);
@@ -31,7 +31,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
         static TimePeriod()
         {
-            timeGetDevCaps(ref timeCapabilities, Marshal.SizeOf(typeof(TIMECAPS)));
+            timeGetDevCaps(ref timeCapabilities, Marshal.SizeOf(typeof(TimeCaps)));
         }
 
         internal TimePeriod(int period)
@@ -93,7 +93,7 @@ namespace osu.Framework.Desktop.Platform.Windows
         #endregion
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct TIMECAPS
+        private struct TimeCaps
         {
             internal int wPeriodMin;
             internal int wPeriodMax;

@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Sprites
         public Shader TextureShader;
         public Shader RoundedTextureShader;
 
-        private bool NeedsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
+        private bool needsRoundedShader => GLWrapper.IsMaskingActive || InflationAmount != Vector2.Zero;
 
         protected virtual void Blit(Action<TexturedVertex2D> vertexAction)
         {
@@ -37,21 +37,7 @@ namespace osu.Framework.Graphics.Sprites
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            Shader shader = NeedsRoundedShader ? RoundedTextureShader : TextureShader;
-
-            if (InflationAmount != Vector2.Zero)
-            {
-                // The shader currently cannot deal with negative width and height.
-                RectangleF drawRect = DrawRectangle.WithPositiveExtent;
-                RoundedTextureShader.GetUniform<Vector4>(@"g_DrawingRect").Value = new Vector4(
-                    drawRect.Left,
-                    drawRect.Top,
-                    drawRect.Right,
-                    drawRect.Bottom);
-
-                RoundedTextureShader.GetUniform<Matrix3>(@"g_ToDrawingSpace").Value = DrawInfo.MatrixInverse;
-                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = InflationAmount;
-            }
+            Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
 
@@ -60,9 +46,6 @@ namespace osu.Framework.Graphics.Sprites
             Blit(vertexAction);
 
             shader.Unbind();
-
-            if (InflationAmount != Vector2.Zero)
-                RoundedTextureShader.GetUniform<Vector2>(@"g_DrawingBlendRange").Value = Vector2.Zero;
         }
     }
 }
