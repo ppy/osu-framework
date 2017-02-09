@@ -84,6 +84,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
         /// Useful in combination with <see cref="RequestingFocus"/>
+        /// Make sure you are already Present (ie. you've run Update at least once after becoming visible). Schedule recommended.
         /// </summary>
         protected void TriggerFocusContention()
         {

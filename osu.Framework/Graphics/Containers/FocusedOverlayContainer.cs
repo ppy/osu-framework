@@ -13,9 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        public override bool RequestingFocus => IsPresent && State == Visibility.Visible;
-
-        public override bool IsPresent => base.IsPresent || State == Visibility.Visible;
+        public override bool RequestingFocus => State == Visibility.Visible;
 
         protected override bool OnFocus(InputState state) => true;
 
@@ -28,7 +26,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void PopIn()
         {
-            TriggerFocusContention();
+            Schedule(TriggerFocusContention);
+        }
+
+        protected override void PopOut()
+        {
+            TriggerFocusLost();
         }
     }
 }
