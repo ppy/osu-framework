@@ -131,6 +131,9 @@ namespace osu.Framework.Input
 
                     var last = CurrentState;
 
+                    //avoid lingering references that would stay forever.
+                    last.Last = null;
+
                     CurrentState = new InputState
                     {
                         Last = last,
