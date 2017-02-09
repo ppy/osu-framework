@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Input;
 using osu.Framework.Lists;
 using OpenTK;
@@ -84,9 +85,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
         /// Useful in combination with <see cref="RequestingFocus"/>
+        /// Make sure you are already Present (ie. you've run Update at least once after becoming visible). Schedule recommended.
         /// </summary>
         protected void TriggerFocusContention()
         {
+            Debug.Assert(IsPresent, @"Calling this without being present is likely a mistake. We may not obtain focus when we expect to.");
+
             if (ourInputManager.FocusedDrawable != this)
                 ourInputManager.ChangeFocus(null);
         }

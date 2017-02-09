@@ -117,9 +117,6 @@ namespace osu.Framework.Input
 
             unfocusIsNoLongerValid(CurrentState);
 
-            if (FocusedDrawable == null)
-                focusTopMostRequestingDrawable(CurrentState);
-
             if (!PassThrough)
             {
                 foreach (InputState s in pendingStates)
@@ -160,8 +157,15 @@ namespace osu.Framework.Input
                         updateKeyboardEvents(CurrentState);
                 }
 
+                //we still want to make sure to update the input queues! they may be used for focus changes.
+                if (pendingStates.Count == 0)
+                    updateInputQueues(CurrentState);
+
                 keyboardRepeatTime -= Time.Elapsed;
             }
+
+            if (FocusedDrawable == null)
+                focusTopMostRequestingDrawable(CurrentState);
 
             base.Update();
         }
@@ -175,8 +179,10 @@ namespace osu.Framework.Input
             keyboardInputQueue.Clear();
             mouseInputQueue.Clear();
 
-            buildKeyboardInputQueue(this);
-            buildMouseInputQueue(state, this);
+            if (state.Keyboard != null)
+                buildKeyboardInputQueue(this);
+            if (state.Mouse != null)
+                buildMouseInputQueue(state, this);
 
             keyboardInputQueue.Reverse();
             mouseInputQueue.Reverse();

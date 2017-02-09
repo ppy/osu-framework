@@ -437,6 +437,20 @@ namespace osu.Framework.Graphics.UserInterface
 
         public string SelectedText => selectionLength > 0 ? Text.Substring(selectionLeft, selectionLength) : string.Empty;
 
+        protected bool HandlePendingText(InputState state)
+        {
+            string str = textInput?.GetPendingText();
+            if (string.IsNullOrEmpty(str))
+                return false;
+
+            if (state.Keyboard.ShiftPressed)
+                audio.Sample.Get(@"Keyboard/key-caps")?.Play();
+            else
+                audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
+            insertString(str);
+            return true;
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (!HasFocus)
@@ -446,6 +460,8 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (args.Key >= Key.F1 && args.Key <= Key.F35)
                 return false;
+
+            if (HandlePendingText(state)) return true;
 
             switch (args.Key)
             {
@@ -595,16 +611,6 @@ namespace osu.Framework.Graphics.UserInterface
                 }
 
                 return false;
-            }
-
-            string str = textInput?.GetPendingText();
-            if (!string.IsNullOrEmpty(str))
-            {
-                if (state.Keyboard.ShiftPressed)
-                    audio.Sample.Get(@"Keyboard/key-caps")?.Play();
-                else
-                    audio.Sample.Get($@"Keyboard/key-press-{RNG.Next(1, 5)}")?.Play();
-                insertString(str);
             }
 
             return true;
