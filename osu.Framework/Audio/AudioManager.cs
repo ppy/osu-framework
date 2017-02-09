@@ -9,6 +9,7 @@ using osu.Framework.Audio.Track;
 using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
+using System.Linq;
 
 namespace osu.Framework.Audio
 {
@@ -22,6 +23,8 @@ namespace osu.Framework.Audio
         internal event Action AvailableDevicesChanged;
 
         internal List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
+
+        public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         internal string CurrentAudioDevice;
 
@@ -49,6 +52,8 @@ namespace osu.Framework.Audio
 
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
+            AudioDevice.ValueChanged += onDeviceChanged;
+
             trackStore.AddExtension(@"mp3");
 
             sampleStore.AddExtension(@"wav");
@@ -74,8 +79,21 @@ namespace osu.Framework.Audio
             scheduler.AddDelayed(checkAudioDeviceChanged, 1000, true);
         }
 
+        private void onDeviceChanged(object sender, EventArgs e)
+        {
+            scheduler.Add(() => SetAudioDevice(string.IsNullOrEmpty(AudioDevice.Value) ? null : AudioDevice.Value));
+        }
+
         private TrackManager globalTrackManager;
         private SampleManager globalSampleManager;
+
+        /// <summary>
+        /// Returns a list of the names of recognized audio devices.
+        /// </summary>
+        /// <remarks>The No Sound device that is in the list of Audio Devices that are stored internally is not returned.</remarks>
+        /// <returns>A list of the names of recognized audio devices.</returns>
+        // Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
+        public IEnumerable<string> GetDeviceNames() => AudioDevices.Skip(1).Select(d => d.Name);
 
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
@@ -169,14 +187,7 @@ namespace osu.Framework.Audio
                 return true;
             }
 
-            if (newDevice != null && oldDevice != null)
-            {
-                //we are preparing to load a new device, so let's clean up any existing device.
-                clearAllCaches();
-                Bass.Free();
-            }
-
-            if (!Bass.Init(newDeviceIndex))
+            if (!Bass.Init(newDeviceIndex) && Bass.LastError != Errors.Already)
             {
                 //the new device didn't go as planned. we need another option.
 
@@ -190,9 +201,18 @@ namespace osu.Framework.Audio
                 //let's try again using the default device.
                 return SetAudioDevice();
             }
+            else if(Bass.LastError == Errors.Already)
+            {
+                // We check if the initialization error is that we already initialized the device
+                // If it is, it means we can just tell Bass to use the already initialized device without much
+                // other fuzz.
+                Bass.CurrentDevice = newDeviceIndex;
+            }
 
             //we have successfully initialised a new device.
             CurrentAudioDevice = newDevice;
+
+            UpdateDevice(newDeviceIndex);
 
             Bass.PlaybackBufferLength = 100;
             Bass.UpdatePeriod = 5;
@@ -200,8 +220,10 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        private void clearAllCaches()
+        public override void UpdateDevice(int newDeviceIndex)
         {
+            Sample.UpdateDevice(newDeviceIndex);
+            Track.UpdateDevice(newDeviceIndex);
         }
 
         private int lastDeviceCount;

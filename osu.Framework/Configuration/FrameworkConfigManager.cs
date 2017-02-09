@@ -16,6 +16,7 @@ namespace osu.Framework.Configuration
 
             Set(FrameworkConfig.Width, 1366, 640);
             Set(FrameworkConfig.Height, 768, 480);
+            Set(FrameworkConfig.AudioDevice, string.Empty);
             Set(FrameworkConfig.VolumeUniversal, 1.0, 0, 1);
             Set(FrameworkConfig.VolumeMusic, 1.0, 0, 1);
             Set(FrameworkConfig.VolumeEffect, 1.0, 0, 1);
@@ -38,6 +39,7 @@ namespace osu.Framework.Configuration
     {
         ShowLogOverlay,
 
+        AudioDevice,
         VolumeUniversal,
         VolumeEffect,
         VolumeMusic,
