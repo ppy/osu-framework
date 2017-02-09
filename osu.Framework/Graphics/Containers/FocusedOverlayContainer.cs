@@ -30,23 +30,5 @@ namespace osu.Framework.Graphics.Containers
         {
             TriggerFocusContention();
         }
-
-        protected override bool OnHover(InputState state) => true;
-
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
-
-        protected override bool OnClick(InputState state) => true;
-
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            switch (args.Key)
-            {
-                case Key.Escape:
-                    if (State == Visibility.Hidden) return false;
-                    Hide();
-                    return true;
-            }
-            return base.OnKeyDown(state, args);
-        }
     }
 }
