@@ -288,11 +288,8 @@ namespace osu.Framework.Graphics.Containers
                 pendingChildren.Add(drawable);
             else
             {
-                if (drawable.IsLoaded)
-                {
-                    Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
-                    drawable.ChangeParent(this);
-                }
+                Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
+                drawable.ChangeParent(this);
 
                 children.Add(drawable);
             }
