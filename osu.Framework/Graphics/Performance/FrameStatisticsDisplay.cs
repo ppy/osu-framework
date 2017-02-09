@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Performance
         const float visible_ms_range = 20;
         const float scale = height / visible_ms_range;
 
-        const float alpha_when_inactive = 0.6f;
+        const float alpha_when_inactive = 0.75f;
 
         private TimeBar[] timeBars;
         private BufferStack<byte> textureBufferStack;
