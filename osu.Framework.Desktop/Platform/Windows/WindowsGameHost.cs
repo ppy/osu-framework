@@ -24,8 +24,6 @@ namespace osu.Framework.Desktop.Platform.Windows
 
             timePeriod = new TimePeriod(1) { Active = true };
 
-            Architecture.SetIncludePath();
-
             Window = new WindowsGameWindow();
             Window.WindowStateChanged += (sender, e) =>
             {
