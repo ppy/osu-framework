@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Input;
 using osu.Framework.Lists;
 using OpenTK;
@@ -88,6 +89,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected void TriggerFocusContention()
         {
+            Debug.Assert(IsPresent, @"Calling this without being present is likely a mistake. We may not obtain focus when we expect to.");
+
             if (ourInputManager.FocusedDrawable != this)
                 ourInputManager.ChangeFocus(null);
         }
