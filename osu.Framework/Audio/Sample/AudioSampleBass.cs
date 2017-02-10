@@ -35,10 +35,14 @@ namespace osu.Framework.Audio.Sample
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             if (hasSample)
-                Bass.ChannelSetDevice(SampleId, deviceIndex); // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
+                // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
+                Bass.ChannelSetDevice(SampleId, deviceIndex);
 
-            if (hasChannel)
-                Bass.ChannelSetDevice(channel, deviceIndex);
+            // Channels created from samples can not be migrated, so we need to ensure
+            // a new channel is created after switching the device. We do not need to
+            // manually free the channel, because our Bass.Free call upon switching devices
+            // takes care of that.
+            channel = 0;
         }
 
         protected override void OnStateChanged(object sender, EventArgs e)

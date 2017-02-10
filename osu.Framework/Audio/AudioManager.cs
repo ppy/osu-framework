@@ -10,6 +10,7 @@ using osu.Framework.Configuration;
 using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio
 {
@@ -207,7 +208,11 @@ namespace osu.Framework.Audio
                 // If it is, it means we can just tell Bass to use the already initialized device without much
                 // other fuzz.
                 Bass.CurrentDevice = newDeviceIndex;
+                Bass.Free();
+                Bass.Init(newDeviceIndex);
             }
+
+            Debug.Assert(Bass.LastError == Errors.OK);
 
             //we have successfully initialised a new device.
             CurrentAudioDevice = newDevice;
@@ -226,58 +231,63 @@ namespace osu.Framework.Audio
             Track.UpdateDevice(newDeviceIndex);
         }
 
-        private int lastDeviceCount;
-
         private void checkAudioDeviceChanged()
         {
-            bool useDefault = string.IsNullOrEmpty(lastPreferredDevice);
-
-            if (useDefault)
+            if (AudioDevice.Value == string.Empty)
             {
-                try
+                // use default device
+                var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                if (!device.IsDefault && !SetAudioDevice())
                 {
-                    int currentDevice = Bass.CurrentDevice;
+                    if (!device.IsEnabled || !SetAudioDevice(device.Name))
+                    {
+                        foreach (var d in getAllDevices())
+                        {
+                            if (d.Name == device.Name || !d.IsEnabled)
+                                continue;
 
-                    DeviceInfo device = Bass.GetDeviceInfo(currentDevice);
-                    if (device.IsDefault && device.IsEnabled)
-                        return; //early return when nothing has changed.
-                }
-                catch
-                {
-                    return;
+                            if (SetAudioDevice(d.Name))
+                                break;
+                        }
+                    }
                 }
             }
-
-            int availableDevices = 0;
-
-            foreach (DeviceInfo device in getAllDevices())
+            else
             {
-                if (device.Driver == null) continue;
-
-                bool isCurrentDevice = device.Name == CurrentAudioDevice;
-
-                if (device.IsEnabled)
+                // use whatever is the preferred device
+                var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                if (device.Name == AudioDevice.Value)
                 {
-                    if (isCurrentDevice && !device.IsDefault && useDefault)
-                        //the default device on windows has changed, so we need to update.
-                        SetAudioDevice();
-                    availableDevices++;
+                    if (!device.IsEnabled && !SetAudioDevice())
+                    {
+                        foreach (var d in getAllDevices())
+                        {
+                            if (d.Name == device.Name || !d.IsEnabled)
+                                continue;
+
+                            if (SetAudioDevice(d.Name))
+                                break;
+                        }
+                    }
                 }
-                else if (isCurrentDevice)
-                    SetAudioDevice(lastPreferredDevice);
-                //the active device has been disabled.
+                else
+                {
+                    var preferredDevice = getAllDevices().SingleOrDefault<DeviceInfo>(d => d.Name == AudioDevice.Value);
+                    if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
+                        SetAudioDevice(preferredDevice.Name);
+                    else if (!device.IsEnabled && !SetAudioDevice())
+                    {
+                        foreach (var d in getAllDevices())
+                        {
+                            if (d.Name == device.Name || !d.IsEnabled)
+                                continue;
+
+                            if (SetAudioDevice(d.Name))
+                                break;
+                        }
+                    }
+                }
             }
-
-            if (lastDeviceCount != availableDevices && lastDeviceCount > 0)
-            {
-                SetAudioDevice(lastPreferredDevice);
-
-                //just update the available devices.
-                //if (availableDevices > lastDeviceCount)
-                //NotificationManager.ShowMessage(LocalisationManager.GetString(OsuString.AudioEngine_NewDeviceDetected), Color4.YellowGreen, 5000);
-            }
-
-            lastDeviceCount = availableDevices;
         }
     }
 }
