@@ -25,6 +25,9 @@ namespace osu.Framework.Audio
 
         internal List<DeviceInfo> AudioDevices = new List<DeviceInfo>();
 
+        private List<string> audioDeviceNames = new List<string>();
+        public IEnumerable<string> AudioDeviceNames => audioDeviceNames;
+
         public readonly Bindable<string> AudioDevice = new Bindable<string>();
 
         internal string CurrentAudioDevice;
@@ -51,7 +54,16 @@ namespace osu.Framework.Audio
 
         private Scheduler scheduler => Thread.Scheduler;
 
-        public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        private Scheduler eventScheduler;
+
+        /// <summary>
+        /// Constructs an AudioManager given an event scheduler, a track resource store, and a sample resource store.
+        /// </summary>
+        /// <param name="eventScheduler">The scheduler to schedule events to for external processing.
+        /// If <see cref="null"/> is passed, then the audio thread's own scheduler is used.</param>
+        /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
+        /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
+        public AudioManager(Scheduler eventScheduler, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             AudioDevice.ValueChanged += onDeviceChanged;
 
@@ -62,6 +74,8 @@ namespace osu.Framework.Audio
 
             Thread = new GameThread(Update, @"Audio");
             Thread.Start();
+
+            this.eventScheduler = eventScheduler ?? Thread.Scheduler;
 
             scheduler.Add(() =>
             {
@@ -77,7 +91,11 @@ namespace osu.Framework.Audio
                 }
             });
 
-            scheduler.AddDelayed(checkAudioDeviceChanged, 1000, true);
+            scheduler.AddDelayed(delegate
+            {
+                updateAudioDevices();
+                checkAudioDeviceChanged();
+            }, 1000, true);
         }
 
         private void onDeviceChanged(object sender, EventArgs e)
@@ -94,7 +112,7 @@ namespace osu.Framework.Audio
         /// <remarks>The No Sound device that is in the list of Audio Devices that are stored internally is not returned.</remarks>
         /// <returns>A list of the names of recognized audio devices.</returns>
         // Regarding the .Skip(1) as implementation for removing "No Sound", see http://bass.radio42.com/help/html/e5a666b4-1bdd-d1cb-555e-ce041997d52f.htm.
-        public IEnumerable<string> GetDeviceNames() => AudioDevices.Skip(1).Select(d => d.Name);
+        private IEnumerable<string> getDeviceNames(List<DeviceInfo> devices) => devices.Skip(1).Select(d => d.Name);
 
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
@@ -141,7 +159,7 @@ namespace osu.Framework.Audio
         {
             lastPreferredDevice = preferredDevice;
 
-            AudioDevices = new List<DeviceInfo>(getAllDevices());
+            updateAudioDevices();
             AvailableDevicesChanged?.Invoke();
 
             string oldDevice = CurrentAudioDevice;
@@ -229,6 +247,36 @@ namespace osu.Framework.Audio
         {
             Sample.UpdateDevice(newDeviceIndex);
             Track.UpdateDevice(newDeviceIndex);
+        }
+
+        /// <summary>
+        /// Is fired whenever a new audio device is discovered and provides its name.
+        /// </summary>
+        public event Action<string> OnNewDevice;
+
+        /// <summary>
+        /// Is fired whenever an audio device is lost and provides its name.
+        /// </summary>
+        public event Action<string> OnLostDevice;
+
+        private void updateAudioDevices()
+        {
+            var newDeviceList = new List<DeviceInfo>(getAllDevices());
+            var newDeviceNames = getDeviceNames(newDeviceList).ToList();
+
+            var newDevices = newDeviceNames.Except(audioDeviceNames).ToList();
+            var lostDevices = audioDeviceNames.Except(newDeviceNames).ToList();
+
+            eventScheduler.Add(delegate
+            {
+                foreach (var d in newDevices)
+                    OnNewDevice?.Invoke(d);
+                foreach (var d in lostDevices)
+                    OnLostDevice?.Invoke(d);
+            });
+
+            AudioDevices = newDeviceList;
+            audioDeviceNames = newDeviceNames;
         }
 
         private void checkAudioDeviceChanged()

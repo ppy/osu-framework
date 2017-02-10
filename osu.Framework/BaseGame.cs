@@ -128,7 +128,7 @@ namespace osu.Framework
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
             Dependencies.Cache(Textures);
 
-            Audio = Dependencies.Cache(new AudioManager(
+            Audio = Dependencies.Cache(new AudioManager(Scheduler,
                 new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
                 new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
 
