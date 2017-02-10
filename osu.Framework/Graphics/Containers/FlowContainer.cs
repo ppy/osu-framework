@@ -18,9 +18,33 @@ namespace osu.Framework.Graphics.Containers
     {
         internal event Action OnLayout;
 
-        public EasingTypes LayoutEasing;
+        public EasingTypes LayoutEasing
+        {
+            get
+            {
+                return AutoSizeEasing;
+            }
 
-        public int LayoutDuration { get; set; }
+            set
+            {
+                AutoSizeEasing = value;
+            }
+        }
+
+        public float LayoutDuration
+        {
+            get
+            {
+                return AutoSizeDuration * 2;
+            }
+
+            set
+            {
+                //coupling with autosizeduration allows us to smoothly transition our size
+                //when no children are left to dictate autosize.
+                AutoSizeDuration = value / 2;
+            }
+        }
 
         private Cached layout = new Cached();
 
