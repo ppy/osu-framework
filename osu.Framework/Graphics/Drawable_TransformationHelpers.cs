@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public void Loop(int delay = 0)
+        public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
                 t.Loop(Math.Max(0, transformationDelay + delay - t.Duration));

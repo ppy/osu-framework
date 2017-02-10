@@ -20,6 +20,9 @@ namespace osu.Framework.Desktop.Platform
 
         public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
+            //todo: yeah.
+            Architecture.SetIncludePath();
+
             foreach (string a in Environment.GetCommandLineArgs())
             {
                 switch (a)

@@ -13,6 +13,9 @@ namespace osu.Framework.IO.Stores
         {
             return await Task.Run(delegate
             {
+                if (!url.StartsWith(@"https://"))
+                    return null;
+
                 try
                 {
                     WebRequest req = new WebRequest($@"{url}");
