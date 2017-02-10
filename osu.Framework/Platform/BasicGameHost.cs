@@ -12,6 +12,7 @@ using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -418,50 +419,20 @@ namespace osu.Framework.Platform
             }
         }
 
-        public bool Fullscreen
-        {
-            set
-            {
-                if (Window != null) {
-                    if (!Window.Visible)
-                    {
-                        //set aggressively as we haven't become visible yet
-                        Window.Fullscreen = value;
-                    }
-                    else
-                    {
-                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Fullscreen = value; });
-                    }
-                }
-            }
-
-            get
-            {
-                return Window != null ? Window.Fullscreen : false;
-            }
-        }
-
-        public bool Maximized
+        public WindowMode CurrentWindowMode
         {
             set
             {
                 if (Window != null)
                 {
-                    if (!Window.Visible)
-                    {
-                        //set aggressively as we haven't become visible yet
-                        Window.Maximized = value;
-                    }
-                    else
-                    {
-                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Maximized = value; });
-                    }
+                    // Process immediately so window size / position changes happen after the window mode change
+                    Window.CurrentWindowMode = value;
                 }
             }
 
             get
             {
-                return Window != null ? Window.Maximized : false;
+                return Window != null ? Window.CurrentWindowMode : WindowMode.Windowed;
             }
         }
 

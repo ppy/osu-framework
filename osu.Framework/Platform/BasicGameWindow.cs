@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
@@ -89,8 +90,6 @@ namespace osu.Framework.Platform
 
         public virtual Vector2 Position { get; set; }
 
-        public virtual bool Fullscreen { get; set; }
-
-        public virtual bool Maximized { get; set; }
+        public virtual WindowMode CurrentWindowMode { get; set; }
     }
 }

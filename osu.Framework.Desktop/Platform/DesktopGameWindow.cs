@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using OpenTK;
 using System;
@@ -38,32 +39,35 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public override bool Fullscreen
+        public override WindowMode CurrentWindowMode
         {
             set
             {
-                WindowState = value ? WindowState.Fullscreen : WindowState.Normal;
-            }
-
-            get
-            {
-                return WindowState == WindowState.Fullscreen;
-            }
-        }
-
-        public override bool Maximized
-        {
-            set
-            {
-                if (WindowState != WindowState.Fullscreen)
+                switch (value)
                 {
-                    WindowState = value ? WindowState.Maximized : WindowState.Normal;
+                    case WindowMode.Windowed:
+                        WindowState = WindowState.Normal;
+                        break;
+                    case WindowMode.Borderless:
+                        WindowState = WindowState.Normal;
+                        break;
+                    case WindowMode.Fullscreen:
+                        WindowState = WindowState.Fullscreen;
+                        break;
                 }
             }
 
             get
             {
-                return WindowState == WindowState.Maximized;
+                switch (WindowState)
+                {
+                    case WindowState.Normal:
+                        return WindowMode.Windowed;
+                    case WindowState.Fullscreen:
+                        return WindowMode.Fullscreen;
+                    default:
+                        return WindowMode.Windowed;
+                }
             }
         }
 

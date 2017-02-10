@@ -106,13 +106,26 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
-
-            host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
-            host.ViewPosition = new Vector2((float)Config.Get<double>(FrameworkConfig.WindowedPositionX), (float)Config.Get<double>(FrameworkConfig.WindowedPositionY));
-            host.Fullscreen = Config.Get<bool>(FrameworkConfig.Fullscreen);
-            host.Maximized = Config.Get<bool>(FrameworkConfig.Maximized);
+            updateWindowModeProperties(Config.Get<WindowMode>(FrameworkConfig.WindowMode));
 
             host.Exiting += OnExiting;
+        }
+
+        private void updateWindowModeProperties(WindowMode windowMode)
+        {
+            host.CurrentWindowMode = windowMode;
+
+            switch (host.CurrentWindowMode)
+            {
+                case WindowMode.Windowed:
+                case WindowMode.Borderless:
+                    host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
+                    host.ViewPosition = new Vector2((float)Config.Get<double>(FrameworkConfig.WindowedPositionX), (float)Config.Get<double>(FrameworkConfig.WindowedPositionY));
+                    break;
+                case WindowMode.Fullscreen:
+                    host.Size = new Vector2(Config.Get<int>(FrameworkConfig.WidthFullscreen), Config.Get<int>(FrameworkConfig.HeightFullscreen));
+                    break;
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -138,9 +151,15 @@ namespace osu.Framework
             Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
             Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
 
-            Config.GetBindable<bool>(FrameworkConfig.Fullscreen).ValueChanged += delegate(object sender, EventArgs e)
+            Config.GetBindable<WindowMode>(FrameworkConfig.WindowMode).ValueChanged += delegate(object sender, EventArgs e)
                 {
-                    host.Fullscreen = ((Bindable<bool>)sender).Value;
+                    WindowMode windowMode = ((Bindable<WindowMode>)sender).Value;
+                    if (windowMode == WindowMode.Fullscreen)
+                    {
+                        setWindowModeProperties(WindowMode.Windowed);
+                    }
+
+                    updateWindowModeProperties(windowMode);
                 };
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
@@ -227,7 +246,10 @@ namespace osu.Framework
 
             if (state.Keyboard.AltPressed && args.Key == Key.Enter)
             {
-                Config.Set<bool>(FrameworkConfig.Fullscreen, !Window.Fullscreen);
+                Config.Set(FrameworkConfig.WindowMode,
+                                        Window.CurrentWindowMode == WindowMode.Fullscreen || Window.CurrentWindowMode == WindowMode.Borderless ?
+                                        WindowMode.Windowed :
+                                        WindowMode.Fullscreen);
                 return true;
             }
 
@@ -267,26 +289,35 @@ namespace osu.Framework
         {
         }
 
-        protected override void Dispose(bool isDisposing)
+        private void setWindowModeProperties(WindowMode windowMode)
         {
             if (Parent != null)
             {
-                if (!host.Fullscreen)
+                switch (host.CurrentWindowMode)
                 {
-                    Config.Set(FrameworkConfig.Maximized, host.Maximized);
-
-                    if (!host.Maximized)
-                    {
-                        Config.Set(FrameworkConfig.Width, DrawSize.X);
-                        Config.Set(FrameworkConfig.Height, DrawSize.Y);
+                    case WindowMode.Windowed:
+                    case WindowMode.Borderless:
+                        Config.Set(FrameworkConfig.Width, (int)DrawSize.X);
+                        Config.Set(FrameworkConfig.Height, (int)DrawSize.Y);
 
                         Vector2 viewPosition = host.ViewPosition;
 
-                        Config.Set(FrameworkConfig.WindowedPositionX, viewPosition.X);
-                        Config.Set(FrameworkConfig.WindowedPositionY, viewPosition.Y);
-                    }
+                        Config.Set(FrameworkConfig.WindowedPositionX, (double)viewPosition.X);
+                        Config.Set(FrameworkConfig.WindowedPositionY, (double)viewPosition.Y);
+                        break;
+
+                    case WindowMode.Fullscreen:
+                        Config.Set(FrameworkConfig.WidthFullscreen, (int)DrawSize.X);
+                        Config.Set(FrameworkConfig.HeightFullscreen, (int)DrawSize.Y);
+                        break;
                 }
             }
+
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            setWindowModeProperties(host.CurrentWindowMode);
 
             base.Dispose(isDisposing);
 
