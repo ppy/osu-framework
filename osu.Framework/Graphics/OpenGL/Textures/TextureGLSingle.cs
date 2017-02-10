@@ -162,13 +162,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 vertexAction = triangleBatch.Add;
             }
 
+            // We split the triangle into two, such that we can obtain smooth edges with our
+            // texture coordinate trick. We might want to revert this to drawing a single
+            // triangle in case we ever need proper texturing, or if the additional vertices
+            // end up becoming an overhead (unlikely).
+            SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
+            SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
+
+            // Left triangle half
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.TopLeft.Linear,
+                Colour = topColour.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -177,6 +185,32 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = bottomColour.Linear,
+            });
+
+            // Right triangle half
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexTriangle.P0,
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = topColour.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = bottomColour.Linear,
             });
             vertexAction(new TexturedVertex2D
             {

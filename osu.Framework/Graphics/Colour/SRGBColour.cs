@@ -33,6 +33,12 @@ namespace osu.Framework.Graphics.Colour
         /// <returns>Product of first and second.</returns>
         public static SRGBColour operator *(SRGBColour first, SRGBColour second) => FromVector(first.ToVector() * second.ToVector());
 
+        public static SRGBColour operator *(SRGBColour first, float second) => FromVector(first.ToVector() * second);
+
+        public static SRGBColour operator /(SRGBColour first, float second) => FromVector(first.ToVector() / second);
+
+        public static SRGBColour operator +(SRGBColour first, SRGBColour second) => FromVector(first.ToVector() + second.ToVector());
+
         public Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
         public static SRGBColour FromVector(Vector4 v) => new SRGBColour { Linear = new Color4(v.X, v.Y, v.Z, v.W) };
 
