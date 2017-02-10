@@ -93,22 +93,6 @@ namespace osu.Framework
         {
             if (!base.Invalidate(invalidation, source, shallPropagate)) return false;
 
-            if (Parent != null)
-            {
-                if (!host.Fullscreen) {
-                    Config.Set(FrameworkConfig.Maximized, host.Maximized);
-
-                    if (!host.Maximized) {
-                        Config.Set(FrameworkConfig.Width, DrawSize.X);
-                        Config.Set(FrameworkConfig.Height, DrawSize.Y);
-
-                        Vector2 viewPosition = host.ViewPosition;
-
-                        Config.Set(FrameworkConfig.WindowedPositionX, viewPosition.X);
-                        Config.Set(FrameworkConfig.WindowedPositionY, viewPosition.Y);
-                    }
-                }
-            }
             return true;
         }
 
@@ -285,6 +269,25 @@ namespace osu.Framework
 
         protected override void Dispose(bool isDisposing)
         {
+            if (Parent != null)
+            {
+                if (!host.Fullscreen)
+                {
+                    Config.Set(FrameworkConfig.Maximized, host.Maximized);
+
+                    if (!host.Maximized)
+                    {
+                        Config.Set(FrameworkConfig.Width, DrawSize.X);
+                        Config.Set(FrameworkConfig.Height, DrawSize.Y);
+
+                        Vector2 viewPosition = host.ViewPosition;
+
+                        Config.Set(FrameworkConfig.WindowedPositionX, viewPosition.X);
+                        Config.Set(FrameworkConfig.WindowedPositionY, viewPosition.Y);
+                    }
+                }
+            }
+
             base.Dispose(isDisposing);
 
             Audio?.Dispose();
