@@ -96,19 +96,22 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            bool changed = base.UpdateChildrenLife();
+
+            if (changed)
+                layout.Invalidate();
+
+            return changed;
+        }
+
         public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
-        }
-
-        public override void Add(T drawable)
-        {
-            //let's force an instant re-flow on adding a new drawable for now.
-            layout.Invalidate();
-            base.Add(drawable);
         }
 
         protected virtual IEnumerable<T> SortedChildren => AliveChildren;

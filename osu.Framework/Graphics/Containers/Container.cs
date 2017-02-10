@@ -386,7 +386,7 @@ namespace osu.Framework.Graphics.Containers
         /// Updates the life status of children according to their IsAlive property.
         /// </summary>
         /// <returns>True iff the life status of at least one child changed.</returns>
-        private bool updateChildrenLife()
+        protected virtual bool UpdateChildrenLife()
         {
             bool changed = children.Update(Time);
 
@@ -413,7 +413,7 @@ namespace osu.Framework.Graphics.Containers
             // We update our children's life even if we are invisible.
             // Note, that this does not propagate down and may need
             // generalization in the future.
-            updateChildrenLife();
+            UpdateChildrenLife();
 
             if (!IsPresent) return false;
 
