@@ -136,10 +136,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             var drawables = vis.Flow.Children.Cast<VisualisedDrawable>();
             foreach (var dd in drawables)
-            {
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
-            }
 
             var dContainer = d as IContainerEnumerable<Drawable>;
 

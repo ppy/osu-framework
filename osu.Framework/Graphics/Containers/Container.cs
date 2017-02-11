@@ -223,7 +223,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (obj.DisposeOnRemove) obj.Dispose();
             };
-
         }
 
         private MarginPadding padding;
