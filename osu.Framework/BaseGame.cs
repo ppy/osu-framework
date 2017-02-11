@@ -130,7 +130,10 @@ namespace osu.Framework
 
             Audio = Dependencies.Cache(new AudioManager(
                 new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
-                new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
+                new NamespacedResourceStore<byte[]>(Resources, @"Samples"))
+            {
+                EventScheduler = Scheduler
+            });
 
             //attach our bindables to the audio subsystem.
             Audio.AudioDevice.Weld(Config.GetBindable<string>(FrameworkConfig.AudioDevice));
