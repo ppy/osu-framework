@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Box titleBar;
 
-        const float width = 300;
+        const float width = 400;
         const float height = 600;
 
         private TreeContainerStatus state;
