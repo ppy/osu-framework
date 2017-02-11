@@ -267,13 +267,16 @@ namespace osu.Framework.Audio
             var newDevices = newDeviceNames.Except(audioDeviceNames).ToList();
             var lostDevices = audioDeviceNames.Except(newDeviceNames).ToList();
 
-            eventScheduler.Add(delegate
+            if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
-                foreach (var d in newDevices)
-                    OnNewDevice?.Invoke(d);
-                foreach (var d in lostDevices)
-                    OnLostDevice?.Invoke(d);
-            });
+                eventScheduler.Add(delegate
+                {
+                    foreach (var d in newDevices)
+                        OnNewDevice?.Invoke(d);
+                    foreach (var d in lostDevices)
+                        OnLostDevice?.Invoke(d);
+                });
+            }
 
             AudioDevices = newDeviceList;
             audioDeviceNames = newDeviceNames;
