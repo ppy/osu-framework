@@ -37,6 +37,8 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
+        protected override bool BlockPassThroughInput => false;
+
         protected override void PopIn()
         {
             task = Scheduler.AddDelayed(runUpdate, 200, true);
