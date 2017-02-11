@@ -74,7 +74,7 @@ namespace osu.Framework.GameModes.Testing
             Button b;
             ButtonsContainer.Add(b = new Button
             {
-                Colour = Color4.LightBlue,
+                Colour = Color4.DarkBlue,
                 Size = new Vector2(150, 50),
                 Text = text
             });

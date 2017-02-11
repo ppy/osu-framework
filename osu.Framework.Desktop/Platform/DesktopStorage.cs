@@ -52,7 +52,7 @@ namespace osu.Framework.Desktop.Platform
             Directory.CreateDirectory(BasePath);
             ISQLitePlatform platform;
             if (RuntimeInfo.IsWindows)
-                platform = new SQLitePlatformWin32();
+                platform = new SQLitePlatformWin32(Architecture.NativeIncludePath);
             else
                 platform = new SQLitePlatformGeneric();
             return new SQLiteConnection(platform, Path.Combine(BasePath, $@"{name}.db"));

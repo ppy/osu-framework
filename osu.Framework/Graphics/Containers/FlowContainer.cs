@@ -18,9 +18,33 @@ namespace osu.Framework.Graphics.Containers
     {
         internal event Action OnLayout;
 
-        public EasingTypes LayoutEasing;
+        public EasingTypes LayoutEasing
+        {
+            get
+            {
+                return AutoSizeEasing;
+            }
 
-        public int LayoutDuration { get; set; }
+            set
+            {
+                AutoSizeEasing = value;
+            }
+        }
+
+        public float LayoutDuration
+        {
+            get
+            {
+                return AutoSizeDuration * 2;
+            }
+
+            set
+            {
+                //coupling with autosizeduration allows us to smoothly transition our size
+                //when no children are left to dictate autosize.
+                AutoSizeDuration = value / 2;
+            }
+        }
 
         private Cached layout = new Cached();
 
@@ -96,19 +120,22 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            bool changed = base.UpdateChildrenLife();
+
+            if (changed)
+                layout.Invalidate();
+
+            return changed;
+        }
+
         public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
-        }
-
-        public override void Add(T drawable)
-        {
-            //let's force an instant re-flow on adding a new drawable for now.
-            layout.Invalidate();
-            base.Add(drawable);
         }
 
         protected virtual IEnumerable<T> SortedChildren => AliveChildren;

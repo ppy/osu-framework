@@ -2,10 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using osu.Framework.Input.Handlers;
 using OpenTK;
-using osu.Framework.Graphics;
 
 namespace osu.Framework.Desktop.Platform
 {

@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Performance
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
-                    Alpha = 0.2f
+                    Alpha = 0.75f
                 },
                 counter = new SpriteText
                 {
