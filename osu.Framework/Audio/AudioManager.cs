@@ -276,7 +276,7 @@ namespace osu.Framework.Audio
 
         private void updateAvailableAudioDevices()
         {
-            var currentDeviceList = new List<DeviceInfo>(getAllDevices());
+            var currentDeviceList = getAllDevices().Where(d => d.IsEnabled).ToList();
             var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
 
             var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
