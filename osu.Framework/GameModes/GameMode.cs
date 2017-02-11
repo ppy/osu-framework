@@ -30,8 +30,6 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
-        protected internal override bool DisposeOnRemove => true;
-
         /// <summary>
         /// Make this GameMode directly exited when resuming from a child.
         /// </summary>
@@ -39,6 +37,7 @@ namespace osu.Framework.GameModes
 
         public GameMode()
         {
+            DisposeOnRemove = true;
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;

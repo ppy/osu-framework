@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics
 
         private bool isDisposed;
 
-        protected internal virtual bool DisposeOnRemove => false;
+        public bool DisposeOnRemove;
 
         protected virtual void Dispose(bool isDisposing)
         {

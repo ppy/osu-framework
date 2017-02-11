@@ -35,13 +35,9 @@ namespace osu.Framework.Graphics.Visualisation
         public VisualisedDrawable(Drawable d)
         {
             Target = d;
-            Target.OnInvalidate += onInvalidate;
 
-            var da = Target as Container<Drawable>;
-            if (da != null) da.OnAutoSize += onAutoSize;
-
-            var df = Target as FlowContainer<Drawable>;
-            if (df != null) df.OnLayout += onLayout;
+            attachEvents();
+            DisposeOnRemove = true;
 
             var sprite = Target as Sprite;
 
@@ -93,6 +89,33 @@ namespace osu.Framework.Graphics.Visualisation
             updateSpecifics();
         }
 
+        private void attachEvents()
+        {
+            Target.OnInvalidate += onInvalidate;
+
+            var da = Target as Container<Drawable>;
+            if (da != null) da.OnAutoSize += onAutoSize;
+
+            var df = Target as FlowContainer<Drawable>;
+            if (df != null) df.OnLayout += onLayout;
+        }
+
+        private void detachEvents()
+        {
+            Target.OnInvalidate -= onInvalidate;
+
+            var da = Target as Container<Drawable>;
+            if (da != null) da.OnAutoSize -= onAutoSize;
+
+            var df = Target as FlowContainer<Drawable>;
+            if (df != null) df.OnLayout -= onLayout;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            detachEvents();
+        }
 
         protected override bool OnHover(InputState state)
         {
