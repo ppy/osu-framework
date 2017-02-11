@@ -659,6 +659,28 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (!base.BuildKeyboardInputQueue(queue))
+                return false;
+
+            foreach (Drawable d in AliveChildren)
+                d.BuildKeyboardInputQueue(queue);
+
+            return true;
+        }
+
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+                return false;
+
+            foreach (Drawable d in AliveChildren)
+                d.BuildMouseInputQueue(screenSpaceMousePos, queue);
+
+            return true;
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
