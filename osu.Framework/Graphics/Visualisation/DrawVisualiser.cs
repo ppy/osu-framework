@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using System.Collections.Generic;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -31,7 +32,12 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Depth = float.MinValue,
                     ChooseTarget = chooseTarget,
-                    GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
+                    GoUpOneParent = delegate
+                    {
+                        var parent = Target?.Parent;
+                        if (parent != null && !(parent is BasicGameHost))
+                            Target = Target?.Parent;
+                    }
                 },
                 new CursorContainer()
             };
