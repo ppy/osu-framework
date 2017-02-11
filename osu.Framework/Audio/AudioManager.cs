@@ -95,7 +95,7 @@ namespace osu.Framework.Audio
 
             scheduler.AddDelayed(delegate
             {
-                updateAudioDevices();
+                updateAvailableAudioDevices();
                 checkAudioDeviceChanged();
             }, 1000, true);
         }
@@ -161,7 +161,7 @@ namespace osu.Framework.Audio
         {
             lastPreferredDevice = preferredDevice;
 
-            updateAudioDevices();
+            updateAvailableAudioDevices();
             AvailableDevicesChanged?.Invoke();
 
             string oldDevice = CurrentAudioDevice;
@@ -261,13 +261,13 @@ namespace osu.Framework.Audio
         /// </summary>
         public event Action<string> OnLostDevice;
 
-        private void updateAudioDevices()
+        private void updateAvailableAudioDevices()
         {
-            var newDeviceList = new List<DeviceInfo>(getAllDevices());
-            var newDeviceNames = getDeviceNames(newDeviceList).ToList();
+            var currentDeviceList = new List<DeviceInfo>(getAllDevices());
+            var currentDeviceNames = getDeviceNames(currentDeviceList).ToList();
 
-            var newDevices = newDeviceNames.Except(audioDeviceNames).ToList();
-            var lostDevices = audioDeviceNames.Except(newDeviceNames).ToList();
+            var newDevices = currentDeviceNames.Except(audioDeviceNames).ToList();
+            var lostDevices = audioDeviceNames.Except(currentDeviceNames).ToList();
 
             if (newDevices.Count > 0 || lostDevices.Count > 0)
             {
@@ -280,8 +280,8 @@ namespace osu.Framework.Audio
                 });
             }
 
-            AudioDevices = newDeviceList;
-            audioDeviceNames = newDeviceNames;
+            AudioDevices = currentDeviceList;
+            audioDeviceNames = currentDeviceNames;
         }
 
         private void checkAudioDeviceChanged()
