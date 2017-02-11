@@ -384,10 +384,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
+
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => applyRelativeAxes(RelativeSizeAxes, Size);
+        public Vector2 DrawSize => drawSizeBacking.EnsureValid() ?
+            drawSizeBacking.Value :
+            drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -1096,6 +1100,7 @@ namespace osu.Framework.Graphics
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                alreadyInvalidated &= !drawSizeBacking.Invalidate();
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
