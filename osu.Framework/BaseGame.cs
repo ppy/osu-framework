@@ -128,9 +128,12 @@ namespace osu.Framework
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
             Dependencies.Cache(Textures);
 
-            Audio = Dependencies.Cache(new AudioManager(Scheduler,
+            Audio = Dependencies.Cache(new AudioManager(
                 new NamespacedResourceStore<byte[]>(Resources, @"Tracks"),
-                new NamespacedResourceStore<byte[]>(Resources, @"Samples")));
+                new NamespacedResourceStore<byte[]>(Resources, @"Samples"))
+            {
+                EventScheduler = Scheduler
+            });
 
             //attach our bindables to the audio subsystem.
             Audio.AudioDevice.Weld(Config.GetBindable<string>(FrameworkConfig.AudioDevice));
