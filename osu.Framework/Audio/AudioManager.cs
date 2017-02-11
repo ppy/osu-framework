@@ -54,16 +54,20 @@ namespace osu.Framework.Audio
 
         private Scheduler scheduler => Thread.Scheduler;
 
-        private Scheduler eventScheduler;
+        private Scheduler eventScheduler => EventScheduler ?? scheduler;
+
+        /// <summary>
+        /// The scheduler used for invoking publicly exposed delegate events.
+        /// </summary>
+        public Scheduler EventScheduler;
 
         /// <summary>
         /// Constructs an AudioManager given an event scheduler, a track resource store, and a sample resource store.
         /// </summary>
-        /// <param name="eventScheduler">The scheduler to schedule events to for external processing.
         /// If <see cref="null"/> is passed, then the audio thread's own scheduler is used.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
-        public AudioManager(Scheduler eventScheduler, ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
+        public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
         {
             AudioDevice.ValueChanged += onDeviceChanged;
 
@@ -74,8 +78,6 @@ namespace osu.Framework.Audio
 
             Thread = new GameThread(Update, @"Audio");
             Thread.Start();
-
-            this.eventScheduler = eventScheduler ?? Thread.Scheduler;
 
             scheduler.Add(() =>
             {
