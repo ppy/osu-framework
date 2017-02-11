@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class VisualisedDrawable : Container
     {
-        public Drawable Target;
+        public Drawable Target { get; private set; }
 
         private SpriteText text;
         private Drawable previewBox;
@@ -180,7 +180,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (!IsAlive) return false;
 
-            if (!Target.IsAlive || Target.Parent == null || Target.Alpha == 0)
+            if (!Target.IsAlive || Target.Parent == null || !Target.IsPresent)
             {
                 Expire();
                 return false;
