@@ -32,8 +32,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         public FlowContainer Flow;
 
-        public VisualisedDrawable(Drawable d)
+        private TreeContainer tree;
+
+        public VisualisedDrawable(Drawable d, TreeContainer tree)
         {
+            this.tree = tree;
             Target = d;
 
             attachEvents();
@@ -145,23 +148,27 @@ namespace osu.Framework.Graphics.Visualisation
         private void onAutoSize()
         {
             Scheduler.Add(() => activityAutosize.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void onLayout()
         {
             Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void onInvalidate()
         {
             Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void updateSpecifics()
         {
+            Vector2 posInTree = ToSpaceOfOtherDrawable(Vector2.Zero, tree);
+            if (posInTree.Y < -previewBox.DrawHeight || posInTree.Y > tree.Height)
+            {
+                text.Text = string.Empty;
+                return;
+            }
+
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.ColourInfo = Target.ColourInfo;
 
@@ -172,6 +179,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Update()
         {
+            updateSpecifics();
+
             text.Colour = !Flow.IsPresent ? Color4.LightBlue : Color4.White;
             base.Update();
         }
