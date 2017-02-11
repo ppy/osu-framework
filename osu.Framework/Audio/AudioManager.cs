@@ -110,7 +110,6 @@ namespace osu.Framework.Audio
 
         /// <summary>
         /// Returns a list of the names of recognized audio devices.
-        /// 
         /// </summary>
         /// <remarks>
         /// The No Sound device that is in the list of Audio Devices that are stored internally is not returned.
