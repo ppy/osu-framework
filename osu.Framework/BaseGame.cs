@@ -41,6 +41,8 @@ namespace osu.Framework
 
         public BasicGameHost Host => host;
 
+        public override string Name => GetType().ToString();
+
         private bool isActive;
 
         public AudioManager Audio;
@@ -113,6 +115,9 @@ namespace osu.Framework
             this.host = host;
             host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
             host.Exiting += OnExiting;
+
+            if (Window != null)
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
         }
 
         [BackgroundDependencyLoader]

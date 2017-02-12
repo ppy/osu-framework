@@ -313,8 +313,6 @@ namespace osu.Framework.Platform
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
                 Window.Exited += OnExited;
-                if (string.IsNullOrEmpty(Window.Title))
-                    Window.Title = $@"osu.Framework (running ""{Name}"")";
                 Window.FocusedChanged += delegate { setActive(Window.Focused); };
                 window_ClientSizeChanged(null, null);
 
