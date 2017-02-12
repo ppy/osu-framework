@@ -891,50 +891,6 @@ namespace osu.Framework.Graphics
             return (proxy = new ProxyDrawable(this));
         }
 
-        /// <summary>
-        /// Checks if this drawable is a child of parent regardless of nesting depth.
-        /// </summary>
-        /// <param name="parent">The parent to search for.</param>
-        /// <returns>If this drawable is a child of parent.</returns>
-        public bool IsChildOfRecursive(Drawable parent)
-        {
-            if (parent == null)
-                return false;
-
-            // Do a bottom-up recursion for efficiency
-            IDrawable currentParent = Parent;
-            while (currentParent != null)
-            {
-                if (currentParent == parent)
-                    return true;
-                currentParent = currentParent.Parent;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if this drawable is a parent of child regardless of nesting depth.
-        /// </summary>
-        /// <param name="child">The child to search for.</param>
-        /// <returns>If this drawable is a parent of child.</returns>
-        public bool IsParentOfRecursive(Drawable child)
-        {
-            if (child == null)
-                return false;
-
-            // Do a bottom-up recursion for efficiency
-            IContainer currentParent = child.Parent;
-            while (currentParent != null)
-            {
-                if (currentParent == this)
-                    return true;
-                currentParent = currentParent.Parent;
-            }
-
-            return false;
-        }
-
         #endregion
 
         #region Caching & invalidation (for things too expensive to compute every frame)
