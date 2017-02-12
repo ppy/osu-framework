@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         private bool scrollbarOverlapsContent = true;
 
-        public bool ScrollbarOverlapsContent
+        public bool ScrollDraggerOverlapsContent
         {
             get { return scrollbarOverlapsContent; }
             set
@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || availableContent <= displayableContent)
+            if (scrollDraggerOverlapsContent || availableContent <= displayableContent)
                 content.Padding = new MarginPadding();
             else
                 content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
