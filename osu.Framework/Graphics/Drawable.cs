@@ -65,14 +65,14 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
-            isDisposed = true;
-
             Parent = null;
             scheduler?.Dispose();
             scheduler = null;
 
             OnUpdate = null;
             OnInvalidate = null;
+
+            isDisposed = true;
         }
 
         #endregion
@@ -201,6 +201,8 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
+            Debug.Assert(!isDisposed, "Disposed Drawables may never be in the scene graph.");
+
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
 
@@ -858,6 +860,9 @@ namespace osu.Framework.Graphics
             get { return parent; }
             set
             {
+                Debug.Assert(value == null || !isDisposed,
+                    "Disposed Drawables may never get a parent and return to the scene graph.");
+
                 if (parent == value) return;
 
                 parent = value;
