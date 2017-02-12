@@ -37,7 +37,6 @@ namespace osu.Framework.GameModes
 
         public GameMode()
         {
-            DisposeOnRemove = true;
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
@@ -57,6 +56,8 @@ namespace osu.Framework.GameModes
                 },
             });
         }
+
+        public override bool DisposeOnDeathRemoval => true;
 
         public override bool HandleInput => !hasExited;
 

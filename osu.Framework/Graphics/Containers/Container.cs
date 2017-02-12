@@ -221,7 +221,7 @@ namespace osu.Framework.Graphics.Containers
             children = lifetimeList ?? new LifetimeList<T>(DepthComparer);
             children.Removed += obj =>
             {
-                if (obj.DisposeOnRemove) obj.Dispose();
+                if (obj.DisposeOnDeathRemoval) obj.Dispose();
             };
         }
 

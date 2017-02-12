@@ -40,7 +40,6 @@ namespace osu.Framework.Graphics.Visualisation
             Target = d;
 
             attachEvents();
-            DisposeOnRemove = true;
 
             var sprite = Target as Sprite;
 
@@ -113,6 +112,8 @@ namespace osu.Framework.Graphics.Visualisation
             var df = Target as FlowContainer<Drawable>;
             if (df != null) df.OnLayout -= onLayout;
         }
+
+        public override bool DisposeOnDeathRemoval => true;
 
         protected override void Dispose(bool isDisposing)
         {

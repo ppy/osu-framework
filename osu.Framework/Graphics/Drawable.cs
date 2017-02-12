@@ -74,7 +74,11 @@ namespace osu.Framework.Graphics
 
         private bool isDisposed;
 
-        public bool DisposeOnRemove;
+        /// <summary>
+        /// Whether this Drawable should be disposed when it is automatically removed from
+        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// </summary>
+        public virtual bool DisposeOnDeathRemoval => false;
 
         protected virtual void Dispose(bool isDisposing)
         {
