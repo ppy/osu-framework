@@ -123,6 +123,14 @@ namespace osu.Framework.Audio
             }, 1000, true);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            OnNewDevice = null;
+            OnLostDevice = null;
+
+            base.Dispose(disposing);
+        }
+
         private void onDeviceChanged(object sender, EventArgs e)
         {
             scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(AudioDevice.Value) ? null : AudioDevice.Value));

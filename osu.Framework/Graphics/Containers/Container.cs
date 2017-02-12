@@ -687,6 +687,8 @@ namespace osu.Framework.Graphics.Containers
             if (Content != null)
                 Children?.ForEach(c => c.Dispose());
 
+            OnAutoSize = null;
+
             base.Dispose(isDisposing);
         }
 
