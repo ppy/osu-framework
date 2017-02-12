@@ -137,7 +137,7 @@ namespace osu.Framework.GameModes.Testing
             if (loadedTest != null)
             {
                 testContainer.Remove(loadedTest);
-                loadedTest.Dispose();
+                loadedTest.Clear();
                 loadedTest = null;
             }
 
