@@ -867,9 +867,9 @@ namespace osu.Framework.Graphics
                 Debug.Assert(value == null || !isDisposed,
                     "Disposed Drawables may never get a parent and return to the scene graph.");
 
-                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
-
                 if (parent == value) return;
+
+                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
 
                 parent = value;
                 if (parent != null)
