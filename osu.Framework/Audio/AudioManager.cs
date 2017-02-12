@@ -87,7 +87,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Constructs an AudioManager given an event scheduler, a track resource store, and a sample resource store.
         /// </summary>
-        /// If <see cref="null"/> is passed, then the audio thread's own scheduler is used.</param>
+        /// If null is passed, then the audio thread's own scheduler is used.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
@@ -121,6 +121,14 @@ namespace osu.Framework.Audio
                 updateAvailableAudioDevices();
                 checkAudioDeviceChanged();
             }, 1000, true);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            OnNewDevice = null;
+            OnLostDevice = null;
+
+            base.Dispose(disposing);
         }
 
         private void onDeviceChanged(object sender, EventArgs e)

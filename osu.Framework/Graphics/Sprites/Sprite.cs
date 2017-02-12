@@ -114,14 +114,6 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        public override Drawable Clone()
-        {
-            Sprite clone = (Sprite)base.Clone();
-            clone.texture = texture;
-
-            return clone;
-        }
-
         public override string ToString()
         {
             return base.ToString() + $" tex: {texture?.AssetName}";

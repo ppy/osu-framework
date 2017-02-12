@@ -86,19 +86,6 @@ namespace osu.Framework.Graphics.Primitives
         public float Width => Vector2.Distance(TopLeft, TopRight);
         public float Height => Vector2.Distance(TopLeft, BottomLeft);
 
-        public Quad AABBQuad // Axis Aligned Bounding Box
-        {
-            get
-            {
-                float xMin = Math.Min(TopLeft.X, Math.Min(TopRight.X, Math.Min(BottomLeft.X, BottomRight.X)));
-                float xMax = Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X)));
-                float yMin = Math.Min(TopLeft.Y, Math.Min(TopRight.Y, Math.Min(BottomLeft.Y, BottomRight.Y)));
-                float yMax = Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y)));
-
-                return new Quad(xMin, yMin, xMax - xMin, yMax - yMin);
-            }
-        }
-
         public Rectangle AABB
         {
             get
@@ -165,18 +152,6 @@ namespace osu.Framework.Graphics.Primitives
         public bool Intersects(Rectangle other)
         {
             return (this as IConvexPolygon).Intersects(other);
-        }
-
-        public bool FastIntersects(Quad other)
-        {
-            //todo: this is actually pretty wrong!
-            return
-                Contains(other.TopLeft) ||
-                Contains(other.TopRight) ||
-                Contains(other.BottomLeft) ||
-                Contains(other.BottomRight) ||
-                (other.TopLeft.Y <= TopLeft.Y && other.TopRight.Y <= TopRight.Y && other.BottomLeft.Y >= BottomLeft.Y && other.BottomRight.Y >= BottomRight.Y) ||
-                (other.TopLeft.X <= TopLeft.X && other.BottomLeft.X <= BottomLeft.X && other.TopRight.X >= TopRight.X && other.BottomRight.X >= BottomRight.X);
         }
 
         public bool Equals(Quad other)

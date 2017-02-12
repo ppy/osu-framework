@@ -169,13 +169,5 @@ namespace osu.Framework.Graphics.Sprites
                 Invalidate(Invalidation.DrawNode);
             }
         }
-
-        public override Drawable Clone()
-        {
-            Path clone = (Path)base.Clone();
-            clone.texture = texture;
-
-            return clone;
-        }
     }
 }

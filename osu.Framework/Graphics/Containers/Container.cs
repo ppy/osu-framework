@@ -290,7 +290,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawable.IsLoaded)
                 {
                     Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
-                    drawable.ChangeParent(this);
+                    drawable.Parent = this;
                 }
 
                 children.Add(drawable);
@@ -432,7 +432,7 @@ namespace osu.Framework.Graphics.Containers
             children.LoadRequested += i =>
             {
                 i.PerformLoad(game);
-                i.ChangeParent(this);
+                i.Parent = this;
             };
 
             if (pendingChildrenInternal != null)
@@ -508,8 +508,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                while (drawable is ProxyDrawable)
-                    drawable = ((ProxyDrawable)drawable).Original;
+                while (drawable != (drawable = drawable.Original)) ;
 
                 if (!drawable.IsPresent)
                     continue;
@@ -682,6 +681,8 @@ namespace osu.Framework.Graphics.Containers
             //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
             if (Content != null)
                 Children?.ForEach(c => c.Dispose());
+
+            OnAutoSize = null;
 
             base.Dispose(isDisposing);
         }

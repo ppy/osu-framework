@@ -23,23 +23,9 @@ namespace osu.Framework.Extensions.PolygonExtensions
         public static bool Intersects(this IConvexPolygon first, IConvexPolygon second)
         {
             Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
+            Vector2[][] bothVertices = { first.Vertices, second.Vertices };
 
-            Vector2[] firstVertices = first.Vertices;
-            Vector2[] secondVertices = second.Vertices;
-
-            foreach (Vector2[] axes in bothAxes)
-            {
-                foreach (Vector2 axis in axes)
-                {
-                    ProjectionRange firstRange = new ProjectionRange(axis, firstVertices);
-                    ProjectionRange secondRange = new ProjectionRange(axis, secondVertices);
-
-                    if (!firstRange.Overlaps(secondRange))
-                        return false;
-                }
-            }
-
-            return true;
+            return intersects(bothAxes, bothVertices);
         }
 
         /// <summary>
@@ -51,16 +37,19 @@ namespace osu.Framework.Extensions.PolygonExtensions
         public static bool Intersects(this IConvexPolygon first, Rectangle second)
         {
             Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
+            Vector2[][] bothVertices = { first.Vertices, second.GetVertices() };
 
-            Vector2[] firstVertices = first.Vertices;
-            Vector2[] secondVertices = second.GetVertices();
+            return intersects(bothAxes, bothVertices);
+        }
 
+        private static bool intersects(Vector2[][] bothAxes, Vector2[][] bothVertices)
+        {
             foreach (Vector2[] axes in bothAxes)
             {
                 foreach (Vector2 axis in axes)
                 {
-                    ProjectionRange firstRange = new ProjectionRange(axis, firstVertices);
-                    ProjectionRange secondRange = new ProjectionRange(axis, secondVertices);
+                    ProjectionRange firstRange = new ProjectionRange(axis, bothVertices[0]);
+                    ProjectionRange secondRange = new ProjectionRange(axis, bothVertices[1]);
 
                     if (!firstRange.Overlaps(secondRange))
                         return false;
