@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Box titleBar;
 
-        const float width = 300;
+        const float width = 400;
         const float height = 600;
 
         private TreeContainerStatus state;
@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             State = TreeContainerStatus.Onscreen;
-            return base.OnHover(state);
+            return true;
         }
 
         protected override void OnHoverLost(InputState state)
@@ -170,6 +170,10 @@ namespace osu.Framework.Graphics.Visualisation
             Position += state.Mouse.Delta;
             return base.OnDrag(state);
         }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+
+        protected override bool OnClick(InputState state) => true;
 
         protected override void LoadComplete()
         {
