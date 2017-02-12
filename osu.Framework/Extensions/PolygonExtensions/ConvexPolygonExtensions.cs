@@ -25,7 +25,7 @@ namespace osu.Framework.Extensions.PolygonExtensions
             Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
             Vector2[][] bothVertices = { first.Vertices, second.Vertices };
 
-            return Intersects(bothAxes, bothVertices);
+            return intersects(bothAxes, bothVertices);
         }
 
         /// <summary>
@@ -39,10 +39,10 @@ namespace osu.Framework.Extensions.PolygonExtensions
             Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
             Vector2[][] bothVertices = { first.Vertices, second.GetVertices() };
 
-            return Intersects(bothAxes, bothVertices);
+            return intersects(bothAxes, bothVertices);
         }
 
-        private static bool Intersects(Vector2[][] bothAxes, Vector2[][] bothVertices)
+        private static bool intersects(Vector2[][] bothAxes, Vector2[][] bothVertices)
         {
             foreach (Vector2[] axes in bothAxes)
             {
