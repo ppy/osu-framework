@@ -5,13 +5,17 @@ namespace osu.Framework.Graphics
 {
     public class ProxyDrawable : Drawable
     {
-        internal Drawable Original;
-
         public ProxyDrawable(Drawable original)
         {
-            Original = original;
+            this.original = original;
         }
 
+        private Drawable original;
+
+        internal override Drawable Original => original;
+
+        // We do not want to receive updates. That is the business
+        // of the original drawable.
         public override bool IsPresent => false;
     }
 }

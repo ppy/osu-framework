@@ -72,6 +72,10 @@ namespace osu.Framework.Graphics
             OnUpdate = null;
             OnInvalidate = null;
 
+            // If this Drawable is disposed, then we need to also
+            // stop remotely rendering it.
+            proxy?.Dispose();
+
             isDisposed = true;
         }
 
@@ -879,7 +883,9 @@ namespace osu.Framework.Graphics
             Parent = parent;
         }
 
-        private bool isProxied;
+        internal virtual Drawable Original => this;
+
+        private ProxyDrawable proxy;
 
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
@@ -887,8 +893,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public ProxyDrawable CreateProxy()
         {
-            isProxied = true;
-            return new ProxyDrawable(this);
+            Debug.Assert(proxy == null, "Multiple proxies are not supported.");
+            return (proxy = new ProxyDrawable(this));
         }
 
         /// <summary>
@@ -1112,7 +1118,10 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
-            if (isProxied) return null;
+            // If we are proxied somewhere, then we want to be drawn at the proxy's location
+            // in the scene graph, rather than at our own location, thus no draw nodes for us.
+            if (proxy != null)
+                return null;
 
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
