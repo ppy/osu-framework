@@ -45,22 +45,6 @@ namespace osu.Framework.Graphics
             CreationID = creationCounter.Increment();
         }
 
-        public virtual Drawable Clone()
-        {
-            Drawable thisNew = (Drawable)MemberwiseClone();
-
-            if (transforms != null)
-            {
-                thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
-                Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
-            }
-
-            thisNew.drawInfoBacking.Invalidate();
-            thisNew.boundingSizeBacking.Invalidate();
-
-            return thisNew;
-        }
-
         ~Drawable()
         {
             Dispose(false);
@@ -1420,16 +1404,6 @@ namespace osu.Framework.Graphics
             if (i != 0) return i;
             return y.CreationID.CompareTo(x.CreationID);
         }
-    }
-
-    public interface ILoadable<T>
-    {
-        void Load(T reference);
-    }
-
-    public interface ILoadableAsync<T>
-    {
-        Task LoadAsync(T reference);
     }
 
     public enum LoadState
