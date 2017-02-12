@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool HideOnEscape => true;
 
         /// <summary>
-        /// Whether we shoul block any mouse input from interacting with things behind us.
+        /// Whether we should block any mouse input from interacting with things behind us.
         /// </summary>
         protected virtual bool BlockPassThroughInput => true;
 
