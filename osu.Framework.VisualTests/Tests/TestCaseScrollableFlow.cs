@@ -20,17 +20,18 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Name => @"Scrollable Flow";
         public override string Description => @"A flow container in a scroll container";
+        
+        ScrollContainer scroll;
+        FlowContainer flow;
+        Axes scrollAxis;
 
-        public override void Reset()
+        private void createArea(Axes scrollAxis)
         {
-            base.Reset();
-
-            FlowContainer flow;
-
-            Children = new []
+            Children = new[]
             {
-                new ScrollContainer
+                scroll = new ScrollContainer(scrollAxis)
                 {
+                    Padding = new MarginPadding { Left = 150 },
                     Children = new []
                     {
                         flow = new FlowContainer
@@ -38,13 +39,29 @@ namespace osu.Framework.VisualTests.Tests
                             LayoutDuration = 100,
                             LayoutEasing = EasingTypes.Out,
                             Spacing = new Vector2(1, 1),
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
+                            RelativeSizeAxes = Axes.Both & ~scrollAxis,
+                            AutoSizeAxes = scrollAxis,
                             Padding = new MarginPadding(5)
                         }
                     },
                 },
             };
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            createArea(scrollAxis = Axes.Y);
+
+            AddButton("Vertical", delegate { createArea(scrollAxis = Axes.Y); });
+            AddButton("Horizontal", delegate { createArea(scrollAxis = Axes.X); });
+
+            AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollAxis == Axes.Y ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = scrollAxis == Axes.Y ? Anchor.TopLeft : Anchor.TopLeft; });
+
+            AddButton("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
+            AddButton("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate
@@ -75,8 +92,6 @@ namespace osu.Framework.VisualTests.Tests
                 box.ScaleTo(0.5f, 4000);
                 container.Expire();
             }, 100, true);
-
-            Scheduler.Add(boxCreator);
         }
     }
 }
