@@ -117,7 +117,8 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (targetDrawable != null)
             {
-                treeContainer.Remove(targetDrawable, true);
+                treeContainer.Remove(targetDrawable);
+                targetDrawable.Dispose();
                 targetDrawable = null;
             }
         }
