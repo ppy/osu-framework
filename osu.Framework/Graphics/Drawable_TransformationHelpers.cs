@@ -232,6 +232,14 @@ namespace osu.Framework.Graphics
             TransformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
+        public void MoveTo(int index, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            if (index == 0)
+                MoveToX(destination, duration, easing);
+            else
+                MoveToY(destination, duration, easing);
+        }
+
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPositionX));
