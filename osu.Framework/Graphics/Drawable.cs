@@ -867,20 +867,14 @@ namespace osu.Framework.Graphics
                 Debug.Assert(value == null || !isDisposed,
                     "Disposed Drawables may never get a parent and return to the scene graph.");
 
+                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
+
                 if (parent == value) return;
 
                 parent = value;
                 if (parent != null)
                     UpdateClock(parent.Clock);
             }
-        }
-
-        internal void ChangeParent(IContainer parent)
-        {
-            if (Parent == parent) return;
-
-            Debug.Assert(Parent == null, "May not add a drawable to multiple containers.");
-            Parent = parent;
         }
 
         internal virtual Drawable Original => this;
