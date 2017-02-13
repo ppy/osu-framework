@@ -249,6 +249,10 @@ namespace osu.Framework.IO.Network
 
         private MemoryStream requestBody;
 
+        private MemoryStream rawContent;
+
+        public string ContentType;
+
         protected virtual Stream CreateOutputStream()
         {
             return new MemoryStream();
@@ -338,7 +342,12 @@ namespace osu.Framework.IO.Network
                         request.Method = @"POST";
 
                         if (Parameters.Count + Files.Count == 0)
+                        {
+                            rawContent?.WriteTo(requestBody);
+                            request.ContentType = ContentType;
+                            requestBody.Flush();
                             break;
+                        }
 
                         const string boundary = @"-----------------------------28947758029299";
 
@@ -633,9 +642,22 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Adds a raw POST body to this request.
         /// </summary>
+        public void AddRaw(string text) => AddRaw(Encoding.UTF8.GetBytes(text));
+
+        /// <summary>
+        /// Adds a raw POST body to this request.
+        /// </summary>
+        public void AddRaw(byte[] bytes) => AddRaw(new MemoryStream(bytes));
+
+        /// <summary>
+        /// Adds a raw POST body to this request.
+        /// </summary>
         public void AddRaw(Stream stream)
         {
-            stream.CopyTo(requestBody);
+            if (rawContent == null)
+                rawContent = new MemoryStream();
+
+            stream.CopyTo(rawContent);
         }
 
         /// <summary>

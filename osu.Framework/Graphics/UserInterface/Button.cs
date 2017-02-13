@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public new Color4 Colour
+        public Color4 BackgroundColour
         {
             get { return Background.Colour; }
             set { Background.Colour = value; }

@@ -12,6 +12,8 @@ namespace osu.Framework.Configuration
 
         public T Default;
 
+        public bool Disabled;
+
         public virtual bool IsDefault => Equals(value, Default);
 
         public event EventHandler ValueChanged;
@@ -22,6 +24,12 @@ namespace osu.Framework.Configuration
             set
             {
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+
+                if (Disabled)
+                {
+                    TriggerChange();
+                    return;
+                }
 
                 this.value = value;
 
