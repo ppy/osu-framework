@@ -23,13 +23,15 @@ namespace osu.Framework.VisualTests.Tests
         
         ScrollContainer scroll;
         FlowContainer flow;
-        Axes scrollAxis;
+        Direction scrollDir;
 
-        private void createArea(Axes scrollAxis)
+        private void createArea(Direction scrollDir)
         {
+            Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
+
             Children = new[]
             {
-                scroll = new ScrollContainer(scrollAxis)
+                scroll = new ScrollContainer(scrollDir)
                 {
                     Padding = new MarginPadding { Left = 150 },
                     Children = new []
@@ -52,13 +54,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            createArea(scrollAxis = Axes.Y);
+            createArea(scrollDir = Direction.Vertical);
 
-            AddButton("Vertical", delegate { createArea(scrollAxis = Axes.Y); });
-            AddButton("Horizontal", delegate { createArea(scrollAxis = Axes.X); });
+            AddButton("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
+            AddButton("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
 
-            AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollAxis == Axes.Y ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = scrollAxis == Axes.Y ? Anchor.TopLeft : Anchor.TopLeft; });
+            AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopLeft : Anchor.TopLeft; });
 
             AddButton("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
             AddButton("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });

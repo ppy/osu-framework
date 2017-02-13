@@ -1343,7 +1343,13 @@ namespace osu.Framework.Graphics
         X = 1 << 0,
         Y = 1 << 1,
 
-        Both = X | Y
+        Both = X | Y,
+    }
+
+    public enum Direction
+    {
+        Horizontal = 0,
+        Vertical = 1,
     }
 
     public enum BlendingMode
