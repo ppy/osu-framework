@@ -74,7 +74,7 @@ namespace osu.Framework.GameModes.Testing
             Button b;
             ButtonsContainer.Add(b = new Button
             {
-                Colour = Color4.DarkBlue,
+                BackgroundColour = Color4.DarkBlue,
                 Size = new Vector2(150, 50),
                 Text = text
             });
@@ -106,14 +106,14 @@ namespace osu.Framework.GameModes.Testing
             this.reloadCallback = reloadCallback;
 
             Size = new Vector2(100, 50);
-            Colour = offColour;
+            BackgroundColour = offColour;
             Action += clickAction;
         }
 
         private void clickAction()
         {
             State = !State;
-            Colour = State ? onColour : offColour;
+            BackgroundColour = State ? onColour : offColour;
             reloadCallback?.Invoke();
         }
     }

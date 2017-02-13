@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Visualisation
                                     {
                                         new Button
                                         {
-                                            Colour = Color4.DarkGray,
+                                            BackgroundColour = Color4.DarkGray,
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Choose Target",
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
                                         },
                                         new Button
                                         {
-                                            Colour = Color4.DarkGray,
+                                            BackgroundColour = Color4.DarkGray,
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Up one parent",
