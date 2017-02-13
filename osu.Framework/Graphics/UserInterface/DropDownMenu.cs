@@ -169,7 +169,7 @@ namespace osu.Framework.Graphics.UserInterface
         public DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FlowDirection.VerticalOnly;
+            Direction = FlowDirections.Vertical;
 
             Children = new Drawable[]
             {
@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.UserInterface
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
-                                    Direction = FlowDirection.VerticalOnly,
+                                    Direction = FlowDirections.Vertical,
                                 },
                             },
                         },

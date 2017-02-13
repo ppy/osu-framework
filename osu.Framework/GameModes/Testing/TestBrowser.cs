@@ -77,12 +77,12 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollbarOverlapsContent = false });
+            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollDraggerOverlapsContent = false });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FlowDirection.VerticalOnly,
+                Direction = FlowDirections.Vertical,
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)

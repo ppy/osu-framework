@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                     Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
-                    Direction = FlowDirection.VerticalOnly,
+                    Direction = FlowDirections.Vertical,
                     Children = new Drawable[]
                     {
                         new BasicCheckBox

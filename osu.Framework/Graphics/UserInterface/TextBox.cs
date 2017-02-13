@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         TextFlow = new FlowContainer
                         {
-                            Direction = FlowDirection.HorizontalOnly,
+                            Direction = FlowDirections.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },
