@@ -30,7 +30,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Both,
-                            Direction = FlowDirection.VerticalOnly,
+                            Direction = FlowDirections.Vertical,
                         }
                     }
                 }

@@ -336,7 +336,7 @@ namespace osu.Framework.VisualTests.Tests
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
                                 Spacing = new Vector2(0, 10),
-                                Direction = FlowDirection.VerticalOnly,
+                                Direction = FlowDirections.Vertical,
                             }
                         }
                     });
