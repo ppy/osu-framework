@@ -251,6 +251,8 @@ namespace osu.Framework.IO.Network
 
         private MemoryStream rawContent;
 
+        public string ContentType;
+
         protected virtual Stream CreateOutputStream()
         {
             return new MemoryStream();
@@ -342,6 +344,8 @@ namespace osu.Framework.IO.Network
                         if (Parameters.Count + Files.Count == 0)
                         {
                             rawContent?.WriteTo(requestBody);
+                            request.ContentType = ContentType;
+                            requestBody.Flush();
                             break;
                         }
 
