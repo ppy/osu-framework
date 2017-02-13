@@ -50,7 +50,7 @@ namespace osu.Framework.GameModes.Testing
                         {
                             ButtonsContainer = new FlowContainer
                             {
-                                Direction = FlowDirection.VerticalOnly,
+                                Direction = FlowDirections.Vertical,
                                 AutoSizeAxes = Axes.Both,
                                 Spacing = new Vector2(15, 5)
                             }

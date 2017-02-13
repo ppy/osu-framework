@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Performance
                                         },
                                         new FlowContainer
                                         {
-                                            Direction = FlowDirection.HorizontalOnly,
+                                            Direction = FlowDirections.Horizontal,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))

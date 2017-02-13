@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FlowContainer textBoxes = new FlowContainer
             {
-                Direction = FlowDirection.VerticalOnly,
+                Direction = FlowDirections.Vertical,
                 Padding = new MarginPadding
                 {
                     Top = 50,

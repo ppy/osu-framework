@@ -82,7 +82,7 @@ namespace osu.Framework.GameModes.Testing
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FlowDirection.VerticalOnly,
+                Direction = FlowDirections.Vertical,
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)

@@ -48,9 +48,9 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached layout = new Cached();
 
-        private FlowDirection direction = FlowDirection.Full;
+        private FlowDirections direction = FlowDirections.Both;
 
-        public FlowDirection Direction
+        public FlowDirections Direction
         {
             get { return direction; }
             set
@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 current = Vector2.Zero;
 
                     Vector2 max = maximumSize;
-                    if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
+                    if (direction == FlowDirections.Both && maximumSize == Vector2.Zero)
                     {
                         var s = DrawSize;
 
@@ -175,7 +175,7 @@ namespace osu.Framework.Graphics.Containers
                             size = d.LayoutSize * d.Scale;
 
                             //We've exceeded our allowed width, move to a new row
-                            if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                            if (Direction != FlowDirections.Horizontal && current.X + size.X > max.X)
                             {
                                 current.X = 0;
                                 current.Y += rowMaxHeight;
@@ -201,11 +201,11 @@ namespace osu.Framework.Graphics.Containers
     }
 
     [Flags]
-    public enum FlowDirection
+    public enum FlowDirections
     {
-        HorizontalOnly = 1 << 0,
-        VerticalOnly = 1 << 1,
+        Horizontal = 1 << 0,
+        Vertical = 1 << 1,
 
-        Full = HorizontalOnly | VerticalOnly
+        Both = Horizontal | Vertical,
     }
 }
