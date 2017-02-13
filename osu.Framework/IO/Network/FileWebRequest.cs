@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using osu.Framework.IO.File;
 
 namespace osu.Framework.IO.Network
@@ -20,6 +21,13 @@ namespace osu.Framework.IO.Network
             if (!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 
             return new FileStream(Filename, FileMode.Create, FileAccess.Write, FileShare.Write, 32768);
+        }
+
+        protected override HttpWebRequest CreateWebRequest(string requestString = null)
+        {
+            var req = base.CreateWebRequest(requestString);
+            req.Accept = "application/octet-stream";
+            return req;
         }
 
         public FileWebRequest(string filename, string url)
