@@ -122,9 +122,10 @@ namespace osu.Framework.Graphics.Containers
 
         public ScrollContainer(Axes scrollAxis = Axes.Y)
         {
-            // Make sure we only have 1 axis to scroll in.
-            // todo: Support both axes simultaneously.
-            this.scrollAxis = (scrollAxis & Axes.Y) > 0 ? Axes.Y : Axes.X;
+            Debug.Assert(scrollAxis != Axes.Both, "Scrolling in both axes simultaneously is not supported");
+            Debug.Assert(scrollAxis != Axes.None, "Scroll containers need to scroll in at least one axis.");
+
+            this.scrollAxis = scrollAxis;
 
             RelativeSizeAxes = Axes.Both;
             Masking = true;
