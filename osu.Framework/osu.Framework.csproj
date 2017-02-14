@@ -129,6 +129,7 @@
     <Compile Include="Graphics\Sprites\Triangle.cs" />
     <Compile Include="Graphics\Transformations\TransformGlowAlpha.cs" />
     <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropDownHeader.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
