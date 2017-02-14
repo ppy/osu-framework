@@ -12,7 +12,6 @@ using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
@@ -392,47 +391,6 @@ namespace osu.Framework.Platform
                 }
 
                 base.Size = value;
-            }
-        }
-
-        public virtual Vector2 ViewPosition
-        {
-            set
-            {
-                if (Window != null)
-                {
-                    if (!Window.Visible)
-                    {
-                        //set aggressively as we haven't become visible yet
-                        Window.Position = value;
-                    }
-                    else
-                    {
-                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.Position = value; });
-                    }
-                }
-            }
-
-            get
-            {
-                return Window != null ? Window.Position : new Vector2();
-            }
-        }
-
-        public WindowMode CurrentWindowMode
-        {
-            set
-            {
-                if (Window != null)
-                {
-                    // Process immediately so window size / position changes happen after the window mode change
-                    Window.CurrentWindowMode = value;
-                }
-            }
-
-            get
-            {
-                return Window != null ? Window.CurrentWindowMode : WindowMode.Windowed;
             }
         }
 

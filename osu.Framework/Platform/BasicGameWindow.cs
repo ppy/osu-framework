@@ -17,6 +17,8 @@ namespace osu.Framework.Platform
         internal Version GLVersion;
         internal Version GLSLVersion;
 
+        protected FrameworkConfigManager Config;
+
         public BasicGameWindow(int width, int height) : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
@@ -77,6 +79,11 @@ namespace osu.Framework.Platform
             Title = title;
         }
 
+        public virtual void SetupWindow(FrameworkConfigManager config)
+        {
+            Config = config;
+        }
+
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
         /// </summary>
@@ -91,5 +98,7 @@ namespace osu.Framework.Platform
         public virtual Vector2 Position { get; set; }
 
         public virtual WindowMode CurrentWindowMode { get; set; }
+
+        public virtual void ToggleFullscreen() {}
     }
 }

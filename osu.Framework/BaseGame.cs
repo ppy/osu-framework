@@ -106,26 +106,9 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
-            updateWindowModeProperties(Config.Get<WindowMode>(FrameworkConfig.WindowMode));
 
+            host.Window?.SetupWindow(Config);
             host.Exiting += OnExiting;
-        }
-
-        private void updateWindowModeProperties(WindowMode windowMode)
-        {
-            host.CurrentWindowMode = windowMode;
-
-            switch (host.CurrentWindowMode)
-            {
-                case WindowMode.Windowed:
-                case WindowMode.Borderless:
-                    host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
-                    host.ViewPosition = new Vector2((float)Config.Get<double>(FrameworkConfig.WindowedPositionX), (float)Config.Get<double>(FrameworkConfig.WindowedPositionY));
-                    break;
-                case WindowMode.Fullscreen:
-                    host.Size = new Vector2(Config.Get<int>(FrameworkConfig.WidthFullscreen), Config.Get<int>(FrameworkConfig.HeightFullscreen));
-                    break;
-            }
         }
 
         [BackgroundDependencyLoader]
@@ -150,17 +133,6 @@ namespace osu.Framework
             Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
             Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
             Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
-
-            Config.GetBindable<WindowMode>(FrameworkConfig.WindowMode).ValueChanged += delegate(object sender, EventArgs e)
-                {
-                    WindowMode windowMode = ((Bindable<WindowMode>)sender).Value;
-                    if (windowMode == WindowMode.Fullscreen)
-                    {
-                        setWindowModeProperties(WindowMode.Windowed);
-                    }
-
-                    updateWindowModeProperties(windowMode);
-                };
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
@@ -246,10 +218,7 @@ namespace osu.Framework
 
             if (state.Keyboard.AltPressed && args.Key == Key.Enter)
             {
-                Config.Set(FrameworkConfig.WindowMode,
-                                        Window.CurrentWindowMode == WindowMode.Fullscreen || Window.CurrentWindowMode == WindowMode.Borderless ?
-                                        WindowMode.Windowed :
-                                        WindowMode.Fullscreen);
+                Window.ToggleFullscreen();
                 return true;
             }
 
@@ -289,36 +258,8 @@ namespace osu.Framework
         {
         }
 
-        private void setWindowModeProperties(WindowMode windowMode)
-        {
-            if (Parent != null)
-            {
-                switch (host.CurrentWindowMode)
-                {
-                    case WindowMode.Windowed:
-                    case WindowMode.Borderless:
-                        Config.Set(FrameworkConfig.Width, (int)DrawSize.X);
-                        Config.Set(FrameworkConfig.Height, (int)DrawSize.Y);
-
-                        Vector2 viewPosition = host.ViewPosition;
-
-                        Config.Set(FrameworkConfig.WindowedPositionX, (double)viewPosition.X);
-                        Config.Set(FrameworkConfig.WindowedPositionY, (double)viewPosition.Y);
-                        break;
-
-                    case WindowMode.Fullscreen:
-                        Config.Set(FrameworkConfig.WidthFullscreen, (int)DrawSize.X);
-                        Config.Set(FrameworkConfig.HeightFullscreen, (int)DrawSize.Y);
-                        break;
-                }
-            }
-
-        }
-
         protected override void Dispose(bool isDisposing)
         {
-            setWindowModeProperties(host.CurrentWindowMode);
-
             base.Dispose(isDisposing);
 
             Audio?.Dispose();
