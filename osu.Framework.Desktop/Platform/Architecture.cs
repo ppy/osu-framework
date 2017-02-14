@@ -19,12 +19,8 @@ namespace osu.Framework.Desktop.Platform
 
         internal static void SetIncludePath()
         {
-            //todo: make this not a thing for linux or whatever
-            try
-            {
+            if (RuntimeInfo.IsWindows)
                 SetDllDirectory(NativeIncludePath);
-            }
-            catch { }
         }
     }
 }
