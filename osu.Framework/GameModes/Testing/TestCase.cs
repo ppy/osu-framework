@@ -84,12 +84,15 @@ namespace osu.Framework.GameModes.Testing
             return b;
         }
 
-        public void AddToggle(string text, Action action)
+        public ToggleButton AddToggle(string text, Action action)
         {
-            ButtonsContainer.Add(new ToggleButton(action)
+            ToggleButton b;
+            ButtonsContainer.Add(b = new ToggleButton(action)
             {
+                Size = new Vector2(150, 50),
                 Text = text
             });
+            return b;
         }
     }
 
