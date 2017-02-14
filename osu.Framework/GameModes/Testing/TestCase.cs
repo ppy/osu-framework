@@ -44,17 +44,11 @@ namespace osu.Framework.GameModes.Testing
             {
                 InternalChildren = new Drawable[]
                 {
-                    new ScrollContainer
+                    ButtonsContainer = new FlowContainer
                     {
-                        Children = new[]
-                        {
-                            ButtonsContainer = new FlowContainer
-                            {
-                                Direction = FlowDirections.Vertical,
-                                AutoSizeAxes = Axes.Both,
-                                Spacing = new Vector2(15, 5)
-                            }
-                        }
+                        Direction = FlowDirections.Vertical,
+                        AutoSizeAxes = Axes.Both,
+                        Spacing = new Vector2(15, 5)
                     },
                     Contents = new Container()
                     {
