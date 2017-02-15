@@ -1,9 +1,9 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -92,10 +92,12 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns></returns>
         public static Color4 Multiply(this Color4 colour, float scalar)
         {
+            Debug.Assert(scalar >= 0);
+
             return new Color4(
-                MathHelper.Clamp(colour.R * scalar, 0, 1),
-                MathHelper.Clamp(colour.G * scalar, 0, 1),
-                MathHelper.Clamp(colour.B * scalar, 0, 1),
+                Math.Min(1, colour.R * scalar),
+                Math.Min(1, colour.G * scalar),
+                Math.Min(1, colour.B * scalar),
                 colour.A);
         }
     }
