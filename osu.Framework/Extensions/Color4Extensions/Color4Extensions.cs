@@ -68,5 +68,46 @@ namespace osu.Framework.Extensions.Color4Extensions
                 first.B * second.B,
                 first.A * second.A);
         }
+
+        /// <summary>
+        /// Returns a lightened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Decimal light addition</param>
+        public static Color4 Lighten(this Color4 colour, float amount)
+        {
+            return new Color4(
+                Math.Min(1, colour.R * (1 + amount)),
+                Math.Min(1, colour.G * (1 + amount)),
+                Math.Min(1, colour.B * (1 + amount)),
+                colour.A);
+        }
+
+        /// <summary>
+        /// Lightens a colour in a way more friendly to dark or strong colours.
+        /// </summary>
+        public static Color4 Lighten2(this Color4 colour, float amount)
+        {
+            amount *= 0.5f;
+            return new Color4(
+                Math.Min(1, colour.R * (1 + 0.5f * amount) + amount),
+                Math.Min(1, colour.G * (1 + 0.5f * amount) + amount),
+                Math.Min(1, colour.B * (1 + 0.5f * amount) + amount),
+                colour.A);
+        }
+
+        /// <summary>
+        /// Returns a darkened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Percentage light reduction</param>
+        public static Color4 Darken(this Color4 colour, float amount)
+        {
+            return new Color4(
+                Math.Max(0, colour.R / (1 + amount)),
+                Math.Max(0, colour.G / (1 + amount)),
+                Math.Max(0, colour.B / (1 + amount)),
+                colour.A);
+        }
     }
 }
