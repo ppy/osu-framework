@@ -497,7 +497,7 @@ namespace osu.Framework.IO.Network
         [Obfuscation(Feature = @"virtualization", Exclude = false)]
         private void checkCertificate()
         {
-            if (request.ServicePoint.Certificate == null && request.RequestUri.Host != request.Address.Host && request.Address.Host.EndsWith(@".ppy.sh"))
+            if (request.ServicePoint.Certificate == null && request.RequestUri.Host != request.Address.Host && request.Address.Host.EndsWith(@".ppy.sh", StringComparison.Ordinal))
                 //osu!direct downloads happen over http at the moment. we should probably move them across to https.
                 return;
 
@@ -519,7 +519,7 @@ namespace osu.Framework.IO.Network
             Exception exc = null;
             bool completed = false;
 
-            Finished += delegate(WebRequest r, Exception e)
+            Finished += delegate (WebRequest r, Exception e)
             {
                 exc = e;
                 completed = true;

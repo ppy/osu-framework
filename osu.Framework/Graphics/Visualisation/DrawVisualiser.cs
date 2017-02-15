@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -213,11 +212,11 @@ namespace osu.Framework.Graphics.Visualisation
             return findTargetIn(Parent?.Parent?.Parent as Drawable, state);
         }
 
-        protected override bool OnClick(InputState s)
+        protected override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
-                Target = findTarget(s)?.Parent;
+                Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {
@@ -227,7 +226,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return base.OnClick(s);
+            return base.OnClick(state);
         }
 
         protected override bool OnMouseMove(InputState state)

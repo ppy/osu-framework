@@ -47,7 +47,7 @@ namespace osu.Framework.IO.Stores
 
         public RawTexture Get(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{fontName}/"))
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
             Character c;

@@ -85,9 +85,8 @@ namespace osu.Framework.Audio
         public Scheduler EventScheduler;
 
         /// <summary>
-        /// Constructs an AudioManager given an event scheduler, a track resource store, and a sample resource store.
+        /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
-        /// If null is passed, then the audio thread's own scheduler is used.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)

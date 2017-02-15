@@ -13,7 +13,7 @@ namespace osu.Framework.IO.Stores
         {
             return await Task.Run(delegate
             {
-                if (!url.StartsWith(@"https://"))
+                if (!url.StartsWith(@"https://", System.StringComparison.Ordinal))
                     return null;
 
                 try

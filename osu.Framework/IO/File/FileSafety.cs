@@ -414,7 +414,7 @@ namespace osu.Framework.IO.File
             path = PathStandardise(path).TrimEnd('/');
             folder = PathStandardise(folder).TrimEnd('/');
 
-            if (path.Length < folder.Length + 1 || path[folder.Length] != '/' || !path.StartsWith(folder))
+            if (path.Length < folder.Length + 1 || path[folder.Length] != '/' || !path.StartsWith(folder, StringComparison.Ordinal))
                 throw new ArgumentException(path + " isn't contained in " + folder);
 
             return path.Substring(folder.Length + 1);
