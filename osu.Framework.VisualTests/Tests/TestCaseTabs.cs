@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -30,7 +31,6 @@ namespace osu.Framework.VisualTests.Tests
                 tabC = new TabContainer()
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Size = Vector2.One,
                 }
             };
 
@@ -48,6 +48,41 @@ namespace osu.Framework.VisualTests.Tests
             }, "Tab 1");
 
             tabC.AddTab(new Container()
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new SpriteText()
+                    {
+                        Anchor = Anchor.TopLeft,
+                        Text = "Hoo!",
+                    }
+                }
+            }, "Tab 2");
+
+            TabContainer innerTabC;
+            tabC.AddTab(innerTabC = new TabContainer()
+            {
+                RelativeSizeAxes = Axes.Both,
+                TabIndexTextColor = Color4.Red,
+                TabIndexBackgroundColor = Color4.Cyan,
+                TabIndexHeight = 40,
+            }, "TabContainer");
+
+            innerTabC.AddTab(new Container()
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new SpriteText()
+                    {
+                        Anchor = Anchor.TopLeft,
+                        Text = "Hey!",
+                    }
+                }
+            }, "Tab 1");
+
+            innerTabC.AddTab(new Container()
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]

@@ -18,17 +18,19 @@ namespace osu.Framework.Graphics.UserInterface
     {
 
         private Container currentTab;
-        private FlowContainer tabIndexes;
+        private FlowContainer tabIndexesFlow;
+        private Container tabIndexes;
         private Container tabBodies;
-        public float TabIndexHeight { get; set; } = 20;
+        public float TabIndexHeight { get { return tabIndexes.Height; } set { tabIndexes.Height = value; tabBodies.Margin = new MarginPadding() { Top = value }; } }
         public Color4 TabIndexTextColor { get; set; } = Color4.Yellow;
-        public Color4 TabIndexBackgroundColor { get; set; } = Color4.DarkGray;
+        public Color4 TabIndexBackgroundColor { get { return tabIndexesBackground.Colour; } set { tabIndexesBackground.Colour = value; } }
+        private Box tabIndexesBackground;
 
 
         public void AddTab(Container tab, string name)
         {
             ChangeTab(tab);
-            tabIndexes.Add(new TabIndex(this,tab,name));
+            tabIndexesFlow.Add(new TabIndex(this, tab, name));
             tabBodies.Add(tab);
         }
 
@@ -44,18 +46,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         public TabContainer()
         {
-            Add(new Container()
+
+            Add(tabIndexes = new Container()
             {
                 RelativeSizeAxes = Axes.X,
-                Height = TabIndexHeight,
+                Height = 20,
                 Children = new Drawable[]
                 {
-                    new Box()
+                    tabIndexesBackground = new Box()
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = TabIndexBackgroundColor,
+                        Colour = Color4.DarkGray,
                     },
-                    tabIndexes = new FlowContainer()
+                    tabIndexesFlow = new FlowContainer()
                     {
                         RelativeSizeAxes = Axes.Both,
                         Direction = FlowDirections.Horizontal,
@@ -71,8 +74,8 @@ namespace osu.Framework.Graphics.UserInterface
                     Top = TabIndexHeight,
                 },
             });
-        }
 
+        }
 
     }
 
@@ -89,7 +92,7 @@ namespace osu.Framework.Graphics.UserInterface
             AutoSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                
+
                 new SpriteText()
                 {
                     Anchor = Anchor.Centre,
