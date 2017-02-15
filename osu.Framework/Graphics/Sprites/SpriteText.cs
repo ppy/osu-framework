@@ -29,6 +29,12 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        /// <summary>
+        /// Decide whether we want to make our SpriteText's vertical size to be <see cref="TextHeight"/> (the full height) or precisely the size of used characters.
+        /// Set to false to allow better centering of individual characters/numerals/etc.
+        /// </summary>
+        public bool UseFullGlyphHeight = true;
+
         public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
 
         private string font;
@@ -77,9 +83,8 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool HandleInput => false;
 
-        public SpriteText(TextureStore store = null)
+        public SpriteText()
         {
-            this.store = store;
             AutoSizeAxes = Axes.Both;
         }
 
@@ -105,10 +110,9 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(FontStore fonts)
+        private void load(FontStore store)
         {
-            if (store == null)
-                store = fonts;
+            this.store = store;
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
@@ -202,7 +206,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, 1f),
+                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
                             Scale = new Vector2(TextSize),
                             Children = new[] { d }
                         };
