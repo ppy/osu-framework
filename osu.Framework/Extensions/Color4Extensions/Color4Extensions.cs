@@ -84,19 +84,6 @@ namespace osu.Framework.Extensions.Color4Extensions
         }
 
         /// <summary>
-        /// Lightens a colour in a way more friendly to dark or strong colours.
-        /// </summary>
-        public static Color4 Lighten2(this Color4 colour, float amount)
-        {
-            amount *= 0.5f;
-            return new Color4(
-                Math.Min(1, colour.R * (1 + 0.5f * amount) + amount),
-                Math.Min(1, colour.G * (1 + 0.5f * amount) + amount),
-                Math.Min(1, colour.B * (1 + 0.5f * amount) + amount),
-                colour.A);
-        }
-
-        /// <summary>
         /// Returns a darkened version of the colour.
         /// </summary>
         /// <param name="colour">Original colour</param>
