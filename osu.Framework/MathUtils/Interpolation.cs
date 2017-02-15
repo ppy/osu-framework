@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Transformations;
 using OpenTK;
 using OpenTK.Graphics;
 using System.Diagnostics;
-using osu.Framework.Extensions.Color4Extensions;
 
 namespace osu.Framework.MathUtils
 {

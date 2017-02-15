@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using osu.Framework.Statistics;
 using OpenTK;
@@ -18,7 +17,6 @@ using OpenTK.Input;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Performance

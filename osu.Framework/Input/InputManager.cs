@@ -6,13 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input

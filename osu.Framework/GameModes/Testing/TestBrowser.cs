@@ -14,7 +14,6 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Platform;
 using osu.Framework.Allocation;
 
@@ -57,7 +56,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
-            tests.Sort((TestCase a, TestCase b) => a.Name.CompareTo(b.Name));
+            tests.Sort((TestCase a, TestCase b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]

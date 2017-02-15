@@ -12,8 +12,6 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Sprites;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Timing;
@@ -508,7 +506,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                while (drawable != (drawable = drawable.Original)) ;
+                while (drawable != (drawable = drawable.Original)) { }
 
                 if (!drawable.IsPresent)
                     continue;

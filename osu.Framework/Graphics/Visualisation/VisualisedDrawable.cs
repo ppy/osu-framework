@@ -9,7 +9,6 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -70,7 +69,7 @@ namespace osu.Framework.Graphics.Visualisation
                 previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
                 {
                     Texture = sprite.Texture,
-                    Scale = new Vector2((float)sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
+                    Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                 },
                 text = new SpriteText
                 {

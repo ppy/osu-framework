@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Timing;
 using osu.Framework.Threading;
-using System.Diagnostics;
 
 namespace osu.Framework.Statistics
 {

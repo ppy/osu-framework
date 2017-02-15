@@ -85,9 +85,8 @@ namespace osu.Framework.Audio
         public Scheduler EventScheduler;
 
         /// <summary>
-        /// Constructs an AudioManager given an event scheduler, a track resource store, and a sample resource store.
+        /// Constructs an AudioManager given a track resource store, and a sample resource store.
         /// </summary>
-        /// If null is passed, then the audio thread's own scheduler is used.</param>
         /// <param name="trackStore">The resource store containing all audio tracks to be used in the future.</param>
         /// <param name="sampleStore">The sample store containing all audio samples to be used in the future.</param>
         public AudioManager(ResourceStore<byte[]> trackStore, ResourceStore<byte[]> sampleStore)
@@ -153,7 +152,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager;
@@ -169,7 +168,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager;
@@ -253,7 +252,7 @@ namespace osu.Framework.Audio
                 //let's try again using the default device.
                 return setAudioDevice();
             }
-            else if(Bass.LastError == Errors.Already)
+            else if (Bass.LastError == Errors.Already)
             {
                 // We check if the initialization error is that we already initialized the device
                 // If it is, it means we can just tell Bass to use the already initialized device without much
@@ -276,10 +275,10 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        public override void UpdateDevice(int newDeviceIndex)
+        public override void UpdateDevice(int deviceIndex)
         {
-            Sample.UpdateDevice(newDeviceIndex);
-            Track.UpdateDevice(newDeviceIndex);
+            Sample.UpdateDevice(deviceIndex);
+            Track.UpdateDevice(deviceIndex);
         }
 
         private void updateAvailableAudioDevices()
@@ -346,7 +345,7 @@ namespace osu.Framework.Audio
                 }
                 else
                 {
-                    var preferredDevice = getAllDevices().SingleOrDefault<DeviceInfo>(d => d.Name == AudioDevice.Value);
+                    var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
                     if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
                         setAudioDevice(preferredDevice.Name);
                     else if (!device.IsEnabled && !setAudioDevice())

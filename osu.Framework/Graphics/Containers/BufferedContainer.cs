@@ -9,7 +9,6 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Threading;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
-using System;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
@@ -169,9 +168,9 @@ namespace osu.Framework.Graphics.Containers
             // right now we are relying on the finalizer for correct disposal.
             // correct method would be to schedule these to update thread and
             // then to the draw thread.
-            
+
             //foreach (FrameBuffer frameBuffer in frameBuffers)
-              //  frameBuffer.Dispose();
+            //  frameBuffer.Dispose();
 
             base.Dispose(isDisposing);
         }

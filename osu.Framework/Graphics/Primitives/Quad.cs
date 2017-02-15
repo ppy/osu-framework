@@ -176,10 +176,6 @@ namespace osu.Framework.Graphics.Primitives
                 Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
         }
 
-        public override string ToString()
-        {
-            return TopLeft.ToString() + @" " + TopRight.ToString() + @" " + BottomLeft.ToString() + @" " + BottomRight.ToString();
-        }
+        public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
     }
 }
-

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.MathUtils;
-using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transformations
 {

@@ -3,7 +3,6 @@
 
 using osu.Framework.Input.Handlers;
 using OpenTK;
-using System.Collections.Generic;
 using osu.Framework.Platform;
 using osu.Framework.Allocation;
 

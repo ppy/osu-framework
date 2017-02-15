@@ -5,8 +5,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using System;
- 
+
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropDownHeader : ClickableContainer

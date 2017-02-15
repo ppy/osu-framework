@@ -3,10 +3,6 @@
 
 using OpenTK;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -38,9 +34,10 @@ namespace osu.Framework.Graphics.Primitives
             return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
         }
 
-        public static MarginPadding operator-(MarginPadding mp)
+        public static MarginPadding operator -(MarginPadding mp)
         {
-            return new MarginPadding {
+            return new MarginPadding
+            {
                 Left = -mp.Left,
                 Top = -mp.Top,
                 Right = -mp.Right,
