@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics;
 using System;
 
@@ -74,26 +75,27 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// </summary>
         /// <param name="colour">Original colour</param>
         /// <param name="amount">Decimal light addition</param>
-        public static Color4 Lighten(this Color4 colour, float amount)
-        {
-            return new Color4(
-                Math.Min(1, colour.R * (1 + amount)),
-                Math.Min(1, colour.G * (1 + amount)),
-                Math.Min(1, colour.B * (1 + amount)),
-                colour.A);
-        }
+        public static Color4 Lighten(this Color4 colour, float amount) => Multiply(colour, 1 + amount);
 
         /// <summary>
         /// Returns a darkened version of the colour.
         /// </summary>
         /// <param name="colour">Original colour</param>
         /// <param name="amount">Percentage light reduction</param>
-        public static Color4 Darken(this Color4 colour, float amount)
+        public static Color4 Darken(this Color4 colour, float amount) => Multiply(colour, 1 / (1 + amount));
+
+        /// <summary>
+        /// Multiply the RGB coordinates by a scalar.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="scalar">A scalar to multiply with</param>
+        /// <returns></returns>
+        public static Color4 Multiply(this Color4 colour, float scalar)
         {
             return new Color4(
-                Math.Max(0, colour.R / (1 + amount)),
-                Math.Max(0, colour.G / (1 + amount)),
-                Math.Max(0, colour.B / (1 + amount)),
+                MathHelper.Clamp(colour.R * scalar, 0, 1),
+                MathHelper.Clamp(colour.G * scalar, 0, 1),
+                MathHelper.Clamp(colour.B * scalar, 0, 1),
                 colour.A);
         }
     }
