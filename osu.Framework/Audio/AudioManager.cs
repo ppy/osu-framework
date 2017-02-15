@@ -152,7 +152,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="TrackManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="TrackManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
+        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="TrackManager"/>.</param>
         public TrackManager GetTrackManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalTrackManager;
@@ -168,7 +168,7 @@ namespace osu.Framework.Audio
         /// Obtains the <see cref="SampleManager"/> corresponding to a given resource store.
         /// Returns the global <see cref="SampleManager"/> if no resource store is passed.
         /// </summary>
-        /// <param name="store">The <see cref="ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
+        /// <param name="store">The <see cref="T:ResourceStore"/> of which to retrieve the <see cref="SampleManager"/>.</param>
         public SampleManager GetSampleManager(ResourceStore<byte[]> store = null)
         {
             if (store == null) return globalSampleManager;

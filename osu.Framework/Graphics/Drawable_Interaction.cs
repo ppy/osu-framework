@@ -186,7 +186,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// This method is responsible for building a queue of Drawables to receive keyboard input
-        /// in-order. This method is overridden by <see cref="Container"/> to be called on all
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// This method is responsible for building a queue of Drawables to receive mouse input
-        /// in-order. This method is overridden by <see cref="Container"/> to be called on all
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
