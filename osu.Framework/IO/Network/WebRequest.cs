@@ -175,7 +175,7 @@ namespace osu.Framework.IO.Network
         /// Does a manual DNS lookup and forcefully uses IPv4 by shoving IP addresses where the host normally is.
         /// Unreliable for HTTPS+Cloudflare? Only use when necessary.
         /// </summary>
-        public static bool UseExplicitIPv4Requests = false;
+        public static bool UseExplicitIPv4Requests;
 
         static bool? useFallbackPath;
         private bool didGetIPv6IP;

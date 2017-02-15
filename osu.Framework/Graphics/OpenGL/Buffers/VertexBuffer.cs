@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 typeof(T).GetMethod("Bind", BindingFlags.Public | BindingFlags.Static)
             );
 
-        public VertexBuffer(int amountVertices, BufferUsageHint usage)
+        protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
             this.usage = usage;
             GL.GenBuffers(1, out vboId);

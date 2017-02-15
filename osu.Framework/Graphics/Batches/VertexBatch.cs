@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Batches
         private int currentVertex;
         private int lastVertex;
 
-        private int maxBuffers;
+        private readonly int maxBuffers;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentIndex];
 

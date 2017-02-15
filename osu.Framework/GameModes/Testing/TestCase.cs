@@ -23,10 +23,10 @@ namespace osu.Framework.GameModes.Testing
         public Container Contents;
 
         protected override Container<Drawable> Content => Contents;
-        
+
         protected DependencyContainer Dependencies { get; private set; }
 
-        public TestCase()
+        protected TestCase()
         {
             RelativeSizeAxes = Axes.Both;
             Masking = true;
@@ -50,10 +50,10 @@ namespace osu.Framework.GameModes.Testing
                         AutoSizeAxes = Axes.Both,
                         Spacing = new Vector2(15, 5)
                     },
-                    Contents = new Container()
+                    Contents = new Container
                     {
-                        RelativeSizeAxes = Axes.Both,
-                    },
+                        RelativeSizeAxes = Axes.Both
+                    }
                 };
             }
             else
@@ -93,8 +93,8 @@ namespace osu.Framework.GameModes.Testing
     public class ToggleButton : Button
     {
         private readonly Action reloadCallback;
-        private static Color4 offColour = Color4.Red;
-        private static Color4 onColour = Color4.YellowGreen;
+        private static readonly Color4 offColour = Color4.Red;
+        private static readonly Color4 onColour = Color4.YellowGreen;
 
         public bool State;
 

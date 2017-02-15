@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingAutosize = false;
+        private bool isComputingAutosize;
         public override Vector2 Size
         {
             get

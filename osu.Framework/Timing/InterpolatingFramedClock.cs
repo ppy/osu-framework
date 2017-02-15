@@ -11,7 +11,7 @@ namespace osu.Framework.Timing
     /// </summary>
     public class InterpolatingFramedClock : IFrameBasedClock
     {
-        private FramedClock clock = new FramedClock(new StopwatchClock(true));
+        private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
         protected FramedClock SourceClock;
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;

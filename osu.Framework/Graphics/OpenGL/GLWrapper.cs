@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.OpenGL
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
-                AlphaExponent = 1,
+                AlphaExponent = 1
             }, true);
         }
 
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL lastBoundTexture = null;
+        private static TextureGL lastBoundTexture;
 
         internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
 
@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = blendingInfo;
         }
 
-        private static int lastFrameBuffer = 0;
+        private static int lastFrameBuffer;
 
         /// <summary>
         /// Binds a framebuffer.

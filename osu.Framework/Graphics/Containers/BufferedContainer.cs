@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float blurRotation = 0;
+        private float blurRotation;
         public float BlurRotation
         {
             get { return blurRotation; }
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Containers
         }
         private Shader blurShader;
 
-        public bool CacheDrawnFrameBuffer = false;
+        public bool CacheDrawnFrameBuffer;
         public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
 
         // We need 2 frame buffers such that we can accumulate post-processing effects in a
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Containers
         // drawVersion keeps track of the version the draw thread is on.
         // When forcing a redraw we increment updateVersion, pass it into each new drawnode
         // and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
-        private long updateVersion = 0;
+        private long updateVersion;
         private AtomicCounter drawVersion = new AtomicCounter();
 
         private QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);

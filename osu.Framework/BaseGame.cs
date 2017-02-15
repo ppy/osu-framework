@@ -71,21 +71,21 @@ namespace osu.Framework
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
+                    RelativeSizeAxes = Axes.Both
+                }
             });
         }
 
         private void addDebugTools()
         {
-            (DrawVisualiser = new DrawVisualiser()
+            (DrawVisualiser = new DrawVisualiser
             {
-                Depth = float.MinValue / 2,
+                Depth = float.MinValue / 2
             }).Preload(this, AddInternal);
 
-            (logOverlay = new LogOverlay()
+            (logOverlay = new LogOverlay
             {
-                Depth = float.MinValue / 2,
+                Depth = float.MinValue / 2
             }).Preload(this, AddInternal);
         }
 

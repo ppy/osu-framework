@@ -70,7 +70,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        public DropDownMenuItem(string text, T value)
+        protected DropDownMenuItem(string text, T value)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -81,13 +81,13 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Background = new Box
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Both
                 },
                 Foreground = new Container
                 {
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                },
+                    AutoSizeAxes = Axes.Y
+                }
             };
         }
 

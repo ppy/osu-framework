@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Visualisation
                     LayoutDuration = 150,
                     LayoutEasing = EasingTypes.OutQuart,
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
+                    AutoSizeAxes = Axes.Y
                 }
 
             };
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
-                    Alpha = 0.6f,
+                    Alpha = 0.6f
                 },
                 new Container
                 {
@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Visualisation
                         new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = col,
+                            Colour = col
                         },
                         new SpriteText
                         {
@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
-                            Text = entry.Target.ToString(),
+                            Text = entry.Target.ToString()
                         }
                     }
                 },

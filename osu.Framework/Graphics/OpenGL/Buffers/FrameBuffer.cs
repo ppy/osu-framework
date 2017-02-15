@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private bool isBound => lastFramebuffer != -1;
 
-        private List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
+        private readonly List<RenderBuffer> attachedRenderBuffers = new List<RenderBuffer>();
 
         #region Disposal
 

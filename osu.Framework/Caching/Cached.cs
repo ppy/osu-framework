@@ -8,7 +8,7 @@ namespace osu.Framework.Caching
 {
     public static class StaticCached
     {
-        internal static bool AlwaysStale = false;
+        internal static bool AlwaysStale;
     }
 
     public struct Cached<T>

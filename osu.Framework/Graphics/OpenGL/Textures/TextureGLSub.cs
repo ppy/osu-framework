@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     class TextureGLSub : TextureGL
     {
-        private TextureGLSingle parent;
+        private readonly TextureGLSingle parent;
         private Rectangle bounds;
 
         public override TextureGL Native => parent.Native;

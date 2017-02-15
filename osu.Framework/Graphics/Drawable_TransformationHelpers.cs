@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = 0,
-                EndValue = 1,
+                EndValue = 1
             };
 
             Transforms.Add(tr);
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = 1,
-                EndValue = 0,
+                EndValue = 0
             };
 
             Transforms.Add(tr);

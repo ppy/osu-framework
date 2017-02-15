@@ -9,7 +9,7 @@ namespace osu.Framework.Audio.Sample
 {
     public class SampleManager : AudioCollectionManager<AudioSample>, IResourceStore<AudioSample>
     {
-        IResourceStore<byte[]> store;
+        readonly IResourceStore<byte[]> store;
 
         Dictionary<string, AudioSample> sampleCache = new Dictionary<string, AudioSample>();
 

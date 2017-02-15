@@ -153,7 +153,7 @@ namespace osu.Framework.Platform
             {
                 DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
-                    OnThreadStart = DrawInitialize,
+                    OnThreadStart = DrawInitialize
                 },
                 UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {

@@ -13,7 +13,7 @@ namespace osu.Framework.IO.Stores
 
         private List<IResourceStore<T>> stores = new List<IResourceStore<T>>();
 
-        private List<string> searchExtensions = new List<string>();
+        private readonly List<string> searchExtensions = new List<string>();
 
         /// <summary>
         /// Initializes a resource store with no stores.

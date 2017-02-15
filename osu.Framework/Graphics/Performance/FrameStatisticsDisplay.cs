@@ -133,9 +133,9 @@ namespace osu.Framework.Graphics.Performance
                                     Text = Name,
                                     Origin = Anchor.BottomCentre,
                                     Anchor = Anchor.CentreLeft,
-                                    Rotation = -90,
+                                    Rotation = -90
                                 },
-                                !hasCounters ? new Container() { Width = 2 } : new Container
+                                !hasCounters ? new Container { Width = 2 } : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Performance
                                         {
                                             Texture = atlas.Add(1, height),
                                             RelativeSizeAxes = Axes.Both,
-                                            Size = new Vector2(1, 1),
+                                            Size = new Vector2(1, 1)
                                         },
                                         new FlowContainer
                                         {
@@ -160,9 +160,9 @@ namespace osu.Framework.Graphics.Performance
                                                        select counterBars[t] = new CounterBar
                                             {
                                                 Colour = getColour(t),
-                                                Label = t.ToString(),
-                                            },
-                                        },
+                                                Label = t.ToString()
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -180,13 +180,13 @@ namespace osu.Framework.Graphics.Performance
                                     Children = timeBars = new[]
                                     {
                                         new TimeBar(atlas),
-                                        new TimeBar(atlas),
-                                    },
+                                        new TimeBar(atlas)
+                                    }
                                 },
                                 fpsDisplay = new FpsDisplay(monitor.Clock)
                                 {
                                     Anchor = Anchor.BottomRight,
-                                    Origin = Anchor.BottomRight,
+                                    Origin = Anchor.BottomRight
                                 },
                                 overlayContainer = new Container
                                 {
@@ -208,7 +208,7 @@ namespace osu.Framework.Graphics.Performance
                                                 Colour = getColour(t),
                                                 Text = t.ToString(),
                                                 Alpha = 0
-                                            },
+                                            }
                                         },
                                         new SpriteText
                                         {
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Performance
                             }
                         }
                     }
-                },
+                }
             };
 
             textureBufferStack = new BufferStack<byte>(timeBars.Length * width);
@@ -383,7 +383,6 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case PerformanceCollectionType.Work:
                     return Color4.YellowGreen;
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
@@ -409,7 +408,6 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case StatisticsCounterType.VBufOverflow:
                     return Color4.Yellow;
 
                 case StatisticsCounterType.Invalidations:
@@ -497,7 +495,7 @@ namespace osu.Framework.Graphics.Performance
 
         class CounterBar : Container
         {
-            private Box box;
+            private readonly Box box;
             private SpriteText text;
 
             public string Label;
@@ -545,14 +543,14 @@ namespace osu.Framework.Graphics.Performance
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
                         Position = new Vector2(-bar_width - 1, 0),
-                        TextSize = 16,
+                        TextSize = 16
                     },
                     box = new Box
                     {
                         RelativeSizeAxes = Axes.Y,
                         Size = new Vector2(bar_width, 0),
                         Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight,
+                        Origin = Anchor.BottomRight
                     }
                 };
 

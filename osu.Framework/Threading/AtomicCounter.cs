@@ -7,7 +7,7 @@ namespace osu.Framework.Threading
 {
     public class AtomicCounter
     {
-        private long count = 0;
+        private long count;
 
         public long Increment()
         {

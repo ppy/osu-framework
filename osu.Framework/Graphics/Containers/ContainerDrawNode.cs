@@ -32,14 +32,14 @@ namespace osu.Framework.Graphics.Containers
     public class ContainerDrawNodeSharedData
     {
         public QuadBatch<TexturedVertex2D> VertexBatch;
-        public bool ForceOwnVertexBatch = false;
+        public bool ForceOwnVertexBatch;
     }
 
     public class ContainerDrawNode : DrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
-        public Quad? ScreenSpaceMaskingQuad = null;
+        public Quad? ScreenSpaceMaskingQuad;
 
         public EdgeEffect EdgeEffect;
 

@@ -42,7 +42,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            if (second.Equals(Color4.White))
                 return first;
 
             first = first.ToLinear();
@@ -59,7 +59,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            if (second.Equals(Color4.White))
                 return first;
 
             return new Color4(

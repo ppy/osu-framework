@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool AllowClipboardExport => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
-        private int[] doubleClickWord = null;
+        private int[] doubleClickWord;
 
         private AudioManager audio;
 
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Background = new Box
                 {
                     Colour = BackgroundUnfocused,
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Both
                 },
                 TextContainer = new Container
                 {
@@ -92,16 +92,16 @@ namespace osu.Framework.Graphics.UserInterface
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             RelativeSizeAxes = Axes.Y,
-                            Alpha = 0,
+                            Alpha = 0
                         },
                         TextFlow = new FlowContainer
                         {
                             Direction = FlowDirections.Horizontal,
                             AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
-                        },
-                    },
-                },
+                            RelativeSizeAxes = Axes.Y
+                        }
+                    }
+                }
             });
         }
 
@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.UserInterface
                             StartTime = Time.Current,
                             EndTime = Time.Current + 500,
                             Easing = EasingTypes.InOutSine,
-                            LoopCount = -1,
+                            LoopCount = -1
                         });
                     }
                 }
@@ -390,7 +390,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual SpriteText CreatePlaceholder() => new SpriteText
         {
-            Colour = Color4.Gray,
+            Colour = Color4.Gray
         };
 
         protected SpriteText Placeholder;
@@ -783,7 +783,7 @@ namespace osu.Framework.Graphics.UserInterface
             imeDrawables.Clear();
         }
 
-        private List<Drawable> imeDrawables = new List<Drawable>();
+        private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {

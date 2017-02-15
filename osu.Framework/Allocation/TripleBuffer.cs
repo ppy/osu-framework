@@ -12,7 +12,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class TripleBuffer<T>
     {
-        private ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
+        private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
         int read;
         int write;
@@ -45,7 +45,7 @@ namespace osu.Framework.Allocation
                         {
                             Finish = finishDelegate,
                             Usage = UsageType.Write,
-                            Index = write,
+                            Index = write
                         };
                     }
                     else

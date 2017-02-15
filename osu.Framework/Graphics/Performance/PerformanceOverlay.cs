@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Performance
 {
     class PerformanceOverlay : FlowContainer, IStateful<FrameStatisticsMode>
     {
-        TextureAtlas atlas;
+        private readonly TextureAtlas atlas;
 
         private FrameStatisticsMode state;
 

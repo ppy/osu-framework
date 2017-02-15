@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics
     {
         #region Construction and disposal
 
-        public Drawable()
+        protected Drawable()
         {
             CreationID = creationCounter.Increment();
         }
@@ -903,7 +903,7 @@ namespace osu.Framework.Graphics
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        public bool IsMaskedAway = false;
+        public bool IsMaskedAway;
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 

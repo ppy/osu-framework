@@ -8,9 +8,9 @@ namespace osu.Framework.Platform
 {
     public class IpcChannel<T> : IDisposable
     {
-        private IIpcHost host;
+        private readonly IIpcHost host;
         public event Action<T> MessageReceived;
-    
+
         public IpcChannel(IIpcHost host)
         {
             this.host = host;
@@ -22,7 +22,7 @@ namespace osu.Framework.Platform
             var msg = new IpcMessage
             {
                 Type = typeof(T).AssemblyQualifiedName,
-                Value = message,
+                Value = message
             };
             await host.SendMessage(msg);
         }

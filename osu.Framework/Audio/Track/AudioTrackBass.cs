@@ -169,7 +169,7 @@ namespace osu.Framework.Audio.Track
             {
                 double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
                 if (value == Length && !isPlayed) return 0;
-                else return value;
+                return value;
             }
         }
 
@@ -199,7 +199,7 @@ namespace osu.Framework.Audio.Track
         {
             private byte[] readBuffer = new byte[32768];
 
-            private AsyncBufferStream dataStream;
+            private readonly AsyncBufferStream dataStream;
 
             public FileProcedures BassProcedures => new FileProcedures
             {

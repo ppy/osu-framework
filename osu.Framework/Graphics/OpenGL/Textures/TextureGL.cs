@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public bool IsTransparent = false;
+        public bool IsTransparent;
         public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
 
         #region Disposal

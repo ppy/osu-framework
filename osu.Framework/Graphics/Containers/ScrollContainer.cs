@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 content = new Container {
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
-                    AutoSizeAxes = scrollAxis,
+                    AutoSizeAxes = scrollAxis
                 },
                 scrollDragger = new ScrollBar(scrollDir) { Dragged = onScrollbarMovement }
             });
@@ -335,8 +335,8 @@ namespace osu.Framework.Graphics.Containers
             private Box box;
 
             private float dragOffset;
-            
-            private int scrollDim;
+
+            private readonly int scrollDim;
 
             public ScrollBar(Direction scrollDir)
             {

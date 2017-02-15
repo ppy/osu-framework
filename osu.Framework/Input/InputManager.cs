@@ -131,7 +131,7 @@ namespace osu.Framework.Input
                     {
                         Last = last,
                         Keyboard = s.Keyboard,
-                        Mouse = s.Mouse,
+                        Mouse = s.Mouse
                     };
 
                     TransformState(CurrentState);

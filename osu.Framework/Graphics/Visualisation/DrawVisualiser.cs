@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private TreeContainer treeContainer;
 
-        private InfoOverlay overlay;
+        private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
         private List<Drawable> hoveredDrawables = new List<Drawable>();

@@ -46,9 +46,9 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
+                        Origin = Anchor.Centre
                     },
-                    SpriteText = CreateText(),
+                    SpriteText = CreateText()
                 }
             });
         }
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Depth = -1,
             Origin = Anchor.Centre,
-            Anchor = Anchor.Centre,
+            Anchor = Anchor.Centre
         };
 
         protected override bool OnClick(InputState state)

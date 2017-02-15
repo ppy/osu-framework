@@ -53,16 +53,16 @@ namespace osu.Framework.Graphics.Visualisation
                 layout = new FlashyBox(d => d.ToScreenSpace(d.LayoutRectangle))
                 {
                     Colour = Color4.Green,
-                    Alpha = 0.5f,
+                    Alpha = 0.5f
                 },
                 shape = new FlashyBox(d => d.ScreenSpaceDrawQuad)
                 {
                     Colour = Color4.Red,
-                    Alpha = 0.5f,
+                    Alpha = 0.5f
                 },
                 // We're adding this guy twice to get a border in a somewhat hacky way.
-                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 5)) { Colour = Color4.Blue, },
-                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 3)) { Colour = Color4.Yellow, },
+                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 5)) { Colour = Color4.Blue },
+                new FlashyBox(d => quadAroundPosition(d.ToScreenSpace(d.OriginPosition), 3)) { Colour = Color4.Yellow }
             };
         }
 

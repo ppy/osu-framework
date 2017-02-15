@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     public partial class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
-        private bool masking = false;
+        private bool masking;
         public bool Masking
         {
             get { return masking; }
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
                 // This results in the optimal trade-off between crispness and smoothness of the
                 // edges of the masked region according to sampling theory.
                 BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
+                AlphaExponent = 1
             };
 
             n.EdgeEffect = EdgeEffect;
@@ -421,7 +421,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        [BackgroundDependencyLoader(permitNulls: true)]
+        [BackgroundDependencyLoader(true)]
         private void load(BaseGame game, ShaderManager shaders)
         {
             if (shader == null)
@@ -620,8 +620,7 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cornerRadius == 0.0f)
                 return base.Contains(screenSpacePos);
-            else
-                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
+            return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
         public override RectangleF BoundingBox

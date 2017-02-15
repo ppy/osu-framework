@@ -43,17 +43,17 @@ namespace osu.Framework.GameModes
 
             AddInternal(new[]
             {
-                content = new ContentContainer()
+                content = new ContentContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
                 },
-                childModeContainer = new Container()
+                childModeContainer = new Container
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                },
+                    RelativeSizeAxes = Axes.Both
+                }
             });
         }
 

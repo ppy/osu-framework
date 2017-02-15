@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
+        private readonly Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
 
         private TextureAtlas atlas;
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Textures
             tex.SetData(new TextureUpload(raw.Pixels)
             {
                 Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
-                Format = raw.PixelFormat,
+                Format = raw.PixelFormat
             });
 
             return tex;

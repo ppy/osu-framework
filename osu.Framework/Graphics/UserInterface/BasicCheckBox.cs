@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private Box box;
+        private readonly Box box;
         private SpriteText labelSpriteText;
 
         public BasicCheckBox()
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         box = new Box
                         {
-                            Size = new Vector2(20, 20),
+                            Size = new Vector2(20, 20)
                         }
                     }
                 }

@@ -69,19 +69,19 @@ namespace osu.Framework.Graphics.Visualisation
                 previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
                 {
                     Texture = sprite.Texture,
-                    Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
+                    Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1)
                 },
                 text = new SpriteText
                 {
                     Position = new Vector2(24, -3),
-                    Scale = new Vector2(0.9f),
+                    Scale = new Vector2(0.9f)
                 },
                 Flow = new FlowContainer
                 {
                     Direction = FlowDirections.Vertical,
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(10, 14)
-                },
+                }
             });
 
             previewBox.Position = new Vector2(9, 0);
