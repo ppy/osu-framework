@@ -3,6 +3,7 @@
 
 using OpenTK.Graphics;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -67,6 +68,37 @@ namespace osu.Framework.Extensions.Color4Extensions
                 first.G * second.G,
                 first.B * second.B,
                 first.A * second.A);
+        }
+
+        /// <summary>
+        /// Returns a lightened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Decimal light addition</param>
+        public static Color4 Lighten(this Color4 colour, float amount) => Multiply(colour, 1 + amount);
+
+        /// <summary>
+        /// Returns a darkened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Percentage light reduction</param>
+        public static Color4 Darken(this Color4 colour, float amount) => Multiply(colour, 1 / (1 + amount));
+
+        /// <summary>
+        /// Multiply the RGB coordinates by a scalar.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="scalar">A scalar to multiply with</param>
+        /// <returns></returns>
+        public static Color4 Multiply(this Color4 colour, float scalar)
+        {
+            Debug.Assert(scalar >= 0);
+
+            return new Color4(
+                Math.Min(1, colour.R * scalar),
+                Math.Min(1, colour.G * scalar),
+                Math.Min(1, colour.B * scalar),
+                colour.A);
         }
     }
 }
