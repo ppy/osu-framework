@@ -77,9 +77,8 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool HandleInput => false;
 
-        public SpriteText(TextureStore store = null)
+        public SpriteText()
         {
-            this.store = store;
             AutoSizeAxes = Axes.Both;
         }
 
@@ -105,10 +104,9 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         [BackgroundDependencyLoader]
-        private void load(FontStore fonts)
+        private void load(FontStore store)
         {
-            if (store == null)
-                store = fonts;
+            this.store = store;
 
             spaceWidth = CreateCharacterDrawable('.')?.DrawWidth * 2 ?? default_text_size;
 
