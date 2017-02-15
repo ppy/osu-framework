@@ -253,7 +253,7 @@ namespace osu.Framework.Audio
                 //let's try again using the default device.
                 return setAudioDevice();
             }
-            else if(Bass.LastError == Errors.Already)
+            else if (Bass.LastError == Errors.Already)
             {
                 // We check if the initialization error is that we already initialized the device
                 // If it is, it means we can just tell Bass to use the already initialized device without much
@@ -276,10 +276,10 @@ namespace osu.Framework.Audio
             return true;
         }
 
-        public override void UpdateDevice(int newDeviceIndex)
+        public override void UpdateDevice(int deviceIndex)
         {
-            Sample.UpdateDevice(newDeviceIndex);
-            Track.UpdateDevice(newDeviceIndex);
+            Sample.UpdateDevice(deviceIndex);
+            Track.UpdateDevice(deviceIndex);
         }
 
         private void updateAvailableAudioDevices()
@@ -346,7 +346,7 @@ namespace osu.Framework.Audio
                 }
                 else
                 {
-                    var preferredDevice = getAllDevices().SingleOrDefault<DeviceInfo>(d => d.Name == AudioDevice.Value);
+                    var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
                     if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
                         setAudioDevice(preferredDevice.Name);
                     else if (!device.IsEnabled && !setAudioDevice())

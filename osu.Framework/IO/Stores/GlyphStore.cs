@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -128,7 +127,7 @@ namespace osu.Framework.IO.Stores
         public FontStore()
         {
         }
-   
+
         public FontStore(GlyphStore glyphStore) : base(glyphStore)
         {
         }

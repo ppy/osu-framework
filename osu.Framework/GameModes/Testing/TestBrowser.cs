@@ -14,7 +14,6 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Platform;
 using osu.Framework.Allocation;
 

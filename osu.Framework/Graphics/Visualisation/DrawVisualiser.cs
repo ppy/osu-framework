@@ -213,11 +213,11 @@ namespace osu.Framework.Graphics.Visualisation
             return findTargetIn(Parent?.Parent?.Parent as Drawable, state);
         }
 
-        protected override bool OnClick(InputState state)
+        protected override bool OnClick(InputState s)
         {
             if (targetSearching)
             {
-                Target = findTarget(state)?.Parent;
+                Target = findTarget(s)?.Parent;
 
                 if (Target != null)
                 {
@@ -227,7 +227,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return base.OnClick(state);
+            return base.OnClick(s);
         }
 
         protected override bool OnMouseMove(InputState state)

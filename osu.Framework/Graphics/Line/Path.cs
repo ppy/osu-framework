@@ -7,7 +7,6 @@ using OpenTK;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
-using System;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -121,7 +120,7 @@ namespace osu.Framework.Graphics.Sprites
         protected override void ApplyDrawNode(DrawNode node)
         {
             PathDrawNode n = node as PathDrawNode;
-            
+
             n.Texture = Texture;
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;

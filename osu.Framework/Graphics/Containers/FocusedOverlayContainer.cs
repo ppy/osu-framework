@@ -4,7 +4,6 @@
 using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
-using System;
 
 namespace osu.Framework.Graphics.Containers
 {

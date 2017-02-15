@@ -2,9 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK;
 using osu.Framework.Graphics.Colour;

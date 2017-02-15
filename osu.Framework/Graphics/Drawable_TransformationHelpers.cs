@@ -3,12 +3,10 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Timing;
 

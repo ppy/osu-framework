@@ -238,7 +238,7 @@ namespace osu.Framework.Graphics
 
             public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;

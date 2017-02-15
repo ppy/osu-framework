@@ -10,11 +10,9 @@ using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures

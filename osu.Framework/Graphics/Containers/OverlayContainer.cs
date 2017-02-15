@@ -67,13 +67,13 @@ namespace osu.Framework.Graphics.Containers
 
         public void ToggleVisibility() => State = State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
 
-        protected override bool OnHover(InputState s) => BlockPassThroughInput;
+        protected override bool OnHover(InputState state) => BlockPassThroughInput;
 
-        protected override bool OnMouseDown(InputState s, MouseDownEventArgs args) => BlockPassThroughInput;
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughInput;
 
-        protected override bool OnClick(InputState s) => BlockPassThroughInput;
+        protected override bool OnClick(InputState state) => BlockPassThroughInput;
 
-        protected override bool OnKeyDown(InputState s, KeyDownEventArgs args)
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
             {
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Containers
                     return true;
             }
 
-            return base.OnKeyDown(s, args);
+            return base.OnKeyDown(state, args);
         }
     }
 

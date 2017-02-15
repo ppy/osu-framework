@@ -134,14 +134,14 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void Dispose(bool isDisposing)
         {
             OnChange = null;
             OnCommit = null;
 
             unbindInput();
 
-            base.Dispose(disposing);
+            base.Dispose(isDisposing);
         }
 
         private float textContainerPosX;

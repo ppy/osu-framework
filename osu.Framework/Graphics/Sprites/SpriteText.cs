@@ -10,9 +10,7 @@ using osu.Framework.Graphics.Textures;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transformations;
 using osu.Framework.IO.Stores;
-using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Sprites
 {

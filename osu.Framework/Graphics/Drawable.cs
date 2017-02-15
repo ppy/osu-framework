@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;

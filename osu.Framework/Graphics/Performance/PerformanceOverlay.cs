@@ -1,14 +1,11 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using osu.Framework.Graphics.Containers;
 using System.Linq;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
-using osu.Framework.Allocation;
-using osu.Framework.Platform;
 using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Performance

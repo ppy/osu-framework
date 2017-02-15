@@ -5,7 +5,6 @@ using System;
 using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics
