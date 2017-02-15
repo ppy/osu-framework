@@ -714,7 +714,7 @@ namespace osu.Framework.Graphics
         /// Colour of this Drawable in sRGB space. Only valid if no individual colours
         /// have been specified for each corner vertex via <see cref="ColourInfo"/>.
         /// </summary>
-        public SRGBColour Colour
+        public virtual SRGBColour Colour
         {
             get
             {
