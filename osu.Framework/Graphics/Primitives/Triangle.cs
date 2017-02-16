@@ -56,13 +56,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public double ConservativeArea
-        {
-            get
-            {
-                return Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
-            }
-        }
+        public double ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
 
         public double Area
         {
