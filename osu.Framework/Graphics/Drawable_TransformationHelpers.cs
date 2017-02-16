@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics
         /// <returns></returns>
         public virtual void Hide()
         {
-            FadeOut(0);
+            FadeOut();
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual void Show()
         {
-            FadeIn(0);
+            FadeIn();
         }
 
         public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)

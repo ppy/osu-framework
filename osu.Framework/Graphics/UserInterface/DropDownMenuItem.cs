@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void FormatBackground(bool hover = false)
         {
-            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour), 0);
+            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
         }
 
         protected override void LoadComplete()
