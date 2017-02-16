@@ -326,13 +326,13 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (IsDisposed)
                 return false;
-
-            IntPtr dataPointer;
+            
             TextureUpload upload;
             bool didUpload = false;
 
             while (uploadQueue.TryDequeue(out upload))
             {
+                IntPtr dataPointer;
                 GCHandle? h0;
 
                 if (upload.Data.Length == 0)

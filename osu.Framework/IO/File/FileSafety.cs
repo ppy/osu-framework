@@ -328,7 +328,6 @@ namespace osu.Framework.IO.File
         public static int GetMaxPathLength(string directory)
         {
             int highestPathLength = directory.Length;
-            int tempPathLength;
 
             foreach (string file in Directory.GetFiles(directory))
             {
@@ -338,7 +337,7 @@ namespace osu.Framework.IO.File
 
             foreach (string dir in Directory.GetDirectories(directory))
             {
-                tempPathLength = GetMaxPathLength(dir);
+                int tempPathLength = GetMaxPathLength(dir);
                 if (tempPathLength > highestPathLength)
                     highestPathLength = tempPathLength;
             }

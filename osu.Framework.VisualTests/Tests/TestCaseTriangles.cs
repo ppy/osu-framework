@@ -82,12 +82,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             testContainer.Clear();
 
-            Container box;
             Triangle triangle;
 
             switch (testType)
             {
                 case 0:
+                    Container box;
+
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,
