@@ -14,11 +14,13 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestAdd()
         {
-            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b));
-            list.Add(10);
-            list.Add(8);
-            list.Add(13);
-            list.Add(-10);
+            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b))
+            {
+                10,
+                8,
+                13,
+                -10
+            };
             Assert.AreEqual(-10, list[0]);
             Assert.AreEqual(8, list[1]);
             Assert.AreEqual(10, list[2]);
@@ -28,11 +30,13 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestRemove()
         {
-            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b));
-            list.Add(10);
-            list.Add(8);
-            list.Add(13);
-            list.Add(-10);
+            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b))
+            {
+                10,
+                8,
+                13,
+                -10
+            };
             list.Remove(8);
             Assert.IsFalse(list.Any(i => i == 8));
             Assert.AreEqual(3, list.Count);
@@ -41,11 +45,13 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestRemoveAt()
         {
-            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b));
-            list.Add(10);
-            list.Add(8);
-            list.Add(13);
-            list.Add(-10);
+            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b))
+            {
+                10,
+                8,
+                13,
+                -10
+            };
             list.RemoveAt(0);
             Assert.IsFalse(list.Any(i => i == -10));
             Assert.AreEqual(3, list.Count);
@@ -54,11 +60,13 @@ namespace osu.Framework.Tests.Lists
         [Test]
         public void TestClear()
         {
-            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b));
-            list.Add(10);
-            list.Add(8);
-            list.Add(13);
-            list.Add(-10);
+            var list = new SortedList<int>(Comparer<int>.Create((a, b) => a - b))
+            {
+                10,
+                8,
+                13,
+                -10
+            };
             list.Clear();
             Assert.IsFalse(list.Any());
             Assert.AreEqual(0, list.Count);
