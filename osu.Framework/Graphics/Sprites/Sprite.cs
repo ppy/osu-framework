@@ -50,19 +50,16 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            SpriteDrawNode n = node as SpriteDrawNode;
+            SpriteDrawNode n = (SpriteDrawNode)node;
 
-            if (n != null)
-            {
-                n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
-                n.DrawRectangle = DrawRectangle;
-                n.Texture = Texture;
-                n.WrapTexture = WrapTexture;
+            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+            n.DrawRectangle = DrawRectangle;
+            n.Texture = Texture;
+            n.WrapTexture = WrapTexture;
 
-                n.TextureShader = textureShader;
-                n.RoundedTextureShader = roundedTextureShader;
-                n.InflationAmount = inflationAmount;
-            }
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
+            n.InflationAmount = inflationAmount;
 
             base.ApplyDrawNode(node);
         }

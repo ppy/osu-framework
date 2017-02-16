@@ -10,14 +10,11 @@ namespace osu.Framework.Graphics.Transformations
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            Container c = d as Container;
+            Container c = (Container)d;
 
-            if (c != null)
-            {
-                EdgeEffect e = c.EdgeEffect;
-                e.Colour.Linear.A = CurrentValue;
-                c.EdgeEffect = e;
-            }
+            EdgeEffect e = c.EdgeEffect;
+            e.Colour.Linear.A = CurrentValue;
+            c.EdgeEffect = e;
         }
     }
 }
