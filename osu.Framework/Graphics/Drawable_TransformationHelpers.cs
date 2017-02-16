@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? (Time.Current + transformationDelay) : 0;
+            double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? (Time.Current + transformationDelay) : 0;
+            double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -346,7 +346,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? (Time.Current + transformationDelay) : 0;
+            double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
             TransformColour transform = new TransformColour
             {
@@ -380,7 +380,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = Clock != null ? (Time.Current + transformationDelay) : 0;
+            double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
             TransformColour transform = new TransformColour
             {

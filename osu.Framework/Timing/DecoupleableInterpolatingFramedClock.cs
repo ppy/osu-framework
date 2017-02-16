@@ -17,7 +17,7 @@ namespace osu.Framework.Timing
         /// </summary>
         public bool IsCoupled = true;
 
-        private bool useDecoupledClock => SourceClock == null || (!IsCoupled && !SourceClock.IsRunning);
+        private bool useDecoupledClock => SourceClock == null || !IsCoupled && !SourceClock.IsRunning;
 
         private FramedClock decoupledClock;
         private readonly StopwatchClock decoupledStopwatch;

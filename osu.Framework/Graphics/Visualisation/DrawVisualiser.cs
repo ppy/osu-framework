@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Visualisation
                 HoverLost = delegate
                 {
                     hoveredDrawables.Remove(target);
-                    overlay.Target = (hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null);
+                    overlay.Target = hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null;
                 },
                 RequestTarget = delegate { Target = target; }
             };

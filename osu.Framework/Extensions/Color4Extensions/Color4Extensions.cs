@@ -13,12 +13,12 @@ namespace osu.Framework.Extensions.Color4Extensions
 
         public static double ToLinear(double color)
         {
-            return color <= 0.04045 ? (color / 12.92) : Math.Pow((color + 0.055) / 1.055, GAMMA);
+            return color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
         }
 
         public static double ToSRGB(double color)
         {
-            return color < 0.0031308 ? (12.92 * color) : (1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055);
+            return color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
         }
 
         public static Color4 ToLinear(this Color4 colour)

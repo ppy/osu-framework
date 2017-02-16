@@ -45,10 +45,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 return IsSelected ? DropDownMenuItemState.Selected : DropDownMenuItemState.NotSelected;
             }
-
             set
             {
-                IsSelected = (value == DropDownMenuItemState.Selected);
+                IsSelected = value == DropDownMenuItemState.Selected;
             }
         }
 

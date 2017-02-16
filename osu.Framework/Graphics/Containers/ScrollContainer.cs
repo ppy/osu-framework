@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if ((Current < target && target < 0) || (Current > target && target > scrollableExtent))
+                if (Current < target && target < 0 || Current > target && target > scrollableExtent)
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.

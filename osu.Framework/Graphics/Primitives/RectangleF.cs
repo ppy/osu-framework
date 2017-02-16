@@ -145,8 +145,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the equality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the equality operator. </param>
         /// <filterpriority>3</filterpriority>
-        public static bool operator ==(RectangleF left, RectangleF right) => ((((left.X == right.X) && (left.Y == right.Y)) && (left.Width == right.Width)) &&
-                    left.Height == right.Height);
+        public static bool operator ==(RectangleF left, RectangleF right) => left.X == right.X && left.Y == right.Y && left.Width == right.Width && left.Height == right.Height;
 
         /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleF"></see> structures differ in location or size.</summary>
         /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleF.X"></see> , <see cref="P:System.Drawing.RectangleF.Y"></see>, <see cref="P:System.Drawing.RectangleF.Width"></see>, or <see cref="P:System.Drawing.RectangleF.Height"></see> properties of the two <see cref="T:System.Drawing.Rectangle"></see> structures are unequal; otherwise false.</returns>
@@ -213,9 +212,9 @@ namespace osu.Framework.Graphics.Primitives
         {
             return
                 (int)
-                (((((uint)X) ^ ((((uint)Y) << 13) | (((uint)Y) >> 0x13))) ^
-                  ((((uint)Width) << 0x1a) | (((uint)Width) >> 6))) ^
-                 ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
+                ((((uint)X ^ (((uint)Y << 13) | ((uint)Y >> 0x13))) ^
+                  (((uint)Width << 0x1a) | ((uint)Width >> 6))) ^
+                 (((uint)Height << 7) | ((uint)Height >> 0x19)));
         }
 
         public float Area => Width * Height;
@@ -282,7 +281,7 @@ namespace osu.Framework.Graphics.Primitives
             float num2 = Math.Min(a.X + a.Width, b.X + b.Width);
             float y = Math.Max(a.Y, b.Y);
             float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
-            if ((num2 >= x) && (num4 >= y))
+            if (num2 >= x && num4 >= y)
                 return new RectangleF(x, y, num2 - x, num4 - y);
             return Empty;
         }
@@ -381,7 +380,7 @@ namespace osu.Framework.Graphics.Primitives
 
             // Otherwise we need two trigonometric function calls
             double c = Math.Cos(angle), s = Math.Sin(angle);
-            bool cPos = (c > 0.0), sPos = (s > 0.0);
+            bool cPos = c > 0.0, sPos = s > 0.0;
 
             /* Phase 1: Form bounding box on tilted rectangle P.
              *          Check whether bounding box and Q intersect.
@@ -451,27 +450,27 @@ namespace osu.Framework.Graphics.Primitives
             {
                 if (sPos)
                 {
-                    return (c * xQmax + s * yQmax >= -xPdif
+                    return c * xQmax + s * yQmax >= -xPdif
                         && c * xQmin + s * yQmin <= xPdif
                         && c * yQmax - s * xQmin >= -yPdif
-                        && c * yQmin - s * xQmax <= yPdif);
+                        && c * yQmin - s * xQmax <= yPdif;
                 }
-                return (c * xQmax + s * yQmin >= -xPdif
+                return c * xQmax + s * yQmin >= -xPdif
                     && c * xQmin + s * yQmax <= xPdif
                     && c * yQmax - s * xQmax >= -yPdif
-                    && c * yQmin - s * xQmin <= yPdif);
+                    && c * yQmin - s * xQmin <= yPdif;
             }
             if (sPos)
             {
-                return (c * xQmin + s * yQmax >= -xPdif
+                return c * xQmin + s * yQmax >= -xPdif
                     && c * xQmax + s * yQmin <= xPdif
                     && c * yQmin - s * xQmin >= -yPdif
-                    && c * yQmax - s * xQmax <= yPdif);
+                    && c * yQmax - s * xQmax <= yPdif;
             }
-            return (c * xQmin + s * yQmin >= -xPdif
+            return c * xQmin + s * yQmin >= -xPdif
                 && c * xQmax + s * yQmax <= xPdif
                 && c * yQmin - s * xQmax >= -yPdif
-                && c * yQmax - s * xQmin <= yPdif);
+                && c * yQmax - s * xQmin <= yPdif;
         }
     }
 }

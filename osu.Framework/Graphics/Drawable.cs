@@ -880,7 +880,7 @@ namespace osu.Framework.Graphics
         public ProxyDrawable CreateProxy()
         {
             Debug.Assert(proxy == null, "Multiple proxies are not supported.");
-            return (proxy = new ProxyDrawable(this));
+            return proxy = new ProxyDrawable(this);
         }
 
         #endregion
@@ -1104,7 +1104,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
         }
 
         /// <summary>

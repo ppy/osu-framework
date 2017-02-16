@@ -112,7 +112,7 @@ namespace osu.Framework.Logging
             Logger l;
             if (!staticLoggers.TryGetValue(target, out l))
             {
-                staticLoggers[target] = (l = new Logger(target));
+                staticLoggers[target] = l = new Logger(target);
                 if (clearOnConstruct) l.Clear();
             }
 

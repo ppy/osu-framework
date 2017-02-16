@@ -35,7 +35,7 @@ namespace osu.Framework.Allocation
                 case UsageType.Write:
                     lock (buffers)
                     {
-                        while ((buffers[write]?.Usage == UsageType.Read) || write == lastWrite)
+                        while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
                             write = (write + 1) % 3;
                     }
 

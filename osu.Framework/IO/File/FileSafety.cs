@@ -362,11 +362,11 @@ namespace osu.Framework.IO.File
             fixed (char* stringPtr = converted)
             {
                 byte* stringBytes = (byte*)stringPtr;
-                byte* stringEnd = (byte*)(stringPtr) + converted.Length * 2;
+                byte* stringEnd = (byte*)stringPtr + converted.Length * 2;
                 byte* bytePtr2 = bytePtr;
                 do
                 {
-                    *stringBytes = *(bytePtr2++);
+                    *stringBytes = *bytePtr2++;
                     stringBytes++;
                 } while (stringBytes != stringEnd);
             }

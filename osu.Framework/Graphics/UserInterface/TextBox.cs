@@ -633,7 +633,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     selectionStart = doubleClickWord[1];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
-                    selectionEnd = selectionEnd >= 0 ? (selectionEnd + 1) : 0;
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
                 {

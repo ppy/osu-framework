@@ -29,7 +29,7 @@ namespace osu.Framework
         {
             IsMono = Type.GetType("Mono.Runtime") != null;
             int p = (int)Environment.OSVersion.Platform;
-            IsUnix = (p == 4) || (p == 6) || (p == 128);
+            IsUnix = p == 4 || p == 6 || p == 128;
             IsWindows = Path.DirectorySeparatorChar == '\\';
 
             Is32Bit = IntPtr.Size == 4;

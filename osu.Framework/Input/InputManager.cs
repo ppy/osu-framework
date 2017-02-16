@@ -405,7 +405,7 @@ namespace osu.Framework.Input
         private bool handleMouseClick(InputState state)
         {
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && (t.TriggerClick(state) | t.TriggerFocus(state, true))))
+            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerClick(state) | t.TriggerFocus(state, true)))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();

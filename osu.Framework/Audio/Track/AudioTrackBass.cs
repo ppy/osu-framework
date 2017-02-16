@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Track
 
                 procs = new DataStreamFileProcedures(dataStream);
 
-                BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
+                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
                 audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
                 if (Preview)
@@ -74,7 +74,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
                 }
 
-                Length = (Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000);
+                Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
             });
 
