@@ -18,8 +18,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class TabContainer : Container
     {
 
-        protected internal Container currentTab;
-        protected internal TabIndexContainer tabIndexes;
+        protected override Container<Drawable> Content => tabBodies;
+        protected internal Drawable currentTab;
+        public TabHeadContainer Header;
         protected internal Container tabBodies;
 
 
@@ -27,10 +28,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                return tabIndexes.Height;
+                return Header.Height;
             }
             set
-            { tabIndexes.Height = value;
+            {
+                Header.Height = value;
                 tabBodies.Margin = new MarginPadding()
                 {
                     Top = value
@@ -40,17 +42,14 @@ namespace osu.Framework.Graphics.UserInterface
         }
         public Color4 TabIndexTextColor { get; set; } = Color4.Yellow;
         public Font TabIndexTextFont { get; set; }
-        
 
-
-        public void AddTab(Container tab, string name)
+        public override void Add(Drawable drawable)
         {
-            ChangeTab(tab);
-            tabIndexes.AddIndex(new TabIndex(this, tab, name));
-            tabBodies.Add(tab);
+            base.Add(drawable);
+            ChangeTab(drawable);
         }
 
-        internal void ChangeTab(Container tab)
+        internal void ChangeTab(Drawable tab)
         {
             if (currentTab != null)
             {
@@ -62,8 +61,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public TabContainer()
         {
-            Children = new Drawable[] {
-                tabIndexes = new TabIndexContainer(this)
+            InternalChildren = new Drawable[] {
+                Header = new TabHeadContainer(this)
                 {
                     RelativeSizeAxes = Axes.X,
                     Height = 20,
@@ -75,82 +74,88 @@ namespace osu.Framework.Graphics.UserInterface
                     {
                         Top = TabIndexHeight,
                     },
-                }   
+                }
             };
         }
 
+        protected override bool OnClick(InputState state)
+        {
+            foreach(Drawable drawable in Header.Children){
+                System.Diagnostics.Debug.WriteLine(drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position, drawable)));
+                if (drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position,drawable)))
+                {
+                    ChangeTab((drawable as TabHead).Container);
+                }
+            }
+            return base.OnClick(state);
+        }
     }
 
-    public class TabIndexContainer : Container
+    public class TabHeadContainer : Container
     {
-        public FlowContainer TabIndexes { get; set; }
-        private Box tabIndexesBackground;
-        public Color4 TabIndexBackgroundColor
+        public FlowContainer TabHeads;
+        protected override Container<Drawable> Content => TabHeads;
+        private Box tabHeadBackground;
+        public Color4 TabHeadBackgroundColor
         {
             get
             {
-                return tabIndexesBackground.Colour;
+                return tabHeadBackground.Colour;
             }
             set
             {
-                tabIndexesBackground.Colour = value;
+                tabHeadBackground.Colour = value;
             }
         }
-        public TabIndexContainer(TabContainer container)
+        public TabHeadContainer(TabContainer container)
         {
-            Children = new Drawable[]
-                    {
-                        tabIndexesBackground = new Box()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.DarkGray,
-                        },
-                        TabIndexes = new FlowContainer()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Direction = FlowDirections.Horizontal,
-                            Spacing = new Vector2(5,0),
-                        }
-                    };
-        }
-
-        internal void AddIndex(TabIndex tabIndex)
-        {
-            TabIndexes.Add(tabIndex);
+            InternalChildren = new Drawable[]
+            {
+                tabHeadBackground = new Box()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.DarkGray,
+                },
+                TabHeads = new FlowContainer()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Direction = FlowDirections.Horizontal,
+                    Spacing = new Vector2(5,0),
+                }
+            };
         }
     }
 
-    public class TabIndex : ClickableContainer
+    public class TabHead : Container
     {
-
-        private Container container;
-        private TabContainer tabContainer;
-
-
-        public TabIndex(TabContainer tab, Container container, string tabName)
+        public Drawable Container { get; set; }
+        private SpriteText text;
+        public SRGBColour TextColor
         {
-            tabContainer = tab;
-            this.container = container;
+            get
+            {
+                return text.Colour;
+            }
+
+            set
+            {
+                text.Colour = value;
+            }
+        }
+
+        public TabHead(Drawable container, string tabName)
+        {
+            Container = container;
             AutoSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                new SpriteText()
+                text = new SpriteText()
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Text = tabName,
-                    Colour = tab.TabIndexTextColor,
                 }
             };
-
         }
-
-
-        protected override bool OnClick(InputState state)
-        {
-            tabContainer.ChangeTab(container);
-            return base.OnClick(state);
-        }
-
     }
 }

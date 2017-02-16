@@ -33,8 +33,8 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                 }
             };
-
-            tabC.AddTab(new Container()
+            Container tabBody;
+            tabC.Add(tabBody = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
@@ -45,9 +45,10 @@ namespace osu.Framework.VisualTests.Tests
                         Text = "Hey!",
                     }
                 }
-            }, "Tab 1");
+            });
+            tabC.Header.Add(new TabHead(tabBody, "Tab 1"));
 
-            tabC.AddTab(new Container()
+            tabC.Add(tabBody = new Container()
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
@@ -58,41 +59,42 @@ namespace osu.Framework.VisualTests.Tests
                         Text = "Hoo!",
                     }
                 }
-            }, "Tab 2");
+            });
+            tabC.Header.Add(new TabHead(tabBody, "Tab 2"));
 
-            TabContainer innerTabC;
-            tabC.AddTab(innerTabC = new TabContainer()
-            {
-                RelativeSizeAxes = Axes.Both,
-                TabIndexTextColor = Color4.Red,
+            //TabContainer innerTabC;
+            //tabC.Add(innerTabC = new TabContainer()
+            //{
+            //    RelativeSizeAxes = Axes.Both,
+            //    TabIndexTextColor = Color4.Red,
                 
-            }, "TabContainer");
+            //}, "TabContainer");
 
-            innerTabC.AddTab(new Container()
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
-                {
-                    new SpriteText()
-                    {
-                        Anchor = Anchor.TopLeft,
-                        Text = "Hey!",
-                    }
-                }
-            }, "Tab 1");
+            //innerTabC.AddTab(new Container()
+            //{
+            //    RelativeSizeAxes = Axes.Both,
+            //    Children = new Drawable[]
+            //    {
+            //        new SpriteText()
+            //        {
+            //            Anchor = Anchor.TopLeft,
+            //            Text = "Hey!",
+            //        }
+            //    }
+            //}, "Tab 1");
 
-            innerTabC.AddTab(new Container()
-            {
-                RelativeSizeAxes = Axes.Both,
-                Children = new Drawable[]
-                {
-                    new SpriteText()
-                    {
-                        Anchor = Anchor.TopLeft,
-                        Text = "Hoo!",
-                    }
-                }
-            }, "Tab 2");
+            //innerTabC.AddTab(new Container()
+            //{
+            //    RelativeSizeAxes = Axes.Both,
+            //    Children = new Drawable[]
+            //    {
+            //        new SpriteText()
+            //        {
+            //            Anchor = Anchor.TopLeft,
+            //            Text = "Hoo!",
+            //        }
+            //    }
+            //}, "Tab 2");
         }
     }
 }
