@@ -92,7 +92,6 @@ namespace osu.Framework.VisualTests.Tests
             switch (testType)
             {
                 default:
-                case 0:
                     {
                         Color4 glowColour = Color4.Aquamarine;
                         glowColour.A = 0.5f;
