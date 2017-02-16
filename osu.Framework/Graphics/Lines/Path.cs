@@ -119,28 +119,25 @@ namespace osu.Framework.Graphics.Lines
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            PathDrawNode n = node as PathDrawNode;
+            PathDrawNode n = (PathDrawNode)node;
 
-            if (n != null)
+            n.Texture = Texture;
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
+            n.Width = PathWidth;
+            n.DrawSize = DrawSize;
+
+            n.Shared = pathDrawNodeSharedData;
+
+            n.Segments.Clear();
+
+            if (positions.Count > 1)
             {
-                n.Texture = Texture;
-                n.TextureShader = textureShader;
-                n.RoundedTextureShader = roundedTextureShader;
-                n.Width = PathWidth;
-                n.DrawSize = DrawSize;
-
-                n.Shared = pathDrawNodeSharedData;
-
-                n.Segments.Clear();
-
-                if (positions.Count > 1)
+                Vector2 offset = new Vector2(minX, minY);
+                for (int i = 0; i < positions.Count - 1; ++i)
                 {
-                    Vector2 offset = new Vector2(minX, minY);
-                    for (int i = 0; i < positions.Count - 1; ++i)
-                    {
-                        Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
-                        n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
-                    }
+                    Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
+                    n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
                 }
             }
 
