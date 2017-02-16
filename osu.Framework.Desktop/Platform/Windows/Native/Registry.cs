@@ -15,7 +15,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
             {
                 using (RegistryKey key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                 {
-                    if (key == null || key.OpenSubKey(@"shell\open\command").GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
+                    if (key == null || key.OpenSubKey(@"shell\open\command")?.GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
                         return false;
                     return true;
                 }
@@ -43,7 +43,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
                         {
                             using (RegistryKey extKey = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(extension))
                             {
-                                extKey.SetValue(string.Empty, progId);
+                                extKey?.SetValue(string.Empty, progId);
                             }
                         }
                         else
@@ -56,32 +56,32 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
                 // register the progId, if necessary
                 using (RegistryKey key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                 {
-                    if (key == null || key.OpenSubKey("shell\\open\\command").GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
+                    if (key == null || key.OpenSubKey("shell\\open\\command")?.GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
                     {
                         using (RegistryKey progIdKey = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(progId))
                         {
-                            progIdKey.SetValue(string.Empty, description);
+                            progIdKey?.SetValue(string.Empty, description);
                             if (urlHandler) progIdKey.SetValue("URL Protocol", string.Empty);
 
                             using (RegistryKey command = progIdKey.CreateSubKey("shell\\open\\command"))
                             {
-                                command.SetValue(string.Empty, $"\"{executable}\" \"%1\"");
+                                command?.SetValue(string.Empty, $"\"{executable}\" \"%1\"");
                             }
 
                             using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
                             {
-                                command.SetValue(string.Empty, $"\"{executable}\",1");
+                                command?.SetValue(string.Empty, $"\"{executable}\",1");
                             }
                         }
                     }
                     // Add new icon for existing osu! users anyway
-                    else if (key.OpenSubKey("DefaultIcon").GetValue(string.Empty) == null)
+                    else if (key.OpenSubKey("DefaultIcon")?.GetValue(string.Empty) == null)
                     {
                         using (RegistryKey progIdKey = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(progId))
                         {
-                            using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
+                            using (RegistryKey command = progIdKey?.CreateSubKey("DefaultIcon"))
                             {
-                                command.SetValue(string.Empty, $"\"{executable}\",1");
+                                command?.SetValue(string.Empty, $"\"{executable}\",1");
                             }
                         }
                     }

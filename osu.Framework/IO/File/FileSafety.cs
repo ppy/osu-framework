@@ -260,10 +260,7 @@ namespace osu.Framework.IO.File
             Directory.Delete(oldDirectory, true);
         }
 
-        public static string GetExtension(string filename)
-        {
-            return Path.GetExtension(filename).Trim('.').ToLower();
-        }
+        public static string GetExtension(string filename) => Path.GetExtension(filename)?.Trim('.').ToLower();
 
         //        public static FileType GetFileType(string filename)
         //        {

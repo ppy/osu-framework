@@ -52,14 +52,17 @@ namespace osu.Framework.Graphics.Sprites
         {
             SpriteDrawNode n = node as SpriteDrawNode;
 
-            n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
-            n.DrawRectangle = DrawRectangle;
-            n.Texture = Texture;
-            n.WrapTexture = WrapTexture;
+            if (n != null)
+            {
+                n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
+                n.DrawRectangle = DrawRectangle;
+                n.Texture = Texture;
+                n.WrapTexture = WrapTexture;
 
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.InflationAmount = inflationAmount;
+                n.TextureShader = textureShader;
+                n.RoundedTextureShader = roundedTextureShader;
+                n.InflationAmount = inflationAmount;
+            }
 
             base.ApplyDrawNode(node);
         }

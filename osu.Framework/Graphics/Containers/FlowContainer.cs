@@ -108,7 +108,8 @@ namespace osu.Framework.Graphics.Containers
                 base.Apply(d);
                 FlowContainer t = d as FlowContainer;
 
-                t.Spacing = CurrentValue;
+                if (t != null)
+                    t.Spacing = CurrentValue;
             }
         }
 

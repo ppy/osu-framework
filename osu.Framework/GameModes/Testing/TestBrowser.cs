@@ -131,7 +131,7 @@ namespace osu.Framework.GameModes.Testing
             if (testCase == null && testCases.Count > 0)
                 testCase = testCases[0];
 
-            config.Set(TestBrowserOption.LastTest, testCase.Name);
+            config.Set(TestBrowserOption.LastTest, testCase?.Name);
 
             if (loadedTest != null)
             {

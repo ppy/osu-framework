@@ -12,9 +12,12 @@ namespace osu.Framework.Graphics.Transformations
             base.Apply(d);
             Container c = d as Container;
 
-            EdgeEffect e = c.EdgeEffect;
-            e.Colour.Linear.A = CurrentValue;
-            c.EdgeEffect = e;
+            if (c != null)
+            {
+                EdgeEffect e = c.EdgeEffect;
+                e.Colour.Linear.A = CurrentValue;
+                c.EdgeEffect = e;
+            }
         }
     }
 }

@@ -152,27 +152,31 @@ namespace osu.Framework.Graphics.Containers
                 "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+
+            if (n != null)
             {
-                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
-                ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = CornerRadius,
-                BorderThickness = BorderThickness,
-                BorderColour = BorderColour,
-                // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                // This results in the optimal trade-off between crispness and smoothness of the
-                // edges of the masked region according to sampling theory.
-                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
-            };
+                n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+                {
+                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                    MaskingRect = DrawRectangle,
+                    ToMaskingSpace = DrawInfo.MatrixInverse,
+                    CornerRadius = CornerRadius,
+                    BorderThickness = BorderThickness,
+                    BorderColour = BorderColour,
+                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                    // This results in the optimal trade-off between crispness and smoothness of the
+                    // edges of the masked region according to sampling theory.
+                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    AlphaExponent = 1,
+                };
 
-            n.EdgeEffect = EdgeEffect;
+                n.EdgeEffect = EdgeEffect;
 
-            n.ScreenSpaceMaskingQuad = null;
-            n.Shared = containerDrawNodeSharedData;
+                n.ScreenSpaceMaskingQuad = null;
+                n.Shared = containerDrawNodeSharedData;
 
-            n.Shader = shader;
+                n.Shader = shader;
+            }
 
             base.ApplyDrawNode(node);
         }

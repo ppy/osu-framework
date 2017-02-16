@@ -43,7 +43,7 @@ namespace osu.Framework.Allocation
                 var init = getLoaderMethod(parent);
                 if (init != null)
                     initializerMethods.Insert(0, init);
-                parent = parent.BaseType;
+                parent = parent?.BaseType;
             }
             if (initialize != null)
                 initializerMethods.Add(initialize);

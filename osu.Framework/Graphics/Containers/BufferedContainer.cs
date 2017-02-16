@@ -104,19 +104,22 @@ namespace osu.Framework.Graphics.Containers
         {
             BufferedContainerDrawNode n = node as BufferedContainerDrawNode;
 
-            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-            n.Batch = quadBatch;
-            n.FrameBuffers = frameBuffers;
-            n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
-            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
+            if (n != null)
+            {
+                n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
+                n.Batch = quadBatch;
+                n.FrameBuffers = frameBuffers;
+                n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
+                n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
-            n.DrawVersion = drawVersion;
-            n.UpdateVersion = updateVersion;
-            n.BackgroundColour = BackgroundColour;
+                n.DrawVersion = drawVersion;
+                n.UpdateVersion = updateVersion;
+                n.BackgroundColour = BackgroundColour;
 
-            n.BlurSigma = BlurSigma;
-            n.BlurRotation = BlurRotation;
-            n.BlurShader = blurShader;
+                n.BlurSigma = BlurSigma;
+                n.BlurRotation = BlurRotation;
+                n.BlurShader = blurShader;
+            }
 
             base.ApplyDrawNode(node);
 
@@ -174,7 +177,10 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                (d as BufferedContainer).BlurSigma = CurrentValue;
+                BufferedContainer bufferedContainer = d as BufferedContainer;
+
+                if (bufferedContainer != null)
+                    bufferedContainer.BlurSigma = CurrentValue;
             }
         }
     }

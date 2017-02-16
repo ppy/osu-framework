@@ -51,7 +51,7 @@ namespace osu.Framework.Desktop.Platform
         private void ensureShadowCopy()
         {
             string exe = System.Reflection.Assembly.GetEntryAssembly().Location;
-            if (exe.Contains(@"_shadow"))
+            if (exe != null && exe.Contains(@"_shadow"))
             {
                 //we are already running a shadow copy. monitor the original executable path for changes.
                 exe = exe.Replace(@"_shadow", @"");

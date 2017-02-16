@@ -47,7 +47,7 @@ namespace osu.Framework
                 string output = uname.StandardOutput.ReadToEnd();
                 uname.WaitForExit();
 
-                output = output.ToUpper().Replace("\n", "").Trim();
+                output = output?.ToUpper().Replace("\n", "").Trim();
 
                 IsMacOsx = output == "DARWIN";
                 IsLinux = output == "LINUX";

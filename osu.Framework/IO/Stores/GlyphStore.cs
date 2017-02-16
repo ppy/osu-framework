@@ -28,7 +28,7 @@ namespace osu.Framework.IO.Stores
             this.store = store;
             this.assetName = assetName;
 
-            fontName = assetName.Split('/').Last();
+            fontName = assetName?.Split('/').Last();
 
             try
             {

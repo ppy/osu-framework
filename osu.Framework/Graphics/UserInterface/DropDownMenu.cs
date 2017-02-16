@@ -96,7 +96,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectedIndex = value;
 
-                SelectedItem.IsSelected = true;
+                if (SelectedItem != null)
+                    SelectedItem.IsSelected = true;
+                
                 TriggerValueChanged();
             }
         }

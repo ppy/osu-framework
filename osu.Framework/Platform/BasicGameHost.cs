@@ -184,7 +184,7 @@ namespace osu.Framework.Platform
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
-            var exception = e.ExceptionObject as Exception;
+            var exception = (Exception)e.ExceptionObject;
 
             if (ExceptionThrown != null)
                 ExceptionThrown.Invoke(exception);
