@@ -163,18 +163,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            // right now we are relying on the finalizer for correct disposal.
-            // correct method would be to schedule these to update thread and
-            // then to the draw thread.
-
-            //foreach (FrameBuffer frameBuffer in frameBuffers)
-            //  frameBuffer.Dispose();
-
-            base.Dispose(isDisposing);
-        }
-
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformBlurSigma));

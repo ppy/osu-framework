@@ -178,10 +178,5 @@ namespace osu.Framework.VisualTests.Tests
                 return base.OnDrag(state);
             }
         }
-
-        protected override void Update()
-        {
-            base.Update();
-        }
     }
 }
