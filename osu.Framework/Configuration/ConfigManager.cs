@@ -138,10 +138,11 @@ namespace osu.Framework.Configuration
             {
                 if (stream == null)
                     return;
-
-                string line;
+                
                 using (var reader = new StreamReader(stream))
                 {
+                    string line;
+
                     while ((line = reader.ReadLine()) != null)
                     {
                         int equalsIndex = line.IndexOf('=');

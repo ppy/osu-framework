@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
+        private readonly Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
 
         private TextureAtlas atlas;
 

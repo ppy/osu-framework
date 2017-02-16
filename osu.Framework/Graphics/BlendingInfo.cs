@@ -32,7 +32,6 @@ namespace osu.Framework.Graphics
                     break;
 
                 default:
-                case BlendingMode.None:
                     Source = BlendingFactorSrc.One;
                     Destination = BlendingFactorDest.Zero;
                     SourceAlpha = BlendingFactorSrc.One;

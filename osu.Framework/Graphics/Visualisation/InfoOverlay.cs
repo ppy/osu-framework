@@ -26,10 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
                 foreach (FlashyBox c in Children)
                     c.Target = target;
 
-                if (target != null)
-                    Alpha = 1;
-                else
-                    Alpha = 0;
+                Alpha = target != null ? 1.0f : 0.0f;
 
                 Pulse();
             }
@@ -48,7 +45,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RelativeSizeAxes = Axes.Both;
 
-            Children = new FlashyBox[]
+            Children = new[]
             {
                 layout = new FlashyBox(d => d.ToScreenSpace(d.LayoutRectangle))
                 {

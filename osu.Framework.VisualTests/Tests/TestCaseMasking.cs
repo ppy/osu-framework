@@ -3,10 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
-using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
@@ -30,7 +27,7 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
             });
 
-            string[] testNames = new[]
+            string[] testNames =
             {
                 @"Round corner masking",
                 @"Round corner AABB 1",
@@ -92,7 +89,6 @@ namespace osu.Framework.VisualTests.Tests
             switch (testType)
             {
                 default:
-                case 0:
                     {
                         Color4 glowColour = Color4.Aquamarine;
                         glowColour.A = 0.5f;
@@ -244,7 +240,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 4:
                     {
-                        Func<float, Drawable> createMaskingBox = delegate(float scale)
+                        Func<float, Drawable> createMaskingBox = delegate (float scale)
                         {
                             float size = 200 / scale;
                             return new Container
@@ -288,28 +284,28 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(100) }
+                                    Children = new[] { createMaskingBox(100) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(10) }
+                                    Children = new[] { createMaskingBox(10) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(1) }
+                                    Children = new[] { createMaskingBox(1) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(0.1f) }
+                                    Children = new[] { createMaskingBox(0.1f) }
                                 },
                             }
                         });

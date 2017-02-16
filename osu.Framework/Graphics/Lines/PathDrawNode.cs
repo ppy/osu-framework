@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Lines
 {
     public class PathDrawNodeSharedData
     {
@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
-        private Vector2 pointOnCircle(float angle) => new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
+        private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
 
         private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Sprites
             for (int i = 1; i <= amountPoints; i++)
             {
                 // Center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D()
+                Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Sprites
                 });
 
                 // First outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D()
+                Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(0, 0),
@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Sprites
                 current *= DrawInfo.Matrix;
 
                 // Second outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D()
+                Shared.HalfCircleBatch.Add(new TexturedVertex3D
                 {
                     Position = new Vector3(current.X, current.Y, 0),
                     TexturePosition = new Vector2(0, 0),
@@ -108,13 +108,13 @@ namespace osu.Framework.Graphics.Sprites
             Line screenLineRight = new Line(lineRight.StartPoint * DrawInfo.Matrix, lineRight.EndPoint * DrawInfo.Matrix);
             Line screenLine = new Line(line.StartPoint * DrawInfo.Matrix, line.EndPoint * DrawInfo.Matrix);
 
-            Shared.QuadBatch.Add(new TexturedVertex3D()
+            Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.EndPoint.X, screenLineRight.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
                 Colour = colourAt(lineRight.EndPoint)
             });
-            Shared.QuadBatch.Add(new TexturedVertex3D()
+            Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineRight.StartPoint.X, screenLineRight.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
@@ -131,13 +131,13 @@ namespace osu.Framework.Graphics.Sprites
 
             for (int i = 0; i < 2; ++i)
             {
-                Shared.QuadBatch.Add(new TexturedVertex3D()
+                Shared.QuadBatch.Add(new TexturedVertex3D
                 {
                     Position = firstMiddlePoint,
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
                     Colour = firstMiddleColour
                 });
-                Shared.QuadBatch.Add(new TexturedVertex3D()
+                Shared.QuadBatch.Add(new TexturedVertex3D
                 {
                     Position = secondMiddlePoint,
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
@@ -145,13 +145,13 @@ namespace osu.Framework.Graphics.Sprites
                 });
             }
 
-            Shared.QuadBatch.Add(new TexturedVertex3D()
+            Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.EndPoint.X, screenLineLeft.EndPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
                 Colour = colourAt(lineLeft.EndPoint)
             });
-            Shared.QuadBatch.Add(new TexturedVertex3D()
+            Shared.QuadBatch.Add(new TexturedVertex3D
             {
                 Position = new Vector3(screenLineLeft.StartPoint.X, screenLineLeft.StartPoint.Y, 0),
                 TexturePosition = new Vector2(0, 0),
@@ -178,8 +178,8 @@ namespace osu.Framework.Graphics.Sprites
             addLineCap(line.EndPoint, theta, MathHelper.Pi);
 
 
-            for (int i = 0; i < Segments.Count; ++i)
-                addLineQuads(Segments[i]);
+            foreach (Line segment in Segments)
+                addLineQuads(segment);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)

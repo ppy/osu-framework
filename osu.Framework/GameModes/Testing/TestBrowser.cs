@@ -56,7 +56,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
-            tests.Sort((TestCase a, TestCase b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+            tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]
@@ -131,7 +131,7 @@ namespace osu.Framework.GameModes.Testing
             if (testCase == null && testCases.Count > 0)
                 testCase = testCases[0];
 
-            config.Set(TestBrowserOption.LastTest, testCase.Name);
+            config.Set(TestBrowserOption.LastTest, testCase?.Name);
 
             if (loadedTest != null)
             {
@@ -149,7 +149,7 @@ namespace osu.Framework.GameModes.Testing
 
         class TestCaseButton : ClickableContainer
         {
-            private Box box;
+            private readonly Box box;
 
             public TestCaseButton(TestCase test)
             {

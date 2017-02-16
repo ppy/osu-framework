@@ -120,8 +120,8 @@
     <Compile Include="Graphics\Containers\ContainerDrawNode.cs" />
     <Compile Include="Graphics\Cursor\CursorContainer.cs" />
     <Compile Include="Graphics\IDrawable.cs" />
-    <Compile Include="Graphics\Line\Path.cs" />
-    <Compile Include="Graphics\Line\PathDrawNode.cs" />
+    <Compile Include="Graphics\Lines\Path.cs" />
+    <Compile Include="Graphics\Lines\PathDrawNode.cs" />
     <Compile Include="Graphics\ProxyDrawable.cs" />
     <Compile Include="Graphics\Sprites\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />

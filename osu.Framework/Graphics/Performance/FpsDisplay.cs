@@ -12,9 +12,9 @@ namespace osu.Framework.Graphics.Performance
 {
     class FpsDisplay : Container
     {
-        SpriteText counter;
+        private readonly SpriteText counter;
 
-        private IFrameBasedClock clock;
+        private readonly IFrameBasedClock clock;
         private double displayFps;
 
         public bool Counting = true;

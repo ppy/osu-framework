@@ -28,12 +28,12 @@ namespace osu.Framework.Graphics.Shaders
             }
         }
 
-        private int location;
-        private ActiveUniformType type;
+        private readonly int location;
+        private readonly ActiveUniformType type;
 
         public bool HasChanged { get; private set; } = true;
 
-        private Shader owner;
+        private readonly Shader owner;
 
         public UniformBase(Shader owner, string name, int uniformLocation, ActiveUniformType type)
         {

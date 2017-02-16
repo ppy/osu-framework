@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using SQLite.Net;
 using System.IO;
 using osu.Framework.Platform;
@@ -46,7 +45,7 @@ namespace osu.Framework.Desktop.Platform
                     return File.Open(path, mode, access);
             }
         }
-        
+
         public override SQLiteConnection GetDatabase(string name)
         {
             Directory.CreateDirectory(BasePath);

@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Containers
 
             frameBuffer.Bind();
 
-            return new InvokeOnDisposal(() => frameBuffer.Unbind());
+            return new InvokeOnDisposal(frameBuffer.Unbind);
         }
 
         private void drawFrameBufferToBackBuffer(FrameBuffer frameBuffer, RectangleF drawRectangle, ColourInfo colourInfo)
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Containers
             double threshold = gauss_threshold * center;
             for (int i = 0; i < max_radius; ++i)
                 if (evalGaussian(i, sigma) < threshold)
-                    return Math.Max(i-1, 0);
+                    return Math.Max(i - 1, 0);
 
             return max_radius;
         }
@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics.Containers
         {
             FrameBuffer source = currentFrameBuffer;
             FrameBuffer target = advanceFrameBuffer();
-        
+
             GLWrapper.SetBlend(new BlendingInfo
             {
                 Source = BlendingFactorSrc.One,
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private int currentFrameBufferIndex = 0;
+        private int currentFrameBufferIndex;
         private FrameBuffer currentFrameBuffer => FrameBuffers[currentFrameBufferIndex];
         private FrameBuffer advanceFrameBuffer() => FrameBuffers[currentFrameBufferIndex = (currentFrameBufferIndex + 1) % 2];
 

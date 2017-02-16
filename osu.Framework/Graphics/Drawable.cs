@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics
     {
         #region Construction and disposal
 
-        public Drawable()
+        protected Drawable()
         {
             CreationID = creationCounter.Increment();
         }
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics
         /// The primary use case of this ID is stable sorting of Drawables with equal
         /// <see cref="Depth"/>.
         /// </summary>
-        internal long CreationID { get; private set; }
+        internal long CreationID { get; }
         private static AtomicCounter creationCounter = new AtomicCounter();
 
         private float depth;
@@ -891,7 +891,7 @@ namespace osu.Framework.Graphics
         public ProxyDrawable CreateProxy()
         {
             Debug.Assert(proxy == null, "Multiple proxies are not supported.");
-            return (proxy = new ProxyDrawable(this));
+            return proxy = new ProxyDrawable(this);
         }
 
         #endregion
@@ -903,7 +903,7 @@ namespace osu.Framework.Graphics
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        public bool IsMaskedAway = false;
+        public bool IsMaskedAway;
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
@@ -1115,7 +1115,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
         }
 
         /// <summary>

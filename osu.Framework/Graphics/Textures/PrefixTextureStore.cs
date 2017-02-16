@@ -7,7 +7,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class PrefixTextureStore : TextureStore
     {
-        private string prefix;
+        private readonly string prefix;
 
         public PrefixTextureStore(string prefix, IResourceStore<RawTexture> stores)
             : base(stores)

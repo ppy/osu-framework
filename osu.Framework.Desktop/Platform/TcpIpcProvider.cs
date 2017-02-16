@@ -22,7 +22,7 @@ namespace osu.Framework.Desktop.Platform
         private CancellationToken token;
 
         public event Action<IpcMessage> MessageReceived;
-    
+
         public bool Bind()
         {
             listener = new TcpListener(IPAddress.Loopback, ipcPort);
@@ -38,11 +38,9 @@ namespace osu.Framework.Desktop.Platform
                 listener = null;
                 if (ex.SocketErrorCode == SocketError.AddressAlreadyInUse)
                     return false;
-                else
-                {
-                    Console.WriteLine($@"Unhandled exception initializing IPC server: {ex}");
-                    return false;
-                }
+
+                Console.WriteLine($@"Unhandled exception initializing IPC server: {ex}");
+                return false;
             }
         }
 

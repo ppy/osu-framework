@@ -94,7 +94,7 @@ namespace osu.Framework.Desktop.Platform.Windows
             }
         }
 
-        public override void SetText(string text)
+        public override void SetText(string selectedText)
         {
             try
             {
@@ -103,9 +103,9 @@ namespace osu.Framework.Desktop.Platform.Windows
 
                 EmptyClipboard();
 
-                uint bytes = ((uint)text.Length + 1) * 2;
+                uint bytes = ((uint)selectedText.Length + 1) * 2;
 
-                var source = Marshal.StringToHGlobalUni(text);
+                var source = Marshal.StringToHGlobalUni(selectedText);
 
                 const int gmem_movable = 0x0002;
                 const int gmem_zeroinit = 0x0040;

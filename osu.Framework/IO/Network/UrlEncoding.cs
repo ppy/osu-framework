@@ -60,11 +60,11 @@ namespace osu.Framework.IO.Network
                     num2++;
                 }
             }
-            if ((!alwaysCreateReturnValue && (num == 0)) && (num2 == 0))
+            if (!alwaysCreateReturnValue && num == 0 && num2 == 0)
             {
                 return bytes;
             }
-            byte[] buffer = new byte[count + (num2 * 2)];
+            byte[] buffer = new byte[count + num2 * 2];
             int num4 = 0;
             for (int j = 0; j < count; j++)
             {
@@ -90,7 +90,7 @@ namespace osu.Framework.IO.Network
 
         public static bool IsSafe(char ch)
         {
-            if ((((ch >= 'a') && (ch <= 'z')) || ((ch >= 'A') && (ch <= 'Z'))) || ((ch >= '0') && (ch <= '9')))
+            if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9')
             {
                 return true;
             }
@@ -115,7 +115,7 @@ namespace osu.Framework.IO.Network
             {
                 return (char)(n + 0x30);
             }
-            return (char)((n - 10) + 0x61);
+            return (char)(n - 10 + 0x61);
         }
     }
 }

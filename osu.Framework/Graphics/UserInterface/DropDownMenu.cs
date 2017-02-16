@@ -96,7 +96,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectedIndex = value;
 
-                SelectedItem.IsSelected = true;
+                if (SelectedItem != null)
+                    SelectedItem.IsSelected = true;
+                
                 TriggerValueChanged();
             }
         }
@@ -165,7 +167,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public event EventHandler ValueChanged;
 
-        public DropDownMenu()
+        protected DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
             Direction = FlowDirections.Vertical;
@@ -277,8 +279,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (DropDownItemsContainer == null || !DropDownItemsContainer.IsLoaded)
                 return;
 
-            for (int i = 0; i < items.Count; i++)
-                DropDownItemsContainer.Add(items[i]);
+            foreach (DropDownMenuItem<T> item in items)
+                DropDownItemsContainer.Add(item);
 
             listInitialized = true;
         }

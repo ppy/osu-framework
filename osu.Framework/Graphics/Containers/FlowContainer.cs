@@ -24,7 +24,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 return AutoSizeEasing;
             }
-
             set
             {
                 AutoSizeEasing = value;
@@ -37,7 +36,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 return AutoSizeDuration * 2;
             }
-
             set
             {
                 //coupling with autosizeduration allows us to smoothly transition our size
@@ -106,9 +104,8 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                FlowContainer t = d as FlowContainer;
-
-                t.Spacing = CurrentValue;
+                FlowContainer flowContainer = (FlowContainer)d;
+                flowContainer.Spacing = CurrentValue;
             }
         }
 
@@ -166,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     float rowMaxHeight = 0;
-                    foreach (Drawable d in SortedChildren)
+                    foreach (T d in SortedChildren)
                     {
                         Vector2 size = Vector2.Zero;
 

@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public TextureUpload(int size, BufferStack<byte> bufferStack = null)
         {
-            this.bufferStack = bufferStack == null ? globalBufferStack : bufferStack;
+            this.bufferStack = bufferStack ?? globalBufferStack;
             Data = this.bufferStack.ReserveBuffer(size);
         }
 

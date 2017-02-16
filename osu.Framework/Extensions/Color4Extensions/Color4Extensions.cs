@@ -13,12 +13,12 @@ namespace osu.Framework.Extensions.Color4Extensions
 
         public static double ToLinear(double color)
         {
-            return color <= 0.04045 ? (color / 12.92) : Math.Pow((color + 0.055) / 1.055, GAMMA);
+            return color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
         }
 
         public static double ToSRGB(double color)
         {
-            return color < 0.0031308 ? (12.92 * color) : (1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055);
+            return color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
         }
 
         public static Color4 ToLinear(this Color4 colour)
@@ -43,7 +43,8 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            
+            if (second.Equals(Color4.White))
                 return first;
 
             first = first.ToLinear();
@@ -60,7 +61,8 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            
+            if (second.Equals(Color4.White))
                 return first;
 
             return new Color4(

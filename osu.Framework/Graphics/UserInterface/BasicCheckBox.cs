@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private Box box;
+        private readonly Box box;
         private SpriteText labelSpriteText;
 
         public BasicCheckBox()

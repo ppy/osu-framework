@@ -45,10 +45,9 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 return IsSelected ? DropDownMenuItemState.Selected : DropDownMenuItemState.NotSelected;
             }
-
             set
             {
-                IsSelected = (value == DropDownMenuItemState.Selected);
+                IsSelected = value == DropDownMenuItemState.Selected;
             }
         }
 
@@ -70,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        public DropDownMenuItem(string text, T value)
+        protected DropDownMenuItem(string text, T value)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -100,7 +99,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void FormatBackground(bool hover = false)
         {
-            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour), 0);
+            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
         }
 
         protected override void LoadComplete()

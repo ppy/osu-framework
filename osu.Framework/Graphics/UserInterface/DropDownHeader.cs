@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract string Label { get; set; }
 
-        public DropDownHeader()
+        protected DropDownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;

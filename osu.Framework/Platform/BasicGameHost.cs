@@ -138,7 +138,7 @@ namespace osu.Framework.Platform
         private string name;
         public override string Name => name;
 
-        public DependencyContainer Dependencies { get; private set; } = new DependencyContainer();
+        public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         protected BasicGameHost(string gameName = @"")
         {
@@ -184,7 +184,7 @@ namespace osu.Framework.Platform
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
-            var exception = e.ExceptionObject as Exception;
+            var exception = (Exception)e.ExceptionObject;
 
             if (ExceptionThrown != null)
                 ExceptionThrown.Invoke(exception);

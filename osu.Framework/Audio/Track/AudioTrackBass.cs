@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Track
 
                 procs = new DataStreamFileProcedures(dataStream);
 
-                BassFlags flags = Preview ? 0 : (BassFlags.Decode | BassFlags.Prescan);
+                BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
                 audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
                 if (Preview)
@@ -74,7 +74,7 @@ namespace osu.Framework.Audio.Track
                     Bass.ChannelSetAttribute(activeStream, ChannelAttribute.TempoSequenceMilliseconds, 30);
                 }
 
-                Length = (Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000);
+                Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
             });
 
@@ -169,7 +169,7 @@ namespace osu.Framework.Audio.Track
             {
                 double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
                 if (value == Length && !isPlayed) return 0;
-                else return value;
+                return value;
             }
         }
 
@@ -193,13 +193,13 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-        public override bool HasCompleted => base.HasCompleted || (!IsRunning && CurrentTime >= Length);
+        public override bool HasCompleted => base.HasCompleted || !IsRunning && CurrentTime >= Length;
 
         private class DataStreamFileProcedures
         {
             private byte[] readBuffer = new byte[32768];
 
-            private AsyncBufferStream dataStream;
+            private readonly AsyncBufferStream dataStream;
 
             public FileProcedures BassProcedures => new FileProcedures
             {
