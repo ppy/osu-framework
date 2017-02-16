@@ -14,7 +14,7 @@ namespace osu.Framework.Allocation
     {
         public delegate object ObjectActivator(DependencyContainer dc, object instance);
 
-        private ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
+        private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private HashSet<Type> cacheable = new HashSet<Type>();
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Allocation
                 var init = getLoaderMethod(parent);
                 if (init != null)
                     initializerMethods.Insert(0, init);
-                parent = parent.BaseType;
+                parent = parent?.BaseType;
             }
             if (initialize != null)
                 initializerMethods.Add(initialize);

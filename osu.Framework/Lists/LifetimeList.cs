@@ -19,7 +19,7 @@ namespace osu.Framework.Lists
         }
 
         public SortedList<T> AliveItems { get; }
-        private List<bool> current = new List<bool>();
+        private readonly List<bool> current = new List<bool>();
 
         /// <summary>
         /// Updates the life status of this LifetimeList's children.

@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
         private Shader textureShader;
         private Shader roundedTextureShader;
 
-        public bool WrapTexture = false;
+        public bool WrapTexture;
 
         public const int MAX_EDGE_SMOOTHNESS = 2;
 
@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            SpriteDrawNode n = node as SpriteDrawNode;
+            SpriteDrawNode n = (SpriteDrawNode)node;
 
             n.ScreenSpaceDrawQuad = ScreenSpaceDrawQuad;
             n.DrawRectangle = DrawRectangle;
@@ -100,18 +100,15 @@ namespace osu.Framework.Graphics.Sprites
                 inflationAmount = Vector2.Zero;
                 return base.ComputeScreenSpaceDrawQuad();
             }
-            else
-            {
-                Debug.Assert(
-                    EdgeSmoothness.X <= MAX_EDGE_SMOOTHNESS &&
-                    EdgeSmoothness.Y <= MAX_EDGE_SMOOTHNESS,
-                    $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
+            Debug.Assert(
+                EdgeSmoothness.X <= MAX_EDGE_SMOOTHNESS &&
+                EdgeSmoothness.Y <= MAX_EDGE_SMOOTHNESS,
+                $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
 
-                Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-                inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
-                return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
-            }
+            inflationAmount = new Vector2(scale.X * EdgeSmoothness.X, scale.Y * EdgeSmoothness.Y);
+            return ToScreenSpace(DrawRectangle.Inflate(inflationAmount));
         }
 
         public override string ToString()

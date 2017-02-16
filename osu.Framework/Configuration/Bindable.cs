@@ -82,13 +82,7 @@ namespace osu.Framework.Configuration
             ValueChanged = null;
         }
 
-        string description;
-
-        public string Description
-        {
-            get { return description; }
-            set { description = value; }
-        }
+        public string Description { get; set; }
 
         public override string ToString()
         {

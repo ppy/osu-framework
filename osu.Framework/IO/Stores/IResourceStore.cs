@@ -5,7 +5,7 @@ using System.IO;
 
 namespace osu.Framework.IO.Stores
 {
-    public interface IResourceStore<T>
+    public interface IResourceStore<out T>
     {
         /// <summary>
         /// Retrieves an object from the store.

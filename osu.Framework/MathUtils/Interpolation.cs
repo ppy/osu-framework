@@ -101,7 +101,7 @@ namespace osu.Framework.MathUtils
                     return -change * (time /= duration) * (time - 2) + initial;
                 case EasingTypes.InOutQuad:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time + initial;
-                    return -change / 2 * ((--time) * (time - 2) - 1) + initial;
+                    return -change / 2 * (--time * (time - 2) - 1) + initial;
                 case EasingTypes.InCubic:
                     return change * (time /= duration) * time * time + initial;
                 case EasingTypes.OutCubic:
@@ -132,7 +132,7 @@ namespace osu.Framework.MathUtils
                 case EasingTypes.InExpo:
                     return change * Math.Pow(2, 10 * (time / duration - 1)) + initial;
                 case EasingTypes.OutExpo:
-                    return (time == duration) ? initial + change : change * (-Math.Pow(2, -10 * time / duration) + 1) + initial;
+                    return time == duration ? initial + change : change * (-Math.Pow(2, -10 * time / duration) + 1) + initial;
                 case EasingTypes.InOutExpo:
                     if ((time /= duration / 2) < 1) return change / 2 * Math.Pow(2, 10 * (time - 1)) + initial;
                     return change / 2 * (-Math.Pow(2, -10 * --time) + 2) + initial;

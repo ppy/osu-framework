@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class AudioSample : AdjustableAudioComponent, IHasCompletedState, IUpdateable
+    public abstract class AudioSample : AdjustableAudioComponent, IHasCompletedState
     {
         protected bool WasStarted;
 
@@ -34,9 +34,6 @@ namespace osu.Framework.Audio.Sample
 
         public bool HasCompleted => Played && (OneShot || IsDisposed);
 
-        public virtual void Pause()
-        {
-            if (!Playing) return;
-        }
+        public virtual void Pause() { }
     }
 }

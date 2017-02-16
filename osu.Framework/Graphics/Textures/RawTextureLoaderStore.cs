@@ -10,8 +10,8 @@ namespace osu.Framework.Graphics.Textures
 {
     public class RawTextureLoaderStore : ResourceStore<RawTexture>
     {
-        private IResourceStore<byte[]> store { get; set; }
-    
+        private IResourceStore<byte[]> store { get; }
+
         public RawTextureLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;

@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics.Primitives
                 float lsq1 = d1.LengthSquared;
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * (MathHelper.InverseSqrtFast(lsq1))));
+                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
 
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }

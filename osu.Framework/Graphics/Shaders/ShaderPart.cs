@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Shaders
 #if DEBUG
             string compileLog = GL.GetShaderInfoLog(this);
             Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
-            Log.AppendLine(string.Format("\tCompiled: {0}", Compiled));
+            Log.AppendLine($"\tCompiled: {Compiled}");
             if (!Compiled)
             {
                 Log.AppendLine("\tLog:");

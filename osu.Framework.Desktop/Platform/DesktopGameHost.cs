@@ -15,10 +15,10 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {
-        private TcpIpcProvider ipcProvider;
-        private Task ipcTask;
+        private readonly TcpIpcProvider ipcProvider;
+        private readonly Task ipcTask;
 
-        public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
             //todo: yeah.
             Architecture.SetIncludePath();
@@ -39,7 +39,7 @@ namespace osu.Framework.Desktop.Platform
                 IsPrimaryInstance = ipcProvider.Bind();
                 if (IsPrimaryInstance)
                 {
-                    ipcProvider.MessageReceived += msg => OnMessageReceived(msg);
+                    ipcProvider.MessageReceived += OnMessageReceived;
                     ipcTask = ipcProvider.Start();
                 }
             }
@@ -51,7 +51,7 @@ namespace osu.Framework.Desktop.Platform
         private void ensureShadowCopy()
         {
             string exe = System.Reflection.Assembly.GetEntryAssembly().Location;
-            if (exe.Contains(@"_shadow"))
+            if (exe != null && exe.Contains(@"_shadow"))
             {
                 //we are already running a shadow copy. monitor the original executable path for changes.
                 exe = exe.Replace(@"_shadow", @"");
@@ -70,7 +70,7 @@ namespace osu.Framework.Desktop.Platform
                 return;
             }
 
-            string shadowExe = exe.Replace(@".exe", @"_shadow.exe");
+            string shadowExe = exe?.Replace(@".exe", @"_shadow.exe");
 
             int attempts = 5;
             while (attempts-- > 0)

@@ -252,7 +252,8 @@ namespace osu.Framework.Audio
                 //let's try again using the default device.
                 return setAudioDevice();
             }
-            else if (Bass.LastError == Errors.Already)
+
+            if (Bass.LastError == Errors.Already)
             {
                 // We check if the initialization error is that we already initialized the device
                 // If it is, it means we can just tell Bass to use the already initialized device without much

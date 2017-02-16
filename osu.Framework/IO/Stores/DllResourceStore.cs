@@ -8,8 +8,8 @@ namespace osu.Framework.IO.Stores
 {
     public class DllResourceStore : IResourceStore<byte[]>
     {
-        private Assembly assembly;
-        private string space;
+        private readonly Assembly assembly;
+        private readonly string space;
 
         public DllResourceStore(string dllName)
         {

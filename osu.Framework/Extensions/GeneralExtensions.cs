@@ -152,7 +152,7 @@ namespace osu.Framework.Extensions
         public static void ThrowIfFaulted(this Task task)
         {
             if (task.IsFaulted)
-                ExceptionDispatchInfo.Capture(task.Exception.InnerException).Throw();
+                ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
         }
     }
 }

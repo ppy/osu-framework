@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Performance
                                     Anchor = Anchor.CentreLeft,
                                     Rotation = -90,
                                 },
-                                !hasCounters ? new Container() { Width = 2 } : new Container
+                                !hasCounters ? new Container { Width = 2 } : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
@@ -338,7 +338,7 @@ namespace osu.Framework.Graphics.Performance
 
             timeBar.Sprite.Texture.SetData(upload);
 
-            timeBars[timeBarIndex].MoveToX((width - timeBarX));
+            timeBars[timeBarIndex].MoveToX(width - timeBarX);
             timeBars[(timeBarIndex + 1) % timeBars.Length].MoveToX(-timeBarX);
             currentX = (currentX + 1) % (timeBars.Length * width);
 
@@ -383,7 +383,6 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case PerformanceCollectionType.Work:
                     return Color4.YellowGreen;
                 case PerformanceCollectionType.SwapBuffer:
                     return Color4.Red;
@@ -409,7 +408,6 @@ namespace osu.Framework.Graphics.Performance
             switch (type)
             {
                 default:
-                case StatisticsCounterType.VBufOverflow:
                     return Color4.Yellow;
 
                 case StatisticsCounterType.Invalidations:
@@ -497,7 +495,7 @@ namespace osu.Framework.Graphics.Performance
 
         class CounterBar : Container
         {
-            private Box box;
+            private readonly Box box;
             private SpriteText text;
 
             public string Label;
@@ -522,7 +520,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = string.Format(@"{0}: {1}", Label, (long)Math.Round(Math.Pow(10, box.Height * amount_count_steps) - 1));
+                        text.Text = $@"{Label}: {(long)Math.Round(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
                     }
                 }
             }

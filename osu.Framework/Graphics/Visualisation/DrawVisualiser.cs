@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private TreeContainer treeContainer;
 
-        private InfoOverlay overlay;
+        private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
         private List<Drawable> hoveredDrawables = new List<Drawable>();
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.Visualisation
                 HoverLost = delegate
                 {
                     hoveredDrawables.Remove(target);
-                    overlay.Target = (hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null);
+                    overlay.Target = hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null;
                 },
                 RequestTarget = delegate { Target = target; }
             };

@@ -40,13 +40,13 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public readonly BindableDouble Balance = new BindableDouble(0)
+        public readonly BindableDouble Balance = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
         };
 
-        protected readonly BindableDouble BalanceCalculated = new BindableDouble(0)
+        protected readonly BindableDouble BalanceCalculated = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1

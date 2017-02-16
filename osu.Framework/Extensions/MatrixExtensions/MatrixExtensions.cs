@@ -136,9 +136,9 @@ namespace osu.Framework.Extensions.MatrixExtensions
             float d22 = value.M11 * value.M33 + value.M13 * -value.M31;
             float d23 = value.M11 * value.M32 + value.M12 * -value.M31;
 
-            float d31 = (value.M12 * value.M23) - (value.M13 * value.M22);
-            float d32 = (value.M11 * value.M23) - (value.M13 * value.M21);
-            float d33 = (value.M11 * value.M22) - (value.M12 * value.M21);
+            float d31 = value.M12 * value.M23 - value.M13 * value.M22;
+            float d32 = value.M11 * value.M23 - value.M13 * value.M21;
+            float d33 = value.M11 * value.M22 - value.M12 * value.M21;
 
             value.M11 = +d11 * det;
             value.M12 = -d21 * det;

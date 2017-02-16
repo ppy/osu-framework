@@ -7,7 +7,7 @@ namespace osu.Framework.IO.Stores
 {
     public class CachedResourceStore<T> : ResourceStore<T>
     {
-        private Dictionary<string, T> cache = new Dictionary<string, T>();
+        private readonly Dictionary<string, T> cache = new Dictionary<string, T>();
 
         /// <summary>
         /// Initializes a resource store with no stores.

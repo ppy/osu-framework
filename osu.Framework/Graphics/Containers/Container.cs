@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     public partial class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
-        private bool masking = false;
+        private bool masking;
         public bool Masking
         {
             get { return masking; }
@@ -145,13 +145,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            ContainerDrawNode n = node as ContainerDrawNode;
+            ContainerDrawNode n = (ContainerDrawNode)node;
 
             Debug.Assert(
-                Masking || (CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None),
+                Masking || CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None,
                 "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
@@ -332,8 +333,8 @@ namespace osu.Framework.Graphics.Containers
         public int RemoveAll(Predicate<T> match)
         {
             List<T> toRemove = children.FindAll(match);
-            for (int i = 0; i < toRemove.Count; i++)
-                Remove(toRemove[i]);
+            foreach (T removable in toRemove)
+                Remove(removable);
 
             return toRemove.Count;
         }
@@ -396,7 +397,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
-            foreach (Drawable child in InternalChildren)
+            foreach (T child in InternalChildren)
                 child.UpdateClock(Clock);
         }
 
@@ -421,7 +422,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        [BackgroundDependencyLoader(permitNulls: true)]
+        [BackgroundDependencyLoader(true)]
         private void load(BaseGame game, ShaderManager shaders)
         {
             if (shader == null)
@@ -620,8 +621,7 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cornerRadius == 0.0f)
                 return base.Contains(screenSpacePos);
-            else
-                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
+            return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
         public override RectangleF BoundingBox
@@ -657,7 +657,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue))
                 return false;
 
-            foreach (Drawable d in AliveChildren)
+            foreach (T d in AliveChildren)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -668,7 +668,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
                 return false;
 
-            foreach (Drawable d in AliveChildren)
+            foreach (T d in AliveChildren)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;

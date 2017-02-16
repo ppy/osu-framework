@@ -29,7 +29,7 @@ namespace osu.Framework
         {
             IsMono = Type.GetType("Mono.Runtime") != null;
             int p = (int)Environment.OSVersion.Platform;
-            IsUnix = (p == 4) || (p == 6) || (p == 128);
+            IsUnix = p == 4 || p == 6 || p == 128;
             IsWindows = Path.DirectorySeparatorChar == '\\';
 
             Is32Bit = IntPtr.Size == 4;
@@ -37,18 +37,23 @@ namespace osu.Framework
 
             if (IsUnix)
             {
-                Process uname = new Process();
-                uname.StartInfo.FileName = "uname";
-                uname.StartInfo.UseShellExecute = false;
-                uname.StartInfo.RedirectStandardOutput = true;
-                uname.Start();
-                string output = uname.StandardOutput.ReadToEnd();
-                uname.WaitForExit();
+                Process uname = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "uname",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                });
 
-                output = output.ToUpper().Replace("\n", "").Trim();
+                if (uname != null)
+                {
+                    string output = uname.StandardOutput.ReadToEnd();
+                    uname.WaitForExit();
 
-                IsMacOsx = output == "DARWIN";
-                IsLinux = output == "LINUX";
+                    output = output.ToUpper().Replace("\n", "").Trim();
+
+                    IsMacOsx = output == "DARWIN";
+                    IsLinux = output == "LINUX";
+                }
             }
             else
             {

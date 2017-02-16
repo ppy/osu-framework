@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Visualisation
     class FlashyBox : Box
     {
         Drawable target;
-        Func<Drawable, Quad> getScreenSpaceQuad;
+        readonly Func<Drawable, Quad> getScreenSpaceQuad;
 
         public FlashyBox(Func<Drawable, Quad> getScreenSpaceQuad)
         {

@@ -8,8 +8,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -47,7 +45,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 return new StyledDropDownHeader();
             }
-            
+
             protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<KeyValuePair<string, string>> values)
             {
                 return values.Select(v => new StyledDropDownMenuItem(v.Key));

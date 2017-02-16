@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Batches
 {
     public class LinearBatch<T> : VertexBatch<T> where T : struct, IEquatable<T>
     {
-        private PrimitiveType type;
+        private readonly PrimitiveType type;
 
         public LinearBatch(int size, int maxBuffers, PrimitiveType type)
             : base(size, maxBuffers)

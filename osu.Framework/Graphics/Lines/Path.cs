@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Lines
 {
     public class Path : Drawable
     {
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            PathDrawNode n = node as PathDrawNode;
+            PathDrawNode n = (PathDrawNode)node;
 
             n.Texture = Texture;
             n.TextureShader = textureShader;

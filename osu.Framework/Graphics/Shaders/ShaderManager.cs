@@ -93,9 +93,11 @@ namespace osu.Framework.Graphics.Shaders
             if (shaderCache.ContainsKey(name))
                 return shaderCache[name];
 
-            List<ShaderPart> parts = new List<ShaderPart>();
-            parts.Add(createShaderPart(vertex, ShaderType.VertexShader));
-            parts.Add(createShaderPart(fragment, ShaderType.FragmentShader));
+            List<ShaderPart> parts = new List<ShaderPart>
+            {
+                createShaderPart(vertex, ShaderType.VertexShader),
+                createShaderPart(fragment, ShaderType.FragmentShader)
+            };
 
             Shader shader = new Shader(name, parts);
 
