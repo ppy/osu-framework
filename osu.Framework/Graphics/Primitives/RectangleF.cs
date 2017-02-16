@@ -212,7 +212,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             return
                 (int)
-                ((((uint)X ^ (((uint)Y << 13) | ((uint)Y >> 0x13))) ^
+                ((((uint)X ^ ((uint)Y << 13 | (uint)Y >> 0x13)) ^
                   (((uint)Width << 0x1a) | ((uint)Width >> 6))) ^
                  (((uint)Height << 7) | ((uint)Height >> 0x19)));
         }
