@@ -26,10 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
                 foreach (FlashyBox c in Children)
                     c.Target = target;
 
-                if (target != null)
-                    Alpha = 1;
-                else
-                    Alpha = 0;
+                Alpha = target != null ? 1.0f : 0.0f;
 
                 Pulse();
             }
