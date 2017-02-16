@@ -37,11 +37,13 @@ namespace osu.Framework
 
             if (IsUnix)
             {
-                Process uname = new Process();
-                uname.StartInfo.FileName = "uname";
-                uname.StartInfo.UseShellExecute = false;
-                uname.StartInfo.RedirectStandardOutput = true;
-                uname.Start();
+                Process uname = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "uname",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                });
+
                 string output = uname.StandardOutput.ReadToEnd();
                 uname.WaitForExit();
 

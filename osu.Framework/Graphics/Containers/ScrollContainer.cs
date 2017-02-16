@@ -356,8 +356,10 @@ namespace osu.Framework.Graphics.Containers
 
             public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
             {
-                Vector2 size = new Vector2(10);
-                size[scrollDim] = val;
+                Vector2 size = new Vector2(10)
+                {
+                    [scrollDim] = val
+                };
                 ResizeTo(size, duration, easing);
             }
 
