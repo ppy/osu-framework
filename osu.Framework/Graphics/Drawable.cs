@@ -138,7 +138,18 @@ namespace osu.Framework.Graphics
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(mainThread)); // mainThread could be null at this point. If so, then it will be set upon LoadComplete.
+        protected Scheduler Scheduler
+        {
+            get
+            {
+                if (scheduler == null)
+                    // mainThread could be null at this point.
+                    // If so, then it will be set upon LoadComplete.
+                    scheduler = new Scheduler(mainThread);
+
+                return scheduler;
+            }
+        }
 
         private LifetimeList<ITransform> transforms;
 
