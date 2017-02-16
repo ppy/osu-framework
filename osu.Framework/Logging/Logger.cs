@@ -209,11 +209,11 @@ namespace osu.Framework.Logging
 
         private void addHeader()
         {
-            Add($@"----------------------------------------------------------");
+            Add(@"----------------------------------------------------------");
             Add($@"{Target} Log for {UserIdentifier}");
             Add($@"osu! version {VersionIdentifier}");
             Add($@"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores");
-            Add($@"----------------------------------------------------------");
+            Add(@"----------------------------------------------------------");
         }
 
         static List<string> filters = new List<string>();
