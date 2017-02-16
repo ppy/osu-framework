@@ -18,11 +18,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class TabContainer : Container
     {
 
-        private Container currentTab;
-        private Container tabIndexes;
-        private FlowContainer tabIndexesFlow;
-        private Box tabIndexesBackground;
-        private Container tabBodies;
+        protected internal Container currentTab;
+        protected internal TabIndexContainer tabIndexes;
+        protected internal Container tabBodies;
 
 
         public float TabIndexHeight
@@ -42,23 +40,13 @@ namespace osu.Framework.Graphics.UserInterface
         }
         public Color4 TabIndexTextColor { get; set; } = Color4.Yellow;
         public Font TabIndexTextFont { get; set; }
-        public Color4 TabIndexBackgroundColor
-        {
-            get
-            {
-                return tabIndexesBackground.Colour;
-            }
-            set
-            {
-                tabIndexesBackground.Colour = value;
-            }
-        }
+        
 
 
         public void AddTab(Container tab, string name)
         {
             ChangeTab(tab);
-            tabIndexesFlow.Add(new TabIndex(this, tab, name));
+            tabIndexes.AddIndex(new TabIndex(this, tab, name));
             tabBodies.Add(tab);
         }
 
@@ -75,24 +63,10 @@ namespace osu.Framework.Graphics.UserInterface
         public TabContainer()
         {
             Children = new Drawable[] {
-                tabIndexes = new Container()
+                tabIndexes = new TabIndexContainer(this)
                 {
                     RelativeSizeAxes = Axes.X,
                     Height = 20,
-                    Children = new Drawable[]
-                    {
-                        tabIndexesBackground = new Box()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.DarkGray,
-                        },
-                        tabIndexesFlow = new FlowContainer()
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Direction = FlowDirections.Horizontal,
-                            Spacing = new Vector2(5,0),
-                        }
-                    }
                 },
                 tabBodies = new Container()
                 {
@@ -105,6 +79,45 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
+    }
+
+    public class TabIndexContainer : Container
+    {
+        public FlowContainer TabIndexes { get; set; }
+        private Box tabIndexesBackground;
+        public Color4 TabIndexBackgroundColor
+        {
+            get
+            {
+                return tabIndexesBackground.Colour;
+            }
+            set
+            {
+                tabIndexesBackground.Colour = value;
+            }
+        }
+        public TabIndexContainer(TabContainer container)
+        {
+            Children = new Drawable[]
+                    {
+                        tabIndexesBackground = new Box()
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.DarkGray,
+                        },
+                        TabIndexes = new FlowContainer()
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Direction = FlowDirections.Horizontal,
+                            Spacing = new Vector2(5,0),
+                        }
+                    };
+        }
+
+        internal void AddIndex(TabIndex tabIndex)
+        {
+            TabIndexes.Add(tabIndex);
+        }
     }
 
     public class TabIndex : ClickableContainer
