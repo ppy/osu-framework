@@ -78,17 +78,17 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected override bool OnClick(InputState state)
-        {
-            foreach(Drawable drawable in Header.Children){
-                System.Diagnostics.Debug.WriteLine(drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position, drawable)));
-                if (drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position,drawable)))
-                {
-                    ChangeTab((drawable as TabHead).Container);
-                }
-            }
-            return base.OnClick(state);
-        }
+        //protected override bool OnClick(InputState state)
+        //{
+        //    foreach(Drawable drawable in Header.Children){
+        //        System.Diagnostics.Debug.WriteLine(drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position, drawable)));
+        //        if (drawable.Contains(ToSpaceOfOtherDrawable(state.Mouse.Position,drawable)))
+        //        {
+        //            ChangeTab((drawable as TabHead).Container);
+        //        }
+        //    }
+        //    return base.OnClick(state);
+        //}
     }
 
     public class TabHeadContainer : Container
@@ -156,6 +156,12 @@ namespace osu.Framework.Graphics.UserInterface
                     Text = tabName,
                 }
             };
+        }
+
+        protected override bool OnClick(InputState state)
+        {
+            (Container.Parent.Parent as TabContainer).ChangeTab(Container);
+            return base.OnClick(state);
         }
     }
 }
