@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Textures
             tex.SetData(new TextureUpload(raw.Pixels)
             {
                 Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
-                Format = raw.PixelFormat
+                Format = raw.PixelFormat,
             });
 
             return tex;

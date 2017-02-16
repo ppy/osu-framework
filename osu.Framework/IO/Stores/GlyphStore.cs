@@ -92,7 +92,7 @@ namespace osu.Framework.IO.Stores
                 Pixels = pixels,
                 PixelFormat = OpenTK.Graphics.ES30.PixelFormat.Rgba,
                 Width = width,
-                Height = height
+                Height = height,
             };
         }
 

@@ -45,7 +45,7 @@ namespace osu.Framework.Allocation
                         {
                             Finish = finishDelegate,
                             Usage = UsageType.Write,
-                            Index = write
+                            Index = write,
                         };
                     }
                     else

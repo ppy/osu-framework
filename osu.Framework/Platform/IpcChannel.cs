@@ -22,7 +22,7 @@ namespace osu.Framework.Platform
             var msg = new IpcMessage
             {
                 Type = typeof(T).AssemblyQualifiedName,
-                Value = message
+                Value = message,
             };
             await host.SendMessage(msg);
         }

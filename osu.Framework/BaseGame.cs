@@ -71,8 +71,8 @@ namespace osu.Framework
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both
-                }
+                    RelativeSizeAxes = Axes.Both,
+                },
             });
         }
 
@@ -80,12 +80,12 @@ namespace osu.Framework
         {
             (DrawVisualiser = new DrawVisualiser
             {
-                Depth = float.MinValue / 2
+                Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
 
             (logOverlay = new LogOverlay
             {
-                Depth = float.MinValue / 2
+                Depth = float.MinValue / 2,
             }).Preload(this, AddInternal);
         }
 

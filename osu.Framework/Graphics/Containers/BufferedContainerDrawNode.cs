@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
                 MaskingRect = ScreenSpaceDrawRectangle,
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
-                AlphaExponent = 1
+                AlphaExponent = 1,
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
@@ -135,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
                 Source = BlendingFactorSrc.One,
                 Destination = BlendingFactorDest.Zero,
                 SourceAlpha = BlendingFactorSrc.One,
-                DestinationAlpha = BlendingFactorDest.Zero
+                DestinationAlpha = BlendingFactorDest.Zero,
             });
 
             using (bindFrameBuffer(target, source.Size))

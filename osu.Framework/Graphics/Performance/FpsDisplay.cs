@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Performance
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                     Text = @"...",
-                    FixedWidth = true
+                    FixedWidth = true,
                 }
             });
         }

@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.DarkGray
+                    Colour = Color4.DarkGray,
                 },
                 Foreground = new Container
                 {
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y
-                }
+                },
             };
         }
 

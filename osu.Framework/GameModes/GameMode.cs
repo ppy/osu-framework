@@ -52,8 +52,8 @@ namespace osu.Framework.GameModes
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both
-                }
+                    RelativeSizeAxes = Axes.Both,
+                },
             });
         }
 

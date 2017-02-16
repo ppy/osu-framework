@@ -79,7 +79,7 @@ namespace osu.Framework.Threading
             Thread = new Thread(runWork)
             {
                 Name = threadName,
-                IsBackground = true
+                IsBackground = true,
             };
 
             Clock = new ThrottledFrameClock();

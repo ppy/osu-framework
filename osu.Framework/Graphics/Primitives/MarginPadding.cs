@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Primitives
                 Left = -mp.Left,
                 Top = -mp.Top,
                 Right = -mp.Right,
-                Bottom = -mp.Bottom
+                Bottom = -mp.Bottom,
             };
         }
     }

@@ -81,13 +81,13 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 Background = new Box
                 {
-                    RelativeSizeAxes = Axes.Both
+                    RelativeSizeAxes = Axes.Both,
                 },
                 Foreground = new Container
                 {
                     RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y
-                }
+                    AutoSizeAxes = Axes.Y,
+                },
             };
         }
 

@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.OpenGL
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
-                AlphaExponent = 1
+                AlphaExponent = 1,
             }, true);
         }
 

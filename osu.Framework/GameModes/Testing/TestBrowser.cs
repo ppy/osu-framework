@@ -173,7 +173,7 @@ namespace osu.Framework.GameModes.Testing
                         {
                             Left = 4,
                             Right = 4,
-                            Bottom = 2
+                            Bottom = 2,
                         },
                         Children = new[]
                         {
@@ -181,7 +181,7 @@ namespace osu.Framework.GameModes.Testing
                             {
                                 Text = test.Name,
                                 AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X
+                                RelativeSizeAxes = Axes.X,
                             },
                             new SpriteText
                             {

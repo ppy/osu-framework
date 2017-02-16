@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Size = new Vector2(width),
                             Scale = new Vector2(TextSize),
-                            Colour = Color4.Transparent
+                            Colour = Color4.Transparent,
                         };
                     }
                     else

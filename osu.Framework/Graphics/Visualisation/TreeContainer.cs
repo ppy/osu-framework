@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Colour = Color4.DarkBlue,
                             RelativeSizeAxes = Axes.X,
-                            Size = new Vector2(1, 20)
+                            Size = new Vector2(1, 20),
                         },
                         new Container //toolbar
                         {
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Visualisation
                             {
                                 new Box {
                                     Colour = new Color4(20, 20, 20, 255),
-                                    RelativeSizeAxes = Axes.Both
+                                    RelativeSizeAxes = Axes.Both,
                                 },
                                 new FlowContainer
                                 {
@@ -122,13 +122,13 @@ namespace osu.Framework.Graphics.Visualisation
                                             Text = @"Up one parent",
                                             Action = delegate {
                                                 GoUpOneParent?.Invoke();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 new Container
                 {
@@ -140,7 +140,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Text = @"Waiting for target selection...",
                     Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre
+                    Origin = Anchor.Centre,
                 }
             });
         }

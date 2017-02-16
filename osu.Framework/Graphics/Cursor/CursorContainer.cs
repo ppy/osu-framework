@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Cursor
                     {
                         Size = new Vector2(8, 8),
                         Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre
+                        Anchor = Anchor.Centre,
                     }
                 };
             }

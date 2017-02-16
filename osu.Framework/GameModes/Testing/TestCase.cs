@@ -52,8 +52,8 @@ namespace osu.Framework.GameModes.Testing
                     },
                     Contents = new Container
                     {
-                        RelativeSizeAxes = Axes.Both
-                    }
+                        RelativeSizeAxes = Axes.Both,
+                    },
                 };
             }
             else

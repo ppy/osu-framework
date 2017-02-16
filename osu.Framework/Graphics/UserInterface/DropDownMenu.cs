@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.UserInterface
                         ContentBackground = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black
+                            Colour = Color4.Black,
                         },
                         new ScrollContainer
                         {
@@ -193,11 +193,11 @@ namespace osu.Framework.Graphics.UserInterface
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
-                                    Direction = FlowDirections.Vertical
-                                }
-                            }
-                        }
-                    }
+                                    Direction = FlowDirections.Vertical,
+                                },
+                            },
+                        },
+                    },
                 }
             };
 
