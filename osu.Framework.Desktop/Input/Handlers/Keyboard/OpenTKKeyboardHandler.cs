@@ -34,12 +34,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         class TkKeyboardState : KeyboardState
         {
-            private static readonly IEnumerable<Key> allKeys = Enum.GetValues(typeof(Key)).Cast<Key>();
+            private static readonly IEnumerable<Key> all_keys = Enum.GetValues(typeof(Key)).Cast<Key>();
 
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
                 if (tkState.IsAnyKeyDown)
-                    Keys = allKeys.Where(tkState.IsKeyDown);
+                    Keys = all_keys.Where(tkState.IsKeyDown);
             }
         }
     }

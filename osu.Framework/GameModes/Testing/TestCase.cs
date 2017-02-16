@@ -94,7 +94,7 @@ namespace osu.Framework.GameModes.Testing
     {
         private readonly Action reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
-        private static readonly Color4 onColour = Color4.YellowGreen;
+        private static readonly Color4 on_colour = Color4.YellowGreen;
 
         public bool State;
 
@@ -110,7 +110,7 @@ namespace osu.Framework.GameModes.Testing
         private void clickAction()
         {
             State = !State;
-            BackgroundColour = State ? onColour : off_colour;
+            BackgroundColour = State ? on_colour : off_colour;
             reloadCallback?.Invoke();
         }
     }
