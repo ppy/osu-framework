@@ -520,7 +520,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = string.Format(@"{0}: {1}", Label, (long)Math.Round(Math.Pow(10, box.Height * amount_count_steps) - 1));
+                        text.Text = $@"{Label}: {(long)Math.Round(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
                     }
                 }
             }

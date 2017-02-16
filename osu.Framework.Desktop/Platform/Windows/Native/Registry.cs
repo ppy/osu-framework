@@ -15,7 +15,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
             {
                 using (RegistryKey key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                 {
-                    if (key == null || key.OpenSubKey(@"shell\open\command").GetValue(string.Empty).ToString() != string.Format("\"{0}\" \"%1\"", executable))
+                    if (key == null || key.OpenSubKey(@"shell\open\command").GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
                         return false;
                     return true;
                 }
@@ -56,7 +56,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
                 // register the progId, if necessary
                 using (RegistryKey key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                 {
-                    if (key == null || key.OpenSubKey("shell\\open\\command").GetValue(string.Empty).ToString() != string.Format("\"{0}\" \"%1\"", executable))
+                    if (key == null || key.OpenSubKey("shell\\open\\command").GetValue(string.Empty).ToString() != $"\"{executable}\" \"%1\"")
                     {
                         using (RegistryKey progIdKey = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(progId))
                         {
@@ -70,7 +70,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
 
                             using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
                             {
-                                command.SetValue(string.Empty, string.Format("\"{0}\",1", executable));
+                                command.SetValue(string.Empty, $"\"{executable}\",1");
                             }
                         }
                     }
@@ -81,7 +81,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
                         {
                             using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
                             {
-                                command.SetValue(string.Empty, string.Format("\"{0}\",1", executable));
+                                command.SetValue(string.Empty, $"\"{executable}\",1");
                             }
                         }
                     }
