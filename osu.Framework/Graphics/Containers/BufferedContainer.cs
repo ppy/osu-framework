@@ -102,31 +102,27 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            BufferedContainerDrawNode n = node as BufferedContainerDrawNode;
+            BufferedContainerDrawNode n = (BufferedContainerDrawNode)node;
 
-            if (n != null)
-            {
-                n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
-                n.Batch = quadBatch;
-                n.FrameBuffers = frameBuffers;
-                n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
-                n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
+            n.ScreenSpaceDrawRectangle = ScreenSpaceDrawQuad.AABBFloat;
+            n.Batch = quadBatch;
+            n.FrameBuffers = frameBuffers;
+            n.Formats = new List<RenderbufferInternalFormat>(attachedFormats);
+            n.FilteringMode = pixelSnapping ? All.Nearest : All.Linear;
 
-                n.DrawVersion = drawVersion;
-                n.UpdateVersion = updateVersion;
-                n.BackgroundColour = BackgroundColour;
+            n.DrawVersion = drawVersion;
+            n.UpdateVersion = updateVersion;
+            n.BackgroundColour = BackgroundColour;
 
-                n.BlurSigma = BlurSigma;
-                n.BlurRotation = BlurRotation;
-                n.BlurShader = blurShader;
-            }
+            n.BlurSigma = BlurSigma;
+            n.BlurRotation = BlurRotation;
+            n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
-            if (n != null)
-                n.DrawInfo.Colour = base.DrawInfo.Colour;
+            n.DrawInfo.Colour = base.DrawInfo.Colour;
         }
 
         public void Attach(RenderbufferInternalFormat format)
@@ -167,6 +163,18 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        protected override void Dispose(bool isDisposing)
+        {
+            // right now we are relying on the finalizer for correct disposal.
+            // correct method would be to schedule these to update thread and
+            // then to the draw thread.
+
+            //foreach (FrameBuffer frameBuffer in frameBuffers)
+            //  frameBuffer.Dispose();
+
+            base.Dispose(isDisposing);
+        }
+
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformBlurSigma));
@@ -178,10 +186,8 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                BufferedContainer bufferedContainer = d as BufferedContainer;
-
-                if (bufferedContainer != null)
-                    bufferedContainer.BlurSigma = CurrentValue;
+                BufferedContainer bufferedContainer = (BufferedContainer)d;
+                bufferedContainer.BlurSigma = CurrentValue;
             }
         }
     }

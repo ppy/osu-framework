@@ -24,7 +24,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 return AutoSizeEasing;
             }
-
             set
             {
                 AutoSizeEasing = value;
@@ -37,7 +36,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 return AutoSizeDuration * 2;
             }
-
             set
             {
                 //coupling with autosizeduration allows us to smoothly transition our size
@@ -106,10 +104,8 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                FlowContainer t = d as FlowContainer;
-
-                if (t != null)
-                    t.Spacing = CurrentValue;
+                FlowContainer flowContainer = (FlowContainer)d;
+                flowContainer.Spacing = CurrentValue;
             }
         }
 
