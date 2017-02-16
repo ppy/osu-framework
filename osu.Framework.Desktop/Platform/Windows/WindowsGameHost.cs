@@ -13,7 +13,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {
-        private TimePeriod timePeriod;
+        private readonly TimePeriod timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 

@@ -193,7 +193,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-        public override bool HasCompleted => base.HasCompleted || (!IsRunning && CurrentTime >= Length);
+        public override bool HasCompleted => base.HasCompleted || !IsRunning && CurrentTime >= Length;
 
         private class DataStreamFileProcedures
         {

@@ -18,9 +18,9 @@ namespace osu.Framework.Timing
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
-        public double AverageFrameTime { get; private set; }
+        public double AverageFrameTime { get; }
 
-        public double FramesPerSecond { get; private set; }
+        public double FramesPerSecond { get; }
 
         public void ChangeSource(IClock source)
         {

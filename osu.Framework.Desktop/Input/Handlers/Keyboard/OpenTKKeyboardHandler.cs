@@ -34,7 +34,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         class TkKeyboardState : KeyboardState
         {
-            private static IEnumerable<Key> allKeys = Enum.GetValues(typeof(Key)).Cast<Key>();
+            private static readonly IEnumerable<Key> allKeys = Enum.GetValues(typeof(Key)).Cast<Key>();
 
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {

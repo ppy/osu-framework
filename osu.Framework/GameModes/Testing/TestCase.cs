@@ -93,7 +93,7 @@ namespace osu.Framework.GameModes.Testing
     public class ToggleButton : Button
     {
         private readonly Action reloadCallback;
-        private static readonly Color4 offColour = Color4.Red;
+        private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 onColour = Color4.YellowGreen;
 
         public bool State;
@@ -103,14 +103,14 @@ namespace osu.Framework.GameModes.Testing
             this.reloadCallback = reloadCallback;
 
             Size = new Vector2(100, 50);
-            BackgroundColour = offColour;
+            BackgroundColour = off_colour;
             Action += clickAction;
         }
 
         private void clickAction()
         {
             State = !State;
-            BackgroundColour = State ? onColour : offColour;
+            BackgroundColour = State ? onColour : off_colour;
             reloadCallback?.Invoke();
         }
     }

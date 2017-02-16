@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
-        private Vector2 pointOnCircle(float angle) => new Vector2((float)(Math.Sin(angle)), -(float)(Math.Cos(angle)));
+        private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
 
         private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 

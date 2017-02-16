@@ -138,7 +138,7 @@ namespace osu.Framework.Platform
         private string name;
         public override string Name => name;
 
-        public DependencyContainer Dependencies { get; private set; } = new DependencyContainer();
+        public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
         protected BasicGameHost(string gameName = @"")
         {

@@ -15,10 +15,10 @@ namespace osu.Framework.Desktop.Platform
 {
     public abstract class DesktopGameHost : BasicGameHost
     {
-        private TcpIpcProvider ipcProvider;
-        private Task ipcTask;
+        private readonly TcpIpcProvider ipcProvider;
+        private readonly Task ipcTask;
 
-        public DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
         {
             //todo: yeah.
             Architecture.SetIncludePath();
@@ -39,7 +39,7 @@ namespace osu.Framework.Desktop.Platform
                 IsPrimaryInstance = ipcProvider.Bind();
                 if (IsPrimaryInstance)
                 {
-                    ipcProvider.MessageReceived += msg => OnMessageReceived(msg);
+                    ipcProvider.MessageReceived += OnMessageReceived;
                     ipcTask = ipcProvider.Start();
                 }
             }
