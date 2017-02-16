@@ -70,7 +70,7 @@ namespace osu.Framework.Desktop.Platform
                 return;
             }
 
-            string shadowExe = exe.Replace(@".exe", @"_shadow.exe");
+            string shadowExe = exe?.Replace(@".exe", @"_shadow.exe");
 
             int attempts = 5;
             while (attempts-- > 0)

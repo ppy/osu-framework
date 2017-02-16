@@ -60,17 +60,20 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
                     {
                         using (RegistryKey progIdKey = Microsoft.Win32.Registry.ClassesRoot.CreateSubKey(progId))
                         {
-                            progIdKey?.SetValue(string.Empty, description);
-                            if (urlHandler) progIdKey.SetValue("URL Protocol", string.Empty);
-
-                            using (RegistryKey command = progIdKey.CreateSubKey("shell\\open\\command"))
+                            if (progIdKey != null)
                             {
-                                command?.SetValue(string.Empty, $"\"{executable}\" \"%1\"");
-                            }
+                                progIdKey.SetValue(string.Empty, description);
+                                if (urlHandler) progIdKey.SetValue("URL Protocol", string.Empty);
 
-                            using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
-                            {
-                                command?.SetValue(string.Empty, $"\"{executable}\",1");
+                                using (RegistryKey command = progIdKey.CreateSubKey("shell\\open\\command"))
+                                {
+                                    command?.SetValue(string.Empty, $"\"{executable}\" \"%1\"");
+                                }
+
+                                using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
+                                {
+                                    command?.SetValue(string.Empty, $"\"{executable}\",1");
+                                }
                             }
                         }
                     }

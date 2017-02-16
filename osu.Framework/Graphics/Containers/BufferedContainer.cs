@@ -125,7 +125,8 @@ namespace osu.Framework.Graphics.Containers
 
             // Our own draw node should contain our correct color, hence we have
             // to undo our overridden DrawInfo getter here.
-            n.DrawInfo.Colour = base.DrawInfo.Colour;
+            if (n != null)
+                n.DrawInfo.Colour = base.DrawInfo.Colour;
         }
 
         public void Attach(RenderbufferInternalFormat format)

@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// The stride of the vertex type T. We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
         /// </summary>
-        private static readonly int stride = (int)typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
+        private static readonly int stride = (int)typeof(T)?.GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null);
 
         /// <summary>
         /// The static Bind method of vertex type T, used to bind the correct vertex attribute locations for use in shaders.

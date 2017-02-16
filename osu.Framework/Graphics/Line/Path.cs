@@ -121,23 +121,26 @@ namespace osu.Framework.Graphics.Sprites
         {
             PathDrawNode n = node as PathDrawNode;
 
-            n.Texture = Texture;
-            n.TextureShader = textureShader;
-            n.RoundedTextureShader = roundedTextureShader;
-            n.Width = PathWidth;
-            n.DrawSize = DrawSize;
-
-            n.Shared = pathDrawNodeSharedData;
-
-            n.Segments.Clear();
-
-            if (positions.Count > 1)
+            if (n != null)
             {
-                Vector2 offset = new Vector2(minX, minY);
-                for (int i = 0; i < positions.Count - 1; ++i)
+                n.Texture = Texture;
+                n.TextureShader = textureShader;
+                n.RoundedTextureShader = roundedTextureShader;
+                n.Width = PathWidth;
+                n.DrawSize = DrawSize;
+
+                n.Shared = pathDrawNodeSharedData;
+
+                n.Segments.Clear();
+
+                if (positions.Count > 1)
                 {
-                    Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
-                    n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
+                    Vector2 offset = new Vector2(minX, minY);
+                    for (int i = 0; i < positions.Count - 1; ++i)
+                    {
+                        Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
+                        n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
+                    }
                 }
             }
 

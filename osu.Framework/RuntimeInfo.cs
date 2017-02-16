@@ -44,7 +44,7 @@ namespace osu.Framework
                     RedirectStandardOutput = true
                 });
 
-                string output = uname.StandardOutput.ReadToEnd();
+                string output = uname.StandardOutput?.ReadToEnd();
                 uname.WaitForExit();
 
                 output = output?.ToUpper().Replace("\n", "").Trim();
