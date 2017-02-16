@@ -543,14 +543,14 @@ namespace osu.Framework.Graphics.Performance
                         Anchor = Anchor.BottomRight,
                         Rotation = -90,
                         Position = new Vector2(-bar_width - 1, 0),
-                        TextSize = 16
+                        TextSize = 16,
                     },
                     box = new Box
                     {
                         RelativeSizeAxes = Axes.Y,
                         Size = new Vector2(bar_width, 0),
                         Anchor = Anchor.BottomRight,
-                        Origin = Anchor.BottomRight
+                        Origin = Anchor.BottomRight,
                     }
                 };
 
