@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using osu.Framework.Input;
+using System.Drawing;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -18,13 +19,40 @@ namespace osu.Framework.Graphics.UserInterface
     {
 
         private Container currentTab;
-        private FlowContainer tabIndexesFlow;
         private Container tabIndexes;
-        private Container tabBodies;
-        public float TabIndexHeight { get { return tabIndexes.Height; } set { tabIndexes.Height = value; tabBodies.Margin = new MarginPadding() { Top = value }; } }
-        public Color4 TabIndexTextColor { get; set; } = Color4.Yellow;
-        public Color4 TabIndexBackgroundColor { get { return tabIndexesBackground.Colour; } set { tabIndexesBackground.Colour = value; } }
+        private FlowContainer tabIndexesFlow;
         private Box tabIndexesBackground;
+        private Container tabBodies;
+
+
+        public float TabIndexHeight
+        {
+            get
+            {
+                return tabIndexes.Height;
+            }
+            set
+            { tabIndexes.Height = value;
+                tabBodies.Margin = new MarginPadding()
+                {
+                    Top = value
+                };
+            }
+
+        }
+        public Color4 TabIndexTextColor { get; set; } = Color4.Yellow;
+        public Font TabIndexTextFont { get; set; }
+        public Color4 TabIndexBackgroundColor
+        {
+            get
+            {
+                return tabIndexesBackground.Colour;
+            }
+            set
+            {
+                tabIndexesBackground.Colour = value;
+            }
+        }
 
 
         public void AddTab(Container tab, string name)
@@ -46,44 +74,45 @@ namespace osu.Framework.Graphics.UserInterface
 
         public TabContainer()
         {
-
-            Add(tabIndexes = new Container()
-            {
-                RelativeSizeAxes = Axes.X,
-                Height = 20,
-                Children = new Drawable[]
+            Children = new Drawable[] {
+                tabIndexes = new Container()
                 {
-                    tabIndexesBackground = new Box()
+                    RelativeSizeAxes = Axes.X,
+                    Height = 20,
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.DarkGray,
-                    },
-                    tabIndexesFlow = new FlowContainer()
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Direction = FlowDirections.Horizontal,
-                        Spacing = new Vector2(5,0),
+                        tabIndexesBackground = new Box()
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.DarkGray,
+                        },
+                        tabIndexesFlow = new FlowContainer()
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Direction = FlowDirections.Horizontal,
+                            Spacing = new Vector2(5,0),
+                        }
                     }
-                }
-            });
-            Add(tabBodies = new Container()
-            {
-                RelativeSizeAxes = Axes.Both,
-                Margin = new MarginPadding()
-                {
-                    Top = TabIndexHeight,
                 },
-            });
-
+                tabBodies = new Container()
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Margin = new MarginPadding()
+                    {
+                        Top = TabIndexHeight,
+                    },
+                }   
+            };
         }
 
     }
 
-    public class TabIndex : Container
+    public class TabIndex : ClickableContainer
     {
 
         private Container container;
         private TabContainer tabContainer;
+
 
         public TabIndex(TabContainer tab, Container container, string tabName)
         {
@@ -92,7 +121,6 @@ namespace osu.Framework.Graphics.UserInterface
             AutoSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-
                 new SpriteText()
                 {
                     Anchor = Anchor.Centre,

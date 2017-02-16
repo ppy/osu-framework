@@ -66,7 +66,6 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
                 TabIndexTextColor = Color4.Red,
                 TabIndexBackgroundColor = Color4.Cyan,
-                TabIndexHeight = 40,
             }, "TabContainer");
 
             innerTabC.AddTab(new Container()
