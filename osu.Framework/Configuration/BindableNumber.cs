@@ -29,8 +29,7 @@ namespace osu.Framework.Configuration
         public T MinValue { get; set; }
         public T MaxValue { get; set; }
         
-        public static implicit operator T(BindableNumber<T> value) =>
-            value == null ? default(T) : value.Value;
+        public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
         
         public bool IsInteger
         {
