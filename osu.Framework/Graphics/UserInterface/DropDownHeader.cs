@@ -1,12 +1,11 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using System;
- 
+
 namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropDownHeader : ClickableContainer
@@ -30,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract string Label { get; set; }
 
-        public DropDownHeader()
+        protected DropDownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;

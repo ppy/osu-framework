@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -22,12 +22,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     /// </summary>
     public class LinearVertexBuffer<T> : VertexBuffer<T> where T : struct, IEquatable<T>
     {
-        private readonly PrimitiveType type;
-
         public LinearVertexBuffer(int amountVertices, PrimitiveType type, BufferUsageHint usage)
             : base(amountVertices, usage)
         {
-            this.type = type;
+            Type = type;
 
             if (amountVertices > LinearIndexData.MaxAmountIndices)
             {
@@ -51,6 +49,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, LinearIndexData.EBO_ID);
         }
 
-        protected override PrimitiveType Type => type;
+        protected override PrimitiveType Type { get; }
     }
 }

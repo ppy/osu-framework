@@ -1,10 +1,9 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
@@ -40,25 +39,9 @@ namespace osu.Framework.Graphics
     {
         #region Construction and disposal
 
-        public Drawable()
+        protected Drawable()
         {
             CreationID = creationCounter.Increment();
-        }
-
-        public virtual Drawable Clone()
-        {
-            Drawable thisNew = (Drawable)MemberwiseClone();
-
-            if (transforms != null)
-            {
-                thisNew.transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
-                Transforms.Select(t => thisNew.transforms.Add(t.Clone()));
-            }
-
-            thisNew.drawInfoBacking.Invalidate();
-            thisNew.boundingSizeBacking.Invalidate();
-
-            return thisNew;
         }
 
         ~Drawable()
@@ -74,14 +57,16 @@ namespace osu.Framework.Graphics
 
         private bool isDisposed;
 
-        protected internal virtual bool DisposeOnRemove => false;
+        /// <summary>
+        /// Whether this Drawable should be disposed when it is automatically removed from
+        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// </summary>
+        public virtual bool DisposeOnDeathRemoval => false;
 
         protected virtual void Dispose(bool isDisposing)
         {
             if (isDisposed)
                 return;
-
-            isDisposed = true;
 
             Parent = null;
             scheduler?.Dispose();
@@ -89,6 +74,12 @@ namespace osu.Framework.Graphics
 
             OnUpdate = null;
             OnInvalidate = null;
+
+            // If this Drawable is disposed, then we need to also
+            // stop remotely rendering it.
+            proxy?.Dispose();
+
+            isDisposed = true;
         }
 
         #endregion
@@ -101,7 +92,7 @@ namespace osu.Framework.Graphics
         /// The primary use case of this ID is stable sorting of Drawables with equal
         /// <see cref="Depth"/>.
         /// </summary>
-        internal long CreationID { get; private set; }
+        internal long CreationID { get; }
         private static AtomicCounter creationCounter = new AtomicCounter();
 
         private float depth;
@@ -217,6 +208,8 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
+            Debug.Assert(!isDisposed, "Disposed Drawables may never be in the scene graph.");
+
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
 
@@ -384,10 +377,14 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
+
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => applyRelativeAxes(RelativeSizeAxes, Size);
+        public Vector2 DrawSize => drawSizeBacking.EnsureValid() ?
+            drawSizeBacking.Value :
+            drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -870,7 +867,12 @@ namespace osu.Framework.Graphics
             get { return parent; }
             set
             {
+                Debug.Assert(value == null || !isDisposed,
+                    "Disposed Drawables may never get a parent and return to the scene graph.");
+
                 if (parent == value) return;
+
+                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
 
                 parent = value;
                 if (parent != null)
@@ -878,15 +880,9 @@ namespace osu.Framework.Graphics
             }
         }
 
-        internal void ChangeParent(IContainer parent)
-        {
-            if (Parent == parent) return;
+        internal virtual Drawable Original => this;
 
-            Debug.Assert(Parent == null, "May not add a drawable to multiple containers.");
-            Parent = parent;
-        }
-
-        private bool isProxied;
+        private ProxyDrawable proxy;
 
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
@@ -894,52 +890,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         public ProxyDrawable CreateProxy()
         {
-            isProxied = true;
-            return new ProxyDrawable(this);
-        }
-
-        /// <summary>
-        /// Checks if this drawable is a child of parent regardless of nesting depth.
-        /// </summary>
-        /// <param name="parent">The parent to search for.</param>
-        /// <returns>If this drawable is a child of parent.</returns>
-        public bool IsChildOfRecursive(Drawable parent)
-        {
-            if (parent == null)
-                return false;
-
-            // Do a bottom-up recursion for efficiency
-            IDrawable currentParent = Parent;
-            while (currentParent != null)
-            {
-                if (currentParent == parent)
-                    return true;
-                currentParent = currentParent.Parent;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if this drawable is a parent of child regardless of nesting depth.
-        /// </summary>
-        /// <param name="child">The child to search for.</param>
-        /// <returns>If this drawable is a parent of child.</returns>
-        public bool IsParentOfRecursive(Drawable child)
-        {
-            if (child == null)
-                return false;
-
-            // Do a bottom-up recursion for efficiency
-            IContainer currentParent = child.Parent;
-            while (currentParent != null)
-            {
-                if (currentParent == this)
-                    return true;
-                currentParent = currentParent.Parent;
-            }
-
-            return false;
+            Debug.Assert(proxy == null, "Multiple proxies are not supported.");
+            return proxy = new ProxyDrawable(this);
         }
 
         #endregion
@@ -951,7 +903,7 @@ namespace osu.Framework.Graphics
         /// This is measured conservatively, i.e. it is only true when the Drawable was
         /// actually masked away, but it may be false, even if the Drawable was masked away.
         /// </summary>
-        public bool IsMaskedAway = false;
+        public bool IsMaskedAway;
 
         private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
 
@@ -1096,6 +1048,7 @@ namespace osu.Framework.Graphics
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
+                alreadyInvalidated &= !drawSizeBacking.Invalidate();
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
@@ -1118,7 +1071,10 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
-            if (isProxied) return null;
+            // If we are proxied somewhere, then we want to be drawn at the proxy's location
+            // in the scene graph, rather than at our own location, thus no draw nodes for us.
+            if (proxy != null)
+                return null;
 
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
@@ -1159,7 +1115,7 @@ namespace osu.Framework.Graphics
             if (other == this)
                 return input;
 
-            return (input * DrawInfo.Matrix) * other.DrawInfo.MatrixInverse;
+            return input * DrawInfo.Matrix * other.DrawInfo.MatrixInverse;
         }
 
         /// <summary>
@@ -1386,7 +1342,13 @@ namespace osu.Framework.Graphics
         X = 1 << 0,
         Y = 1 << 1,
 
-        Both = X | Y
+        Both = X | Y,
+    }
+
+    public enum Direction
+    {
+        Horizontal = 0,
+        Vertical = 1,
     }
 
     public enum BlendingMode
@@ -1415,16 +1377,6 @@ namespace osu.Framework.Graphics
             if (i != 0) return i;
             return y.CreationID.CompareTo(x.CreationID);
         }
-    }
-
-    public interface ILoadable<T>
-    {
-        void Load(T reference);
-    }
-
-    public interface ILoadableAsync<T>
-    {
-        Task LoadAsync(T reference);
     }
 
     public enum LoadState

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -9,13 +9,12 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     internal class VisualisedDrawable : Container
     {
-        public Drawable Target;
+        public Drawable Target { get; }
 
         private SpriteText text;
         private Drawable previewBox;
@@ -32,21 +31,19 @@ namespace osu.Framework.Graphics.Visualisation
 
         public FlowContainer Flow;
 
-        public VisualisedDrawable(Drawable d)
+        private TreeContainer tree;
+
+        public VisualisedDrawable(Drawable d, TreeContainer tree)
         {
+            this.tree = tree;
             Target = d;
-            Target.OnInvalidate += onInvalidate;
 
-            var da = Target as Container<Drawable>;
-            if (da != null) da.OnAutoSize += onAutoSize;
-
-            var df = Target as FlowContainer<Drawable>;
-            if (df != null) df.OnLayout += onLayout;
+            attachEvents();
 
             var sprite = Target as Sprite;
 
             AutoSizeAxes = Axes.Both;
-            Add(new Drawable[]
+            Add(new[]
             {
                 activityInvalidate = new Box
                 {
@@ -72,7 +69,7 @@ namespace osu.Framework.Graphics.Visualisation
                 previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
                 {
                     Texture = sprite.Texture,
-                    Scale = new Vector2((float)sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
+                    Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                 },
                 text = new SpriteText
                 {
@@ -81,7 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 Flow = new FlowContainer
                 {
-                    Direction = FlowDirection.VerticalOnly,
+                    Direction = FlowDirections.Vertical,
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(10, 14)
                 },
@@ -93,6 +90,35 @@ namespace osu.Framework.Graphics.Visualisation
             updateSpecifics();
         }
 
+        private void attachEvents()
+        {
+            Target.OnInvalidate += onInvalidate;
+
+            var da = Target as Container<Drawable>;
+            if (da != null) da.OnAutoSize += onAutoSize;
+
+            var df = Target as FlowContainer<Drawable>;
+            if (df != null) df.OnLayout += onLayout;
+        }
+
+        private void detachEvents()
+        {
+            Target.OnInvalidate -= onInvalidate;
+
+            var da = Target as Container<Drawable>;
+            if (da != null) da.OnAutoSize -= onAutoSize;
+
+            var df = Target as FlowContainer<Drawable>;
+            if (df != null) df.OnLayout -= onLayout;
+        }
+
+        public override bool DisposeOnDeathRemoval => true;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            detachEvents();
+        }
 
         protected override bool OnHover(InputState state)
         {
@@ -122,23 +148,27 @@ namespace osu.Framework.Graphics.Visualisation
         private void onAutoSize()
         {
             Scheduler.Add(() => activityAutosize.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void onLayout()
         {
             Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void onInvalidate()
         {
             Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
-            updateSpecifics();
         }
 
         private void updateSpecifics()
         {
+            Vector2 posInTree = ToSpaceOfOtherDrawable(Vector2.Zero, tree);
+            if (posInTree.Y < -previewBox.DrawHeight || posInTree.Y > tree.Height)
+            {
+                text.Text = string.Empty;
+                return;
+            }
+
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.ColourInfo = Target.ColourInfo;
 
@@ -149,6 +179,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void Update()
         {
+            updateSpecifics();
+
             text.Colour = !Flow.IsPresent ? Color4.LightBlue : Color4.White;
             base.Update();
         }
@@ -157,7 +189,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (!IsAlive) return false;
 
-            if (!Target.IsAlive || Target.Parent == null || Target.Alpha == 0)
+            if (!Target.IsAlive || Target.Parent == null || !Target.IsPresent)
             {
                 Expire();
                 return false;

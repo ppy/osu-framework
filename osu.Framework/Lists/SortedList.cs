@@ -1,8 +1,6 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -10,7 +8,7 @@ namespace osu.Framework.Lists
 {
     public class SortedList<T> : List<T>
     {
-        public IComparer<T> Comparer { get; private set; }
+        public IComparer<T> Comparer { get; }
 
         public SortedList(IComparer<T> comparer)
         {

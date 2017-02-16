@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -9,6 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using System.Collections.Generic;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private TreeContainer treeContainer;
 
-        private InfoOverlay overlay;
+        private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
         private List<Drawable> hoveredDrawables = new List<Drawable>();
@@ -31,25 +31,39 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Depth = float.MinValue,
                     ChooseTarget = chooseTarget,
-                    GoUpOneParent = delegate { Target = Target?.Parent ?? Target; }
+                    GoUpOneParent = delegate
+                    {
+                        var parent = Target?.Parent;
+                        if (parent != null && !(parent is BasicGameHost))
+                            Target = Target?.Parent;
+                    }
                 },
                 new CursorContainer()
             };
         }
 
+        protected override bool BlockPassThroughInput => false;
+
         protected override void PopIn()
         {
-            task = Scheduler.AddDelayed(runUpdate, 200, true);
-
             FadeIn(100);
             if (Target == null)
                 chooseTarget();
+            else
+                createRootVisualisedDrawable();
+
+            task?.Cancel();
+            task = Scheduler.AddDelayed(runUpdate, 200, true);
         }
 
         protected override void PopOut()
         {
             task?.Cancel();
             FadeOut(100);
+
+            // Don't keep resources for visualizing the target
+            // allocated; unbind callback events.
+            removeRootVisualisedDrawable();
         }
 
         bool targetSearching;
@@ -98,26 +112,36 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable targetDrawable;
 
+        private void removeRootVisualisedDrawable()
+        {
+            if (targetDrawable != null)
+            {
+                treeContainer.Remove(targetDrawable);
+                targetDrawable.Dispose();
+                targetDrawable = null;
+            }
+        }
+
+        private void createRootVisualisedDrawable()
+        {
+            removeRootVisualisedDrawable();
+            if (target != null)
+            {
+                targetDrawable = createVisualisedDrawable(target as Drawable);
+                treeContainer.Add(targetDrawable);
+
+                runUpdate(); // run an initial update to immediately show the selected hierarchy.
+            }
+        }
+
         private IDrawable target;
         public IDrawable Target
         {
             get { return target; }
             set
             {
-                if (targetDrawable != null)
-                {
-                    treeContainer.Remove(targetDrawable);
-                    targetDrawable.Dispose();
-                    targetDrawable = null;
-                }
-
                 target = value;
-
-                if (target != null)
-                {
-                    targetDrawable = new VisualisedDrawable(target as Drawable);
-                    treeContainer.Add(targetDrawable);
-                }
+                createRootVisualisedDrawable();
             }
         }
 
@@ -128,6 +152,24 @@ namespace osu.Framework.Graphics.Visualisation
             visualise(Target, targetDrawable);
         }
 
+        private VisualisedDrawable createVisualisedDrawable(Drawable target)
+        {
+            return new VisualisedDrawable(target, treeContainer)
+            {
+                HoverGained = delegate
+                {
+                    hoveredDrawables.Add(target);
+                    overlay.Target = target;
+                },
+                HoverLost = delegate
+                {
+                    hoveredDrawables.Remove(target);
+                    overlay.Target = hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null;
+                },
+                RequestTarget = delegate { Target = target; }
+            };
+        }
+
         private void visualise(IDrawable d, VisualisedDrawable vis)
         {
             if (d == this) return;
@@ -136,10 +178,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             var drawables = vis.Flow.Children.Cast<VisualisedDrawable>();
             foreach (var dd in drawables)
-            {
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
-            }
 
             var dContainer = d as IContainerEnumerable<Drawable>;
 
@@ -154,19 +194,7 @@ namespace osu.Framework.Graphics.Visualisation
                 if (dr == null)
                 {
                     var cLocal = c;
-                    dr = new VisualisedDrawable(cLocal)
-                    {
-                        HoverGained = delegate {
-                            hoveredDrawables.Add(cLocal);
-                            overlay.Target = cLocal;
-                        },
-                        HoverLost = delegate
-                        {
-                            hoveredDrawables.Remove(cLocal);
-                            overlay.Target = (hoveredDrawables.Count > 0 ? hoveredDrawables.Last() : null);
-                        },
-                        RequestTarget = delegate { Target = cLocal; }
-                    };
+                    dr = createVisualisedDrawable(cLocal);
                     vis.Flow.Add(dr);
                 }
 

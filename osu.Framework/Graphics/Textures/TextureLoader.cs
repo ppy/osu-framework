@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -85,8 +85,10 @@ namespace osu.Framework.Graphics.Textures
 
             Texture tex = atlas == null ? new Texture(width, height) : atlas.Add(width, height);
 
-            var upload = new TextureUpload(data);
-            upload.Format = format;
+            var upload = new TextureUpload(data)
+            {
+                Format = format
+            };
             tex.SetData(upload);
             return tex;
         }

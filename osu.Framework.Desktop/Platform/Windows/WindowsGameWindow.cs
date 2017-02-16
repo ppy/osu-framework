@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -36,7 +36,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
                 // We need to call the OleInitialize()-Method because otherwise we will get an E_OUTOFMEMORY-Error from the RegisterDragDrop-Method we are about to call.
                 oleInitializeMethod.Invoke(null, null);
-                var errorCode = registerDragDropMethod.Invoke(null, new object[] { new HandleRef(this, WindowInfo.Handle), dropTarget });
+                var errorCode = registerDragDropMethod.Invoke(null, new[] { new HandleRef(this, WindowInfo.Handle), dropTarget });
             }
             catch
             {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace osu.Framework.Audio.Sample
 {
     public class SampleManager : AudioCollectionManager<AudioSample>, IResourceStore<AudioSample>
     {
-        IResourceStore<byte[]> store;
+        readonly IResourceStore<byte[]> store;
 
         Dictionary<string, AudioSample> sampleCache = new Dictionary<string, AudioSample>();
 

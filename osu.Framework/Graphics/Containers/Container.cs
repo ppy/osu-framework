@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Lists;
@@ -12,8 +12,6 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Sprites;
-using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Timing;
@@ -29,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     public partial class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
-        private bool masking = false;
+        private bool masking;
         public bool Masking
         {
             get { return masking; }
@@ -147,13 +145,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            ContainerDrawNode n = node as ContainerDrawNode;
+            ContainerDrawNode n = (ContainerDrawNode)node;
 
             Debug.Assert(
-                Masking || (CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None),
+                Masking || CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None,
                 "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+
             n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
             {
                 ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
@@ -221,9 +220,8 @@ namespace osu.Framework.Graphics.Containers
             children = lifetimeList ?? new LifetimeList<T>(DepthComparer);
             children.Removed += obj =>
             {
-                if (obj.DisposeOnRemove) obj.Dispose();
+                if (obj.DisposeOnDeathRemoval) obj.Dispose();
             };
-
         }
 
         private MarginPadding padding;
@@ -291,7 +289,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawable.IsLoaded)
                 {
                     Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
-                    drawable.ChangeParent(this);
+                    drawable.Parent = this;
                 }
 
                 children.Add(drawable);
@@ -311,23 +309,20 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        public virtual bool Remove(T drawable, bool dispose = false)
+        public virtual bool Remove(T drawable)
         {
             if (drawable == null)
                 return false;
 
             if (Content != this)
-                return Content.Remove(drawable, dispose);
+                return Content.Remove(drawable);
 
             bool result = children.Remove(drawable);
             drawable.Parent = null;
 
             if (!result) return false;
 
-            if (dispose)
-                drawable.Dispose();
-            else
-                drawable.Invalidate();
+            drawable.Invalidate();
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry, drawable);
@@ -335,22 +330,22 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public int RemoveAll(Predicate<T> match, bool dispose = false)
+        public int RemoveAll(Predicate<T> match)
         {
             List<T> toRemove = children.FindAll(match);
-            for (int i = 0; i < toRemove.Count; i++)
-                Remove(toRemove[i], dispose);
+            foreach (T removable in toRemove)
+                Remove(removable);
 
             return toRemove.Count;
         }
 
-        public void Remove(IEnumerable<T> range, bool dispose = false)
+        public void Remove(IEnumerable<T> range)
         {
             if (range == null)
                 return;
 
             foreach (T p in range)
-                Remove(p, dispose);
+                Remove(p);
         }
 
         public virtual void Clear(bool dispose = true)
@@ -386,7 +381,7 @@ namespace osu.Framework.Graphics.Containers
         /// Updates the life status of children according to their IsAlive property.
         /// </summary>
         /// <returns>True iff the life status of at least one child changed.</returns>
-        private bool updateChildrenLife()
+        protected virtual bool UpdateChildrenLife()
         {
             bool changed = children.Update(Time);
 
@@ -402,7 +397,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
-            foreach (Drawable child in InternalChildren)
+            foreach (T child in InternalChildren)
                 child.UpdateClock(Clock);
         }
 
@@ -413,7 +408,7 @@ namespace osu.Framework.Graphics.Containers
             // We update our children's life even if we are invisible.
             // Note, that this does not propagate down and may need
             // generalization in the future.
-            updateChildrenLife();
+            UpdateChildrenLife();
 
             if (!IsPresent) return false;
 
@@ -427,7 +422,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        [BackgroundDependencyLoader(permitNulls: true)]
+        [BackgroundDependencyLoader(true)]
         private void load(BaseGame game, ShaderManager shaders)
         {
             if (shader == null)
@@ -436,7 +431,7 @@ namespace osu.Framework.Graphics.Containers
             children.LoadRequested += i =>
             {
                 i.PerformLoad(game);
-                i.ChangeParent(this);
+                i.Parent = this;
             };
 
             if (pendingChildrenInternal != null)
@@ -512,8 +507,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                while (drawable is ProxyDrawable)
-                    drawable = ((ProxyDrawable)drawable).Original;
+                while (drawable != (drawable = drawable.Original)) { }
 
                 if (!drawable.IsPresent)
                     continue;
@@ -627,8 +621,7 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cornerRadius == 0.0f)
                 return base.Contains(screenSpacePos);
-            else
-                return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
+            return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
         public override RectangleF BoundingBox
@@ -659,11 +652,35 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (!base.BuildKeyboardInputQueue(queue))
+                return false;
+
+            foreach (T d in AliveChildren)
+                d.BuildKeyboardInputQueue(queue);
+
+            return true;
+        }
+
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+                return false;
+
+            foreach (T d in AliveChildren)
+                d.BuildMouseInputQueue(screenSpaceMousePos, queue);
+
+            return true;
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
             if (Content != null)
                 Children?.ForEach(c => c.Dispose());
+
+            OnAutoSize = null;
 
             base.Dispose(isDisposing);
         }

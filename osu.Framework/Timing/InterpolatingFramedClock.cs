@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -11,16 +11,16 @@ namespace osu.Framework.Timing
     /// </summary>
     public class InterpolatingFramedClock : IFrameBasedClock
     {
-        private FramedClock clock = new FramedClock(new StopwatchClock(true));
+        private readonly FramedClock clock = new FramedClock(new StopwatchClock(true));
         protected FramedClock SourceClock;
         protected double LastInterpolatedTime;
         protected double CurrentInterpolatedTime;
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
 
-        public double AverageFrameTime { get; private set; }
+        public double AverageFrameTime { get; }
 
-        public double FramesPerSecond { get; private set; }
+        public double FramesPerSecond { get; }
 
         public void ChangeSource(IClock source)
         {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsGameHost : DesktopGameHost
     {
-        private TimePeriod timePeriod;
+        private readonly TimePeriod timePeriod;
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
@@ -23,8 +23,6 @@ namespace osu.Framework.Desktop.Platform.Windows
             // In order to be certain we have the correct activity state we are querying the Windows API here.
 
             timePeriod = new TimePeriod(1) { Active = true };
-
-            Architecture.SetIncludePath();
 
             Window = new WindowsGameWindow();
             Window.WindowStateChanged += (sender, e) =>

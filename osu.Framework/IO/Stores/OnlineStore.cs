@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using osu.Framework.IO.Network;
@@ -13,6 +14,9 @@ namespace osu.Framework.IO.Stores
         {
             return await Task.Run(delegate
             {
+                if (!url.StartsWith(@"https://", StringComparison.Ordinal))
+                    return null;
+
                 try
                 {
                     WebRequest req = new WebRequest($@"{url}");

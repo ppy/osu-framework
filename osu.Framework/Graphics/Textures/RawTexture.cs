@@ -1,11 +1,9 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Drawing;
-using OpenTK.Graphics.ES30;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 
 namespace osu.Framework.Graphics.Textures

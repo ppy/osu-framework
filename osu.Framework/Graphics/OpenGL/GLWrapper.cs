@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -174,7 +174,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch = batch;
         }
 
-        private static TextureGL lastBoundTexture = null;
+        private static TextureGL lastBoundTexture;
 
         internal static bool AtlasTextureIsBound => lastBoundTexture is TextureGLAtlas;
 
@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = blendingInfo;
         }
 
-        private static int lastFrameBuffer = 0;
+        private static int lastFrameBuffer;
 
         /// <summary>
         /// Binds a framebuffer.

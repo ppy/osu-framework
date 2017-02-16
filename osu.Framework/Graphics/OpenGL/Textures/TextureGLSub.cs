@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     class TextureGLSub : TextureGL
     {
-        private TextureGLSingle parent;
+        private readonly TextureGLSingle parent;
         private Rectangle bounds;
 
         public override TextureGL Native => parent.Native;

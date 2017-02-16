@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
@@ -129,7 +129,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Update();
 
-            foreach (Drawable box in boxes)
+            foreach (Box box in boxes)
                 box.Rotation += 0.01f;
         }
     }

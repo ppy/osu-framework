@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// The stride of the vertex type T. We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
         /// </summary>
-        private static readonly int stride = (int)typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static).GetValue(null);
+        private static readonly int stride = (int)(typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null));
 
         /// <summary>
         /// The static Bind method of vertex type T, used to bind the correct vertex attribute locations for use in shaders.
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 typeof(T).GetMethod("Bind", BindingFlags.Public | BindingFlags.Static)
             );
 
-        public VertexBuffer(int amountVertices, BufferUsageHint usage)
+        protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
             this.usage = usage;
             GL.GenBuffers(1, out vboId);

@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -175,7 +175,7 @@ namespace osu.Framework.IO.Network
         /// Does a manual DNS lookup and forcefully uses IPv4 by shoving IP addresses where the host normally is.
         /// Unreliable for HTTPS+Cloudflare? Only use when necessary.
         /// </summary>
-        public static bool UseExplicitIPv4Requests = false;
+        public static bool UseExplicitIPv4Requests;
 
         static bool? useFallbackPath;
         private bool didGetIPv6IP;
@@ -248,6 +248,10 @@ namespace osu.Framework.IO.Network
         private byte[] buffer;
 
         private MemoryStream requestBody;
+
+        private MemoryStream rawContent;
+
+        public string ContentType;
 
         protected virtual Stream CreateOutputStream()
         {
@@ -338,7 +342,12 @@ namespace osu.Framework.IO.Network
                         request.Method = @"POST";
 
                         if (Parameters.Count + Files.Count == 0)
+                        {
+                            rawContent?.WriteTo(requestBody);
+                            request.ContentType = ContentType;
+                            requestBody.Flush();
                             break;
+                        }
 
                         const string boundary = @"-----------------------------28947758029299";
 
@@ -488,7 +497,7 @@ namespace osu.Framework.IO.Network
         [Obfuscation(Feature = @"virtualization", Exclude = false)]
         private void checkCertificate()
         {
-            if (request.ServicePoint.Certificate == null && request.RequestUri.Host != request.Address.Host && request.Address.Host.EndsWith(@".ppy.sh"))
+            if (request.ServicePoint.Certificate == null && request.RequestUri.Host != request.Address.Host && request.Address.Host.EndsWith(@".ppy.sh", StringComparison.Ordinal))
                 //osu!direct downloads happen over http at the moment. we should probably move them across to https.
                 return;
 
@@ -510,7 +519,7 @@ namespace osu.Framework.IO.Network
             Exception exc = null;
             bool completed = false;
 
-            Finished += delegate(WebRequest r, Exception e)
+            Finished += delegate (WebRequest r, Exception e)
             {
                 exc = e;
                 completed = true;
@@ -633,9 +642,22 @@ namespace osu.Framework.IO.Network
         /// <summary>
         /// Adds a raw POST body to this request.
         /// </summary>
+        public void AddRaw(string text) => AddRaw(Encoding.UTF8.GetBytes(text));
+
+        /// <summary>
+        /// Adds a raw POST body to this request.
+        /// </summary>
+        public void AddRaw(byte[] bytes) => AddRaw(new MemoryStream(bytes));
+
+        /// <summary>
+        /// Adds a raw POST body to this request.
+        /// </summary>
         public void AddRaw(Stream stream)
         {
-            stream.CopyTo(requestBody);
+            if (rawContent == null)
+                rawContent = new MemoryStream();
+
+            stream.CopyTo(rawContent);
         }
 
         /// <summary>

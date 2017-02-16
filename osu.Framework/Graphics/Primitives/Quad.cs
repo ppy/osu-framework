@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -86,19 +86,6 @@ namespace osu.Framework.Graphics.Primitives
         public float Width => Vector2.Distance(TopLeft, TopRight);
         public float Height => Vector2.Distance(TopLeft, BottomLeft);
 
-        public Quad AABBQuad // Axis Aligned Bounding Box
-        {
-            get
-            {
-                float xMin = Math.Min(TopLeft.X, Math.Min(TopRight.X, Math.Min(BottomLeft.X, BottomRight.X)));
-                float xMax = Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X)));
-                float yMin = Math.Min(TopLeft.Y, Math.Min(TopRight.Y, Math.Min(BottomLeft.Y, BottomRight.Y)));
-                float yMax = Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y)));
-
-                return new Quad(xMin, yMin, xMax - xMin, yMax - yMin);
-            }
-        }
-
         public Rectangle AABB
         {
             get
@@ -151,7 +138,7 @@ namespace osu.Framework.Graphics.Primitives
                 float lsq1 = d1.LengthSquared;
 
                 Vector2 d2 = TopLeft - BottomLeft;
-                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * (MathHelper.InverseSqrtFast(lsq1))));
+                float lsq2 = Vector2.DistanceSquared(d2, d1 * Vector2.Dot(d2, d1 * MathHelper.InverseSqrtFast(lsq1)));
 
                 return (float)Math.Sqrt(lsq1 * lsq2);
             }
@@ -165,18 +152,6 @@ namespace osu.Framework.Graphics.Primitives
         public bool Intersects(Rectangle other)
         {
             return (this as IConvexPolygon).Intersects(other);
-        }
-
-        public bool FastIntersects(Quad other)
-        {
-            //todo: this is actually pretty wrong!
-            return
-                Contains(other.TopLeft) ||
-                Contains(other.TopRight) ||
-                Contains(other.BottomLeft) ||
-                Contains(other.BottomRight) ||
-                (other.TopLeft.Y <= TopLeft.Y && other.TopRight.Y <= TopRight.Y && other.BottomLeft.Y >= BottomLeft.Y && other.BottomRight.Y >= BottomRight.Y) ||
-                (other.TopLeft.X <= TopLeft.X && other.BottomLeft.X <= BottomLeft.X && other.TopRight.X >= TopRight.X && other.BottomRight.X >= BottomRight.X);
         }
 
         public bool Equals(Quad other)
@@ -201,10 +176,6 @@ namespace osu.Framework.Graphics.Primitives
                 Precision.AlmostEquals(BottomRight.Y, other.BottomRight.Y);
         }
 
-        public override string ToString()
-        {
-            return TopLeft.ToString() + @" " + TopRight.ToString() + @" " + BottomLeft.ToString() + @" " + BottomRight.ToString();
-        }
+        public override string ToString() => $"{TopLeft} {TopRight} {BottomLeft} {BottomRight}";
     }
 }
-

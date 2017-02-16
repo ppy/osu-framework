@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.IO;
 
 namespace osu.Framework.IO.Stores
 {
-    public interface IResourceStore<T>
+    public interface IResourceStore<out T>
     {
         /// <summary>
         /// Retrieves an object from the store.

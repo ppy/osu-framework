@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ namespace osu.Framework.Allocation
     public class ObjectStack<T> where T : new()
     {
         private int maxAmountObjects;
-        private Stack<T> freeObjects = new Stack<T>();
+        private readonly Stack<T> freeObjects = new Stack<T>();
         private HashSet<T> usedObjects = new HashSet<T>();
 
         public ObjectStack(int maxAmountObjects)

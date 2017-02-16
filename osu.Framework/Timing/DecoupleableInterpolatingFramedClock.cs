@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 namespace osu.Framework.Timing
@@ -17,10 +17,10 @@ namespace osu.Framework.Timing
         /// </summary>
         public bool IsCoupled = true;
 
-        private bool useDecoupledClock => SourceClock == null || (!IsCoupled && !SourceClock.IsRunning);
+        private bool useDecoupledClock => SourceClock == null || !IsCoupled && !SourceClock.IsRunning;
 
         private FramedClock decoupledClock;
-        private StopwatchClock decoupledStopwatch;
+        private readonly StopwatchClock decoupledStopwatch;
 
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.

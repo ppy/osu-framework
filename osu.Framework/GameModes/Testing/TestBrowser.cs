@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -14,7 +14,6 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Platform;
 using osu.Framework.Allocation;
 
@@ -57,7 +56,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
-            tests.Sort((TestCase a, TestCase b) => a.Name.CompareTo(b.Name));
+            tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]
@@ -77,12 +76,12 @@ namespace osu.Framework.GameModes.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollbarOverlapsContent = false });
+            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollDraggerOverlapsContent = false });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FlowDirection.VerticalOnly,
+                Direction = FlowDirections.Vertical,
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Spacing = new Vector2(0, 5)
@@ -132,12 +131,12 @@ namespace osu.Framework.GameModes.Testing
             if (testCase == null && testCases.Count > 0)
                 testCase = testCases[0];
 
-            config.Set(TestBrowserOption.LastTest, testCase.Name);
+            config.Set(TestBrowserOption.LastTest, testCase?.Name);
 
             if (loadedTest != null)
             {
                 testContainer.Remove(loadedTest);
-                loadedTest.Dispose();
+                loadedTest.Clear();
                 loadedTest = null;
             }
 
@@ -150,7 +149,7 @@ namespace osu.Framework.GameModes.Testing
 
         class TestCaseButton : ClickableContainer
         {
-            private Box box;
+            private readonly Box box;
 
             public TestCaseButton(TestCase test)
             {

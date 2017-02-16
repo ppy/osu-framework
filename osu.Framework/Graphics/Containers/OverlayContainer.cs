@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
         protected virtual bool HideOnEscape => true;
 
         /// <summary>
-        /// Whether we shoul block any mouse input from interacting with things behind us.
+        /// Whether we should block any mouse input from interacting with things behind us.
         /// </summary>
         protected virtual bool BlockPassThroughInput => true;
 
@@ -67,13 +67,13 @@ namespace osu.Framework.Graphics.Containers
 
         public void ToggleVisibility() => State = State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
 
-        protected override bool OnHover(InputState s) => BlockPassThroughInput;
+        protected override bool OnHover(InputState state) => BlockPassThroughInput;
 
-        protected override bool OnMouseDown(InputState s, MouseDownEventArgs args) => BlockPassThroughInput;
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughInput;
 
-        protected override bool OnClick(InputState s) => BlockPassThroughInput;
+        protected override bool OnClick(InputState state) => BlockPassThroughInput;
 
-        protected override bool OnKeyDown(InputState s, KeyDownEventArgs args)
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)
             {
@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Containers
                     return true;
             }
 
-            return base.OnKeyDown(s, args);
+            return base.OnKeyDown(state, args);
         }
     }
 

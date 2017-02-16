@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -12,7 +12,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class TripleBuffer<T>
     {
-        private ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
+        private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
         int read;
         int write;
@@ -35,7 +35,7 @@ namespace osu.Framework.Allocation
                 case UsageType.Write:
                     lock (buffers)
                     {
-                        while ((buffers[write]?.Usage == UsageType.Read) || write == lastWrite)
+                        while (buffers[write]?.Usage == UsageType.Read || write == lastWrite)
                             write = (write + 1) % 3;
                     }
 

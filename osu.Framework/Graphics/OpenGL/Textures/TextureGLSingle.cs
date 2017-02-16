@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -10,11 +10,9 @@ using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
@@ -162,13 +160,21 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 vertexAction = triangleBatch.Add;
             }
 
+            // We split the triangle into two, such that we can obtain smooth edges with our
+            // texture coordinate trick. We might want to revert this to drawing a single
+            // triangle in case we ever need proper texturing, or if the additional vertices
+            // end up becoming an overhead (unlikely).
+            SRGBColour topColour = (drawColour.TopLeft + drawColour.TopRight) / 2;
+            SRGBColour bottomColour = (drawColour.BottomLeft + drawColour.BottomRight) / 2;
+
+            // Left triangle half
             vertexAction(new TexturedVertex2D
             {
                 Position = vertexTriangle.P0,
-                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Top),
+                TexturePosition = new Vector2(inflatedTexRect.Left, inflatedTexRect.Top),
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
-                Colour = drawColour.TopLeft.Linear,
+                Colour = topColour.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -177,6 +183,32 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
                 BlendRange = inflationAmount,
                 Colour = drawColour.BottomLeft.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = bottomColour.Linear,
+            });
+
+            // Right triangle half
+            vertexAction(new TexturedVertex2D
+            {
+                Position = vertexTriangle.P0,
+                TexturePosition = new Vector2(inflatedTexRect.Right, inflatedTexRect.Top),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = topColour.Linear,
+            });
+            vertexAction(new TexturedVertex2D
+            {
+                Position = (vertexTriangle.P1 + vertexTriangle.P2) / 2,
+                TexturePosition = new Vector2((inflatedTexRect.Left + inflatedTexRect.Right) / 2, inflatedTexRect.Bottom),
+                TextureRect = new Vector4(texRect.Left, texRect.Top, texRect.Right, texRect.Bottom),
+                BlendRange = inflationAmount,
+                Colour = bottomColour.Linear,
             });
             vertexAction(new TexturedVertex2D
             {
@@ -294,14 +326,15 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
             if (IsDisposed)
                 return false;
-
-            IntPtr dataPointer;
-            GCHandle? h0;
+            
             TextureUpload upload;
             bool didUpload = false;
 
             while (uploadQueue.TryDequeue(out upload))
             {
+                IntPtr dataPointer;
+                GCHandle? h0;
+
                 if (upload.Data.Length == 0)
                 {
                     h0 = null;
@@ -332,7 +365,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
                             GLWrapper.BindTexture(this);
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)(filteringMode));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
 
                             // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.
                             // It controls the amount of mipmap levels generated by GL.GenerateMipmap later on.
@@ -396,36 +429,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return didUpload;
         }
 
-        //private static int clearFBO = -1;
-
         private void initializeLevel(int level, int width, int height)
         {
             byte[] transparentWhite = new byte[width * height * 4];
-            int i = 0;
-            while ((i += 4) < transparentWhite.Length)
-            {
-                transparentWhite[i] = 255;
-                transparentWhite[i + 1] = 255;
-                transparentWhite[i + 2] = 255;
-            }
-
             GCHandle h0 = GCHandle.Alloc(transparentWhite, GCHandleType.Pinned);
             GL.TexImage2D(TextureTarget2d.Texture2D, level, TextureComponentCount.Srgb8Alpha8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, h0.AddrOfPinnedObject());
             h0.Free();
-
-            //todo: figure why FBO clear method doesn't work.
-
-            //if (clearFBO < 0)
-            //    clearFBO = GL.GenFramebuffer();
-
-            //int lastFramebuffer = GLWrapper.BindFrameBuffer(clearFBO);
-            //GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, All.ColorAttachment0, TextureTarget2d.Texture2D, TextureId, 0);
-
-            //GL.ClearColor(new Color4(255, 255, 255, 0));
-            //GL.Clear(ClearBufferMask.ColorBufferBit);
-            //GL.ClearColor(new Color4(0, 0, 0, 0));
-
-            //GLWrapper.BindFrameBuffer(lastFramebuffer);
         }
     }
 }

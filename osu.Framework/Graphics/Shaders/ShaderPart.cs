@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Shaders
 #if DEBUG
             string compileLog = GL.GetShaderInfoLog(this);
             Log.AppendLine(string.Format('\t' + BOUNDARY, Name));
-            Log.AppendLine(string.Format("\tCompiled: {0}", Compiled));
+            Log.AppendLine($"\tCompiled: {Compiled}");
             if (!Compiled)
             {
                 Log.AppendLine("\tLog:");

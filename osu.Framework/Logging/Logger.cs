@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -112,7 +112,7 @@ namespace osu.Framework.Logging
             Logger l;
             if (!staticLoggers.TryGetValue(target, out l))
             {
-                staticLoggers[target] = (l = new Logger(target));
+                staticLoggers[target] = l = new Logger(target);
                 if (clearOnConstruct) l.Clear();
             }
 
@@ -209,11 +209,11 @@ namespace osu.Framework.Logging
 
         private void addHeader()
         {
-            Add($@"----------------------------------------------------------");
+            Add(@"----------------------------------------------------------");
             Add($@"{Target} Log for {UserIdentifier}");
             Add($@"osu! version {VersionIdentifier}");
             Add($@"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores");
-            Add($@"----------------------------------------------------------");
+            Add(@"----------------------------------------------------------");
         }
 
         static List<string> filters = new List<string>();

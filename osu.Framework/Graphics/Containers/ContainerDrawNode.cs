@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
@@ -32,14 +32,14 @@ namespace osu.Framework.Graphics.Containers
     public class ContainerDrawNodeSharedData
     {
         public QuadBatch<TexturedVertex2D> VertexBatch;
-        public bool ForceOwnVertexBatch = false;
+        public bool ForceOwnVertexBatch;
     }
 
     public class ContainerDrawNode : DrawNode
     {
         public List<DrawNode> Children;
         public MaskingInfo? MaskingInfo;
-        public Quad? ScreenSpaceMaskingQuad = null;
+        public Quad? ScreenSpaceMaskingQuad;
 
         public EdgeEffect EdgeEffect;
 

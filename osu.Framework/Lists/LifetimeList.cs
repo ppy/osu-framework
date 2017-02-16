@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -19,7 +19,7 @@ namespace osu.Framework.Lists
         }
 
         public SortedList<T> AliveItems { get; }
-        private List<bool> current = new List<bool>();
+        private readonly List<bool> current = new List<bool>();
 
         /// <summary>
         /// Updates the life status of this LifetimeList's children.

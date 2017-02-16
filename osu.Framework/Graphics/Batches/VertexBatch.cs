@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Batches
         private int currentVertex;
         private int lastVertex;
 
-        private int maxBuffers;
+        private readonly int maxBuffers;
 
         private VertexBuffer<T> currentVertexBuffer => VertexBuffers[currentIndex];
 

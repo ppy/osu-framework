@@ -1,14 +1,10 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Colour
 {
@@ -32,6 +28,12 @@ namespace osu.Framework.Graphics.Colour
         /// <param name="second">Second factor.</param>
         /// <returns>Product of first and second.</returns>
         public static SRGBColour operator *(SRGBColour first, SRGBColour second) => FromVector(first.ToVector() * second.ToVector());
+
+        public static SRGBColour operator *(SRGBColour first, float second) => FromVector(first.ToVector() * second);
+
+        public static SRGBColour operator /(SRGBColour first, float second) => FromVector(first.ToVector() / second);
+
+        public static SRGBColour operator +(SRGBColour first, SRGBColour second) => FromVector(first.ToVector() + second.ToVector());
 
         public Vector4 ToVector() => new Vector4(Linear.R, Linear.G, Linear.B, Linear.A);
         public static SRGBColour FromVector(Vector4 v) => new SRGBColour { Linear = new Color4(v.X, v.Y, v.Z, v.W) };

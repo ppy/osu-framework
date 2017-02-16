@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Primitives
         {
             // This code parametrizes pos as a linear combination of 2 edges s*(p1-p0) + t*(p2->p0).
             // pos is contained if s>0, t>0, s+t<1
-            float area2 = (P0.Y * (P2.X - P1.X) + P0.X * (P1.Y - P2.Y) + P1.X * P2.Y - P1.Y * P2.X);
+            float area2 = P0.Y * (P2.X - P1.X) + P0.X * (P1.Y - P2.Y) + P1.X * P2.Y - P1.Y * P2.X;
             if (area2 == 0)
                 return false;
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Primitives
                 return false;
 
             float t = (P0.X * P1.Y - P0.Y * P1.X + (P0.Y - P1.Y) * pos.X + (P1.X - P0.X) * pos.Y) / area2;
-            if (t < 0 || (s + t) > 1)
+            if (t < 0 || s + t > 1)
                 return false;
 
             return true;
@@ -56,13 +56,7 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public double ConservativeArea
-        {
-            get
-            {
-                return Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
-            }
-        }
+        public double ConservativeArea => Math.Abs((P0.Y - P1.Y) * (P1.X - P2.X)) / 2;
 
         public double Area
         {
@@ -74,7 +68,7 @@ namespace osu.Framework.Graphics.Primitives
                 float s = (a + b + c) / 2.0f;
                 return Math.Sqrt(s * (s - a) * (s - b) * (s - c));
             }
-            
+
         }
     }
 }

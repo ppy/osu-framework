@@ -1,8 +1,9 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK.Graphics;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {
@@ -12,12 +13,12 @@ namespace osu.Framework.Extensions.Color4Extensions
 
         public static double ToLinear(double color)
         {
-            return color <= 0.04045 ? (color / 12.92) : Math.Pow((color + 0.055) / 1.055, GAMMA);
+            return color <= 0.04045 ? color / 12.92 : Math.Pow((color + 0.055) / 1.055, GAMMA);
         }
 
         public static double ToSRGB(double color)
         {
-            return color < 0.0031308 ? (12.92 * color) : (1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055);
+            return color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
         }
 
         public static Color4 ToLinear(this Color4 colour)
@@ -42,7 +43,8 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            
+            if (second.Equals(Color4.White))
                 return first;
 
             first = first.ToLinear();
@@ -59,7 +61,8 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            else if (second.Equals(Color4.White))
+            
+            if (second.Equals(Color4.White))
                 return first;
 
             return new Color4(
@@ -67,6 +70,37 @@ namespace osu.Framework.Extensions.Color4Extensions
                 first.G * second.G,
                 first.B * second.B,
                 first.A * second.A);
+        }
+
+        /// <summary>
+        /// Returns a lightened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Decimal light addition</param>
+        public static Color4 Lighten(this Color4 colour, float amount) => Multiply(colour, 1 + amount);
+
+        /// <summary>
+        /// Returns a darkened version of the colour.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="amount">Percentage light reduction</param>
+        public static Color4 Darken(this Color4 colour, float amount) => Multiply(colour, 1 / (1 + amount));
+
+        /// <summary>
+        /// Multiply the RGB coordinates by a scalar.
+        /// </summary>
+        /// <param name="colour">Original colour</param>
+        /// <param name="scalar">A scalar to multiply with</param>
+        /// <returns></returns>
+        public static Color4 Multiply(this Color4 colour, float scalar)
+        {
+            Debug.Assert(scalar >= 0);
+
+            return new Color4(
+                Math.Min(1, colour.R * scalar),
+                Math.Min(1, colour.G * scalar),
+                Math.Min(1, colour.B * scalar),
+                colour.A);
         }
     }
 }

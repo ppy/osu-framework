@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -10,7 +10,6 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -46,14 +45,14 @@ namespace osu.Framework.Graphics.Containers
         private ScrollBar scrollDragger;
 
 
-        private bool scrollbarOverlapsContent = true;
+        private bool scrollDraggerOverlapsContent = true;
 
-        public bool ScrollbarOverlapsContent
+        public bool ScrollDraggerOverlapsContent
         {
-            get { return scrollbarOverlapsContent; }
+            get { return scrollDraggerOverlapsContent; }
             set
             {
-                scrollbarOverlapsContent = value;
+                scrollDraggerOverlapsContent = value;
                 updatePadding();
             }
         }
@@ -64,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private float availableContent = -1;
 
-        private float displayableContent => ChildSize.Y;
+        private float displayableContent => ChildSize[scrollDim];
 
         public float MouseWheelScrollDistance = 80;
 
@@ -118,43 +117,62 @@ namespace osu.Framework.Graphics.Containers
 
         private bool isDragging;
 
-        public ScrollContainer()
+        private Direction scrollDir;
+        private int scrollDim => (int)scrollDir;
+
+        public ScrollContainer(Direction scrollDir = Direction.Vertical)
         {
+            this.scrollDir = scrollDir;
+
             RelativeSizeAxes = Axes.Both;
             Masking = true;
 
+            Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
             AddInternal(new Drawable[]
             {
                 content = new Container {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.Both & ~scrollAxis,
+                    AutoSizeAxes = scrollAxis,
                 },
-                scrollDragger = new ScrollBar { Dragged = onScrollbarMovement }
+                scrollDragger = new ScrollBar(scrollDir) { Dragged = onScrollbarMovement }
             });
+
+            ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
         private void updateSize()
         {
             //todo: can limit this to when displayableContent or availableContent changed.
-            availableContent = content.DrawSize.Y;
+            availableContent = content.DrawSize[scrollDim];
             updateScrollDragger();
         }
 
         private void updateScrollDragger()
         {
-            scrollDragger.ResizeTo(new Vector2(10, Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0)), 200, EasingTypes.OutQuint);
+            scrollDragger.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, EasingTypes.OutQuint);
             scrollDragger.FadeTo(ScrollDraggerVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
 
         private void updatePadding()
         {
-            if (scrollbarOverlapsContent || availableContent <= displayableContent)
+            if (scrollDraggerOverlapsContent || availableContent <= displayableContent)
                 content.Padding = new MarginPadding();
             else
-                content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                    new MarginPadding { Left = scrollDragger.Width } :
-                    new MarginPadding { Right = scrollDragger.Width };
+            {
+                if (scrollDir == Direction.Vertical)
+                {
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
+                        new MarginPadding { Left = scrollDragger.Width } :
+                        new MarginPadding { Right = scrollDragger.Width };
+                }
+                else
+                {
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
+                        new MarginPadding { Top = scrollDragger.Height } :
+                        new MarginPadding { Bottom = scrollDragger.Height };
+                }
+            }
         }
 
         protected override bool OnDragStart(InputState state)
@@ -194,7 +212,7 @@ namespace osu.Framework.Graphics.Containers
             double decay = Math.Pow(0.95, timeDelta);
 
             averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta.Y;
+            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[scrollDim];
 
             lastDragTime = currentTime;
 
@@ -205,7 +223,7 @@ namespace osu.Framework.Graphics.Containers
             if (target != clamp(target))
                 childDelta /= 2;
 
-            offset(-childDelta.Y, false);
+            offset(-childDelta[scrollDim], false);
             return true;
         }
 
@@ -241,7 +259,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size.Y), false);
+        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size[scrollDim]), false);
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
@@ -257,9 +275,9 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildYInContent(d));
+        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildPosInContent(d));
 
-        public float GetChildYInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content).Y;
+        public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
 
         private void updatePosition()
         {
@@ -277,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
-                if ((Current < target && target < 0) || (Current > target && target > scrollableExtent))
+                if (Current < target && target < 0 || Current > target && target > scrollableExtent)
                     localDistanceDecay = distance_decay_clamping * 2;
 
                 // Lastly, we gradually nudge the target towards valid bounds.
@@ -303,62 +321,69 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            scrollDragger?.MoveToY(Current * scrollDragger.Size.Y);
-            content.MoveToY(-Current);
+            scrollDragger?.MoveTo(scrollDim, Current * scrollDragger.Size[scrollDim]);
+            content.MoveTo(scrollDim, -Current);
         }
 
         private class ScrollBar : Container
         {
             public Action<float> Dragged;
 
-            private Color4 hoverColour = Color4.White;
-            private Color4 defaultColour = Color4.LightGray;
-            private Color4 highlightColour = Color4.GreenYellow;
+            private static readonly Color4 hover_colour = Color4.White;
+            private static readonly Color4 default_colour = Color4.LightGray;
+            private static readonly Color4 highlight_colour = Color4.GreenYellow;
             private Box box;
 
             private float dragOffset;
 
-            public ScrollBar()
-            {
-                Children = new Drawable[]
-                {
-                    box = new Box
-                    {
-                        RelativeSizeAxes = Axes.Both
-                    }
-                };
+            private readonly int scrollDim;
 
-                RelativeSizeAxes = Axes.Y;
-                Size = new Vector2(10, 1);
-                Colour = defaultColour;
+            public ScrollBar(Direction scrollDir)
+            {
+                scrollDim = (int)scrollDir;
+                RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
+                Colour = default_colour;
                 CornerRadius = 5;
                 Masking = true;
 
-                Anchor = Anchor.TopRight;
-                Origin = Anchor.TopRight;
+                Children = new Drawable[]
+                {
+                    box = new Box { RelativeSizeAxes = Axes.Both }
+                };
+
+                ResizeTo(1);
+            }
+
+            public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
+            {
+                Vector2 size = new Vector2(10)
+                {
+                    [scrollDim] = val
+                };
+                ResizeTo(size, duration, easing);
             }
 
             protected override bool OnHover(InputState state)
             {
-                FadeColour(hoverColour, 100);
+                FadeColour(hover_colour, 100);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                FadeColour(defaultColour, 100);
+                FadeColour(default_colour, 100);
             }
 
             protected override bool OnDragStart(InputState state)
             {
-                dragOffset = state.Mouse.Position.Y - Position.Y;
+                dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
                 return true;
             }
 
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlightColour, 100);
+                box.FadeColour(highlight_colour, 100);
                 return true;
             }
 
@@ -371,7 +396,7 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnDrag(InputState state)
             {
-                Dragged?.Invoke(state.Mouse.Position.Y - dragOffset);
+                Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
                 return true;
             }
         }

@@ -1,11 +1,8 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 
@@ -48,16 +45,15 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 return IsSelected ? DropDownMenuItemState.Selected : DropDownMenuItemState.NotSelected;
             }
-
             set
             {
-                IsSelected = (value == DropDownMenuItemState.Selected);
+                IsSelected = value == DropDownMenuItemState.Selected;
             }
         }
 
         protected Box Background;
         protected Container Foreground;
-        
+
         private Color4 backgroundColour = Color4.DarkSlateGray;
         protected Color4 BackgroundColour
         {
@@ -73,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        public DropDownMenuItem(string text, T value)
+        protected DropDownMenuItem(string text, T value)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -103,7 +99,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void FormatBackground(bool hover = false)
         {
-            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour), 0);
+            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
         }
 
         protected override void LoadComplete()

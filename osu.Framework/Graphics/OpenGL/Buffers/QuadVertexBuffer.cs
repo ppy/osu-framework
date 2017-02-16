@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -51,8 +51,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (forRendering)
                 GLWrapper.BindBuffer(BufferTarget.ElementArrayBuffer, QuadIndexData.EBO_ID);
         }
-
-        public override void Unbind() => base.Unbind();
 
         protected override int ToElements(int vertices) => 3 * vertices / 2;
 

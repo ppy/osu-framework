@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -56,10 +56,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="left">The x-coordinate of the upper-left corner of the rectangular region. </param>
         /// <param name="top">The y-coordinate of the upper-left corner of the rectangular region. </param>
         /// <filterpriority>1</filterpriority>
-        public static RectangleF FromLTRB(float left, float top, float right, float bottom)
-        {
-            return new RectangleF(left, top, right - left, bottom - top);
-        }
+        public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>A <see cref="T:System.Drawing.PointF"></see> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
@@ -148,11 +145,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the equality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the equality operator. </param>
         /// <filterpriority>3</filterpriority>
-        public static bool operator ==(RectangleF left, RectangleF right)
-        {
-            return ((((left.X == right.X) && (left.Y == right.Y)) && (left.Width == right.Width)) &&
-                    (left.Height == right.Height));
-        }
+        public static bool operator ==(RectangleF left, RectangleF right) => left.X == right.X && left.Y == right.Y && left.Width == right.Width && left.Height == right.Height;
 
         /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleF"></see> structures differ in location or size.</summary>
         /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleF.X"></see> , <see cref="P:System.Drawing.RectangleF.Y"></see>, <see cref="P:System.Drawing.RectangleF.Width"></see>, or <see cref="P:System.Drawing.RectangleF.Height"></see> properties of the two <see cref="T:System.Drawing.Rectangle"></see> structures are unequal; otherwise false.</returns>
@@ -161,25 +154,16 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>3</filterpriority>
         public static bool operator !=(RectangleF left, RectangleF right) => left != right;
 
-        public static RectangleF operator *(RectangleF left, float right)
-        {
-            return new RectangleF(left.X * right, left.Y * right, left.Width * right, left.Height * right);
-        }
+        public static RectangleF operator *(RectangleF left, float right) => new RectangleF(left.X * right, left.Y * right, left.Width * right, left.Height * right);
 
-        public static RectangleF operator /(RectangleF left, float right)
-        {
-            return new RectangleF(left.X / right, left.Y / right, left.Width / right, left.Height / right);
-        }
+        public static RectangleF operator /(RectangleF left, float right) => new RectangleF(left.X / right, left.Y / right, left.Width / right, left.Height / right);
 
         /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the point defined by x and y is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
         /// <param name="y">The y-coordinate of the point to test. </param>
         /// <param name="x">The x-coordinate of the point to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(float x, float y)
-        {
-            return X <= x && x < X + Width && Y <= y && y < Y + Height;
-        }
+        public bool Contains(float x, float y) => X <= x && x < X + Width && Y <= y && y < Y + Height;
 
         public bool Contains(Vector2 pt) => Contains(pt.X, pt.Y);
 
@@ -199,11 +183,8 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleF"></see>; otherwise false.</returns>
         /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(RectangleF rect)
-        {
-            return ((((X <= rect.X) && ((rect.X + rect.Width) <= (X + Width))) && (Y <= rect.Y)) &&
-                    ((rect.Y + rect.Height) <= (Y + Height)));
-        }
+        public bool Contains(RectangleF rect) => X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
+                    rect.Y + rect.Height <= Y + Height;
 
         public bool ContainsRotated(Vector2 pt, Vector2 rotationCenter, float angle)
         {
@@ -231,9 +212,9 @@ namespace osu.Framework.Graphics.Primitives
         {
             return
                 (int)
-                (((((uint)X) ^ ((((uint)Y) << 13) | (((uint)Y) >> 0x13))) ^
-                  ((((uint)Width) << 0x1a) | (((uint)Width) >> 6))) ^
-                 ((((uint)Height) << 7) | (((uint)Height) >> 0x19)));
+                ((uint)X ^ (uint)Y << 13 | (uint)Y >> 0x13 ^
+                  (uint)Width << 0x1a | (uint)Width >> 6 ^
+                 (uint)Height << 7 | (uint)Height >> 0x19);
         }
 
         public float Area => Width * Height;
@@ -264,14 +245,11 @@ namespace osu.Framework.Graphics.Primitives
 
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
-        public RectangleF Inflate(MarginPadding amount)
-        {
-            return new RectangleF(
+        public RectangleF Inflate(MarginPadding amount) => new RectangleF(
                 X - amount.Left,
                 Y - amount.Top,
                 Width + amount.TotalHorizontal,
                 Height + amount.TotalVertical);
-        }
 
         public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
 
@@ -303,7 +281,7 @@ namespace osu.Framework.Graphics.Primitives
             float num2 = Math.Min(a.X + a.Width, b.X + b.Width);
             float y = Math.Max(a.Y, b.Y);
             float num4 = Math.Min(a.Y + a.Height, b.Y + b.Height);
-            if ((num2 >= x) && (num4 >= y))
+            if (num2 >= x && num4 >= y)
                 return new RectangleF(x, y, num2 - x, num4 - y);
             return Empty;
         }
@@ -347,10 +325,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="y">The amount to offset the location vertically. </param>
         /// <param name="x">The amount to offset the location horizontally. </param>
         /// <filterpriority>1</filterpriority>
-        public RectangleF Offset(float x, float y)
-        {
-            return new RectangleF(X + x, Y + y, Width, Height);
-        }
+        public RectangleF Offset(float x, float y) => new RectangleF(X + x, Y + y, Width, Height);
 
         internal float DistanceSquared(Vector2 localSpacePos)
         {
@@ -375,12 +350,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
-        public override string ToString()
-        {
-            return "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
+        public override string ToString() => "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
                     ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
                     Height.ToString(CultureInfo.CurrentCulture) + "}";
-        }
 
         static RectangleF()
         {
@@ -408,7 +380,7 @@ namespace osu.Framework.Graphics.Primitives
 
             // Otherwise we need two trigonometric function calls
             double c = Math.Cos(angle), s = Math.Sin(angle);
-            bool cPos = (c > 0.0), sPos = (s > 0.0);
+            bool cPos = c > 0.0, sPos = s > 0.0;
 
             /* Phase 1: Form bounding box on tilted rectangle P.
              *          Check whether bounding box and Q intersect.
@@ -478,27 +450,27 @@ namespace osu.Framework.Graphics.Primitives
             {
                 if (sPos)
                 {
-                    return (c * xQmax + s * yQmax >= -xPdif
+                    return c * xQmax + s * yQmax >= -xPdif
                         && c * xQmin + s * yQmin <= xPdif
                         && c * yQmax - s * xQmin >= -yPdif
-                        && c * yQmin - s * xQmax <= yPdif);
+                        && c * yQmin - s * xQmax <= yPdif;
                 }
-                return (c * xQmax + s * yQmin >= -xPdif
+                return c * xQmax + s * yQmin >= -xPdif
                     && c * xQmin + s * yQmax <= xPdif
                     && c * yQmax - s * xQmax >= -yPdif
-                    && c * yQmin - s * xQmin <= yPdif);
+                    && c * yQmin - s * xQmin <= yPdif;
             }
             if (sPos)
             {
-                return (c * xQmin + s * yQmax >= -xPdif
+                return c * xQmin + s * yQmax >= -xPdif
                     && c * xQmax + s * yQmin <= xPdif
                     && c * yQmin - s * xQmin >= -yPdif
-                    && c * yQmax - s * xQmax <= yPdif);
+                    && c * yQmax - s * xQmax <= yPdif;
             }
-            return (c * xQmin + s * yQmin >= -xPdif
+            return c * xQmin + s * yQmin >= -xPdif
                 && c * xQmax + s * yQmax <= xPdif
                 && c * yQmin - s * xQmax >= -yPdif
-                && c * yQmax - s * xQmin <= yPdif);
+                && c * yQmax - s * xQmin <= yPdif;
         }
     }
 }

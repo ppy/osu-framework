@@ -1,7 +1,8 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Configuration
 {
@@ -28,8 +29,7 @@ namespace osu.Framework.Configuration
         public T MinValue { get; set; }
         public T MaxValue { get; set; }
         
-        public static implicit operator T(BindableNumber<T> value) =>
-            value == null ? default(T) : value.Value;
+        public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
         
         public bool IsInteger
         {
@@ -58,34 +58,54 @@ namespace osu.Framework.Configuration
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Byte:
-                    (this as BindableNumber<byte>).Value = Convert.ToByte(val);
+                    BindableNumber<byte> byteBindable = this as BindableNumber<byte>;
+                    Debug.Assert(byteBindable != null);
+                    byteBindable.Value = Convert.ToByte(val);
                     break;
                 case TypeCode.SByte:
-                    (this as BindableNumber<sbyte>).Value = Convert.ToSByte(val);
+                    BindableNumber<sbyte> sbyteBindable = this as BindableNumber<sbyte>;
+                    Debug.Assert(sbyteBindable != null);
+                    sbyteBindable.Value = Convert.ToSByte(val);
                     break;
                 case TypeCode.UInt16:
-                    (this as BindableNumber<ushort>).Value = Convert.ToUInt16(val);
+                    BindableNumber<ushort> ushortBindable = this as BindableNumber<ushort>;
+                    Debug.Assert(ushortBindable != null);
+                    ushortBindable.Value = Convert.ToUInt16(val);
                     break;
                 case TypeCode.Int16:
-                    (this as BindableNumber<short>).Value = Convert.ToInt16(val);
+                    BindableNumber<short> shortBindable = this as BindableNumber<short>;
+                    Debug.Assert(shortBindable != null);
+                    shortBindable.Value = Convert.ToInt16(val);
                     break;
                 case TypeCode.UInt32:
-                    (this as BindableNumber<uint>).Value = Convert.ToUInt32(val);
+                    BindableNumber<uint> uintBindable = this as BindableNumber<uint>;
+                    Debug.Assert(uintBindable != null);
+                    uintBindable.Value = Convert.ToUInt32(val);
                     break;
                 case TypeCode.Int32:
-                    (this as BindableNumber<int>).Value = Convert.ToInt32(val);
+                    BindableNumber<int> intBindable = this as BindableNumber<int>;
+                    Debug.Assert(intBindable != null);
+                    intBindable.Value = Convert.ToInt32(val);
                     break;
                 case TypeCode.UInt64:
-                    (this as BindableNumber<ulong>).Value = Convert.ToUInt64(val);
+                    BindableNumber<ulong> ulongBindable = this as BindableNumber<ulong>;
+                    Debug.Assert(ulongBindable != null);
+                    ulongBindable.Value = Convert.ToUInt64(val);
                     break;
                 case TypeCode.Int64:
-                    (this as BindableNumber<long>).Value = Convert.ToInt64(val);
+                    BindableNumber<long> longBindable = this as BindableNumber<long>;
+                    Debug.Assert(longBindable != null);
+                    longBindable.Value = Convert.ToInt64(val);
                     break;
                 case TypeCode.Single:
-                    (this as BindableNumber<float>).Value = Convert.ToSingle(val);
+                    BindableNumber<float> floatBindable = this as BindableNumber<float>;
+                    Debug.Assert(floatBindable != null);
+                    floatBindable.Value = Convert.ToSingle(val);
                     break;
                 case TypeCode.Double:
-                    (this as BindableNumber<double>).Value = Convert.ToDouble(val);
+                    BindableNumber<double> doubleBindable = this as BindableNumber<double>;
+                    Debug.Assert(doubleBindable != null);
+                    doubleBindable.Value = Convert.ToDouble(val);
                     break;
             }
         }
@@ -96,34 +116,54 @@ namespace osu.Framework.Configuration
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Byte:
-                    (this as BindableNumber<byte>).Value += Convert.ToByte(val);
+                    BindableNumber<byte> byteBindable = this as BindableNumber<byte>;
+                    Debug.Assert(byteBindable != null);
+                    byteBindable.Value += Convert.ToByte(val);
                     break;
                 case TypeCode.SByte:
-                    (this as BindableNumber<sbyte>).Value += Convert.ToSByte(val);
+                    BindableNumber<sbyte> sbyteBindable = this as BindableNumber<sbyte>;
+                    Debug.Assert(sbyteBindable != null);
+                    sbyteBindable.Value += Convert.ToSByte(val);
                     break;
                 case TypeCode.UInt16:
-                    (this as BindableNumber<ushort>).Value += Convert.ToUInt16(val);
+                    BindableNumber<ushort> ushortBindable = this as BindableNumber<ushort>;
+                    Debug.Assert(ushortBindable != null);
+                    ushortBindable.Value += Convert.ToUInt16(val);
                     break;
                 case TypeCode.Int16:
-                    (this as BindableNumber<short>).Value += Convert.ToInt16(val);
+                    BindableNumber<short> shortBindable = this as BindableNumber<short>;
+                    Debug.Assert(shortBindable != null);
+                    shortBindable.Value += Convert.ToInt16(val);
                     break;
                 case TypeCode.UInt32:
-                    (this as BindableNumber<uint>).Value += Convert.ToUInt32(val);
+                    BindableNumber<uint> uintBindable = this as BindableNumber<uint>;
+                    Debug.Assert(uintBindable != null);
+                    uintBindable.Value += Convert.ToUInt32(val);
                     break;
                 case TypeCode.Int32:
-                    (this as BindableNumber<int>).Value += Convert.ToInt32(val);
+                    BindableNumber<int> intBindable = this as BindableNumber<int>;
+                    Debug.Assert(intBindable != null);
+                    intBindable.Value += Convert.ToInt32(val);
                     break;
                 case TypeCode.UInt64:
-                    (this as BindableNumber<ulong>).Value += Convert.ToUInt64(val);
+                    BindableNumber<ulong> ulongBindable = this as BindableNumber<ulong>;
+                    Debug.Assert(ulongBindable != null);
+                    ulongBindable.Value += Convert.ToUInt64(val);
                     break;
                 case TypeCode.Int64:
-                    (this as BindableNumber<long>).Value += Convert.ToInt64(val);
+                    BindableNumber<long> longBindable = this as BindableNumber<long>;
+                    Debug.Assert(longBindable != null);
+                    longBindable.Value += Convert.ToInt64(val);
                     break;
                 case TypeCode.Single:
-                    (this as BindableNumber<float>).Value += Convert.ToSingle(val);
+                    BindableNumber<float> floatBindable = this as BindableNumber<float>;
+                    Debug.Assert(floatBindable != null);
+                    floatBindable.Value += Convert.ToSingle(val);
                     break;
                 case TypeCode.Double:
-                    (this as BindableNumber<double>).Value += Convert.ToDouble(val);
+                    BindableNumber<double> doubleBindable = this as BindableNumber<double>;
+                    Debug.Assert(doubleBindable != null);
+                    doubleBindable.Value += Convert.ToDouble(val);
                     break;
             }
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Primitives;
@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Visualisation
     class FlashyBox : Box
     {
         Drawable target;
-        Func<Drawable, Quad> getScreenSpaceQuad;
+        readonly Func<Drawable, Quad> getScreenSpaceQuad;
 
         public FlashyBox(Func<Drawable, Quad> getScreenSpaceQuad)
         {

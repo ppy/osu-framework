@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -12,6 +12,8 @@ namespace osu.Framework.Configuration
 
         public T Default;
 
+        public bool Disabled;
+
         public virtual bool IsDefault => Equals(value, Default);
 
         public event EventHandler ValueChanged;
@@ -22,6 +24,12 @@ namespace osu.Framework.Configuration
             set
             {
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
+
+                if (Disabled)
+                {
+                    TriggerChange();
+                    return;
+                }
 
                 this.value = value;
 
@@ -74,13 +82,7 @@ namespace osu.Framework.Configuration
             ValueChanged = null;
         }
 
-        string description;
-
-        public string Description
-        {
-            get { return description; }
-            set { description = value; }
-        }
+        public string Description { get; set; }
 
         public override string ToString()
         {

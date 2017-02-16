@@ -1,11 +1,10 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -21,7 +20,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public new Color4 Colour
+        public Color4 BackgroundColour
         {
             get { return Background.Colour; }
             set { Background.Colour = value; }
@@ -33,7 +32,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected Box Background;
         protected SpriteText SpriteText;
-        
+
         public Button()
         {
             AddInternal(content = new Container

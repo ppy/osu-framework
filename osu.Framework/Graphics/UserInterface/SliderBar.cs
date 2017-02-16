@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.UserInterface
                 stepInitialized = true;
             }
         }
-        private bool stepInitialized = false;
+        private bool stepInitialized;
 
         public BindableNumber<T> Bindable
         {
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.UserInterface
                 UpdateValue(NormalizedValue);
             }
         }
-        
+
         protected float NormalizedValue
         {
             get
@@ -58,11 +58,11 @@ namespace osu.Framework.Graphics.UserInterface
                 return (val - min) / (max - min);
             }
         }
-        
+
         private BindableNumber<T> bindable;
 
         protected abstract void UpdateValue(float value);
-        
+
         protected override void Dispose(bool isDisposing)
         {
             if (Bindable != null)

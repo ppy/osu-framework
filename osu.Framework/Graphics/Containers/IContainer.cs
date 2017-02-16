@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
         IEnumerable<T> Children { get; }
         IEnumerable<T> AliveChildren { get; }
         
-        int RemoveAll(Predicate<T> match, bool dispose = false);
+        int RemoveAll(Predicate<T> match);
     }
 
     public interface IContainerCollection<in T> : IContainer
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
 
         void Add(IEnumerable<T> collection);
         void Add(T drawable);
-        void Remove(IEnumerable<T> range, bool dispose = false);
-        bool Remove(T drawable, bool dispose = false);
+        void Remove(IEnumerable<T> range);
+        bool Remove(T drawable);
     }
 }

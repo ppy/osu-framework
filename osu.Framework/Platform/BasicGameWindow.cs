@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK.Input;
 
@@ -19,7 +18,7 @@ namespace osu.Framework.Platform
 
         protected FrameworkConfigManager Config;
 
-        public BasicGameWindow(int width, int height) : base(width, height)
+        protected BasicGameWindow(int width, int height) : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();

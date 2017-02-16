@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
@@ -97,7 +96,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectedIndex = value;
 
-                SelectedItem.IsSelected = true;
+                if (SelectedItem != null)
+                    SelectedItem.IsSelected = true;
+                
                 TriggerValueChanged();
             }
         }
@@ -166,10 +167,10 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public event EventHandler ValueChanged;
 
-        public DropDownMenu()
+        protected DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FlowDirection.VerticalOnly;
+            Direction = FlowDirections.Vertical;
 
             Children = new Drawable[]
             {
@@ -194,7 +195,7 @@ namespace osu.Framework.Graphics.UserInterface
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
-                                    Direction = FlowDirection.VerticalOnly,
+                                    Direction = FlowDirections.Vertical,
                                 },
                             },
                         },
@@ -278,8 +279,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (DropDownItemsContainer == null || !DropDownItemsContainer.IsLoaded)
                 return;
 
-            for (int i = 0; i < items.Count; i++)
-                DropDownItemsContainer.Add(items[i]);
+            foreach (DropDownMenuItem<T> item in items)
+                DropDownItemsContainer.Add(item);
 
             listInitialized = true;
         }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -8,9 +8,9 @@ namespace osu.Framework.Platform
 {
     public class IpcChannel<T> : IDisposable
     {
-        private IIpcHost host;
+        private readonly IIpcHost host;
         public event Action<T> MessageReceived;
-    
+
         public IpcChannel(IIpcHost host)
         {
             this.host = host;

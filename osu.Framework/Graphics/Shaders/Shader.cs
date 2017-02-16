@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Shaders
             string linkLog = GL.GetProgramInfoLog(this);
 
             Log.AppendLine(string.Format(ShaderPart.BOUNDARY, name));
-            Log.AppendLine(string.Format("Linked: {0}", linkResult == 1));
+            Log.AppendLine($"Linked: {linkResult == 1}");
             if (linkResult == 0)
             {
                 Log.AppendLine("Log:");
@@ -177,7 +177,7 @@ namespace osu.Framework.Graphics.Shaders
         public Uniform<T> GetUniform<T>(string name)
         {
             ensureLoaded();
-            Debug.Assert(uniforms.ContainsKey(name), string.Format(@"Inexisting uniform {0} in shader {1}.", name, this.name));
+            Debug.Assert(uniforms.ContainsKey(name), $@"Inexisting uniform {name} in shader {this.name}.");
             return new Uniform<T>(uniforms[name]);
         }
 
@@ -191,11 +191,11 @@ namespace osu.Framework.Graphics.Shaders
         {
             globalProperties[name] = value;
 
-            for (int i = 0; i < allShaders.Count; i++)
+            foreach (Shader shader in allShaders)
             {
-                allShaders[i].ensureLoaded();
-                if (allShaders[i].uniforms.ContainsKey(name))
-                    allShaders[i].uniforms[name].Value = value;
+                shader.ensureLoaded();
+                if (shader.uniforms.ContainsKey(name))
+                    shader.uniforms[name].Value = value;
             }
         }
 

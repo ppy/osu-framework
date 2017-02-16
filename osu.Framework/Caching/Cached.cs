@@ -1,7 +1,6 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Platform;
 using osu.Framework.Statistics;
 using System;
 
@@ -9,7 +8,7 @@ namespace osu.Framework.Caching
 {
     public static class StaticCached
     {
-        internal static bool AlwaysStale = false;
+        internal static bool AlwaysStale;
     }
 
     public struct Cached<T>

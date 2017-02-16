@@ -1,9 +1,7 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -14,9 +12,9 @@ namespace osu.Framework.Graphics.Performance
 {
     class FpsDisplay : Container
     {
-        SpriteText counter;
+        private readonly SpriteText counter;
 
-        private IFrameBasedClock clock;
+        private readonly IFrameBasedClock clock;
         private double displayFps;
 
         public bool Counting = true;
@@ -34,7 +32,7 @@ namespace osu.Framework.Graphics.Performance
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
-                    Alpha = 0.2f
+                    Alpha = 0.75f
                 },
                 counter = new SpriteText
                 {

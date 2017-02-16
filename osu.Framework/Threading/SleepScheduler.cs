@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -15,19 +15,19 @@ namespace osu.Framework.Threading
             this.sleeper = sleeper;
         }
 
-        public override bool Add(Action d, bool forceDelayed = true)
+        public override bool Add(Action task, bool forceScheduled = true)
         {
             if (!sleeper.IsSleeping || IsMainThread)
             {
-                base.Add(d, forceDelayed);
+                base.Add(task, forceScheduled);
                 return true;
             }
             ThreadPool.QueueUserWorkItem(state =>
             {
                 if (sleeper.IsSleeping)
-                    sleeper.Invoke(d);
+                    sleeper.Invoke(task);
                 else
-                    Add(d, forceDelayed);
+                    Add(task, forceScheduled);
             });
 
             return false;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Desktop.Platform;
@@ -15,8 +15,8 @@ namespace osu.Framework.Desktop
             GraphicsContextFlags flags = GraphicsContextFlags.Default;
             if (RuntimeInfo.IsUnix)
                 return new LinuxGameHost(flags, gameName, bindIPC);
-            else
-                return new WindowsGameHost(flags, gameName, bindIPC);
+
+            return new WindowsGameHost(flags, gameName, bindIPC);
         }
     }
 }

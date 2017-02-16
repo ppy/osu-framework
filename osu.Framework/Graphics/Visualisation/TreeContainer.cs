@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Box titleBar;
 
-        const float width = 300;
+        const float width = 400;
         const float height = 600;
 
         private TreeContainerStatus state;
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Direction = FlowDirection.VerticalOnly,
+                    Direction = FlowDirections.Vertical,
                     Children = new Drawable[]
                     {
                         titleBar = new Box //title decoration
@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.Visualisation
                                     {
                                         new Button
                                         {
-                                            Colour = Color4.DarkGray,
+                                            BackgroundColour = Color4.DarkGray,
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Choose Target",
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
                                         },
                                         new Button
                                         {
-                                            Colour = Color4.DarkGray,
+                                            BackgroundColour = Color4.DarkGray,
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Up one parent",
@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             State = TreeContainerStatus.Onscreen;
-            return base.OnHover(state);
+            return true;
         }
 
         protected override void OnHoverLost(InputState state)
@@ -170,6 +170,10 @@ namespace osu.Framework.Graphics.Visualisation
             Position += state.Mouse.Delta;
             return base.OnDrag(state);
         }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
+
+        protected override bool OnClick(InputState state) => true;
 
         protected override void LoadComplete()
         {

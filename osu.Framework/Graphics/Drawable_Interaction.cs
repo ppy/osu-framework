@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -9,10 +9,11 @@ using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
 using KeyboardState = osu.Framework.Input.KeyboardState;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics
 {
-    public partial class Drawable : IDisposable, IHasLifetime
+    public partial class Drawable
     {
         /// <summary>
         /// Find the first parent InputManager which this drawable is contained by.
@@ -153,11 +154,22 @@ namespace osu.Framework.Graphics
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        /// <returns>Whether the given position is contained within this drawable.</returns>
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Transforms a screen-space input state to the parent's space of this drawable.
+        /// Whether this Drawable can receive, taking into account all optimizations and masking.
+        /// </summary>
+        public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
+
+        /// <summary>
+        /// Whether this Drawable is hovered by the given screen space mouse position,
+        /// taking into account whether this Drawable can receive input.
+        /// </summary>
+        /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
+        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+
+        /// <summary>
+        /// Transforms a screen-space input state to the parent's space of this Drawable.
         /// </summary>
         /// <param name="screenSpaceState">The screen-space input state to be transformed.</param>
         /// <returns>The transformed state in parent space.</returns>
@@ -170,6 +182,39 @@ namespace osu.Framework.Graphics
                 Keyboard = screenSpaceState.Keyboard,
                 Mouse = new LocalMouseState(screenSpaceState.Mouse, this)
             };
+        }
+
+        /// <summary>
+        /// This method is responsible for building a queue of Drawables to receive keyboard input
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// children such that the entire scene graph is covered.
+        /// </summary>
+        /// <param name="queue">The input queue to be built.</param>
+        /// <returns>Whether we have added ourself to the queue.</returns>
+        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (!CanReceiveInput)
+                return false;
+
+            queue.Add(this);
+            return true;
+        }
+
+        /// <summary>
+        /// This method is responsible for building a queue of Drawables to receive mouse input
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// children such that the entire scene graph is covered.
+        /// </summary>
+        /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
+        /// <param name="queue">The input queue to be built.</param>
+        /// <returns>Whether we have added ourself to the queue.</returns>
+        internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (!IsHovered(screenSpaceMousePos))
+                return false;
+
+            queue.Add(this);
+            return true;
         }
 
         private struct LocalMouseState : IMouseState
@@ -193,7 +238,7 @@ namespace osu.Framework.Graphics
 
             public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? (Vector2?)null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public bool LeftButton => NativeState.LeftButton;
             public bool MiddleButton => NativeState.MiddleButton;

@@ -1,10 +1,8 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Primitives;
-using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
@@ -13,7 +11,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public abstract class TextureGL : IDisposable
     {
-        public bool IsTransparent = false;
+        public bool IsTransparent;
         public TextureWrapMode WrapMode = TextureWrapMode.ClampToEdge;
 
         #region Disposal

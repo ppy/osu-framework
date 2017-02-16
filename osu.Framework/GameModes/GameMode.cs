@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -30,8 +30,6 @@ namespace osu.Framework.GameModes
 
         private bool hasExited;
 
-        protected internal override bool DisposeOnRemove => true;
-
         /// <summary>
         /// Make this GameMode directly exited when resuming from a child.
         /// </summary>
@@ -45,12 +43,12 @@ namespace osu.Framework.GameModes
 
             AddInternal(new[]
             {
-                content = new ContentContainer()
+                content = new ContentContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
                 },
-                childModeContainer = new Container()
+                childModeContainer = new Container
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -58,6 +56,8 @@ namespace osu.Framework.GameModes
                 },
             });
         }
+
+        public override bool DisposeOnDeathRemoval => true;
 
         public override bool HandleInput => !hasExited;
 

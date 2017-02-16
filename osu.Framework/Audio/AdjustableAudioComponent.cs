@@ -1,11 +1,10 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Caching;
 using osu.Framework.Configuration;
 using osu.Framework.Threading;
 using osu.Framework.DebugUtils;
@@ -41,13 +40,13 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Playback balance of this sample (-1 .. 1 where 0 is centered)
         /// </summary>
-        public readonly BindableDouble Balance = new BindableDouble(0)
+        public readonly BindableDouble Balance = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1
         };
 
-        protected readonly BindableDouble BalanceCalculated = new BindableDouble(0)
+        protected readonly BindableDouble BalanceCalculated = new BindableDouble
         {
             MinValue = -1,
             MaxValue = 1

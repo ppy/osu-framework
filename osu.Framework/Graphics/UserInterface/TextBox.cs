@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         public bool AllowClipboardExport => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
-        private int[] doubleClickWord = null;
+        private int[] doubleClickWord;
 
         private AudioManager audio;
 
@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         TextFlow = new FlowContainer
                         {
-                            Direction = FlowDirection.HorizontalOnly,
+                            Direction = FlowDirections.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },
@@ -134,14 +134,14 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void Dispose(bool isDisposing)
         {
             OnChange = null;
             OnCommit = null;
 
             unbindInput();
 
-            base.Dispose(disposing);
+            base.Dispose(isDisposing);
         }
 
         private float textContainerPosX;
@@ -633,7 +633,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     selectionStart = doubleClickWord[1];
                     selectionEnd = findSeparatorIndex(text, getCharacterClosestTo(state.Mouse.Position), -1);
-                    selectionEnd = selectionEnd >= 0 ? (selectionEnd + 1) : 0;
+                    selectionEnd = selectionEnd >= 0 ? selectionEnd + 1 : 0;
                 }
                 else
                 {
@@ -680,7 +680,7 @@ namespace osu.Framework.Graphics.UserInterface
             selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
 
             //in order to keep the home word selected
-            doubleClickWord = new int[] { selectionStart, selectionEnd };
+            doubleClickWord = new[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
             return true;
@@ -783,7 +783,7 @@ namespace osu.Framework.Graphics.UserInterface
             imeDrawables.Clear();
         }
 
-        private List<Drawable> imeDrawables = new List<Drawable>();
+        private readonly List<Drawable> imeDrawables = new List<Drawable>();
 
         private void onImeComposition(string s)
         {

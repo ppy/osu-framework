@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public TextureUpload(int size, BufferStack<byte> bufferStack = null)
         {
-            this.bufferStack = bufferStack == null ? globalBufferStack : bufferStack;
+            this.bufferStack = bufferStack ?? globalBufferStack;
             Data = this.bufferStack.ReserveBuffer(size);
         }
 

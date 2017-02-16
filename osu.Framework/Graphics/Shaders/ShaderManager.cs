@@ -1,6 +1,7 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -41,9 +42,9 @@ namespace osu.Framework.Graphics.Shaders
         private string ensureValidName(string name, ShaderType type)
         {
             string ending = getFileEnding(type);
-            if (!name.StartsWith(shader_prefix))
+            if (!name.StartsWith(shader_prefix, StringComparison.Ordinal))
                 name = shader_prefix + name;
-            if (name.EndsWith(ending))
+            if (name.EndsWith(ending, StringComparison.Ordinal))
                 return name;
             return name + ending;
         }
@@ -92,9 +93,11 @@ namespace osu.Framework.Graphics.Shaders
             if (shaderCache.ContainsKey(name))
                 return shaderCache[name];
 
-            List<ShaderPart> parts = new List<ShaderPart>();
-            parts.Add(createShaderPart(vertex, ShaderType.VertexShader));
-            parts.Add(createShaderPart(fragment, ShaderType.FragmentShader));
+            List<ShaderPart> parts = new List<ShaderPart>
+            {
+                createShaderPart(vertex, ShaderType.VertexShader),
+                createShaderPart(fragment, ShaderType.FragmentShader)
+            };
 
             Shader shader = new Shader(name, parts);
 
@@ -136,7 +139,7 @@ namespace osu.Framework.Graphics.Shaders
             return shader;
         }
 
-        public Shader Load<T,U>(T vertexShader, U fragmentShader, bool continuousCompilation = false)
+        public Shader Load<T, U>(T vertexShader, U fragmentShader, bool continuousCompilation = false)
         {
             return Load(vertexShader.ToString(), fragmentShader.ToString(), continuousCompilation);
         }

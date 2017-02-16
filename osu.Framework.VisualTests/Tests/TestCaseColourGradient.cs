@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
@@ -7,7 +7,6 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
-using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.VisualTests.Tests
@@ -25,30 +24,30 @@ namespace osu.Framework.VisualTests.Tests
 
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
-            ColourInfo[] colours = new[]
+            ColourInfo[] colours =
             {
-                new ColourInfo()
+                new ColourInfo
                 {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.Blue,
                     TopRight = Color4.Red,
                     BottomRight = Color4.Green,
                 },
-                new ColourInfo()
+                new ColourInfo
                 {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.White,
                     TopRight = Color4.Black,
                     BottomRight = Color4.Black,
                 },
-                new ColourInfo()
+                new ColourInfo
                 {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.White,
                     TopRight = Color4.Transparent,
                     BottomRight = Color4.Transparent,
                 },
-                new ColourInfo()
+                new ColourInfo
                 {
                     TopLeft = Color4.White,
                     BottomLeft = Color4.White,
@@ -57,7 +56,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
-            Add(new Container()
+            Add(new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
@@ -168,7 +167,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Update();
 
-            foreach (Drawable box in boxes)
+            foreach (Box box in boxes)
                 box.Rotation += 0.01f;
         }
     }

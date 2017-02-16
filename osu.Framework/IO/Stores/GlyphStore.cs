@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.IO.Stores
 {
@@ -29,7 +28,7 @@ namespace osu.Framework.IO.Stores
             this.store = store;
             this.assetName = assetName;
 
-            fontName = assetName.Split('/').Last();
+            fontName = assetName?.Split('/').Last();
 
             try
             {
@@ -48,7 +47,7 @@ namespace osu.Framework.IO.Stores
 
         public RawTexture Get(string name)
         {
-            if (name.Length > 1 && !name.StartsWith($@"{fontName}/"))
+            if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
 
             Character c;
@@ -128,7 +127,7 @@ namespace osu.Framework.IO.Stores
         public FontStore()
         {
         }
-   
+
         public FontStore(GlyphStore glyphStore) : base(glyphStore)
         {
         }

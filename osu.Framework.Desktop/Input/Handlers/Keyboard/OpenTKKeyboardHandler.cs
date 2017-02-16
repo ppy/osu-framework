@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -34,12 +34,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         class TkKeyboardState : KeyboardState
         {
-            private static IEnumerable<Key> allKeys = Enum.GetValues(typeof(Key)).Cast<Key>();
+            private static readonly IEnumerable<Key> all_keys = Enum.GetValues(typeof(Key)).Cast<Key>();
 
             public TkKeyboardState(OpenTK.Input.KeyboardState tkState)
             {
                 if (tkState.IsAnyKeyDown)
-                    Keys = allKeys.Where(tkState.IsKeyDown);
+                    Keys = all_keys.Where(tkState.IsKeyDown);
             }
         }
     }

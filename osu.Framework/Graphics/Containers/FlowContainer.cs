@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -18,15 +18,37 @@ namespace osu.Framework.Graphics.Containers
     {
         internal event Action OnLayout;
 
-        public EasingTypes LayoutEasing;
+        public EasingTypes LayoutEasing
+        {
+            get
+            {
+                return AutoSizeEasing;
+            }
+            set
+            {
+                AutoSizeEasing = value;
+            }
+        }
 
-        public int LayoutDuration { get; set; }
+        public float LayoutDuration
+        {
+            get
+            {
+                return AutoSizeDuration * 2;
+            }
+            set
+            {
+                //coupling with autosizeduration allows us to smoothly transition our size
+                //when no children are left to dictate autosize.
+                AutoSizeDuration = value / 2;
+            }
+        }
 
         private Cached layout = new Cached();
 
-        private FlowDirection direction = FlowDirection.Full;
+        private FlowDirections direction = FlowDirections.Both;
 
-        public FlowDirection Direction
+        public FlowDirections Direction
         {
             get { return direction; }
             set
@@ -82,9 +104,8 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                FlowContainer t = d as FlowContainer;
-
-                t.Spacing = CurrentValue;
+                FlowContainer flowContainer = (FlowContainer)d;
+                flowContainer.Spacing = CurrentValue;
             }
         }
 
@@ -96,19 +117,22 @@ namespace osu.Framework.Graphics.Containers
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
+        protected override bool UpdateChildrenLife()
+        {
+            bool changed = base.UpdateChildrenLife();
+
+            if (changed)
+                layout.Invalidate();
+
+            return changed;
+        }
+
         public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
 
             base.InvalidateFromChild(invalidation, source);
-        }
-
-        public override void Add(T drawable)
-        {
-            //let's force an instant re-flow on adding a new drawable for now.
-            layout.Invalidate();
-            base.Add(drawable);
         }
 
         protected virtual IEnumerable<T> SortedChildren => AliveChildren;
@@ -128,7 +152,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 current = Vector2.Zero;
 
                     Vector2 max = maximumSize;
-                    if (direction == FlowDirection.Full && maximumSize == Vector2.Zero)
+                    if (direction == FlowDirections.Both && maximumSize == Vector2.Zero)
                     {
                         var s = DrawSize;
 
@@ -139,7 +163,7 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     float rowMaxHeight = 0;
-                    foreach (Drawable d in SortedChildren)
+                    foreach (T d in SortedChildren)
                     {
                         Vector2 size = Vector2.Zero;
 
@@ -148,7 +172,7 @@ namespace osu.Framework.Graphics.Containers
                             size = d.LayoutSize * d.Scale;
 
                             //We've exceeded our allowed width, move to a new row
-                            if (Direction != FlowDirection.HorizontalOnly && current.X + size.X > max.X)
+                            if (Direction != FlowDirections.Horizontal && current.X + size.X > max.X)
                             {
                                 current.X = 0;
                                 current.Y += rowMaxHeight;
@@ -174,11 +198,11 @@ namespace osu.Framework.Graphics.Containers
     }
 
     [Flags]
-    public enum FlowDirection
+    public enum FlowDirections
     {
-        HorizontalOnly = 1 << 0,
-        VerticalOnly = 1 << 1,
+        Horizontal = 1 << 0,
+        Vertical = 1 << 1,
 
-        Full = HorizontalOnly | VerticalOnly
+        Both = Horizontal | Vertical,
     }
 }

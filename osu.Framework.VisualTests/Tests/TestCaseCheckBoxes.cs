@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.GameModes.Testing;
@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                     Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
-                    Direction = FlowDirection.VerticalOnly,
+                    Direction = FlowDirections.Vertical,
                     Children = new Drawable[]
                     {
                         new BasicCheckBox

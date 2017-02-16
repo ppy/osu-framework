@@ -1,4 +1,4 @@
-// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -6,13 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input.Handlers;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Input
@@ -180,56 +176,22 @@ namespace osu.Framework.Input
             mouseInputQueue.Clear();
 
             if (state.Keyboard != null)
-                buildKeyboardInputQueue(this);
+                foreach (Drawable d in AliveChildren)
+                    d.BuildKeyboardInputQueue(keyboardInputQueue);
+
             if (state.Mouse != null)
-                buildMouseInputQueue(state, this);
+                foreach (Drawable d in AliveChildren)
+                    d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
             keyboardInputQueue.Reverse();
             mouseInputQueue.Reverse();
         }
 
-        private void buildKeyboardInputQueue(Drawable current)
-        {
-            if (!current.HandleInput || !current.IsPresent || current.IsMaskedAway)
-                return;
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+            => PassThrough && base.BuildKeyboardInputQueue(queue);
 
-            if (current != this)
-            {
-                //stop processing at any nested InputManagers
-                if ((current as InputManager)?.PassThrough == false)
-                    return;
-
-                keyboardInputQueue.Add(current);
-            }
-
-            IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
-
-            if (currentContainer != null)
-                foreach (Drawable d in currentContainer.AliveChildren)
-                    buildKeyboardInputQueue(d);
-        }
-
-        private void buildMouseInputQueue(InputState state, Drawable current)
-        {
-            if (!checkIsHoverable(current, state)) return;
-
-            if (current != this)
-            {
-                //stop processing at any nested InputManagers
-                if ((current as InputManager)?.PassThrough == false)
-                    return;
-
-                mouseInputQueue.Add(current);
-            }
-
-            IContainerEnumerable<Drawable> currentContainer = current as IContainerEnumerable<Drawable>;
-
-            if (currentContainer != null)
-                foreach (Drawable d in currentContainer.AliveChildren)
-                    buildMouseInputQueue(state, d);
-        }
-
-        private bool checkIsHoverable(Drawable d, InputState state) => d.HandleInput && d.IsPresent && !d.IsMaskedAway && d.Contains(state.Mouse.Position);
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+            => PassThrough && base.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
         private void updateHoverEvents(InputState state)
         {
@@ -443,7 +405,7 @@ namespace osu.Framework.Input
         private bool handleMouseClick(InputState state)
         {
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(target => checkIsHoverable(target, state) && (target.TriggerClick(state) | target.TriggerFocus(state, true))))
+            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerClick(state) | t.TriggerFocus(state, true)))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();

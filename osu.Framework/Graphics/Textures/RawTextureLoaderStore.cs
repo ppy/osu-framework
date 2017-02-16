@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.IO;
@@ -10,8 +10,8 @@ namespace osu.Framework.Graphics.Textures
 {
     public class RawTextureLoaderStore : ResourceStore<RawTexture>
     {
-        private IResourceStore<byte[]> store { get; set; }
-    
+        private IResourceStore<byte[]> store { get; }
+
         public RawTextureLoaderStore(IResourceStore<byte[]> store)
         {
             this.store = store;

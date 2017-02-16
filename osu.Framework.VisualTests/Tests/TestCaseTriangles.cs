@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
@@ -82,12 +82,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             testContainer.Clear();
 
-            Container box;
             Triangle triangle;
 
             switch (testType)
             {
                 case 0:
+                    Container box;
+
                     testContainer.Add(box = new InfofulBoxAutoSize
                     {
                         Anchor = Anchor.Centre,

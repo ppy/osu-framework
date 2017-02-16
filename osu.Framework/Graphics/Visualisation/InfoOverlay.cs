@@ -1,12 +1,10 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Sprites;
-using System;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -28,10 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
                 foreach (FlashyBox c in Children)
                     c.Target = target;
 
-                if (target != null)
-                    Alpha = 1;
-                else
-                    Alpha = 0;
+                Alpha = target != null ? 1.0f : 0.0f;
 
                 Pulse();
             }
@@ -50,7 +45,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RelativeSizeAxes = Axes.Both;
 
-            Children = new FlashyBox[]
+            Children = new[]
             {
                 layout = new FlashyBox(d => d.ToScreenSpace(d.LayoutRectangle))
                 {

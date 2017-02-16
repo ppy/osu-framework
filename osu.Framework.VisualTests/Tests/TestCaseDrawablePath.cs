@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2016 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
@@ -7,12 +7,10 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Input;
-using System.Linq;
 using System.Collections.Generic;
 
 namespace osu.Framework.VisualTests.Tests
@@ -31,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
             byte[] data = new byte[width * 4];
             for (int i = 0; i < width; ++i)
             {
-                float brightness = (float)i / (width-1);
+                float brightness = (float)i / (width - 1);
                 int index = i * 4;
                 data[index + 0] = (byte)(brightness * 255);
                 data[index + 1] = (byte)(brightness * 255);
@@ -40,7 +38,7 @@ namespace osu.Framework.VisualTests.Tests
             }
             gradientTexture.SetData(new TextureUpload(data));
 
-            Add(new Container()
+            Add(new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
@@ -177,11 +175,6 @@ namespace osu.Framework.VisualTests.Tests
 
                 return base.OnDrag(state);
             }
-        }
-
-        protected override void Update()
-        {
-            base.Update();
         }
     }
 }
