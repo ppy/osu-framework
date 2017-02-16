@@ -680,7 +680,7 @@ namespace osu.Framework.Graphics.UserInterface
             selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
 
             //in order to keep the home word selected
-            doubleClickWord = new int[] { selectionStart, selectionEnd };
+            doubleClickWord = new[] { selectionStart, selectionEnd };
 
             cursorAndLayout.Invalidate();
             return true;

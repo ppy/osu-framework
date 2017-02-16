@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Visualisation
             var sprite = Target as Sprite;
 
             AutoSizeAxes = Axes.Both;
-            Add(new Drawable[]
+            Add(new[]
             {
                 activityInvalidate = new Box
                 {

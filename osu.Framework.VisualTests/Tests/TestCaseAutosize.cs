@@ -778,7 +778,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 {
                                                     AutoSizeAxes = Axes.Both,
                                                     Depth = -1,
-                                                    Children = new Drawable[]
+                                                    Children = new[]
                                                     {
                                                         box1 = new Box
                                                         {
@@ -810,7 +810,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 {
                                                     AutoSizeAxes = Axes.Both,
                                                     Depth = -1,
-                                                    Children = new Drawable[]
+                                                    Children = new[]
                                                     {
                                                         box2 = new Box
                                                         {
@@ -842,7 +842,7 @@ namespace osu.Framework.VisualTests.Tests
                                                 {
                                                     AutoSizeAxes = Axes.Both,
                                                     Depth = -1,
-                                                    Children = new Drawable[]
+                                                    Children = new[]
                                                     {
                                                         box3 = new Box
                                                         {

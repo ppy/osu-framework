@@ -244,7 +244,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 4:
                     {
-                        Func<float, Drawable> createMaskingBox = delegate(float scale)
+                        Func<float, Drawable> createMaskingBox = delegate (float scale)
                         {
                             float size = 200 / scale;
                             return new Container
@@ -288,28 +288,28 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(100) }
+                                    Children = new[] { createMaskingBox(100) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(10) }
+                                    Children = new[] { createMaskingBox(10) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(1) }
+                                    Children = new[] { createMaskingBox(1) }
                                 },
                                 new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Size = new Vector2(0.5f),
                                     Masking = true,
-                                    Children = new Drawable[] { createMaskingBox(0.1f) }
+                                    Children = new[] { createMaskingBox(0.1f) }
                                 },
                             }
                         });

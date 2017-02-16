@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RelativeSizeAxes = Axes.Both;
 
-            Children = new FlashyBox[]
+            Children = new[]
             {
                 layout = new FlashyBox(d => d.ToScreenSpace(d.LayoutRectangle))
                 {
