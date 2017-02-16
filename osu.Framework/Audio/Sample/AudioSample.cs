@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class AudioSample : AdjustableAudioComponent, IHasCompletedState, IUpdateable
+    public abstract class AudioSample : AdjustableAudioComponent, IHasCompletedState
     {
         protected bool WasStarted;
 
