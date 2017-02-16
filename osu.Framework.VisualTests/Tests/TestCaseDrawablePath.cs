@@ -8,6 +8,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
