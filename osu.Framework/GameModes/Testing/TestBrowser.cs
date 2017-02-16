@@ -56,7 +56,7 @@ namespace osu.Framework.GameModes.Testing
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
                 tests.Add((TestCase)Activator.CreateInstance(type));
 
-            tests.Sort((TestCase a, TestCase b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+            tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]
