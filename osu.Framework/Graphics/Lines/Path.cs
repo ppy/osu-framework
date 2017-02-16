@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Lines
 {
     public class Path : Drawable
     {

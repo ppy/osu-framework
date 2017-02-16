@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
 using OpenTK.Graphics;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Lines
 {
     public class PathDrawNodeSharedData
     {
