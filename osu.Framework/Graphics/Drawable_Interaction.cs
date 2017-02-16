@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics
 {
-    public partial class Drawable : IDisposable, IHasLifetime
+    public partial class Drawable
     {
         /// <summary>
         /// Find the first parent InputManager which this drawable is contained by.

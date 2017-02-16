@@ -12,7 +12,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {
-    public partial class Drawable : IDisposable
+    public partial class Drawable
     {
         private double transformationDelay;
 
