@@ -168,7 +168,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Update();
 
-            foreach (Drawable box in boxes)
+            foreach (Box box in boxes)
                 box.Rotation += 0.01f;
         }
     }

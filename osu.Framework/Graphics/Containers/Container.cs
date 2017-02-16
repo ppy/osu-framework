@@ -396,7 +396,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
-            foreach (Drawable child in InternalChildren)
+            foreach (T child in InternalChildren)
                 child.UpdateClock(Clock);
         }
 
@@ -656,7 +656,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue))
                 return false;
 
-            foreach (Drawable d in AliveChildren)
+            foreach (T d in AliveChildren)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -667,7 +667,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
                 return false;
 
-            foreach (Drawable d in AliveChildren)
+            foreach (T d in AliveChildren)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;
