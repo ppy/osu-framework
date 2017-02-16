@@ -65,7 +65,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
 
                             using (RegistryKey command = progIdKey.CreateSubKey("shell\\open\\command"))
                             {
-                                command.SetValue(string.Empty, string.Format("\"{0}\" \"%1\"", executable));
+                                command.SetValue(string.Empty, $"\"{executable}\" \"%1\"");
                             }
 
                             using (RegistryKey command = progIdKey.CreateSubKey("DefaultIcon"))
