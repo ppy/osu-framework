@@ -44,13 +44,16 @@ namespace osu.Framework
                     RedirectStandardOutput = true
                 });
 
-                string output = uname.StandardOutput?.ReadToEnd();
-                uname.WaitForExit();
+                if (uname != null)
+                {
+                    string output = uname.StandardOutput?.ReadToEnd();
+                    uname.WaitForExit();
 
-                output = output?.ToUpper().Replace("\n", "").Trim();
+                    output = output?.ToUpper().Replace("\n", "").Trim();
 
-                IsMacOsx = output == "DARWIN";
-                IsLinux = output == "LINUX";
+                    IsMacOsx = output == "DARWIN";
+                    IsLinux = output == "LINUX";
+                }
             }
             else
             {
