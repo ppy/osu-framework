@@ -19,9 +19,9 @@ namespace osu.Framework.Graphics.UserInterface
     {
 
         protected override Container<Drawable> Content => tabBodies;
-        protected internal Drawable currentTab;
+        private Drawable currentTab;
         public TabHeadContainer Header;
-        protected internal Container tabBodies;
+        private Container tabBodies;
 
 
         public float TabIndexHeight
