@@ -3,10 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
-using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.GameModes.Testing;
@@ -30,7 +27,7 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
             });
 
-            string[] testNames = new[]
+            string[] testNames =
             {
                 @"Round corner masking",
                 @"Round corner AABB 1",

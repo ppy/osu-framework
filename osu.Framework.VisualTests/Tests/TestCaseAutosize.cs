@@ -25,12 +25,12 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(testContainer = new Container()
+            Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
             });
 
-            string[] testNames = new[]
+            string[] testNames =
             {
                 @"Multiple children",
                 @"Nested children",
