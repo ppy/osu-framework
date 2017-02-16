@@ -277,8 +277,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (DropDownItemsContainer == null || !DropDownItemsContainer.IsLoaded)
                 return;
 
-            for (int i = 0; i < items.Count; i++)
-                DropDownItemsContainer.Add(items[i]);
+            foreach (DropDownMenuItem<T> item in items)
+                DropDownItemsContainer.Add(item);
 
             listInitialized = true;
         }

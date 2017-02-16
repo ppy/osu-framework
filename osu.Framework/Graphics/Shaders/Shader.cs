@@ -191,11 +191,11 @@ namespace osu.Framework.Graphics.Shaders
         {
             globalProperties[name] = value;
 
-            for (int i = 0; i < allShaders.Count; i++)
+            foreach (Shader shader in allShaders)
             {
-                allShaders[i].ensureLoaded();
-                if (allShaders[i].uniforms.ContainsKey(name))
-                    allShaders[i].uniforms[name].Value = value;
+                shader.ensureLoaded();
+                if (shader.uniforms.ContainsKey(name))
+                    shader.uniforms[name].Value = value;
             }
         }
 

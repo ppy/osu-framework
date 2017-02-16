@@ -332,8 +332,8 @@ namespace osu.Framework.Graphics.Containers
         public int RemoveAll(Predicate<T> match)
         {
             List<T> toRemove = children.FindAll(match);
-            for (int i = 0; i < toRemove.Count; i++)
-                Remove(toRemove[i]);
+            foreach (T removable in toRemove)
+                Remove(removable);
 
             return toRemove.Count;
         }

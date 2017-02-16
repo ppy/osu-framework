@@ -178,8 +178,8 @@ namespace osu.Framework.Graphics.Sprites
             addLineCap(line.EndPoint, theta, MathHelper.Pi);
 
 
-            for (int i = 0; i < Segments.Count; ++i)
-                addLineQuads(Segments[i]);
+            foreach (Line segment in Segments)
+                addLineQuads(segment);
         }
 
         public override void Draw(Action<TexturedVertex2D> vertexAction)
