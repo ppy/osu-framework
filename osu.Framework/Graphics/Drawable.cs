@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics
         /// The primary use case of this ID is stable sorting of Drawables with equal
         /// <see cref="Depth"/>.
         /// </summary>
-        internal long CreationID { get; private set; }
+        internal long CreationID { get; }
         private static AtomicCounter creationCounter = new AtomicCounter();
 
         private float depth;

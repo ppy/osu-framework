@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class VisualisedDrawable : Container
     {
-        public Drawable Target { get; private set; }
+        public Drawable Target { get; }
 
         private SpriteText text;
         private Drawable previewBox;

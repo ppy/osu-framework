@@ -8,7 +8,7 @@ namespace osu.Framework.Lists
 {
     public class SortedList<T> : List<T>
     {
-        public IComparer<T> Comparer { get; private set; }
+        public IComparer<T> Comparer { get; }
 
         public SortedList(IComparer<T> comparer)
         {
