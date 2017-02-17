@@ -3,9 +3,9 @@
 
 using System;
 using osu.Framework.Configuration;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Screens.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 

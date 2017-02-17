@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Allocation;
-using osu.Framework.GameModes.Testing;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
 {

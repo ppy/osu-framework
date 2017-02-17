@@ -67,6 +67,8 @@ namespace osu.Framework.Graphics.Containers
 
         public void ToggleVisibility() => State = State == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
 
+        public override bool HandleInput => State == Visibility.Visible;
+
         protected override bool OnHover(InputState state) => BlockPassThroughInput;
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughInput;

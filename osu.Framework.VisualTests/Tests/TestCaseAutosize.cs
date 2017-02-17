@@ -9,8 +9,8 @@ using osu.Framework.Graphics.Transformations;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Allocation;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {

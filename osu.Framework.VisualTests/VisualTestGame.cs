@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Allocation;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
 {

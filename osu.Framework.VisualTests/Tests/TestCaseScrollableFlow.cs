@@ -8,9 +8,9 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
