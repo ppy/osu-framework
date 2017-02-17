@@ -124,7 +124,6 @@ namespace osu.Framework.Graphics.Containers
         {
             this.scrollDir = scrollDir;
 
-            RelativeSizeAxes = Axes.Both;
             Masking = true;
 
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;

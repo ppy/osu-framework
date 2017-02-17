@@ -33,6 +33,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 scroll = new ScrollContainer(scrollDir)
                 {
+                    RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
                     Children = new []
                     {

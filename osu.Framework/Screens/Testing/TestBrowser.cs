@@ -76,7 +76,11 @@ namespace osu.Framework.Screens.Testing
                 RelativeSizeAxes = Axes.Both
             });
 
-            leftContainer.Add(leftScrollContainer = new ScrollContainer { ScrollDraggerOverlapsContent = false });
+            leftContainer.Add(leftScrollContainer = new ScrollContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                ScrollDraggerOverlapsContent = false
+            });
 
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
