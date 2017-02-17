@@ -83,14 +83,14 @@ namespace osu.Framework.Graphics.Containers
                     if (AutoSizeDuration > 0)
                     {
                         ResizeTo(new Vector2(
-                                (RelativeSizeAxes & Axes.X) == 0 ? b.X : base.Width,
-                                (RelativeSizeAxes & Axes.Y) == 0 ? b.Y : base.Height
+                                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
                             ), AutoSizeDuration, AutoSizeEasing);
                     }
                     else
                     {
-                        if ((RelativeSizeAxes & Axes.X) == 0) base.Width = b.X;
-                        if ((RelativeSizeAxes & Axes.Y) == 0) base.Height = b.Y;
+                        if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
+                        if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
                     }
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
