@@ -51,6 +51,45 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
+        private void createAreaBoth()
+        {
+            Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
+
+            ScrollContainer localScroll;
+
+            Children = new[]
+            {
+                localScroll = new ScrollContainer(Direction.Horizontal)
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Left = 150 },
+                    Children = new[]
+                    {
+                        scroll = new ScrollContainer
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.X,
+                            Children = new[]
+                            {
+                                flow = new FlowContainer
+                                {
+                                    LayoutDuration = 100,
+                                    LayoutEasing = EasingTypes.Out,
+                                    Spacing = new Vector2(1, 1),
+                                    Size = new Vector2(1000, 0),
+                                    AutoSizeAxes = Axes.Y,
+                                    Padding = new MarginPadding(5)
+                                }
+                            }
+                        }
+                    },
+                },
+            };
+
+            scroll.ScrollContent.RelativeSizeAxes = Axes.None;
+            scroll.ScrollContent.AutoSizeAxes = Axes.Both;
+        }
+
         public override void Reset()
         {
             base.Reset();
@@ -59,6 +98,7 @@ namespace osu.Framework.VisualTests.Tests
 
             AddButton("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
             AddButton("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
+            AddButton("Both", delegate { createAreaBoth(); });
 
             AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
             AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopLeft : Anchor.TopLeft; });
