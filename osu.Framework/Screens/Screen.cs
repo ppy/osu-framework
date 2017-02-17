@@ -57,6 +57,12 @@ namespace osu.Framework.Screens
             });
         }
 
+        public override void Add(Drawable drawable)
+        {
+            Debug.Assert(!(drawable is Screen), "Use Push to add nested Screens.");
+            base.Add(drawable);
+        }
+
         public override bool DisposeOnDeathRemoval => true;
 
         public override bool HandleInput => !hasExited;
@@ -173,8 +179,8 @@ namespace osu.Framework.Screens
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
-            ParentScreen?.startResume(last);
             Exited?.Invoke(ParentScreen);
+            ParentScreen?.startResume(last);
             ParentScreen = null;
 
             Exited = null;
