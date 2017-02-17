@@ -154,7 +154,13 @@ namespace osu.Framework.GameModes
         /// <summary>
         /// Exits this GameMode.
         /// </summary>
-        public void Exit()
+        public void Exit() => ExitFrom(this);
+
+        /// <summary>
+        /// Exits this GameMode.
+        /// </summary>
+        /// <param name="last">Provides an exit source (used when skipping no-longer-valid modes upwards in stack).</param>
+        protected void ExitFrom(GameMode last)
         {
             if (hasExited)
                 return;
@@ -167,10 +173,8 @@ namespace osu.Framework.GameModes
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
-            ParentGameMode?.startResume(this);
+            ParentGameMode?.startResume(last);
             Exited?.Invoke(ParentGameMode);
-            if (ParentGameMode?.ValidForResume == false)
-                ParentGameMode.Exit();
             ParentGameMode = null;
 
             Exited = null;
@@ -185,6 +189,11 @@ namespace osu.Framework.GameModes
             {
                 OnResuming(last);
                 Content.LifetimeEnd = double.MaxValue;
+            }
+            else
+            {
+                ChildGameMode = last;
+                ExitFrom(last);
             }
         }
 
