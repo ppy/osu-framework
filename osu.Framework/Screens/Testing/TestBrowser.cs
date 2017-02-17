@@ -5,21 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Platform;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Platform;
-using osu.Framework.Allocation;
 
-namespace osu.Framework.GameModes.Testing
+namespace osu.Framework.Screens.Testing
 {
-    public class TestBrowser : GameMode
+    public class TestBrowser : Screen
     {
         class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
@@ -105,7 +105,7 @@ namespace osu.Framework.GameModes.Testing
             loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }
 
-        protected override bool OnExiting(GameMode next)
+        protected override bool OnExiting(Screen next)
         {
             if (next == null)
                 Game?.Exit();

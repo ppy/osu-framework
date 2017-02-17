@@ -2,8 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.GameModes;
-using osu.Framework.GameModes.Testing;
+using osu.Framework.Screens;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transformations;
@@ -12,34 +11,35 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseGameMode : TestCase
+    class TestCaseScreen : TestCase
     {
-        public override string Name => @"GameMode";
+        public override string Name => @"Screen";
 
-        public override string Description => @"Test stackable game modes";
+        public override string Description => @"Test stackable game screens";
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(new TestGameMode());
+            Add(new TestScreen());
         }
 
-        class TestGameMode : GameMode
+        class TestScreen : Screen
         {
             public int Sequence;
             private Button popButton;
 
             const int transition_time = 500;
 
-            protected override void OnEntering(GameMode last)
+            protected override void OnEntering(Screen last)
             {
                 if (last != null)
                 {
-                    //only show the pop button if we are entered form another gamemode.
+                    //only show the pop button if we are entered form another screen.
                     popButton.Alpha = 1;
                 }
 
@@ -47,18 +47,18 @@ namespace osu.Framework.VisualTests.Tests
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
 
-            protected override bool OnExiting(GameMode next)
+            protected override bool OnExiting(Screen next)
             {
                 Content.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, EasingTypes.OutQuint);
                 return base.OnExiting(next);
             }
 
-            protected override void OnSuspending(GameMode next)
+            protected override void OnSuspending(Screen next)
             {
                 Content.MoveTo(new Vector2(0, DrawSize.Y), transition_time, EasingTypes.OutQuint);
             }
 
-            protected override void OnResuming(GameMode last)
+            protected override void OnResuming(Screen last)
             {
                 Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
             }
@@ -109,7 +109,7 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.TopRight,
                         Colour = Color4.YellowGreen,
                         Action = delegate {
-                            Push(new TestGameMode
+                            Push(new TestScreen
                             {
                                 Sequence = Sequence + 1,
                                 Anchor = Anchor.Centre,

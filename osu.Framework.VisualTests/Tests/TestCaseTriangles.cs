@@ -5,9 +5,9 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics;
 using osu.Framework.Input;
+using osu.Framework.Screens.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 using Triangle = osu.Framework.Graphics.Sprites.Triangle;
 
 namespace osu.Framework.VisualTests.Tests

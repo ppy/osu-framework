@@ -104,8 +104,8 @@
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
-    <Compile Include="GameModes\Testing\TestBrowser.cs" />
-    <Compile Include="GameModes\Testing\TestCase.cs" />
+    <Compile Include="Screens\Testing\TestBrowser.cs" />
+    <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
@@ -185,7 +185,7 @@
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
-    <Compile Include="GameModes\GameMode.cs" />
+    <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />

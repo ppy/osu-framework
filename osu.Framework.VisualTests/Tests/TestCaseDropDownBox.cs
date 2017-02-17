@@ -3,13 +3,13 @@
 
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
