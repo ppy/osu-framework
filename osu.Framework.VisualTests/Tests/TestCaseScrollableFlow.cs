@@ -53,13 +53,9 @@ namespace osu.Framework.VisualTests.Tests
 
         private void createAreaBoth()
         {
-            Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
-
-            ScrollContainer localScroll;
-
             Children = new[]
             {
-                localScroll = new ScrollContainer(Direction.Horizontal)
+                new ScrollContainer(Direction.Horizontal)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
