@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
-    public class AudioTrackBass : AudioTrack, IBassAudio
+    public class TrackBass : Track, IBassAudio
     {
         private float initialFrequency;
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        public AudioTrackBass(Stream data, bool quick = false)
+        public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
             {

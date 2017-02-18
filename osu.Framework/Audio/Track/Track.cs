@@ -6,7 +6,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class AudioTrack : AdjustableAudioComponent, IAdjustableClock, IHasCompletedState
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasCompletedState
     {
         /// <summary>
         /// Is this track capable of producing audio?
@@ -20,7 +20,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public readonly BindableDouble Tempo = new BindableDouble(1);
 
-        protected AudioTrack()
+        protected Track()
         {
             Tempo.ValueChanged += InvalidateState;
         }

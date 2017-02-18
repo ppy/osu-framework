@@ -82,7 +82,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
+    <Compile Include="Audio\Sample\Sample.cs" />
+    <Compile Include="Audio\Sample\SampleBass.cs" />
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
@@ -98,7 +101,7 @@
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
     <Compile Include="Audio\IHasCompletedState.cs" />
-    <Compile Include="Audio\Sample\AudioSampleBass.cs" />
+    <Compile Include="Audio\Sample\SampleChannelBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
@@ -190,10 +193,10 @@
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
-    <Compile Include="Audio\Sample\AudioSample.cs" />
-    <Compile Include="Audio\Track\AudioTrack.cs" />
-    <Compile Include="Audio\Track\AudioTrackBass.cs" />
-    <Compile Include="Audio\Track\AudioTrackVirtual.cs" />
+    <Compile Include="Audio\Sample\SampleChannel.cs" />
+    <Compile Include="Audio\Track\Track.cs" />
+    <Compile Include="Audio\Track\TrackBass.cs" />
+    <Compile Include="Audio\Track\TrackVirtual.cs" />
     <Compile Include="BaseGame.cs" />
     <Compile Include="Platform\BasicGameHost.cs" />
     <Compile Include="Platform\BasicGameWindow.cs" />

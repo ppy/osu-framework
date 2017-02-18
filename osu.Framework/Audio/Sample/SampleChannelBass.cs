@@ -6,38 +6,21 @@ using ManagedBass;
 
 namespace osu.Framework.Audio.Sample
 {
-    class AudioSampleBass : AudioSample, IBassAudio
+    class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
 
         bool hasChannel => channel != 0;
-        bool hasSample => SampleId != 0;
-
-        public int SampleId { get; private set; }
+        bool hasSample => Sample.IsLoaded;
 
         float initialFrequency;
 
-        private bool freeWhenDone;
-
-        public AudioSampleBass(byte[] data)
+        public SampleChannelBass(Sample sample) : base(sample)
         {
-            PendingActions.Enqueue(() => {
-                SampleId = Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default);
-            });
-        }
-
-        public AudioSampleBass(int sampleId, bool freeWhenDone = false)
-        {
-            SampleId = sampleId;
-            this.freeWhenDone = freeWhenDone;
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
-            if (hasSample)
-                // counter-intuitively, this is the correct API to use to migrate a sample to a new device.
-                Bass.ChannelSetDevice(SampleId, deviceIndex);
-
             // Channels created from samples can not be migrated, so we need to ensure
             // a new channel is created after switching the device. We do not need to
             // manually free the channel, because our Bass.Free call upon switching devices
@@ -71,7 +54,7 @@ namespace osu.Framework.Audio.Sample
 
                 if (!hasChannel)
                 {
-                    channel = Bass.SampleGetChannel(SampleId);
+                    channel = ((SampleBass)Sample).GetChannel();
                     Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
                 }
             });
@@ -94,21 +77,6 @@ namespace osu.Framework.Audio.Sample
             {
                 Bass.ChannelStop(channel);
             });
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            if (freeWhenDone)
-            {
-                var s = SampleId;
-                PendingActions.Enqueue(() =>
-                {
-                    Bass.SampleFree(s);
-                });
-                SampleId = 0;
-            }
         }
 
         public override void Pause()
