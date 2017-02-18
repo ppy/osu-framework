@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Configuration;
+using osu.Framework.Statistics;
 using osu.Framework.Timing;
 using System.Diagnostics;
 
@@ -77,6 +78,8 @@ namespace osu.Framework.Audio.Track
 
         public override void Update()
         {
+            FrameStatistics.Increment(StatisticsCounterType.Tracks);
+
             base.Update();
             if (Looping && !IsRunning && Length == CurrentTime)
             {

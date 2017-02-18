@@ -17,6 +17,7 @@ using FlowDirections = osu.Framework.Graphics.Containers.FlowDirections;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Statistics;
 
 namespace osu.Framework
 {
@@ -168,12 +169,22 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }).Preload(this, AddInternal);
+            }).Preload(this, delegate(Drawable overlay)
+            {
+                performanceContainer.Threads.Add(host.InputThread);
+                performanceContainer.Threads.Add(Audio.Thread);
+                performanceContainer.Threads.Add(host.UpdateThread);
+                performanceContainer.Threads.Add(host.DrawThread);
 
-            performanceContainer.AddThread(host.InputThread);
-            performanceContainer.AddThread(Audio.Thread);
-            performanceContainer.AddThread(host.UpdateThread);
-            performanceContainer.AddThread(host.DrawThread);
+                // Note, that RegisterCounters only has an effect for the first
+                // BasicGameHost to be passed into it; i.e. the first BasicGameHost
+                // to be instantiated.
+                FrameStatistics.RegisterCounters(performanceContainer);
+
+                performanceContainer.CreateDisplays();
+
+                AddInternal(overlay);
+            });
 
             addDebugTools();
         }

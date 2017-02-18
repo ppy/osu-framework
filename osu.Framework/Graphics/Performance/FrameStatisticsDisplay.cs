@@ -412,22 +412,27 @@ namespace osu.Framework.Graphics.Performance
 
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
+                case StatisticsCounterType.TasksRun:
                     return Color4.BlueViolet;
 
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Refreshes:
+                case StatisticsCounterType.Tracks:
                     return Color4.YellowGreen;
 
                 case StatisticsCounterType.DrawNodeCtor:
                 case StatisticsCounterType.VerticesDraw:
+                case StatisticsCounterType.Samples:
                     return Color4.HotPink;
 
                 case StatisticsCounterType.DrawNodeAppl:
                 case StatisticsCounterType.VerticesUpl:
+                case StatisticsCounterType.SChannels:
                     return Color4.Red;
 
                 case StatisticsCounterType.ScheduleInvk:
                 case StatisticsCounterType.KiloPixels:
+                case StatisticsCounterType.Components:
                     return Color4.Cyan;
             }
         }
