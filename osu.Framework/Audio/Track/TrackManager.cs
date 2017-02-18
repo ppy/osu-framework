@@ -6,20 +6,20 @@ using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackManager : AudioCollectionManager<AudioTrack>
+    public class TrackManager : AudioCollectionManager<Track>
     {
         IResourceStore<byte[]> store;
 
-        AudioTrack exclusiveTrack;
+        Track exclusiveTrack;
 
         public TrackManager(IResourceStore<byte[]> store)
         {
             this.store = store;
         }
 
-        public AudioTrack Get(string name)
+        public Track Get(string name)
         {
-            AudioTrackBass track = new AudioTrackBass(store.GetStream(name));
+            TrackBass track = new TrackBass(store.GetStream(name));
             AddItem(track);
             return track;
         }
@@ -28,7 +28,7 @@ namespace osu.Framework.Audio.Track
         /// Specify an AudioTrack which should get exclusive playback over everything else.
         /// Will pause all other tracks and throw away any existing exclusive track.
         /// </summary>
-        public void SetExclusive(AudioTrack track)
+        public void SetExclusive(Track track)
         {
             if (exclusiveTrack == track) return;
 

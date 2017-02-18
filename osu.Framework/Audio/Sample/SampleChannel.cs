@@ -3,9 +3,16 @@
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class AudioSample : AdjustableAudioComponent, IHasCompletedState
+    public abstract class SampleChannel : AdjustableAudioComponent, IHasCompletedState
     {
         protected bool WasStarted;
+
+        public Sample Sample { get; protected set; }
+
+        public SampleChannel(Sample sample)
+        {
+            Sample = sample;
+        }
 
         /// <summary>
         /// Makes this sample fire-and-forget (will be cleaned up automatically).

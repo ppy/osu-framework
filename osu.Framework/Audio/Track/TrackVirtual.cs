@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
-    class AudioTrackVirtual : AudioTrack
+    class TrackVirtual : Track
     {
         StopwatchClock clock = new StopwatchClock();
 
