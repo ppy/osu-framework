@@ -154,7 +154,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 max = maximumSize;
                     if (direction == FlowDirections.Both && maximumSize == Vector2.Zero)
                     {
-                        var s = DrawSize;
+                        var s = ChildSize;
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).

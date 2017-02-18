@@ -115,6 +115,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// The container holding all children which are getting scrolled around.
+        /// </summary>
+        public Container<Drawable> ScrollContent => content;
+
         private bool isDragging;
 
         private Direction scrollDir;
@@ -124,7 +129,6 @@ namespace osu.Framework.Graphics.Containers
         {
             this.scrollDir = scrollDir;
 
-            RelativeSizeAxes = Axes.Both;
             Masking = true;
 
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
