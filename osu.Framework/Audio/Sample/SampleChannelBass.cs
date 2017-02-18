@@ -52,11 +52,10 @@ namespace osu.Framework.Audio.Sample
                     return;
                 }
 
-                if (!hasChannel)
-                {
-                    channel = ((SampleBass)Sample).GetChannel();
-                    Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
-                }
+                // We are creating a new channel for every playback, since old channels may
+                // be overridden when too many other channels are created from the same sample.
+                channel = ((SampleBass)Sample).CreateChannel();
+                Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
             });
 
             InvalidateState();
@@ -76,17 +75,6 @@ namespace osu.Framework.Audio.Sample
             PendingActions.Enqueue(() =>
             {
                 Bass.ChannelStop(channel);
-            });
-        }
-
-        public override void Pause()
-        {
-            if (!hasChannel) return;
-
-            base.Pause();
-            PendingActions.Enqueue(() =>
-            {
-                Bass.ChannelPause(channel);
             });
         }
 

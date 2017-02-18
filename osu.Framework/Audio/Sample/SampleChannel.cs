@@ -40,7 +40,5 @@ namespace osu.Framework.Audio.Sample
         public virtual bool Played => WasStarted && !Playing;
 
         public bool HasCompleted => Played && (OneShot || IsDisposed);
-
-        public virtual void Pause() { }
     }
 }

@@ -35,6 +35,6 @@ namespace osu.Framework.Audio.Sample
                 Bass.ChannelSetDevice(sampleId, deviceIndex);
         }
 
-        public int GetChannel() => Bass.SampleGetChannel(sampleId);
+        public int CreateChannel() => Bass.SampleGetChannel(sampleId);
     }
 }
