@@ -34,7 +34,8 @@ namespace osu.Framework.Audio.Track
             Debug.Assert(track != null, "Can not make a null track exclusive.");
             if (exclusiveTrack == track) return;
 
-            Items.ForEach(i => i.Stop());
+            foreach (var item in Items)
+                item.Stop();
 
             exclusiveTrack?.Dispose();
             exclusiveTrack = track;

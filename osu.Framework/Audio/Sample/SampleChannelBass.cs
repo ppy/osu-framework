@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Sample
 
         private float initialFrequency;
 
-        public SampleChannelBass(Sample sample) : base(sample)
+        public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay) : base(sample, onPlay)
         {
         }
 
@@ -43,8 +43,6 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
-            base.Play();
-
             PendingActions.Enqueue(() =>
             {
                 if (!IsLoaded)
@@ -70,6 +68,8 @@ namespace osu.Framework.Audio.Sample
             // Needs to happen on the main thread such that
             // Played does not become true for a short moment.
             playing = true;
+
+            base.Play();
         }
 
         public override void Update()
