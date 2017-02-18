@@ -115,14 +115,11 @@ namespace osu.Framework.Audio.Track
 
         protected override void Dispose(bool disposing)
         {
-            PendingActions.Enqueue(() =>
-            {
-                if (activeStream != 0) Bass.ChannelStop(activeStream);
-                activeStream = 0;
+            if (activeStream != 0) Bass.ChannelStop(activeStream);
+            activeStream = 0;
 
-                dataStream?.Dispose();
-                dataStream = null;
-            });
+            dataStream?.Dispose();
+            dataStream = null;
 
             base.Dispose(disposing);
         }
@@ -190,7 +187,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsRunning => isRunning;
 
-        protected override void OnStateChanged(object sender, EventArgs e)
+        internal override void OnStateChanged(object sender, EventArgs e)
         {
             base.OnStateChanged(sender, e);
 

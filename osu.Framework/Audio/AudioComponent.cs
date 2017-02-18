@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.DebugUtils;
 using System.Diagnostics;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
 {
@@ -28,8 +29,11 @@ namespace osu.Framework.Audio
             ThreadSafety.EnsureNotUpdateThread();
             Debug.Assert(!IsDisposed, "Can not update disposed audio components.");
 
+            FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
+            FrameStatistics.Increment(StatisticsCounterType.Components);
+
             Action action;
-            while (PendingActions.TryDequeue(out action))
+            while (!IsDisposed && PendingActions.TryDequeue(out action))
                 action();
         }
 
@@ -43,12 +47,13 @@ namespace osu.Framework.Audio
 
         protected virtual void Dispose(bool disposing)
         {
+            IsDisposed = true;
         }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            Dispose(true);
+            PendingActions.Enqueue(() => Dispose(true));
         }
 
         #endregion

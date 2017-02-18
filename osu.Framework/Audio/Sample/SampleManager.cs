@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using osu.Framework.IO.Stores;
+using osu.Framework.Statistics;
+using System.Linq;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -25,32 +27,34 @@ namespace osu.Framework.Audio.Sample
             {
                 Sample sample;
                 SampleChannel channel = null;
-                if (sampleCache.TryGetValue(name, out sample))
-                {
-                    //use existing bass sample (but provide a new audiosample instance).
-                    channel = new SampleChannelBass(sample);
-                }
-                else
+                if (!sampleCache.TryGetValue(name, out sample))
                 {
                     byte[] data = store.Get(name);
                     if (data != null)
-                    {
-                        channel = new SampleChannelBass(sample = new SampleBass(data));
-                        sampleCache[name] = sample;
-                    }
+                        sample = sampleCache[name] = new SampleBass(data, PendingActions);
                 }
 
-                if (channel != null)
-                    AddItem(channel);
+                if (sample != null)
+                {
+                    channel = new SampleChannelBass(sample, AddItemToList);
+                    RegisterItem(channel);
+                }
+
                 return channel;
             }
         }
 
+        public override void UpdateDevice(int deviceIndex)
+        {
+            foreach (var sample in sampleCache.Values.OfType<IBassAudio>())
+                sample.UpdateDevice(deviceIndex);
+
+            base.UpdateDevice(deviceIndex);
+        }
+
         public override void Update()
         {
-            foreach (var s in sampleCache.Values)
-                s.Update();
-
+            FrameStatistics.Increment(StatisticsCounterType.Samples, sampleCache.Count);
             base.Update();
         }
 
