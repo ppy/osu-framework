@@ -20,7 +20,7 @@ namespace osu.Framework.Audio
         {
             PendingActions.Enqueue(delegate
             {
-                if (Items.Contains(item)) return;
+                Debug.Assert(!Items.Contains(item), "May not add the same item twice.");
 
                 item.AddAdjustmentDependency(this);
                 Items.Add(item);
