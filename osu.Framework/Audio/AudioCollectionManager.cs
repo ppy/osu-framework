@@ -39,14 +39,15 @@ namespace osu.Framework.Audio
             {
                 var item = Items[i];
 
-                item.Update();
-
                 //todo: this is wrong (completed items may want to stay in an AudioCollectionManager ie. AudioTracks)
                 if (item.HasCompleted)
                 {
-                    item.Dispose();
                     Items.RemoveAt(i--);
+                    item.Dispose();
+                    continue;
                 }
+
+                item.Update();
             }
         }
     }
