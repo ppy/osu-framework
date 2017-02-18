@@ -19,9 +19,13 @@ namespace osu.Framework.Audio
             Dispose(false);
         }
 
+        /// <summary>
+        /// Updates this audio component. Always runs on the audio thread.
+        /// </summary>
         public virtual void Update()
         {
             ThreadSafety.EnsureNotUpdateThread();
+            Debug.Assert(!IsDisposed, "Can not update disposed audio components.");
 
             Action action;
             while (PendingActions.TryDequeue(out action))

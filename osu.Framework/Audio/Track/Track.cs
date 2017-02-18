@@ -55,9 +55,15 @@ namespace osu.Framework.Audio.Track
         /// <returns>Whether the seek was successful.</returns>
         public abstract bool Seek(double seek);
 
-        public abstract void Start();
+        public virtual void Start()
+        {
+            Debug.Assert(!IsDisposed, "Can not start disposed tracks.");
+        }
 
-        public abstract void Stop();
+        public virtual void Stop()
+        {
+            Debug.Assert(!IsDisposed, "Can not stop disposed tracks.");
+        }
 
         public abstract bool IsRunning { get; }
 

@@ -19,11 +19,13 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Play(bool restart = true)
         {
+            Debug.Assert(!IsDisposed, "Can not play disposed samples.");
             WasStarted = true;
         }
 
         public virtual void Stop()
         {
+            Debug.Assert(!IsDisposed, "Can not stop disposed samples.");
         }
 
         protected override void Dispose(bool disposing)
