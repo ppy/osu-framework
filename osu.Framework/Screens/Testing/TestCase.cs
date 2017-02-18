@@ -48,12 +48,12 @@ namespace osu.Framework.Screens.Testing
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-					ButtonsContainer = new FlowContainer
-					{
-						Direction = FlowDirections.Vertical,
-						AutoSizeAxes = Axes.Both,
-						Spacing = new Vector2(15, 5)
-					},
+		    ButtonsContainer = new FlowContainer
+		    {
+		    	Direction = FlowDirections.Vertical,
+			AutoSizeAxes = Axes.Both,
+			Spacing = new Vector2(15, 5)
+		    },
                 };
             }
             else
