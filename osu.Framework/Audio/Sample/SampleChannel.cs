@@ -17,11 +17,6 @@ namespace osu.Framework.Audio.Sample
             Sample = sample;
         }
 
-        /// <summary>
-        /// Makes this sample fire-and-forget (will be cleaned up automatically).
-        /// </summary>
-        public bool OneShot;
-
         public virtual void Play(bool restart = true)
         {
             WasStarted = true;
@@ -42,6 +37,6 @@ namespace osu.Framework.Audio.Sample
 
         public virtual bool Played => WasStarted && !Playing;
 
-        public bool HasCompleted => Played && (OneShot || IsDisposed);
+        public override bool HasCompleted => base.HasCompleted || Played;
     }
 }
