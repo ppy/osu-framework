@@ -48,10 +48,10 @@ namespace osu.Framework.Audio.Sample
 
         public override void Update()
         {
-            base.Update();
-
             foreach (var s in sampleCache.Values)
                 s.Update();
+
+            base.Update();
         }
 
         public Stream GetStream(string name)

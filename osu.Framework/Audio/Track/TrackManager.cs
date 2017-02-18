@@ -3,6 +3,7 @@
 
 using System.Linq;
 using osu.Framework.IO.Stores;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
@@ -30,6 +31,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public void SetExclusive(Track track)
         {
+            Debug.Assert(track != null, "Can not make a null track exclusive.");
             if (exclusiveTrack == track) return;
 
             Items.ForEach(i => i.Stop());

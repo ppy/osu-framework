@@ -3,17 +3,18 @@
 
 using System;
 using ManagedBass;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {
     class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
+        private volatile bool playing;
 
-        bool hasChannel => channel != 0;
-        bool hasSample => Sample.IsLoaded;
+        public override bool IsLoaded => Sample.IsLoaded;
 
-        float initialFrequency;
+        private float initialFrequency;
 
         public SampleChannelBass(Sample sample) : base(sample)
         {
@@ -32,7 +33,7 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged(sender, e);
 
-            if (hasChannel)
+            if (channel != 0)
             {
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated);
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated);
@@ -46,50 +47,51 @@ namespace osu.Framework.Audio.Sample
 
             PendingActions.Enqueue(() =>
             {
-                if (!hasSample)
+                if (!IsLoaded)
                 {
                     channel = 0;
                     return;
                 }
 
-                if (!hasChannel)
-                {
-                    channel = ((SampleBass)Sample).GetChannel();
-                    Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
-                }
+                // We are creating a new channel for every playback, since old channels may
+                // be overridden when too many other channels are created from the same sample.
+                channel = ((SampleBass)Sample).CreateChannel();
+                Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
             });
 
             InvalidateState();
 
             PendingActions.Enqueue(() =>
             {
-                Bass.ChannelPlay(channel, restart);
+                if (channel != 0)
+                    Bass.ChannelPlay(channel, restart);
             });
+
+            // Needs to happen on the main thread such that
+            // Played does not become true for a short moment.
+            playing = true;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
         }
 
         public override void Stop()
         {
-            if (!hasChannel) return;
+            if (channel == 0) return;
 
             base.Stop();
 
             PendingActions.Enqueue(() =>
             {
                 Bass.ChannelStop(channel);
+                // ChannelStop frees the channel.
+                channel = 0;
             });
         }
 
-        public override void Pause()
-        {
-            if (!hasChannel) return;
-
-            base.Pause();
-            PendingActions.Enqueue(() =>
-            {
-                Bass.ChannelPause(channel);
-            });
-        }
-
-        public override bool Playing => hasChannel && Bass.ChannelIsActive(channel) != 0; //consider moving this bass call to the update method.
+        public override bool Playing => playing;
     }
 }
