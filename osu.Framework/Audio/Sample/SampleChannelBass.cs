@@ -65,9 +65,11 @@ namespace osu.Framework.Audio.Sample
             {
                 if (channel != 0)
                     Bass.ChannelPlay(channel, restart);
-                    playing = true;
-                }
             });
+
+            // Needs to happen on the main thread such that
+            // Played does not become true for a short moment.
+            playing = true;
         }
 
         public override void Update()
