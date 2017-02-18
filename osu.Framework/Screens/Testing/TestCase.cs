@@ -43,7 +43,7 @@ namespace osu.Framework.Screens.Testing
             if (Contents == null)
             {
                 InternalChildren = new Drawable[]
-				{
+		{
                     Contents = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
