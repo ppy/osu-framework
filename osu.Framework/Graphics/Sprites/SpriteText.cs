@@ -215,6 +215,8 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Drawable shadowDrawable = CreateCharacterDrawable(c);
                             shadowDrawable.Position = new Vector2(0, 0.06f);
+                            shadowDrawable.Anchor = d.Anchor;
+                            shadowDrawable.Origin = d.Origin;
                             shadowDrawable.Colour = shadowColour;
                             shadowDrawable.Depth = float.MaxValue;
                             ctn.Add(shadowDrawable);
