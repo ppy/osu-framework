@@ -59,12 +59,12 @@ namespace osu.Framework.Audio
             Frequency.ValueChanged += InvalidateState;
         }
 
-        protected void InvalidateState(object sender = null, EventArgs e = null)
+        internal void InvalidateState(object sender = null, EventArgs e = null)
         {
             PendingActions.Enqueue(() => OnStateChanged(this, null));
         }
 
-        protected virtual void OnStateChanged(object sender, EventArgs e)
+        internal virtual void OnStateChanged(object sender, EventArgs e)
         {
             VolumeCalculated.Value = volumeAdjustments.Aggregate(Volume.Value, (current, adj) => current * adj);
             BalanceCalculated.Value = balanceAdjustments.Aggregate(Balance.Value, (current, adj) => current + adj);
@@ -100,8 +100,6 @@ namespace osu.Framework.Audio
                     break;
             }
 
-            adjustBindable.ValueChanged += InvalidateState;
-
             InvalidateState();
         }
 
@@ -111,33 +109,16 @@ namespace osu.Framework.Audio
             frequencyAdjustments.Remove(adjustBindable);
             volumeAdjustments.Remove(adjustBindable);
 
-            adjustBindable.ValueChanged -= InvalidateState;
-
             InvalidateState();
         }
 
         protected override void Dispose(bool disposing)
         {
-            PendingActions.Enqueue(() =>
-            {
-                if (!IsDisposed)
-                {
-                    IsDisposed = true;
+            volumeAdjustments.Clear();
+            balanceAdjustments.Clear();
+            frequencyAdjustments.Clear();
 
-                    if (disposing)
-                    {
-                        foreach (var d in volumeAdjustments)
-                            d.ValueChanged -= InvalidateState;
-                        foreach (var d in balanceAdjustments)
-                            d.ValueChanged -= InvalidateState;
-                        foreach (var d in frequencyAdjustments)
-                            d.ValueChanged -= InvalidateState;
-                    }
-
-                    // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                    // TODO: set large fields to null.
-                }
-            });
+            base.Dispose(disposing);
         }
     }
 

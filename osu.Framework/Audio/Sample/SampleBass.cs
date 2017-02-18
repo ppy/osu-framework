@@ -2,6 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using ManagedBass;
+using System;
+using System.Collections.Concurrent;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -11,8 +13,11 @@ namespace osu.Framework.Audio.Sample
 
         public override bool IsLoaded => sampleId != 0;
 
-        public SampleBass(byte[] data)
+        public SampleBass(byte[] data, ConcurrentQueue<Action> customPendingActions = null)
         {
+            if (customPendingActions != null)
+                PendingActions = customPendingActions;
+
             PendingActions.Enqueue(() =>
             {
                 sampleId = Bass.SampleLoad(data, 0, data.Length, 8, BassFlags.Default);
@@ -21,11 +26,8 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
+            Bass.SampleFree(sampleId);
             base.Dispose(disposing);
-
-            var s = sampleId;
-            PendingActions.Enqueue(() => { Bass.SampleFree(s); });
-            sampleId = 0;
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)
