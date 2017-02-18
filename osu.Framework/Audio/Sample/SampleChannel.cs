@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {
-    public abstract class SampleChannel : AdjustableAudioComponent, IHasCompletedState
+    public abstract class SampleChannel : AdjustableAudioComponent
     {
         protected bool WasStarted;
 

@@ -5,6 +5,5 @@ namespace osu.Framework.Audio.Sample
 {
     public abstract class Sample : AudioComponent
     {
-        public virtual bool IsLoaded => true;
     }
 }

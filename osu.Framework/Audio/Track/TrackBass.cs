@@ -38,6 +38,10 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
+        private volatile bool isLoaded;
+
+        public override bool IsLoaded => isLoaded;
+
         public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
@@ -76,6 +80,8 @@ namespace osu.Framework.Audio.Track
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
                 Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
+
+                isLoaded = true;
             });
 
             InvalidateState();
@@ -193,7 +199,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
-        public override bool HasCompleted => base.HasCompleted || !IsRunning && CurrentTime >= Length;
+        public override bool HasCompleted => base.HasCompleted || (IsLoaded && !IsRunning && CurrentTime >= Length);
 
         private class DataStreamFileProcedures
         {

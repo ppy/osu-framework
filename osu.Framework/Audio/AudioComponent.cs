@@ -4,10 +4,11 @@
 using System;
 using System.Collections.Concurrent;
 using osu.Framework.DebugUtils;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio
 {
-    public class AudioComponent : IDisposable, IUpdateable, IHasCompletedState
+    public class AudioComponent : IDisposable, IUpdateable
     {
         /// <summary>
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
@@ -32,11 +33,13 @@ namespace osu.Framework.Audio
                 action();
         }
 
-        public virtual bool HasCompleted => false;
+        public virtual bool HasCompleted => IsDisposed;
+
+        public virtual bool IsLoaded => true;
 
         #region IDisposable Support
 
-        protected bool IsDisposed; // To detect redundant calls
+        protected volatile bool IsDisposed; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {

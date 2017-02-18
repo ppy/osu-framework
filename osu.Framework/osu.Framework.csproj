@@ -100,7 +100,6 @@
     <Compile Include="Allocation\TripleBuffer.cs" />
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
-    <Compile Include="Audio\IHasCompletedState.cs" />
     <Compile Include="Audio\Sample\SampleChannelBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />

@@ -3,10 +3,11 @@
 
 using osu.Framework.Configuration;
 using osu.Framework.Timing;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class Track : AdjustableAudioComponent, IAdjustableClock, IHasCompletedState
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
         /// <summary>
         /// Is this track capable of producing audio?
@@ -83,7 +84,5 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
         }
-
-        public virtual bool HasCompleted => IsDisposed;
     }
 }

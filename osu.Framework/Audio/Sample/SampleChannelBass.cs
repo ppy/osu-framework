@@ -3,6 +3,7 @@
 
 using System;
 using ManagedBass;
+using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -11,10 +12,9 @@ namespace osu.Framework.Audio.Sample
         private volatile int channel;
         private volatile bool playing;
 
-        bool hasChannel => channel != 0;
-        bool hasSample => Sample.IsLoaded;
+        public override bool IsLoaded => Sample.IsLoaded;
 
-        float initialFrequency;
+        private float initialFrequency;
 
         public SampleChannelBass(Sample sample) : base(sample)
         {
@@ -33,7 +33,7 @@ namespace osu.Framework.Audio.Sample
         {
             base.OnStateChanged(sender, e);
 
-            if (hasChannel)
+            if (channel != 0)
             {
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, VolumeCalculated);
                 Bass.ChannelSetAttribute(channel, ChannelAttribute.Pan, BalanceCalculated);
@@ -47,7 +47,7 @@ namespace osu.Framework.Audio.Sample
 
             PendingActions.Enqueue(() =>
             {
-                if (!hasSample)
+                if (!IsLoaded)
                 {
                     channel = 0;
                     return;
@@ -63,8 +63,7 @@ namespace osu.Framework.Audio.Sample
 
             PendingActions.Enqueue(() =>
             {
-                if (hasChannel)
-                {
+                if (channel != 0)
                     Bass.ChannelPlay(channel, restart);
                     playing = true;
                 }
@@ -74,12 +73,12 @@ namespace osu.Framework.Audio.Sample
         public override void Update()
         {
             base.Update();
-            playing = hasChannel && Bass.ChannelIsActive(channel) != 0;
+            playing = channel != 0 && Bass.ChannelIsActive(channel) != 0;
         }
 
         public override void Stop()
         {
-            if (!hasChannel) return;
+            if (channel == 0) return;
 
             base.Stop();
 
