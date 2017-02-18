@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Statistics;
 using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
@@ -30,7 +31,6 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
-            WasStarted = true;
             Stop();
             base.Dispose(disposing);
         }

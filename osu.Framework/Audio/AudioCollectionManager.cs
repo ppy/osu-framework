@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace osu.Framework.Audio
@@ -26,12 +27,17 @@ namespace osu.Framework.Audio
             });
         }
 
+        internal override void OnStateChanged(object sender, EventArgs e)
+        {
+            base.OnStateChanged(sender, e);
+            foreach (var item in Items)
+                item.OnStateChanged(sender, e);
+        }
+
         public virtual void UpdateDevice(int deviceIndex)
         {
             foreach (var item in Items.OfType<IBassAudio>())
-            {
                 item.UpdateDevice(deviceIndex);
-            }
         }
 
         public override void Update()

@@ -21,11 +21,8 @@ namespace osu.Framework.Audio.Sample
 
         protected override void Dispose(bool disposing)
         {
+            Bass.SampleFree(sampleId);
             base.Dispose(disposing);
-
-            var s = sampleId;
-            PendingActions.Enqueue(() => { Bass.SampleFree(s); });
-            sampleId = 0;
         }
 
         void IBassAudio.UpdateDevice(int deviceIndex)

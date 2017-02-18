@@ -29,7 +29,7 @@ namespace osu.Framework.Audio
             Debug.Assert(!IsDisposed, "Can not update disposed audio components.");
 
             Action action;
-            while (PendingActions.TryDequeue(out action))
+            while (!IsDisposed && PendingActions.TryDequeue(out action))
                 action();
         }
 
@@ -43,12 +43,13 @@ namespace osu.Framework.Audio
 
         protected virtual void Dispose(bool disposing)
         {
+            IsDisposed = true;
         }
 
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            Dispose(true);
+            PendingActions.Enqueue(() => Dispose(true));
         }
 
         #endregion
