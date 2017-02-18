@@ -17,10 +17,13 @@ namespace osu.Framework.Audio
 
         public void AddItem(T item)
         {
-            if (Items.Contains(item)) return;
+            PendingActions.Enqueue(delegate
+            {
+                if (Items.Contains(item)) return;
 
-            item.AddAdjustmentDependency(this);
-            Items.Add(item);
+                item.AddAdjustmentDependency(this);
+                Items.Add(item);
+            });
         }
 
         public virtual void UpdateDevice(int deviceIndex)
