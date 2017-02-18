@@ -9,6 +9,7 @@ namespace osu.Framework.Audio.Sample
     class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
+        private volatile bool playing;
 
         bool hasChannel => channel != 0;
         bool hasSample => Sample.IsLoaded;
@@ -62,8 +63,18 @@ namespace osu.Framework.Audio.Sample
 
             PendingActions.Enqueue(() =>
             {
-                Bass.ChannelPlay(channel, restart);
+                if (hasChannel)
+                {
+                    Bass.ChannelPlay(channel, restart);
+                    playing = true;
+                }
             });
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            playing = hasChannel && Bass.ChannelIsActive(channel) != 0;
         }
 
         public override void Stop()
@@ -75,9 +86,11 @@ namespace osu.Framework.Audio.Sample
             PendingActions.Enqueue(() =>
             {
                 Bass.ChannelStop(channel);
+                // ChannelStop frees the channel.
+                channel = 0;
             });
         }
 
-        public override bool Playing => hasChannel && Bass.ChannelIsActive(channel) != 0; //consider moving this bass call to the update method.
+        public override bool Playing => playing;
     }
 }
