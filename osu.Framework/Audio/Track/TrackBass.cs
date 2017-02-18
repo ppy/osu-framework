@@ -91,6 +91,20 @@ namespace osu.Framework.Audio.Track
             Debug.Assert(Bass.LastError == Errors.OK);
         }
 
+        public override void Update()
+        {
+            base.Update();
+
+            if (IsDisposed)
+                return;
+
+            isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+
+            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+            Debug.Assert(Bass.LastError == Errors.OK);
+            currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
+        }
+
         public override void Reset()
         {
             Stop();
@@ -104,11 +118,7 @@ namespace osu.Framework.Audio.Track
             PendingActions.Enqueue(() =>
             {
                 if (activeStream != 0) Bass.ChannelStop(activeStream);
-
-                if (audioStreamPrefilter != 0) Bass.StreamFree(audioStreamPrefilter);
-
                 activeStream = 0;
-                audioStreamPrefilter = 0;
 
                 dataStream?.Dispose();
                 dataStream = null;
@@ -121,13 +131,14 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
-            isPlayed = false;
             base.Stop();
 
             PendingActions.Enqueue(() =>
             {
                 if (IsRunning)
                     Bass.ChannelPause(activeStream);
+
+                isPlayed = false;
             });
         }
 
@@ -141,12 +152,12 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            isPlayed = true;
             base.Start();
 
             PendingActions.Enqueue(() =>
             {
                 Bass.ChannelPlay(activeStream);
+                isPlayed = true;
             });
         }
 
@@ -171,17 +182,13 @@ namespace osu.Framework.Audio.Track
             return conservativeClamped == seek;
         }
 
-        public override double CurrentTime
-        {
-            get
-            {
-                double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-                if (value == Length && !isPlayed) return 0;
-                return value;
-            }
-        }
+        private volatile float currentTime;
 
-        public override bool IsRunning => Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+        public override double CurrentTime => currentTime;
+
+        private volatile bool isRunning;
+
+        public override bool IsRunning => isRunning;
 
         protected override void OnStateChanged(object sender, EventArgs e)
         {
