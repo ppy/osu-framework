@@ -3,7 +3,7 @@ using System.IO;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 
-namespace osu.Framework
+namespace osu.Framework.IO.Stores
 {
     public class StorageResourceStore : IResourceStore<byte[]>
     {
