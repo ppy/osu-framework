@@ -47,6 +47,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool HandleLeftRightArrows = true;
 
+        public TextBox TabNext { set; private get; }
+        public TextBox TabPrev { set; private get; }
+
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
@@ -466,7 +469,13 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Tab:
-                    return false;
+                    var focusedContainer = state.Keyboard.ShiftPressed ? TabPrev : TabNext;
+                    if (focusedContainer != null)
+                    {
+                        TriggerFocusLost();
+                        focusedContainer.TriggerFocus();
+                    }
+                    return true;
                 case Key.End:
                     moveSelection(text.Length, state.Keyboard.ShiftPressed);
                     return true;
