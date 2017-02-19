@@ -77,3 +77,4 @@ namespace osu.Framework.Desktop.Platform
         public override void DeleteDatabase(string name) => Delete($@"{name}.db");
     }
 }
+
