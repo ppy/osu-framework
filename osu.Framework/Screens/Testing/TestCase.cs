@@ -43,17 +43,17 @@ namespace osu.Framework.Screens.Testing
             if (Contents == null)
             {
                 InternalChildren = new Drawable[]
-		{
+                {
                     Contents = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-		    ButtonsContainer = new FlowContainer
-		    {
-		    	Direction = FlowDirections.Vertical,
-			AutoSizeAxes = Axes.Both,
-			Spacing = new Vector2(15, 5)
-		    },
+                    ButtonsContainer = new FlowContainer
+                    {
+                        Direction = FlowDirections.Vertical,
+                        AutoSizeAxes = Axes.Both,
+                        Spacing = new Vector2(15, 5)
+                    },
                 };
             }
             else
