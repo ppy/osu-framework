@@ -58,8 +58,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
-        public event OnCommitHandler OnCommit;
-        public event OnCommitHandler OnChange;
+        public OnCommitHandler OnCommit;
+        public OnCommitHandler OnChange;
 
         private Scheduler textUpdateScheduler = new Scheduler();
 

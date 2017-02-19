@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteText : FlowContainer
     {
-        private static readonly char[] default_fixed_width_exceptions = { '.' };
+        private static readonly char[] default_fixed_width_exceptions = { '.', ':' };
 
         /// <summary>
         /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
