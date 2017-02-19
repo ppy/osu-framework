@@ -35,3 +35,4 @@ namespace osu.Framework.Platform
         public abstract void OpenInNativeExplorer();
     }
 }
+
