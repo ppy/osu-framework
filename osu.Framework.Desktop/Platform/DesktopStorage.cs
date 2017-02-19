@@ -20,6 +20,23 @@ namespace osu.Framework.Desktop.Platform
             Logger.LogDirectory = Path.Combine(BasePath, @"logs");
         }
 
+        public override void SetupWatcher(string subPath)
+        {
+            //TODO find a better way to init watcher
+            Watcher = new FileSystemWatcher(Path.Combine(BasePath, subPath))
+            {
+                EnableRaisingEvents = true
+            };
+            Watcher.Created += changed;
+            Watcher.Changed += changed;
+            Watcher.Deleted += changed;
+        }
+
+        private void changed(object sender, FileSystemEventArgs e)
+        {
+            OnChanged?.Invoke();
+        }
+
         protected virtual string BasePath => @"./"; //use current directory by default
 
         public override bool Exists(string path) => File.Exists(Path.Combine(BasePath, path));
