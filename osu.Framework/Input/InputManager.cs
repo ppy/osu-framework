@@ -111,7 +111,7 @@ namespace osu.Framework.Input
                     pendingStates.AddRange(h.GetPendingStates());
             }
 
-            unfocusIsNoLongerValid(CurrentState);
+            unfocusIfNoLongerValid(CurrentState);
 
             if (!PassThrough)
             {
@@ -453,7 +453,7 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
-            if (!unfocusIsNoLongerValid(state))
+            if (!unfocusIfNoLongerValid(state))
             {
                 if (args.Key == Key.Escape)
                 {
@@ -474,7 +474,7 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (!unfocusIsNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
+            if (!unfocusIfNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
                 return true;
 
             return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
@@ -484,7 +484,7 @@ namespace osu.Framework.Input
         /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
         /// <returns>true if there is no longer a focus.</returns>
-        private bool unfocusIsNoLongerValid(InputState state)
+        private bool unfocusIfNoLongerValid(InputState state)
         {
             if (FocusedDrawable == null) return true;
 
