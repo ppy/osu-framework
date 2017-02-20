@@ -325,8 +325,8 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            scrollDragger?.MoveTo(scrollDim, Current * scrollDragger.Size[scrollDim]);
-            content.MoveTo(scrollDim, -Current);
+            scrollDragger?.MoveTo(scrollDir, Current * scrollDragger.Size[scrollDim]);
+            content.MoveTo(scrollDir, -Current);
         }
 
         private class ScrollBar : Container
