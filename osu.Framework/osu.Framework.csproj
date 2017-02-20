@@ -106,6 +106,7 @@
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
+    <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Screens\Testing\TestBrowser.cs" />
     <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />

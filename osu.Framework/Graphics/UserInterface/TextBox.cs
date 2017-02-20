@@ -17,12 +17,11 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
-using osu.Framework.Lists;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : Container
+    public class TextBox : TabbableContainer
     {
         protected FlowContainer TextFlow;
         protected Box Background;
@@ -47,9 +46,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
         public bool HandleLeftRightArrows = true;
-
-        public TextBox TabNext { set; private get; }
-        public TextBox TabPrev { set; private get; }
 
         protected virtual Color4 BackgroundCommit => new Color4(249, 90, 255, 200);
         protected virtual Color4 BackgroundFocused => new Color4(100, 100, 100, 255);
@@ -259,33 +255,6 @@ namespace osu.Framework.Graphics.UserInterface
         int selectionRight => Math.Max(selectionStart, selectionEnd);
 
         Cached<Vector2> cursorAndLayout = new Cached<Vector2>();
-
-        private Drawable nextTabStop(IReadOnlyList<Drawable> children, int current, bool reverse)
-        {
-            if (reverse)
-            {
-                // Search backwards for next tabbable control
-                for (int j = current + children.Count - 1; j >= current; j--)
-                {
-                    var child = children[j % children.Count];
-                    // Only handling Tab on TextBox for now
-                    if (child is TextBox)
-                        return child;
-                }
-            }
-            else
-            {
-                // Search forwards for next tabbable control
-                for (int j = 1; j < children.Count; j++)
-                {
-                    var child = children[(current + j) % children.Count];
-                    // Only handling Tab on TextBox for now
-                    if (child is TextBox)
-                        return child;
-                }
-            }
-            return null;
-        }
 
         private void moveSelection(int offset, bool expand)
         {
@@ -497,24 +466,11 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Tab:
-                    Container<Drawable> container = Parent as Container<Drawable>;
-                    LifetimeList<Drawable> children = container?.Children as LifetimeList<Drawable>;
-                    if (children == null)
-                        return false;
-
-                    for (int i = 0; i < children.Count; i++)
-                    {
-                        var child = children[i];
-                        if (child.CreationID != CreationID)
-                            continue;
-
-                        var next = nextTabStop(children, i, state.Keyboard.ShiftPressed);
-                        if (next != null)
-                        {
-                            TriggerFocusLost();
-                            next.TriggerFocus();
-                            return true;
-                        }
+                    var next = NextTabStop(state.Keyboard.ShiftPressed);
+                    if (next != null) {
+                        TriggerFocusLost();
+                        next.TriggerFocus();
+                        return true;
                     }
                     return false;
                 case Key.End:
