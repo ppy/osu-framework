@@ -115,6 +115,8 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        public bool IsScrolledToEnd => Precision.AlmostBigger(target, scrollableExtent, 1);
+
         /// <summary>
         /// The container holding all children which are getting scrolled around.
         /// </summary>
@@ -265,7 +267,17 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size[scrollDim]), false);
 
+        public void OffsetScrollPosition(float offset)
+        {
+            target += offset;
+            Current += offset;
+        }
+
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+
+        public void ScrollToEnd(bool animated = true) => scrollTo(scrollableExtent, animated, DistanceDecayJump);
+
+        public void ScrollBy(float offset, bool animated = true) => scrollTo(Current + offset, animated);
 
         public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
