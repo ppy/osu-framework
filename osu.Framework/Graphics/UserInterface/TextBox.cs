@@ -466,13 +466,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Tab:
-                    var next = NextTabStop(state.Keyboard.ShiftPressed);
-                    if (next != null) {
-                        TriggerFocusLost();
-                        next.TriggerFocus();
-                        return true;
-                    }
-                    return false;
+                    return base.OnKeyDown(state, args);
                 case Key.End:
                     moveSelection(text.Length, state.Keyboard.ShiftPressed);
                     return true;

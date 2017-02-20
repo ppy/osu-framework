@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using osu.Framework.Input;
 using osu.Framework.Lists;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -10,14 +12,17 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         /// <summary>
-        /// Base container for tabbing between ITabbable. Allows for tabbing between 
-        /// multiple levels within the BaseContainer.
+        /// Allows for tabbing between multiple levels within the BaseContainer.
         /// </summary>
         public Container<Drawable> BaseContainer { private get; set; }
 
-        protected Drawable NextTabStop(bool reverse)
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            return nextTabStop(BaseContainer, reverse ? -1 : 1);
+            if (args.Key != Key.Tab)
+                return false;
+            var next = nextTabStop(BaseContainer, state.Keyboard.ShiftPressed ? -1 : 1);
+            next?.TriggerFocus();
+            return true;
         }
 
         private Drawable nextTabStop(Container<Drawable> target, int step, bool intialized = false)
