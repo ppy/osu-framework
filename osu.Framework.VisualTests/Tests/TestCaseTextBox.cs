@@ -39,25 +39,29 @@ namespace osu.Framework.VisualTests.Tests
             textBoxes.Add(new TextBox
             {
                 Size = new Vector2(100, 16),
+                TabbableContentContainer = textBoxes
             });
 
             textBoxes.Add(new TextBox
             {
                 Text = @"Limited length",
                 Size = new Vector2(200, 20),
-                LengthLimit = 20
+                LengthLimit = 20,
+                TabbableContentContainer = textBoxes
             });
 
             textBoxes.Add(new TextBox
             {
                 Text = @"Box with some more text",
                 Size = new Vector2(500, 30),
+                TabbableContentContainer = textBoxes
             });
 
             textBoxes.Add(new TextBox
             {
                 PlaceholderText = @"Placeholder text",
                 Size = new Vector2(500, 30),
+                TabbableContentContainer = textBoxes
             });
 
             textBoxes.Add(new TextBox
@@ -65,6 +69,7 @@ namespace osu.Framework.VisualTests.Tests
                 Text = @"prefilled placeholder",
                 PlaceholderText = @"Placeholder text",
                 Size = new Vector2(500, 30),
+                TabbableContentContainer = textBoxes
             });
 
 
