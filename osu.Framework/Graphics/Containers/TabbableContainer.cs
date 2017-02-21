@@ -1,14 +1,18 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
 
-namespace osu.Framework.Graphics.Containers {
-    public class TabbableContainer : TabbableContainer<Drawable> { }
+namespace osu.Framework.Graphics.Containers
+{
+    public class TabbableContainer : TabbableContainer<Drawable>
+    {
+    }
 
-    public class TabbableContainer<T> : Container<T> 
+    public class TabbableContainer<T> : Container<T>
         where T : Drawable
     {
         /// <summary>
@@ -37,7 +41,7 @@ namespace osu.Framework.Graphics.Containers {
                 var container = stack.Pop();
                 if (container == null)
                     continue;
-                
+
                 if (!started)
                     started = ReferenceEquals(container, this);
                 else if (container is TabbableContainer)
