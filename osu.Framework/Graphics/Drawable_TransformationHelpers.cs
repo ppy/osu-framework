@@ -230,12 +230,17 @@ namespace osu.Framework.Graphics
             TransformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
-        public void MoveTo(int index, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            if (index == 0)
-                MoveToX(destination, duration, easing);
-            else
-                MoveToY(destination, duration, easing);
+            switch (direction)
+            {
+                case Direction.Horizontal:
+                    MoveToX(destination, duration, easing);
+                    break;
+                case Direction.Vertical:
+                    MoveToY(destination, duration, easing);
+                    break;
+            }
         }
 
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
