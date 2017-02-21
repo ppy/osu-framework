@@ -178,9 +178,9 @@ namespace osu.Framework.Graphics.Sprites
                     Add(k);
 
                 //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-                //linear is intentionally used here as it visually (subjectively) gives a better result.
-                var avgColour = ColourInfo.AverageColour.Linear;
-                float shadowAlpha = Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B);
+                //squared result for quadratic fall-off seems to give the best result.
+                var avgColour = (Color4)ColourInfo.AverageColour;
+                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 for (int index = keepDrawables.Count; index < text.Length; index++)
                 {
