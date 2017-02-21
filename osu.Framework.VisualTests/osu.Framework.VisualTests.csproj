@@ -73,6 +73,7 @@
     </None>
     <None Include="packages.config" />
     <Compile Include="Tests\TestCaseCheckBoxes.cs" />
+    <Compile Include="Tests\TestCaseStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
