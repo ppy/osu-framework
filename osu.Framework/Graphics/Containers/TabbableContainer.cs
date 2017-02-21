@@ -1,67 +1,74 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Input;
-using osu.Framework.Lists;
 using OpenTK.Input;
 
-namespace osu.Framework.Graphics.Containers
-{
+namespace osu.Framework.Graphics.Containers {
     public class TabbableContainer : TabbableContainer<Drawable> { }
 
     public class TabbableContainer<T> : Container<T> 
         where T : Drawable
     {
         /// <summary>
-        /// Allows for tabbing between multiple levels within the BaseContainer.
+        /// Allows for tabbing between multiple levels within the TabbableContentContainer.
         /// </summary>
-        public Container<Drawable> BaseContainer { private get; set; }
+        public Container<Drawable> TabbableContentContainer { private get; set; }
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (args.Key != Key.Tab)
                 return false;
-            var next = nextTabStop(BaseContainer, state.Keyboard.ShiftPressed ? -1 : 1);
-            next?.TriggerFocus();
+
+            // Yes, searching forwards has a step of -1 due to stack behavior
+            nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed ? 1 : -1)?.TriggerFocus();
             return true;
         }
 
-        private Drawable nextTabStop(Container<Drawable> target, int step, bool intialized = false)
+        private Drawable nextTabStop(Container<Drawable> target, int step)
         {
-            if (intialized && target is TabbableContainer)
-                return target;
+            Stack<Container<Drawable>> stack = new Stack<Container<Drawable>>();
+            stack.Push(target);
 
-            LifetimeList<Drawable> children = target?.Children as LifetimeList<Drawable>;
-            if (children == null)
-                return null;
-
-            var filtered = children.FindAll(t => t is Container<Drawable>)
-                .Cast<Container<Drawable>>()
-                .ToList();
-
-            int current = 0;
-            if (!intialized)
+            bool started = false;
+            while (stack.Count > 0)
             {
-                // Find self, to know starting point
-                current = filtered.IndexOf(this as TabbableContainer);
-                // Search own children
-                if (current != -1)
+                var container = stack.Pop();
+                if (container == null)
+                    continue;
+                
+                if (!started)
+                    started = ReferenceEquals(container, this);
+                else if (container is TabbableContainer)
+                    return container;
+
+                var filtered = container.Children.OfType<Container<Drawable>>().ToList();
+                int current = filtered.Count;
+                if (!started)
                 {
-                    intialized = true;
-                    var next = nextTabStop(filtered[current], step);
-                    if (next != null)
-                        return next;
-                    current += step;
+                    // Find self, to know starting point
+                    current = filtered.IndexOf(this as TabbableContainer);
+                    // Search own children
+                    if (current != -1)
+                    {
+                        var self = filtered[current];
+                        current += step + filtered.Count;
+                        for (int i = 0; i < filtered.Count - 1; i++)
+                        {
+                            stack.Push(filtered[(current + step * i) % filtered.Count]);
+                        }
+                        stack.Push(self);
+                        continue;
+                    }
+                    current = filtered.Count;
                 }
-                else
-                    current = 0;
-            }
 
-            // Search other children
-            for (int i = 0; i < filtered.Count; i++)
-            {
-                var next = nextTabStop(filtered[Math.Abs(current + step * i) % filtered.Count], step, intialized);
-                if (next != null)
-                    return next;
+                // Search other children
+                for (int i = 0; i < filtered.Count - 1; i++)
+                {
+                    stack.Push(filtered[(current + step * i) % filtered.Count]);
+                }
             }
 
             return null;
