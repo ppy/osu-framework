@@ -277,7 +277,7 @@ namespace osu.Framework.Graphics.Containers
 
         public void ScrollToEnd(bool animated = true) => scrollTo(scrollableExtent, animated, DistanceDecayJump);
 
-        public void ScrollBy(float offset, bool animated = true) => scrollTo(Current + offset, animated);
+        public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
         public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
