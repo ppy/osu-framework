@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Containers
                 }
 
                 // Search other children
-                for (int i = 0; i < filtered.Count - 1; i++)
+                for (int i = 0; i < filtered.Count; i++)
                 {
                     stack.Push(filtered[(current + step * i) % filtered.Count]);
                 }

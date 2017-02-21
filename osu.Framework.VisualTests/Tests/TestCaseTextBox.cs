@@ -26,6 +26,7 @@ namespace osu.Framework.VisualTests.Tests
                 Padding = new MarginPadding
                 {
                     Top = 50,
+                    Left = -50
                 },
                 Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
@@ -72,6 +73,56 @@ namespace osu.Framework.VisualTests.Tests
                 TabbableContentContainer = textBoxes
             });
 
+            FlowContainer otherTextBoxes = new FlowContainer
+            {
+                Direction = FlowDirections.Vertical,
+                Padding = new MarginPadding
+                {
+                    Top = 50,
+                    Left = 500
+                },
+                Spacing = new Vector2(0, 50),
+                Anchor = Anchor.TopCentre,
+                Origin = Anchor.TopCentre,
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.8f, 1)
+            };
+
+            otherTextBoxes.Add(new TextBox
+            {
+                PlaceholderText = @"Textbox in separate container",
+                Size = new Vector2(500, 30),
+                TabbableContentContainer = otherTextBoxes
+            });
+
+            otherTextBoxes.Add(new PasswordTextBox
+            {
+                PlaceholderText = @"Password textbox",
+                Text = "Secret ;)",
+                Size = new Vector2(500, 30),
+                TabbableContentContainer = otherTextBoxes
+            });
+
+            FlowContainer nestedTextBoxes = new FlowContainer
+            {
+                Direction = FlowDirections.Vertical,
+                Spacing = new Vector2(0, 50),
+                Anchor = Anchor.TopCentre,
+                Origin = Anchor.TopCentre,
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.8f, 1)
+            };
+
+            nestedTextBoxes.Add(new TextBox
+            {
+                PlaceholderText = @"Nested textbox",
+                Size = new Vector2(457, 30),
+                TabbableContentContainer = otherTextBoxes
+            });
+
+            otherTextBoxes.Add(nestedTextBoxes);
+
+            Add(otherTextBoxes);
 
             //textBoxes.Add(tb = new PasswordTextBox(@"", 14, Vector2.Zero, 300));
         }
