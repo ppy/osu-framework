@@ -177,6 +177,11 @@ namespace osu.Framework.Graphics.Sprites
                 foreach (var k in keepDrawables)
                     Add(k);
 
+                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                //squared result for quadratic fall-off seems to give the best result.
+                var avgColour = (Color4)ColourInfo.AverageColour;
+                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
                 for (int index = keepDrawables.Count; index < text.Length; index++)
                 {
                     char c = text[index];
@@ -226,6 +231,7 @@ namespace osu.Framework.Graphics.Sprites
                             shadowDrawable.Position = new Vector2(0, 0.06f);
                             shadowDrawable.Anchor = d.Anchor;
                             shadowDrawable.Origin = d.Origin;
+                            shadowDrawable.Alpha = shadowAlpha;
                             shadowDrawable.Colour = shadowColour;
                             shadowDrawable.Depth = float.MaxValue;
                             ctn.Add(shadowDrawable);
