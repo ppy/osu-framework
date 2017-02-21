@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
-        public bool IsScrolledToEnd => Precision.AlmostBigger(target, scrollableExtent, 1);
+        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
 
         /// <summary>
         /// The container holding all children which are getting scrolled around.
