@@ -1190,45 +1190,51 @@ namespace osu.Framework.Graphics
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
         public volatile LoadState LoadState;
+        private object loadLock = new object();
 
         public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
         {
-            if (LoadState == LoadState.NotLoaded)
-                return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
-                {
-                    task.ThrowIfFaulted();
-                    onLoaded?.Invoke(this);
-                }));
+            if (LoadState != LoadState.NotLoaded)
+                throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
 
-            Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
-            onLoaded?.Invoke(this);
-            return null;
+            LoadState = LoadState.Loading;
+
+            return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
+            {
+                task.ThrowIfFaulted();
+                onLoaded?.Invoke(this);
+            }));
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
         protected internal virtual void PerformLoad(BaseGame game)
         {
-            switch (LoadState)
+            // Blocks when loading from another thread already.
+            lock (loadLock)
             {
-                case LoadState.Loaded:
-                case LoadState.Alive:
-                    return;
-                case LoadState.Loading:
-                    //loading on another thread
-                    while (!IsLoaded) Thread.Sleep(1);
-                    return;
-                case LoadState.NotLoaded:
-                    LoadState = LoadState.Loading;
-                    break;
-            }
+                switch (LoadState)
+                {
+                    case LoadState.Loaded:
+                    case LoadState.Alive:
+                        return;
+                    case LoadState.Loading:
+                        break;
+                    case LoadState.NotLoaded:
+                        LoadState = LoadState.Loading;
+                        break;
+                    default:
+                        Trace.Assert(false, "Impossible loading state.");
+                        break;
+                }
 
-            double t1 = perf.CurrentTime;
-            game.Dependencies.Initialize(this);
-            double elapsed = perf.CurrentTime - t1;
-            if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-            LoadState = LoadState.Loaded;
+                double t1 = perf.CurrentTime;
+                game.Dependencies.Initialize(this);
+                double elapsed = perf.CurrentTime - t1;
+                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                LoadState = LoadState.Loaded;
+            }
         }
 
         /// <summary>
