@@ -347,11 +347,8 @@ namespace osu.Framework.Platform
 
         private void stopAllThreads()
         {
-            threads.Where(t => t.Running).ForEach(t =>
-            {
-                t.Exit();
-                t.Thread.Join();
-            });
+            threads.ForEach(t => t.Exit());
+            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
