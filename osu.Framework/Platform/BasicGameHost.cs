@@ -287,10 +287,7 @@ namespace osu.Framework.Platform
 
             InputThread.Scheduler.Add(delegate
             {
-                threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
-
                 exitCompleted = true;
             }, false);
         }
@@ -319,6 +316,17 @@ namespace osu.Framework.Platform
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
+                    Window.Closing += delegate
+                    {
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        threads.Where(t => t.Running).ForEach(t =>
+                        {
+                            t.Exit();
+                            t.Thread.Join();
+                        });
+                    };
+
                     Window.Run();
                 }
                 catch (OutOfMemoryException)
