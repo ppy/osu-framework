@@ -969,11 +969,16 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
 
-        private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
+        private Cached<Vector2> boundingSizeWithOriginBacking = new Cached<Vector2>();
 
-        internal Vector2 BoundingSize => boundingSizeBacking.EnsureValid()
-            ? boundingSizeBacking.Value
-            : boundingSizeBacking.Refresh(() =>
+        /// <summary>
+        /// Returns the size of the smallest axis aligned box in parent space which
+        /// encompasses this drawable and the parent's origin. Note, that negative
+        /// sizes are clamped to zero (i.e. can never be negative).
+        /// </summary>
+        internal Vector2 BoundingSizeWithOrigin => boundingSizeWithOriginBacking.EnsureValid()
+            ? boundingSizeWithOriginBacking.Value
+            : boundingSizeWithOriginBacking.Refresh(() =>
             {
                 //field will be none when the drawable isn't requesting auto-sizing
                 RectangleF bbox = BoundingBox;
@@ -1050,7 +1055,7 @@ namespace osu.Framework.Graphics
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
                 if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                    alreadyInvalidated &= !boundingSizeWithOriginBacking.Invalidate();
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();

@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
                     if (!c.IsPresent)
                         continue;
 
-                    Vector2 cBound = c.BoundingSize;
+                    Vector2 cBound = c.BoundingSizeWithOrigin;
 
                     if ((c.BypassAutoSizeAxes & Axes.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
