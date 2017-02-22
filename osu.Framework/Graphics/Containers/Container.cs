@@ -357,10 +357,10 @@ namespace osu.Framework.Graphics.Containers
                 {
                     //cascade disposal
                     (t as IContainer)?.Clear();
-
                     t.Dispose();
                 }
-                t.Parent = null;
+
+                Trace.Assert(t.Parent == null);
             }
 
             children.Clear();
