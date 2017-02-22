@@ -197,7 +197,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (ExitRequested) return false;
+            if (exitInitiated) return false;
 
             bool? response = null;
 
@@ -277,17 +277,21 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected volatile bool ExitRequested;
+        private volatile bool exitInitiated;
+
+        private volatile bool exitCompleted;
 
         public void Exit()
         {
+            exitInitiated = true;
+
             InputThread.Scheduler.Add(delegate
             {
-                ExitRequested = true;
-
                 threads.ForEach(t => t.Exit());
                 threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
+
+                exitCompleted = true;
             }, false);
         }
 
@@ -323,7 +327,7 @@ namespace osu.Framework.Platform
             }
             else
             {
-                while (!ExitRequested)
+                while (!exitCompleted)
                     InputThread.RunUpdate();
             }
         }
