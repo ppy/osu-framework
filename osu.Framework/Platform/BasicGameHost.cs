@@ -288,6 +288,7 @@ namespace osu.Framework.Platform
             InputThread.Scheduler.Add(delegate
             {
                 Window?.Close();
+                stopAllThreads();
                 exitCompleted = true;
             }, false);
         }
@@ -320,11 +321,7 @@ namespace osu.Framework.Platform
                     {
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).
-                        threads.Where(t => t.Running).ForEach(t =>
-                        {
-                            t.Exit();
-                            t.Thread.Join();
-                        });
+                        stopAllThreads();
                     };
 
                     Window.Run();
@@ -338,6 +335,15 @@ namespace osu.Framework.Platform
                 while (!exitCompleted)
                     InputThread.RunUpdate();
             }
+        }
+
+        private void stopAllThreads()
+        {
+            threads.Where(t => t.Running).ForEach(t =>
+            {
+                t.Exit();
+                t.Thread.Join();
+            });
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
