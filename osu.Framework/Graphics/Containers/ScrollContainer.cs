@@ -279,7 +279,7 @@ namespace osu.Framework.Graphics.Containers
         /// Scroll to the end of available content.
         /// </summary>
         /// <param name="animated">Whether to animate the movement.</param>
-        /// /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
         public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
         {
             if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
