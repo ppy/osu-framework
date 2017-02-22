@@ -25,14 +25,14 @@ namespace osu.Framework.Graphics.Containers
             if (args.Key != Key.Tab)
                 return false;
 
-            // Yes, searching forwards has a step of -1 due to stack behavior
-            nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed ? 1 : -1)?.TriggerFocus();
+            nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed)?.TriggerFocus();
             return true;
         }
 
-        private Drawable nextTabStop(Container<Drawable> target, int step)
+        private Drawable nextTabStop(Container<Drawable> target, bool reverse)
         {
             Stack<Container<Drawable>> stack = new Stack<Container<Drawable>>();
+            stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
 
             bool started = false;
@@ -48,30 +48,24 @@ namespace osu.Framework.Graphics.Containers
                     return container;
 
                 var filtered = container.Children.OfType<Container<Drawable>>().ToList();
-                int current = filtered.Count;
+                int bound = reverse ? filtered.Count : 0;
                 if (!started)
                 {
                     // Find self, to know starting point
-                    current = filtered.IndexOf(this as TabbableContainer);
-                    // Search own children
-                    if (current != -1)
-                    {
-                        var self = filtered[current];
-                        current += step + filtered.Count;
-                        for (int i = 0; i < filtered.Count - 1; i++)
-                        {
-                            stack.Push(filtered[(current + step * i) % filtered.Count]);
-                        }
-                        stack.Push(self);
-                        continue;
-                    }
-                    current = filtered.Count;
+                    int index = filtered.IndexOf(this as TabbableContainer);
+                    if (index != -1)
+                        bound = reverse ? index + 1 : index;
                 }
 
-                // Search other children
-                for (int i = 0; i < filtered.Count; i++)
+                if (reverse)
                 {
-                    stack.Push(filtered[(current + step * i) % filtered.Count]);
+                    for (int i = 0; i < bound; i++)
+                        stack.Push(filtered[i]);
+                }
+                else
+                {
+                    for (int i = filtered.Count - 1; i >= bound; i--)
+                        stack.Push(filtered[i]);
                 }
             }
 

@@ -115,7 +115,21 @@ namespace osu.Framework.VisualTests.Tests
 
             nestedTextBoxes.Add(new TextBox
             {
-                PlaceholderText = @"Nested textbox",
+                PlaceholderText = @"Nested textbox 1",
+                Size = new Vector2(457, 30),
+                TabbableContentContainer = otherTextBoxes
+            });
+
+            nestedTextBoxes.Add(new TextBox
+            {
+                PlaceholderText = @"Nested textbox 2",
+                Size = new Vector2(457, 30),
+                TabbableContentContainer = otherTextBoxes
+            });
+
+            nestedTextBoxes.Add(new TextBox
+            {
+                PlaceholderText = @"Nested textbox 3",
                 Size = new Vector2(457, 30),
                 TabbableContentContainer = otherTextBoxes
             });
