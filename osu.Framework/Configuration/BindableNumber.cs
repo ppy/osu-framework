@@ -2,35 +2,37 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace osu.Framework.Configuration
 {
     public abstract class BindableNumber<T> : Bindable<T> where T : struct
     {
+        static BindableNumber()
+        {
+            // check supported types against provided type argument.
+            var allowedTypes = new HashSet<Type>()
+            {
+                typeof(sbyte), typeof(byte),
+                typeof(short), typeof(ushort),
+                typeof(int), typeof(uint),
+                typeof(long), typeof(ulong),
+                typeof(float), typeof(double)
+            };
+            if (!allowedTypes.Contains(typeof(T)))
+                throw new ArgumentException($"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
+        }
+
         protected BindableNumber(T value = default(T)) : base(value)
         {
-            // Check that this is a numeric type
-            // SURE WOULD BE NICE TO DO THIS AT COMPILE TIME, C#
-            var code = Type.GetTypeCode(typeof(T));
-            var invalid = new[]
-            {
-                TypeCode.Boolean,
-                TypeCode.Char,
-                TypeCode.Empty,
-                TypeCode.Decimal, // TODO
-                TypeCode.Object,
-                TypeCode.String
-            };
-            if (Array.IndexOf(invalid, code) != -1)
-                throw new InvalidOperationException("BindableNumber created with a non-numeric generic type argument");
         }
 
         public T MinValue { get; set; }
         public T MaxValue { get; set; }
-        
+
         public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
-        
+
         public bool IsInteger
         {
             get
@@ -51,7 +53,7 @@ namespace osu.Framework.Configuration
                 }
             }
         }
-        
+
         public void Set<U>(U val) where U : struct,
             IComparable, IFormattable, IConvertible, IComparable<U>, IEquatable<U>
         {
@@ -92,7 +94,7 @@ namespace osu.Framework.Configuration
                     break;
                 case TypeCode.Single:
                     BindableNumber<float> floatBindable = this as BindableNumber<float>;
- 
+
                     floatBindable.Value = Convert.ToSingle(val);
                     break;
                 case TypeCode.Double:
@@ -149,7 +151,7 @@ namespace osu.Framework.Configuration
                     break;
             }
         }
-        
+
         /// <summary>
         /// Sets the value of the bindable to Min + (Max - Min) * amt
         /// </summary>
