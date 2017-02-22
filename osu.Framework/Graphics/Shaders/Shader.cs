@@ -178,7 +178,7 @@ namespace osu.Framework.Graphics.Shaders
         {
             ensureLoaded();
             if (!uniforms.ContainsKey(name))
-                throw new ArgumentException($"Inexisting uniform {name} in shader {this.name}.", nameof(name));
+                throw new ArgumentException($"Uniform {name} does not exist in shader {this.name}.", nameof(name));
             return new Uniform<T>(uniforms[name]);
         }
 
