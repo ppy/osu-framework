@@ -51,22 +51,22 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            Dispose(true);
+            dispose(true);
             GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;
 
-        /// <summary>
-        /// Whether this Drawable should be disposed when it is automatically removed from
-        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
-        /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
-
         protected virtual void Dispose(bool isDisposing)
+        {
+        }
+
+        private void dispose(bool isDisposing)
         {
             if (isDisposed)
                 return;
+
+            Dispose(isDisposing);
 
             Parent = null;
             scheduler?.Dispose();
@@ -81,6 +81,12 @@ namespace osu.Framework.Graphics
 
             isDisposed = true;
         }
+
+        /// <summary>
+        /// Whether this Drawable should be disposed when it is automatically removed from
+        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// </summary>
+        public virtual bool DisposeOnDeathRemoval => false;
 
         #endregion
 
