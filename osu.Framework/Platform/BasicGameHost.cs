@@ -325,7 +325,7 @@ namespace osu.Framework.Platform
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
-                    Window.Closing += delegate
+                    Window.Closed += delegate
                     {
                         //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
                         //to avoid GL operations running post-cleanup).
