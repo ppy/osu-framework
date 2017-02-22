@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
@@ -69,7 +70,14 @@ namespace osu.Framework.Platform
 
         public override bool IsPresent => true;
 
-        private GameThread[] threads;
+        private List<GameThread> threads;
+
+        public IEnumerable<GameThread> Threads => threads;
+
+        public void RegisterThread(GameThread t)
+        {
+            threads.Add(t);
+        }
 
         public GameThread DrawThread;
         public GameThread UpdateThread;
@@ -149,18 +157,18 @@ namespace osu.Framework.Platform
             Dependencies.Cache(this);
             name = gameName;
 
-            threads = new[]
+            threads = new List<GameThread>
             {
-                DrawThread = new GameThread(DrawFrame, @"Draw")
+                (DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
-                },
-                UpdateThread = new GameThread(UpdateFrame, @"Update")
+                }),
+                (UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true }
-                },
-                InputThread = new InputThread(null, @"Input") //never gets started.
+                }),
+                (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
             Clock = UpdateThread.Clock;
