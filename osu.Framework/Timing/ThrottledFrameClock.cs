@@ -41,7 +41,7 @@ namespace osu.Framework.Timing
                     double timeToSleep = targetMilliseconds - ElapsedFrameTime;
                     timeToSleepFloored = (int)Math.Floor(timeToSleep);
 
-                    Debug.Assert(timeToSleepFloored >= 0);
+                    Trace.Assert(timeToSleepFloored >= 0);
 
                     accumulatedSleepError += timeToSleep - timeToSleepFloored;
                     int accumulatedSleepErrorCompensation = (int)Math.Round(accumulatedSleepError);

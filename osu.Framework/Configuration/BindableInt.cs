@@ -29,7 +29,8 @@ namespace osu.Framework.Configuration
             {
                 MinValue = Math.Max(MinValue, i.MinValue);
                 MaxValue = Math.Min(MaxValue, i.MaxValue);
-                Debug.Assert(MinValue <= MaxValue);
+                if (MinValue > MaxValue)
+                    throw new ArgumentOutOfRangeException("Can not weld bindable ints with non-overlapping range.", nameof(v));
             }
             base.Weld(v, transferValue);
         }

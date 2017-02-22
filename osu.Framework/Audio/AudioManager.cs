@@ -265,7 +265,7 @@ namespace osu.Framework.Audio
                 Bass.Init(newDeviceIndex);
             }
 
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
 
             //we have successfully initialised a new device.
             currentAudioDevice = newDevice;

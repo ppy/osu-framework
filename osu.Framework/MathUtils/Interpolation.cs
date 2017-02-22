@@ -16,8 +16,10 @@ namespace osu.Framework.MathUtils
 
         public static double Damp(double start, double final, double smoothing, double delta)
         {
-            Debug.Assert(smoothing >= 0 && smoothing <= 1);
-            Debug.Assert(delta >= 0);
+            if (smoothing < 0 || smoothing > 1)
+                throw new ArgumentOutOfRangeException($"{nameof(smoothing)} has to lie in [0,1], but is {smoothing}.", nameof(smoothing));
+            if (delta < 0)
+                throw new ArgumentOutOfRangeException($"{nameof(delta)} has to be bigger than 0, but is {delta}.", nameof(delta));
 
             return Lerp(start, final, 1 - (float)Math.Pow(smoothing, delta));
         }

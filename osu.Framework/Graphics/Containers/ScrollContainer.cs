@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            Debug.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
+            Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
 
             double currentTime = Time.Current;
             double timeDelta = currentTime - lastDragTime;
@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            Debug.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
+            Trace.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
 
             isDragging = false;
 

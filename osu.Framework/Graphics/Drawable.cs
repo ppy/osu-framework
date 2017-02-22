@@ -106,6 +106,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which Drawables are behind or in front of other Drawables.
         /// This amounts to sorting Drawables by their <see cref="Depth"/>.
+        /// A Drawable with higher <see cref="Depth"/> than another Drawable is
+        /// drawn behind the other Drawable.
         /// </summary>
         public float Depth
         {
@@ -113,7 +115,8 @@ namespace osu.Framework.Graphics
             set
             {
                 // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                Debug.Assert(Parent == null, "May not change depth while inside a parent container.");
+                if (Parent != null)
+                    throw new InvalidOperationException("May not change depth while inside a parent container.");
                 depth = value;
             }
         }
@@ -214,7 +217,8 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
-            Debug.Assert(!isDisposed, "Disposed Drawables may never be in the scene graph.");
+            if (isDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
@@ -571,16 +575,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Anchor Origin
         {
-            get
-            {
-                return origin;
-            }
+            get { return origin; }
+
             set
             {
-                if (origin == value)
-                    return;
+                if (origin == value) return;
 
-                Debug.Assert(value != 0, "Cannot set origin to 0.");
+                if (value == 0)
+                    throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
                 Invalidate(Invalidation.Geometry);
@@ -635,9 +637,10 @@ namespace osu.Framework.Graphics
             {
                 if (anchor == value) return;
 
-                Debug.Assert(value != 0, "Cannot set anchor to 0.");
-                anchor = value;
+                if (value == 0)
+                    throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
+                anchor = value;
                 Invalidate(Invalidation.Geometry);
             }
         }
@@ -873,12 +876,13 @@ namespace osu.Framework.Graphics
             get { return parent; }
             set
             {
-                Debug.Assert(value == null || !isDisposed,
-                    "Disposed Drawables may never get a parent and return to the scene graph.");
+                if (isDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
                 if (parent == value) return;
 
-                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
+                if (value != null && parent != null)
+                    throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
                 if (parent != null)
@@ -893,10 +897,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
         /// Will cause the original instance to not render itself.
+        /// Creating multiple proxies is not supported and will result in an
+        /// <see cref="InvalidOperationException"/>.
         /// </summary>
         public ProxyDrawable CreateProxy()
         {
-            Debug.Assert(proxy == null, "Multiple proxies are not supported.");
+            if (proxy != null)
+                throw new InvalidOperationException("Multiple proxies are not supported.");
             return proxy = new ProxyDrawable(this);
         }
 

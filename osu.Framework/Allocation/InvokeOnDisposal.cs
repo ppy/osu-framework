@@ -12,7 +12,8 @@ namespace osu.Framework.Allocation
 
         public InvokeOnDisposal(Action action)
         {
-            Debug.Assert(action != null);
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
             this.action = action;
         }
 

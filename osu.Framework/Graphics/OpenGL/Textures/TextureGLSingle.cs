@@ -78,34 +78,16 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override int Height
         {
-            get
-            {
-                Debug.Assert(!IsDisposed);
-                return height;
-            }
-
-            set
-            {
-                Debug.Assert(!IsDisposed);
-                height = value;
-            }
+            get { return height; }
+            set { height = value; }
         }
 
         private int width;
 
         public override int Width
         {
-            get
-            {
-                Debug.Assert(!IsDisposed);
-                return width;
-            }
-
-            set
-            {
-                Debug.Assert(!IsDisposed);
-                width = value;
-            }
+            get { return width; }
+            set { width = value; }
         }
 
         private int textureId;
@@ -114,8 +96,11 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             get
             {
-                Debug.Assert(!IsDisposed);
-                Debug.Assert(textureId > 0);
+                if (IsDisposed)
+                    throw new ObjectDisposedException(ToString(), "Can not obtain ID of a disposed texture.");
+
+                if (textureId == 0)
+                    throw new InvalidOperationException("Can not obtain ID of a texture before uploading it.");
 
                 return textureId;
             }
@@ -144,7 +129,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawTriangle(Triangle vertexTriangle, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not draw a triangle with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -224,7 +210,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not draw a quad with a disposed texture.");
 
             RectangleF texRect = GetTextureRect(textureRect);
             Vector2 inflationAmount = inflationPercentage.HasValue ? new Vector2(inflationPercentage.Value.X * texRect.Width, inflationPercentage.Value.Y * texRect.Height) : Vector2.Zero;
@@ -275,7 +262,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         private void updateWrapMode()
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not update wrap mode of a disposed texture.");
 
             internalWrapMode = WrapMode;
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)internalWrapMode);
@@ -284,7 +272,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(TextureUpload upload)
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
             if (upload.Bounds == Rectangle.Empty)
                 upload.Bounds = new Rectangle(0, 0, width, height);
@@ -299,7 +288,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not bind a disposed texture.");
 
             Upload();
 
@@ -325,8 +315,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             ThreadSafety.EnsureDrawThread();
 
             if (IsDisposed)
-                return false;
-            
+                throw new ObjectDisposedException(ToString(), "Can not upload data to a disposed texture.");
+
             TextureUpload upload;
             bool didUpload = false;
 

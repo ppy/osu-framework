@@ -41,7 +41,8 @@ namespace osu.Framework.Configuration
             {
                 MinValue = Math.Max(MinValue, dbl.MinValue);
                 MaxValue = Math.Min(MaxValue, dbl.MaxValue);
-                Debug.Assert(MinValue <= MaxValue);
+                if (MinValue > MaxValue)
+                    throw new ArgumentOutOfRangeException("Can not weld bindable doubles with non-overlapping range.", nameof(v));
             }
             base.Weld(v, transferValue);
         }

@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Performance
 
         private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData, int amountSteps)
         {
-            Debug.Assert(textureData.Length >= height * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
+            Trace.Assert(textureData.Length >= height * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
             double elapsedMilliseconds;
             int drawHeight;

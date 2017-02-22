@@ -7,6 +7,7 @@ using osu.Framework.Caching;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -30,7 +31,8 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                Debug.Assert((AutoSizeAxes & Axes.X) == 0, @"The width of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                if ((AutoSizeAxes & Axes.X) != 0)
+                    throw new InvalidOperationException("The width of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Width = value;
             }
         }
@@ -46,7 +48,8 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                Debug.Assert((AutoSizeAxes & Axes.Y) == 0, @"The height of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                if ((AutoSizeAxes & Axes.Y) != 0)
+                    throw new InvalidOperationException("The height of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Height = value;
             }
         }
@@ -64,7 +67,8 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 //transform check here is to allow AutoSizeDuration to work below.
-                Debug.Assert((AutoSizeAxes & Axes.Both) == 0 || Transforms.Find(t => t is TransformSize) != null, @"The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                if ((AutoSizeAxes & Axes.Both) != 0 && !Transforms.Any(t => t is TransformSize))
+                    throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
             }
         }
@@ -157,7 +161,8 @@ namespace osu.Framework.Graphics.Containers
                 if (value == autoSizeAxes)
                     return;
 
-                Debug.Assert((RelativeSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
+                if ((RelativeSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
 

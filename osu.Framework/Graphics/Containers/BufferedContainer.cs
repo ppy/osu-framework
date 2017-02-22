@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
 using System.Diagnostics;
+using System;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -53,8 +54,8 @@ namespace osu.Framework.Graphics.Containers
             get { return pixelSnapping; }
             set
             {
-                Debug.Assert(!frameBuffers[0].IsInitialized && !frameBuffers[1].IsInitialized,
-                    "May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
+                if (frameBuffers[0].IsInitialized || frameBuffers[1].IsInitialized)
+                    throw new InvalidOperationException("May only set PixelSnapping before FrameBuffers are initialized (i.e. before the first draw).");
                 pixelSnapping = value;
             }
         }

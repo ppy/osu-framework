@@ -416,11 +416,12 @@ namespace osu.Framework.Platform
             // before its threads have been launched. This requires changing the order from
             // host.Run -> host.Add instead of host.Add -> host.Run.
 
-            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
+            if (Children.Any())
+                throw new InvalidOperationException("Can not add more than one " + nameof(BaseGame) + " to a " + nameof(BasicGameHost) + ".");
 
             BaseGame game = drawable as BaseGame;
-
-            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
+            if (game == null)
+                throw new ArgumentException("Can only add " + nameof(BaseGame) + " to " + nameof(BasicGameHost) + ".", nameof(drawable));
 
             Dependencies.Cache(game);
             game.SetHost(this);

@@ -224,8 +224,6 @@ namespace osu.Framework.IO.Network
                 req = System.Net.WebRequest.Create(requestUrl.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
             }
 
-            Debug.Assert(req != null);
-
             req.UserAgent = @"osu!";
             req.KeepAlive = useFallbackPath != true;
             req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -304,7 +302,8 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public void Perform()
         {
-            Debug.Assert(workItem == null);
+            if (workItem != null)
+                throw new InvalidOperationException("Can not perform a web request multiple times.");
 
             workItem = threadPool.QueueWorkItem(perform);
             if (threadPool.InUseThreads == threadPool.MaxThreads)
@@ -453,12 +452,12 @@ namespace osu.Framework.IO.Network
             try
             {
                 response = request.GetResponse() as HttpWebResponse;
-                Debug.Assert(response != null);
+                Trace.Assert(response != null);
 
                 Started?.Invoke(this);
 
                 internalResponseStream = response.GetResponseStream();
-                Debug.Assert(internalResponseStream != null);
+                Trace.Assert(internalResponseStream != null);
 
 #if !DEBUG
                 checkCertificate();
@@ -502,7 +501,7 @@ namespace osu.Framework.IO.Network
                 return;
 
             //if it's null at this point we don't mind throwing an exception.
-            Debug.Assert(request.ServicePoint.Certificate != null);
+            Trace.Assert(request.ServicePoint.Certificate != null);
 
             //this is enough for now to assume we have a valid certificate.
             if (new X509Certificate2(request.ServicePoint.Certificate).Subject.Contains(@"CN=*.ppy.sh"))
