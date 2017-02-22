@@ -275,7 +275,15 @@ namespace osu.Framework.Graphics.Containers
 
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
-        public void ScrollToEnd(bool animated = true) => scrollTo(scrollableExtent, animated, DistanceDecayJump);
+        /// <summary>
+        /// Scroll to the end of available content.
+        /// </summary>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
+        {
+            if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
+        }
 
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
