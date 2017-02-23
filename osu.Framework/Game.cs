@@ -96,11 +96,6 @@ namespace osu.Framework
         {
             if (!base.Invalidate(invalidation, source, shallPropagate)) return false;
 
-            if (Parent != null)
-            {
-                Config.Set(FrameworkConfig.Width, DrawSize.X);
-                Config.Set(FrameworkConfig.Height, DrawSize.Y);
-            }
             return true;
         }
 
@@ -114,11 +109,13 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
-            host.Size = new Vector2(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
             host.Exiting += OnExiting;
 
             if (Window != null)
+            {
+                Window.SetupWindow(Config);
                 Window.Title = $@"osu.Framework (running ""{Name}"")";
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -236,6 +233,12 @@ namespace osu.Framework
                         logOverlay.ToggleVisibility();
                         return true;
                 }
+            }
+
+            if (state.Keyboard.AltPressed && args.Key == Key.Enter)
+            {
+                Window?.CycleMode();
+                return true;
             }
 
             return base.OnKeyDown(state, args);

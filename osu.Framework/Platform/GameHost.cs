@@ -400,7 +400,6 @@ namespace osu.Framework.Platform
                     {
                         //set aggressively as we haven't become visible yet
                         Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                        Window.CentreToScreen();
                     }
                     else
                     {

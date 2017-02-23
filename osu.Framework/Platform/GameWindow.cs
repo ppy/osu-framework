@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics.ES30;
@@ -67,12 +68,6 @@ namespace osu.Framework.Platform
 
         protected override void OnKeyDown(KeyboardKeyEventArgs e)
         {
-            if (e.Alt && e.Key == Key.Enter)
-            {
-                WindowState = WindowState == WindowState.Fullscreen ? WindowState = WindowState.Normal : WindowState.Fullscreen;
-                return;
-            }
-
             base.OnKeyDown(e);
         }
 
@@ -80,6 +75,8 @@ namespace osu.Framework.Platform
         {
             Title = title;
         }
+
+        public abstract void SetupWindow(FrameworkConfigManager config);
 
         /// <summary>
         /// Return value decides whether we should intercept and cancel this exit (if possible).
@@ -92,8 +89,8 @@ namespace osu.Framework.Platform
 
         protected bool OnExitRequested() => ExitRequested?.Invoke() ?? false;
 
-        public virtual void CentreToScreen()
-        {
-        }
+        public virtual Vector2 Position { get; set; }
+
+        public virtual void CycleMode() {}
     }
 }
