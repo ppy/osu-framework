@@ -21,7 +21,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : Container
+    public class TextBox : TabbableContainer
     {
         protected FlowContainer TextFlow;
         protected Box Background;
@@ -464,7 +464,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Tab:
-                    return false;
+                    return base.OnKeyDown(state, args);
                 case Key.End:
                     moveSelection(text.Length, state.Keyboard.ShiftPressed);
                     return true;
