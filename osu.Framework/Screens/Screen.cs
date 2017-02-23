@@ -20,7 +20,7 @@ namespace osu.Framework.Screens
         private Container content;
         private Container childModeContainer;
 
-        protected BaseGame Game;
+        protected Game Game;
 
         protected override Container<Drawable> Content => content;
 
@@ -59,7 +59,8 @@ namespace osu.Framework.Screens
 
         public override void Add(Drawable drawable)
         {
-            Debug.Assert(!(drawable is Screen), "Use Push to add nested Screens.");
+            if (drawable is Screen)
+                throw new InvalidOperationException("Use Push to add nested Screens.");
             base.Add(drawable);
         }
 
@@ -92,7 +93,7 @@ namespace osu.Framework.Screens
         /// <param name="next">The new Screen</param>
         protected virtual void OnSuspending(Screen next) { }
 
-        protected internal override void PerformLoad(BaseGame game)
+        protected internal override void PerformLoad(Game game)
         {
             Game = game;
             base.PerformLoad(game);
@@ -127,7 +128,8 @@ namespace osu.Framework.Screens
         /// <param name="screen">The new Screen.</param>
         public virtual bool Push(Screen screen)
         {
-            Debug.Assert(ChildScreen == null);
+            if (ChildScreen != null)
+                throw new InvalidOperationException("Can not push more than one child screen.");
 
             screen.ParentScreen = this;
             childModeContainer.Add(screen);

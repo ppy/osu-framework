@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                Debug.Assert(false, "Cannot manually set CornerRadius of CircularContainer.");
+                throw new InvalidOperationException($"Cannot manually set {nameof(CornerRadius)} of {nameof(CircularContainer)}.");
             }
         }
     }

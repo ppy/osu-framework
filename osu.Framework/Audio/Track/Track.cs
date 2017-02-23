@@ -4,7 +4,7 @@
 using osu.Framework.Configuration;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
-using System.Diagnostics;
+using System;
 
 namespace osu.Framework.Audio.Track
 {
@@ -59,12 +59,14 @@ namespace osu.Framework.Audio.Track
 
         public virtual void Start()
         {
-            Debug.Assert(!IsDisposed, "Can not start disposed tracks.");
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
         }
 
         public virtual void Stop()
         {
-            Debug.Assert(!IsDisposed, "Can not stop disposed tracks.");
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
         }
 
         public abstract bool IsRunning { get; }

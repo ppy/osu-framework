@@ -8,7 +8,7 @@ namespace osu.Framework.Caching
 {
     public static class StaticCached
     {
-        internal static bool AlwaysStale;
+        internal const bool ALWAYS_STALE = false;
     }
 
     public struct Cached<T>
@@ -17,7 +17,7 @@ namespace osu.Framework.Caching
 
         private bool isValid;
 
-        public bool IsValid => !StaticCached.AlwaysStale && isValid;
+        public bool IsValid => !StaticCached.ALWAYS_STALE && isValid;
 
         private PropertyUpdater updateDelegate;
 
@@ -106,7 +106,7 @@ namespace osu.Framework.Caching
 
         private bool isValid;
 
-        public bool IsValid => !StaticCached.AlwaysStale && isValid;
+        public bool IsValid => !StaticCached.ALWAYS_STALE && isValid;
 
         private PropertyUpdater updateDelegate;
 

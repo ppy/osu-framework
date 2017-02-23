@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
@@ -27,20 +28,26 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameHost : Container, IIpcHost
+    public abstract class GameHost : Container, IIpcHost
     {
-        public static BasicGameHost Instance;
+        public static GameHost Instance;
 
-        public BasicGameWindow Window;
+        public GameWindow Window;
 
         private void setActive(bool isActive)
         {
             threads.ForEach(t => t.IsActive = isActive);
 
             if (isActive)
+            {
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
                 Activated?.Invoke();
+            }
             else
+            {
+                GCSettings.LatencyMode = GCLatencyMode.Interactive;
                 Deactivated?.Invoke();
+            }
         }
 
         public bool IsActive => InputThread.IsActive;
@@ -65,11 +72,18 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
-        public virtual BasicStorage Storage { get; protected set; } //public set currently required for visualtests setup.
+        public virtual Storage Storage { get; protected set; } //public set currently required for visualtests setup.
 
         public override bool IsPresent => true;
 
-        private GameThread[] threads;
+        private List<GameThread> threads;
+
+        public IEnumerable<GameThread> Threads => threads;
+
+        public void RegisterThread(GameThread t)
+        {
+            threads.Add(t);
+        }
 
         public GameThread DrawThread;
         public GameThread UpdateThread;
@@ -140,7 +154,7 @@ namespace osu.Framework.Platform
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        protected BasicGameHost(string gameName = @"")
+        protected GameHost(string gameName = @"")
         {
             Instance = this;
 
@@ -149,18 +163,18 @@ namespace osu.Framework.Platform
             Dependencies.Cache(this);
             name = gameName;
 
-            threads = new[]
+            threads = new List<GameThread>
             {
-                DrawThread = new GameThread(DrawFrame, @"Draw")
+                (DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
-                },
-                UpdateThread = new GameThread(UpdateFrame, @"Update")
+                }),
+                (UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true }
-                },
-                InputThread = new InputThread(null, @"Input") //never gets started.
+                }),
+                (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
             Clock = UpdateThread.Clock;
@@ -169,8 +183,6 @@ namespace osu.Framework.Platform
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
             Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
-
-            setActive(true);
 
             AddInternal(inputManager = new UserInputManager(this));
 
@@ -197,7 +209,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (ExitRequested) return false;
+            if (exitInitiated) return false;
 
             bool? response = null;
 
@@ -277,29 +289,31 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected volatile bool ExitRequested;
+        private volatile bool exitInitiated;
+
+        private volatile bool exitCompleted;
 
         public void Exit()
         {
+            exitInitiated = true;
+
             InputThread.Scheduler.Add(delegate
             {
-                ExitRequested = true;
-
-                threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
+                stopAllThreads();
+                exitCompleted = true;
             }, false);
         }
 
         public virtual void Run()
         {
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
             DrawThread.Start();
             UpdateThread.Start();
 
             if (Window != null)
             {
+                setActive(Window.Focused);
+
                 Window.KeyDown += window_KeyDown;
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
@@ -315,6 +329,13 @@ namespace osu.Framework.Platform
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
+                    Window.Closed += delegate
+                    {
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        stopAllThreads();
+                    };
+
                     Window.Run();
                 }
                 catch (OutOfMemoryException)
@@ -323,9 +344,15 @@ namespace osu.Framework.Platform
             }
             else
             {
-                while (!ExitRequested)
+                while (!exitCompleted)
                     InputThread.RunUpdate();
             }
+        }
+
+        private void stopAllThreads()
+        {
+            threads.ForEach(t => t.Exit());
+            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -373,7 +400,6 @@ namespace osu.Framework.Platform
                     {
                         //set aggressively as we haven't become visible yet
                         Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                        Window.CentreToScreen();
                     }
                     else
                     {
@@ -393,11 +419,12 @@ namespace osu.Framework.Platform
             // before its threads have been launched. This requires changing the order from
             // host.Run -> host.Add instead of host.Add -> host.Run.
 
-            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
+            if (Children.Any())
+                throw new InvalidOperationException($"Can not add more than one {nameof(Game)} to a {nameof(GameHost)}.");
 
-            BaseGame game = drawable as BaseGame;
-
-            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
+            Game game = drawable as Game;
+            if (game == null)
+                throw new ArgumentException($"Can only add {nameof(Game)} to {nameof(GameHost)}.", nameof(drawable));
 
             Dependencies.Cache(game);
             game.SetHost(this);
@@ -414,7 +441,7 @@ namespace osu.Framework.Platform
             DrawThread.WaitUntilInitialized();
         }
 
-        protected virtual void LoadGame(BaseGame game)
+        protected virtual void LoadGame(Game game)
         {
             Task.Run(delegate
             {

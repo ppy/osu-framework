@@ -19,9 +19,9 @@ namespace osu.Framework.Configuration
 
         Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        BasicStorage storage;
+        Storage storage;
 
-        public ConfigManager(BasicStorage storage)
+        public ConfigManager(Storage storage)
         {
             this.storage = storage;
             InitialiseDefaults();

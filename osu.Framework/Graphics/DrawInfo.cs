@@ -69,8 +69,8 @@ namespace osu.Framework.Graphics
             //========================================================================================
             //== Uncomment the following 2 lines to use a ground-truth matrix inverse for debugging ==
             //========================================================================================
-            //MatrixInverse = Matrix;
-            //MatrixExtensions.FastInvert(ref MatrixInverse);
+            //target.MatrixInverse = target.Matrix;
+            //MatrixExtensions.FastInvert(ref target.MatrixInverse);
         }
 
         public bool Equals(DrawInfo other)

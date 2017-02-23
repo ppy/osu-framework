@@ -51,22 +51,22 @@ namespace osu.Framework.Graphics
 
         public void Dispose()
         {
-            Dispose(true);
+            dispose(true);
             GC.SuppressFinalize(this);
         }
 
         private bool isDisposed;
 
-        /// <summary>
-        /// Whether this Drawable should be disposed when it is automatically removed from
-        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
-        /// </summary>
-        public virtual bool DisposeOnDeathRemoval => false;
-
         protected virtual void Dispose(bool isDisposing)
+        {
+        }
+
+        private void dispose(bool isDisposing)
         {
             if (isDisposed)
                 return;
+
+            Dispose(isDisposing);
 
             Parent = null;
             scheduler?.Dispose();
@@ -81,6 +81,12 @@ namespace osu.Framework.Graphics
 
             isDisposed = true;
         }
+
+        /// <summary>
+        /// Whether this Drawable should be disposed when it is automatically removed from
+        /// its <see cref="Parent"/> due to <see cref="IsAlive"/> being false.
+        /// </summary>
+        public virtual bool DisposeOnDeathRemoval => false;
 
         #endregion
 
@@ -100,6 +106,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which Drawables are behind or in front of other Drawables.
         /// This amounts to sorting Drawables by their <see cref="Depth"/>.
+        /// A Drawable with higher <see cref="Depth"/> than another Drawable is
+        /// drawn behind the other Drawable.
         /// </summary>
         public float Depth
         {
@@ -107,7 +115,8 @@ namespace osu.Framework.Graphics
             set
             {
                 // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                Debug.Assert(Parent == null, "May not change depth while inside a parent container.");
+                if (Parent != null)
+                    throw new InvalidOperationException("May not change depth while inside a parent container.");
                 depth = value;
             }
         }
@@ -208,7 +217,8 @@ namespace osu.Framework.Graphics
         /// <returns>False if the drawable should not be updated.</returns>
         protected internal virtual bool UpdateSubTree()
         {
-            Debug.Assert(!isDisposed, "Disposed Drawables may never be in the scene graph.");
+            if (isDisposed)
+                throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
@@ -565,16 +575,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Anchor Origin
         {
-            get
-            {
-                return origin;
-            }
+            get { return origin; }
+
             set
             {
-                if (origin == value)
-                    return;
+                if (origin == value) return;
 
-                Debug.Assert(value != 0, "Cannot set origin to 0.");
+                if (value == 0)
+                    throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
                 Invalidate(Invalidation.Geometry);
@@ -629,9 +637,10 @@ namespace osu.Framework.Graphics
             {
                 if (anchor == value) return;
 
-                Debug.Assert(value != 0, "Cannot set anchor to 0.");
-                anchor = value;
+                if (value == 0)
+                    throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
+                anchor = value;
                 Invalidate(Invalidation.Geometry);
             }
         }
@@ -867,12 +876,13 @@ namespace osu.Framework.Graphics
             get { return parent; }
             set
             {
-                Debug.Assert(value == null || !isDisposed,
-                    "Disposed Drawables may never get a parent and return to the scene graph.");
+                if (isDisposed)
+                    throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
                 if (parent == value) return;
 
-                Debug.Assert(value == null || parent == null, "May not add a drawable to multiple containers.");
+                if (value != null && parent != null)
+                    throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
                 if (parent != null)
@@ -887,10 +897,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
         /// Will cause the original instance to not render itself.
+        /// Creating multiple proxies is not supported and will result in an
+        /// <see cref="InvalidOperationException"/>.
         /// </summary>
         public ProxyDrawable CreateProxy()
         {
-            Debug.Assert(proxy == null, "Multiple proxies are not supported.");
+            if (proxy != null)
+                throw new InvalidOperationException("Multiple proxies are not supported.");
             return proxy = new ProxyDrawable(this);
         }
 
@@ -963,11 +976,16 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
 
-        private Cached<Vector2> boundingSizeBacking = new Cached<Vector2>();
+        private Cached<Vector2> boundingSizeWithOriginBacking = new Cached<Vector2>();
 
-        internal Vector2 BoundingSize => boundingSizeBacking.EnsureValid()
-            ? boundingSizeBacking.Value
-            : boundingSizeBacking.Refresh(() =>
+        /// <summary>
+        /// Returns the size of the smallest axis aligned box in parent space which
+        /// encompasses this drawable and the parent's origin. Note, that negative
+        /// sizes are clamped to zero (i.e. can never be negative).
+        /// </summary>
+        internal Vector2 BoundingSizeWithOrigin => boundingSizeWithOriginBacking.EnsureValid()
+            ? boundingSizeWithOriginBacking.Value
+            : boundingSizeWithOriginBacking.Refresh(() =>
             {
                 //field will be none when the drawable isn't requesting auto-sizing
                 RectangleF bbox = BoundingBox;
@@ -1044,7 +1062,7 @@ namespace osu.Framework.Graphics
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
                 if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                    alreadyInvalidated &= !boundingSizeBacking.Invalidate();
+                    alreadyInvalidated &= !boundingSizeWithOriginBacking.Invalidate();
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
@@ -1179,45 +1197,51 @@ namespace osu.Framework.Graphics
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
         public volatile LoadState LoadState;
+        private object loadLock = new object();
 
-        public Task Preload(BaseGame game, Action<Drawable> onLoaded = null)
+        public Task Preload(Game game, Action<Drawable> onLoaded = null)
         {
-            if (LoadState == LoadState.NotLoaded)
-                return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
-                {
-                    task.ThrowIfFaulted();
-                    onLoaded?.Invoke(this);
-                }));
+            if (LoadState != LoadState.NotLoaded)
+                throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
 
-            Debug.Assert(LoadState >= LoadState.Loaded, "Preload got called twice on the same Drawable.");
-            onLoaded?.Invoke(this);
-            return null;
+            LoadState = LoadState.Loading;
+
+            return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
+            {
+                task.ThrowIfFaulted();
+                onLoaded?.Invoke(this);
+            }));
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
-        protected internal virtual void PerformLoad(BaseGame game)
+        protected internal virtual void PerformLoad(Game game)
         {
-            switch (LoadState)
+            // Blocks when loading from another thread already.
+            lock (loadLock)
             {
-                case LoadState.Loaded:
-                case LoadState.Alive:
-                    return;
-                case LoadState.Loading:
-                    //loading on another thread
-                    while (!IsLoaded) Thread.Sleep(1);
-                    return;
-                case LoadState.NotLoaded:
-                    LoadState = LoadState.Loading;
-                    break;
-            }
+                switch (LoadState)
+                {
+                    case LoadState.Loaded:
+                    case LoadState.Alive:
+                        return;
+                    case LoadState.Loading:
+                        break;
+                    case LoadState.NotLoaded:
+                        LoadState = LoadState.Loading;
+                        break;
+                    default:
+                        Trace.Assert(false, "Impossible loading state.");
+                        break;
+                }
 
-            double t1 = perf.CurrentTime;
-            game.Dependencies.Initialize(this);
-            double elapsed = perf.CurrentTime - t1;
-            if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-            LoadState = LoadState.Loaded;
+                double t1 = perf.CurrentTime;
+                game.Dependencies.Initialize(this);
+                double elapsed = perf.CurrentTime - t1;
+                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                LoadState = LoadState.Loaded;
+            }
         }
 
         /// <summary>
