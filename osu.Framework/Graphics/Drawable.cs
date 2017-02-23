@@ -1206,7 +1206,7 @@ namespace osu.Framework.Graphics
 
             LoadState = LoadState.Loading;
 
-            return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
+            return Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -1215,7 +1215,7 @@ namespace osu.Framework.Graphics
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
-        protected internal virtual void PerformLoad(Game game)
+        protected internal virtual void Load(Game game)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)

@@ -93,10 +93,10 @@ namespace osu.Framework.Screens
         /// <param name="next">The new Screen</param>
         protected virtual void OnSuspending(Screen next) { }
 
-        protected internal override void PerformLoad(Game game)
+        protected internal override void Load(Game game)
         {
             Game = game;
-            base.PerformLoad(game);
+            base.Load(game);
         }
 
         protected override void LoadComplete()
