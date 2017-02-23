@@ -55,6 +55,18 @@ namespace osu.Framework.Desktop.Platform
             Exited += onExit;
         }
 
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            switch (mode.Value)
+            {
+                case WindowMode.Windowed:
+                    width.Value = ClientSize.Width;
+                    height.Value = ClientSize.Height;
+                    break;
+            }
+        }
+
         private void mode_ValueChanged(object sender, EventArgs e)
         {
             switch (mode.Value)
@@ -96,9 +108,6 @@ namespace osu.Framework.Desktop.Platform
                     heightFullscreen.Value = ClientSize.Height;
                     break;
                 case WindowMode.Windowed:
-                    width.Value = ClientSize.Width;
-                    height.Value = ClientSize.Height;
-
                     windowPositionX.Value = Position.X;
                     windowPositionY.Value = Position.Y;
                     break;
