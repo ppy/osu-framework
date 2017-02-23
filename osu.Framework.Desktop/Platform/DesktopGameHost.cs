@@ -40,7 +40,7 @@ namespace osu.Framework.Desktop.Platform
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
-                    ipcTask = ipcProvider.Start();
+                    ipcTask = ipcProvider.StartAsync();
                 }
             }
         }
@@ -104,9 +104,9 @@ namespace osu.Framework.Desktop.Platform
             base.LoadGame(game);
         }
 
-        public override async Task SendMessage(IpcMessage message)
+        public override async Task SendMessageAsync(IpcMessage message)
         {
-            await ipcProvider.SendMessage(message);
+            await ipcProvider.SendMessageAsync(message);
         }
 
         protected override void Dispose(bool isDisposing)

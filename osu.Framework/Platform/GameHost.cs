@@ -65,7 +65,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessage(IpcMessage message)
+        public virtual Task SendMessageAsync(IpcMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }

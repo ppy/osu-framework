@@ -40,7 +40,7 @@ namespace osu.Framework.Desktop.Tests.Platform
                         received = true;
                     };
 
-                    clientChannel.SendMessage(new Foobar { Bar = "example" }).Wait();
+                    clientChannel.SendMessageAsync(new Foobar { Bar = "example" }).Wait();
 
                     while (!received)
                         Thread.Sleep(1);
