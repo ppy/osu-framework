@@ -36,8 +36,6 @@ namespace osu.Framework.Desktop.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            base.SetupWindow(config);
-
             widthFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.WidthFullscreen));
             heightFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.HeightFullscreen));
 
