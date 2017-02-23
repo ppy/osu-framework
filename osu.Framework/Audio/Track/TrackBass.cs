@@ -88,7 +88,7 @@ namespace osu.Framework.Audio.Track
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
         }
 
         public override void Update()
@@ -101,7 +101,7 @@ namespace osu.Framework.Audio.Track
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
         }
 

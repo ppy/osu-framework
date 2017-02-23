@@ -337,7 +337,8 @@ namespace osu.Framework.Graphics
 
         public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
         {
-            Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
+            if (transformationDelay != 0)
+                throw new NotImplementedException("FlashColour doesn't support Delay() currently");
 
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
