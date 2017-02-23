@@ -411,8 +411,6 @@ namespace osu.Framework.Graphics.UserInterface
             get { return text; }
             set
             {
-                Debug.Assert(value != null);
-
                 if (value == text)
                     return;
 

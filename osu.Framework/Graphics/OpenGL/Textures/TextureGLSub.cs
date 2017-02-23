@@ -25,8 +25,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
-            Debug.Assert(!GLWrapper.IsInitialized || parent != null,
-                "May not construct a subtexture without a parent texture to refer to.");
+            if (GLWrapper.IsInitialized && parent == null)
+                throw new InvalidOperationException("May not construct a subtexture without a parent texture to refer to.");
 
             this.bounds = bounds;
             this.parent = parent;
@@ -83,7 +83,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override bool Bind()
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not bind disposed sub textures.");
 
             Upload();
 
@@ -92,7 +93,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public override void SetData(TextureUpload upload)
         {
-            Debug.Assert(upload.Bounds.Width <= bounds.Width && upload.Bounds.Height <= bounds.Height);
+            if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
+                throw new ArgumentOutOfRangeException($"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.", nameof(upload));
 
             if (upload.Bounds.Size.IsEmpty)
                 upload.Bounds = bounds;

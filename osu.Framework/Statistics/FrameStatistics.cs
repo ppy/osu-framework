@@ -49,7 +49,7 @@ namespace osu.Framework.Statistics
                     return target.Threads[1].Monitor;
 
                 default:
-                    Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+                    Trace.Assert(false, "Requested counter which is not assigned to any performance monitor.");
                     break;
             }
 

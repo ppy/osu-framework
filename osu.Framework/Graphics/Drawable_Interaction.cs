@@ -90,7 +90,8 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected void TriggerFocusContention()
         {
-            Debug.Assert(IsPresent, @"Calling this without being present is likely a mistake. We may not obtain focus when we expect to.");
+            if (!IsPresent)
+                throw new InvalidOperationException("Can not obtain focus without being present.");
 
             if (ourInputManager.FocusedDrawable != this)
                 ourInputManager.ChangeFocus(null);
