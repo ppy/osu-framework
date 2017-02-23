@@ -109,12 +109,13 @@ namespace osu.Framework
                 Config = new FrameworkConfigManager(host.Storage);
 
             this.host = host;
-
-            host.Window?.SetupWindow(Config);
             host.Exiting += OnExiting;
 
             if (Window != null)
+            {
+                Window.SetupWindow(Config);
                 Window.Title = $@"osu.Framework (running ""{Name}"")";
+            }
         }
 
         [BackgroundDependencyLoader]
