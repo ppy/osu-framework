@@ -96,8 +96,6 @@ namespace osu.Framework.Platform
 
         public virtual Vector2 Position { get; set; }
 
-        public virtual WindowMode CurrentWindowMode { get; set; }
-
-        public virtual void ToggleFullscreen() {}
+        public virtual void CycleMode() {}
     }
 }

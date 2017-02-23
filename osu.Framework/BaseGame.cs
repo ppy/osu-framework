@@ -235,7 +235,7 @@ namespace osu.Framework
 
             if (state.Keyboard.AltPressed && args.Key == Key.Enter)
             {
-                Window.ToggleFullscreen();
+                Window.CycleMode();
                 return true;
             }
 

@@ -20,6 +20,16 @@ namespace osu.Framework.Desktop.Platform
         public event Action<DragEventArgs> DragDrop;
         public event Action<DragEventArgs> DragOver;
 
+        private readonly BindableInt widthFullscreen = new BindableInt();
+        private readonly BindableInt heightFullscreen = new BindableInt();
+        private readonly BindableInt width = new BindableInt();
+        private readonly BindableInt height = new BindableInt();
+
+        private readonly BindableDouble windowPositionX = new BindableDouble();
+        private readonly BindableDouble windowPositionY = new BindableDouble();
+
+        private readonly Bindable<WindowMode> mode = new Bindable<WindowMode>();
+
         public DesktopGameWindow() : base(default_width, default_height)
         {
         }
@@ -28,30 +38,70 @@ namespace osu.Framework.Desktop.Platform
         {
             base.SetupWindow(config);
 
-            Exited += SaveWindow;
+            widthFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.WidthFullscreen));
+            heightFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.HeightFullscreen));
 
-            CurrentWindowMode = Config.Get<WindowMode>(FrameworkConfig.WindowMode);
+            width.Weld(config.GetBindable<int>(FrameworkConfig.Width));
+            height.Weld(config.GetBindable<int>(FrameworkConfig.Height));
 
-            Config.GetBindable<WindowMode>(FrameworkConfig.WindowMode).ValueChanged += delegate (object sender, EventArgs e)
-                {
-                    CurrentWindowMode = ((Bindable<WindowMode>)sender).Value;
-                };
+            windowPositionX.Weld(config.GetBindable<double>(FrameworkConfig.WindowedPositionX));
+            windowPositionY.Weld(config.GetBindable<double>(FrameworkConfig.WindowedPositionY));
+
+            mode.Weld(config.GetBindable<WindowMode>(FrameworkConfig.WindowMode));
+            mode.ValueChanged += mode_ValueChanged;
+
+            mode.TriggerChange();
+
+            Exited += onExit;
         }
 
-        public virtual void SaveWindow()
+        private void mode_ValueChanged(object sender, EventArgs e)
         {
-            if (CurrentWindowMode == WindowMode.Fullscreen)
+            switch (mode.Value)
             {
-                Config.Set(FrameworkConfig.WidthFullscreen, ClientSize.Width);
-                Config.Set(FrameworkConfig.HeightFullscreen, ClientSize.Height);
-            }
-            else
-            {
-                Config.Set(FrameworkConfig.Width, ClientSize.Width);
-                Config.Set(FrameworkConfig.Height, ClientSize.Height);
+                case WindowMode.Fullscreen:
+                    DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, 0);
+                    DisplayDevice.Default.ChangeResolution(newResolution);
 
-                Config.Set<double>(FrameworkConfig.WindowedPositionX, Position.X);
-                Config.Set<double>(FrameworkConfig.WindowedPositionY, Position.Y);
+                    WindowState = WindowState.Fullscreen;
+                    break;
+                case WindowMode.Borderless:
+                    DisplayDevice.Default.RestoreResolution();
+
+                    WindowState = WindowState.Maximized;
+                    WindowBorder = WindowBorder.Hidden;
+
+                    //must add 1 to enter borderless
+                    ClientSize = new Size(DisplayDevice.Default.Bounds.Width + 1, DisplayDevice.Default.Bounds.Height + 1);
+                    Position = Vector2.Zero;
+                    break;
+                default:
+                    DisplayDevice.Default.RestoreResolution();
+
+                    WindowState = WindowState.Normal;
+                    WindowBorder = WindowBorder.Resizable;
+
+                    ClientSize = new Size(width, height);
+                    Position = new Vector2((float)windowPositionX, (float)windowPositionY);
+                    break;
+            }
+        }
+
+        private void onExit()
+        {
+            switch (mode.Value)
+            {
+                case WindowMode.Fullscreen:
+                    widthFullscreen.Value = ClientSize.Width;
+                    heightFullscreen.Value = ClientSize.Height;
+                    break;
+                case WindowMode.Windowed:
+                    width.Value = ClientSize.Width;
+                    height.Value = ClientSize.Height;
+
+                    windowPositionX.Value = Position.X;
+                    windowPositionY.Value = Position.Y;
+                    break;
             }
 
             DisplayDevice.Default.RestoreResolution();
@@ -59,75 +109,33 @@ namespace osu.Framework.Desktop.Platform
 
         public override Vector2 Position
         {
+            get
+            {
+                return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
+                                   (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
+            }
+
             set
             {
                 Location = new Point(
                     (int)Math.Round((DisplayDevice.Default.Width - Size.Width) * value.X),
                     (int)Math.Round((DisplayDevice.Default.Height - Size.Height) * value.Y));
             }
-
-            get
-            {
-                return new Vector2((float) Location.X / (DisplayDevice.Default.Width - Size.Width),
-                                   (float) Location.Y / (DisplayDevice.Default.Height - Size.Height));
-            }
         }
 
-        public override WindowMode CurrentWindowMode
+        public override void CycleMode()
         {
-            set
+            switch (mode.Value)
             {
-                if (value == WindowMode.Fullscreen)
-                {
-                    WindowState = WindowState.Normal;
-                    DisplayResolution newResolution =
-                        DisplayDevice.Default.SelectResolution(Config.Get<int>(FrameworkConfig.WidthFullscreen),
-                                                               Config.Get<int>(FrameworkConfig.HeightFullscreen),
-                                                               0, 0);
-                    DisplayDevice.Default.ChangeResolution(newResolution);
-                    WindowState = WindowState.Fullscreen;
-                }
-                else
-                {
-                    WindowState = value == WindowMode.Windowed ? WindowState.Normal : WindowState.Fullscreen;
-                    DisplayDevice.Default.RestoreResolution();
-                    ClientSize = new Size(Config.Get<int>(FrameworkConfig.Width), Config.Get<int>(FrameworkConfig.Height));
-                    Position = new Vector2((float)Config.Get<double>(FrameworkConfig.WindowedPositionX),
-                                           (float)Config.Get<double>(FrameworkConfig.WindowedPositionY));
-                }
-            }
-
-            get
-            {
-                if (WindowState == WindowState.Normal)
-                {
-                    return WindowMode.Windowed;
-                }
-                else
-                {
-                    if (DisplayDevice.Default.Width == ClientSize.Width && DisplayDevice.Default.Height == ClientSize.Height)
-                    {
-                        return WindowMode.Fullscreen;
-                    }
-
-                    return WindowMode.Borderless;
-                }
-            }
-        }
-
-        public override void ToggleFullscreen()
-        {
-            if (CurrentWindowMode == WindowMode.Windowed)
-            {
-                Config.Set(FrameworkConfig.WindowMode, WindowMode.Borderless);
-            }
-            else if (CurrentWindowMode == WindowMode.Borderless)
-            {
-                Config.Set(FrameworkConfig.WindowMode, WindowMode.Fullscreen);
-            }
-            else
-            {
-                Config.Set(FrameworkConfig.WindowMode, WindowMode.Windowed);
+                case WindowMode.Windowed:
+                    mode.Value = WindowMode.Borderless;
+                    break;
+                case WindowMode.Borderless:
+                    mode.Value = WindowMode.Fullscreen;
+                    break;
+                default:
+                    mode.Value = WindowMode.Windowed;
+                    break;
             }
         }
 
