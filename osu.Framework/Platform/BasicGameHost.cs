@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
@@ -69,7 +70,14 @@ namespace osu.Framework.Platform
 
         public override bool IsPresent => true;
 
-        private GameThread[] threads;
+        private List<GameThread> threads;
+
+        public IEnumerable<GameThread> Threads => threads;
+
+        public void RegisterThread(GameThread t)
+        {
+            threads.Add(t);
+        }
 
         public GameThread DrawThread;
         public GameThread UpdateThread;
@@ -149,29 +157,24 @@ namespace osu.Framework.Platform
             Dependencies.Cache(this);
             name = gameName;
 
-            threads = new[]
+            threads = new List<GameThread>
             {
-                DrawThread = new GameThread(DrawFrame, @"Draw")
+                (DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
-                },
-                UpdateThread = new GameThread(UpdateFrame, @"Update")
+                }),
+                (UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true }
-                },
-                InputThread = new InputThread(null, @"Input") //never gets started.
+                }),
+                (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
             Clock = UpdateThread.Clock;
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
-
-            // Note, that RegisterCounters only has an effect for the first
-            // BasicGameHost to be passed into it; i.e. the first BasicGameHost
-            // to be instantiated.
-            FrameStatistics.RegisterCounters(this);
 
             Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
 
@@ -202,7 +205,7 @@ namespace osu.Framework.Platform
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (ExitRequested) return false;
+            if (exitInitiated) return false;
 
             bool? response = null;
 
@@ -282,17 +285,19 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected volatile bool ExitRequested;
+        private volatile bool exitInitiated;
+
+        private volatile bool exitCompleted;
 
         public void Exit()
         {
+            exitInitiated = true;
+
             InputThread.Scheduler.Add(delegate
             {
-                ExitRequested = true;
-
-                threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
+                stopAllThreads();
+                exitCompleted = true;
             }, false);
         }
 
@@ -320,6 +325,13 @@ namespace osu.Framework.Platform
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
+                    Window.Closed += delegate
+                    {
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        stopAllThreads();
+                    };
+
                     Window.Run();
                 }
                 catch (OutOfMemoryException)
@@ -328,9 +340,15 @@ namespace osu.Framework.Platform
             }
             else
             {
-                while (!ExitRequested)
+                while (!exitCompleted)
                     InputThread.RunUpdate();
             }
+        }
+
+        private void stopAllThreads()
+        {
+            threads.ForEach(t => t.Exit());
+            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -397,11 +415,12 @@ namespace osu.Framework.Platform
             // before its threads have been launched. This requires changing the order from
             // host.Run -> host.Add instead of host.Add -> host.Run.
 
-            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
+            if (Children.Any())
+                throw new InvalidOperationException($"Can not add more than one {nameof(BaseGame)} to a {nameof(BasicGameHost)}.");
 
             BaseGame game = drawable as BaseGame;
-
-            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
+            if (game == null)
+                throw new ArgumentException($"Can only add {nameof(BaseGame)} to {nameof(BasicGameHost)}.", nameof(drawable));
 
             Dependencies.Cache(game);
             game.SetHost(this);

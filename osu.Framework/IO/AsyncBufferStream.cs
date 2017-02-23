@@ -10,7 +10,7 @@ using OpenTK;
 
 namespace osu.Framework.IO
 {
-    public class AsyncBufferStream : Stream
+    internal class AsyncBufferStream : Stream
     {
         const int block_size = 32768;
 
@@ -42,7 +42,8 @@ namespace osu.Framework.IO
         /// <param name="shared">Another AsyncBufferStream which is backing the same underlying stream. Allows shared usage of memory-backing.</param>
         public AsyncBufferStream(Stream stream, int blocksToReadAhead, AsyncBufferStream shared = null)
         {
-            Debug.Assert(stream != null);
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
 
             this.blocksToReadAhead = blocksToReadAhead;
             underlyingStream = stream;
@@ -102,12 +103,12 @@ namespace osu.Framework.IO
                         underlyingStream.Seek(readStart, SeekOrigin.Begin);
                     }
 
-                    Debug.Assert(underlyingStream.Position == readStart);
+                    Trace.Assert(underlyingStream.Position == readStart);
 
                     int readSize = Math.Min(data.Length - readStart, block_size);
                     int read = underlyingStream.Read(data, readStart, readSize);
 
-                    Debug.Assert(read == readSize);
+                    Trace.Assert(read == readSize);
 
                     blockLoadedStatus[curr] = true;
                     last = curr;
@@ -183,7 +184,7 @@ namespace osu.Framework.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            Debug.Assert(count <= buffer.Length - offset);
+            Trace.Assert(count <= buffer.Length - offset);
 
             amountBytesToRead = Math.Min(count, data.Length - position);
 

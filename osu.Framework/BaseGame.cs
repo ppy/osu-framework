@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using osu.Framework.Audio;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -17,6 +18,7 @@ using FlowDirections = osu.Framework.Graphics.Containers.FlowDirections;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Statistics;
 
 namespace osu.Framework
 {
@@ -134,6 +136,8 @@ namespace osu.Framework
                 EventScheduler = Scheduler
             });
 
+            host.RegisterThread(Audio.Thread);
+
             //attach our bindables to the audio subsystem.
             Audio.AudioDevice.Weld(Config.GetBindable<string>(FrameworkConfig.AudioDevice));
             Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
@@ -164,12 +168,19 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }).Preload(this, AddInternal);
+            }).Preload(this, delegate(Drawable overlay)
+            {
+                performanceContainer.Threads.AddRange(host.Threads.Reverse());
 
-            performanceContainer.AddThread(host.InputThread);
-            performanceContainer.AddThread(Audio.Thread);
-            performanceContainer.AddThread(host.UpdateThread);
-            performanceContainer.AddThread(host.DrawThread);
+                // Note, that RegisterCounters only has an effect for the first
+                // BasicGameHost to be passed into it; i.e. the first BasicGameHost
+                // to be instantiated.
+                FrameStatistics.RegisterCounters(performanceContainer);
+
+                performanceContainer.CreateDisplays();
+
+                AddInternal(overlay);
+            });
 
             addDebugTools();
         }

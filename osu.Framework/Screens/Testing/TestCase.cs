@@ -2,14 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics;
-using osu.Framework.Allocation;
 
-namespace osu.Framework.GameModes.Testing
+namespace osu.Framework.Screens.Testing
 {
     public abstract class TestCase : Container
     {
@@ -44,15 +44,15 @@ namespace osu.Framework.GameModes.Testing
             {
                 InternalChildren = new Drawable[]
                 {
+                    Contents = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
                     ButtonsContainer = new FlowContainer
                     {
                         Direction = FlowDirections.Vertical,
                         AutoSizeAxes = Axes.Both,
                         Spacing = new Vector2(15, 5)
-                    },
-                    Contents = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
                     },
                 };
             }

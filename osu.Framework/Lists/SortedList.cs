@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace osu.Framework.Lists
 {
@@ -17,8 +17,8 @@ namespace osu.Framework.Lists
 
         public new int Add(T value)
         {
-            Debug.Assert(value != null);
-            Debug.Assert(value is T);
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
 
             int index = getAdditionIndex(value);
             Insert(index, value);

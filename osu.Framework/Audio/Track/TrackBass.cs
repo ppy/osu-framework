@@ -12,12 +12,8 @@ using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
-    public class AudioTrackBass : AudioTrack, IBassAudio
+    public class TrackBass : Track, IBassAudio
     {
-        private float initialFrequency;
-
-        private int audioStreamPrefilter;
-
         private AsyncBufferStream dataStream;
 
         /// <summary>
@@ -38,7 +34,11 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private bool isPlayed;
 
-        public AudioTrackBass(Stream data, bool quick = false)
+        private volatile bool isLoaded;
+
+        public override bool IsLoaded => isLoaded;
+
+        public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
             {
@@ -52,11 +52,9 @@ namespace osu.Framework.Audio.Track
                 procs = new DataStreamFileProcedures(dataStream);
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
-                audioStreamPrefilter = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
+                activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
 
-                if (Preview)
-                    activeStream = audioStreamPrefilter;
-                else
+                if (!Preview)
                 {
                     // We assign the BassFlags.Decode streams to the device "bass_nodevice" to prevent them from getting
                     // cleaned up during a Bass.Free call. This is necessary for seamless switching between audio devices.
@@ -64,8 +62,8 @@ namespace osu.Framework.Audio.Track
                     // all parent decoding streams.
                     const int bass_nodevice = 0x20000;
 
-                    Bass.ChannelSetDevice(audioStreamPrefilter, bass_nodevice);
-                    activeStream = BassFx.TempoCreate(audioStreamPrefilter, BassFlags.Decode | BassFlags.FxFreeSource);
+                    Bass.ChannelSetDevice(activeStream, bass_nodevice);
+                    activeStream = BassFx.TempoCreate(activeStream, BassFlags.Decode | BassFlags.FxFreeSource);
                     Bass.ChannelSetDevice(activeStream, bass_nodevice);
                     activeStream = BassFx.ReverseCreate(activeStream, 5f, BassFlags.Default | BassFlags.FxFreeSource);
 
@@ -75,7 +73,13 @@ namespace osu.Framework.Audio.Track
                 }
 
                 Length = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetLength(activeStream)) * 1000;
-                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out initialFrequency);
+
+                float frequency;
+                Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Frequency, out frequency);
+                initialFrequency = frequency;
+                bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+
+                isLoaded = true;
             });
 
             InvalidateState();
@@ -84,7 +88,21 @@ namespace osu.Framework.Audio.Track
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (IsDisposed)
+                return;
+
+            isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+
+            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+            Trace.Assert(Bass.LastError == Errors.OK);
+            currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
         }
 
         public override void Reset()
@@ -97,18 +115,11 @@ namespace osu.Framework.Audio.Track
 
         protected override void Dispose(bool disposing)
         {
-            PendingActions.Enqueue(() =>
-            {
-                if (activeStream != 0) Bass.ChannelStop(activeStream);
+            if (activeStream != 0) Bass.ChannelStop(activeStream);
+            activeStream = 0;
 
-                if (audioStreamPrefilter != 0) Bass.StreamFree(audioStreamPrefilter);
-
-                activeStream = 0;
-                audioStreamPrefilter = 0;
-
-                dataStream?.Dispose();
-                dataStream = null;
-            });
+            dataStream?.Dispose();
+            dataStream = null;
 
             base.Dispose(disposing);
         }
@@ -117,11 +128,14 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
-            isPlayed = false;
+            base.Stop();
+
             PendingActions.Enqueue(() =>
             {
                 if (IsRunning)
                     Bass.ChannelPause(activeStream);
+
+                isPlayed = false;
             });
         }
 
@@ -135,10 +149,12 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            isPlayed = true;
+            base.Start();
+
             PendingActions.Enqueue(() =>
             {
                 Bass.ChannelPlay(activeStream);
+                isPlayed = true;
             });
         }
 
@@ -163,19 +179,15 @@ namespace osu.Framework.Audio.Track
             return conservativeClamped == seek;
         }
 
-        public override double CurrentTime
-        {
-            get
-            {
-                double value = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-                if (value == Length && !isPlayed) return 0;
-                return value;
-            }
-        }
+        private volatile float currentTime;
 
-        public override bool IsRunning => Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
+        public override double CurrentTime => currentTime;
 
-        protected override void OnStateChanged(object sender, EventArgs e)
+        private volatile bool isRunning;
+
+        public override bool IsRunning => isRunning;
+
+        internal override void OnStateChanged(object sender, EventArgs e)
         {
             base.OnStateChanged(sender, e);
 
@@ -187,13 +199,17 @@ namespace osu.Framework.Audio.Track
             Bass.ChannelSetAttribute(activeStream, ChannelAttribute.Tempo, (Math.Abs(Tempo) - 1) * 100);
         }
 
-        int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated), 100, 100000);
+        private volatile float initialFrequency;
+
+        private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated), 100, 100000);
 
         public override double Rate => bassFreq / initialFrequency * Tempo * direction;
 
-        public override int? Bitrate => (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
+        private volatile int bitrate;
 
-        public override bool HasCompleted => base.HasCompleted || !IsRunning && CurrentTime >= Length;
+        public override int? Bitrate => bitrate;
+
+        public override bool HasCompleted => base.HasCompleted || (IsLoaded && !IsRunning && CurrentTime >= Length);
 
         private class DataStreamFileProcedures
         {

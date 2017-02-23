@@ -16,6 +16,13 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteText : FlowContainer
     {
+        private static readonly char[] default_fixed_width_exceptions = { '.', ':' };
+
+        /// <summary>
+        /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
+        /// </summary>
+        protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
+
         /// <summary>
         /// The amount by which characters should overlap each other (negative character spacing).
         /// </summary>
@@ -170,15 +177,22 @@ namespace osu.Framework.Graphics.Sprites
                 foreach (var k in keepDrawables)
                     Add(k);
 
+                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                //squared result for quadratic fall-off seems to give the best result.
+                var avgColour = (Color4)ColourInfo.AverageColour;
+                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
                 for (int index = keepDrawables.Count; index < text.Length; index++)
                 {
                     char c = text[index];
+
+                    bool fixedWidth = FixedWidth && !FixedWidthExceptionCharacters.Contains(c);
 
                     Drawable d;
 
                     if (char.IsWhiteSpace(c))
                     {
-                        float width = FixedWidth ? constantWidth.GetValueOrDefault() : spaceWidth;
+                        float width = fixedWidth ? constantWidth.GetValueOrDefault() : spaceWidth;
 
                         switch ((int)c)
                         {
@@ -198,7 +212,7 @@ namespace osu.Framework.Graphics.Sprites
                     {
                         d = CreateCharacterDrawable(c);
 
-                        if (FixedWidth)
+                        if (fixedWidth)
                         {
                             d.Anchor = Anchor.TopCentre;
                             d.Origin = Anchor.TopCentre;
@@ -206,7 +220,7 @@ namespace osu.Framework.Graphics.Sprites
 
                         var ctn = new Container
                         {
-                            Size = new Vector2(FixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
+                            Size = new Vector2(fixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
                             Scale = new Vector2(TextSize),
                             Children = new[] { d }
                         };
@@ -215,6 +229,9 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Drawable shadowDrawable = CreateCharacterDrawable(c);
                             shadowDrawable.Position = new Vector2(0, 0.06f);
+                            shadowDrawable.Anchor = d.Anchor;
+                            shadowDrawable.Origin = d.Origin;
+                            shadowDrawable.Alpha = shadowAlpha;
                             shadowDrawable.Colour = shadowColour;
                             shadowDrawable.Depth = float.MaxValue;
                             ctn.Add(shadowDrawable);

@@ -188,6 +188,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         new ScrollContainer
                         {
+                            RelativeSizeAxes = Axes.Both,
                             Masking = false,
                             Children = new Drawable[]
                             {

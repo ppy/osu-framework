@@ -147,9 +147,8 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = (ContainerDrawNode)node;
 
-            Debug.Assert(
-                Masking || CornerRadius == 0.0f && BorderThickness == 0.0f && EdgeEffect.Type == EdgeEffectType.None,
-                "Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+            if (!Masking && (CornerRadius != 0.0f || BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
+                throw new InvalidOperationException("Can not have rounded corners, border effects, or edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
@@ -184,11 +183,6 @@ namespace osu.Framework.Graphics.Containers
 
         private List<T> pendingChildrenInternal;
         private List<T> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<T>());
-
-        /// <summary>
-        /// Corresponds to internal children.
-        /// </summary>
-        public T this[int index] => children[index];
 
         public virtual IEnumerable<T> Children
         {
@@ -255,8 +249,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(T drawable)
         {
-            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
-            Debug.Assert(Content != drawable, "Content may not be added to itself.");
+            if (drawable == Content)
+                throw new InvalidOperationException("Content may not be added to itself.");
 
             if (Content == this)
                 AddInternal(drawable);
@@ -280,17 +274,17 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="drawable">The drawable to be added.</param>
         protected void AddInternal(T drawable)
         {
-            Debug.Assert(drawable != null, "null-Drawables may not be added to Containers.");
+            if (drawable == null)
+                throw new ArgumentNullException("null-Drawables may not be added to Containers.", nameof(drawable));
+            if (drawable == this)
+                throw new InvalidOperationException("Container may not be added to itself.");
 
             if (LoadState == LoadState.NotLoaded)
                 pendingChildren.Add(drawable);
             else
             {
                 if (drawable.IsLoaded)
-                {
-                    Debug.Assert(drawable.Parent == null, "May not add a drawable to multiple containers.");
                     drawable.Parent = this;
-                }
 
                 children.Add(drawable);
             }
@@ -362,10 +356,10 @@ namespace osu.Framework.Graphics.Containers
                 {
                     //cascade disposal
                     (t as IContainer)?.Clear();
-
                     t.Dispose();
                 }
-                t.Parent = null;
+
+                Trace.Assert(t.Parent == null);
             }
 
             children.Clear();
@@ -410,7 +404,7 @@ namespace osu.Framework.Graphics.Containers
             // generalization in the future.
             UpdateChildrenLife();
 
-            if (!IsPresent) return false;
+            if (!IsPresent || IsMaskedAway) return false;
 
             foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
@@ -456,8 +450,13 @@ namespace osu.Framework.Graphics.Containers
 
             if (!shallPropagate) return true;
 
-            foreach (var c in children)
+            // This way of looping turns out to be slightly faster than a foreach
+            // or directly indexing a SortedList<T>. This part of the code is often
+            // hot, so an optimization like this makes sense here.
+            List<T> current = children;
+            for (int i = 0; i < current.Count; ++i)
             {
+                T c = current[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -482,7 +481,9 @@ namespace osu.Framework.Graphics.Containers
             get { return base.RelativeSizeAxes; }
             set
             {
-                Debug.Assert((AutoSizeAxes & value) == 0, "No axis can be relatively sized and automatically sized at the same time.");
+                if ((AutoSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
+
                 base.RelativeSizeAxes = value;
             }
         }
@@ -529,7 +530,8 @@ namespace osu.Framework.Graphics.Containers
                     continue;
                 }
 
-                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat))
+                drawable.IsMaskedAway = !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                if (drawable.IsMaskedAway)
                     continue;
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);

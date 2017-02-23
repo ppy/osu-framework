@@ -4,9 +4,9 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Screens.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {

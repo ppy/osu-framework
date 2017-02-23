@@ -143,15 +143,13 @@ namespace osu.Framework.Graphics
 
             double startTime = Time.Current + transformationDelay;
 
-            TransformAlpha tr = new TransformAlpha
+            Transforms.Add(new TransformAlpha
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = 0,
                 EndValue = 1,
-            };
-
-            Transforms.Add(tr);
+            });
         }
 
         public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -202,20 +200,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (Clock == null)
-            {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(this);
-            }
-            else if (duration == 0 && transformationDelay == 0)
-            {
-                transform.UpdateTime(Time);
-                transform.Apply(this);
-            }
-            else
-            {
-                Transforms.Add(transform);
-            }
+            addTransform(transform);
         }
 
         public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -230,12 +215,17 @@ namespace osu.Framework.Graphics
             TransformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
-        public void MoveTo(int index, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            if (index == 0)
-                MoveToX(destination, duration, easing);
-            else
-                MoveToY(destination, duration, easing);
+            switch (direction)
+            {
+                case Direction.Horizontal:
+                    MoveToX(destination, duration, easing);
+                    break;
+                case Direction.Vertical:
+                    MoveToY(destination, duration, easing);
+                    break;
+            }
         }
 
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -275,20 +265,7 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
-            if (Clock == null)
-            {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(this);
-            }
-            else if (duration == 0 && transformationDelay == 0)
-            {
-                transform.UpdateTime(Time);
-                transform.Apply(this);
-            }
-            else
-            {
-                Transforms.Add(transform);
-            }
+            addTransform(transform);
         }
 
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -348,63 +325,58 @@ namespace osu.Framework.Graphics
 
             double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
-            TransformColour transform = new TransformColour
+            addTransform(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = startValue,
                 EndValue = newColour.Linear,
                 Easing = easing
-            };
-
-            if (Clock == null)
-            {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(this);
-            }
-            else if (duration == 0 && transformationDelay == 0)
-            {
-                transform.UpdateTime(Time);
-                transform.Apply(this);
-            }
-            else
-            {
-                Transforms.Add(transform);
-            }
+            });
         }
 
         public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
         {
-            Debug.Assert(transformationDelay == 0, @"FlashColour doesn't support Delay() currently");
+            if (transformationDelay != 0)
+                throw new NotImplementedException("FlashColour doesn't support Delay() currently");
 
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
             double startTime = Clock != null ? Time.Current + transformationDelay : 0;
 
-            TransformColour transform = new TransformColour
+            addTransform(new TransformColour
             {
                 StartTime = startTime,
                 EndTime = startTime + duration,
                 StartValue = flashColour.Linear,
                 EndValue = startValue,
                 Easing = easing
-            };
+            });
+        }
 
+        private void addTransform(ITransform transform)
+        {
             if (Clock == null)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply(this);
+                return;
             }
-            else if (duration == 0 && transformationDelay == 0)
+
+            //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
+            bool canApplyInstant = transform.Duration == 0 && transformationDelay == 0;
+
+            //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
+            if (canApplyInstant || transform.StartTime < Time.Current)
             {
                 transform.UpdateTime(Time);
                 transform.Apply(this);
+                if (canApplyInstant)
+                    return;
             }
-            else
-            {
-                Transforms.Add(transform);
-            }
+
+            Transforms.Add(transform);
         }
 
         #endregion

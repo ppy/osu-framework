@@ -82,7 +82,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
+    <Compile Include="Audio\Sample\Sample.cs" />
+    <Compile Include="Audio\Sample\SampleBass.cs" />
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
@@ -98,15 +101,15 @@
     <Compile Include="Allocation\TripleBuffer.cs" />
     <Compile Include="Audio\AdjustableAudioComponent.cs" />
     <Compile Include="Audio\AudioCollectionManager.cs" />
-    <Compile Include="Audio\IHasCompletedState.cs" />
-    <Compile Include="Audio\Sample\AudioSampleBass.cs" />
+    <Compile Include="Audio\Sample\SampleChannelBass.cs" />
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
-    <Compile Include="GameModes\Testing\TestBrowser.cs" />
-    <Compile Include="GameModes\Testing\TestCase.cs" />
+    <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Screens\Testing\TestBrowser.cs" />
+    <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
@@ -186,15 +189,15 @@
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
-    <Compile Include="GameModes\GameMode.cs" />
+    <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
-    <Compile Include="Audio\Sample\AudioSample.cs" />
-    <Compile Include="Audio\Track\AudioTrack.cs" />
-    <Compile Include="Audio\Track\AudioTrackBass.cs" />
-    <Compile Include="Audio\Track\AudioTrackVirtual.cs" />
+    <Compile Include="Audio\Sample\SampleChannel.cs" />
+    <Compile Include="Audio\Track\Track.cs" />
+    <Compile Include="Audio\Track\TrackBass.cs" />
+    <Compile Include="Audio\Track\TrackVirtual.cs" />
     <Compile Include="BaseGame.cs" />
     <Compile Include="Platform\BasicGameHost.cs" />
     <Compile Include="Platform\BasicGameWindow.cs" />

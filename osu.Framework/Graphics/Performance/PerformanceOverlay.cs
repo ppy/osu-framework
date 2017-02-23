@@ -7,10 +7,12 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Threading;
+using osu.Framework.Statistics;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class PerformanceOverlay : FlowContainer, IStateful<FrameStatisticsMode>
+    class PerformanceOverlay : FlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
         private readonly TextureAtlas atlas;
 
@@ -45,7 +47,13 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public void AddThread(GameThread thread) => Add(new FrameStatisticsDisplay(thread, atlas));
+        public List<GameThread> Threads = new List<GameThread>();
+
+        public void CreateDisplays()
+        {
+            foreach (GameThread t in Threads)
+                Add(new FrameStatisticsDisplay(t, atlas));
+        }
 
         public PerformanceOverlay()
         {

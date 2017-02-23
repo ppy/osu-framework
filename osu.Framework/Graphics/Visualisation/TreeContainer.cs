@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Top = 65 },
-                    Children = new[] { scroll = new ScrollContainer() }
+                    Children = new[] { scroll = new ScrollContainer { RelativeSizeAxes = Axes.Both } }
                 },
                 waitingText = new SpriteText
                 {

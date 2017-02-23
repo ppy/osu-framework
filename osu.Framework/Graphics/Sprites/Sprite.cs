@@ -100,10 +100,9 @@ namespace osu.Framework.Graphics.Sprites
                 inflationAmount = Vector2.Zero;
                 return base.ComputeScreenSpaceDrawQuad();
             }
-            Debug.Assert(
-                EdgeSmoothness.X <= MAX_EDGE_SMOOTHNESS &&
-                EdgeSmoothness.Y <= MAX_EDGE_SMOOTHNESS,
-                $@"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas.");
+
+            if (EdgeSmoothness.X > MAX_EDGE_SMOOTHNESS || EdgeSmoothness.Y > MAX_EDGE_SMOOTHNESS)
+                throw new InvalidOperationException($"May not smooth more than {MAX_EDGE_SMOOTHNESS} or will leak neighboring textures in atlas. Tried to smooth by ({EdgeSmoothness.X}, {EdgeSmoothness.Y}).");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 

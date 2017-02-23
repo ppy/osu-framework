@@ -6,12 +6,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.GameModes.Testing;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Input;
 using System.Collections.Generic;
+using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {

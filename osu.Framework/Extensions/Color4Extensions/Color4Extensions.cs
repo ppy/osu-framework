@@ -94,7 +94,8 @@ namespace osu.Framework.Extensions.Color4Extensions
         /// <returns></returns>
         public static Color4 Multiply(this Color4 colour, float scalar)
         {
-            Debug.Assert(scalar >= 0);
+            if (scalar < 0)
+                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, $"Can not multiply colours by negative values.");
 
             return new Color4(
                 Math.Min(1, colour.R * scalar),

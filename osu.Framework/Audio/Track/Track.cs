@@ -2,11 +2,13 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Configuration;
+using osu.Framework.Statistics;
 using osu.Framework.Timing;
+using System;
 
 namespace osu.Framework.Audio.Track
 {
-    public abstract class AudioTrack : AdjustableAudioComponent, IAdjustableClock, IHasCompletedState
+    public abstract class Track : AdjustableAudioComponent, IAdjustableClock
     {
         /// <summary>
         /// Is this track capable of producing audio?
@@ -20,7 +22,7 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public readonly BindableDouble Tempo = new BindableDouble(1);
 
-        protected AudioTrack()
+        protected Track()
         {
             Tempo.ValueChanged += InvalidateState;
         }
@@ -55,9 +57,17 @@ namespace osu.Framework.Audio.Track
         /// <returns>Whether the seek was successful.</returns>
         public abstract bool Seek(double seek);
 
-        public abstract void Start();
+        public virtual void Start()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not start disposed tracks.");
+        }
 
-        public abstract void Stop();
+        public virtual void Stop()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
+        }
 
         public abstract bool IsRunning { get; }
 
@@ -70,6 +80,8 @@ namespace osu.Framework.Audio.Track
 
         public override void Update()
         {
+            FrameStatistics.Increment(StatisticsCounterType.Tracks);
+
             base.Update();
             if (Looping && !IsRunning && Length == CurrentTime)
             {
@@ -77,7 +89,5 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
         }
-
-        public virtual bool HasCompleted => IsDisposed;
     }
 }

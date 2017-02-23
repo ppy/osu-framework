@@ -8,14 +8,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using OpenTK.Input;
 
-namespace osu.Framework.GameModes
+namespace osu.Framework.Screens
 {
-    public class GameMode : Container
+    public class Screen : Container
     {
-        protected GameMode ParentGameMode;
-        public GameMode ChildGameMode;
+        protected Screen ParentScreen;
+        public Screen ChildScreen;
 
-        public bool IsCurrentGameMode => ChildGameMode == null;
+        public bool IsCurrentScreen => ChildScreen == null;
 
         private Container content;
         private Container childModeContainer;
@@ -24,18 +24,18 @@ namespace osu.Framework.GameModes
 
         protected override Container<Drawable> Content => content;
 
-        public event Action<GameMode> ModePushed;
+        public event Action<Screen> ModePushed;
 
-        public event Action<GameMode> Exited;
+        public event Action<Screen> Exited;
 
         private bool hasExited;
 
         /// <summary>
-        /// Make this GameMode directly exited when resuming from a child.
+        /// Make this Screen directly exited when resuming from a child.
         /// </summary>
         public bool ValidForResume = true;
 
-        public GameMode()
+        public Screen()
         {
             RelativeSizeAxes = Axes.Both;
             Anchor = Anchor.Centre;
@@ -57,34 +57,41 @@ namespace osu.Framework.GameModes
             });
         }
 
+        public override void Add(Drawable drawable)
+        {
+            if (drawable is Screen)
+                throw new InvalidOperationException("Use Push to add nested Screens.");
+            base.Add(drawable);
+        }
+
         public override bool DisposeOnDeathRemoval => true;
 
         public override bool HandleInput => !hasExited;
 
         /// <summary>
-        /// Called when this GameMode is being entered. Only happens once, ever.
+        /// Called when this Screen is being entered. Only happens once, ever.
         /// </summary>
-        /// <param name="last">The next GameMode.</param>
-        protected virtual void OnEntering(GameMode last) { }
+        /// <param name="last">The next Screen.</param>
+        protected virtual void OnEntering(Screen last) { }
 
         /// <summary>
-        /// Called when this GameMode is exiting. Only happens once, ever.
+        /// Called when this Screen is exiting. Only happens once, ever.
         /// </summary>
-        /// <param name="next">The next GameMode.</param>
+        /// <param name="next">The next Screen.</param>
         /// <returns>Return true to cancel the exit process.</returns>
-        protected virtual bool OnExiting(GameMode next) => false;
+        protected virtual bool OnExiting(Screen next) => false;
 
         /// <summary>
-        /// Called when this GameMode is being returned to from a child exiting.
+        /// Called when this Screen is being returned to from a child exiting.
         /// </summary>
-        /// <param name="last">The next GameMode.</param>
-        protected virtual void OnResuming(GameMode last) { }
+        /// <param name="last">The next Screen.</param>
+        protected virtual void OnResuming(Screen last) { }
 
         /// <summary>
-        /// Called when this GameMode is being left to a new child.
+        /// Called when this Screen is being left to a new child.
         /// </summary>
-        /// <param name="next">The new GameMode</param>
-        protected virtual void OnSuspending(GameMode next) { }
+        /// <param name="next">The new Screen</param>
+        protected virtual void OnSuspending(Screen next) { }
 
         protected internal override void PerformLoad(BaseGame game)
         {
@@ -97,7 +104,7 @@ namespace osu.Framework.GameModes
             base.LoadComplete();
 
             //for the case where we are at the top of the mode stack, we still want to run our OnEntering method.
-            if (ParentGameMode == null)
+            if (ParentScreen == null)
                 OnEntering(null);
         }
 
@@ -116,50 +123,57 @@ namespace osu.Framework.GameModes
         }
 
         /// <summary>
-        /// Changes to a new GameMode.
+        /// Changes to a new Screen.
         /// </summary>
-        /// <param name="mode">The new GameMode.</param>
-        public virtual bool Push(GameMode mode)
+        /// <param name="screen">The new Screen.</param>
+        public virtual bool Push(Screen screen)
         {
-            Debug.Assert(ChildGameMode == null);
+            if (ChildScreen != null)
+                throw new InvalidOperationException("Can not push more than one child screen.");
 
-            mode.ParentGameMode = this;
-            childModeContainer.Add(mode);
+            screen.ParentScreen = this;
+            childModeContainer.Add(screen);
 
-            if (mode.hasExited)
+            if (screen.hasExited)
             {
-                mode.Expire();
+                screen.Expire();
                 return false;
             }
 
-            startSuspend(mode);
+            startSuspend(screen);
 
-            mode.OnEntering(this);
+            screen.OnEntering(this);
 
-            ModePushed?.Invoke(mode);
+            ModePushed?.Invoke(screen);
 
             Content.Expire();
 
             return true;
         }
 
-        private void startSuspend(GameMode next)
+        private void startSuspend(Screen next)
         {
             OnSuspending(next);
             Content.Expire();
 
-            ChildGameMode = next;
+            ChildScreen = next;
         }
 
         /// <summary>
-        /// Exits this GameMode.
+        /// Exits this Screen.
         /// </summary>
-        public void Exit()
+        public void Exit() => ExitFrom(this);
+
+        /// <summary>
+        /// Exits this Screen.
+        /// </summary>
+        /// <param name="last">Provides an exit source (used when skipping no-longer-valid modes upwards in stack).</param>
+        protected void ExitFrom(Screen last)
         {
             if (hasExited)
                 return;
 
-            if (OnExiting(ParentGameMode))
+            if (OnExiting(ParentScreen))
                 return;
 
             hasExited = true;
@@ -167,34 +181,37 @@ namespace osu.Framework.GameModes
             Content.Expire();
             LifetimeEnd = Content.LifetimeEnd;
 
-            ParentGameMode?.startResume(this);
-            Exited?.Invoke(ParentGameMode);
-            if (ParentGameMode?.ValidForResume == false)
-                ParentGameMode.Exit();
-            ParentGameMode = null;
+            Exited?.Invoke(ParentScreen);
+            ParentScreen?.startResume(last);
+            ParentScreen = null;
 
             Exited = null;
             ModePushed = null;
         }
 
-        private void startResume(GameMode last)
+        private void startResume(Screen last)
         {
-            ChildGameMode = null;
+            ChildScreen = null;
 
             if (ValidForResume)
             {
                 OnResuming(last);
                 Content.LifetimeEnd = double.MaxValue;
             }
+            else
+            {
+                ChildScreen = last;
+                ExitFrom(last);
+            }
         }
 
 
         public void MakeCurrent()
         {
-            if (IsCurrentGameMode) return;
+            if (IsCurrentScreen) return;
 
-            GameMode c;
-            for (c = ChildGameMode; c.ChildGameMode != null; c = c.ChildGameMode)
+            Screen c;
+            for (c = ChildScreen; c.ChildScreen != null; c = c.ChildScreen)
                 c.ValidForResume = false;
 
             //all the expired ones will exit
