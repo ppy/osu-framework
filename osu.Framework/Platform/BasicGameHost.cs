@@ -39,9 +39,15 @@ namespace osu.Framework.Platform
             threads.ForEach(t => t.IsActive = isActive);
 
             if (isActive)
+            {
+                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
                 Activated?.Invoke();
+            }
             else
+            {
+                GCSettings.LatencyMode = GCLatencyMode.Interactive;
                 Deactivated?.Invoke();
+            }
         }
 
         public bool IsActive => InputThread.IsActive;
@@ -178,8 +184,6 @@ namespace osu.Framework.Platform
 
             Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
 
-            setActive(true);
-
             AddInternal(inputManager = new UserInputManager(this));
 
             Dependencies.Cache(inputManager);
@@ -303,13 +307,13 @@ namespace osu.Framework.Platform
 
         public virtual void Run()
         {
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
-
             DrawThread.Start();
             UpdateThread.Start();
 
             if (Window != null)
             {
+                setActive(Window.Focused);
+
                 Window.KeyDown += window_KeyDown;
                 Window.Resize += window_ClientSizeChanged;
                 Window.ExitRequested += OnExitRequested;
