@@ -20,7 +20,7 @@ namespace osu.Framework.Screens
         private Container content;
         private Container childModeContainer;
 
-        protected BaseGame Game;
+        protected Game Game;
 
         protected override Container<Drawable> Content => content;
 
@@ -93,7 +93,7 @@ namespace osu.Framework.Screens
         /// <param name="next">The new Screen</param>
         protected virtual void OnSuspending(Screen next) { }
 
-        protected internal override void PerformLoad(BaseGame game)
+        protected internal override void PerformLoad(Game game)
         {
             Game = game;
             base.PerformLoad(game);

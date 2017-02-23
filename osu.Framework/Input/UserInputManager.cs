@@ -18,7 +18,7 @@ namespace osu.Framework.Input
         }
 
         [BackgroundDependencyLoader]
-        private void load(BaseGame game)
+        private void load(Game game)
         {
             if (Host != null)
             {

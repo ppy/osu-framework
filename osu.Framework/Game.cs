@@ -22,7 +22,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework
 {
-    public class BaseGame : Container
+    public class Game : Container
     {
         public BasicGameWindow Window => host?.Window;
 
@@ -63,7 +63,7 @@ namespace osu.Framework
 
         public DependencyContainer Dependencies => Host.Dependencies;
 
-        public BaseGame()
+        public Game()
         {
             RelativeSizeAxes = Axes.Both;
 

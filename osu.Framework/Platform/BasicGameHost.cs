@@ -421,11 +421,11 @@ namespace osu.Framework.Platform
             // host.Run -> host.Add instead of host.Add -> host.Run.
 
             if (Children.Any())
-                throw new InvalidOperationException($"Can not add more than one {nameof(BaseGame)} to a {nameof(BasicGameHost)}.");
+                throw new InvalidOperationException($"Can not add more than one {nameof(Game)} to a {nameof(BasicGameHost)}.");
 
-            BaseGame game = drawable as BaseGame;
+            Game game = drawable as Game;
             if (game == null)
-                throw new ArgumentException($"Can only add {nameof(BaseGame)} to {nameof(BasicGameHost)}.", nameof(drawable));
+                throw new ArgumentException($"Can only add {nameof(Game)} to {nameof(BasicGameHost)}.", nameof(drawable));
 
             Dependencies.Cache(game);
             game.SetHost(this);
@@ -442,7 +442,7 @@ namespace osu.Framework.Platform
             DrawThread.WaitUntilInitialized();
         }
 
-        protected virtual void LoadGame(BaseGame game)
+        protected virtual void LoadGame(Game game)
         {
             Task.Run(delegate
             {

@@ -8,12 +8,12 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
 {
-    public class Benchmark : BaseGame
+    public class Benchmark : Game
     {
         private double timePerTest = 200;
 
         [BackgroundDependencyLoader]
-        private void load(BaseGame game)
+        private void load(Game game)
         {
             Host.MaximumDrawHz = int.MaxValue;
             Host.MaximumUpdateHz = int.MaxValue;

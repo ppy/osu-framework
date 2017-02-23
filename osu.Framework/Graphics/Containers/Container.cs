@@ -417,7 +417,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(BaseGame game, ShaderManager shaders)
+        private void load(Game game, ShaderManager shaders)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);

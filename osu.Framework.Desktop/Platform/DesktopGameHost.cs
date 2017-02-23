@@ -92,7 +92,7 @@ namespace osu.Framework.Desktop.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        protected override void LoadGame(BaseGame game)
+        protected override void LoadGame(Game game)
         {
             //delay load until we have a size.
             if (Size == Vector2.Zero)
