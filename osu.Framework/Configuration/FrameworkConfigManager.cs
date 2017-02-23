@@ -30,7 +30,7 @@ namespace osu.Framework.Configuration
 #pragma warning restore CS0612 // Type or member is obsolete
         }
 
-        public FrameworkConfigManager(BasicStorage storage) : base(storage)
+        public FrameworkConfigManager(Storage storage) : base(storage)
         {
         }
     }

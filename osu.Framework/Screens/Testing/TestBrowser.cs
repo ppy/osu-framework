@@ -25,7 +25,7 @@ namespace osu.Framework.Screens.Testing
         {
             public override string Filename => @"visualtests.cfg";
 
-            public TestBrowserConfig(BasicStorage storage) : base(storage)
+            public TestBrowserConfig(Storage storage) : base(storage)
             {
             }
         }
@@ -60,7 +60,7 @@ namespace osu.Framework.Screens.Testing
         }
 
         [BackgroundDependencyLoader]
-        private void load(BasicStorage storage)
+        private void load(Storage storage)
         {
             config = new TestBrowserConfig(storage);
 

@@ -931,7 +931,7 @@ namespace osu.Framework.VisualTests.Tests
     class InfofulBoxAutoSize : Container
     {
         [BackgroundDependencyLoader]
-        private void load(BaseGame game)
+        private void load(Game game)
         {
             AutoSizeAxes = Axes.Both;
 
