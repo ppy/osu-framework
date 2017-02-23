@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Desktop;
-using osu.Framework.Desktop.Platform;
 using osu.Framework.Platform;
 
 namespace osu.Framework.VisualTests

@@ -2,10 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Performance;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace osu.Framework.Statistics
 {

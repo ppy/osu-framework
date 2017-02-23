@@ -7,7 +7,6 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Threading;
-using osu.Framework.Statistics;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance

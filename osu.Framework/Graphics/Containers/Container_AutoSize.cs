@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Caching;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;

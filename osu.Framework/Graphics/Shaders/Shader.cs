@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Text;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics.ES30;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Shaders
 {

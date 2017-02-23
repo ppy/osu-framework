@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using osu.Framework.DebugUtils;
-using System.Diagnostics;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio

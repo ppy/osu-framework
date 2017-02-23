@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Shaders;
-using System.Diagnostics;
 using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Sprites

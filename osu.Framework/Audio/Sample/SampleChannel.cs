@@ -3,7 +3,6 @@
 
 using osu.Framework.Statistics;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {

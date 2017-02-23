@@ -13,7 +13,6 @@ using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transformations;
-using System.Diagnostics;
 using System;
 
 namespace osu.Framework.Graphics.Containers
