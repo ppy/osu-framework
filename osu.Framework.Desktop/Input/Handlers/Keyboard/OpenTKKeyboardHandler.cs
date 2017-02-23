@@ -19,7 +19,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         public override int Priority => 0;
 
-        public override bool Initialize(BasicGameHost host)
+        public override bool Initialize(GameHost host)
         {
             host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
             {

@@ -11,14 +11,13 @@ using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameWindow : GameWindow
+    public abstract class GameWindow : OpenTK.GameWindow
     {
         internal Version GLVersion;
         internal Version GLSLVersion;
 
         protected FrameworkConfigManager Config;
-
-        protected BasicGameWindow(int width, int height) : base(width, height)
+        protected GameWindow(int width, int height) : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();

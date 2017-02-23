@@ -404,7 +404,7 @@ namespace osu.Framework.Graphics.Containers
             // generalization in the future.
             UpdateChildrenLife();
 
-            if (!IsPresent || IsMaskedAway) return false;
+            if (!IsPresent) return false;
 
             foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
@@ -417,7 +417,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(BaseGame game, ShaderManager shaders)
+        private void load(Game game, ShaderManager shaders)
         {
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
@@ -450,13 +450,8 @@ namespace osu.Framework.Graphics.Containers
 
             if (!shallPropagate) return true;
 
-            // This way of looping turns out to be slightly faster than a foreach
-            // or directly indexing a SortedList<T>. This part of the code is often
-            // hot, so an optimization like this makes sense here.
-            List<T> current = children;
-            for (int i = 0; i < current.Count; ++i)
+            foreach (var c in children)
             {
-                T c = current[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -530,8 +525,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
                 }
 
-                drawable.IsMaskedAway = !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
-                if (drawable.IsMaskedAway)
+                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat))
                     continue;
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);

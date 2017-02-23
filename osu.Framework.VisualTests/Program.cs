@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests
         {
             bool benchmark = args.Length > 0 && args[0] == @"-benchmark";
 
-            using (BasicGameHost host = Host.GetSuitableHost(@"visual-tests"))
+            using (GameHost host = Host.GetSuitableHost(@"visual-tests"))
             {
                 if (benchmark)
                     host.Add(new Benchmark());

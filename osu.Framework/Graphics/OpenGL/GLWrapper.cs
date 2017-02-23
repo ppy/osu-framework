@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static bool IsInitialized { get; private set; }
 
-        private static BasicGameHost host;
+        private static GameHost host;
 
-        internal static void Initialize(BasicGameHost host)
+        internal static void Initialize(GameHost host)
         {
             if (IsInitialized) return;
 

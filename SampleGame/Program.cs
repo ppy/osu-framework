@@ -13,8 +13,8 @@ namespace SampleGame
         [STAThread]
         public static void Main()
         {
-            using (BaseGame game = new SampleGame())
-            using (BasicGameHost host = Host.GetSuitableHost(@"sample-game"))
+            using (Game game = new SampleGame())
+            using (GameHost host = Host.GetSuitableHost(@"sample-game"))
             {
                 host.Add(game);
                 host.Run();

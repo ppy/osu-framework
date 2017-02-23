@@ -50,7 +50,7 @@ namespace osu.Framework.Input
         /// </summary>
         public double LastActionTime;
 
-        protected BasicGameHost Host;
+        protected GameHost Host;
 
         public Drawable FocusedDrawable;
 

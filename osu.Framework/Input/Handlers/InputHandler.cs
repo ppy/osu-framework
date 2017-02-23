@@ -13,7 +13,7 @@ namespace osu.Framework.Input.Handlers
         /// Used to initialize resources specific to this InputHandler. It gets called once.
         /// </summary>
         /// <returns>Success of the initialization.</returns>
-        public abstract bool Initialize(BasicGameHost host);
+        public abstract bool Initialize(GameHost host);
 
         protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 

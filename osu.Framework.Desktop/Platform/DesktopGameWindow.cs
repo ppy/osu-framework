@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public class DesktopGameWindow : BasicGameWindow, IDropTarget
+    public class DesktopGameWindow : Framework.Platform.GameWindow, IDropTarget
     {
         private const int default_width = 1366;
         private const int default_height = 768;

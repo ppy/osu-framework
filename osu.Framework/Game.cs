@@ -12,19 +12,20 @@ using osu.Framework.Graphics.Visualisation;
 using osu.Framework.Input;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
-using OpenTK;
 using OpenTK.Input;
 using FlowDirections = osu.Framework.Graphics.Containers.FlowDirections;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Statistics;
+using OpenTK;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
-    public class BaseGame : Container
+    public class Game : Container
     {
-        public BasicGameWindow Window => host?.Window;
+        public GameWindow Window => host?.Window;
 
         public ResourceStore<byte[]> Resources;
 
@@ -37,9 +38,9 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => Host.FullPath;
 
-        private BasicGameHost host;
+        private GameHost host;
 
-        public BasicGameHost Host => host;
+        public GameHost Host => host;
 
         public override string Name => GetType().ToString();
 
@@ -63,7 +64,7 @@ namespace osu.Framework
 
         public DependencyContainer Dependencies => Host.Dependencies;
 
-        public BaseGame()
+        public Game()
         {
             RelativeSizeAxes = Axes.Both;
 
@@ -102,7 +103,7 @@ namespace osu.Framework
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
         /// </summary>
         /// <param name="host"></param>
-        public virtual void SetHost(BasicGameHost host)
+        public virtual void SetHost(GameHost host)
         {
             if (Config == null)
                 Config = new FrameworkConfigManager(host.Storage);
@@ -173,7 +174,7 @@ namespace osu.Framework
                 performanceContainer.Threads.AddRange(host.Threads.Reverse());
 
                 // Note, that RegisterCounters only has an effect for the first
-                // BasicGameHost to be passed into it; i.e. the first BasicGameHost
+                // GameHost to be passed into it; i.e. the first GameHost
                 // to be instantiated.
                 FrameStatistics.RegisterCounters(performanceContainer);
 

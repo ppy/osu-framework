@@ -89,6 +89,7 @@
     <Compile Include="Caching\Cached.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MatrixExtensions\MatrixExtensions.cs" />
     <Compile Include="Configuration\BindableLong.cs" />
+    <Compile Include="Configuration\ConfigManager.cs" />
     <Compile Include="Configuration\FrameSync.cs" />
     <Compile Include="Configuration\FrameworkConfigManager.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
@@ -184,7 +185,6 @@
     <Compile Include="Configuration\BindableBool.cs" />
     <Compile Include="Configuration\BindableDouble.cs" />
     <Compile Include="Configuration\BindableInt.cs" />
-    <Compile Include="Configuration\ConfigManager.cs" />
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Configuration\IValueChangedObservable.cs" />
@@ -198,9 +198,9 @@
     <Compile Include="Audio\Track\Track.cs" />
     <Compile Include="Audio\Track\TrackBass.cs" />
     <Compile Include="Audio\Track\TrackVirtual.cs" />
-    <Compile Include="BaseGame.cs" />
-    <Compile Include="Platform\BasicGameHost.cs" />
-    <Compile Include="Platform\BasicGameWindow.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="Platform\GameHost.cs" />
+    <Compile Include="Platform\GameWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\LinearBatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\QuadBatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Batches\VertexBatch.cs" />
@@ -284,7 +284,7 @@
     <Compile Include="Threading\SleepScheduler.cs" />
     <Compile Include="Graphics\Textures\RawTexture.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
-    <Compile Include="Platform\BasicStorage.cs" />
+    <Compile Include="Platform\Storage.cs" />
     <Compile Include="Platform\IpcChannel.cs" />
     <Compile Include="Platform\IpcMessage.cs" />
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
