@@ -236,7 +236,7 @@ namespace osu.Framework
 
             if (state.Keyboard.AltPressed && args.Key == Key.Enter)
             {
-                Window.CycleMode();
+                Window?.CycleMode();
                 return true;
             }
 
