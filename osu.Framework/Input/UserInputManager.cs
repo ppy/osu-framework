@@ -12,7 +12,7 @@ namespace osu.Framework.Input
     {
         public override bool Contains(Vector2 screenSpacePos) => true;
 
-        public UserInputManager(BasicGameHost host)
+        public UserInputManager(GameHost host)
         {
             Host = host;
         }

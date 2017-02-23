@@ -106,7 +106,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(BasicGameHost host, AudioManager audio)
+        private void load(GameHost host, AudioManager audio)
         {
             this.audio = audio;
 

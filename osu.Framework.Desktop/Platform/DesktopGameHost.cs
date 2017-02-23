@@ -13,7 +13,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public abstract class DesktopGameHost : BasicGameHost
+    public abstract class DesktopGameHost : GameHost
     {
         private readonly TcpIpcProvider ipcProvider;
         private readonly Task ipcTask;

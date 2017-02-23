@@ -7,11 +7,11 @@ using SQLite.Net;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicStorage
+    public abstract class Storage
     {
         public string BaseName { get; set; }
     
-        protected BasicStorage(string baseName)
+        protected Storage(string baseName)
         {
             BaseName = FileSafety.FilenameStrip(baseName);
         }

@@ -14,7 +14,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     class OpenTKMouseHandler : InputHandler
     {
-        public override bool Initialize(BasicGameHost host)
+        public override bool Initialize(GameHost host)
         {
             host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
             {
