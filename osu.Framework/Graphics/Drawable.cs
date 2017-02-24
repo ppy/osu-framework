@@ -1206,7 +1206,7 @@ namespace osu.Framework.Graphics
         public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (LoadState != LoadState.NotLoaded)
-                throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
+                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             LoadState = LoadState.Loading;
 
