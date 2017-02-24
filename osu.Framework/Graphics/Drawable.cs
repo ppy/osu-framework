@@ -66,6 +66,9 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            loadTask?.Wait();
+
             Dispose(isDisposing);
 
             Parent = null;
@@ -1197,6 +1200,7 @@ namespace osu.Framework.Graphics
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
         public volatile LoadState LoadState;
+        private Task loadTask;
         private object loadLock = new object();
 
         public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
@@ -1206,11 +1210,11 @@ namespace osu.Framework.Graphics
 
             LoadState = LoadState.Loading;
 
-            await Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            await (loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
-            }));
+            })));
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
