@@ -60,12 +60,7 @@ namespace osu.Framework.Audio.Track
             base.Update();
 
             if (exclusiveTrack?.HasCompleted != false)
-                findExclusiveTrack();
-        }
-
-        private void findExclusiveTrack()
-        {
-            exclusiveTrack = Items.FirstOrDefault();
+                exclusiveTrack = Items.FirstOrDefault();
         }
     }
 }
