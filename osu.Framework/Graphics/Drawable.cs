@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics
 
         ~Drawable()
         {
-            Dispose(false);
+            dispose(false);
         }
 
         public void Dispose()
