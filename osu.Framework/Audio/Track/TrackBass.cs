@@ -114,6 +114,7 @@ namespace osu.Framework.Audio.Track
         {
             if (activeStream != 0)
             {
+                isRunning = false;
                 Bass.ChannelStop(activeStream);
                 Bass.StreamFree(activeStream);
             }
