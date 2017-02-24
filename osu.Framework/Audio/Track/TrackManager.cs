@@ -11,7 +11,8 @@ namespace osu.Framework.Audio.Track
     {
         IResourceStore<byte[]> store;
 
-        Track exclusiveTrack;
+        private Track exclusiveTrack;
+        private object exclusiveMutex = new object();
 
         public TrackManager(IResourceStore<byte[]> store)
         {
@@ -34,33 +35,35 @@ namespace osu.Framework.Audio.Track
             if (track == null)
                 throw new ArgumentNullException(nameof(track));
 
-            if (exclusiveTrack == track) return;
-
-            var last = exclusiveTrack;
+            Track last;
+            lock (exclusiveMutex)
+            {
+                if (exclusiveTrack == track) return;
+                last = exclusiveTrack;
+                exclusiveTrack = track;
+            }
 
             PendingActions.Enqueue(() =>
             {
                 foreach (var item in Items)
-                    item.Stop();
+                    if (!item.HasCompleted)
+                        item.Stop();
 
-                if (last != null)
-                {
-                    Items.Remove(last);
-                    last.Dispose();
-                }
+                last?.Dispose();
+                AddItem(track);
             });
-
-            AddItem(track);
-
-            PendingActions.Enqueue(() => exclusiveTrack = track);
         }
 
         public override void Update()
         {
-            base.Update();
-
             if (exclusiveTrack?.HasCompleted != false)
-                exclusiveTrack = Items.FirstOrDefault();
+                lock (exclusiveMutex)
+                    // We repeat the if-check inside the lock to make sure exclusiveTrack
+                    // has not been overwritten prior to us taking the lock.
+                    if (exclusiveTrack?.HasCompleted != false)
+                        exclusiveTrack = Items.FirstOrDefault();
+
+            base.Update();
         }
     }
 }
