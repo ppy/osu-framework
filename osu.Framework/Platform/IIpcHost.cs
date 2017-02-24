@@ -10,6 +10,6 @@ namespace osu.Framework.Platform
     {
         event Action<IpcMessage> MessageReceived;
 
-        Task SendMessage(IpcMessage ipcMessage);
+        Task SendMessageAsync(IpcMessage ipcMessage);
     }
 }

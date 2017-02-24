@@ -1199,14 +1199,14 @@ namespace osu.Framework.Graphics
         public volatile LoadState LoadState;
         private object loadLock = new object();
 
-        public Task Preload(Game game, Action<Drawable> onLoaded = null)
+        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (LoadState != LoadState.NotLoaded)
                 throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
 
             LoadState = LoadState.Loading;
 
-            return Task.Run(() => PerformLoad(game)).ContinueWith(task => game.Schedule(() =>
+            return Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -1215,7 +1215,7 @@ namespace osu.Framework.Graphics
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
-        protected internal virtual void PerformLoad(Game game)
+        protected internal virtual void Load(Game game)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)

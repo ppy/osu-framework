@@ -51,7 +51,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void getNextAvatar()
         {
-            new Avatar(loadId).Preload(game, flow.Add);
+            new Avatar(loadId).LoadAsync(game, flow.Add);
 
             loadId++;
             Scheduler.AddDelayed(getNextAvatar, 400);

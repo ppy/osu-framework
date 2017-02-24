@@ -44,7 +44,7 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
             while (true)
             {
@@ -82,7 +82,7 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public async Task SendMessage(IpcMessage message)
+        public async Task SendMessageAsync(IpcMessage message)
         {
             using (var client = new TcpClient())
             {

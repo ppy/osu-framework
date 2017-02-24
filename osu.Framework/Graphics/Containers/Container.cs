@@ -426,7 +426,7 @@ namespace osu.Framework.Graphics.Containers
 
             children.LoadRequested += i =>
             {
-                i.PerformLoad(game);
+                i.Load(game);
                 i.Parent = this;
             };
 

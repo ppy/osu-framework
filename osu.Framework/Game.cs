@@ -84,12 +84,12 @@ namespace osu.Framework
             (DrawVisualiser = new DrawVisualiser
             {
                 Depth = float.MinValue / 2,
-            }).Preload(this, AddInternal);
+            }).LoadAsync(this, AddInternal);
 
             (logOverlay = new LogOverlay
             {
                 Depth = float.MinValue / 2,
-            }).Preload(this, AddInternal);
+            }).LoadAsync(this, AddInternal);
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -170,7 +170,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }).Preload(this, delegate(Drawable overlay)
+            }).LoadAsync(this, delegate(Drawable overlay)
             {
                 performanceContainer.Threads.AddRange(host.Threads.Reverse());
 

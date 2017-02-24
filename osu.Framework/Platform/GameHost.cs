@@ -65,7 +65,7 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessage(IpcMessage message)
+        public virtual Task SendMessageAsync(IpcMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }
@@ -430,7 +430,7 @@ namespace osu.Framework.Platform
             game.SetHost(this);
 
             if (!IsLoaded)
-                PerformLoad(game);
+                Load(game);
 
             LoadGame(game);
         }
@@ -448,7 +448,7 @@ namespace osu.Framework.Platform
                 // Make sure we are not loading anything game-related before our threads have been initialized.
                 WaitUntilReadyToLoad();
 
-                game.PerformLoad(game);
+                game.Load(game);
             }).ContinueWith(task => Schedule(() =>
             {
                 task.ThrowIfFaulted();
