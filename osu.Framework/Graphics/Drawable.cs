@@ -1210,11 +1210,15 @@ namespace osu.Framework.Graphics
 
             LoadState = LoadState.Loading;
 
-            await (loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            loadTask = Task.Run(() => Load(game));
+
+            await loadTask.ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
-            })));
+            }));
+
+            loadTask = null;
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
