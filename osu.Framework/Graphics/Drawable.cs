@@ -1199,14 +1199,14 @@ namespace osu.Framework.Graphics
         public volatile LoadState LoadState;
         private object loadLock = new object();
 
-        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (LoadState != LoadState.NotLoaded)
                 throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
 
             LoadState = LoadState.Loading;
 
-            return Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            await Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
