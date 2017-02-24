@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics
 
         ~Drawable()
         {
-            Dispose(false);
+            dispose(false);
         }
 
         public void Dispose()
@@ -65,6 +65,9 @@ namespace osu.Framework.Graphics
         {
             if (isDisposed)
                 return;
+
+            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            loadTask?.Wait();
 
             Dispose(isDisposing);
 
@@ -1197,20 +1200,25 @@ namespace osu.Framework.Graphics
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
         public volatile LoadState LoadState;
+        private Task loadTask;
         private object loadLock = new object();
 
-        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (LoadState != LoadState.NotLoaded)
-                throw new InvalidOperationException("Preload may not be called more than once on the same Drawable.");
+                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             LoadState = LoadState.Loading;
 
-            return Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
             }));
+
+            await loadTask;
+
+            loadTask = null;
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
