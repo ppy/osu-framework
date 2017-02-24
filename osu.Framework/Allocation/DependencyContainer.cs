@@ -145,8 +145,10 @@ namespace osu.Framework.Allocation
         public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
-            if (autoRegister && !activators.ContainsKey(type))
-                register(type, lazy);
+
+            lock (activators)
+                if (autoRegister && !activators.ContainsKey(type))
+                    register(type, lazy);
 
             ObjectActivator activator;
 
