@@ -588,6 +588,14 @@ namespace osu.Framework.Graphics.Containers
             return cNode;
         }
 
+        public override void ClearTransformations(bool propagateChildren = false)
+        {
+            base.ClearTransformations(propagateChildren);
+
+            if (propagateChildren)
+                foreach (var c in children) c.ClearTransformations(true);
+        }
+
         public override Drawable Delay(double duration, bool propagateChildren = false)
         {
             if (duration == 0) return this;
