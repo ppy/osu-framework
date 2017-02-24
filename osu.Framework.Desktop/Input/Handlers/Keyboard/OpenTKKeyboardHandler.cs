@@ -15,13 +15,15 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
     class OpenTKKeyboardHandler : InputHandler
     {
+        private ScheduledDelegate scheduled;
+
         public override bool IsActive => true;
 
         public override int Priority => 0;
 
         public override bool Initialize(GameHost host)
         {
-            host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
+            host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
                 PendingStates.Enqueue(new InputState
                 {
@@ -30,6 +32,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
             }, 0, 0));
 
             return true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            scheduled.Cancel();
         }
 
         class TkKeyboardState : KeyboardState

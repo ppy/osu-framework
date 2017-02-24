@@ -695,9 +695,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Dispose(bool isDisposing)
         {
-            //this could cause issues if a child is referenced in more than one containers (or referenced for future use elsewhere).
-            if (Content != null)
-                Children?.ForEach(c => c.Dispose());
+            InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
 
