@@ -404,7 +404,9 @@ namespace osu.Framework.Graphics.Containers
             // generalization in the future.
             UpdateChildrenLife();
 
-            if (!IsPresent) return false;
+            // If we are not present then there is never a reason to check
+            // for children, as they should never affect our present status.
+            if (!IsPresent || !RequiresChildrenUpdate) return false;
 
             foreach (T child in children.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
@@ -435,6 +437,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Specifies whether this Container requires an update of its children.
+        /// If the return value is false, then children are not updated and
+        /// <see cref="UpdateAfterChildren"/> is not called.
+        /// </summary>
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
+
         public virtual void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if (AutoSizeAxes == Axes.None) return;
@@ -450,8 +459,13 @@ namespace osu.Framework.Graphics.Containers
 
             if (!shallPropagate) return true;
 
-            foreach (var c in children)
+            // This way of looping turns out to be slightly faster than a foreach
+            // or directly indexing a SortedList<T>. This part of the code is often
+            // hot, so an optimization like this makes sense here.
+            List<T> current = children;
+            for (int i = 0; i < current.Count; ++i)
             {
+                T c = current[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -525,7 +539,8 @@ namespace osu.Framework.Graphics.Containers
                     continue;
                 }
 
-                if (!maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat))
+                drawable.IsMaskedAway = !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                if (drawable.IsMaskedAway)
                     continue;
 
                 DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
