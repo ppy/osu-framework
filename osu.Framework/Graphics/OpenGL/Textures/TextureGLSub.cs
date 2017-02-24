@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using osu.Framework.Graphics.Primitives;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;

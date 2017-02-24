@@ -2,9 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using osu.Framework.Desktop.Platform;
 using osu.Framework.Platform;

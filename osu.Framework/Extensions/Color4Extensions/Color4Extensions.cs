@@ -3,7 +3,6 @@
 
 using OpenTK.Graphics;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Extensions.Color4Extensions
 {

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;

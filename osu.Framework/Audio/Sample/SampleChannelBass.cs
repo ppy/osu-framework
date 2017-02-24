@@ -3,7 +3,6 @@
 
 using System;
 using ManagedBass;
-using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {

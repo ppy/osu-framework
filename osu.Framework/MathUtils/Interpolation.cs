@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transformations;
 using OpenTK;
 using OpenTK.Graphics;
-using System.Diagnostics;
 
 namespace osu.Framework.MathUtils
 {

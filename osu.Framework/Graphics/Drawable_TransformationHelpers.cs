@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using osu.Framework.Graphics.Transformations;
 using osu.Framework.Threading;
 using OpenTK;
