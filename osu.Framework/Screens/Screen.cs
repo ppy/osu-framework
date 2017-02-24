@@ -177,8 +177,11 @@ namespace osu.Framework.Screens
 
             hasExited = true;
 
-            Content.Expire();
-            LifetimeEnd = Content.LifetimeEnd;
+            if (ValidForResume)
+            {
+                Content.Expire();
+                LifetimeEnd = Content.LifetimeEnd;
+            }
 
             Exited?.Invoke(ParentScreen);
             ParentScreen?.startResume(last);

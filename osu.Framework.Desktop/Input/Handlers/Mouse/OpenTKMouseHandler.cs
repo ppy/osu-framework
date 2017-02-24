@@ -14,9 +14,11 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     class OpenTKMouseHandler : InputHandler
     {
+        private ScheduledDelegate scheduled;
+
         public override bool Initialize(GameHost host)
         {
-            host.InputThread.Scheduler.Add(new ScheduledDelegate(delegate
+            host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
                 OpenTK.Input.MouseState state = OpenTK.Input.Mouse.GetCursorState();
                 Point point = host.Window.PointToClient(new Point(state.X, state.Y));
@@ -43,6 +45,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            scheduled.Cancel();
+        }
 
         class TkMouseState : MouseState
         {
