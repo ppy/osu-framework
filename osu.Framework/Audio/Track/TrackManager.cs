@@ -36,13 +36,23 @@ namespace osu.Framework.Audio.Track
 
             if (exclusiveTrack == track) return;
 
-            foreach (var item in Items)
-                item.Stop();
+            var last = exclusiveTrack;
 
-            exclusiveTrack?.Dispose();
-            exclusiveTrack = track;
+            PendingActions.Enqueue(() =>
+            {
+                foreach (var item in Items)
+                    item.Stop();
+
+                if (last != null)
+                {
+                    Items.Remove(last);
+                    last.Dispose();
+                }
+            });
 
             AddItem(track);
+
+            PendingActions.Enqueue(() => exclusiveTrack = track);
         }
 
         public override void Update()
@@ -50,12 +60,7 @@ namespace osu.Framework.Audio.Track
             base.Update();
 
             if (exclusiveTrack?.HasCompleted != false)
-                findExclusiveTrack();
-        }
-
-        private void findExclusiveTrack()
-        {
-            exclusiveTrack = Items.FirstOrDefault();
+                exclusiveTrack = Items.FirstOrDefault();
         }
     }
 }
