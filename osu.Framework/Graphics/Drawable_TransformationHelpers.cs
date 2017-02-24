@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics
     {
         private double transformationDelay;
 
-        public void ClearTransformations()
+        public virtual void ClearTransformations(bool propagateChildren = false)
         {
             DelayReset();
             transforms?.Clear();
