@@ -1210,13 +1210,13 @@ namespace osu.Framework.Graphics
 
             LoadState = LoadState.Loading;
 
-            loadTask = Task.Run(() => Load(game));
-
-            await loadTask.ContinueWith(task => game.Schedule(() =>
+            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
             }));
+
+            await loadTask;
 
             loadTask = null;
         }
