@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Cyotek.Drawing.BitmapFont;
 using osu.Framework.Graphics.Textures;
 
@@ -23,6 +24,8 @@ namespace osu.Framework.IO.Stores
 
         Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
 
+        Task fontLoadTask;
+
         public GlyphStore(ResourceStore<byte[]> store, string assetName = null, bool precache = false)
         {
             this.store = store;
@@ -30,25 +33,37 @@ namespace osu.Framework.IO.Stores
 
             fontName = assetName?.Split('/').Last();
 
-            try
-            {
-                font = new BitmapFont();
-                font.LoadText(store.GetStream($@"{assetName}.fnt"));
+            fontLoadTask = readFontMetadataAsync(precache);
+        }
 
-                if (precache)
-                    for (int i = 0; i < font.Pages.Length; i++)
-                        getTexturePage(i);
-            }
-            catch
+        private async Task readFontMetadataAsync(bool precache)
+        {
+            await Task.Run(() =>
             {
-                throw new FontLoadException(assetName);
-            }
+                try
+                {
+                    font = new BitmapFont();
+                    font.LoadText(store.GetStream($@"{assetName}.fnt"));
+
+                    if (precache)
+                        for (int i = 0; i < font.Pages.Length; i++)
+                            getTexturePage(i);
+                }
+                catch
+                {
+                    throw new FontLoadException(assetName);
+                }
+            });
+
+            fontLoadTask = null;
         }
 
         public RawTexture Get(string name)
         {
             if (name.Length > 1 && !name.StartsWith($@"{fontName}/", StringComparison.Ordinal))
                 return null;
+
+            fontLoadTask?.Wait();
 
             Character c;
 
