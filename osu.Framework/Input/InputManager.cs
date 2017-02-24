@@ -543,6 +543,14 @@ namespace osu.Framework.Input
 
             return false;
         }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            foreach (var h in inputHandlers)
+                h.Dispose();
+
+            base.Dispose(isDisposing);
+        }
     }
 
     public enum ConfineMouseMode
