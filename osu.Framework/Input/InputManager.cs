@@ -109,6 +109,8 @@ namespace osu.Framework.Input
             {
                 if (h.IsActive)
                     pendingStates.AddRange(h.GetPendingStates());
+                else
+                    h.GetPendingStates();
             }
 
             unfocusIfNoLongerValid(CurrentState);
