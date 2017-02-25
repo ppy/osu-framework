@@ -102,9 +102,11 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Override to add delayed load abilities (ie. using IsAlive)
         /// </summary>
-        public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
+        public virtual bool IsLoaded => loadState >= LoadState.Loaded;
 
-        internal protected volatile LoadState LoadState;
+        private volatile LoadState loadState;
+        public LoadState LoadState => loadState;
+
         private Task loadTask;
         private object loadLock = new object();
 
@@ -119,10 +121,10 @@ namespace osu.Framework.Graphics
         /// <returns>The task which is used for loading and callbacks.</returns>
         public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
-            if (LoadState != LoadState.NotLoaded)
+            if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
-            LoadState = LoadState.Loading;
+            loadState = LoadState.Loading;
 
             loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
@@ -142,7 +144,7 @@ namespace osu.Framework.Graphics
             // Blocks when loading from another thread already.
             lock (loadLock)
             {
-                switch (LoadState)
+                switch (loadState)
                 {
                     case LoadState.Loaded:
                     case LoadState.Alive:
@@ -150,7 +152,7 @@ namespace osu.Framework.Graphics
                     case LoadState.Loading:
                         break;
                     case LoadState.NotLoaded:
-                        LoadState = LoadState.Loading;
+                        loadState = LoadState.Loading;
                         break;
                     default:
                         Trace.Assert(false, "Impossible loading state.");
@@ -162,7 +164,7 @@ namespace osu.Framework.Graphics
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-                LoadState = LoadState.Loaded;
+                loadState = LoadState.Loaded;
             }
         }
 
@@ -171,14 +173,14 @@ namespace osu.Framework.Graphics
         /// </summary>
         private bool loadComplete()
         {
-            if (LoadState < LoadState.Loaded) return false;
+            if (loadState < LoadState.Loaded) return false;
 
             mainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(mainThread);
 
             LifetimeStart = Time.Current;
             Invalidate();
-            LoadState = LoadState.Alive;
+            loadState = LoadState.Alive;
             LoadComplete();
             return true;
         }
@@ -323,7 +325,7 @@ namespace osu.Framework.Graphics
             if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
                 customClock?.ProcessFrame();
 
-            if (LoadState < LoadState.Alive)
+            if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
             transformDelay = 0;
