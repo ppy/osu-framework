@@ -260,7 +260,11 @@ namespace osu.Framework.Graphics
 
         #region Position / Size (with margin)
 
-        private Vector2 position;
+        private Vector2 position
+        {
+            get { return new Vector2(x, y); }
+            set { x = value.X; y = value.Y; }
+        }
 
         /// <summary>
         /// Positional offset of <see cref="Origin"/> to <see cref="AnchorPosition"/> in the
@@ -283,12 +287,49 @@ namespace osu.Framework.Graphics
             }
         }
 
+        float x;
+        float y;
+
+        /// <summary>
+        /// X component of <see cref="Position"/>.
+        /// </summary>
+        public float X
+        {
+            get { return x; }
+            set
+            {
+                if (x == value) return;
+                x = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
+        /// <summary>
+        /// Y component of <see cref="Position"/>.
+        /// </summary>
+        public float Y
+        {
+            get { return y; }
+            set
+            {
+                if (y == value) return;
+                y = value;
+
+                Invalidate(Invalidation.Geometry);
+            }
+        }
+
         private Axes relativePositionAxes;
 
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="Position"/> are relative w.r.t.
         /// <see cref="Parent"/>'s size (from 0 to 1) rather than absolute.
         /// </summary>
+        /// <remarks>
+        /// When setting this property, the <see cref="Position"/> is converted such that
+        /// <see cref="DrawPosition"/> remains invariant.
+        /// </remarks>
         public Axes RelativePositionAxes
         {
             get { return relativePositionAxes; }
@@ -296,9 +337,22 @@ namespace osu.Framework.Graphics
             {
                 if (value == relativePositionAxes)
                     return;
+
+                // Convert coordinates from relative to absolute or vice versa
+                Vector2 conversion = relativeToAbsoluteFactor;
+                if ((value & Axes.X) > (relativePositionAxes & Axes.X))
+                    X = conversion.X == 0 ? 0 : (X / conversion.X);
+                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
+                    X *= conversion.X;
+
+                if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
+                    Y = conversion.Y == 0 ? 0 : (Y / conversion.Y);
+                else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
+                    Y *= conversion.Y;
+
                 relativePositionAxes = value;
 
-                Invalidate(Invalidation.Geometry);
+                // No invalidation necessary as DrawPosition remains invariant.
             }
         }
 
@@ -373,6 +427,11 @@ namespace osu.Framework.Graphics
         /// Controls which <see cref="Axes"/> are relative sizes w.r.t. <see cref="Parent"/>'s size
         /// (from 0 to 1) in the <see cref="Parent"/>'s coordinate system, rather than absolute sizes.
         /// </summary>
+        /// <remarks>
+        /// If an axis becomes relatively sized and its component of <see cref="Size"/> was previously 0,
+        /// then it automatically becomes 1. In all other cases <see cref="Size"/> is converted such that
+        /// <see cref="DrawSize"/> remains invariant across changes of this property.
+        /// </remarks>
         public virtual Axes RelativeSizeAxes
         {
             get { return relativeSizeAxes; }
@@ -381,12 +440,24 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                if ((value & Axes.X) > 0 && Width == 0) Width = 1;
-                if ((value & Axes.Y) > 0 && Height == 0) Height = 1;
+                // Convert coordinates from relative to absolute or vice versa
+                Vector2 conversion = relativeToAbsoluteFactor;
+                if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
+                    Width = conversion.X == 0 ? 0 : (Width / conversion.X);
+                else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                    Width *= conversion.X;
+
+                if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
+                    Height = conversion.Y == 0 ? 0 : (Height / conversion.Y);
+                else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                    Height *= conversion.Y;
 
                 relativeSizeAxes = value;
 
-                Invalidate(Invalidation.Geometry);
+                if ((relativeSizeAxes & Axes.X) > 0 && Width == 0) Width = 1;
+                if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
+
+                // No invalidation necessary as DrawSize remains invariant.
             }
         }
 
@@ -473,14 +544,16 @@ namespace osu.Framework.Graphics
         {
             if (relativeAxes != Axes.None)
             {
-                Vector2 parent = Parent?.ChildSize ?? Vector2.One;
+                Vector2 conversion = relativeToAbsoluteFactor;
                 if ((relativeAxes & Axes.X) > 0)
-                    v.X *= parent.X;
+                    v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
-                    v.Y *= parent.Y;
+                    v.Y *= conversion.Y;
             }
             return v;
         }
+
+        private Vector2 relativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 
