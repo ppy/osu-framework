@@ -29,129 +29,7 @@ namespace osu.Framework.Graphics.Containers
     public class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
-        private bool masking;
-
-        /// <summary>
-        /// If enabled, only the portion of children that falls within this container's
-        /// shape is drawn to the screen.
-        /// </summary>
-        public bool Masking
-        {
-            get { return masking; }
-            set
-            {
-                if (masking == value)
-                    return;
-
-                masking = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float maskingSmoothness = 1;
-
-        /// <summary>
-        /// Determines over how many pixels the alpha component smoothly fades out.
-        /// Only has an effect when <see cref="Masking"/> is true.
-        /// </summary>
-        public float MaskingSmoothness
-        {
-            get { return maskingSmoothness; }
-            set
-            {
-                //must be above zero to avoid a div-by-zero in the shader logic.
-                value = Math.Max(0.01f, value);
-
-                if (maskingSmoothness == value)
-                    return;
-
-                maskingSmoothness = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float cornerRadius;
-
-        /// <summary>
-        /// Determines how large of a radius is masked away around the corners.
-        /// Only has an effect when <see cref="Masking"/> is true.
-        /// </summary>
-        public virtual float CornerRadius
-        {
-            get { return cornerRadius; }
-            set
-            {
-                if (cornerRadius == value)
-                    return;
-
-                cornerRadius = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private float borderThickness;
-
-        /// <summary>
-        /// Determines how thick of a border to draw around the inside of the masked region.
-        /// Only has an effect when <see cref="Masking"/> is true.
-        /// The border only is drawn on top of children of type <see cref="Sprite"/>.
-        /// </summary>
-        /// <remarks>
-        /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
-        /// borders are only drawn correctly on top of quad-shaped children using our sprite
-        /// shaders.
-        /// </remarks>
-        public float BorderThickness
-        {
-            get { return borderThickness; }
-            set
-            {
-                if (borderThickness == value)
-                    return;
-
-                borderThickness = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private SRGBColour borderColour = Color4.Black;
-
-        /// <summary>
-        /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
-        /// Only has an effect when <see cref="Masking"/> is true.
-        /// </summary>
-        public virtual SRGBColour BorderColour
-        {
-            get { return borderColour; }
-            set
-            {
-                if (borderColour.Equals(value))
-                    return;
-
-                borderColour = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
-
-        private EdgeEffect edgeEffect;
-
-        /// <summary>
-        /// Determines an edge effect of this container.
-        /// Edge effects are e.g. glow or a shadow.
-        /// Only has an effect when <see cref="Masking"/> is true.
-        /// </summary>
-        public virtual EdgeEffect EdgeEffect
-        {
-            get { return edgeEffect; }
-            set
-            {
-                if (edgeEffect.Equals(value))
-                    return;
-
-                edgeEffect = value;
-                Invalidate(Invalidation.DrawNode);
-            }
-        }
+        #region Contruction and disposal
 
         /// <summary>
         /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
@@ -166,7 +44,47 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
-        public override bool HandleInput => true;
+        [BackgroundDependencyLoader(true)]
+        private void load(Game game, ShaderManager shaders)
+        {
+            if (shader == null)
+                shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
+
+            internalChildren.LoadRequested += i =>
+            {
+                i.Load(game);
+                i.Parent = this;
+            };
+
+            if (pendingChildren != null)
+            {
+                AddInternal(pendingChildren);
+                pendingChildren = null;
+            }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            InternalChildren?.ForEach(c => c.Dispose());
+
+            OnAutoSize = null;
+
+            base.Dispose(isDisposing);
+        }
+
+        #endregion
+
+        #region Children management
+
+        /// <summary>
+        /// The content of this container. <see cref="Children"/> and all methods that mutate
+        /// <see cref="Children"/> (e.g. <see cref="Add(T)"/> and <see cref="Remove(T)"/>) are
+        /// forwarded to the content. By default a container's content is itself, in which case
+        /// <see cref="Children"/> refers to <see cref="InternalChildren"/>.
+        /// This property is useful for containers that require internal children that should
+        /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
+        /// </summary>
+        protected virtual Container<T> Content => this;
 
         /// <summary>
         /// We only want to add to <see cref="internalChildren"/> once we are loaded.
@@ -174,6 +92,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private List<T> pendingChildren;
 
+        /// <summary>
+        /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
+        /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
+        /// </summary>
         public IEnumerable<T> Children
         {
             get
@@ -190,6 +112,9 @@ namespace osu.Framework.Graphics.Containers
 
         private LifetimeList<T> internalChildren;
 
+        /// <summary>
+        /// This container's own list of children.
+        /// </summary>
         public IEnumerable<T> InternalChildren
         {
             get { return internalChildren; }
@@ -203,34 +128,29 @@ namespace osu.Framework.Graphics.Containers
 
         protected IEnumerable<T> AliveInternalChildren => internalChildren.AliveItems;
 
-        private MarginPadding padding;
-        public MarginPadding Padding
+        /// <summary>
+        /// The index of a given child within <see cref="InternalChildren"/>.
+        /// </summary>
+        /// <returns>
+        /// If the child is found, its index. Otherwise, the negated index it would obtain
+        /// if it were added to <see cref="InternalChildren"/>.
+        /// </returns>
+        public int IndexOf(T drawable)
         {
-            get { return padding; }
-            set
-            {
-                if (padding.Equals(value)) return;
-
-                padding = value;
-
-                foreach (T c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
-            }
+            return internalChildren.IndexOf(drawable);
         }
 
         /// <summary>
-        /// The size of the positional coordinate space revealed to <see cref="InternalChildren"/>.
+        /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
-        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
-
-        /// <summary>
-        /// Positional offset applied to <see cref="InternalChildren"/>.
-        /// </summary>
-        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
+        public bool Contains(T drawable)
+        {
+            return IndexOf(drawable) >= 0;
+        }
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
-        /// <see cref="Children"/> list, recursing until <see cref="Content"/> == this.
+        /// <see cref="Children"/>, recursing until <see cref="Content"/> == this.
         /// </summary>
         public virtual void Add(T drawable)
         {
@@ -244,15 +164,19 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Adds a collection of children. This is equivalent to calling <see cref="Add"/> on
-        /// each element of the collection in order.
+        /// Adds a range of children. This is equivalent to calling <see cref="Add(T)"/> on
+        /// each element of the range in order.
         /// </summary>
-        public void Add(IEnumerable<T> collection)
+        public void Add(IEnumerable<T> range)
         {
-            foreach (T d in collection)
+            foreach (T d in range)
                 Add(d);
         }
 
+        /// <summary>
+        /// Removes a given child from this container.
+        /// </summary>
+        /// <returns>True if the child was found and removed, false otherwise.</returns>
         public bool Remove(T drawable)
         {
             if (drawable == null)
@@ -274,15 +198,25 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        public int RemoveAll(Predicate<T> match)
+        /// <summary>
+        /// Removes all children which match the given predicate.
+        /// This is equivalent to calling <see cref="Remove(T)"/> for each child that
+        /// matches the given predicate.
+        /// </summary>
+        /// <returns>The amount of removed children.</returns>
+        public int RemoveAll(Predicate<T> pred)
         {
-            List<T> toRemove = internalChildren.FindAll(match);
+            List<T> toRemove = internalChildren.FindAll(pred);
             foreach (T removable in toRemove)
                 Remove(removable);
 
             return toRemove.Count;
         }
 
+        /// <summary>
+        /// Removes a range of children. This is equivalent to calling <see cref="Remove(T)"/> on
+        /// each element of the range in order.
+        /// </summary>
         public void Remove(IEnumerable<T> range)
         {
             if (range == null)
@@ -292,17 +226,21 @@ namespace osu.Framework.Graphics.Containers
                 Remove(p);
         }
 
-        public virtual void Clear(bool dispose = true)
+        /// <summary>
+        /// Removes all children.
+        /// </summary>
+        /// <param name="disposeChildren">Whether removed children should also get disposed.</param>
+        public virtual void Clear(bool disposeChildren = true)
         {
             if (Content != null && Content != this)
             {
-                Content.Clear(dispose);
+                Content.Clear(disposeChildren);
                 return;
             }
 
             foreach (T t in internalChildren)
             {
-                if (dispose)
+                if (disposeChildren)
                 {
                     //cascade disposal
                     (t as IContainer)?.Clear();
@@ -318,7 +256,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Adds a child to this container's internal children list. Ignores <see cref="Content"/>.
+        /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
         protected void AddInternal(T drawable)
         {
@@ -346,19 +284,22 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Adds a collection of children internally. This is equivalent to calling
-        /// <see cref="AddInternal"/> on each element of the collection in order.
+        /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
+        /// <see cref="AddInternal"/> on each element of the range in order.
         /// </summary>
-        protected void AddInternal(IEnumerable<T> collection)
+        protected void AddInternal(IEnumerable<T> range)
         {
-            foreach (T d in collection)
+            foreach (T d in range)
                 AddInternal(d);
         }
 
-        protected virtual Container<T> Content => this;
+        #endregion
+
+        #region Updating (per-frame periodic)
 
         /// <summary>
-        /// Updates the life status of children according to their IsAlive property.
+        /// Updates the life status of <see cref="InternalChildren"/> according to their
+        /// <see cref="IHasLifetime.IsAlive"/> property.
         /// </summary>
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
@@ -380,6 +321,13 @@ namespace osu.Framework.Graphics.Containers
             foreach (T child in InternalChildren)
                 child.UpdateClock(Clock);
         }
+
+        /// <summary>
+        /// Specifies whether this Container requires an update of its children.
+        /// If the return value is false, then children are not updated and
+        /// <see cref="UpdateAfterChildren"/> is not called.
+        /// </summary>
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
 
         protected internal override bool UpdateSubTree()
         {
@@ -404,32 +352,23 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(Game game, ShaderManager shaders)
+        /// <summary>
+        /// An opportunity to update state once-per-frame after <see cref="Update"/> has been called
+        /// for all <see cref="InternalChildren"/>.
+        /// </summary>		
+        protected virtual void UpdateAfterChildren()
         {
-            if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
-
-            internalChildren.LoadRequested += i =>
-            {
-                i.Load(game);
-                i.Parent = this;
-            };
-
-            if (pendingChildren != null)
-            {
-                AddInternal(pendingChildren);
-                pendingChildren = null;
-            }
         }
 
-        /// <summary>
-        /// Specifies whether this Container requires an update of its children.
-        /// If the return value is false, then children are not updated and
-        /// <see cref="UpdateAfterChildren"/> is not called.
-        /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
+        #endregion
 
+        #region Invalidation
+
+        /// <summary>
+        /// Informs this container that a child has been invalidated.
+        /// </summary>
+        /// <param name="invalidation">The type of invalidation applied to the child.</param>
+        /// <param name="source">The child that got invalidated.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation, IDrawable source)
         {
             if (AutoSizeAxes == Axes.None) return;
@@ -464,24 +403,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        /// <summary>
-        /// Perform any layout changes just before autosize is calculated.		
-        /// </summary>		
-        protected virtual void UpdateAfterChildren()
-        {
-        }
-
-        public override Axes RelativeSizeAxes
-        {
-            get { return base.RelativeSizeAxes; }
-            set
-            {
-                if ((AutoSizeAxes & value) != 0)
-                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
-
-                base.RelativeSizeAxes = value;
-            }
-        }
+        #endregion
 
         #region DrawNode
 
@@ -654,17 +576,22 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
+        /// <summary>
+        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// </summary>
+        public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformEdgeEffectAlpha));
+            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+        }
+
         #endregion
 
-        public int IndexOf(T drawable)
-        {
-            return internalChildren.IndexOf(drawable);
-        }
+        #region Interaction / Input
 
-        public bool Contains(T drawable)
-        {
-            return IndexOf(drawable) >= 0;
-        }
+        // Required to pass through input to children by default.
+        // TODO: Evaluate effects of this on performance and address.
+        public override bool HandleInput => true;
 
         public override bool Contains(Vector2 screenSpacePos)
         {
@@ -675,6 +602,160 @@ namespace osu.Framework.Graphics.Containers
                 return base.Contains(screenSpacePos);
             return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
+
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (!base.BuildKeyboardInputQueue(queue))
+                return false;
+
+            foreach (T d in AliveInternalChildren)
+                d.BuildKeyboardInputQueue(queue);
+
+            return true;
+        }
+
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+                return false;
+
+            foreach (T d in AliveInternalChildren)
+                d.BuildMouseInputQueue(screenSpaceMousePos, queue);
+
+            return true;
+        }
+
+        #endregion
+
+        #region Masking and related effects (e.g. round corners)
+
+        private bool masking;
+
+        /// <summary>
+        /// If enabled, only the portion of children that falls within this container's
+        /// shape is drawn to the screen.
+        /// </summary>
+        public bool Masking
+        {
+            get { return masking; }
+            set
+            {
+                if (masking == value)
+                    return;
+
+                masking = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float maskingSmoothness = 1;
+
+        /// <summary>
+        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public float MaskingSmoothness
+        {
+            get { return maskingSmoothness; }
+            set
+            {
+                //must be above zero to avoid a div-by-zero in the shader logic.
+                value = Math.Max(0.01f, value);
+
+                if (maskingSmoothness == value)
+                    return;
+
+                maskingSmoothness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float cornerRadius;
+
+        /// <summary>
+        /// Determines how large of a radius is masked away around the corners.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public virtual float CornerRadius
+        {
+            get { return cornerRadius; }
+            set
+            {
+                if (cornerRadius == value)
+                    return;
+
+                cornerRadius = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private float borderThickness;
+
+        /// <summary>
+        /// Determines how thick of a border to draw around the inside of the masked region.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// The border only is drawn on top of children of type <see cref="Sprite"/>.
+        /// </summary>
+        /// <remarks>
+        /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
+        /// borders are only drawn correctly on top of quad-shaped children using our sprite
+        /// shaders.
+        /// </remarks>
+        public float BorderThickness
+        {
+            get { return borderThickness; }
+            set
+            {
+                if (borderThickness == value)
+                    return;
+
+                borderThickness = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private SRGBColour borderColour = Color4.Black;
+
+        /// <summary>
+        /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public virtual SRGBColour BorderColour
+        {
+            get { return borderColour; }
+            set
+            {
+                if (borderColour.Equals(value))
+                    return;
+
+                borderColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private EdgeEffect edgeEffect;
+
+        /// <summary>
+        /// Determines an edge effect of this container.
+        /// Edge effects are e.g. glow or a shadow.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public virtual EdgeEffect EdgeEffect
+        {
+            get { return edgeEffect; }
+            set
+            {
+                if (edgeEffect.Equals(value))
+                    return;
+
+                edgeEffect = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        #endregion
+
+        #region Sizing
 
         public override RectangleF BoundingBox
         {
@@ -704,49 +785,83 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        private MarginPadding padding;
+        public MarginPadding Padding
         {
-            if (!base.BuildKeyboardInputQueue(queue))
-                return false;
+            get { return padding; }
+            set
+            {
+                if (padding.Equals(value)) return;
 
-            foreach (T d in AliveInternalChildren)
-                d.BuildKeyboardInputQueue(queue);
+                padding = value;
 
-            return true;
+                foreach (T c in internalChildren)
+                    c.Invalidate(Invalidation.Geometry);
+            }
         }
 
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        /// <summary>
+        /// The size of the positional coordinate space revealed to <see cref="InternalChildren"/>.
+        /// Captures the effect of e.g. <see cref="Padding"/>.
+        /// </summary>
+        public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
+
+        /// <summary>
+        /// Positional offset applied to <see cref="InternalChildren"/>.
+        /// Captures the effect of e.g. <see cref="Padding"/>.
+        /// </summary>
+        public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
+
+        public override Axes RelativeSizeAxes
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
-                return false;
+            get { return base.RelativeSizeAxes; }
+            set
+            {
+                if ((AutoSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
-            foreach (T d in AliveInternalChildren)
-                d.BuildMouseInputQueue(screenSpaceMousePos, queue);
-
-            return true;
+                base.RelativeSizeAxes = value;
+            }
         }
 
-        protected override void Dispose(bool isDisposing)
+        private Axes autoSizeAxes;
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="InternalChildren"/>.
+        /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public Axes AutoSizeAxes
         {
-            InternalChildren?.ForEach(c => c.Dispose());
+            get { return autoSizeAxes; }
+            set
+            {
+                if (value == autoSizeAxes)
+                    return;
 
-            OnAutoSize = null;
+                if ((RelativeSizeAxes & value) != 0)
+                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
-            base.Dispose(isDisposing);
+                autoSizeAxes = value;
+
+                if (AutoSizeAxes != Axes.None)
+                    autoSize.Invalidate();
+            }
         }
 
-        public void FadeGlowTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            UpdateTransformsOfType(typeof(TransformGlowAlpha));
-            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformGlowAlpha());
-        }
+        /// <summary>
+        /// The duration which automatic sizing should take. If zero, then it is instantaneous.
+        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo"/>.
+        /// </summary>
+        public float AutoSizeDuration { get; set; }
 
-        #region AutoSize
+        /// <summary>
+        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
+        /// is non-zero.
+        /// </summary>
+        public EasingTypes AutoSizeEasing;
 
         internal event Action OnAutoSize;
-
-        public EasingTypes AutoSizeEasing;
-        public float AutoSizeDuration { get; set; }
 
         private Cached autoSize = new Cached();
 
@@ -878,26 +993,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 Padding = padding;
                 Margin = margin;
-            }
-        }
-
-        private Axes autoSizeAxes;
-
-        public Axes AutoSizeAxes
-        {
-            get { return autoSizeAxes; }
-            set
-            {
-                if (value == autoSizeAxes)
-                    return;
-
-                if ((RelativeSizeAxes & value) != 0)
-                    throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
-
-                autoSizeAxes = value;
-
-                if (AutoSizeAxes != Axes.None)
-                    autoSize.Invalidate();
             }
         }
 

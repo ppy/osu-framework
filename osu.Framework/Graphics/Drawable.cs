@@ -94,6 +94,90 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        #region Loading
+
+        /// <summary>
+        /// Override to add delayed load abilities (ie. using IsAlive)
+        /// </summary>
+        public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
+
+        public volatile LoadState LoadState;
+        private Task loadTask;
+        private object loadLock = new object();
+
+        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        {
+            if (LoadState != LoadState.NotLoaded)
+                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+
+            LoadState = LoadState.Loading;
+
+            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            {
+                task.ThrowIfFaulted();
+                onLoaded?.Invoke(this);
+            }));
+
+            await loadTask;
+
+            loadTask = null;
+        }
+
+        private static StopwatchClock perf = new StopwatchClock(true);
+
+        protected internal virtual void Load(Game game)
+        {
+            // Blocks when loading from another thread already.
+            lock (loadLock)
+            {
+                switch (LoadState)
+                {
+                    case LoadState.Loaded:
+                    case LoadState.Alive:
+                        return;
+                    case LoadState.Loading:
+                        break;
+                    case LoadState.NotLoaded:
+                        LoadState = LoadState.Loading;
+                        break;
+                    default:
+                        Trace.Assert(false, "Impossible loading state.");
+                        break;
+                }
+
+                double t1 = perf.CurrentTime;
+                game.Dependencies.Initialize(this);
+                double elapsed = perf.CurrentTime - t1;
+                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
+                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                LoadState = LoadState.Loaded;
+            }
+        }
+
+        /// <summary>
+        /// Runs once on the update thread after loading has finished.
+        /// </summary>
+        private bool loadComplete()
+        {
+            if (LoadState < LoadState.Loaded) return false;
+
+            mainThread = Thread.CurrentThread;
+            scheduler?.SetCurrentThread(mainThread);
+
+            LifetimeStart = Time.Current;
+            Invalidate();
+            LoadState = LoadState.Alive;
+            LoadComplete();
+            return true;
+        }
+
+        /// <summary>
+        /// Play initial animation etc.
+        /// </summary>
+        protected virtual void LoadComplete() { }
+
+        #endregion
+
         #region Sorting (CreationID / Depth)
 
         /// <summary>
@@ -251,7 +335,8 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
-        /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>.
+        /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
+        /// method is always called before Drawables further down the scene graph are updated.
         /// </summary>
         protected virtual void Update()
         {
@@ -1798,90 +1883,6 @@ namespace osu.Framework.Graphics
         }
 
         #endregion
-
-        #endregion
-
-        #region Loading
-
-        /// <summary>
-        /// Override to add delayed load abilities (ie. using IsAlive)
-        /// </summary>
-        public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
-
-        public volatile LoadState LoadState;
-        private Task loadTask;
-        private object loadLock = new object();
-
-        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
-        {
-            if (LoadState != LoadState.NotLoaded)
-                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
-
-            LoadState = LoadState.Loading;
-
-            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
-            {
-                task.ThrowIfFaulted();
-                onLoaded?.Invoke(this);
-            }));
-
-            await loadTask;
-
-            loadTask = null;
-        }
-
-        private static StopwatchClock perf = new StopwatchClock(true);
-
-        protected internal virtual void Load(Game game)
-        {
-            // Blocks when loading from another thread already.
-            lock (loadLock)
-            {
-                switch (LoadState)
-                {
-                    case LoadState.Loaded:
-                    case LoadState.Alive:
-                        return;
-                    case LoadState.Loading:
-                        break;
-                    case LoadState.NotLoaded:
-                        LoadState = LoadState.Loading;
-                        break;
-                    default:
-                        Trace.Assert(false, "Impossible loading state.");
-                        break;
-                }
-
-                double t1 = perf.CurrentTime;
-                game.Dependencies.Initialize(this);
-                double elapsed = perf.CurrentTime - t1;
-                if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
-                LoadState = LoadState.Loaded;
-            }
-        }
-
-        /// <summary>
-        /// Runs once on the update thread after loading has finished.
-        /// </summary>
-        private bool loadComplete()
-        {
-            if (LoadState < LoadState.Loaded) return false;
-
-            mainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(mainThread);
-
-            LifetimeStart = Time.Current;
-            Invalidate();
-            LoadState = LoadState.Alive;
-            LoadComplete();
-            return true;
-        }
-
-        /// <summary>
-        /// Play initial animation etc.
-        /// </summary>
-        protected virtual void LoadComplete() { }
 
         #endregion
 
