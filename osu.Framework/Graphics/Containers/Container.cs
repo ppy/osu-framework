@@ -151,6 +151,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public Container(LifetimeList<T> lifetimeList = null)
+        {
+            internalChildren = lifetimeList ?? new LifetimeList<T>(DepthComparer);
+            internalChildren.Removed += obj =>
+            {
+                if (obj.DisposeOnDeathRemoval) obj.Dispose();
+            };
+        }
+
         private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
         private Shader shader;
 
@@ -192,10 +201,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool HandleInput => true;
 
-        private LifetimeList<T> children;
-
         /// <summary>
-        /// We only want to add to <see cref="children"/> once we are loaded.
+        /// We only want to add to <see cref="internalChildren"/> once we are loaded.
         /// This list holds children-to-be-added until we are loaded.
         /// </summary>
         private List<T> pendingChildren;
@@ -204,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                return Content != this ? Content.Children : children;
+                return Content != this ? Content.Children : internalChildren;
             }
 
             set
@@ -214,9 +221,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private LifetimeList<T> internalChildren;
+
         public IEnumerable<T> InternalChildren
         {
-            get { return children; }
+            get { return internalChildren; }
 
             set
             {
@@ -225,14 +234,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public Container(LifetimeList<T> lifetimeList = null)
-        {
-            children = lifetimeList ?? new LifetimeList<T>(DepthComparer);
-            children.Removed += obj =>
-            {
-                if (obj.DisposeOnDeathRemoval) obj.Dispose();
-            };
-        }
+        protected IEnumerable<T> AliveInternalChildren => internalChildren.AliveItems;
 
         private MarginPadding padding;
         public MarginPadding Padding
@@ -244,7 +246,7 @@ namespace osu.Framework.Graphics.Containers
 
                 padding = value;
 
-                foreach (T c in children)
+                foreach (T c in internalChildren)
                     c.Invalidate(Invalidation.Geometry);
             }
         }
@@ -284,44 +286,6 @@ namespace osu.Framework.Graphics.Containers
                 Add(d);
         }
 
-        /// <summary>
-        /// Adds a child to this container's internal children list. Ignores <see cref="Content"/>.
-        /// </summary>
-        protected void AddInternal(T drawable)
-        {
-            if (drawable == null)
-                throw new ArgumentNullException("null-Drawables may not be added to Containers.", nameof(drawable));
-            if (drawable == this)
-                throw new InvalidOperationException("Container may not be added to itself.");
-
-            if (LoadState == LoadState.NotLoaded)
-            {
-                if (pendingChildren == null)
-                    pendingChildren = new List<T>();
-                pendingChildren.Add(drawable);
-            }
-            else
-            {
-                if (drawable.IsLoaded)
-                    drawable.Parent = this;
-
-                children.Add(drawable);
-            }
-
-            if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry, drawable);
-        }
-
-        /// <summary>
-        /// Adds a collection of children internally. This is equivalent to calling
-        /// <see cref="AddInternal"/> on each element of the collection in order.
-        /// </summary>
-        protected void AddInternal(IEnumerable<T> collection)
-        {
-            foreach (T d in collection)
-                AddInternal(d);
-        }
-
         public virtual bool Remove(T drawable)
         {
             if (drawable == null)
@@ -330,7 +294,7 @@ namespace osu.Framework.Graphics.Containers
             if (Content != this)
                 return Content.Remove(drawable);
 
-            bool result = children.Remove(drawable);
+            bool result = internalChildren.Remove(drawable);
             drawable.Parent = null;
 
             if (!result) return false;
@@ -345,7 +309,7 @@ namespace osu.Framework.Graphics.Containers
 
         public int RemoveAll(Predicate<T> match)
         {
-            List<T> toRemove = children.FindAll(match);
+            List<T> toRemove = internalChildren.FindAll(match);
             foreach (T removable in toRemove)
                 Remove(removable);
 
@@ -369,7 +333,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            foreach (T t in children)
+            foreach (T t in internalChildren)
             {
                 if (dispose)
                 {
@@ -381,12 +345,48 @@ namespace osu.Framework.Graphics.Containers
                 Trace.Assert(t.Parent == null);
             }
 
-            children.Clear();
+            internalChildren.Clear();
 
             Invalidate(Invalidation.Geometry);
         }
 
-        public IEnumerable<T> AliveChildren => children.AliveItems;
+        /// <summary>
+        /// Adds a child to this container's internal children list. Ignores <see cref="Content"/>.
+        /// </summary>
+        protected void AddInternal(T drawable)
+        {
+            if (drawable == null)
+                throw new ArgumentNullException("null-Drawables may not be added to Containers.", nameof(drawable));
+            if (drawable == this)
+                throw new InvalidOperationException("Container may not be added to itself.");
+
+            if (LoadState == LoadState.NotLoaded)
+            {
+                if (pendingChildren == null)
+                    pendingChildren = new List<T>();
+                pendingChildren.Add(drawable);
+            }
+            else
+            {
+                if (drawable.IsLoaded)
+                    drawable.Parent = this;
+
+                internalChildren.Add(drawable);
+            }
+
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry, drawable);
+        }
+
+        /// <summary>
+        /// Adds a collection of children internally. This is equivalent to calling
+        /// <see cref="AddInternal"/> on each element of the collection in order.
+        /// </summary>
+        protected void AddInternal(IEnumerable<T> collection)
+        {
+            foreach (T d in collection)
+                AddInternal(d);
+        }
 
         protected virtual Container<T> Content => this;
 
@@ -396,7 +396,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            bool changed = children.Update(Time);
+            bool changed = internalChildren.Update(Time);
 
             if (changed && AutoSizeAxes != Axes.None)
                 autoSize.Invalidate();
@@ -427,7 +427,7 @@ namespace osu.Framework.Graphics.Containers
             // for children, as they should never affect our present status.
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
-            foreach (T child in children.AliveItems)
+            foreach (T child in internalChildren.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
             UpdateAfterChildren();
@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.Containers
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
-            children.LoadRequested += i =>
+            internalChildren.LoadRequested += i =>
             {
                 i.Load(game);
                 i.Parent = this;
@@ -481,7 +481,7 @@ namespace osu.Framework.Graphics.Containers
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
-            List<T> current = children;
+            List<T> current = internalChildren;
             for (int i = 0; i < current.Count; ++i)
             {
                 T c = current[i];
@@ -531,7 +531,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<T> current = parentContainer.children.AliveItems;
+            List<T> current = parentContainer.internalChildren.AliveItems;
             for (int i = 0; i < current.Count; ++i)
             {
                 Drawable drawable = current[i];
@@ -549,7 +549,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    container.IsMaskedAway = container.children.AliveItems.Count >= amount_children_required_for_masking_check &&
+                    container.IsMaskedAway = container.internalChildren.AliveItems.Count >= amount_children_required_for_masking_check &&
                         !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
@@ -578,7 +578,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
-            if (children.AliveItems.Count == 0 && CanBeFlattened)
+            if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
             ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
@@ -594,7 +594,7 @@ namespace osu.Framework.Graphics.Containers
                 childBounds.Intersect(ScreenSpaceDrawQuad.AABBFloat);
 
             if (cNode.Children == null)
-                cNode.Children = new List<DrawNode>(children.AliveItems.Count);
+                cNode.Children = new List<DrawNode>(internalChildren.AliveItems.Count);
 
             List<DrawNode> target = cNode.Children;
 
@@ -612,7 +612,7 @@ namespace osu.Framework.Graphics.Containers
             base.ClearTransformations(propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in children) c.ClearTransformations(true);
+                foreach (var c in internalChildren) c.ClearTransformations(true);
         }
 
         public override Drawable Delay(double duration, bool propagateChildren = false)
@@ -622,7 +622,7 @@ namespace osu.Framework.Graphics.Containers
             base.Delay(duration, propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in children) c.Delay(duration, true);
+                foreach (var c in internalChildren) c.Delay(duration, true);
             return this;
         }
 
@@ -631,20 +631,20 @@ namespace osu.Framework.Graphics.Containers
             base.Flush(propagateChildren, flushType);
 
             if (propagateChildren)
-                foreach (var c in children) c.Flush(true, flushType);
+                foreach (var c in internalChildren) c.Flush(true, flushType);
         }
 
         public override Drawable DelayReset()
         {
             base.DelayReset();
-            foreach (var c in children) c.DelayReset();
+            foreach (var c in internalChildren) c.DelayReset();
 
             return this;
         }
 
         public int IndexOf(T drawable)
         {
-            return children.IndexOf(drawable);
+            return internalChildren.IndexOf(drawable);
         }
 
         public bool Contains(T drawable)
@@ -695,7 +695,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue))
                 return false;
 
-            foreach (T d in AliveChildren)
+            foreach (T d in AliveInternalChildren)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -706,7 +706,7 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
                 return false;
 
-            foreach (T d in AliveChildren)
+            foreach (T d in AliveInternalChildren)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;

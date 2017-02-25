@@ -137,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation, source);
         }
 
-        protected virtual IEnumerable<T> SortedChildren => AliveChildren;
+        protected virtual IEnumerable<T> SortedChildren => AliveInternalChildren;
 
         protected override void UpdateAfterChildren()
         {
