@@ -50,6 +50,9 @@ namespace osu.Framework.Graphics
             dispose(false);
         }
 
+        /// <summary>
+        /// Disposes this drawable.
+        /// </summary>
         public void Dispose()
         {
             dispose(true);
@@ -101,10 +104,19 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool IsLoaded => LoadState >= LoadState.Loaded;
 
-        public volatile LoadState LoadState;
+        internal protected volatile LoadState LoadState;
         private Task loadTask;
         private object loadLock = new object();
 
+        /// <summary>
+        /// Loads this Drawable asynchronously.
+        /// </summary>
+        /// <param name="game">The game to load this Drawable on.</param>
+        /// <param name="onLoaded">
+        /// Callback to be invoked asynchronously
+        /// after loading is complete.
+        /// </param>
+        /// <returns>The task which is used for loading and callbacks.</returns>
         public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (LoadState != LoadState.NotLoaded)
