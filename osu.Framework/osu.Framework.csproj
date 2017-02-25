@@ -109,6 +109,7 @@
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Input\EventArgs.cs" />
     <Compile Include="Screens\Testing\TestBrowser.cs" />
     <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
@@ -132,8 +133,8 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
-    <Compile Include="Graphics\Transformations\TransformGlowAlpha.cs" />
-    <Compile Include="Graphics\Transformations\TransformSize.cs" />
+    <Compile Include="Graphics\Transforms\TransformGlowAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropDownHeader.cs" />
     <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
@@ -149,16 +150,16 @@
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\Primitives\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
-    <Compile Include="Graphics\Transformations\ITransform.cs" />
-    <Compile Include="Graphics\Transformations\TransformAlpha.cs" />
-    <Compile Include="Graphics\Transformations\TransformColour.cs" />
-    <Compile Include="Graphics\Transformations\TransformFloat.cs" />
-    <Compile Include="Graphics\Transformations\TransformPosition.cs" />
-    <Compile Include="Graphics\Transformations\TransformPositionX.cs" />
-    <Compile Include="Graphics\Transformations\TransformPositionY.cs" />
-    <Compile Include="Graphics\Transformations\TransformRotation.cs" />
-    <Compile Include="Graphics\Transformations\TransformVector.cs" />
-    <Compile Include="Graphics\Transformations\TransformScale.cs" />
+    <Compile Include="Graphics\Transforms\ITransform.cs" />
+    <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformColour.cs" />
+    <Compile Include="Graphics\Transforms\TransformFloat.cs" />
+    <Compile Include="Graphics\Transforms\TransformPosition.cs" />
+    <Compile Include="Graphics\Transforms\TransformPositionX.cs" />
+    <Compile Include="Graphics\Transforms\TransformPositionY.cs" />
+    <Compile Include="Graphics\Transforms\TransformRotation.cs" />
+    <Compile Include="Graphics\Transforms\TransformVector.cs" />
+    <Compile Include="Graphics\Transforms\TransformScale.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />
@@ -207,7 +208,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\BufferedContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Containers\Container.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Drawable_TransformationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\DrawInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\FrameBuffer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\LinearVertexBuffer.cs" />
@@ -231,8 +231,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Transformations\EasingTypes.cs" />
-    <Compile Include="Graphics\Transformations\Transform.cs" />
+    <Compile Include="Graphics\Transforms\EasingTypes.cs" />
+    <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MathUtils\Interpolation.cs" />
@@ -249,7 +249,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Timing\ThrottledFrameClock.cs" />
     <Compile Include="Graphics\Batches\IVertexBatch.cs" />
     <Compile Include="Graphics\Containers\FlowContainer.cs" />
-    <Compile Include="Graphics\Drawable_Interaction.cs" />
     <Compile Include="IO\Stores\CachedResourceStore.cs" />
     <Compile Include="IO\Stores\ChangeableResourceStore.cs" />
     <Compile Include="IO\Stores\DllResourceStore.cs" />
@@ -319,7 +318,9 @@
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Input\Events\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

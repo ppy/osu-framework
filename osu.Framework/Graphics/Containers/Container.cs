@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Containers
@@ -151,6 +151,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
+        /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
+        /// </summary>
         public Container(LifetimeList<T> lifetimeList = null)
         {
             internalChildren = lifetimeList ?? new LifetimeList<T>(DepthComparer);
@@ -158,45 +162,6 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (obj.DisposeOnDeathRemoval) obj.Dispose();
             };
-        }
-
-        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
-        private Shader shader;
-
-        protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
-
-        protected override void ApplyDrawNode(DrawNode node)
-        {
-            ContainerDrawNode n = (ContainerDrawNode)node;
-
-            if (!Masking && (CornerRadius != 0.0f || BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
-                throw new InvalidOperationException("Can not have rounded corners, border effects, or edge effects if masking is disabled.");
-
-            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
-
-            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
-            {
-                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
-                ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = CornerRadius,
-                BorderThickness = BorderThickness,
-                BorderColour = BorderColour,
-                // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                // This results in the optimal trade-off between crispness and smoothness of the
-                // edges of the masked region according to sampling theory.
-                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
-            };
-
-            n.EdgeEffect = EdgeEffect;
-
-            n.ScreenSpaceMaskingQuad = null;
-            n.Shared = containerDrawNodeSharedData;
-
-            n.Shader = shader;
-
-            base.ApplyDrawNode(node);
         }
 
         public override bool HandleInput => true;
@@ -516,6 +481,47 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        #region DrawNode
+
+        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private Shader shader;
+
+        protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
+
+        protected override void ApplyDrawNode(DrawNode node)
+        {
+            ContainerDrawNode n = (ContainerDrawNode)node;
+
+            if (!Masking && (CornerRadius != 0.0f || BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
+                throw new InvalidOperationException("Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+
+            Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
+
+            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
+            {
+                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                MaskingRect = DrawRectangle,
+                ToMaskingSpace = DrawInfo.MatrixInverse,
+                CornerRadius = CornerRadius,
+                BorderThickness = BorderThickness,
+                BorderColour = BorderColour,
+                // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                // This results in the optimal trade-off between crispness and smoothness of the
+                // edges of the masked region according to sampling theory.
+                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                AlphaExponent = 1,
+            };
+
+            n.EdgeEffect = EdgeEffect;
+
+            n.ScreenSpaceMaskingQuad = null;
+            n.Shared = containerDrawNodeSharedData;
+
+            n.Shader = shader;
+
+            base.ApplyDrawNode(node);
+        }
+
         protected virtual bool CanBeFlattened => !Masking;
 
         private const int amount_children_required_for_masking_check = 2;
@@ -607,12 +613,16 @@ namespace osu.Framework.Graphics.Containers
             return cNode;
         }
 
-        public override void ClearTransformations(bool propagateChildren = false)
+        #endregion
+
+        #region Transforms
+
+        public override void ClearTransforms(bool propagateChildren = false)
         {
-            base.ClearTransformations(propagateChildren);
+            base.ClearTransforms(propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.ClearTransformations(true);
+                foreach (var c in internalChildren) c.ClearTransforms(true);
         }
 
         public override Drawable Delay(double duration, bool propagateChildren = false)
@@ -641,6 +651,8 @@ namespace osu.Framework.Graphics.Containers
 
             return this;
         }
+
+        #endregion
 
         public int IndexOf(T drawable)
         {

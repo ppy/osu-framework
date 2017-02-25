@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
@@ -20,6 +20,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Input;
 
 namespace osu.Framework.Graphics
 {
@@ -35,7 +36,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract partial class Drawable : IDisposable, IHasLifetime, IDrawable
+    public abstract class Drawable : IDisposable, IHasLifetime, IDrawable
     {
         #region Construction and disposal
 
@@ -229,9 +230,9 @@ namespace osu.Framework.Graphics
             if (LoadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
-            transformationDelay = 0;
+            transformDelay = 0;
 
-            //todo: this should be moved to after the IsVisible condition once we have TOL for transformations (and some better logic).
+            //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
             updateTransforms();
 
             if (!IsPresent)
@@ -500,6 +501,11 @@ namespace osu.Framework.Graphics
                 Parent?.InvalidateFromChild(Invalidation.Geometry, this);
             }
         }
+
+        /// <summary>
+        /// Computes the bounding box of this drawable in its parent's space.
+        /// </summary>
+        public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
 
         #endregion
 
@@ -974,11 +980,6 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        /// <summary>
-        /// Computes the bounding box of this drawable in its parent's space.
-        /// </summary>
-        public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
-
         private Cached<Vector2> boundingSizeWithOriginBacking = new Cached<Vector2>();
 
         /// <summary>
@@ -1189,6 +1190,614 @@ namespace osu.Framework.Graphics
         {
             return screenSpacePos * DrawInfo.MatrixInverse;
         }
+
+        #endregion
+
+        #region Interaction / Input
+
+        /// <summary>
+        /// Find the first parent InputManager which this drawable is contained by.
+        /// </summary>
+        private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
+
+        public bool TriggerHover(InputState screenSpaceState) => OnHover(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnHover(InputState state) => false;
+
+        public void TriggerHoverLost(InputState screenSpaceState) => OnHoverLost(toParentSpace(screenSpaceState));
+
+        protected virtual void OnHoverLost(InputState state)
+        {
+        }
+
+        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(toParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
+
+        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(toParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
+
+        public bool TriggerClick(InputState screenSpaceState = null) => OnClick(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnClick(InputState state) => false;
+
+        public bool TriggerDoubleClick(InputState screenSpaceState) => OnDoubleClick(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnDoubleClick(InputState state) => false;
+
+        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnDragStart(InputState state) => false;
+
+        public bool TriggerDrag(InputState screenSpaceState) => OnDrag(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnDrag(InputState state) => false;
+
+        public bool TriggerDragEnd(InputState screenSpaceState) => OnDragEnd(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnDragEnd(InputState state) => false;
+
+        public bool TriggerWheel(InputState screenSpaceState) => OnWheel(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnWheel(InputState state) => false;
+
+        /// <summary>
+        /// Focuses this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="checkCanFocus">Whether we should check this Drawable's OnFocus returns true before actually providing focus.</param>
+        public bool TriggerFocus(InputState screenSpaceState = null, bool checkCanFocus = false)
+        {
+            if (HasFocus)
+                return true;
+
+            if (!IsPresent)
+                return false;
+
+            if (checkCanFocus & !OnFocus(toParentSpace(screenSpaceState)))
+                return false;
+
+            ourInputManager?.ChangeFocus(this);
+
+            return true;
+        }
+
+        /// <summary>
+        /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
+        /// Useful in combination with <see cref="RequestingFocus"/>
+        /// Make sure you are already Present (ie. you've run Update at least once after becoming visible). Schedule recommended.
+        /// </summary>
+        protected void TriggerFocusContention()
+        {
+            if (!IsPresent)
+                throw new InvalidOperationException("Can not obtain focus without being present.");
+
+            if (ourInputManager.FocusedDrawable != this)
+                ourInputManager.ChangeFocus(null);
+        }
+
+        protected virtual bool OnFocus(InputState state) => false;
+
+        /// <summary>
+        /// Unfocuses this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
+        public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
+        {
+            if (!HasFocus)
+                return;
+
+            if (screenSpaceState == null)
+                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
+
+            if (!isCallback) ourInputManager.ChangeFocus(null);
+            OnFocusLost(toParentSpace(screenSpaceState));
+        }
+
+        protected virtual void OnFocusLost(InputState state)
+        {
+        }
+
+        public bool TriggerKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(toParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
+
+        public bool TriggerKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(toParentSpace(screenSpaceState), args);
+
+        protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
+
+        public bool TriggerMouseMove(InputState screenSpaceState) => OnMouseMove(toParentSpace(screenSpaceState));
+
+        protected virtual bool OnMouseMove(InputState state) => false;
+
+        /// <summary>
+        /// This drawable only receives input events if HandleInput is true.
+        /// </summary>
+        public virtual bool HandleInput => false;
+
+        /// <summary>
+        /// Check whether we have active focus. Walks up the drawable tree; use sparingly.
+        /// </summary>
+        public bool HasFocus => ourInputManager?.FocusedDrawable == this;
+
+        /// <summary>
+        /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
+        /// </summary>
+        public virtual bool RequestingFocus => false;
+
+        internal bool Hovering;
+
+        /// <summary>
+        /// Computes whether a given screen-space position is contained within this drawable.
+        /// Mouse input events are only received when this function is true, or when the drawable
+        /// is in focus.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
+        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+
+        /// <summary>
+        /// Whether this Drawable can receive, taking into account all optimizations and masking.
+        /// </summary>
+        public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
+
+        /// <summary>
+        /// Whether this Drawable is hovered by the given screen space mouse position,
+        /// taking into account whether this Drawable can receive input.
+        /// </summary>
+        /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
+        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+
+        /// <summary>
+        /// Transforms a screen-space input state to the parent's space of this Drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The screen-space input state to be transformed.</param>
+        /// <returns>The transformed state in parent space.</returns>
+        private InputState toParentSpace(InputState screenSpaceState)
+        {
+            if (screenSpaceState == null) return null;
+
+            return new InputState
+            {
+                Keyboard = screenSpaceState.Keyboard,
+                Mouse = new LocalMouseState(screenSpaceState.Mouse, this)
+            };
+        }
+
+        /// <summary>
+        /// This method is responsible for building a queue of Drawables to receive keyboard input
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// children such that the entire scene graph is covered.
+        /// </summary>
+        /// <param name="queue">The input queue to be built.</param>
+        /// <returns>Whether we have added ourself to the queue.</returns>
+        internal virtual bool BuildKeyboardInputQueue(List<Drawable> queue)
+        {
+            if (!CanReceiveInput)
+                return false;
+
+            queue.Add(this);
+            return true;
+        }
+
+        /// <summary>
+        /// This method is responsible for building a queue of Drawables to receive mouse input
+        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// children such that the entire scene graph is covered.
+        /// </summary>
+        /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
+        /// <param name="queue">The input queue to be built.</param>
+        /// <returns>Whether we have added ourself to the queue.</returns>
+        internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        {
+            if (!IsHovered(screenSpaceMousePos))
+                return false;
+
+            queue.Add(this);
+            return true;
+        }
+
+        private struct LocalMouseState : IMouseState
+        {
+            public IMouseState NativeState { get; }
+
+            private readonly Drawable us;
+
+            public LocalMouseState(IMouseState state, Drawable us)
+            {
+                NativeState = state;
+                this.us = us;
+            }
+
+            public bool BackButton => NativeState.BackButton;
+            public bool ForwardButton => NativeState.ForwardButton;
+
+            public Vector2 Delta => Position - LastPosition;
+
+            public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
+
+            public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
+
+            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+            public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+            public bool LeftButton => NativeState.LeftButton;
+            public bool MiddleButton => NativeState.MiddleButton;
+            public bool RightButton => NativeState.RightButton;
+            public int Wheel => NativeState.Wheel;
+            public int WheelDelta => NativeState.WheelDelta;
+        }
+
+        #endregion
+
+        #region Transforms
+
+        private double transformDelay;
+
+        public virtual void ClearTransforms(bool propagateChildren = false)
+        {
+            DelayReset();
+            transforms?.Clear();
+        }
+
+        public virtual Drawable Delay(double duration, bool propagateChildren = false)
+        {
+            if (duration == 0) return this;
+
+            transformDelay += duration;
+            return this;
+        }
+
+        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, transformDelay);
+
+        /// <summary>
+        /// Flush specified transforms, using the last available values (ignoring current clock time).
+        /// </summary>
+        /// <param name="propagateChildren">Whether we also flush down the child tree.</param>
+        /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
+        public virtual void Flush(bool propagateChildren = false, Type flushType = null)
+        {
+            var operateTransforms = flushType == null ? Transforms : Transforms.FindAll(t => t.GetType() == flushType);
+
+            double maxTime = double.MinValue;
+            foreach (ITransform t in operateTransforms)
+                if (t.EndTime > maxTime)
+                    maxTime = t.EndTime;
+
+            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
+
+            foreach (ITransform t in operateTransforms)
+            {
+                t.UpdateTime(maxTimeInfo);
+                t.Apply(this);
+            }
+
+            if (flushType == null)
+                ClearTransforms();
+            else
+                Transforms.RemoveAll(t => t.GetType() == flushType);
+        }
+
+        public virtual Drawable DelayReset()
+        {
+            Delay(-transformDelay);
+            return this;
+        }
+
+        public void Loop(float delay = 0)
+        {
+            foreach (var t in Transforms)
+                t.Loop(Math.Max(0, transformDelay + delay - t.Duration));
+        }
+
+        /// <summary>
+        /// Make this drawable automatically clean itself up after all transforms have finished playing.
+        /// Can be delayed using Delay().
+        /// </summary>
+        public void Expire(bool calculateLifetimeStart = false)
+        {
+            if (clock == null)
+            {
+                LifetimeEnd = double.MinValue;
+                return;
+            }
+
+            //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
+            double max = Time.Current + transformDelay;
+            foreach (ITransform t in Transforms)
+                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+            LifetimeEnd = max;
+
+            if (calculateLifetimeStart)
+            {
+                double min = double.MaxValue;
+                foreach (ITransform t in Transforms)
+                    if (t.StartTime < min) min = t.StartTime;
+                LifetimeStart = min < int.MaxValue ? min : int.MinValue;
+            }
+        }
+
+        public void TimeWarp(double change)
+        {
+            if (change == 0)
+                return;
+
+            foreach (ITransform t in Transforms)
+            {
+                t.StartTime += change;
+                t.EndTime += change;
+            }
+        }
+
+        /// <summary>
+        /// Hide sprite instantly.
+        /// </summary>
+        /// <returns></returns>
+        public virtual void Hide()
+        {
+            FadeOut();
+        }
+
+        /// <summary>
+        /// Show sprite instantly.
+        /// </summary>
+        public virtual void Show()
+        {
+            FadeIn();
+        }
+
+        public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            FadeTo(1, duration, easing);
+        }
+
+        public void FadeInFromZero(double duration)
+        {
+            if (transformDelay == 0)
+            {
+                Alpha = 0;
+                Transforms.RemoveAll(t => t is TransformAlpha);
+            }
+
+            double startTime = Time.Current + transformDelay;
+
+            Transforms.Add(new TransformAlpha
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = 0,
+                EndValue = 1,
+            });
+        }
+
+        public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            FadeTo(0, duration, easing);
+        }
+
+        public void FadeOutFromOne(double duration)
+        {
+            if (transformDelay == 0)
+            {
+                Alpha = 1;
+                Transforms.RemoveAll(t => t is TransformAlpha);
+            }
+
+            double startTime = Time.Current + transformDelay;
+
+            TransformAlpha tr = new TransformAlpha
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = 1,
+                EndValue = 0,
+            };
+
+            Transforms.Add(tr);
+        }
+
+        #region Float-based helpers
+
+        protected void TransformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
+        {
+            Type type = transform.GetType();
+            if (transformDelay == 0)
+            {
+                Transforms.RemoveAll(t => t.GetType() == type);
+                if (startValue == newValue)
+                    return;
+            }
+            else
+                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
+
+            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+
+            transform.StartTime = startTime;
+            transform.EndTime = startTime + duration;
+            transform.StartValue = startValue;
+            transform.EndValue = newValue;
+            transform.Easing = easing;
+
+            addTransform(transform);
+        }
+
+        public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformAlpha));
+            TransformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
+        }
+
+        public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformRotation));
+            TransformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
+        }
+
+        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            switch (direction)
+            {
+                case Direction.Horizontal:
+                    MoveToX(destination, duration, easing);
+                    break;
+                case Direction.Vertical:
+                    MoveToY(destination, duration, easing);
+                    break;
+            }
+        }
+
+        public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformPositionX));
+            TransformFloatTo(Position.X, destination, duration, easing, new TransformPositionX());
+        }
+
+        public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformPositionY));
+            TransformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY());
+        }
+
+        #endregion
+
+        #region Vector2-based helpers
+
+        protected void TransformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
+        {
+            Type type = transform.GetType();
+            if (transformDelay == 0)
+            {
+                Transforms.RemoveAll(t => t.GetType() == type);
+
+                if (startValue == newValue)
+                    return;
+            }
+            else
+                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
+
+            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+
+            transform.StartTime = startTime;
+            transform.EndTime = startTime + duration;
+            transform.StartValue = startValue;
+            transform.EndValue = newValue;
+            transform.Easing = easing;
+
+            addTransform(transform);
+        }
+
+        public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformScale));
+            TransformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+        }
+
+        public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformScale));
+            TransformVectorTo(Scale, newScale, duration, easing, new TransformScale());
+        }
+
+        public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformSize));
+            TransformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+        }
+
+        public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformSize));
+            TransformVectorTo(Size, newSize, duration, easing, new TransformSize());
+        }
+
+        public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformPosition));
+            TransformVectorTo(Position, newPosition, duration, easing, new TransformPosition());
+        }
+
+        public void MoveToOffset(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformPosition));
+            MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
+        }
+
+        #endregion
+
+        #region Color4-based helpers
+
+        public void FadeColour(SRGBColour newColour, int duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformColour));
+
+            Color4 startValue = Colour.Linear;
+            if (transformDelay == 0)
+            {
+                Transforms.RemoveAll(t => t is TransformColour);
+
+                if (startValue == newColour)
+                    return;
+            }
+            else
+                startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
+
+            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+
+            addTransform(new TransformColour
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = startValue,
+                EndValue = newColour.Linear,
+                Easing = easing
+            });
+        }
+
+        public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
+        {
+            if (transformDelay != 0)
+                throw new NotImplementedException("FlashColour doesn't support Delay() currently");
+
+            Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
+            Transforms.RemoveAll(t => t is TransformColour);
+
+            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+
+            addTransform(new TransformColour
+            {
+                StartTime = startTime,
+                EndTime = startTime + duration,
+                StartValue = flashColour.Linear,
+                EndValue = startValue,
+                Easing = easing
+            });
+        }
+
+        private void addTransform(ITransform transform)
+        {
+            if (Clock == null)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+                return;
+            }
+
+            //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
+            bool canApplyInstant = transform.Duration == 0 && transformDelay == 0;
+
+            //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
+            if (canApplyInstant || transform.StartTime < Time.Current)
+            {
+                transform.UpdateTime(Time);
+                transform.Apply(this);
+                if (canApplyInstant)
+                    return;
+            }
+
+            Transforms.Add(transform);
+        }
+
+        #endregion
 
         #endregion
 

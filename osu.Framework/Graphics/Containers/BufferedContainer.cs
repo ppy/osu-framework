@@ -12,7 +12,7 @@ using osu.Framework.Graphics.Shaders;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using System;
 
 namespace osu.Framework.Graphics.Containers
