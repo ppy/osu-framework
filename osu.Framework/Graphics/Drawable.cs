@@ -1000,6 +1000,7 @@ namespace osu.Framework.Graphics
 
         internal virtual Drawable Original => this;
 
+        internal bool HasProxy => proxy != null;
         private ProxyDrawable proxy;
 
         /// <summary>
@@ -1192,11 +1193,6 @@ namespace osu.Framework.Graphics
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
-            // If we are proxied somewhere, then we want to be drawn at the proxy's location
-            // in the scene graph, rather than at our own location, thus no draw nodes for us.
-            if (proxy != null)
-                return null;
-
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
             {

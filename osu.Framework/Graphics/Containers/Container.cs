@@ -466,6 +466,12 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
+                // If we are proxied somewhere, then we want to be drawn at the proxy's location
+                // in the scene graph, rather than at our own location, thus no draw nodes for us.
+                if (drawable.HasProxy)
+                    continue;
+
+                // Take drawable.Original until drawable.Original == drawable
                 while (drawable != (drawable = drawable.Original)) { }
 
                 if (!drawable.IsPresent)
