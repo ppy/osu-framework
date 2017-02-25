@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
         /// borders are only drawn correctly on top of quad-shaped children using our sprite
         /// shaders.
         /// </remarks>
-        public virtual float BorderThickness
+        public float BorderThickness
         {
             get { return borderThickness; }
             set
@@ -286,7 +286,7 @@ namespace osu.Framework.Graphics.Containers
                 Add(d);
         }
 
-        public virtual bool Remove(T drawable)
+        public bool Remove(T drawable)
         {
             if (drawable == null)
                 return false;
