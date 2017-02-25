@@ -28,6 +28,11 @@ namespace osu.Framework.Graphics.Containers
         where T : Drawable
     {
         private bool masking;
+
+        /// <summary>
+        /// If enabled, only the portion of children that falls within this container's
+        /// shape is drawn to the screen.
+        /// </summary>
         public bool Masking
         {
             get { return masking; }
@@ -41,11 +46,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines over how many pixels the alpha component smoothly fades out.
-        /// </summary>
         private float maskingSmoothness = 1;
+
+        /// <summary>
+        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
         public float MaskingSmoothness
         {
             get { return maskingSmoothness; }
@@ -65,8 +71,8 @@ namespace osu.Framework.Graphics.Containers
         private float cornerRadius;
 
         /// <summary>
-        /// Only has an effect when Masking == true.
         /// Determines how large of a radius is masked away around the corners.
+        /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public virtual float CornerRadius
         {
@@ -84,9 +90,15 @@ namespace osu.Framework.Graphics.Containers
         private float borderThickness;
 
         /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines how thick of a border to draw around masked children _within_ the masked region.
+        /// Determines how thick of a border to draw around the inside of the masked region.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// The border only is drawn on top of children of type <see cref="Sprite"/>.
         /// </summary>
+        /// <remarks>
+        /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
+        /// borders are only drawn correctly on top of quad-shaped children using our sprite
+        /// shaders.
+        /// </remarks>
         public virtual float BorderThickness
         {
             get { return borderThickness; }
@@ -103,8 +115,8 @@ namespace osu.Framework.Graphics.Containers
         private SRGBColour borderColour = Color4.Black;
 
         /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines the color of the drawn border.
+        /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
+        /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public virtual SRGBColour BorderColour
         {
@@ -122,8 +134,9 @@ namespace osu.Framework.Graphics.Containers
         private EdgeEffect edgeEffect;
 
         /// <summary>
-        /// Only has an effect when Masking == true.
-        /// Determines the edge effect of the container.
+        /// Determines an edge effect of this container.
+        /// Edge effects are e.g. glow or a shadow.
+        /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
         public virtual EdgeEffect EdgeEffect
         {
@@ -181,10 +194,13 @@ namespace osu.Framework.Graphics.Containers
 
         private LifetimeList<T> children;
 
-        private List<T> pendingChildrenInternal;
-        private List<T> pendingChildren => pendingChildrenInternal ?? (pendingChildrenInternal = new List<T>());
+        /// <summary>
+        /// We only want to add to <see cref="children"/> once we are loaded.
+        /// This list holds children-to-be-added until we are loaded.
+        /// </summary>
+        private List<T> pendingChildren;
 
-        public virtual IEnumerable<T> Children
+        public IEnumerable<T> Children
         {
             get
             {
@@ -234,19 +250,19 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The Size (coordinate space) revealed to Children.
+        /// The size of the positional coordinate space revealed to <see cref="InternalChildren"/>.
         /// </summary>
         public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
 
         /// <summary>
-        /// Offset which is only applied to Children.
+        /// Positional offset applied to <see cref="InternalChildren"/>.
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
         /// <summary>
-        /// Add a Drawable to Content's children list, recursing until Content == this.
+        /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
+        /// <see cref="Children"/> list, recursing until <see cref="Content"/> == this.
         /// </summary>
-        /// <param name="drawable">The drawable to be added.</param>
         public virtual void Add(T drawable)
         {
             if (drawable == Content)
@@ -259,9 +275,9 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add a collection of Drawables to Content's children list, recursing until Content == this.
+        /// Adds a collection of children. This is equivalent to calling <see cref="Add"/> on
+        /// each element of the collection in order.
         /// </summary>
-        /// <param name="collection">The collection of drawables to be added.</param>
         public void Add(IEnumerable<T> collection)
         {
             foreach (T d in collection)
@@ -269,9 +285,8 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add a Drawable to this container's Children list, disregarding the value of Content.
+        /// Adds a child to this container's internal children list. Ignores <see cref="Content"/>.
         /// </summary>
-        /// <param name="drawable">The drawable to be added.</param>
         protected void AddInternal(T drawable)
         {
             if (drawable == null)
@@ -280,7 +295,11 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("Container may not be added to itself.");
 
             if (LoadState == LoadState.NotLoaded)
+            {
+                if (pendingChildren == null)
+                    pendingChildren = new List<T>();
                 pendingChildren.Add(drawable);
+            }
             else
             {
                 if (drawable.IsLoaded)
@@ -294,9 +313,9 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add a collection of Drawables to this container's Children list, disregarding the value of Content.
+        /// Adds a collection of children internally. This is equivalent to calling
+        /// <see cref="AddInternal"/> on each element of the collection in order.
         /// </summary>
-        /// <param name="collection">The collection of drawables to be added.</param>
         protected void AddInternal(IEnumerable<T> collection)
         {
             foreach (T d in collection)
@@ -430,10 +449,10 @@ namespace osu.Framework.Graphics.Containers
                 i.Parent = this;
             };
 
-            if (pendingChildrenInternal != null)
+            if (pendingChildren != null)
             {
                 AddInternal(pendingChildren);
-                pendingChildrenInternal = null;
+                pendingChildren = null;
             }
         }
 
