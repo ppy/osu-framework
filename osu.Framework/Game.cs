@@ -58,8 +58,6 @@ namespace osu.Framework
 
         private LogOverlay logOverlay;
 
-        protected FrameworkConfigManager Config;
-
         protected override Container<Drawable> Content => content;
 
         public DependencyContainer Dependencies => Host.Dependencies;
@@ -105,24 +103,13 @@ namespace osu.Framework
         /// <param name="host"></param>
         public virtual void SetHost(GameHost host)
         {
-            if (Config == null)
-                Config = new FrameworkConfigManager(host.Storage);
-
             this.host = host;
             host.Exiting += OnExiting;
-
-            if (Window != null)
-            {
-                Window.SetupWindow(Config);
-                Window.Title = $@"osu.Framework (running ""{Name}"")";
-            }
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(FrameworkConfigManager config)
         {
-            Dependencies.Cache(Config);
-
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
@@ -141,10 +128,10 @@ namespace osu.Framework
             host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
-            Audio.AudioDevice.Weld(Config.GetBindable<string>(FrameworkConfig.AudioDevice));
-            Audio.Volume.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
-            Audio.VolumeSample.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeEffect));
-            Audio.VolumeTrack.Weld(Config.GetBindable<double>(FrameworkConfig.VolumeMusic));
+            Audio.AudioDevice.Weld(config.GetBindable<string>(FrameworkConfig.AudioDevice));
+            Audio.Volume.Weld(config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
+            Audio.VolumeSample.Weld(config.GetBindable<double>(FrameworkConfig.VolumeEffect));
+            Audio.VolumeTrack.Weld(config.GetBindable<double>(FrameworkConfig.VolumeMusic));
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
