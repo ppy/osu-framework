@@ -1043,6 +1043,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
+        /// <summary>
+        /// Updates the current time to the provided time. For drawables this is a no-op
+        /// as they obtain their time via their <see cref="Clock"/>.
+        /// </summary>
         public void UpdateTime(FrameTimeInfo time)
         {
         }
@@ -1137,6 +1141,9 @@ namespace osu.Framework.Graphics
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
+        /// <summary>
+        /// The screen-space quad this drawable occupies.
+        /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
