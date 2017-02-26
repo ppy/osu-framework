@@ -24,7 +24,10 @@ namespace osu.Framework.Graphics.Containers
     { }
 
     /// <summary>
-    /// A drawable which can have children added externally.
+    /// A drawable which can have children added to it. Transformations applied to
+    /// a container are also applied to its children.
+    /// Additionally, containers support various effects, such as masking, edge effect,
+    /// padding, and automatic sizing depending on their children.
     /// </summary>
     public class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
