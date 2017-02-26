@@ -7,7 +7,7 @@ using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (HasFocus)
                 {
-                    Caret.ClearTransformations();
+                    Caret.ClearTransforms();
                     Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
                     Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
 
@@ -717,13 +717,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransformations();
+            Caret.ClearTransforms();
             Caret.FadeOut(200);
 
             if (state.Keyboard.Keys.Contains(Key.Enter))
             {
                 Background.Colour = BackgroundUnfocused;
-                Background.ClearTransformations();
+                Background.ClearTransforms();
                 Background.FlashColour(BackgroundCommit, 400);
 
                 audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
@@ -731,7 +731,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                Background.ClearTransformations();
+                Background.ClearTransforms();
                 Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
             }
 
@@ -744,7 +744,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             bindInput();
 
-            Background.ClearTransformations();
+            Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();

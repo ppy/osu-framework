@@ -2,13 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.MathUtils;
-using OpenTK;
 
-namespace osu.Framework.Graphics.Transformations
+namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class TransformVector : Transform<Vector2>
+    public abstract class TransformFloat : Transform<float>
     {
-        protected override Vector2 CurrentValue
+        protected override float CurrentValue
         {
             get
             {

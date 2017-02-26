@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;

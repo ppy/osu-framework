@@ -39,12 +39,16 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.KiloPixels:
                     return target.Threads[3].Monitor;
 
+                case StatisticsCounterType.MouseEvents:
+                case StatisticsCounterType.KeyEvents:
+                    return target.Threads[1].Monitor;
+
                 case StatisticsCounterType.TasksRun:
                 case StatisticsCounterType.Tracks:
                 case StatisticsCounterType.Samples:
                 case StatisticsCounterType.SChannels:
                 case StatisticsCounterType.Components:
-                    return target.Threads[1].Monitor;
+                    return target.Threads[0].Monitor;
 
                 default:
                     Trace.Assert(false, "Requested counter which is not assigned to any performance monitor.");
@@ -75,7 +79,7 @@ namespace osu.Framework.Statistics
             FrameStatistics.target = target;
         }
 
-        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        public static void Increment(StatisticsCounterType type, long amount = 1)
         {
             if (target == null || amount == 0)
                 return;
@@ -119,6 +123,9 @@ namespace osu.Framework.Statistics
         Samples,
         SChannels,
         Components,
+
+        MouseEvents,
+        KeyEvents,
 
         AmountTypes,
     }

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using osu.Framework.Lists;
 
-namespace osu.Framework.Graphics.Transformations
+namespace osu.Framework.Graphics.Transforms
 {
     public interface ITransform : IHasLifetime
     {
