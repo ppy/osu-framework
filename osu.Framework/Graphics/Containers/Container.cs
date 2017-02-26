@@ -834,6 +834,9 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
