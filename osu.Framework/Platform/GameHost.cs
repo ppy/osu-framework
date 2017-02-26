@@ -19,6 +19,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
@@ -32,21 +33,21 @@ namespace osu.Framework.Platform
 
         public GameWindow Window;
 
+        private FrameworkDebugConfigManager debugConfig = new FrameworkDebugConfigManager();
+
         private void setActive(bool isActive)
         {
             threads.ForEach(t => t.IsActive = isActive);
 
+            setLatencyMode();
+
             if (isActive)
-            {
-                GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
                 Activated?.Invoke();
-            }
             else
-            {
-                GCSettings.LatencyMode = GCLatencyMode.Interactive;
                 Deactivated?.Invoke();
-            }
         }
+
+        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? debugConfig.Get<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode) : GCLatencyMode.Interactive;
 
         public bool IsActive => InputThread.IsActive;
 
@@ -185,6 +186,9 @@ namespace osu.Framework.Platform
             AddInternal(inputManager = new UserInputManager(this));
 
             Dependencies.Cache(inputManager);
+            Dependencies.Cache(debugConfig);
+
+            debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode).ValueChanged += delegate { setLatencyMode(); };
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -303,7 +307,7 @@ namespace osu.Framework.Platform
             }, false);
         }
 
-        public virtual void Run()
+        public void Run()
         {
             DrawThread.Start();
             UpdateThread.Start();
