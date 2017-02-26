@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
-        protected internal virtual void Load(Game game)
+        protected internal void Load(Game game)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)

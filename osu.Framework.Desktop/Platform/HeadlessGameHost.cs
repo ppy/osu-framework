@@ -14,7 +14,6 @@ namespace osu.Framework.Desktop.Platform
     {
         public HeadlessGameHost(string gameName = @"", bool bindIPC = false) : base(gameName, bindIPC)
         {
-            Size = Vector2.One; //we may be expected to have a non-zero size by components we run.
             UpdateThread.Scheduler.Update();
             Dependencies.Cache(Storage = new DesktopStorage(string.Empty));
         }
@@ -33,9 +32,5 @@ namespace osu.Framework.Desktop.Platform
         }
 
         public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };
-
-        protected override void WaitUntilReadyToLoad()
-        {
-        }
     }
 }

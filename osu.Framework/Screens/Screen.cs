@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -92,10 +93,10 @@ namespace osu.Framework.Screens
         /// <param name="next">The new Screen</param>
         protected virtual void OnSuspending(Screen next) { }
 
-        protected internal override void Load(Game game)
+        [BackgroundDependencyLoader]
+        private void load(Game game)
         {
             Game = game;
-            base.Load(game);
         }
 
         protected override void LoadComplete()

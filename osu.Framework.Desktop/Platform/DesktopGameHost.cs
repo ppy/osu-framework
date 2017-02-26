@@ -92,18 +92,6 @@ namespace osu.Framework.Desktop.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        protected override void LoadGame(Game game)
-        {
-            //delay load until we have a size.
-            if (Size == Vector2.Zero)
-            {
-                UpdateThread.Scheduler.Add(delegate { LoadGame(game); });
-                return;
-            }
-
-            base.LoadGame(game);
-        }
-
         public override async Task SendMessageAsync(IpcMessage message)
         {
             await ipcProvider.SendMessageAsync(message);
