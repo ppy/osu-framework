@@ -17,6 +17,15 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container that renders its children to an internal framebuffer, and then
+    /// blits the framebuffer to the screen, instead of directly rendering the children
+    /// to the screen. This allows otherwise impossible effects to be applied to the
+    /// appearance of the container at the cost of performance. Such effects include
+    /// uniform fading of children, blur, and other post-processing effects.
+    /// If all children are of a specific non-<see cref="Drawable"/> type, use the
+    /// generic version <see cref="BufferedContainer{T}"/>.
+    /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
     { };
 

@@ -20,6 +20,14 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A drawable which can have children added to it. Transformations applied to
+    /// a container are also applied to its children.
+    /// Additionally, containers support various effects, such as masking, edge effect,
+    /// padding, and automatic sizing depending on their children.
+    /// If all children are of a specific non-<see cref="Drawable"/> type, use the
+    /// generic version <see cref="Container{T}"/>.
+    /// </summary>
     public class Container : Container<Drawable>
     { }
 
