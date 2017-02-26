@@ -33,7 +33,9 @@ namespace osu.Framework.Platform
 
         public GameWindow Window;
 
-        private FrameworkDebugConfigManager debugConfig = new FrameworkDebugConfigManager();
+        private FrameworkDebugConfigManager debugConfig;
+
+        private FrameworkConfigManager config;
 
         private void setActive(bool isActive)
         {
@@ -186,9 +188,6 @@ namespace osu.Framework.Platform
             AddInternal(inputManager = new UserInputManager(this));
 
             Dependencies.Cache(inputManager);
-            Dependencies.Cache(debugConfig);
-
-            debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode).ValueChanged += delegate { setLatencyMode(); };
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -428,6 +427,14 @@ namespace osu.Framework.Platform
             if (game == null)
                 throw new ArgumentException($"Can only add {nameof(Game)} to {nameof(GameHost)}.", nameof(drawable));
 
+            setupConfig();
+
+            if (Window != null)
+            {
+                Window.SetupWindow(config);
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
+            }
+
             Dependencies.Cache(game);
             game.SetHost(this);
 
@@ -435,6 +442,14 @@ namespace osu.Framework.Platform
                 Load(game);
 
             LoadGame(game);
+        }
+
+        private void setupConfig()
+        {
+            Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+
+            debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode).ValueChanged += delegate { setLatencyMode(); };
         }
 
         protected virtual void WaitUntilReadyToLoad()

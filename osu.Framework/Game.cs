@@ -58,8 +58,6 @@ namespace osu.Framework
 
         private LogOverlay logOverlay;
 
-        private FrameworkConfigManager config;
-
         protected override Container<Drawable> Content => content;
 
         public DependencyContainer Dependencies => Host.Dependencies;
@@ -105,24 +103,13 @@ namespace osu.Framework
         /// <param name="host"></param>
         public virtual void SetHost(GameHost host)
         {
-            if (config == null)
-                config = new FrameworkConfigManager(host.Storage);
-
             this.host = host;
             host.Exiting += OnExiting;
-
-            if (Window != null)
-            {
-                Window.SetupWindow(config);
-                Window.Title = $@"osu.Framework (running ""{Name}"")";
-            }
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(FrameworkConfigManager config)
         {
-            Dependencies.Cache(config);
-
             Resources = new ResourceStore<byte[]>();
             Resources.AddStore(new NamespacedResourceStore<byte[]>(new DllResourceStore(@"osu.Framework.dll"), @"Resources"));
             Resources.AddStore(new DllResourceStore(MainResourceFile));
