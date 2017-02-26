@@ -23,8 +23,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         bool IsPresent { get; }
 
-        FrameTimeInfo Time { get; }
-
         IFrameBasedClock Clock { get; }
 
         /// <summary>
