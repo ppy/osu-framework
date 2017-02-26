@@ -425,6 +425,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="Position"/> are relative w.r.t.
         /// <see cref="Parent"/>'s size (from 0 to 1) rather than absolute.
+        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing
+        /// parents.
         /// </summary>
         /// <remarks>
         /// When setting this property, the <see cref="Position"/> is converted such that
@@ -526,6 +528,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which <see cref="Axes"/> are relative sizes w.r.t. <see cref="Parent"/>'s size
         /// (from 0 to 1) in the <see cref="Parent"/>'s coordinate system, rather than absolute sizes.
+        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing
+        /// parents.
         /// </summary>
         /// <remarks>
         /// If an axis becomes relatively sized and its component of <see cref="Size"/> was previously 0,
@@ -658,7 +662,9 @@ namespace osu.Framework.Graphics
         private Axes bypassAutoSizeAxes;
 
         /// <summary>
-        /// Controls which <see cref="Axes"/> are ignored by parent <see cref="Parent"/>'s auto size containers.
+        /// Controls which <see cref="Axes"/> are ignored by parent <see cref="Parent"/> automatic sizing.
+        /// Most notably, <see cref="RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> do not affect
+        /// automatic sizing to avoid circular size dependencies.
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
