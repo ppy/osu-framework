@@ -77,7 +77,7 @@ namespace osu.Framework.Screens.Testing
             return b;
         }
 
-        public ToggleButton AddToggle(string text, Action action)
+        public ToggleButton AddToggle(string text, Action<bool> action)
         {
             ToggleButton b;
             ButtonsContainer.Add(b = new ToggleButton(action)
@@ -91,13 +91,13 @@ namespace osu.Framework.Screens.Testing
 
     public class ToggleButton : Button
     {
-        private readonly Action reloadCallback;
+        private readonly Action<bool> reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 on_colour = Color4.YellowGreen;
 
         public bool State;
 
-        public ToggleButton(Action reloadCallback)
+        public ToggleButton(Action<bool> reloadCallback)
         {
             this.reloadCallback = reloadCallback;
 
@@ -110,7 +110,7 @@ namespace osu.Framework.Screens.Testing
         {
             State = !State;
             BackgroundColour = State ? on_colour : off_colour;
-            reloadCallback?.Invoke();
+            reloadCallback?.Invoke(State);
         }
     }
 }
