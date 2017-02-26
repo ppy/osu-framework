@@ -1,15 +1,16 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Configuration;
-using OpenTK;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using osu.Framework.Configuration;
+using OpenTK;
+using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public class DesktopGameWindow : Framework.Platform.GameWindow, IDropTarget
+    public class DesktopGameWindow : GameWindow, IDropTarget
     {
         private const int default_width = 1366;
         private const int default_height = 768;
@@ -35,18 +36,18 @@ namespace osu.Framework.Desktop.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            widthFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.WidthFullscreen));
-            heightFullscreen.Weld(config.GetBindable<int>(FrameworkConfig.HeightFullscreen));
+            config.WeldBindable(FrameworkConfig.WidthFullscreen, widthFullscreen);
+            config.WeldBindable(FrameworkConfig.HeightFullscreen, heightFullscreen);
 
-            width.Weld(config.GetBindable<int>(FrameworkConfig.Width));
-            height.Weld(config.GetBindable<int>(FrameworkConfig.Height));
+            config.WeldBindable(FrameworkConfig.Width, width);
+            config.WeldBindable(FrameworkConfig.Height, height);
 
-            windowPositionX.Weld(config.GetBindable<double>(FrameworkConfig.WindowedPositionX));
-            windowPositionY.Weld(config.GetBindable<double>(FrameworkConfig.WindowedPositionY));
+            config.WeldBindable(FrameworkConfig.WindowedPositionX, windowPositionX);
+            config.WeldBindable(FrameworkConfig.WindowedPositionY, windowPositionY);
 
-            mode.Weld(config.GetBindable<WindowMode>(FrameworkConfig.WindowMode));
+            config.WeldBindable(FrameworkConfig.WindowMode, mode);
+
             mode.ValueChanged += mode_ValueChanged;
-
             mode.TriggerChange();
 
             Exited += onExit;

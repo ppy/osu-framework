@@ -128,10 +128,10 @@ namespace osu.Framework
             host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
-            Audio.AudioDevice.Weld(config.GetBindable<string>(FrameworkConfig.AudioDevice));
-            Audio.Volume.Weld(config.GetBindable<double>(FrameworkConfig.VolumeUniversal));
-            Audio.VolumeSample.Weld(config.GetBindable<double>(FrameworkConfig.VolumeEffect));
-            Audio.VolumeTrack.Weld(config.GetBindable<double>(FrameworkConfig.VolumeMusic));
+            config.WeldBindable<string>(FrameworkConfig.AudioDevice, Audio.AudioDevice);
+            config.WeldBindable<double>(FrameworkConfig.VolumeUniversal, Audio.Volume);
+            config.WeldBindable<double>(FrameworkConfig.VolumeEffect, Audio.VolumeSample);
+            config.WeldBindable<double>(FrameworkConfig.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);

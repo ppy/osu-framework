@@ -47,18 +47,26 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
+        List<WeakReference<Bindable<T>>> welded = new List<WeakReference<Bindable<T>>>();
+
+        public WeakReference<Bindable<T>> WeakReference => new WeakReference<Bindable<T>>(this);
+
         /// <summary>
         /// Welds two bindables together such that they update each other and stay in sync.
         /// </summary>
-        /// <param name="v">The foreign bindable to weld.</param>
+        /// <param name="them">The foreign bindable to weld. This should always be the most permanent end of the weld (ie. a ConfigManager)</param>
         /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
-        public virtual void Weld(Bindable<T> v, bool transferValue = true)
+        public virtual void Weld(Bindable<T> them, bool transferValue = true)
         {
-            if (transferValue) Value = v.Value;
+            if (them == null) return;
 
-            ValueChanged += delegate { v.Value = Value; };
-            v.ValueChanged += delegate { Value = v.Value; };
+            if (transferValue) Value = them.Value;
+
+            AddWeakReference(them.WeakReference);
+            them.AddWeakReference(WeakReference);
         }
+
+        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference) => welded.Add(weakReference);
 
         public virtual bool Parse(object s)
         {
@@ -75,6 +83,16 @@ namespace osu.Framework.Configuration
         public void TriggerChange()
         {
             ValueChanged?.Invoke(this, null);
+
+            foreach (var w in welded.ToArray())
+            {
+                Bindable<T> b;
+                if (w.TryGetTarget(out b))
+                    b.Value = value;
+                else
+                    welded.Remove(w);
+            }
+
         }
 
         public void UnbindAll()
@@ -92,6 +110,16 @@ namespace osu.Framework.Configuration
         internal void Reset()
         {
             Value = Default;
+        }
+
+        public Bindable<T> GetWelded()
+        {
+            var clone = MemberwiseClone() as Bindable<T>;
+
+            clone.welded = new List<WeakReference<Bindable<T>>>();
+            clone.Weld(this);
+
+            return clone;
         }
     }
 }

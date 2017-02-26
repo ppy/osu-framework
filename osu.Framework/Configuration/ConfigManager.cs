@@ -122,18 +122,19 @@ namespace osu.Framework.Configuration
             return GetBindable<U>(lookup).Value;
         }
 
-        public Bindable<U> GetBindable<U>(T lookup)
+        protected Bindable<U> GetBindable<U>(T lookup)
         {
             IBindable obj;
 
             if (configStore.TryGetValue(lookup, out obj))
-            {
-                Bindable<U> bindable = obj as Bindable<U>;
-                return bindable;
-            }
+                return obj as Bindable<U>;
 
             return set(lookup, default(U));
         }
+
+        public Bindable<U> GetWeldedBindable<U>(T lookup) => GetBindable<U>(lookup)?.GetWelded();
+
+        public void WeldBindable<U>(T config, Bindable<U> bindable) => bindable.Weld(GetBindable<U>(config));
 
         public void Load()
         {
