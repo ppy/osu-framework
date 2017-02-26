@@ -335,8 +335,7 @@ namespace osu.Framework.VisualTests.Tests
                             boxes = new FlowContainer {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
-                                Spacing = new Vector2(0, 10),
-                                Direction = FlowDirections.Vertical,
+                                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 10)),
                             }
                         }
                     });

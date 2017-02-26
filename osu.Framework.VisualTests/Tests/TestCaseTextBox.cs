@@ -22,13 +22,12 @@ namespace osu.Framework.VisualTests.Tests
 
             FlowContainer textBoxes = new FlowContainer
             {
-                Direction = FlowDirections.Vertical,
+                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 50)),
                 Padding = new MarginPadding
                 {
                     Top = 50,
                     Left = -50
                 },
-                Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,
@@ -75,13 +74,12 @@ namespace osu.Framework.VisualTests.Tests
 
             FlowContainer otherTextBoxes = new FlowContainer
             {
-                Direction = FlowDirections.Vertical,
+                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 50)),
                 Padding = new MarginPadding
                 {
                     Top = 50,
                     Left = 500
                 },
-                Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,
@@ -105,8 +103,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FlowContainer nestedTextBoxes = new FlowContainer
             {
-                Direction = FlowDirections.Vertical,
-                Spacing = new Vector2(0, 50),
+                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 50)),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,

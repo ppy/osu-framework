@@ -10,14 +10,23 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container that can be used to fluently arrange its children according to a specific <see cref="IFlowStrategy"/>.
+    /// </summary>
     public class FlowContainer : FlowContainer<Drawable>
     { }
 
+    /// <summary>
+    /// A container that can be used to fluently arrange its children according to a specific <see cref="IFlowStrategy"/>.
+    /// </summary>
     public class FlowContainer<T> : Container<T>
         where T : Drawable
     {
         internal event Action OnLayout;
 
+        /// <summary>
+        /// The easing that should be used when children are moved to their position in the layout.
+        /// </summary>
         public EasingTypes LayoutEasing
         {
             get
@@ -30,6 +39,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// The time it should take to move a child from its current position to its new layout position.
+        /// </summary>
         public float LayoutDuration
         {
             get
@@ -46,24 +58,39 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached layout = new Cached();
 
-        private FlowDirections direction = FlowDirections.Both;
+        /// <summary>
+        /// True if the flow strategy should be exchangable by users of this container, false otherwise. Default is true.
+        /// </summary>
+        protected virtual bool CanChangeFlowStrategy => true;
 
-        public FlowDirections Direction
+        private IFlowStrategy flowStrategy;
+        /// <summary>
+        /// The strategy used to calculate the positioning of the children of this <see cref="FlowContainer"/>.
+        /// </summary>
+        public IFlowStrategy FlowStrategy
         {
-            get { return direction; }
+            get { return flowStrategy; }
             set
             {
-                if (value == direction) return;
-                direction = value;
+                if (!CanChangeFlowStrategy && flowStrategy != null)
+                    throw new NotSupportedException($"This flow container does not allow alterations to its flow strategy. Flow container is of type {GetType().FullName}.");
 
-                layout.Invalidate();
+                if (value == null)
+                    throw new InvalidOperationException($"The flow strategy of a flow container may not be null.");
+
+                if (flowStrategy == value)
+                    return;
+
+                flowStrategy = value;
+                InvalidateLayout();
             }
         }
 
         Vector2 maximumSize;
 
         /// <summary>
-        /// Optional maximum dimensions for this container.
+        /// Optional maximum dimensions for this container. Note that the meaning of this value can change depending on the
+        /// <see cref="FlowStrategy"/> the container operates with.
         /// </summary>
         public Vector2 MaximumSize
         {
@@ -78,35 +105,11 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Pixel spacing added between our Children
+        /// Constructs a new flow container with the <see cref="FlowStrategies.Default"/> flow strategy.
         /// </summary>
-        Vector2 spacing;
-        public Vector2 Spacing
+        public FlowContainer()
         {
-            get { return spacing; }
-            set
-            {
-                if (spacing == value) return;
-
-                spacing = value;
-                Invalidate(Invalidation.Geometry);
-            }
-        }
-
-        public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            UpdateTransformsOfType(typeof(TransformSpacing));
-            TransformVectorTo(spacing, newSpacing, duration, easing, new TransformSpacing());
-        }
-
-        public class TransformSpacing : TransformVector
-        {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-                FlowContainer<T> flowContainer = (FlowContainer<T>)d;
-                flowContainer.Spacing = CurrentValue;
-            }
+            FlowStrategy = FlowStrategies.Default;
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
@@ -118,6 +121,10 @@ namespace osu.Framework.Graphics.Containers
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
+        /// <summary>
+        /// Invalidates the layout of this flow container.
+        /// </summary>
+        protected void InvalidateLayout() => layout.Invalidate();
 
         protected override bool UpdateChildrenLife()
         {
@@ -149,62 +156,27 @@ namespace osu.Framework.Graphics.Containers
                 {
                     OnLayout?.Invoke();
 
-                    if (Children.FirstOrDefault() == null) return;
+                    if (!Children.Any())
+                        return;
 
-                    Vector2 current = Vector2.Zero;
+                    var layoutChildren = SortedChildren.Where(d => d.IsPresent).ToArray();
+                    if (layoutChildren.Any(d => (d.RelativeSizeAxes & AutoSizeAxes) != 0))
+                        throw new InvalidOperationException($"Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for. The flow container is set to autosize in {AutoSizeAxes} axes.");
+                    if (layoutChildren.Any(d => d.RelativePositionAxes != Axes.None))
+                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning.");
 
-                    Vector2 max = maximumSize;
-                    if (direction == FlowDirections.Both && maximumSize == Vector2.Zero)
+                    var positions = FlowStrategy.UpdateLayout(this, layoutChildren.Select(c => c.BoundingBox.Size).ToArray()).ToArray();
+                    if (positions.Length != layoutChildren.Length)
+                        throw new InvalidOperationException($"The flow strategy {FlowStrategy} returned a total of {positions.Length} positions for {layoutChildren.Length} children. Flow strategies must return 1 position per child.");
+
+                    for (var i = 0; i < layoutChildren.Length; ++i)
                     {
-                        var s = ChildSize;
-
-                        //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
-                        //If we are inheriting then we need to use the parent size (our ActualSize).
-                        max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
-                        max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
-                    }
-
-                    float rowMaxHeight = 0;
-                    foreach (T d in SortedChildren)
-                    {
-                        Vector2 size = Vector2.Zero;
-
-                        if (d.IsPresent)
-                        {
-                            size = d.LayoutSize * d.Scale;
-
-                            //We've exceeded our allowed width, move to a new row
-                            if (Direction != FlowDirections.Horizontal && current.X + size.X > max.X)
-                            {
-                                current.X = 0;
-                                current.Y += rowMaxHeight;
-
-                                rowMaxHeight = 0;
-                            }
-
-                            //todo: check this is correct
-                            if (size.X > 0) size.X = Math.Max(0, size.X + Spacing.X);
-                            if (size.Y > 0) size.Y = Math.Max(0, size.Y + Spacing.Y);
-
-                            if (size.Y > rowMaxHeight) rowMaxHeight = size.Y;
-                        }
-
-                        if (current != d.DrawPosition)
-                            d.MoveTo(current, LayoutDuration, LayoutEasing);
-
-                        current.X += size.X;
+                        var finalPos = positions[i];
+                        if (layoutChildren[i].Position != finalPos)
+                            layoutChildren[i].MoveTo(finalPos, LayoutDuration, LayoutEasing);
                     }
                 });
             }
         }
-    }
-
-    [Flags]
-    public enum FlowDirections
-    {
-        Horizontal = 1 << 0,
-        Vertical = 1 << 1,
-
-        Both = Horizontal | Vertical,
     }
 }

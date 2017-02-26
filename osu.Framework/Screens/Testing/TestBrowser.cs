@@ -85,10 +85,9 @@ namespace osu.Framework.Screens.Testing
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FlowDirections.Vertical,
+                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 5)),
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Spacing = new Vector2(0, 5)
             });
 
             //this is where the actual tests are loaded.

@@ -13,7 +13,6 @@ using osu.Framework.Input;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using OpenTK.Input;
-using FlowDirections = osu.Framework.Graphics.Containers.FlowDirections;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Primitives;
@@ -150,10 +149,9 @@ namespace osu.Framework
             (performanceContainer = new PerformanceOverlay
             {
                 Margin = new MarginPadding(5),
-                Direction = FlowDirections.Vertical,
+                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(10, 10)),
                 AutoSizeAxes = Axes.Both,
                 Alpha = 0,
-                Spacing = new Vector2(10, 10),
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue

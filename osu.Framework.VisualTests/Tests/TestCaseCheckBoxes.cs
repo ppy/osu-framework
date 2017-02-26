@@ -26,10 +26,9 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Spacing = new Vector2(0, 10),
+                    FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 10)),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
-                    Direction = FlowDirections.Vertical,
                     Children = new Drawable[]
                     {
                         new BasicCheckBox

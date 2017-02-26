@@ -109,6 +109,9 @@
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
+    <Compile Include="Graphics\Containers\FillFlowStrategy.cs" />
+    <Compile Include="Graphics\Containers\FlowStrategies.cs" />
+    <Compile Include="Graphics\Containers\IFlowStrategy.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Input\EventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />

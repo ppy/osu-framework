@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         TextFlow = new FlowContainer
                         {
-                            Direction = FlowDirections.Horizontal,
+                            FlowStrategy = FlowStrategies.GetHorizontalFlow(),
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (index < text.Length)
                     return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
                 var d = TextFlow.Children.ElementAt(index - 1);
-                return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
+                return d.DrawPosition.X + d.DrawSize.X + TextFlow.DrawPosition.X;
             }
             return 0;
         }
