@@ -15,10 +15,7 @@ namespace SampleGame
         {
             using (Game game = new SampleGame())
             using (GameHost host = Host.GetSuitableHost(@"sample-game"))
-            {
-                host.Add(game);
-                host.Run();
-            }
+                host.Run(game);
         }
     }
 }

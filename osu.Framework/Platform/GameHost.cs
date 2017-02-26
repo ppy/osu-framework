@@ -27,7 +27,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class GameHost : Container, IIpcHost
+    public abstract class GameHost : IIpcHost, IDisposable
     {
         public static GameHost Instance;
 
@@ -74,8 +74,6 @@ namespace osu.Framework.Platform
         public virtual Clipboard GetClipboard() => null;
 
         public virtual Storage Storage { get; protected set; } //public set currently required for visualtests setup.
-
-        public override bool IsPresent => true;
 
         private List<GameThread> threads;
 
@@ -146,12 +144,7 @@ namespace osu.Framework.Platform
             return Uri.UnescapeDataString(uri.Path);
         });
 
-        private UserInputManager inputManager;
-
-        protected override Container<Drawable> Content => inputManager;
-
-        private string name;
-        public override string Name => name;
+        protected string Name { get; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
@@ -162,7 +155,7 @@ namespace osu.Framework.Platform
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             Dependencies.Cache(this);
-            name = gameName;
+            Name = gameName;
 
             threads = new List<GameThread>
             {
@@ -178,16 +171,10 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
-            Clock = UpdateThread.Clock;
-
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
             Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
-
-            AddInternal(inputManager = new UserInputManager(this));
-
-            Dependencies.Cache(inputManager);
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -203,9 +190,9 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual void OnActivated() => Schedule(() => setActive(true));
+        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
 
-        protected virtual void OnDeactivated() => Schedule(() => setActive(false));
+        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => setActive(false));
 
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
@@ -243,11 +230,18 @@ namespace osu.Framework.Platform
             DrawThread.WaitUntilInitialized();
         }
 
+        protected Container Root;
+
         protected void UpdateFrame()
         {
-            UpdateSubTree();
+            if (Root == null) return;
+
+            if (Window?.WindowState != WindowState.Minimized)
+                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) : Vector2.One;
+
+            Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBFloat);
+                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
         }
 
         protected virtual void DrawInitialize()
@@ -263,9 +257,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
+            if (Root == null)
+                return;
+
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
-                GLWrapper.Reset(DrawSize);
+                GLWrapper.Reset(Root.DrawSize);
                 GLWrapper.ClearColour(Color4.Black);
             }
 
@@ -306,24 +303,33 @@ namespace osu.Framework.Platform
             }, false);
         }
 
-        public void Run()
+        public void Run(Game game)
         {
-            DrawThread.Start();
-            UpdateThread.Start();
+            setupConfig();
 
             if (Window != null)
             {
-                setActive(Window.Focused);
+                Window.SetupWindow(config);
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
+            }
 
-                Window.KeyDown += window_KeyDown;
-                Window.Resize += window_ClientSizeChanged;
-                Window.ExitRequested += OnExitRequested;
-                Window.Exited += OnExited;
-                Window.FocusedChanged += delegate { setActive(Window.Focused); };
-                window_ClientSizeChanged(null, null);
+            Task.Run(() => bootstrapSceneGraph(game));
 
-                try
+            DrawThread.Start();
+            UpdateThread.Start();
+
+            try
+            {
+                if (Window != null)
                 {
+                    setActive(Window.Focused);
+
+                    Window.KeyDown += window_KeyDown;
+
+                    Window.ExitRequested += OnExitRequested;
+                    Window.Exited += OnExited;
+                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
+
                     Window.UpdateFrame += delegate
                     {
                         inputPerformanceCollectionPeriod?.Dispose();
@@ -339,15 +345,34 @@ namespace osu.Framework.Platform
 
                     Window.Run();
                 }
-                catch (OutOfMemoryException)
+                else
                 {
+                    while (!exitCompleted)
+                        InputThread.RunUpdate();
                 }
             }
-            else
+            catch (OutOfMemoryException)
             {
-                while (!exitCompleted)
-                    InputThread.RunUpdate();
             }
+        }
+
+        private void bootstrapSceneGraph(Game game)
+        {
+            var root = new UserInputManager(this)
+            {
+                Clock = UpdateThread.Clock,
+                Children = new[] { game },
+            };
+
+            Dependencies.Cache(root);
+            Dependencies.Cache(game);
+
+            game.SetHost(this);
+
+            root.Load(game);
+
+            //publish bootstrapped scene graph to all threads.
+            Root = root;
         }
 
         private void stopAllThreads()
@@ -377,72 +402,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            if (Window.WindowState == WindowState.Minimized) return;
-
-            var size = Window.ClientSize;
-            //When minimizing, there will be an "size zero, but WindowState not Minimized" state.
-            if (size.IsEmpty) return;
-            UpdateThread.Scheduler.Add(delegate
-            {
-                //set base.Size here to avoid the override below, which would cause a recursive loop.
-                base.Size = new Vector2(size.Width, size.Height);
-            });
-        }
-
-        public override Vector2 Size
-        {
-            set
-            {
-                if (Window != null)
-                {
-                    if (!Window.Visible)
-                    {
-                        //set aggressively as we haven't become visible yet
-                        Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                    }
-                    else
-                    {
-                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
-                    }
-                }
-
-                base.Size = value;
-            }
-        }
-
         InvokeOnDisposal inputPerformanceCollectionPeriod;
-
-        public override void Add(Drawable drawable)
-        {
-            // TODO: We may in the future want to hold off on performing _any_ action on game host
-            // before its threads have been launched. This requires changing the order from
-            // host.Run -> host.Add instead of host.Add -> host.Run.
-
-            if (Children.Any())
-                throw new InvalidOperationException($"Can not add more than one {nameof(Game)} to a {nameof(GameHost)}.");
-
-            Game game = drawable as Game;
-            if (game == null)
-                throw new ArgumentException($"Can only add {nameof(Game)} to {nameof(GameHost)}.", nameof(drawable));
-
-            setupConfig();
-
-            if (Window != null)
-            {
-                Window.SetupWindow(config);
-                Window.Title = $@"osu.Framework (running ""{Name}"")";
-            }
-
-            Dependencies.Cache(game);
-            game.SetHost(this);
-
-            if (!IsLoaded)
-                Load(game);
-
-            LoadGame(game);
-        }
 
         private void setupConfig()
         {
@@ -452,29 +412,31 @@ namespace osu.Framework.Platform
             debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode).ValueChanged += delegate { setLatencyMode(); };
         }
 
-        protected virtual void WaitUntilReadyToLoad()
-        {
-            UpdateThread.WaitUntilInitialized();
-            DrawThread.WaitUntilInitialized();
-        }
-
-        protected virtual void LoadGame(Game game)
-        {
-            Task.Run(delegate
-            {
-                // Make sure we are not loading anything game-related before our threads have been initialized.
-                WaitUntilReadyToLoad();
-
-                game.Load(game);
-            }).ContinueWith(task => Schedule(() =>
-            {
-                task.ThrowIfFaulted();
-                base.Add(game);
-            }));
-        }
-
         public abstract IEnumerable<InputHandler> GetInputHandlers();
 
         public abstract ITextInputSource GetTextInput();
+
+        #region IDisposable Support
+        private bool isDisposed = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+            }
+        }
+
+        ~GameHost()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
