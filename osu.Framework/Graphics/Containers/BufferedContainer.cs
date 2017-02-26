@@ -17,6 +17,9 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    public class BufferedContainer : BufferedContainer<Drawable>
+    { };
+
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
     /// blits the framebuffer to the screen, instead of directly rendering the children
@@ -24,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer : Container
+    public class BufferedContainer<T> : Container<T> where T : Drawable
     {
         private Vector2 blurSigma = Vector2.Zero;
 
