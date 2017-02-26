@@ -2,11 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Cyotek.Drawing.BitmapFont;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics.Textures;
 
 namespace osu.Framework.IO.Stores
@@ -22,7 +22,7 @@ namespace osu.Framework.IO.Stores
         ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        Dictionary<int, RawTexture> texturePages = new Dictionary<int, RawTexture>();
+        TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
         Task fontLoadTask;
 
@@ -43,7 +43,8 @@ namespace osu.Framework.IO.Stores
                 try
                 {
                     font = new BitmapFont();
-                    font.LoadText(store.GetStream($@"{assetName}.fnt"));
+                    using (var s = store.GetStream($@"{assetName}.fnt"))
+                        font.LoadText(s);
 
                     if (precache)
                         for (int i = 0; i < font.Pages.Length; i++)
@@ -117,7 +118,7 @@ namespace osu.Framework.IO.Stores
             if (!texturePages.TryGetValue(texturePage, out t))
             {
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
-                    texturePages[texturePage] = t = RawTexture.FromStream(stream);
+                    texturePages.Add(texturePage, t = RawTexture.FromStream(stream));
             }
 
             return t;
