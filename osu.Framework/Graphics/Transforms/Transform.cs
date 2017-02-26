@@ -3,7 +3,7 @@
 
 using osu.Framework.Timing;
 
-namespace osu.Framework.Graphics.Transformations
+namespace osu.Framework.Graphics.Transforms
 {
     public abstract class Transform<T> : ITransform
     {

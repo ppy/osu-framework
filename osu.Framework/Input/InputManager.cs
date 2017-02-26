@@ -109,6 +109,8 @@ namespace osu.Framework.Input
             {
                 if (h.IsActive)
                     pendingStates.AddRange(h.GetPendingStates());
+                else
+                    h.GetPendingStates();
             }
 
             unfocusIfNoLongerValid(CurrentState);
@@ -176,11 +178,11 @@ namespace osu.Framework.Input
             mouseInputQueue.Clear();
 
             if (state.Keyboard != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildKeyboardInputQueue(keyboardInputQueue);
 
             if (state.Mouse != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
             keyboardInputQueue.Reverse();

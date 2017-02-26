@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Containers
     {
         IEnumerable<T> InternalChildren { get; }
         IEnumerable<T> Children { get; }
-        IEnumerable<T> AliveChildren { get; }
         
         int RemoveAll(Predicate<T> match);
     }
@@ -33,9 +32,10 @@ namespace osu.Framework.Graphics.Containers
         IEnumerable<T> InternalChildren { set; }
         IEnumerable<T> Children { set; }
 
-        void Add(IEnumerable<T> collection);
         void Add(T drawable);
-        void Remove(IEnumerable<T> range);
+        void Add(IEnumerable<T> collection);
+
         bool Remove(T drawable);
+        void Remove(IEnumerable<T> range);
     }
 }

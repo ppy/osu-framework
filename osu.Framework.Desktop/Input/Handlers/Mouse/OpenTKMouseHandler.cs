@@ -9,6 +9,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
@@ -31,6 +32,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 var tkState = new TkMouseState(state, pos, host.IsActive);
 
                 PendingStates.Enqueue(new InputState { Mouse = tkState });
+
+                FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
             }, 0, 0));
 
             return true;

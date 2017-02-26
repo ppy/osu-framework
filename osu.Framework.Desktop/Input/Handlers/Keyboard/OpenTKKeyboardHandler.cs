@@ -10,6 +10,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK.Input;
 using KeyboardState = osu.Framework.Input.KeyboardState;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
@@ -29,6 +30,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
                 {
                     Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
                 });
+
+                FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
             }, 0, 0));
 
             return true;

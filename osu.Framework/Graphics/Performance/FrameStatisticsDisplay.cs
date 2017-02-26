@@ -413,11 +413,13 @@ namespace osu.Framework.Graphics.Performance
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.TasksRun:
+                case StatisticsCounterType.MouseEvents:
                     return Color4.BlueViolet;
 
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.Refreshes:
                 case StatisticsCounterType.Tracks:
+                case StatisticsCounterType.KeyEvents:
                     return Color4.YellowGreen;
 
                 case StatisticsCounterType.DrawNodeCtor:
