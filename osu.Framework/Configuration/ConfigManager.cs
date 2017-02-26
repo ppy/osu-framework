@@ -11,6 +11,9 @@ namespace osu.Framework.Configuration
     public class ConfigManager<T> : IDisposable
         where T : struct
     {
+        /// <summary>
+        /// The backing file used to store the config. Null means no persistent storage.
+        /// </summary>
         public virtual string Filename => @"game.ini";
 
         public virtual bool AddMissingEntries => true;
@@ -134,6 +137,8 @@ namespace osu.Framework.Configuration
 
         public void Load()
         {
+            if (string.IsNullOrEmpty(Filename)) return;
+
             using (var stream = storage.GetStream(Filename))
             {
                 if (stream == null)
@@ -170,7 +175,7 @@ namespace osu.Framework.Configuration
 
         public bool Save()
         {
-            if (!hasUnsavedChanges) return true;
+            if (!hasUnsavedChanges || string.IsNullOrEmpty(Filename)) return true;
 
             try
             {
