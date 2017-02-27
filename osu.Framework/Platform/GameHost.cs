@@ -49,7 +49,7 @@ namespace osu.Framework.Platform
                 Deactivated?.Invoke();
         }
 
-        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? debugConfig.Get<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode) : GCLatencyMode.Interactive;
+        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? activeGCMode : GCLatencyMode.Interactive;
 
         public bool IsActive => InputThread.IsActive;
 
@@ -404,12 +404,15 @@ namespace osu.Framework.Platform
 
         InvokeOnDisposal inputPerformanceCollectionPeriod;
 
+        private Bindable<GCLatencyMode> activeGCMode;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
-            debugConfig.GetWeldedBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode).ValueChanged += delegate { setLatencyMode(); };
+            activeGCMode = debugConfig.GetWeldedBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
+            activeGCMode.ValueChanged += delegate { setLatencyMode(); };
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
