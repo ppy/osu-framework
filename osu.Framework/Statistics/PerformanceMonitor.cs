@@ -91,6 +91,7 @@ namespace osu.Framework.Statistics
                 {
                     FrameStatistics oldFrame;
                     PendingFrames.TryDequeue(out oldFrame);
+                    FramesHeap.FreeObject(oldFrame);
                 }
             }
 
