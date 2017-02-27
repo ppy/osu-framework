@@ -1,9 +1,10 @@
-﻿using System;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using System.IO;
-using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 
-namespace osu.Framework
+namespace osu.Framework.IO.Stores
 {
     public class StorageResourceStore : IResourceStore<byte[]>
     {
