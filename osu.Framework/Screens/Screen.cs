@@ -15,7 +15,7 @@ namespace osu.Framework.Screens
         protected Screen ParentScreen;
         public Screen ChildScreen;
 
-        public bool IsCurrentScreen => ParentScreen != null && ChildScreen == null;
+        public bool IsCurrentScreen => !hasExited && ChildScreen == null;
 
         private Container content;
         private Container childModeContainer;
