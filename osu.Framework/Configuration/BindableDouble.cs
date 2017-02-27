@@ -33,17 +33,18 @@ namespace osu.Framework.Configuration
             MaxValue = double.MaxValue;
         }
         
-        public override void Weld(Bindable<double> v, bool transferValue = true)
+        public override void BindTo(Bindable<double> them)
         {
-            var dbl = v as BindableDouble;
+            var dbl = them as BindableDouble;
             if (dbl != null)
             {
                 MinValue = Math.Max(MinValue, dbl.MinValue);
                 MaxValue = Math.Min(MaxValue, dbl.MaxValue);
                 if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException($"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(v));
+                    throw new ArgumentOutOfRangeException($"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(them));
             }
-            base.Weld(v, transferValue);
+
+            base.BindTo(them);
         }
 
         public override string ToString() => Value.ToString("0.0###", NumberFormatInfo.InvariantInfo);
