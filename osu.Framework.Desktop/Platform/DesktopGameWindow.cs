@@ -36,16 +36,16 @@ namespace osu.Framework.Desktop.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.WeldBindable(FrameworkConfig.WidthFullscreen, widthFullscreen);
-            config.WeldBindable(FrameworkConfig.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkConfig.WidthFullscreen, widthFullscreen);
+            config.BindWith(FrameworkConfig.HeightFullscreen, heightFullscreen);
 
-            config.WeldBindable(FrameworkConfig.Width, width);
-            config.WeldBindable(FrameworkConfig.Height, height);
+            config.BindWith(FrameworkConfig.Width, width);
+            config.BindWith(FrameworkConfig.Height, height);
 
-            config.WeldBindable(FrameworkConfig.WindowedPositionX, windowPositionX);
-            config.WeldBindable(FrameworkConfig.WindowedPositionY, windowPositionY);
+            config.BindWith(FrameworkConfig.WindowedPositionX, windowPositionX);
+            config.BindWith(FrameworkConfig.WindowedPositionY, windowPositionY);
 
-            config.WeldBindable(FrameworkConfig.WindowMode, mode);
+            config.BindWith(FrameworkConfig.WindowMode, mode);
 
             mode.ValueChanged += mode_ValueChanged;
             mode.TriggerChange();

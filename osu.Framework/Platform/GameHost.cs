@@ -411,7 +411,7 @@ namespace osu.Framework.Platform
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
-            activeGCMode = debugConfig.GetWeldedBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
+            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
             activeGCMode.ValueChanged += delegate { setLatencyMode(); };
         }
 

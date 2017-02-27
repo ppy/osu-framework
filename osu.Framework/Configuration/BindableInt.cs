@@ -21,7 +21,7 @@ namespace osu.Framework.Configuration
             MaxValue = int.MaxValue;
         }
         
-        public override void Weld(Bindable<int> them, bool transferValue = true)
+        public override void BindTo(Bindable<int> them, bool transferValue = true)
         {
             var i = them as BindableInt;
             if (i != null)
@@ -31,7 +31,7 @@ namespace osu.Framework.Configuration
                 if (MinValue > MaxValue)
                     throw new ArgumentOutOfRangeException($"Can not weld bindable ints with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
             }
-            base.Weld(them, transferValue);
+            base.BindTo(them, transferValue);
         }
 
         public override bool Parse(object s)

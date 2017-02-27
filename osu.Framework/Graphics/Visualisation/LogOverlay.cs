@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Visualisation
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
-            enabled = config.GetWeldedBindable<bool>(FrameworkConfig.ShowLogOverlay);
+            enabled = config.GetBindable<bool>(FrameworkConfig.ShowLogOverlay);
             State = enabled.Value ? Visibility.Visible : Visibility.Hidden;
 
         }
