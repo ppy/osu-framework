@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                FlowContainer<Drawable> flowContainer = (FlowContainer<Drawable>)d;
+                FlowContainer<T> flowContainer = (FlowContainer<T>)d;
                 flowContainer.Spacing = CurrentValue;
             }
         }
