@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
 
                 flowStrategy = value;
-                InvalidateLayout();
+                layout.Invalidate();
             }
         }
 
@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.Containers
         public FlowContainer()
         {
             FlowStrategy = FlowStrategies.CreateDefault();
+            FlowStrategy.OnInvalidateLayout += () => layout.Invalidate();
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
@@ -121,10 +122,6 @@ namespace osu.Framework.Graphics.Containers
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
-        /// <summary>
-        /// Invalidates the layout of this flow container.
-        /// </summary>
-        protected void InvalidateLayout() => layout.Invalidate();
 
         protected override bool UpdateChildrenLife()
         {

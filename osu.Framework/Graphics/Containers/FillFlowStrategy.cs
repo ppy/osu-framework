@@ -11,6 +11,8 @@ namespace osu.Framework.Graphics.Containers
         private HorizontalDirection horizontalFlow;
         private VerticalDirection verticalFlow;
 
+        public event Action OnInvalidateLayout;
+
         /// <summary>
         /// The horizontal direction of the fill. Default is <see cref="HorizontalDirection.LeftToRight"/>.
         /// </summary>
@@ -22,7 +24,11 @@ namespace osu.Framework.Graphics.Containers
                 if (value == HorizontalDirection.None && VerticalFlow == VerticalDirection.None)
                     throw new InvalidOperationException($"The horizontal and vertical flow direction of the {nameof(FillFlowStrategy)} cannot both be set to none.");
 
+                if (horizontalFlow == value)
+                    return;
+
                 horizontalFlow = value;
+                OnInvalidateLayout?.Invoke();
             }
         }
         /// <summary>
@@ -36,14 +42,30 @@ namespace osu.Framework.Graphics.Containers
                 if (value == VerticalDirection.None && HorizontalFlow == HorizontalDirection.None)
                     throw new InvalidOperationException($"The horizontal and vertical flow direction of the {nameof(FillFlowStrategy)} cannot both be set to none.");
 
+                if (verticalFlow == value)
+                    return;
+
                 verticalFlow = value;
+                OnInvalidateLayout?.Invoke();
             }
         }
 
+        private Vector2 spacing;
         /// <summary>
         /// The spacing between individual elements. Default is <see cref="Vector2.Zero"/>.
         /// </summary>
-        public Vector2 Spacing { get; set; }
+        public Vector2 Spacing
+        {
+            get { return spacing; }
+            set
+            {
+                if (spacing == value)
+                    return;
+
+                spacing = value;
+                OnInvalidateLayout?.Invoke();
+            }
+        }
 
         /// <summary>
         /// Constructs a new left-to-right top-to-bottom fill flow strategy with no spacing.

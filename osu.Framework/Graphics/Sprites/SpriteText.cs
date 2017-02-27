@@ -55,7 +55,6 @@ namespace osu.Framework.Graphics.Sprites
                     return;
 
                 ((FillFlowStrategy)FlowStrategy).Spacing = value;
-                InvalidateLayout();
             }
         }
 

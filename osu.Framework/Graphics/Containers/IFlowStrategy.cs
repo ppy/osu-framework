@@ -13,6 +13,11 @@ namespace osu.Framework.Graphics.Containers
     public interface IFlowStrategy
     {
         /// <summary>
+        /// This event is fired whenever the layout of the flow strategy gets invalidated due to changes to the flow strategy.
+        /// </summary>
+        event Action OnInvalidateLayout;
+
+        /// <summary>
         /// Updates the layout for the elements in a <see cref="FlowContainer"/>. Returns a vector for every given element size.
         /// </summary>
         /// <param name="maximumSize">The maximum size of the <see cref="FlowContainer"/> whose layout should be updated..</param>
