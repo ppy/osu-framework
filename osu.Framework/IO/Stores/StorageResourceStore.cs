@@ -7,9 +7,9 @@ namespace osu.Framework
 {
     public class StorageResourceStore : IResourceStore<byte[]>
     {
-        private BasicStorage storage;
+        private Storage storage;
 
-        public StorageResourceStore(BasicStorage storage)
+        public StorageResourceStore(Storage storage)
         {
             this.storage = storage;
         }
