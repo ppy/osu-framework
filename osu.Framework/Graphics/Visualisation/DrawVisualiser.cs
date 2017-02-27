@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Visualisation
                     GoUpOneParent = delegate
                     {
                         var parent = Target?.Parent;
-                        if (parent != null && !(parent is GameHost))
+                        if (parent != null && parent.Parent != null)
                             Target = Target?.Parent;
                     }
                 },
@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(InputState state)
         {
-            return findTargetIn(Parent?.Parent?.Parent as Drawable, state);
+            return findTargetIn(Parent?.Parent as Drawable, state);
         }
 
         protected override bool OnClick(InputState state)
