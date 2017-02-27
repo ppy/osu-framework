@@ -20,7 +20,7 @@ namespace osu.Framework.Configuration
             MaxValue = long.MaxValue;
         }
 
-        public override void BindTo(Bindable<long> them, bool transferValue = true)
+        public override void BindTo(Bindable<long> them)
         {
             var i = them as BindableLong;
             if (i != null)
@@ -30,7 +30,8 @@ namespace osu.Framework.Configuration
                 if (MinValue > MaxValue)
                     throw new ArgumentOutOfRangeException($"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
             }
-            base.BindTo(them, transferValue);
+
+            base.BindTo(them);
         }
 
         public override bool Parse(object s)

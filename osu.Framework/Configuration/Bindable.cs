@@ -56,10 +56,9 @@ namespace osu.Framework.Configuration
         /// We will take on any value limitations of the bindable we bind width.
         /// </summary>
         /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
-        /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
-        public virtual void BindTo(Bindable<T> them, bool transferValue = true)
+        public virtual void BindTo(Bindable<T> them)
         {
-            if (transferValue) Value = them.Value;
+            Value = them.Value;
 
             AddWeakReference(them.WeakReference);
             them.AddWeakReference(WeakReference);
