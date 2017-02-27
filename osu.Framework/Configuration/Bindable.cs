@@ -47,18 +47,24 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
-        /// <summary>
-        /// Welds two bindables together such that they update each other and stay in sync.
-        /// </summary>
-        /// <param name="v">The foreign bindable to weld.</param>
-        /// <param name="transferValue">Whether we should transfer the value from the foreign bindable on weld.</param>
-        public virtual void Weld(Bindable<T> v, bool transferValue = true)
-        {
-            if (transferValue) Value = v.Value;
+        private List<WeakReference<Bindable<T>>> bindings = new List<WeakReference<Bindable<T>>>();
 
-            ValueChanged += delegate { v.Value = Value; };
-            v.ValueChanged += delegate { Value = v.Value; };
+        public WeakReference<Bindable<T>> WeakReference => new WeakReference<Bindable<T>>(this);
+
+        /// <summary>
+        /// Binds outselves to another bindable such that they receive bi-directional updates.
+        /// We will take on any value limitations of the bindable we bind width.
+        /// </summary>
+        /// <param name="them">The foreign bindable. This should always be the most permanent end of the bind (ie. a ConfigManager)</param>
+        public virtual void BindTo(Bindable<T> them)
+        {
+            Value = them.Value;
+
+            AddWeakReference(them.WeakReference);
+            them.AddWeakReference(WeakReference);
         }
+
+        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference) => bindings.Add(weakReference);
 
         public virtual bool Parse(object s)
         {
@@ -75,6 +81,16 @@ namespace osu.Framework.Configuration
         public void TriggerChange()
         {
             ValueChanged?.Invoke(this, null);
+
+            foreach (var w in bindings.ToArray())
+            {
+                Bindable<T> b;
+                if (w.TryGetTarget(out b))
+                    b.Value = value;
+                else
+                    bindings.Remove(w);
+            }
+
         }
 
         public void UnbindAll()
@@ -92,6 +108,22 @@ namespace osu.Framework.Configuration
         internal void Reset()
         {
             Value = Default;
+        }
+
+        /// <summary>
+        /// Retrieve a new bindable instance weakly bound to the configuration backing.
+        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
+        /// a local reference.
+        /// </summary>
+        /// <returns>A weakly bound copy of the specified bindable.</returns>
+        public Bindable<T> GetBoundCopy()
+        {
+            var copy = MemberwiseClone() as Bindable<T>;
+
+            copy.bindings = new List<WeakReference<Bindable<T>>>();
+            copy.BindTo(this);
+
+            return copy;
         }
     }
 }

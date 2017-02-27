@@ -37,7 +37,7 @@ namespace osu.Framework.Configuration
 
         public BindableDouble Set(T lookup, double value, double? min = null, double? max = null)
         {
-            BindableDouble bindable = GetBindable<double>(lookup) as BindableDouble;
+            BindableDouble bindable = GetOriginalBindable<double>(lookup) as BindableDouble;
 
             if (bindable == null)
             {
@@ -57,7 +57,7 @@ namespace osu.Framework.Configuration
 
         public BindableInt Set(T lookup, int value, int? min = null, int? max = null)
         {
-            BindableInt bindable = GetBindable<int>(lookup) as BindableInt;
+            BindableInt bindable = GetOriginalBindable<int>(lookup) as BindableInt;
 
             if (bindable == null)
             {
@@ -77,7 +77,7 @@ namespace osu.Framework.Configuration
 
         public BindableBool Set(T lookup, bool value)
         {
-            BindableBool bindable = GetBindable<bool>(lookup) as BindableBool;
+            BindableBool bindable = GetOriginalBindable<bool>(lookup) as BindableBool;
 
             if (bindable == null)
             {
@@ -94,7 +94,7 @@ namespace osu.Framework.Configuration
 
         public Bindable<U> Set<U>(T lookup, U value)
         {
-            Bindable<U> bindable = GetBindable<U>(lookup);
+            Bindable<U> bindable = GetOriginalBindable<U>(lookup);
 
             if (bindable == null)
                 bindable = set(lookup, value);
@@ -119,21 +119,31 @@ namespace osu.Framework.Configuration
 
         public U Get<U>(T lookup)
         {
-            return GetBindable<U>(lookup).Value;
+            return GetOriginalBindable<U>(lookup).Value;
         }
 
-        public Bindable<U> GetBindable<U>(T lookup)
+        protected Bindable<U> GetOriginalBindable<U>(T lookup)
         {
             IBindable obj;
 
             if (configStore.TryGetValue(lookup, out obj))
-            {
-                Bindable<U> bindable = obj as Bindable<U>;
-                return bindable;
-            }
+                return obj as Bindable<U>;
 
             return set(lookup, default(U));
         }
+
+        /// <summary>
+        /// Retrieve a bindable. This will be a new instance weakly bound to the configuration backing.
+        /// If you are further binding to events of a bindable retrieved using this method, ensure to hold
+        /// a local reference.
+        /// </summary>
+        /// <returns>A weakly bound copy of the specified bindable.</returns>
+        public Bindable<U> GetBindable<U>(T lookup) => GetOriginalBindable<U>(lookup)?.GetBoundCopy();
+
+        /// <summary>
+        /// Binds a local bindable with a configuration-backed bindable.
+        /// </summary>
+        public void BindWith<U>(T lookup, Bindable<U> bindable) => bindable.BindTo(GetOriginalBindable<U>(lookup));
 
         public void Load()
         {
