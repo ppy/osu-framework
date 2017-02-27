@@ -2,17 +2,15 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Performance;
-using osu.Framework.Platform;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
-        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>();
+        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>((int)PerformanceCollectionType.AmountTypes);
+        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>((int)StatisticsCounterType.AmountTypes);
         internal List<int> GarbageCollections = new List<int>();
 
         internal void Clear()
@@ -41,15 +39,19 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.KiloPixels:
                     return target.Threads[3].Monitor;
 
+                case StatisticsCounterType.MouseEvents:
+                case StatisticsCounterType.KeyEvents:
+                    return target.Threads[1].Monitor;
+
                 case StatisticsCounterType.TasksRun:
                 case StatisticsCounterType.Tracks:
                 case StatisticsCounterType.Samples:
                 case StatisticsCounterType.SChannels:
                 case StatisticsCounterType.Components:
-                    return target.Threads[1].Monitor;
+                    return target.Threads[0].Monitor;
 
                 default:
-                    Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+                    Trace.Assert(false, "Requested counter which is not assigned to any performance monitor.");
                     break;
             }
 
@@ -77,7 +79,7 @@ namespace osu.Framework.Statistics
             FrameStatistics.target = target;
         }
 
-        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        public static void Increment(StatisticsCounterType type, long amount = 1)
         {
             if (target == null || amount == 0)
                 return;
@@ -98,7 +100,7 @@ namespace osu.Framework.Statistics
         Scheduler,
         IPC,
         GLReset,
-        Empty,
+        AmountTypes,
     }
 
     public enum StatisticsCounterType
@@ -121,6 +123,9 @@ namespace osu.Framework.Statistics
         Samples,
         SChannels,
         Components,
+
+        MouseEvents,
+        KeyEvents,
 
         AmountTypes,
     }

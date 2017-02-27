@@ -21,7 +21,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.OpenGL
 {
-    public static class GLWrapper
+    internal static class GLWrapper
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
         public static Rectangle Viewport { get; private set; }
@@ -41,9 +41,9 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static bool IsInitialized { get; private set; }
 
-        private static BasicGameHost host;
+        private static GameHost host;
 
-        internal static void Initialize(BasicGameHost host)
+        internal static void Initialize(GameHost host)
         {
             if (IsInitialized) return;
 
@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void Reset(Vector2 size)
         {
-            Debug.Assert(shaderStack.Count == 0);
+            Trace.Assert(shaderStack.Count == 0);
 
             resetScheduler.Update();
 
@@ -308,7 +308,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopViewport()
         {
-            Debug.Assert(viewportStack.Count > 1);
+            Trace.Assert(viewportStack.Count > 1);
 
             PopOrtho();
 
@@ -350,7 +350,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopOrtho()
         {
-            Debug.Assert(orthoStack.Count > 1);
+            Trace.Assert(orthoStack.Count > 1);
 
             FlushCurrentBatch();
 
@@ -447,7 +447,7 @@ namespace osu.Framework.Graphics.OpenGL
             }
             else
             {
-                Debug.Assert(scissorRectStack.Count > 1);
+                Trace.Assert(scissorRectStack.Count > 1);
                 scissorRectStack.Pop();
             }
 
@@ -481,7 +481,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopMaskingInfo()
         {
-            Debug.Assert(maskingStack.Count > 1);
+            Trace.Assert(maskingStack.Count > 1);
 
             maskingStack.Pop();
             MaskingInfo maskingInfo = maskingStack.Peek();

@@ -3,9 +3,9 @@
 
 using osu.Framework.Graphics.Containers;
 
-namespace osu.Framework.Graphics.Transformations
+namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformGlowAlpha : TransformFloat
+    public class TransformEdgeEffectAlpha : TransformFloat
     {
         public override void Apply(Drawable d)
         {

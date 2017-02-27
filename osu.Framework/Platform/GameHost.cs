@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -20,6 +19,7 @@ using osu.Framework.Threading;
 using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
@@ -27,21 +27,29 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Platform
 {
-    public abstract class BasicGameHost : Container, IIpcHost
+    public abstract class GameHost : IIpcHost, IDisposable
     {
-        public static BasicGameHost Instance;
+        public static GameHost Instance;
 
-        public BasicGameWindow Window;
+        public GameWindow Window;
+
+        private FrameworkDebugConfigManager debugConfig;
+
+        private FrameworkConfigManager config;
 
         private void setActive(bool isActive)
         {
             threads.ForEach(t => t.IsActive = isActive);
+
+            setLatencyMode();
 
             if (isActive)
                 Activated?.Invoke();
             else
                 Deactivated?.Invoke();
         }
+
+        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? activeGCMode : GCLatencyMode.Interactive;
 
         public bool IsActive => InputThread.IsActive;
 
@@ -58,18 +66,23 @@ namespace osu.Framework.Platform
 
         protected void OnMessageReceived(IpcMessage message) => MessageReceived?.Invoke(message);
 
-        public virtual Task SendMessage(IpcMessage message)
+        public virtual Task SendMessageAsync(IpcMessage message)
         {
             throw new NotImplementedException("This platform does not implement IPC.");
         }
 
         public virtual Clipboard GetClipboard() => null;
 
-        public virtual BasicStorage Storage { get; protected set; } //public set currently required for visualtests setup.
+        public virtual Storage Storage { get; protected set; } //public set currently required for visualtests setup.
 
-        public override bool IsPresent => true;
+        private List<GameThread> threads;
 
-        private GameThread[] threads;
+        public IEnumerable<GameThread> Threads => threads;
+
+        public void RegisterThread(GameThread t)
+        {
+            threads.Add(t);
+        }
 
         public GameThread DrawThread;
         public GameThread UpdateThread;
@@ -131,50 +144,37 @@ namespace osu.Framework.Platform
             return Uri.UnescapeDataString(uri.Path);
         });
 
-        private UserInputManager inputManager;
-
-        protected override Container<Drawable> Content => inputManager;
-
-        private string name;
-        public override string Name => name;
+        protected string Name { get; }
 
         public DependencyContainer Dependencies { get; } = new DependencyContainer();
 
-        protected BasicGameHost(string gameName = @"")
+        protected GameHost(string gameName = @"")
         {
             Instance = this;
 
             AppDomain.CurrentDomain.UnhandledException += exceptionHandler;
 
             Dependencies.Cache(this);
-            name = gameName;
+            Name = gameName;
 
-            threads = new[]
+            threads = new List<GameThread>
             {
-                DrawThread = new GameThread(DrawFrame, @"Draw")
+                (DrawThread = new GameThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
-                },
-                UpdateThread = new GameThread(UpdateFrame, @"Update")
+                }),
+                (UpdateThread = new GameThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
                     Monitor = { HandleGC = true }
-                },
-                InputThread = new InputThread(null, @"Input") //never gets started.
+                }),
+                (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
-
-            Clock = UpdateThread.Clock;
 
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
             Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
-
-            setActive(true);
-
-            AddInternal(inputManager = new UserInputManager(this));
-
-            Dependencies.Cache(inputManager);
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -190,14 +190,14 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected virtual void OnActivated() => Schedule(() => setActive(true));
+        protected virtual void OnActivated() => UpdateThread.Scheduler.Add(() => setActive(true));
 
-        protected virtual void OnDeactivated() => Schedule(() => setActive(false));
+        protected virtual void OnDeactivated() => UpdateThread.Scheduler.Add(() => setActive(false));
 
         /// <returns>true to cancel</returns>
         protected virtual bool OnExitRequested()
         {
-            if (ExitRequested) return false;
+            if (exitInitiated) return false;
 
             bool? response = null;
 
@@ -230,11 +230,18 @@ namespace osu.Framework.Platform
             DrawThread.WaitUntilInitialized();
         }
 
+        protected Container Root;
+
         protected void UpdateFrame()
         {
-            UpdateSubTree();
+            if (Root == null) return;
+
+            if (Window?.WindowState != WindowState.Minimized)
+                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) : Vector2.One;
+
+            Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
-                buffer.Object = GenerateDrawNodeSubtree(buffer.Index, ScreenSpaceDrawQuad.AABBFloat);
+                buffer.Object = Root.GenerateDrawNodeSubtree(buffer.Index, Root.ScreenSpaceDrawQuad.AABBFloat);
         }
 
         protected virtual void DrawInitialize()
@@ -250,9 +257,12 @@ namespace osu.Framework.Platform
 
         protected virtual void DrawFrame()
         {
+            if (Root == null)
+                return;
+
             using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
-                GLWrapper.Reset(DrawSize);
+                GLWrapper.Reset(Root.DrawSize);
                 GLWrapper.ClearColour(Color4.Black);
             }
 
@@ -277,55 +287,98 @@ namespace osu.Framework.Platform
                 Window.SwapBuffers();
         }
 
-        protected volatile bool ExitRequested;
+        private volatile bool exitInitiated;
+
+        private volatile bool exitCompleted;
 
         public void Exit()
         {
+            exitInitiated = true;
+
             InputThread.Scheduler.Add(delegate
             {
-                ExitRequested = true;
-
-                threads.ForEach(t => t.Exit());
-                threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
                 Window?.Close();
+                stopAllThreads();
+                exitCompleted = true;
             }, false);
         }
 
-        public virtual void Run()
+        public void Run(Game game)
         {
-            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
+            setupConfig();
+
+            if (Window != null)
+            {
+                Window.SetupWindow(config);
+                Window.Title = $@"osu.Framework (running ""{Name}"")";
+            }
+
+            Task.Run(() => bootstrapSceneGraph(game));
 
             DrawThread.Start();
             UpdateThread.Start();
 
-            if (Window != null)
+            try
             {
-                Window.KeyDown += window_KeyDown;
-                Window.Resize += window_ClientSizeChanged;
-                Window.ExitRequested += OnExitRequested;
-                Window.Exited += OnExited;
-                Window.FocusedChanged += delegate { setActive(Window.Focused); };
-                window_ClientSizeChanged(null, null);
-
-                try
+                if (Window != null)
                 {
+                    setActive(Window.Focused);
+
+                    Window.KeyDown += window_KeyDown;
+
+                    Window.ExitRequested += OnExitRequested;
+                    Window.Exited += OnExited;
+                    Window.FocusedChanged += delegate { setActive(Window.Focused); };
+
                     Window.UpdateFrame += delegate
                     {
                         inputPerformanceCollectionPeriod?.Dispose();
                         InputThread.RunUpdate();
                         inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
+                    Window.Closed += delegate
+                    {
+                        //we need to ensure all threads have stopped before the window is closed (mainly the draw thread
+                        //to avoid GL operations running post-cleanup).
+                        stopAllThreads();
+                    };
+
                     Window.Run();
                 }
-                catch (OutOfMemoryException)
+                else
                 {
+                    while (!exitCompleted)
+                        InputThread.RunUpdate();
                 }
             }
-            else
+            catch (OutOfMemoryException)
             {
-                while (!ExitRequested)
-                    InputThread.RunUpdate();
             }
+        }
+
+        private void bootstrapSceneGraph(Game game)
+        {
+            var root = new UserInputManager(this)
+            {
+                Clock = UpdateThread.Clock,
+                Children = new[] { game },
+            };
+
+            Dependencies.Cache(root);
+            Dependencies.Cache(game);
+
+            game.SetHost(this);
+
+            root.Load(game);
+
+            //publish bootstrapped scene graph to all threads.
+            Root = root;
+        }
+
+        private void stopAllThreads()
+        {
+            threads.ForEach(t => t.Exit());
+            threads.Where(t => t.Running).ForEach(t => t.Thread.Join());
         }
 
         private void window_KeyDown(object sender, KeyboardKeyEventArgs e)
@@ -349,88 +402,44 @@ namespace osu.Framework.Platform
             }
         }
 
-        private void window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            if (Window.WindowState == WindowState.Minimized) return;
-
-            var size = Window.ClientSize;
-            //When minimizing, there will be an "size zero, but WindowState not Minimized" state.
-            if (size.IsEmpty) return;
-            UpdateThread.Scheduler.Add(delegate
-            {
-                //set base.Size here to avoid the override below, which would cause a recursive loop.
-                base.Size = new Vector2(size.Width, size.Height);
-            });
-        }
-
-        public override Vector2 Size
-        {
-            set
-            {
-                if (Window != null)
-                {
-                    if (!Window.Visible)
-                    {
-                        //set aggressively as we haven't become visible yet
-                        Window.ClientSize = new Size((int)value.X, (int)value.Y);
-                        Window.CentreToScreen();
-                    }
-                    else
-                    {
-                        InputThread.Scheduler.Add(delegate { if (Window != null) Window.ClientSize = new Size((int)value.X, (int)value.Y); });
-                    }
-                }
-
-                base.Size = value;
-            }
-        }
-
         InvokeOnDisposal inputPerformanceCollectionPeriod;
 
-        public override void Add(Drawable drawable)
+        private Bindable<GCLatencyMode> activeGCMode;
+
+        private void setupConfig()
         {
-            // TODO: We may in the future want to hold off on performing _any_ action on game host
-            // before its threads have been launched. This requires changing the order from
-            // host.Run -> host.Add instead of host.Add -> host.Run.
+            Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
+            Dependencies.Cache(config = new FrameworkConfigManager(Storage));
 
-            Debug.Assert(!Children.Any(), @"Don't load more than one Game in a Host");
-
-            BaseGame game = drawable as BaseGame;
-
-            Debug.Assert(game != null, @"Make sure to load a Game in a Host");
-
-            Dependencies.Cache(game);
-            game.SetHost(this);
-
-            if (!IsLoaded)
-                PerformLoad(game);
-
-            LoadGame(game);
-        }
-
-        protected virtual void WaitUntilReadyToLoad()
-        {
-            UpdateThread.WaitUntilInitialized();
-            DrawThread.WaitUntilInitialized();
-        }
-
-        protected virtual void LoadGame(BaseGame game)
-        {
-            Task.Run(delegate
-            {
-                // Make sure we are not loading anything game-related before our threads have been initialized.
-                WaitUntilReadyToLoad();
-
-                game.PerformLoad(game);
-            }).ContinueWith(task => Schedule(() =>
-            {
-                task.ThrowIfFaulted();
-                base.Add(game);
-            }));
+            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
+            activeGCMode.ValueChanged += delegate { setLatencyMode(); };
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
 
         public abstract ITextInputSource GetTextInput();
+
+        #region IDisposable Support
+        private bool isDisposed = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!isDisposed)
+            {
+                isDisposed = true;
+            }
+        }
+
+        ~GameHost()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

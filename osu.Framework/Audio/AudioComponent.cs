@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using osu.Framework.DebugUtils;
-using System.Diagnostics;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
@@ -27,7 +26,8 @@ namespace osu.Framework.Audio
         public virtual void Update()
         {
             ThreadSafety.EnsureNotUpdateThread();
-            Debug.Assert(!IsDisposed, "Can not update disposed audio components.");
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
 
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);

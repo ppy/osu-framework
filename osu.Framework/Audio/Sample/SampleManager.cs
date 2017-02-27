@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using osu.Framework.IO.Stores;
 using osu.Framework.Statistics;

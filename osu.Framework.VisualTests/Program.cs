@@ -3,7 +3,6 @@
 
 using System;
 using osu.Framework.Desktop;
-using osu.Framework.Desktop.Platform;
 using osu.Framework.Platform;
 
 namespace osu.Framework.VisualTests
@@ -15,13 +14,12 @@ namespace osu.Framework.VisualTests
         {
             bool benchmark = args.Length > 0 && args[0] == @"-benchmark";
 
-            using (BasicGameHost host = Host.GetSuitableHost(@"visual-tests"))
+            using (GameHost host = Host.GetSuitableHost(@"visual-tests"))
             {
                 if (benchmark)
-                    host.Add(new Benchmark());
+                    host.Run(new Benchmark());
                 else
-                    host.Add(new VisualTestGame());
-                host.Run();
+                    host.Run(new VisualTestGame());
             }
         }
     }

@@ -3,7 +3,6 @@
 
 using osu.Framework.Statistics;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Audio.Sample
 {
@@ -17,14 +16,16 @@ namespace osu.Framework.Audio.Sample
 
         public SampleChannel(Sample sample, Action<SampleChannel> onPlay)
         {
-            Debug.Assert(sample != null, "Can not use a null sample.");
+            if (sample == null)
+                throw new ArgumentNullException(nameof(sample));
             Sample = sample;
             this.onPlay = onPlay;
         }
 
         public virtual void Play(bool restart = true)
         {
-            Debug.Assert(!IsDisposed, "Can not play disposed samples.");
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not play disposed samples.");
 
             onPlay(this);
             WasStarted = true;
@@ -32,7 +33,8 @@ namespace osu.Framework.Audio.Sample
 
         public virtual void Stop()
         {
-            Debug.Assert(!IsDisposed, "Can not stop disposed samples.");
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not stop disposed samples.");
         }
 
         protected override void Dispose(bool disposing)

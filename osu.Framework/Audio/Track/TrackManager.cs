@@ -3,7 +3,7 @@
 
 using System.Linq;
 using osu.Framework.IO.Stores;
-using System.Diagnostics;
+using System;
 
 namespace osu.Framework.Audio.Track
 {
@@ -11,7 +11,8 @@ namespace osu.Framework.Audio.Track
     {
         IResourceStore<byte[]> store;
 
-        Track exclusiveTrack;
+        private Track exclusiveTrack;
+        private object exclusiveMutex = new object();
 
         public TrackManager(IResourceStore<byte[]> store)
         {
@@ -31,29 +32,38 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public void SetExclusive(Track track)
         {
-            Debug.Assert(track != null, "Can not make a null track exclusive.");
-            if (exclusiveTrack == track) return;
+            if (track == null)
+                throw new ArgumentNullException(nameof(track));
 
-            foreach (var item in Items)
-                item.Stop();
+            Track last;
+            lock (exclusiveMutex)
+            {
+                if (exclusiveTrack == track) return;
+                last = exclusiveTrack;
+                exclusiveTrack = track;
+            }
 
-            exclusiveTrack?.Dispose();
-            exclusiveTrack = track;
+            PendingActions.Enqueue(() =>
+            {
+                foreach (var item in Items)
+                    if (!item.HasCompleted)
+                        item.Stop();
 
-            AddItem(track);
+                last?.Dispose();
+                AddItem(track);
+            });
         }
 
         public override void Update()
         {
-            base.Update();
-
             if (exclusiveTrack?.HasCompleted != false)
-                findExclusiveTrack();
-        }
+                lock (exclusiveMutex)
+                    // We repeat the if-check inside the lock to make sure exclusiveTrack
+                    // has not been overwritten prior to us taking the lock.
+                    if (exclusiveTrack?.HasCompleted != false)
+                        exclusiveTrack = Items.FirstOrDefault();
 
-        private void findExclusiveTrack()
-        {
-            exclusiveTrack = Items.FirstOrDefault();
+            base.Update();
         }
     }
 }

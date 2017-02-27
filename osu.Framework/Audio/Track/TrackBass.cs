@@ -26,9 +26,6 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         private int activeStream;
 
-        //must keep a reference to this else it will be garbage collected early.
-        private DataStreamFileProcedures procs;
-
         /// <summary>
         /// This marks if the track is paused, or stopped to the end.
         /// </summary>
@@ -49,7 +46,7 @@ namespace osu.Framework.Audio.Track
                 //encapsulate incoming stream with async buffer if it isn't already.
                 dataStream = data as AsyncBufferStream ?? new AsyncBufferStream(data, quick ? 8 : -1);
 
-                procs = new DataStreamFileProcedures(dataStream);
+                var procs = new DataStreamFileProcedures(dataStream);
 
                 BassFlags flags = Preview ? 0 : BassFlags.Decode | BassFlags.Prescan;
                 activeStream = Bass.CreateStream(StreamSystem.NoBuffer, flags, procs.BassProcedures, IntPtr.Zero);
@@ -88,7 +85,7 @@ namespace osu.Framework.Audio.Track
         void IBassAudio.UpdateDevice(int deviceIndex)
         {
             Bass.ChannelSetDevice(activeStream, deviceIndex);
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
         }
 
         public override void Update()
@@ -101,7 +98,7 @@ namespace osu.Framework.Audio.Track
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
         }
 
@@ -115,7 +112,13 @@ namespace osu.Framework.Audio.Track
 
         protected override void Dispose(bool disposing)
         {
-            if (activeStream != 0) Bass.ChannelStop(activeStream);
+            if (activeStream != 0)
+            {
+                isRunning = false;
+                Bass.ChannelStop(activeStream);
+                Bass.StreamFree(activeStream);
+            }
+
             activeStream = 0;
 
             dataStream?.Dispose();

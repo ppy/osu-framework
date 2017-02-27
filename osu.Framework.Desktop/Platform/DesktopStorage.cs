@@ -12,7 +12,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public class DesktopStorage : BasicStorage
+    public class DesktopStorage : Storage
     {
         public DesktopStorage(string baseName) : base(baseName)
         {

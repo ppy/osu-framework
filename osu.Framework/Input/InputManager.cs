@@ -50,7 +50,7 @@ namespace osu.Framework.Input
         /// </summary>
         public double LastActionTime;
 
-        protected BasicGameHost Host;
+        protected GameHost Host;
 
         public Drawable FocusedDrawable;
 
@@ -109,6 +109,8 @@ namespace osu.Framework.Input
             {
                 if (h.IsActive)
                     pendingStates.AddRange(h.GetPendingStates());
+                else
+                    h.GetPendingStates();
             }
 
             unfocusIfNoLongerValid(CurrentState);
@@ -176,11 +178,11 @@ namespace osu.Framework.Input
             mouseInputQueue.Clear();
 
             if (state.Keyboard != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildKeyboardInputQueue(keyboardInputQueue);
 
             if (state.Mouse != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
             keyboardInputQueue.Reverse();
@@ -542,6 +544,14 @@ namespace osu.Framework.Input
             }
 
             return false;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            foreach (var h in inputHandlers)
+                h.Dispose();
+
+            base.Dispose(isDisposing);
         }
     }
 

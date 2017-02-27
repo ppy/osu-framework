@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Statistics;
@@ -67,7 +66,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         private void resize(int amountVertices)
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not resize disposed vertex buffers.");
 
             T[] oldVertices = Vertices;
             Vertices = new T[amountVertices];
@@ -84,7 +84,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         public virtual void Bind(bool forRendering)
         {
-            Debug.Assert(!IsDisposed);
+            if (IsDisposed)
+                throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 bind_attributes();

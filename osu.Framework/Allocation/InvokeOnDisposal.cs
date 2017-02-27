@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Allocation
 {
@@ -12,31 +11,17 @@ namespace osu.Framework.Allocation
 
         public InvokeOnDisposal(Action action)
         {
-            Debug.Assert(action != null);
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
             this.action = action;
         }
 
         #region IDisposable Support
 
-        private bool disposedValue; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    action();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            Dispose(true);
+            //no isDisposed check here so we can reuse these instances multiple times to save on allocations.
+            action();
         }
 
         #endregion

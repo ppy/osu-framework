@@ -3,12 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -21,7 +20,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : Container
+    public class TextBox : TabbableContainer
     {
         protected FlowContainer TextFlow;
         protected Box Background;
@@ -106,7 +105,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(BasicGameHost host, AudioManager audio)
+        private void load(GameHost host, AudioManager audio)
         {
             this.audio = audio;
 
@@ -184,7 +183,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (HasFocus)
                 {
-                    Caret.ClearTransformations();
+                    Caret.ClearTransforms();
                     Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
                     Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
 
@@ -411,8 +410,6 @@ namespace osu.Framework.Graphics.UserInterface
             get { return text; }
             set
             {
-                Debug.Assert(value != null);
-
                 if (value == text)
                     return;
 
@@ -466,7 +463,7 @@ namespace osu.Framework.Graphics.UserInterface
             switch (args.Key)
             {
                 case Key.Tab:
-                    return false;
+                    return base.OnKeyDown(state, args);
                 case Key.End:
                     moveSelection(text.Length, state.Keyboard.ShiftPressed);
                     return true;
@@ -720,13 +717,13 @@ namespace osu.Framework.Graphics.UserInterface
         {
             unbindInput();
 
-            Caret.ClearTransformations();
+            Caret.ClearTransforms();
             Caret.FadeOut(200);
 
             if (state.Keyboard.Keys.Contains(Key.Enter))
             {
                 Background.Colour = BackgroundUnfocused;
-                Background.ClearTransformations();
+                Background.ClearTransforms();
                 Background.FlashColour(BackgroundCommit, 400);
 
                 audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
@@ -734,7 +731,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
             else
             {
-                Background.ClearTransformations();
+                Background.ClearTransforms();
                 Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
             }
 
@@ -747,7 +744,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             bindInput();
 
-            Background.ClearTransformations();
+            Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();

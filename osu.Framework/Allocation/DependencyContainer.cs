@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -31,7 +30,8 @@ namespace osu.Framework.Allocation
 
         private void register(Type type, bool lazy)
         {
-            Debug.Assert(!activators.ContainsKey(type), $@"Type {type.FullName} should not be registered twice");
+            if (activators.ContainsKey(type))
+                throw new InvalidOperationException($@"Type {type.FullName} can not be registered twice");
 
             var initialize = getLoaderMethod(type);
             var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
@@ -107,7 +107,8 @@ namespace osu.Framework.Allocation
         /// </summary>
         public T Cache<T>(T instance = null, bool overwrite = false, bool lazy = false) where T : class
         {
-            Debug.Assert(overwrite || !cache.ContainsKey(typeof(T)), @"We have already cached one of these");
+            if (!overwrite && cache.ContainsKey(typeof(T)))
+                throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
             if (instance == null)
                 instance = Get<T>(false);
             cacheable.Add(typeof(T));
@@ -144,8 +145,10 @@ namespace osu.Framework.Allocation
         public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
-            if (autoRegister && !activators.ContainsKey(type))
-                register(type, lazy);
+
+            lock (activators)
+                if (autoRegister && !activators.ContainsKey(type))
+                    register(type, lazy);
 
             ObjectActivator activator;
 

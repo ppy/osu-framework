@@ -205,13 +205,17 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Header.Action = Toggle;
-
-            DropDownItemsContainer.OnAutoSize += UpdateContentHeight;
         }
 
         protected virtual void UpdateContentHeight()
         {
             ContentContainer.Height = ContentHeight;
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+            UpdateContentHeight();
         }
 
         protected override bool OnFocus(InputState state) => true;

@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         private FlowContainer flow;
 
         int loadId = 55;
-        private BaseGame game;
+        private Game game;
 
         public override void Reset()
         {
@@ -44,14 +44,14 @@ namespace osu.Framework.VisualTests.Tests
         }
 
         [BackgroundDependencyLoader]
-        private void load(BaseGame game)
+        private void load(Game game)
         {
             this.game = game;
         }
 
         private void getNextAvatar()
         {
-            new Avatar(loadId).Preload(game, flow.Add);
+            new Avatar(loadId).LoadAsync(game, flow.Add);
 
             loadId++;
             Scheduler.AddDelayed(getNextAvatar, 400);
