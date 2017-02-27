@@ -18,25 +18,10 @@ namespace osu.Framework.Allocation
 
         #region IDisposable Support
 
-        private bool disposedValue; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    action();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            Dispose(true);
+            //no isDisposed check here so we can reuse these instances multiple times to save on allocations.
+            action();
         }
 
         #endregion

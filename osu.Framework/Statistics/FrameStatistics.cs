@@ -9,8 +9,8 @@ namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
-        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>();
+        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>((int)PerformanceCollectionType.AmountTypes);
+        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>((int)StatisticsCounterType.AmountTypes);
         internal List<int> GarbageCollections = new List<int>();
 
         internal void Clear()
@@ -100,7 +100,7 @@ namespace osu.Framework.Statistics
         Scheduler,
         IPC,
         GLReset,
-        Empty,
+        AmountTypes,
     }
 
     public enum StatisticsCounterType
