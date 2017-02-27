@@ -625,7 +625,8 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildKeyboardInputQueue(queue))
                 return false;
 
-            foreach (T d in AliveInternalChildren)
+            //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
+            foreach (T d in internalChildren.AliveItems)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -636,7 +637,8 @@ namespace osu.Framework.Graphics.Containers
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
                 return false;
 
-            foreach (T d in AliveInternalChildren)
+            //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
+            foreach (T d in internalChildren.AliveItems)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;

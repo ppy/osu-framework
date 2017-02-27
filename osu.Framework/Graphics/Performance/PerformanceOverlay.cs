@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
                 }
 
-                foreach (FrameStatisticsDisplay d in Children.Cast<FrameStatisticsDisplay>())
+                foreach (FrameStatisticsDisplay d in Children)
                     d.State = state;
             }
         }

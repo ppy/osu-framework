@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Performance
         Container mainContainer;
         Container timeBarsContainer;
 
-        Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.Empty];
+        Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.AmountTypes];
         Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private FpsDisplay fpsDisplay;
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics.Performance
                                             Spacing = new Vector2(5, 1),
                                             Padding = new MarginPadding { Right = 5 },
                                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
-                                                       where t < PerformanceCollectionType.Empty
+                                                       where t < PerformanceCollectionType.AmountTypes
                                                        select legendMapping[(int)t] = new SpriteText
                                             {
                                                 Colour = getColour(t),
@@ -240,13 +240,13 @@ namespace osu.Framework.Graphics.Performance
             byte[] column = new byte[height * 4];
             byte[] fullBackground = new byte[width * height * 4];
 
-            addArea(null, PerformanceCollectionType.Empty, height, column, amount_ms_steps);
+            addArea(null, PerformanceCollectionType.AmountTypes, height, column, amount_ms_steps);
 
             for (int i = 0; i < height; i++)
                 for (int k = 0; k < width; k++)
                     Buffer.BlockCopy(column, i * 4, fullBackground, i * width * 4 + k * 4, 4);
 
-            addArea(null, PerformanceCollectionType.Empty, height, column, amount_count_steps);
+            addArea(null, PerformanceCollectionType.AmountTypes, height, column, amount_count_steps);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
             Schedule(() =>
@@ -333,7 +333,7 @@ namespace osu.Framework.Graphics.Performance
 
             int currentHeight = height;
 
-            for (int i = 0; i <= (int)PerformanceCollectionType.Empty; i++)
+            for (int i = 0; i <= (int)PerformanceCollectionType.AmountTypes; i++)
                 currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data, amount_ms_steps);
 
             timeBar.Sprite.Texture.SetData(upload);
@@ -398,7 +398,7 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.GhostWhite;
                 case PerformanceCollectionType.GLReset:
                     return Color4.Cyan;
-                case PerformanceCollectionType.Empty:
+                case PerformanceCollectionType.AmountTypes:
                     return new Color4(0.1f, 0.1f, 0.1f, 1);
             }
         }
@@ -446,7 +446,7 @@ namespace osu.Framework.Graphics.Performance
             double elapsedMilliseconds;
             int drawHeight;
 
-            if (frameTimeType == PerformanceCollectionType.Empty)
+            if (frameTimeType == PerformanceCollectionType.AmountTypes)
                 drawHeight = currentHeight;
             else if (frame.CollectedTimes.TryGetValue(frameTimeType, out elapsedMilliseconds))
             {
@@ -465,7 +465,7 @@ namespace osu.Framework.Graphics.Performance
                 bool acceptableRange = (float)currentHeight / height > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
-                if (frameTimeType == PerformanceCollectionType.Empty)
+                if (frameTimeType == PerformanceCollectionType.AmountTypes)
                     brightnessAdjust *= 1 - i * amountSteps / height / 8f;
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;

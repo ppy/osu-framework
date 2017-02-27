@@ -11,7 +11,7 @@ namespace osu.Framework.Allocation
         private readonly Stack<T> freeObjects = new Stack<T>();
         private HashSet<T> usedObjects = new HashSet<T>();
 
-        public ObjectStack(int maxAmountObjects)
+        public ObjectStack(int maxAmountObjects = -1)
         {
             this.maxAmountObjects = maxAmountObjects;
         }
@@ -20,7 +20,7 @@ namespace osu.Framework.Allocation
         {
             T o = freeObjects.Count > 0 ? freeObjects.Pop() : new T();
 
-            if (usedObjects.Count < maxAmountObjects)
+            if (maxAmountObjects == -1 || usedObjects.Count < maxAmountObjects)
                 usedObjects.Add(o);
 
             return o;
