@@ -13,6 +13,9 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// Types of edge effects that can be applied to containers.
+    /// </summary>
     public enum EdgeEffectType
     {
         None,
@@ -20,31 +23,96 @@ namespace osu.Framework.Graphics.Containers
         Shadow,
     }
 
+    /// <summary>
+    /// Parametrizes the appearance of an edge effect.
+    /// </summary>
     public struct EdgeEffect
     {
+        /// <summary>
+        /// Colour of the edge effect.
+        /// </summary>
         public SRGBColour Colour;
+
+        /// <summary>
+        /// Positional offset applied to the edge effect.
+        /// Useful for off-center shadows.
+        /// </summary>
         public Vector2 Offset;
+
+        /// <summary>
+        /// The type of the edge effect.
+        /// </summary>
         public EdgeEffectType Type;
+
+        /// <summary>
+        /// How round the edge effect should appear. Adds to the <see cref="Container{T}.CornerRadius"/>
+        /// of the corresponding container. Not to confuse with the <see cref="Radius"/>.
+        /// </summary>
         public float Roundness;
+
+        /// <summary>
+        /// How "thick" the edge effect is around the container. In other words: At what distance
+        /// from the <see cref="Container"/> border the edge effect becomes fully invisible.
+        /// </summary>
         public float Radius;
     }
 
+    /// <summary>
+    /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
+    /// <see cref="Container"/>.
+    /// </summary>
     public class ContainerDrawNodeSharedData
     {
+        /// <summary>
+        /// The vertex batch used for rendering.
+        /// </summary>
         public QuadBatch<TexturedVertex2D> VertexBatch;
+
+        /// <summary>
+        /// Whether we always want to use our own vertex batch for our corresponding
+        /// <see cref="Container"/>. If false, then we may get rendered with some other
+        /// shared vertex batch.
+        /// </summary>
         public bool ForceOwnVertexBatch;
     }
 
+    /// <summary>
+    /// A draw node responsible for rendering a <see cref="Container"/> and the
+    /// <see cref="DrawNode"/>s of its children.
+    /// </summary>
     public class ContainerDrawNode : DrawNode
     {
+        /// <summary>
+        /// The <see cref="DrawNode"/>s of the children of our <see cref="Container"/>.
+        /// </summary>
         public List<DrawNode> Children;
+
+        /// <summary>
+        /// Information about how masking of children should be carried out.
+        /// </summary>
         public MaskingInfo? MaskingInfo;
+
+        /// <summary>
+        /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
+        /// Used as cache of screen-space masking quads computed in previous frames.
+        /// Assign null to reset.
+        /// </summary>
         public Quad? ScreenSpaceMaskingQuad;
 
+        /// <summary>
+        /// Information about how the edge effect should be rendered.
+        /// </summary>
         public EdgeEffect EdgeEffect;
 
+        /// <summary>
+        /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
+        /// <see cref="Container"/>.
+        /// </summary>
         public ContainerDrawNodeSharedData Shared;
 
+        /// <summary>
+        /// The shader to be used for rendering the edge effect.
+        /// </summary>
         public Shader Shader;
 
         private void drawEdgeEffect()
@@ -85,6 +153,10 @@ namespace osu.Framework.Graphics.Containers
 
         private const int min_amount_children_to_warrant_batch = 5;
 
+        /// <summary>
+        /// A custom action to perform for every given vertex to render.
+        /// If null, then by default vertices are added to a vertex batch.
+        /// </summary>
         protected Action<TexturedVertex2D> CustomVertexAction => null;
 
         private bool mayHaveOwnVertexBatch(int amountChildren) => Shared.ForceOwnVertexBatch || amountChildren >= min_amount_children_to_warrant_batch;

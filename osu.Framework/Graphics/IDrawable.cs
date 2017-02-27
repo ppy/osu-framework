@@ -10,10 +10,20 @@ namespace osu.Framework.Graphics
 {
     public interface IDrawable : IHasLifetime
     {
+        /// <summary>
+        /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
+        /// </summary>
         Vector2 DrawSize { get; }
 
+        /// <summary>
+        /// Contains a linear transformation, colour information, and blending information
+        /// of this drawable.
+        /// </summary>
         DrawInfo DrawInfo { get; }
 
+        /// <summary>
+        /// The parent of this drawable in the scene graph.
+        /// </summary>
         IContainer Parent { get; set; }
 
         /// <summary>
@@ -23,8 +33,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         bool IsPresent { get; }
 
-        FrameTimeInfo Time { get; }
-
+        /// <summary>
+        /// The clock of this drawable. Used for keeping track of time across frames.
+        /// </summary>
         IFrameBasedClock Clock { get; }
 
         /// <summary>
@@ -43,6 +54,9 @@ namespace osu.Framework.Graphics
         /// <returns>The output position.</returns>
         Vector2 ToLocalSpace(Vector2 screenSpacePos);
 
+        /// <summary>
+        /// Determines how this Drawable is blended with other already drawn Drawables.
+        /// </summary>
         BlendingMode BlendingMode { get; }
     }
 }

@@ -980,6 +980,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Determines how this Drawable is blended with other already drawn Drawables.
+        /// Inherits the <see cref="Parent"/>'s <see cref="BlendingMode"/> by default.
         /// </summary>
         public BlendingMode BlendingMode
         {
@@ -1000,6 +1001,13 @@ namespace osu.Framework.Graphics
 
         private IFrameBasedClock customClock;
         private IFrameBasedClock clock;
+
+        /// <summary>
+        /// The clock of this drawable. Used for keeping track of time across
+        /// frames. By default is inherited from <see cref="Parent"/>.
+        /// If set, then the provided value is used as a custom clock and the
+        /// <see cref="Parent"/>'s clock is ignored.
+        /// </summary>
         public IFrameBasedClock Clock
         {
             get { return clock; }
@@ -1010,11 +1018,19 @@ namespace osu.Framework.Graphics
             }
         }
 
+        /// <summary>
+        /// Updates the clock to be used. Has no effect if this drawable
+        /// uses a custom clock.
+        /// </summary>
+        /// <param name="clock">The new clock to be used.</param>
         internal virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
         }
 
+        /// <summary>
+        /// The current frame's time as observed by this drawable's <see cref="Clock"/>.
+        /// </summary>
         public FrameTimeInfo Time => Clock.TimeInfo;
 
         /// <summary>
@@ -1027,6 +1043,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         public double LifetimeEnd { get; set; } = double.MaxValue;
 
+        /// <summary>
+        /// Updates the current time to the provided time. For drawables this is a no-op
+        /// as they obtain their time via their <see cref="Clock"/>.
+        /// </summary>
         public void UpdateTime(FrameTimeInfo time)
         {
         }
@@ -1058,6 +1078,10 @@ namespace osu.Framework.Graphics
         #region Parenting (scene graph operations, including ProxyDrawable)
 
         private IContainer parent;
+
+        /// <summary>
+        /// The parent of this drawable in the scene graph.
+        /// </summary>
         public IContainer Parent
         {
             get { return parent; }
@@ -1077,8 +1101,15 @@ namespace osu.Framework.Graphics
             }
         }
 
+        /// <summary>
+        /// Refers to the original if this drawable was created via
+        /// <see cref="CreateProxy"/>. Otherwise refers to this.
+        /// </summary>
         internal virtual Drawable Original => this;
 
+        /// <summary>
+        /// True iff <see cref="CreateProxy"/> has been called before.
+        /// </summary>
         internal bool HasProxy => proxy != null;
         private ProxyDrawable proxy;
 
@@ -1110,6 +1141,9 @@ namespace osu.Framework.Graphics
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
+        /// <summary>
+        /// The screen-space quad this drawable occupies.
+        /// </summary>
         public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
@@ -1117,6 +1151,10 @@ namespace osu.Framework.Graphics
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
+        /// <summary>
+        /// Contains a linear transformation, colour information, and blending information
+        /// of this drawable.
+        /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
