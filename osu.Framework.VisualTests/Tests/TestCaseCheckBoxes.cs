@@ -26,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 10)),
+                    FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 10)),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
                     Children = new Drawable[]

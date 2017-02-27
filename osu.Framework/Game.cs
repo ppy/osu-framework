@@ -149,7 +149,7 @@ namespace osu.Framework
             (performanceContainer = new PerformanceOverlay
             {
                 Margin = new MarginPadding(5),
-                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(10, 10)),
+                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(10, 10)),
                 AutoSizeAxes = Axes.Both,
                 Alpha = 0,
                 Anchor = Anchor.BottomRight,

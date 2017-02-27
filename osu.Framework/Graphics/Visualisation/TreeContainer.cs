@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    FlowStrategy = FlowStrategies.GetVerticalFlow(),
+                    FlowStrategy = FlowStrategies.CreateVerticalFlow(),
                     Children = new Drawable[]
                     {
                         titleBar = new Box //title decoration
@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.Visualisation
                                 new FlowContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
-                                    FlowStrategy = FlowStrategies.GetFillFlow(new Vector2(1)),
+                                    FlowStrategy = FlowStrategies.CreateFillFlow(new Vector2(1)),
                                     Children = new Drawable[]
                                     {
                                         new Button

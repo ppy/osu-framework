@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Both,
-                            FlowStrategy = FlowStrategies.GetVerticalFlow(),
+                            FlowStrategy = FlowStrategies.CreateVerticalFlow(),
                         }
                     }
                 }

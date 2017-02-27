@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay()
         {
-            FlowStrategy = FlowStrategies.GetVerticalFlow();
+            FlowStrategy = FlowStrategies.CreateVerticalFlow();
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
         }
     }

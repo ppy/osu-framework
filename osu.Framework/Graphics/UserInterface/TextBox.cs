@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         TextFlow = new FlowContainer
                         {
-                            FlowStrategy = FlowStrategies.GetHorizontalFlow(),
+                            FlowStrategy = FlowStrategies.CreateHorizontalFlow(),
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },

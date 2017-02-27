@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 Flow = new FlowContainer
                 {
-                    FlowStrategy = FlowStrategies.GetVerticalFlow(),
+                    FlowStrategy = FlowStrategies.CreateVerticalFlow(),
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(10, 14)
                 },

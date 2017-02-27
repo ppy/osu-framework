@@ -41,7 +41,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             LayoutDuration = 100,
                             LayoutEasing = EasingTypes.Out,
-                            FlowStrategy = FlowStrategies.GetFillFlow(new Vector2(1, 1)),
+                            FlowStrategy = FlowStrategies.CreateFillFlow(new Vector2(1, 1)),
                             RelativeSizeAxes = Axes.Both & ~scrollAxis,
                             AutoSizeAxes = scrollAxis,
                             Padding = new MarginPadding(5)
@@ -71,7 +71,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     LayoutDuration = 100,
                                     LayoutEasing = EasingTypes.Out,
-                                    FlowStrategy = FlowStrategies.GetFillFlow(new Vector2(1, 1)),
+                                    FlowStrategy = FlowStrategies.CreateFillFlow(new Vector2(1, 1)),
                                     Size = new Vector2(1000, 0),
                                     AutoSizeAxes = Axes.Y,
                                     Padding = new MarginPadding(5)

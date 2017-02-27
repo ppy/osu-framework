@@ -85,7 +85,7 @@ namespace osu.Framework.Screens.Testing
             leftScrollContainer.Add(leftFlowContainer = new FlowContainer
             {
                 Padding = new MarginPadding(3),
-                FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(0, 5)),
+                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 5)),
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
             });

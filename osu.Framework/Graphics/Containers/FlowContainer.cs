@@ -105,11 +105,11 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Constructs a new flow container with the <see cref="FlowStrategies.Default"/> flow strategy.
+        /// Constructs a new flow container with the <see cref="FlowStrategies.CreateDefault"/> flow strategy.
         /// </summary>
         public FlowContainer()
         {
-            FlowStrategy = FlowStrategies.Default;
+            FlowStrategy = FlowStrategies.CreateDefault();
         }
 
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;

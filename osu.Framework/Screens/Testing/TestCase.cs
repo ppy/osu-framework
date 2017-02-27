@@ -50,7 +50,7 @@ namespace osu.Framework.Screens.Testing
                     },
                     ButtonsContainer = new FlowContainer
                     {
-                        FlowStrategy = FlowStrategies.GetVerticalFlow(new Vector2(15, 5)),
+                        FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(15, 5)),
                         AutoSizeAxes = Axes.Both,
                     },
                 };

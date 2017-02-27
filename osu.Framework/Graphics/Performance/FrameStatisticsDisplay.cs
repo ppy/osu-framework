@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.Performance
                                         },
                                         new FlowContainer
                                         {
-                                            FlowStrategy = FlowStrategies.GetHorizontalFlow(),
+                                            FlowStrategy = FlowStrategies.CreateHorizontalFlow(),
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
@@ -199,7 +199,7 @@ namespace osu.Framework.Graphics.Performance
                                             Anchor = Anchor.TopRight,
                                             Origin = Anchor.TopRight,
                                             AutoSizeAxes = Axes.Both,
-                                            FlowStrategy = FlowStrategies.GetFillFlow(new Vector2(5, 1)),
+                                            FlowStrategy = FlowStrategies.CreateFillFlow(new Vector2(5, 1)),
                                             Padding = new MarginPadding { Right = 5 },
                                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
                                                        where t < PerformanceCollectionType.AmountTypes
