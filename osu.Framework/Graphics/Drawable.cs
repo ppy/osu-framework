@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            CreationID = creationCounter.Increment();
+            creationID = creationCounter.Increment();
         }
 
         ~Drawable()
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics
 
         private static StopwatchClock perf = new StopwatchClock(true);
 
-        protected internal void Load(Game game)
+        internal void Load(Game game)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics
         /// The primary use case of this ID is stable sorting of Drawables with equal
         /// <see cref="Depth"/>.
         /// </summary>
-        internal long CreationID { get; }
+        private long creationID { get; }
         private static AtomicCounter creationCounter = new AtomicCounter();
 
         private float depth;
@@ -223,7 +223,27 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected virtual IComparer<Drawable> DepthComparer => new DepthComparer();
+        public class CreationOrderDepthComparer : IComparer<Drawable>
+        {
+            public int Compare(Drawable x, Drawable y)
+            {
+                int i = y.Depth.CompareTo(x.Depth);
+                if (i != 0) return i;
+                return x.creationID.CompareTo(y.creationID);
+            }
+        }
+
+        public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
+        {
+            public int Compare(Drawable x, Drawable y)
+            {
+                int i = y.Depth.CompareTo(x.Depth);
+                if (i != 0) return i;
+                return y.creationID.CompareTo(x.creationID);
+            }
+        }
+
+        protected virtual IComparer<Drawable> DepthComparer => new CreationOrderDepthComparer();
 
         #endregion
 
@@ -317,7 +337,7 @@ namespace osu.Framework.Graphics
         /// Called once every frame.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
-        protected internal virtual bool UpdateSubTree()
+        internal virtual bool UpdateSubTree()
         {
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
@@ -1308,7 +1328,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        protected internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
@@ -1539,7 +1559,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual bool RequestingFocus => false;
 
-        internal bool Hovering;
+        /// <summary>
+        /// Whether this Drawable is currently hovered over.
+        /// </summary>
+        public bool Hovering { get; internal set; }
 
         /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
@@ -2126,26 +2149,6 @@ namespace osu.Framework.Graphics
         Mixture,
         Additive,
         None,
-    }
-
-    public class DepthComparer : IComparer<Drawable>
-    {
-        public int Compare(Drawable x, Drawable y)
-        {
-            int i = y.Depth.CompareTo(x.Depth);
-            if (i != 0) return i;
-            return x.CreationID.CompareTo(y.CreationID);
-        }
-    }
-
-    public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
-    {
-        public int Compare(Drawable x, Drawable y)
-        {
-            int i = y.Depth.CompareTo(x.Depth);
-            if (i != 0) return i;
-            return y.CreationID.CompareTo(x.CreationID);
-        }
     }
 
     public enum LoadState

@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics
 
         private Drawable original;
 
-        internal override Drawable Original => original;
+        internal sealed override Drawable Original => original;
 
         // We do not want to receive updates. That is the business
         // of the original drawable.
