@@ -50,8 +50,8 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!(search is ISearchable))
                 {
-                    if (search is Container<Drawable>)
-                        match((search as Container<Drawable>).Children);
+                    if (search is IContainer)
+                        match((search as IContainerEnumerable<Drawable>).Children);
                     continue;
                 }
 

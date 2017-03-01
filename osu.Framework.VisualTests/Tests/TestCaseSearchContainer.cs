@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[] 
                     {
-                        new FlowContainer()
+                        new FlowContainer<SearchableText>()
                         {
                             Direction = FlowDirections.Vertical,
                             Children = text,
