@@ -18,7 +18,7 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 
-        public List<InputState> GetPendingStates()
+        public virtual List<InputState> GetPendingStates()
         {
             lock (this)
             {
