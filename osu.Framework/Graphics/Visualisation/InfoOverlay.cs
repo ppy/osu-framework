@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private FlashyBox layout;
         private FlashyBox shape;
+        private FlashyBox childShape;
 
         public InfoOverlay()
         {
@@ -53,6 +54,19 @@ namespace osu.Framework.Graphics.Visualisation
                     Alpha = 0.5f,
                 },
                 shape = new FlashyBox(d => d.ScreenSpaceDrawQuad)
+                {
+                    Colour = Color4.Blue,
+                    Alpha = 0.5f,
+                },
+                childShape = new FlashyBox(delegate(Drawable d)
+                {
+                    var c = d as IContainer;
+                    if (c == null)
+                        return d.ScreenSpaceDrawQuad;
+
+                    RectangleF rect = new RectangleF(c.ChildOffset, c.ChildSize);
+                    return d.ToScreenSpace(rect);
+                })
                 {
                     Colour = Color4.Red,
                     Alpha = 0.5f,
