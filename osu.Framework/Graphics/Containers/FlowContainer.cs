@@ -11,15 +11,9 @@ using OpenTK;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container that can be used to fluently arrange its children according to a specific <see cref="IFlowStrategy"/>.
+    /// A container that can be used to fluently arrange its children.
     /// </summary>
-    public class FlowContainer : FlowContainer<Drawable>
-    { }
-
-    /// <summary>
-    /// A container that can be used to fluently arrange its children according to a specific <see cref="IFlowStrategy"/>.
-    /// </summary>
-    public class FlowContainer<T> : Container<T>
+    public abstract class FlowContainer<T> : Container<T>
         where T : Drawable
     {
         internal event Action OnLayout;
@@ -58,10 +52,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Cached layout = new Cached();
 
-        /// <summary>
-        /// True if the flow strategy should be exchangable by users of this container, false otherwise. Default is true.
-        /// </summary>
-        protected virtual bool CanChangeFlowStrategy => true;
+        protected void InvalidateLayout() => layout.Invalidate();
 
         private IFlowStrategy flowStrategy;
         /// <summary>
@@ -72,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
             get { return flowStrategy; }
             set
             {
-                if (!CanChangeFlowStrategy && flowStrategy != null)
+                if (flowStrategy != null)
                     throw new NotSupportedException($"This flow container does not allow alterations to its flow strategy. Flow container is of type {GetType().FullName}.");
 
                 if (value == null)
@@ -104,15 +95,6 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        /// <summary>
-        /// Constructs a new flow container with the <see cref="FlowStrategies.CreateDefault"/> flow strategy.
-        /// </summary>
-        public FlowContainer()
-        {
-            FlowStrategy = FlowStrategies.CreateDefault();
-            FlowStrategy.OnInvalidateLayout += () => layout.Invalidate();
-        }
-
         protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -141,7 +123,9 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation, source);
         }
 
-        protected virtual IEnumerable<T> SortedChildren => AliveInternalChildren;
+        protected virtual IEnumerable<T> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
+
+        protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
         protected override void UpdateAfterChildren()
         {
@@ -156,22 +140,31 @@ namespace osu.Framework.Graphics.Containers
                     if (!Children.Any())
                         return;
 
-                    var layoutChildren = SortedChildren.Where(d => d.IsPresent).ToArray();
-                    if (layoutChildren.Any(d => (d.RelativeSizeAxes & AutoSizeAxes) != 0))
-                        throw new InvalidOperationException($"Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for. The flow container is set to autosize in {AutoSizeAxes} axes.");
-                    if (layoutChildren.Any(d => d.RelativePositionAxes != Axes.None))
-                        throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning.");
+                    var positions = ComputeLayoutPositions().ToArray();
 
-                    var positions = FlowStrategy.UpdateLayout(this, layoutChildren.Select(c => c.BoundingBox.Size).ToArray()).ToArray();
-                    if (positions.Length != layoutChildren.Length)
-                        throw new InvalidOperationException($"The flow strategy {FlowStrategy} returned a total of {positions.Length} positions for {layoutChildren.Length} children. Flow strategies must return 1 position per child.");
-
-                    for (var i = 0; i < layoutChildren.Length; ++i)
+                    int i = 0;
+                    foreach (var d in FlowingChildren)
                     {
+                        if (i > positions.Length)
+                            throw new InvalidOperationException($"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+
+                        if ((d.RelativeSizeAxes & AutoSizeAxes) != 0)
+                            throw new InvalidOperationException(
+                                $"Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
+                                $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {RelativeSizeAxes} axes.");
+
+                        if (d.RelativePositionAxes != Axes.None)
+                            throw new InvalidOperationException($"A flow container cannot contain a child with relative positioning (it is {RelativePositionAxes}).");
+
                         var finalPos = positions[i];
-                        if (layoutChildren[i].Position != finalPos)
-                            layoutChildren[i].MoveTo(finalPos, LayoutDuration, LayoutEasing);
+                        if (d.Position != finalPos)
+                            d.MoveTo(finalPos, LayoutDuration, LayoutEasing);
+
+                        ++i;
                     }
+
+                    if (i != positions.Length)
+                        throw new InvalidOperationException($"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
                 });
             }
         }

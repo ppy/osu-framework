@@ -15,7 +15,7 @@ using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteText : FlowContainer
+    public class SpriteText : FillFlowContainer
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':' };
 
@@ -32,29 +32,15 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
 
-        protected sealed override bool CanChangeFlowStrategy => false;
-
         public bool AllowMultiline
         {
-            get { return ((FillFlowStrategy)FlowStrategy).VerticalFlow != VerticalDirection.None; }
+            get { return Direction == FillDirection.RightDown; }
             set
             {
                 if (value)
-                    ((FillFlowStrategy)FlowStrategy).VerticalFlow = VerticalDirection.TopToBottom;
+                    Direction = FillDirection.RightDown;
                 else
-                    ((FillFlowStrategy)FlowStrategy).VerticalFlow = VerticalDirection.None;
-            }
-        }
-
-        public Vector2 Spacing
-        {
-            get { return ((FillFlowStrategy)FlowStrategy).Spacing; }
-            set
-            {
-                if (Spacing == value)
-                    return;
-
-                ((FillFlowStrategy)FlowStrategy).Spacing = value;
+                    Direction = FillDirection.Right;
             }
         }
 

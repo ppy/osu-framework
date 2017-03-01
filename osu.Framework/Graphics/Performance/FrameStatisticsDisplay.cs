@@ -150,9 +150,9 @@ namespace osu.Framework.Graphics.Performance
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
-                                        new FlowContainer
+                                        new FillFlowContainer
                                         {
-                                            FlowStrategy = FlowStrategies.CreateHorizontalFlow(),
+                                            Direction = FillDirection.Right,
                                             AutoSizeAxes = Axes.X,
                                             RelativeSizeAxes = Axes.Y,
                                             Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
@@ -194,12 +194,12 @@ namespace osu.Framework.Graphics.Performance
                                     Alpha = 0,
                                     Children = new []
                                     {
-                                        new FlowContainer
+                                        new FillFlowContainer
                                         {
                                             Anchor = Anchor.TopRight,
                                             Origin = Anchor.TopRight,
                                             AutoSizeAxes = Axes.Both,
-                                            FlowStrategy = FlowStrategies.CreateFillFlow(new Vector2(5, 1)),
+                                            Spacing = new Vector2(5, 1),
                                             Padding = new MarginPadding { Right = 5 },
                                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
                                                        where t < PerformanceCollectionType.AmountTypes

@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class TextBox : TabbableContainer
     {
-        protected FlowContainer TextFlow;
+        protected FillFlowContainer TextFlow;
         protected Box Background;
         protected Box Caret;
         protected Container TextContainer;
@@ -93,9 +93,9 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Y,
                             Alpha = 0,
                         },
-                        TextFlow = new FlowContainer
+                        TextFlow = new FillFlowContainer
                         {
-                            FlowStrategy = FlowStrategies.CreateHorizontalFlow(),
+                            Direction = FillDirection.Right,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },
@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (index < text.Length)
                     return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
                 var d = TextFlow.Children.ElementAt(index - 1);
-                return d.DrawPosition.X + d.DrawSize.X + ((FillFlowStrategy)TextFlow.FlowStrategy).Spacing.X + TextFlow.DrawPosition.X;
+                return d.DrawPosition.X + d.DrawSize.X + ((FillFlowContainer)TextFlow.FlowStrategy).Spacing.X + TextFlow.DrawPosition.X;
             }
             return 0;
         }

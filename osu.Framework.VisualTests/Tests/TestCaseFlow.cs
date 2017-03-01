@@ -9,15 +9,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.MathUtils;
 using osu.Framework.Screens.Testing;
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -48,7 +45,7 @@ namespace osu.Framework.VisualTests.Tests
                 Items = null,
                 SelectedIndex = 0,
             });
-            changeTest(FlowTestCase.FillWithSpacing);
+            changeTest(FlowTestCase.RightDown);
         }
 
         protected override void Update()
@@ -69,22 +66,23 @@ namespace osu.Framework.VisualTests.Tests
                 method.Invoke(this, new object[0]);
         }
 
-        private FlowContainer buildTest(IFlowStrategy flowStrategy)
+        private FillFlowContainer buildTest(FillDirection dir, Vector2 spacing)
         {
             ButtonsContainer.RemoveAll(btn => btn != selectionDropdown);
 
-            FlowContainer fc;
+            FillFlowContainer fc;
             var cnt = new Container()
             {
                 Padding = new MarginPadding(25f) { Top = 100f },
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
                 {
-                    fc = new FlowContainer()
+                    fc = new FillFlowContainer()
                     {
                         RelativeSizeAxes = Axes.Both,
                         AutoSizeAxes = Axes.None,
-                        FlowStrategy = flowStrategy
+                        Direction = dir,
+                        Spacing = spacing,
                     }
                 }
             };
@@ -257,108 +255,68 @@ namespace osu.Framework.VisualTests.Tests
             return fc;
         }
 
-        [FlowTestCase(FlowTestCase.FillWithSpacing)]
+        [FlowTestCase(FlowTestCase.RightDown)]
         private void test1()
         {
             // Expected behaviour: Boxes appear left-to-right, top-to-bottom
             // and wrap into the next line
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.LeftToRight,
-                VerticalFlow = VerticalDirection.TopToBottom,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.RightDown, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.HorizontalWithSpacing)]
+        [FlowTestCase(FlowTestCase.Right)]
         private void test2()
         {
             // Expected behaviour: Boxes appear left-to-right
             // and start going off-screen
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.LeftToRight,
-                VerticalFlow = VerticalDirection.None,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.Right, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.VerticalWithSpacing)]
+        [FlowTestCase(FlowTestCase.Down)]
         private void test3()
         {
             // Expected behaviour: Boxes appear top-to-bottom
             // and start going off-screen
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.None,
-                VerticalFlow = VerticalDirection.TopToBottom,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.Down, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.RightToLeftWithSpacing)]
+        [FlowTestCase(FlowTestCase.Left)]
         private void test4()
         {
             // Expected behaviour: Boxes appear right-to-left
             // and start going off-screen
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.RightToLeft,
-                VerticalFlow = VerticalDirection.None,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.Left, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.BottomToTopWithSpacing)]
+        [FlowTestCase(FlowTestCase.Up)]
         private void test5()
         {
             // Expected behaviour: Boxes appear bottom-to-top
             // and start going off-screen
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.None,
-                VerticalFlow = VerticalDirection.BottomToTop,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.Up, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.FillInverseWithSpacing)]
+        [FlowTestCase(FlowTestCase.LeftUp)]
         private void test6()
         {
             // Expected behaviour: Boxes appear right-to-left, bottom-to-top
             // and wrap into the next line
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.RightToLeft,
-                VerticalFlow = VerticalDirection.BottomToTop,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.LeftUp, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.FillRightToLeftWithSpacing)]
+        [FlowTestCase(FlowTestCase.LeftDown)]
         private void test7()
         {
             // Expected behaviour: Boxes appear right-to-left, top-to-bottom
             // and wrap into the next line
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.RightToLeft,
-                VerticalFlow = VerticalDirection.TopToBottom,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.LeftDown, new Vector2(5, 5));
         }
 
-        [FlowTestCase(FlowTestCase.FillBottomToTopWithSpacing)]
+        [FlowTestCase(FlowTestCase.RightUp)]
         private void test8()
         {
             // Expected behaviour: Boxes appear left-to-right, top-to-bottom
             // and wrap into the next line
-            buildTest(new FillFlowStrategy()
-            {
-                HorizontalFlow = HorizontalDirection.LeftToRight,
-                VerticalFlow = VerticalDirection.BottomToTop,
-                Spacing = new Vector2(5, 5)
-            });
+            buildTest(FillDirection.RightUp, new Vector2(5, 5));
         }
 
         private class TestCaseDropdown : DropDownMenu<FlowTestCase>
@@ -421,14 +379,14 @@ namespace osu.Framework.VisualTests.Tests
         }
         enum FlowTestCase
         {
-            FillWithSpacing,
-            BottomToTopWithSpacing,
-            HorizontalWithSpacing,
-            VerticalWithSpacing,
-            RightToLeftWithSpacing,
-            FillRightToLeftWithSpacing,
-            FillBottomToTopWithSpacing,
-            FillInverseWithSpacing
+            RightDown,
+            RightUp,
+            Right,
+            LeftDown,
+            LeftUp,
+            Left,
+            Down,
+            Up,
         }
     }
 }

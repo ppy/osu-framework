@@ -20,9 +20,10 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer textBoxes = new FlowContainer
+            FillFlowContainer textBoxes = new FillFlowContainer
             {
-                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 50)),
+                Direction = FillDirection.Down,
+                Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
                     Top = 50,
@@ -72,9 +73,10 @@ namespace osu.Framework.VisualTests.Tests
                 TabbableContentContainer = textBoxes
             });
 
-            FlowContainer otherTextBoxes = new FlowContainer
+            FillFlowContainer otherTextBoxes = new FillFlowContainer
             {
-                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 50)),
+                Direction = FillDirection.Down,
+                Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
                     Top = 50,
@@ -101,9 +103,10 @@ namespace osu.Framework.VisualTests.Tests
                 TabbableContentContainer = otherTextBoxes
             });
 
-            FlowContainer nestedTextBoxes = new FlowContainer
+            FillFlowContainer nestedTextBoxes = new FillFlowContainer
             {
-                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 50)),
+                Direction = FillDirection.Down,
+                Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,

@@ -22,11 +22,12 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new FlowContainer
+                new FillFlowContainer
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 10)),
+                    Direction = FillDirection.Down,
+                    Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
                     Children = new Drawable[]

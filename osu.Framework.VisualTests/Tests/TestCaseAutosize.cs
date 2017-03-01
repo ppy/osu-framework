@@ -332,10 +332,11 @@ namespace osu.Framework.VisualTests.Tests
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
-                            boxes = new FlowContainer {
+                            boxes = new FillFlowContainer {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
-                                FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(0, 10)),
+                                Direction = FillDirection.Down,
+                                Spacing = new Vector2(0, 10),
                             }
                         }
                     });
@@ -366,7 +367,7 @@ namespace osu.Framework.VisualTests.Tests
                         Container box2;
                         Container box3;
 
-                        testContainer.Add(new FlowContainer
+                        testContainer.Add(new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
@@ -494,7 +495,7 @@ namespace osu.Framework.VisualTests.Tests
                         Container box2;
                         Container box3;
 
-                        testContainer.Add(new FlowContainer
+                        testContainer.Add(new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
@@ -622,7 +623,7 @@ namespace osu.Framework.VisualTests.Tests
                         Container box2;
                         Container box3;
 
-                        testContainer.Add(new FlowContainer
+                        testContainer.Add(new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]
@@ -750,7 +751,7 @@ namespace osu.Framework.VisualTests.Tests
                         Drawable box2;
                         Drawable box3;
 
-                        testContainer.Add(new FlowContainer
+                        testContainer.Add(new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new Drawable[]

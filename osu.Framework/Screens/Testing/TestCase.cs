@@ -16,7 +16,7 @@ namespace osu.Framework.Screens.Testing
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
 
-        protected FlowContainer ButtonsContainer;
+        protected FillFlowContainer ButtonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
@@ -48,9 +48,10 @@ namespace osu.Framework.Screens.Testing
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    ButtonsContainer = new FlowContainer
+                    ButtonsContainer = new FillFlowContainer
                     {
-                        FlowStrategy = FlowStrategies.CreateVerticalFlow(new Vector2(15, 5)),
+                        Direction = FillDirection.Down,
+                        Spacing = new Vector2(15, 5),
                         AutoSizeAxes = Axes.Both,
                     },
                 };
