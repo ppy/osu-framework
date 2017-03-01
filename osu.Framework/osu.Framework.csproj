@@ -114,6 +114,7 @@
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Input\EventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
+    <Compile Include="Input\PassThroughInputManager.cs" />
     <Compile Include="Screens\Testing\TestBrowser.cs" />
     <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
