@@ -44,7 +44,7 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
             while (true)
             {
@@ -69,7 +69,7 @@ namespace osu.Framework.Desktop.Platform
                         var str = Encoding.UTF8.GetString(data);
                         var json = JToken.Parse(str);
                         var type = Type.GetType(json["Type"].Value<string>());
-                        Debug.Assert(type != null);
+                        Trace.Assert(type != null);
                         var msg = new IpcMessage
                         {
                             Type = type.AssemblyQualifiedName,
@@ -82,7 +82,7 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        public async Task SendMessage(IpcMessage message)
+        public async Task SendMessageAsync(IpcMessage message)
         {
             using (var client = new TcpClient())
             {

@@ -4,7 +4,7 @@
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (counter.DrawWidth != aimWidth)
             {
-                ClearTransformations();
+                ClearTransforms();
 
                 if (aimWidth == 0)
                     Size = counter.DrawSize;

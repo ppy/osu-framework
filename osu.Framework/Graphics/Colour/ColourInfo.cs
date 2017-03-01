@@ -67,7 +67,8 @@ namespace osu.Framework.Graphics.Colour
         {
             get
             {
-                Debug.Assert(HasSingleColour, "Attempted to read single colour from multi-colour ColourInfo.");
+                if (!HasSingleColour)
+                    throw new InvalidOperationException("Attempted to read single colour from multi-colour ColourInfo.");
                 return TopLeft;
             }
 
@@ -82,9 +83,9 @@ namespace osu.Framework.Graphics.Colour
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
-        public void ApplyChild(ColourInfo childColour)
+        internal void ApplyChild(ColourInfo childColour)
         {
-            Debug.Assert(HasSingleColour);
+            Trace.Assert(HasSingleColour);
             if (childColour.HasSingleColour)
                 Colour *= childColour.Colour;
             else
@@ -99,9 +100,9 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public void ApplyChild(ColourInfo childColour, Quad interp)
+        internal void ApplyChild(ColourInfo childColour, Quad interp)
         {
-            Debug.Assert(!HasSingleColour);
+            Trace.Assert(!HasSingleColour);
 
             SRGBColour newTopLeft = Interpolate(interp.TopLeft) * childColour.TopLeft;
             SRGBColour newTopRight = Interpolate(interp.TopRight) * childColour.TopRight;

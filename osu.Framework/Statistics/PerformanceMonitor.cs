@@ -16,12 +16,16 @@ namespace osu.Framework.Statistics
 
         private Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
+        private InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[(int)PerformanceCollectionType.AmountTypes];
+
         private FrameStatistics currentFrame;
 
         private const int spike_time = 100;
 
+        private const int max_pending_frames = 100;
+
         internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(100);
+        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
         internal AtomicCounter[] Counters = new AtomicCounter[(int)StatisticsCounterType.AmountTypes];
 
         private double consumptionTime;
@@ -33,6 +37,12 @@ namespace osu.Framework.Statistics
         public PerformanceMonitor(IFrameBasedClock clock)
         {
             Clock = clock;
+
+            for (int i = 0; i < (int)PerformanceCollectionType.AmountTypes; i++)
+            {
+                var t = (PerformanceCollectionType)i;
+                endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
+            }
         }
 
         public void RegisterCounter(StatisticsCounterType type)
@@ -57,7 +67,7 @@ namespace osu.Framework.Statistics
 
             currentCollectionTypeStack.Push(type);
 
-            return new InvokeOnDisposal(() => endCollecting(type));
+            return endCollectionDelegates[(int)type];
         }
 
         /// <summary>
@@ -87,10 +97,11 @@ namespace osu.Framework.Statistics
             {
                 currentFrame.Postprocess();
                 PendingFrames.Enqueue(currentFrame);
-                if (PendingFrames.Count > 100)
+                if (PendingFrames.Count >= max_pending_frames)
                 {
                     FrameStatistics oldFrame;
                     PendingFrames.TryDequeue(out oldFrame);
+                    FramesHeap.FreeObject(oldFrame);
                 }
             }
 

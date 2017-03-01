@@ -13,7 +13,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Desktop.Platform
 {
-    public abstract class DesktopGameHost : BasicGameHost
+    public abstract class DesktopGameHost : GameHost
     {
         private readonly TcpIpcProvider ipcProvider;
         private readonly Task ipcTask;
@@ -40,7 +40,7 @@ namespace osu.Framework.Desktop.Platform
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
-                    ipcTask = ipcProvider.Start();
+                    ipcTask = ipcProvider.StartAsync();
                 }
             }
         }
@@ -92,21 +92,9 @@ namespace osu.Framework.Desktop.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        protected override void LoadGame(BaseGame game)
+        public override async Task SendMessageAsync(IpcMessage message)
         {
-            //delay load until we have a size.
-            if (Size == Vector2.Zero)
-            {
-                UpdateThread.Scheduler.Add(delegate { LoadGame(game); });
-                return;
-            }
-
-            base.LoadGame(game);
-        }
-
-        public override async Task SendMessage(IpcMessage message)
-        {
-            await ipcProvider.SendMessage(message);
+            await ipcProvider.SendMessageAsync(message);
         }
 
         protected override void Dispose(bool isDisposing)

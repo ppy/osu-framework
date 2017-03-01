@@ -24,6 +24,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 new ScrollContainer
                 {
+                    RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
                         flow = new FlowContainer

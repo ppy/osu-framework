@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using OpenTK.Graphics.ES30;
+using System.IO;
 
 namespace osu.Framework.Graphics.Shaders
 {

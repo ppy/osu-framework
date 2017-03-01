@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -51,7 +50,8 @@ namespace osu.Framework.Graphics.Textures
 
         public Texture(TextureGL textureGl)
         {
-            Debug.Assert(textureGl != null);
+            if (textureGl == null)
+                throw new ArgumentNullException(nameof(textureGl));
             TextureGL = textureGl;
         }
 
@@ -85,21 +85,13 @@ namespace osu.Framework.Graphics.Textures
 
         public int Width
         {
-            get
-            {
-                Debug.Assert(TextureGL != null);
-                return TextureGL.Width;
-            }
+            get { return TextureGL.Width; }
             set { TextureGL.Width = value; }
         }
 
         public int Height
         {
-            get
-            {
-                Debug.Assert(TextureGL != null);
-                return TextureGL.Height;
-            }
+            get { return TextureGL.Height; }
             set { TextureGL.Height = value; }
         }
 

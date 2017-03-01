@@ -160,6 +160,7 @@ namespace osu.Framework.Audio
             TrackManager tm = new TrackManager(store);
             AddItem(tm);
             tm.AddAdjustment(AdjustableProperty.Volume, VolumeTrack);
+            VolumeTrack.ValueChanged += tm.InvalidateState;
 
             return tm;
         }
@@ -176,6 +177,7 @@ namespace osu.Framework.Audio
             SampleManager sm = new SampleManager(store);
             AddItem(sm);
             sm.AddAdjustment(AdjustableProperty.Volume, VolumeSample);
+            VolumeSample.ValueChanged += sm.InvalidateState;
 
             return sm;
         }
@@ -263,7 +265,7 @@ namespace osu.Framework.Audio
                 Bass.Init(newDeviceIndex);
             }
 
-            Debug.Assert(Bass.LastError == Errors.OK);
+            Trace.Assert(Bass.LastError == Errors.OK);
 
             //we have successfully initialised a new device.
             currentAudioDevice = newDevice;

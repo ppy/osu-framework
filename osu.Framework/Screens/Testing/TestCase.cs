@@ -44,15 +44,15 @@ namespace osu.Framework.Screens.Testing
             {
                 InternalChildren = new Drawable[]
                 {
+                    Contents = new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                    },
                     ButtonsContainer = new FlowContainer
                     {
                         Direction = FlowDirections.Vertical,
                         AutoSizeAxes = Axes.Both,
                         Spacing = new Vector2(15, 5)
-                    },
-                    Contents = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
                     },
                 };
             }

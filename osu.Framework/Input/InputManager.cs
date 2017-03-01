@@ -50,7 +50,7 @@ namespace osu.Framework.Input
         /// </summary>
         public double LastActionTime;
 
-        protected BasicGameHost Host;
+        protected GameHost Host;
 
         public Drawable FocusedDrawable;
 
@@ -109,9 +109,11 @@ namespace osu.Framework.Input
             {
                 if (h.IsActive)
                     pendingStates.AddRange(h.GetPendingStates());
+                else
+                    h.GetPendingStates();
             }
 
-            unfocusIsNoLongerValid(CurrentState);
+            unfocusIfNoLongerValid(CurrentState);
 
             if (!PassThrough)
             {
@@ -176,11 +178,11 @@ namespace osu.Framework.Input
             mouseInputQueue.Clear();
 
             if (state.Keyboard != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildKeyboardInputQueue(keyboardInputQueue);
 
             if (state.Mouse != null)
-                foreach (Drawable d in AliveChildren)
+                foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
             keyboardInputQueue.Reverse();
@@ -453,7 +455,7 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
-            if (!unfocusIsNoLongerValid(state))
+            if (!unfocusIfNoLongerValid(state))
             {
                 if (args.Key == Key.Escape)
                 {
@@ -474,7 +476,7 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (!unfocusIsNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
+            if (!unfocusIfNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
                 return true;
 
             return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
@@ -484,7 +486,7 @@ namespace osu.Framework.Input
         /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
         /// <returns>true if there is no longer a focus.</returns>
-        private bool unfocusIsNoLongerValid(InputState state)
+        private bool unfocusIfNoLongerValid(InputState state)
         {
             if (FocusedDrawable == null) return true;
 
@@ -542,6 +544,14 @@ namespace osu.Framework.Input
             }
 
             return false;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            foreach (var h in inputHandlers)
+                h.Dispose();
+
+            base.Dispose(isDisposing);
         }
     }
 

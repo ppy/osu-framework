@@ -3,23 +3,25 @@
 
 using System.Linq;
 using osu.Framework.IO.Stores;
+using System;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackManager : AudioCollectionManager<AudioTrack>
+    public class TrackManager : AudioCollectionManager<Track>
     {
         IResourceStore<byte[]> store;
 
-        AudioTrack exclusiveTrack;
+        private Track exclusiveTrack;
+        private object exclusiveMutex = new object();
 
         public TrackManager(IResourceStore<byte[]> store)
         {
             this.store = store;
         }
 
-        public AudioTrack Get(string name)
+        public Track Get(string name)
         {
-            AudioTrackBass track = new AudioTrackBass(store.GetStream(name));
+            TrackBass track = new TrackBass(store.GetStream(name));
             AddItem(track);
             return track;
         }
@@ -28,29 +30,40 @@ namespace osu.Framework.Audio.Track
         /// Specify an AudioTrack which should get exclusive playback over everything else.
         /// Will pause all other tracks and throw away any existing exclusive track.
         /// </summary>
-        public void SetExclusive(AudioTrack track)
+        public void SetExclusive(Track track)
         {
-            if (exclusiveTrack == track) return;
+            if (track == null)
+                throw new ArgumentNullException(nameof(track));
 
-            Items.ForEach(i => i.Stop());
+            Track last;
+            lock (exclusiveMutex)
+            {
+                if (exclusiveTrack == track) return;
+                last = exclusiveTrack;
+                exclusiveTrack = track;
+            }
 
-            exclusiveTrack?.Dispose();
-            exclusiveTrack = track;
+            PendingActions.Enqueue(() =>
+            {
+                foreach (var item in Items)
+                    if (!item.HasCompleted)
+                        item.Stop();
 
-            AddItem(track);
+                last?.Dispose();
+                AddItem(track);
+            });
         }
 
         public override void Update()
         {
-            base.Update();
-
             if (exclusiveTrack?.HasCompleted != false)
-                findExclusiveTrack();
-        }
+                lock (exclusiveMutex)
+                    // We repeat the if-check inside the lock to make sure exclusiveTrack
+                    // has not been overwritten prior to us taking the lock.
+                    if (exclusiveTrack?.HasCompleted != false)
+                        exclusiveTrack = Items.FirstOrDefault();
 
-        private void findExclusiveTrack()
-        {
-            exclusiveTrack = Items.FirstOrDefault();
+            base.Update();
         }
     }
 }

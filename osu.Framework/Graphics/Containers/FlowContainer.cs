@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Caching;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -104,10 +104,12 @@ namespace osu.Framework.Graphics.Containers
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
-                FlowContainer flowContainer = (FlowContainer)d;
+                FlowContainer<T> flowContainer = (FlowContainer<T>)d;
                 flowContainer.Spacing = CurrentValue;
             }
         }
+
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate || !layout.IsValid;
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -135,7 +137,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation, source);
         }
 
-        protected virtual IEnumerable<T> SortedChildren => AliveChildren;
+        protected virtual IEnumerable<T> SortedChildren => AliveInternalChildren;
 
         protected override void UpdateAfterChildren()
         {
@@ -154,7 +156,7 @@ namespace osu.Framework.Graphics.Containers
                     Vector2 max = maximumSize;
                     if (direction == FlowDirections.Both && maximumSize == Vector2.Zero)
                     {
-                        var s = DrawSize;
+                        var s = ChildSize;
 
                         //If we are autosize and haven't specified a maximum size, we should allow infinite expansion.
                         //If we are inheriting then we need to use the parent size (our ActualSize).

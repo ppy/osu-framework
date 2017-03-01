@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transformations;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
@@ -115,6 +115,13 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
+
+        /// <summary>
+        /// The container holding all children which are getting scrolled around.
+        /// </summary>
+        public Container<Drawable> ScrollContent => content;
+
         private bool isDragging;
 
         private Direction scrollDir;
@@ -124,7 +131,6 @@ namespace osu.Framework.Graphics.Containers
         {
             this.scrollDir = scrollDir;
 
-            RelativeSizeAxes = Axes.Both;
             Masking = true;
 
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
@@ -205,7 +211,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            Debug.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
+            Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
 
             double currentTime = Time.Current;
             double timeDelta = currentTime - lastDragTime;
@@ -229,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            Debug.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
+            Trace.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
 
             isDragging = false;
 
@@ -261,7 +267,25 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size[scrollDim]), false);
 
+        public void OffsetScrollPosition(float offset)
+        {
+            target += offset;
+            Current += offset;
+        }
+
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
+
+        /// <summary>
+        /// Scroll to the end of available content.
+        /// </summary>
+        /// <param name="animated">Whether to animate the movement.</param>
+        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
+        {
+            if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
+        }
+
+        public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
         public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
@@ -321,8 +345,8 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            scrollDragger?.MoveTo(scrollDim, Current * scrollDragger.Size[scrollDim]);
-            content.MoveTo(scrollDim, -Current);
+            scrollDragger?.MoveTo(scrollDir, Current * scrollDragger.Size[scrollDim]);
+            content.MoveTo(scrollDir, -Current);
         }
 
         private class ScrollBar : Container

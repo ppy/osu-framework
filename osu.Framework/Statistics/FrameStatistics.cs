@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Platform;
+using osu.Framework.Graphics.Performance;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -9,8 +9,8 @@ namespace osu.Framework.Statistics
 {
     public class FrameStatistics
     {
-        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>();
-        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>();
+        internal Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>((int)PerformanceCollectionType.AmountTypes);
+        internal Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>((int)StatisticsCounterType.AmountTypes);
         internal List<int> GarbageCollections = new List<int>();
 
         internal void Clear()
@@ -20,7 +20,7 @@ namespace osu.Framework.Statistics
             Counts.Clear();
         }
 
-        private static PerformanceMonitor getMonitor(StatisticsCounterType type)
+        private static PerformanceMonitor getMonitor(StatisticsCounterType type, PerformanceOverlay target)
         {
             switch (type)
             {
@@ -29,7 +29,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.DrawNodeCtor:
                 case StatisticsCounterType.DrawNodeAppl:
                 case StatisticsCounterType.ScheduleInvk:
-                    return target.UpdateMonitor;
+                    return target.Threads[2].Monitor;
 
                 case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.TextureBinds:
@@ -37,10 +37,21 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.VerticesUpl:
                 case StatisticsCounterType.KiloPixels:
-                    return target.DrawMonitor;
+                    return target.Threads[3].Monitor;
+
+                case StatisticsCounterType.MouseEvents:
+                case StatisticsCounterType.KeyEvents:
+                    return target.Threads[1].Monitor;
+
+                case StatisticsCounterType.TasksRun:
+                case StatisticsCounterType.Tracks:
+                case StatisticsCounterType.Samples:
+                case StatisticsCounterType.SChannels:
+                case StatisticsCounterType.Components:
+                    return target.Threads[0].Monitor;
 
                 default:
-                    Debug.Assert(false, "Requested counter which is not assigned to any performance monitor.");
+                    Trace.Assert(false, "Requested counter which is not assigned to any performance monitor.");
                     break;
             }
 
@@ -54,30 +65,29 @@ namespace osu.Framework.Statistics
         }
 
         /// <summary>
-        /// Registers statistics counters to the PerformanceMonitors of the _first_ host
-        /// to call this function.
+        /// Registers statistics counters to the performance overlay first passed into this function
         /// </summary>
-        /// <param name="target">The host that wants to register for statistics counters.</param>
-        internal static void RegisterCounters(BasicGameHost target)
+        /// <param name="target">The overlay that wants to register for statistics counters.</param>
+        internal static void RegisterCounters(PerformanceOverlay target)
         {
             if (FrameStatistics.target != null)
                 return;
 
-            FrameStatistics.target = target;
-
             for (StatisticsCounterType i = 0; i < StatisticsCounterType.AmountTypes; ++i)
-                getMonitor(i).RegisterCounter(i);
+                getMonitor(i, target).RegisterCounter(i);
+
+            FrameStatistics.target = target;
         }
 
-        internal static void Increment(StatisticsCounterType type, long amount = 1)
+        public static void Increment(StatisticsCounterType type, long amount = 1)
         {
-            if (target == null)
+            if (target == null || amount == 0)
                 return;
 
-            getMonitor(type)?.GetCounter(type)?.Add(amount);
+            getMonitor(type, target)?.GetCounter(type)?.Add(amount);
         }
 
-        private static BasicGameHost target;
+        private static PerformanceOverlay target;
     }
 
     public enum PerformanceCollectionType
@@ -90,7 +100,7 @@ namespace osu.Framework.Statistics
         Scheduler,
         IPC,
         GLReset,
-        Empty,
+        AmountTypes,
     }
 
     public enum StatisticsCounterType
@@ -107,6 +117,15 @@ namespace osu.Framework.Statistics
         VerticesDraw,
         VerticesUpl,
         KiloPixels,
+
+        TasksRun,
+        Tracks,
+        Samples,
+        SChannels,
+        Components,
+
+        MouseEvents,
+        KeyEvents,
 
         AmountTypes,
     }

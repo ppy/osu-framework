@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -23,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                Debug.Assert(false, "Cannot manually set CornerRadius of CircularContainer.");
+                throw new InvalidOperationException($"Cannot manually set {nameof(CornerRadius)} of {nameof(CircularContainer)}.");
             }
         }
     }
