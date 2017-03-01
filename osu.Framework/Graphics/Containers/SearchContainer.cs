@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public StringComparison comparator { get; set; } = StringComparison.OrdinalIgnoreCase;
+        public StringComparison Comparator { get; set; } = StringComparison.OrdinalIgnoreCase;
 
         private bool needsRematch;
 
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
                 bool contains = false;
 
                 foreach (string keyword in (search as ISearchable).Keywords)
-                    if (keyword.IndexOf(Filter, comparator) >= 0)
+                    if (keyword.IndexOf(Filter, Comparator) >= 0)
                         contains = true;
 
                 if (contains)
