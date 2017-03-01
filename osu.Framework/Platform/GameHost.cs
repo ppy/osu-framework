@@ -132,9 +132,8 @@ namespace osu.Framework.Platform
             }
         }
 
-        protected internal PerformanceMonitor InputMonitor => InputThread.Monitor;
-        protected internal PerformanceMonitor UpdateMonitor => UpdateThread.Monitor;
-        protected internal PerformanceMonitor DrawMonitor => DrawThread.Monitor;
+        private PerformanceMonitor inputMonitor => InputThread.Monitor;
+        private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
         private Cached<string> fullPathBacking = new Cached<string>();
         public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
@@ -260,7 +259,7 @@ namespace osu.Framework.Platform
             if (Root == null)
                 return;
 
-            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.GLReset))
             {
                 GLWrapper.Reset(Root.DrawSize);
                 GLWrapper.ClearColour(Color4.Black);
@@ -283,7 +282,7 @@ namespace osu.Framework.Platform
 
             GLWrapper.FlushCurrentBatch();
 
-            using (DrawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
                 Window.SwapBuffers();
         }
 
@@ -334,7 +333,7 @@ namespace osu.Framework.Platform
                     {
                         inputPerformanceCollectionPeriod?.Dispose();
                         InputThread.RunUpdate();
-                        inputPerformanceCollectionPeriod = InputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
+                        inputPerformanceCollectionPeriod = inputMonitor.BeginCollecting(PerformanceCollectionType.WndProc);
                     };
                     Window.Closed += delegate
                     {
