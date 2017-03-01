@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.UserInterface
                 if (index < text.Length)
                     return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
                 var d = TextFlow.Children.ElementAt(index - 1);
-                return d.DrawPosition.X + d.DrawSize.X + ((FillFlowContainer)TextFlow.FlowStrategy).Spacing.X + TextFlow.DrawPosition.X;
+                return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
             return 0;
         }

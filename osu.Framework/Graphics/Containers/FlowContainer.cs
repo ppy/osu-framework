@@ -54,34 +54,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected void InvalidateLayout() => layout.Invalidate();
 
-        private IFlowStrategy flowStrategy;
-        /// <summary>
-        /// The strategy used to calculate the positioning of the children of this <see cref="FlowContainer"/>.
-        /// </summary>
-        public IFlowStrategy FlowStrategy
-        {
-            get { return flowStrategy; }
-            set
-            {
-                if (flowStrategy != null)
-                    throw new NotSupportedException($"This flow container does not allow alterations to its flow strategy. Flow container is of type {GetType().FullName}.");
-
-                if (value == null)
-                    throw new InvalidOperationException($"The flow strategy of a flow container may not be null.");
-
-                if (flowStrategy == value)
-                    return;
-
-                flowStrategy = value;
-                layout.Invalidate();
-            }
-        }
-
         Vector2 maximumSize;
 
         /// <summary>
-        /// Optional maximum dimensions for this container. Note that the meaning of this value can change depending on the
-        /// <see cref="FlowStrategy"/> the container operates with.
+        /// Optional maximum dimensions for this container. Note that the meaning of this value can chang
+        /// depending on the implementation.
         /// </summary>
         public Vector2 MaximumSize
         {
