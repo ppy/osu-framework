@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Containers
         private FillDirection direction = RightDown;
 
         /// <summary>
-        /// The horizontal direction of the fill. Default is <see cref="HorizontalDirection.LeftToRight"/>.
+        /// The direction of the fill. Default is <see cref="RightDown"/>.
         /// </summary>
         public FillDirection Direction
         {
@@ -79,8 +79,7 @@ namespace osu.Framework.Graphics.Containers
             foreach (var size in elementSizes)
             {
                 ++i;
-
-                //todo: check this is correct
+                
                 Vector2 spacing = size;
                 if (spacing.X > 0)
                     spacing.X = Math.Max(0, spacing.X + Spacing.X);
