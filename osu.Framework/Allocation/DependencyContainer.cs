@@ -120,6 +120,8 @@ namespace osu.Framework.Allocation
         {
             if (cache.ContainsKey(type))
                 return cache[type];
+            return null;
+
             if (!activators.ContainsKey(type))
                 return null; // Or an exception?
             object instance = activators[type](this, null);
