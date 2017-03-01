@@ -620,7 +620,7 @@ namespace osu.Framework.Graphics.Containers
             return DrawRectangle.Shrink(cornerRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cornerRadius * cornerRadius;
         }
 
-        internal sealed override bool BuildKeyboardInputQueue(List<Drawable> queue)
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
         {
             if (!base.BuildKeyboardInputQueue(queue))
                 return false;
@@ -632,7 +632,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        internal sealed override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
             if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
                 return false;
