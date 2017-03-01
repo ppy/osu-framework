@@ -56,39 +56,21 @@ namespace osu.Framework.Input
 
         List<InputState> pendingParentStates = new List<InputState>();
 
-        protected override bool OnMouseMove(InputState state)
+        private bool acceptState(InputState state)
         {
-            if (!UseParentState) return false;
-            pendingParentStates.Add(state);
-            return base.OnMouseMove(state);
+            if (UseParentState)
+                pendingParentStates.Add(state);
+            return false;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-        {
-            if (!UseParentState) return false;
-            pendingParentStates.Add(state);
-            return base.OnMouseDown(state, args);
-        }
+        protected override bool OnMouseMove(InputState state) => acceptState(state);
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
-        {
-            if (!UseParentState) return false;
-            pendingParentStates.Add(state);
-            return base.OnMouseUp(state, args);
-        }
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
-        {
-            if (!UseParentState) return false;
-            pendingParentStates.Add(state);
-            return base.OnKeyDown(state, args);
-        }
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
-        {
-            if (!UseParentState) return false;
-            pendingParentStates.Add(state);
-            return base.OnKeyUp(state, args);
-        }
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
+
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
     }
 }
