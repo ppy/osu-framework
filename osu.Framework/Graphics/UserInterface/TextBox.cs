@@ -232,7 +232,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = TextFlow.ToLocalSpace(pos * DrawInfo.Matrix);
+            pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
             foreach (Drawable d in TextFlow.Children)
