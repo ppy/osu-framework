@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
         Vector2 maximumSize;
 
         /// <summary>
-        /// Optional maximum dimensions for this container. Note that the meaning of this value can chang
+        /// Optional maximum dimensions for this container. Note that the meaning of this value can change
         /// depending on the implementation.
         /// </summary>
         public Vector2 MaximumSize
