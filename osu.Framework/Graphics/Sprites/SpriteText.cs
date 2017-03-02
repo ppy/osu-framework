@@ -149,22 +149,6 @@ namespace osu.Framework.Graphics.Sprites
         private float? constantWidth;
         public bool FixedWidth;
 
-        public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            UpdateTransformsOfType(typeof(TransformSpacing));
-            TransformVectorTo(Spacing, newSpacing, duration, easing, new TransformSpacing());
-        }
-
-        public class TransformSpacing : TransformVector
-        {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-                SpriteText st = (SpriteText)d;
-                st.Spacing = CurrentValue;
-            }
-        }
-
         protected override void Update()
         {
             base.Update();

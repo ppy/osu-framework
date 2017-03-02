@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -53,6 +55,21 @@ namespace osu.Framework.Graphics.Containers
 
                 spacing = value;
                 InvalidateLayout();
+            }
+        }
+
+        public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            UpdateTransformsOfType(typeof(TransformSpacing));
+            TransformVectorTo(Spacing, newSpacing, duration, easing, new TransformSpacing());
+        }
+
+        public class TransformSpacing : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                ((FillFlowContainer<T>)d).Spacing = CurrentValue;
             }
         }
 
