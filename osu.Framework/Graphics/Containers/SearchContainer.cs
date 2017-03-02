@@ -1,4 +1,5 @@
-﻿using System;
+﻿using osu.Framework.Threading;
+using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
@@ -18,13 +19,18 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 filter = value;
-                needsRematch = true;
+                rematch?.Cancel();
+                Delay(RematchDelay);
+                rematch = Schedule(delegate
+                {
+                    match(Children);
+                    AfterMatching();
+                });
             }
         }
 
+        public int RematchDelay { get; set; } = 200;
         public StringComparison Comparator { get; set; } = StringComparison.OrdinalIgnoreCase;
-
-        private bool needsRematch;
 
         public delegate void OnSearchHandler(Drawable searchable);
 
@@ -32,17 +38,7 @@ namespace osu.Framework.Graphics.Containers
         public OnSearchHandler OnMismatch { get; set; } = delegate { };
         public Action AfterMatching { get; set; } = delegate { };
 
-        protected override void Update()
-        {
-            base.Update();
-
-            if (needsRematch)
-            {
-                match(Children);
-                AfterMatching();
-                needsRematch = false;
-            }
-        }
+        private ScheduledDelegate rematch;
 
         private void match(IEnumerable<Drawable> children)
         {
