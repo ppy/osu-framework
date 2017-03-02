@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -29,9 +27,10 @@ namespace osu.Framework.Graphics.Containers
         private bool needsRematch;
 
         public delegate void OnSearchHandler(Drawable searchable);
-        
-        public OnSearchHandler OnMatch { get; set; }
-        public OnSearchHandler OnMismatch { get; set; }
+
+        public OnSearchHandler OnMatch { get; set; } = delegate { };
+        public OnSearchHandler OnMismatch { get; set; } = delegate { };
+        public Action AfterMatching { get; set; } = delegate { };
 
         protected override void Update()
         {
@@ -40,6 +39,7 @@ namespace osu.Framework.Graphics.Containers
             if (needsRematch)
             {
                 match(Children);
+                AfterMatching();
                 needsRematch = false;
             }
         }
@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
                 bool contains = false;
 
                 foreach (string keyword in (search as ISearchable).Keywords)
-                    if (keyword.IndexOf(Filter, Comparator) >= 0)
+                    if (keyword?.IndexOf(Filter, Comparator) >= 0)
                         contains = true;
 
                 if (contains)

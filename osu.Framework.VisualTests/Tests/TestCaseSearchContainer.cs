@@ -78,23 +78,17 @@ namespace osu.Framework.VisualTests.Tests
 
         private void match(Drawable searchable)
         {
-            searchable.ScaleTo(new Vector2(1, 1), 200, EasingTypes.InQuad);
+            searchable.FadeIn(200);
         }
 
         private void mismatch(Drawable searchable)
         {
-            searchable.ScaleTo(new Vector2(1, 0), 200, EasingTypes.InQuad);
+            searchable.FadeOut(200);
         }
 
         private class SearchableText : SpriteText, ISearchable
         {
-            public string[] Keywords
-            {
-                get
-                {
-                    return new string[] { Text };
-                }
-            }
+            public string[] Keywords => new string[] { Text };
         }
     }
 
