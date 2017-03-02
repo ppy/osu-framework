@@ -82,6 +82,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
+            scroll.ScrollContent.AutoSizeAxes = Axes.None;
             scroll.ScrollContent.RelativeSizeAxes = Axes.None;
             scroll.ScrollContent.AutoSizeAxes = Axes.Both;
         }
