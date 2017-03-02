@@ -120,12 +120,17 @@ namespace osu.Framework.Allocation
         {
             if (cache.ContainsKey(type))
                 return cache[type];
-            if (!activators.ContainsKey(type))
-                return null; // Or an exception?
-            object instance = activators[type](this, null);
-            if (cacheable.Contains(type))
-                cache[type] = instance;
-            return instance;
+
+            //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
+            //need to revisit this when/if it is required.
+            return null;
+
+            //if (!activators.ContainsKey(type))
+            //    return null; // Or an exception?
+            //object instance = activators[type](this, null);
+            //if (cacheable.Contains(type))
+            //    cache[type] = instance;
+            //return instance;
         }
 
         /// <summary>
