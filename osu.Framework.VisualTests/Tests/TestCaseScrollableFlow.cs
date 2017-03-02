@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests.Tests
         public override string Description => @"A flow container in a scroll container";
         
         ScrollContainer scroll;
-        FlowContainer flow;
+        FillFlowContainer flow;
         Direction scrollDir;
 
         private void createArea(Direction scrollDir)
@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
                     Padding = new MarginPadding { Left = 150 },
                     Children = new []
                     {
-                        flow = new FlowContainer
+                        flow = new FillFlowContainer
                         {
                             LayoutDuration = 100,
                             LayoutEasing = EasingTypes.Out,
@@ -67,7 +67,7 @@ namespace osu.Framework.VisualTests.Tests
                             AutoSizeAxes = Axes.X,
                             Children = new[]
                             {
-                                flow = new FlowContainer
+                                flow = new FillFlowContainer
                                 {
                                     LayoutDuration = 100,
                                     LayoutEasing = EasingTypes.Out,
@@ -82,6 +82,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
+            scroll.ScrollContent.AutoSizeAxes = Axes.None;
             scroll.ScrollContent.RelativeSizeAxes = Axes.None;
             scroll.ScrollContent.AutoSizeAxes = Axes.Both;
         }

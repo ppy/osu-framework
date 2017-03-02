@@ -16,7 +16,7 @@ namespace osu.Framework.Screens.Testing
         public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
 
-        protected FlowContainer ButtonsContainer;
+        protected FillFlowContainer ButtonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
@@ -48,11 +48,11 @@ namespace osu.Framework.Screens.Testing
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    ButtonsContainer = new FlowContainer
+                    ButtonsContainer = new FillFlowContainer
                     {
-                        Direction = FlowDirections.Vertical,
+                        Direction = FillDirection.Down,
+                        Spacing = new Vector2(15, 5),
                         AutoSizeAxes = Axes.Both,
-                        Spacing = new Vector2(15, 5)
                     },
                 };
             }
@@ -78,7 +78,7 @@ namespace osu.Framework.Screens.Testing
             return b;
         }
 
-        public ToggleButton AddToggle(string text, Action action)
+        public ToggleButton AddToggle(string text, Action<bool> action)
         {
             ToggleButton b;
             ButtonsContainer.Add(b = new ToggleButton(action)
@@ -92,13 +92,13 @@ namespace osu.Framework.Screens.Testing
 
     public class ToggleButton : Button
     {
-        private readonly Action reloadCallback;
+        private readonly Action<bool> reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
         private static readonly Color4 on_colour = Color4.YellowGreen;
 
         public bool State;
 
-        public ToggleButton(Action reloadCallback)
+        public ToggleButton(Action<bool> reloadCallback)
         {
             this.reloadCallback = reloadCallback;
 
@@ -111,7 +111,7 @@ namespace osu.Framework.Screens.Testing
         {
             State = !State;
             BackgroundColour = State ? on_colour : off_colour;
-            reloadCallback?.Invoke();
+            reloadCallback?.Invoke(State);
         }
     }
 }

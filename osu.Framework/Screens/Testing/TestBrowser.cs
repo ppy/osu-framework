@@ -82,13 +82,13 @@ namespace osu.Framework.Screens.Testing
                 ScrollDraggerOverlapsContent = false
             });
 
-            leftScrollContainer.Add(leftFlowContainer = new FlowContainer
+            leftScrollContainer.Add(leftFlowContainer = new FillFlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FlowDirections.Vertical,
+                Direction = FillDirection.Down,
+                Spacing = new Vector2(0, 5),
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
-                Spacing = new Vector2(0, 5)
             });
 
             //this is where the actual tests are loaded.

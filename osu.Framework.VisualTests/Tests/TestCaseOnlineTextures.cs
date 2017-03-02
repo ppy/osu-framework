@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Name => @"Online Textures";
 
-        private FlowContainer flow;
+        private FillFlowContainer flow;
 
         int loadId = 55;
         private Game game;
@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FlowContainer()
+                        flow = new FillFlowContainer()
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
