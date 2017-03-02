@@ -39,14 +39,14 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Initializes a new instance of the <see cref="T:System.Drawing.RectangleF"></see> class with the specified location and size.</summary>
-        /// <param name="size">A <see cref="T:System.Drawing.SizeF"></see> that represents the width and height of the rectangular region. </param>
-        /// <param name="location">A <see cref="T:System.Drawing.PointF"></see> that represents the upper-left corner of the rectangular region. </param>
-        public RectangleF(PointF location, SizeF size)
+        /// <param name="size">A <see cref="Vector2"></see> that represents the width and height of the rectangular region. </param>
+        /// <param name="location">A <see cref="Vector2"></see> that represents the upper-left corner of the rectangular region. </param>
+        public RectangleF(Vector2 location, Vector2 size)
         {
             X = location.X;
             Y = location.Y;
-            Width = size.Width;
-            Height = size.Height;
+            Width = size.X;
+            Height = size.Y;
         }
 
         /// <summary>Creates a <see cref="T:System.Drawing.RectangleF"></see> structure with upper-left corner and lower-right corner at the specified locations.</summary>
