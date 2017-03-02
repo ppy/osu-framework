@@ -258,7 +258,10 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
+                {
                     t.Parent = null;
+                    t.Invalidate();
+                }
 
                 Trace.Assert(t.Parent == null);
             }
