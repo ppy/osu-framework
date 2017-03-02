@@ -21,11 +21,6 @@ namespace osu.Framework.Input
         private const int repeat_initial_delay = 250;
 
         /// <summary>
-        /// Should we ignore this InputManager and use a parent-level implementation instead?
-        /// </summary>
-        public bool PassThrough;
-
-        /// <summary>
         /// The delay between key repeats after the initial repeat.
         /// </summary>
         private const int repeat_tick_rate = 70;
@@ -102,9 +97,70 @@ namespace osu.Framework.Input
             FocusedDrawable?.TriggerFocus(CurrentState, true);
         }
 
+        internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
+
+        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue) => false;
+
         protected override void Update()
         {
-            List<InputState> pendingStates = new List<InputState>();
+            List<InputState> pendingStates = GetPendingStates();
+
+            unfocusIfNoLongerValid(CurrentState);
+
+            foreach (InputState s in pendingStates)
+            {
+                bool hasKeyboard = s.Keyboard != null;
+                bool hasMouse = s.Mouse != null;
+
+                if (!hasKeyboard && !hasMouse) continue;
+
+                var last = CurrentState;
+
+                //avoid lingering references that would stay forever.
+                last.Last = null;
+
+                CurrentState = new InputState
+                {
+                    Last = last,
+                    Keyboard = s.Keyboard,
+                    Mouse = s.Mouse,
+                };
+
+                TransformState(CurrentState);
+
+                if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
+                if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
+
+                //move above?
+                updateInputQueues(CurrentState);
+
+                if (hasMouse)
+                {
+                    (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
+                    updateHoverEvents(CurrentState);
+                    updateMouseEvents(CurrentState);
+                }
+
+                if (hasKeyboard)
+                    updateKeyboardEvents(CurrentState);
+            }
+
+            //we still want to make sure to update the input queues! they may be used for focus changes.
+            if (pendingStates.Count == 0)
+                updateInputQueues(CurrentState);
+
+            keyboardRepeatTime -= Time.Elapsed;
+
+            if (FocusedDrawable == null)
+                focusTopMostRequestingDrawable(CurrentState);
+
+            base.Update();
+        }
+
+        protected virtual List<InputState> GetPendingStates()
+        {
+            var pendingStates = new List<InputState>();
+
             foreach (var h in inputHandlers)
             {
                 if (h.IsActive)
@@ -113,59 +169,7 @@ namespace osu.Framework.Input
                     h.GetPendingStates();
             }
 
-            unfocusIfNoLongerValid(CurrentState);
-
-            if (!PassThrough)
-            {
-                foreach (InputState s in pendingStates)
-                {
-                    bool hasKeyboard = s.Keyboard != null;
-                    bool hasMouse = s.Mouse != null;
-
-                    if (!hasKeyboard && !hasMouse) continue;
-
-                    var last = CurrentState;
-
-                    //avoid lingering references that would stay forever.
-                    last.Last = null;
-
-                    CurrentState = new InputState
-                    {
-                        Last = last,
-                        Keyboard = s.Keyboard,
-                        Mouse = s.Mouse,
-                    };
-
-                    TransformState(CurrentState);
-
-                    if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
-                    if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
-
-                    //move above?
-                    updateInputQueues(CurrentState);
-
-                    if (hasMouse)
-                    {
-                        (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
-                        updateHoverEvents(CurrentState);
-                        updateMouseEvents(CurrentState);
-                    }
-
-                    if (hasKeyboard)
-                        updateKeyboardEvents(CurrentState);
-                }
-
-                //we still want to make sure to update the input queues! they may be used for focus changes.
-                if (pendingStates.Count == 0)
-                    updateInputQueues(CurrentState);
-
-                keyboardRepeatTime -= Time.Elapsed;
-            }
-
-            if (FocusedDrawable == null)
-                focusTopMostRequestingDrawable(CurrentState);
-
-            base.Update();
+            return pendingStates;
         }
 
         protected virtual void TransformState(InputState inputState)
@@ -188,12 +192,6 @@ namespace osu.Framework.Input
             keyboardInputQueue.Reverse();
             mouseInputQueue.Reverse();
         }
-
-        internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
-            => PassThrough && base.BuildKeyboardInputQueue(queue);
-
-        internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
-            => PassThrough && base.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
         private void updateHoverEvents(InputState state)
         {
@@ -545,6 +543,8 @@ namespace osu.Framework.Input
 
             return false;
         }
+
+        protected bool RemoveHandler(InputHandler handler) => inputHandlers.Remove(handler);
 
         protected override void Dispose(bool isDisposing)
         {

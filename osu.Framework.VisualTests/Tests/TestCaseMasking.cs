@@ -274,7 +274,7 @@ namespace osu.Framework.VisualTests.Tests
                             };
                         };
 
-                        TestContainer.Add(new FlowContainer
+                        TestContainer.Add(new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Children = new[]

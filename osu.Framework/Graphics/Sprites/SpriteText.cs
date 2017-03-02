@@ -11,10 +11,11 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteText : FlowContainer
+    public class SpriteText : FillFlowContainer
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':' };
 
@@ -24,25 +25,24 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
 
         /// <summary>
-        /// The amount by which characters should overlap each other (negative character spacing).
-        /// </summary>
-        public float SpacingOverlap
-        {
-            get { return Spacing.X; }
-            set
-            {
-                Spacing = new Vector2(value, 0);
-                internalSize.Invalidate();
-            }
-        }
-
-        /// <summary>
         /// Decide whether we want to make our SpriteText's vertical size to be <see cref="TextHeight"/> (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight = true;
 
         public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
+
+        public bool AllowMultiline
+        {
+            get { return Direction == FillDirection.RightDown; }
+            set
+            {
+                if (value)
+                    Direction = FillDirection.RightDown;
+                else
+                    Direction = FillDirection.Right;
+            }
+        }
 
         private string font;
 

@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            FlowContainer flow;
+            FillFlowContainer flow;
 
             Children = new Drawable[]
             {
@@ -27,11 +27,11 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
-                        flow = new FlowContainer
+                        flow = new FillFlowContainer
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Both,
-                            Direction = FlowDirections.Vertical,
+                            Direction = FillDirection.Down,
                         }
                     }
                 }

@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class TextBox : TabbableContainer
     {
-        protected FlowContainer TextFlow;
+        protected FillFlowContainer TextFlow;
         protected Box Background;
         protected Box Caret;
         protected Container TextContainer;
@@ -93,9 +93,9 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Y,
                             Alpha = 0,
                         },
-                        TextFlow = new FlowContainer
+                        TextFlow = new FillFlowContainer
                         {
-                            Direction = FlowDirections.Horizontal,
+                            Direction = FillDirection.Right,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },

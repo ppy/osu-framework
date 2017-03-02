@@ -12,7 +12,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownMenu<T> : FlowContainer, IBindable, IStateful<DropDownMenuState>
+    public abstract class DropDownMenu<T> : FillFlowContainer, IBindable, IStateful<DropDownMenuState>
     {
         private bool listInitialized;
 
@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FlowDirections.Vertical;
+            Direction = FillDirection.Down;
 
             Children = new Drawable[]
             {
@@ -192,11 +192,11 @@ namespace osu.Framework.Graphics.UserInterface
                             Masking = false,
                             Children = new Drawable[]
                             {
-                                DropDownItemsContainer = new FlowContainer<DropDownMenuItem<T>>
+                                DropDownItemsContainer = new FillFlowContainer<DropDownMenuItem<T>>
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
-                                    Direction = FlowDirections.Vertical,
+                                    Direction = FillDirection.Down,
                                 },
                             },
                         },

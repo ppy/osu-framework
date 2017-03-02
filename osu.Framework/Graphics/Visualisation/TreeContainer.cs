@@ -75,11 +75,11 @@ namespace osu.Framework.Graphics.Visualisation
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
-                new FlowContainer
+                new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Direction = FlowDirections.Vertical,
+                    Direction = FillDirection.Down,
                     Children = new Drawable[]
                     {
                         titleBar = new Box //title decoration
@@ -98,7 +98,7 @@ namespace osu.Framework.Graphics.Visualisation
                                     Colour = new Color4(20, 20, 20, 255),
                                     RelativeSizeAxes = Axes.Both,
                                 },
-                                new FlowContainer
+                                new FillFlowContainer
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Spacing = new Vector2(1),

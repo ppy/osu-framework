@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         const int line_height = 12;
 
-        public FlowContainer Flow;
+        public FillFlowContainer Flow;
 
         private TreeContainer tree;
 
@@ -76,9 +76,9 @@ namespace osu.Framework.Graphics.Visualisation
                     Position = new Vector2(24, -3),
                     Scale = new Vector2(0.9f),
                 },
-                Flow = new FlowContainer
+                Flow = new FillFlowContainer
                 {
-                    Direction = FlowDirections.Vertical,
+                    Direction = FillDirection.Down,
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(10, 14)
                 },
