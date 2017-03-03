@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public int? LengthLimit;
 
-        public bool AllowClipboardExport => true;
+        public virtual bool AllowClipboardExport => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
