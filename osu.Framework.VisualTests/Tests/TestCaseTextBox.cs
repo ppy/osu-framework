@@ -27,12 +27,11 @@ namespace osu.Framework.VisualTests.Tests
                 Padding = new MarginPadding
                 {
                     Top = 50,
-                    Left = -50
                 },
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,
                 RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.8f, 1)
+                Size = new Vector2(0.9f, 1)
             };
 
             Add(textBoxes);
