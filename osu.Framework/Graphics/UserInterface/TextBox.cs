@@ -668,10 +668,10 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
-            
             if (AllowClipboardExport)
             {
+                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            
                 int lastSeparator = findSeparatorIndex(text, hover, -1);
                 int nextSeparator = findSeparatorIndex(text, hover, 1);
 
