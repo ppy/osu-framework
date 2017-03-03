@@ -669,12 +669,20 @@ namespace osu.Framework.Graphics.UserInterface
             if (text.Length == 0) return true;
 
             int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            
+            if (AllowClipboardExport)
+            {
+                int lastSeparator = findSeparatorIndex(text, hover, -1);
+                int nextSeparator = findSeparatorIndex(text, hover, 1);
 
-            int lastSeparator = findSeparatorIndex(text, hover, -1);
-            int nextSeparator = findSeparatorIndex(text, hover, 1);
-
-            selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-            selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+                selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
+                selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+            }
+            else
+            {
+                selectionStart = 0;
+                selectionEnd = text.Length;
+            }
 
             //in order to keep the home word selected
             doubleClickWord = new[] { selectionStart, selectionEnd };
