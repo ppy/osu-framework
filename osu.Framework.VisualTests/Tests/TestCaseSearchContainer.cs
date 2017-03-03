@@ -1,17 +1,13 @@
 ﻿using osu.Framework.Graphics;
 using osu.Framework.Screens.Testing;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Transforms;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
+using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -62,7 +58,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[] 
                     {
-                        new FillFlowContainer<SearchableText>()
+                        new SearchableFlowContainer<SearchableText>()
                         {
                             Direction = FillDirection.Down,
                             Children = text,
@@ -89,6 +85,11 @@ namespace osu.Framework.VisualTests.Tests
         private class SearchableText : SpriteText, ISearchable
         {
             public string[] Keywords => new string[] { Text };
+        }
+
+        private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
+        {
+            public IEnumerable<Drawable> SearchableChildren => Children;
         }
     }
 

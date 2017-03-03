@@ -1,4 +1,6 @@
-﻿using osu.Framework.Threading;
+﻿using osu.Framework.Allocation;
+using osu.Framework.Lists;
+using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 
@@ -45,23 +47,23 @@ namespace osu.Framework.Graphics.Containers
         {
             foreach (Drawable search in children)
             {
-                if (!(search is ISearchable))
+                if (search is ISearchable)
                 {
-                    if (search is IContainer)
-                        match((search as IContainerEnumerable<Drawable>).Children);
-                    continue;
+                    bool contains = false;
+
+                    foreach (string keyword in (search as ISearchable).Keywords)
+                        if (AreMatching(keyword, Filter))
+                            contains = true;
+
+                    if (contains)
+                        OnMatch(search);
+                    else
+                        OnMismatch(search);
                 }
-
-                bool contains = false;
-
-                foreach (string keyword in (search as ISearchable).Keywords)
-                    if (AreMatching(keyword,Filter))
-                        contains = true;
-
-                if (contains)
-                    OnMatch(search);
-                else
-                    OnMismatch(search);
+                else if(search is ISearchableChildren)
+                {
+                    match((search as ISearchableChildren).SearchableChildren);
+                }
             }
         }
     }
