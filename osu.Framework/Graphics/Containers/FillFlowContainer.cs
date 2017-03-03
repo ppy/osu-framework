@@ -125,12 +125,12 @@ namespace osu.Framework.Graphics.Containers
             if (flowsRightToLeft)
             {
                 var maxX = (AutoSizeAxes & Axes.X) > 0 ? result.Max(kvp => kvp.Value.X) : max.X;
-                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(maxX - kvp.Value.X - kvp.Key.X, kvp.Value.Y)));
+                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(maxX - kvp.Value.X, kvp.Value.Y)));
             }
             if (flowsBottomToTop)
             {
                 var maxY = (AutoSizeAxes & Axes.Y) > 0 ? result.Max(kvp => kvp.Value.Y) : max.Y;
-                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(kvp.Value.X, maxY - kvp.Value.Y - kvp.Key.Y)));
+                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(kvp.Value.X, maxY - kvp.Value.Y)));
             }
 
             return resultEnum.Select(kvp => kvp.Value);
