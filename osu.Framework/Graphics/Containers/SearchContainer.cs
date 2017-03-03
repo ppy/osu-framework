@@ -30,13 +30,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         public int RematchDelay { get; set; } = 200;
-        public StringComparison Comparator { get; set; } = StringComparison.OrdinalIgnoreCase;
 
         public delegate void OnSearchHandler(Drawable searchable);
 
         public OnSearchHandler OnMatch { get; set; } = delegate { };
         public OnSearchHandler OnMismatch { get; set; } = delegate { };
         public Action AfterMatching { get; set; } = delegate { };
+
+        protected virtual bool AreMatching(string value1, string value2) => value1?.IndexOf(value2, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
         private ScheduledDelegate rematch;
 
@@ -54,7 +55,7 @@ namespace osu.Framework.Graphics.Containers
                 bool contains = false;
 
                 foreach (string keyword in (search as ISearchable).Keywords)
-                    if (keyword?.IndexOf(Filter, Comparator) >= 0)
+                    if (AreMatching(keyword,Filter))
                         contains = true;
 
                 if (contains)
