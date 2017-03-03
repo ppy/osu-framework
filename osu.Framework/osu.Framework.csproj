@@ -144,6 +144,7 @@
     <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\PasswordTextBox.cs" />
     <Compile Include="Graphics\UserInterface\SliderBar.cs" />
+    <Compile Include="Graphics\UserInterface\TabContainer.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
     <Compile Include="Graphics\DrawNode.cs" />
     <Compile Include="Allocation\BufferStack.cs" />
