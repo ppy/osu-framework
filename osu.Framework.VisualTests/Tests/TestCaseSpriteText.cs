@@ -10,8 +10,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseSpriteText : TestCase
     {
-        public override string Name => @"SpriteText";
-
         public override string Description => @"Test all sizes of text rendering";
 
         public override void Reset()

@@ -12,7 +12,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseSmoothedEdges : TestCase
     {
-        public override string Name => @"Smoothed Edges";
         public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 
         private Box[] boxes = new Box[4];

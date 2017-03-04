@@ -11,7 +11,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Sprites
 {

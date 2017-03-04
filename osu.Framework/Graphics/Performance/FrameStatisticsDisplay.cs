@@ -59,8 +59,6 @@ namespace osu.Framework.Graphics.Performance
 
         private FpsDisplay fpsDisplay;
 
-        public override string Name { get; }
-
         private FrameStatisticsMode state;
         public FrameStatisticsMode State
         {

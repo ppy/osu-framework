@@ -13,7 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseColourGradient : TestCase
     {
-        public override string Name => @"Colour Gradient";
         public override string Description => @"Various cases of colour gradients.";
 
         private Box[] boxes = new Box[4];

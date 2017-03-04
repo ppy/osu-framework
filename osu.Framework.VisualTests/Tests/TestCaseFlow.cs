@@ -19,7 +19,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseFlow : TestCase
     {
-        public override string Name => "Flow";
         public override string Description => "Test lots of different settings for Flow Containers";
 
         private FillFlowContainer dropdownContainer;

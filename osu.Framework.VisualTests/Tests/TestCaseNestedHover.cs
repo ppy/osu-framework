@@ -13,7 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseNestedHover : TestCase
     {
-        public override string Name => @"Nested Hover";
         public override string Description => @"Hovering multiple nested elements";
 
         public override void Reset()

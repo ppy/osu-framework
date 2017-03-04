@@ -13,7 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseMasking : TestCase
     {
-        public override string Name => @"Masking";
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";
 
         protected Container TestContainer;

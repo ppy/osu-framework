@@ -14,8 +14,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCasePadding : TestCase
     {
-        public override string Name => @"Padding";
-
         public override string Description => @"Add fixed padding via a PaddingContainer";
 
         public override void Reset()

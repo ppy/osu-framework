@@ -12,8 +12,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseTextBox : TestCase
     {
-        public override string Name => @"TextBox";
-
         public override string Description => @"Text entry evolved";
 
         public override void Reset()
