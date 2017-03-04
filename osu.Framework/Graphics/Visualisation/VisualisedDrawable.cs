@@ -9,11 +9,24 @@ using osu.Framework.Input;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.Color4Extensions;
+using osu.Framework.Graphics.Primitives;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     internal class VisualisedDrawable : Container
     {
+        public class NestingDepthComparer : IComparer<VisualisedDrawable>
+        {
+            public int Compare(VisualisedDrawable x, VisualisedDrawable y)
+            {
+                return x.nestingDepth.CompareTo(y.nestingDepth);
+            }
+        }
+
+        public static IComparer<VisualisedDrawable> Comparer => new NestingDepthComparer();
+
         public Drawable Target { get; }
 
         private SpriteText text;
@@ -33,9 +46,13 @@ namespace osu.Framework.Graphics.Visualisation
 
         private TreeContainer tree;
 
-        public VisualisedDrawable(Drawable d, TreeContainer tree)
+        private int nestingDepth;
+
+        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
         {
             this.tree = tree;
+
+            this.nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
 
             attachEvents();
