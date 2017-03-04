@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using osu.Framework.Input.Handlers;
-using OpenTK;
 
 namespace osu.Framework.Desktop.Platform
 {

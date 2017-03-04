@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
-using OpenTK;
 using osu.Framework.Desktop.Input;
 using osu.Framework.Input;
 

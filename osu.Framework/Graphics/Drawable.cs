@@ -21,7 +21,6 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Input;
-using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics

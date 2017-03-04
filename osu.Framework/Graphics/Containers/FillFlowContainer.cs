@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 

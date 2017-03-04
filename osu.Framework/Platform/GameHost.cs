@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
@@ -20,7 +19,6 @@ using OpenTK;
 using System.Threading.Tasks;
 using osu.Framework.Caching;
 using osu.Framework.Configuration;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
 using OpenTK.Graphics;

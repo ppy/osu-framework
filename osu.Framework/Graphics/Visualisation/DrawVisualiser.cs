@@ -7,8 +7,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
-using System.Collections.Generic;
-using osu.Framework.Platform;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Visualisation

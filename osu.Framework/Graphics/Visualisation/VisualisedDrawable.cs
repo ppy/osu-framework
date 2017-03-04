@@ -10,7 +10,6 @@ using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Visualisation
