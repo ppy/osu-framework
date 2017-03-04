@@ -164,13 +164,17 @@ namespace osu.Framework.Graphics.Containers
                 var c = children[i];
 
                 if ((c.Anchor & Anchor.x1) > 0)
+                    // Begin flow at centre of row
                     result[i].X -= rowWidths[rowIndices[i]] / 2;
                 else if ((c.Anchor & Anchor.x2) > 0)
+                    // Flow right-to-left
                     result[i].X = -result[i].X;
 
                 if ((c.Anchor & Anchor.y1) > 0)
+                    // Begin flow at centre of total height
                     result[i].Y -= height / 2;
                 else if ((c.Anchor & Anchor.y2) > 0)
+                    // Flow bottom-to-top
                     result[i].Y = -result[i].Y;
             }
 
