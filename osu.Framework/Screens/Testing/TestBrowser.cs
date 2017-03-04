@@ -85,7 +85,7 @@ namespace osu.Framework.Screens.Testing
             leftScrollContainer.Add(leftFlowContainer = new FillFlowContainer
             {
                 Padding = new MarginPadding(3),
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 5),
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,

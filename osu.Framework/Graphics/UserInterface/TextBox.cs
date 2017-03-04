@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                         },
                         TextFlow = new FillFlowContainer
                         {
-                            Direction = FillDirection.Right,
+                            Direction = FillDirection.Horizontal,
                             AutoSizeAxes = Axes.X,
                             RelativeSizeAxes = Axes.Y,
                         },

@@ -34,13 +34,13 @@ namespace osu.Framework.Graphics.Sprites
 
         public bool AllowMultiline
         {
-            get { return Direction == FillDirection.RightDown; }
+            get { return Direction == FillDirection.Full; }
             set
             {
                 if (value)
-                    Direction = FillDirection.RightDown;
+                    Direction = FillDirection.Full;
                 else
-                    Direction = FillDirection.Right;
+                    Direction = FillDirection.Horizontal;
             }
         }
 

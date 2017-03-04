@@ -149,7 +149,7 @@ namespace osu.Framework
             (performanceContainer = new PerformanceOverlay
             {
                 Margin = new MarginPadding(5),
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(10, 10),
                 AutoSizeAxes = Axes.Both,
                 Alpha = 0,

@@ -50,7 +50,7 @@ namespace osu.Framework.Screens.Testing
                     },
                     ButtonsContainer = new FillFlowContainer
                     {
-                        Direction = FillDirection.Down,
+                        Direction = FillDirection.Vertical,
                         Spacing = new Vector2(15, 5),
                         AutoSizeAxes = Axes.Both,
                     },

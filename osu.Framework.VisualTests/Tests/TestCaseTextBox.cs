@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer textBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -74,7 +74,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer otherTextBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -104,7 +104,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer nestedTextBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre,

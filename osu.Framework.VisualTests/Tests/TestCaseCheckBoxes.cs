@@ -26,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Direction = FillDirection.Down,
+                    Direction = FillDirection.Vertical,
                     Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,
