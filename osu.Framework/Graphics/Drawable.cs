@@ -1118,7 +1118,10 @@ namespace osu.Framework.Graphics
 
                 parent = value;
                 if (parent != null)
+                {
                     UpdateClock(parent.Clock);
+                    Invalidate(Invalidation.Geometry | Invalidation.Colour);
+                }
             }
         }
 
