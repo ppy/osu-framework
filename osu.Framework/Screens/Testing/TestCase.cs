@@ -8,12 +8,12 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Screens.Testing
 {
     public abstract class TestCase : Container
     {
-        public override string Name => @"Test Case";
         public virtual string Description => @"The base class for a test case";
 
         protected FillFlowContainer ButtonsContainer;
@@ -28,6 +28,8 @@ namespace osu.Framework.Screens.Testing
 
         protected TestCase()
         {
+            Name = GetType().ReadableName().Substring(8); // Skip the "TestCase prefix
+
             RelativeSizeAxes = Axes.Both;
             Masking = true;
         }

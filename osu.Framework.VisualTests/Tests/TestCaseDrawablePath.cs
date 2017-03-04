@@ -17,7 +17,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseDrawablePath : TestCase
     {
-        public override string Name => @"Drawable Paths";
         public override string Description => @"Various cases of drawable paths.";
 
         public override void Reset()

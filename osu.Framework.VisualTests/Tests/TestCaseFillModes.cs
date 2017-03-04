@@ -15,8 +15,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseFillModes : TestCase
     {
-        public override string Name => @"Sprites - FillModes";
-
         public override string Description => @"Test sprite display and fill modes";
 
         Texture sampleTexture;

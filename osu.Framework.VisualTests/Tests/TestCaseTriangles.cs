@@ -14,7 +14,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseTriangles : TestCase
     {
-        public override string Name => @"Triangles";
         public override string Description => @"Various scenarios which potentially challenge triangles.";
 
         private Container testContainer;

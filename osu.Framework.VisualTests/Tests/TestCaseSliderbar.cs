@@ -13,7 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     public class TestCaseSliderbar : TestCase
     {
-        public override string Name => @"Sliderbar";
         public override string Description => @"Sliderbar tests.";
         private SliderBar<double> sliderBar;
         private BindableDouble sliderBarValue;

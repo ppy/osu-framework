@@ -17,8 +17,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseScreen : TestCase
     {
-        public override string Name => @"Screen";
-
         public override string Description => @"Test stackable game screens";
 
         public override void Reset()

@@ -13,8 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseOnlineTextures : TestCase
     {
-        public override string Name => @"Online Textures";
-
         private FillFlowContainer flow;
 
         int loadId = 55;

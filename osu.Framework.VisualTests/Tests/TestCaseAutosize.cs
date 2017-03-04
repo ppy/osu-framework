@@ -16,7 +16,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseSizing : TestCase
     {
-        public override string Name => @"Size calculations";
         public override string Description => @"Various scenarios which potentially challenge size calculations.";
 
         private Container testContainer;

@@ -12,8 +12,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseCheckBox : TestCase
     {
-        public override string Name => @"Checkboxes";
-
         public override string Description => @"CheckBoxes with clickable labels";
 
         public override void Reset()

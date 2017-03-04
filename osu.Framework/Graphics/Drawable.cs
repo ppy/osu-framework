@@ -2042,7 +2042,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A name used to identify this Drawable internally.
         /// </summary>
-        public virtual string Name => string.Empty;
+        public string Name = string.Empty;
 
         public override string ToString()
         {

@@ -15,8 +15,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseDropDownBox : TestCase
     {
-        public override string Name => @"Drop-down boxes";
-
         public override string Description => @"Drop-down boxes";
 
         private StyledDropDownMenu styledDropDownMenu;

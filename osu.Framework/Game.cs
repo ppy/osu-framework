@@ -41,8 +41,6 @@ namespace osu.Framework
 
         public GameHost Host => host;
 
-        public override string Name => GetType().ToString();
-
         private bool isActive;
 
         public AudioManager Audio;
@@ -63,6 +61,8 @@ namespace osu.Framework
 
         public Game()
         {
+            Name = GetType().ToString();
+
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]
