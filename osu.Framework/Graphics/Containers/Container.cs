@@ -328,7 +328,7 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        internal sealed override void UpdateClock(IFrameBasedClock clock)
+        public sealed override void UpdateClock(IFrameBasedClock clock)
         {
             if (Clock == clock)
                 return;
