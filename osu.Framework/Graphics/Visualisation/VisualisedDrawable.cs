@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 Flow = new FillFlowContainer
                 {
-                    Direction = FillDirection.Down,
+                    Direction = FillDirection.Vertical,
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(10, 14)
                 },

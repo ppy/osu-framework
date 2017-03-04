@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected DropDownMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Direction = FillDirection.Down;
+            Direction = FillDirection.Vertical;
 
             Children = new Drawable[]
             {
@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.UserInterface
                                 {
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
-                                    Direction = FillDirection.Down,
+                                    Direction = FillDirection.Vertical,
                                 },
                             },
                         },
