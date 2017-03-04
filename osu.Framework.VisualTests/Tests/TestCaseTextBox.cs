@@ -104,8 +104,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
-                Anchor = Anchor.TopCentre,
-                Origin = Anchor.TopCentre,
+                Margin = new MarginPadding { Left = 50 },
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.8f, 1)
             };

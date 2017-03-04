@@ -61,8 +61,6 @@ namespace osu.Framework
 
         public Game()
         {
-            Name = GetType().ToString();
-
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]

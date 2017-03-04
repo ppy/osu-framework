@@ -157,20 +157,31 @@ namespace osu.Framework.Graphics.Containers
             rowWidths.Add(result.Last().X);
             float height = result.Last().Y;
 
+            Anchor ourAnchor = children[0].Anchor;
+
             // Second pass, adjusting the positions for anchors of children.
             // Uses rowWidths and height for centre-anchors.
             for (int i = 0; i < children.Length; ++i)
             {
                 var c = children[i];
 
+                if (c.Anchor != ourAnchor)
+                    throw new InvalidOperationException(
+                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} ({ourAnchor} != {c.Anchor}). " +
+                        $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
                 if ((c.Anchor & Anchor.x1) > 0)
+                    // Begin flow at centre of row
                     result[i].X -= rowWidths[rowIndices[i]] / 2;
                 else if ((c.Anchor & Anchor.x2) > 0)
+                    // Flow right-to-left
                     result[i].X = -result[i].X;
 
                 if ((c.Anchor & Anchor.y1) > 0)
+                    // Begin flow at centre of total height
                     result[i].Y -= height / 2;
                 else if ((c.Anchor & Anchor.y2) > 0)
+                    // Flow bottom-to-top
                     result[i].Y = -result[i].Y;
             }
 
