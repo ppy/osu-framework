@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
+        private Box textBg;
         private SpriteText text;
         private Drawable previewBox;
         private Drawable activityInvalidate;
@@ -88,10 +89,26 @@ namespace osu.Framework.Graphics.Visualisation
                     Texture = sprite.Texture,
                     Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                 },
-                text = new SpriteText
+                new Container
                 {
+                    AutoSizeAxes = Axes.Both,
                     Position = new Vector2(24, -3),
-                    Scale = new Vector2(0.9f),
+
+                    Children = new Drawable[]
+                    {
+                        textBg = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(1, 0.8f),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Colour = Color4.Transparent,
+                        },
+                        text = new SpriteText
+                        {
+                            Scale = new Vector2(0.9f),
+                        },
+                    }
                 },
                 Flow = new FillFlowContainer
                 {
@@ -140,12 +157,14 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             HoverGained?.Invoke();
+            textBg.Colour = Color4.PaleVioletRed.Opacity(0.7f);
             return base.OnHover(state);
         }
 
         protected override void OnHoverLost(InputState state)
         {
             HoverLost?.Invoke();
+            textBg.Colour = Color4.Transparent;
             base.OnHoverLost(state);
         }
 
