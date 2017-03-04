@@ -24,6 +24,12 @@ namespace osu.Framework.Graphics.Primitives
             Top = Left = Bottom = Right = allSides;
         }
 
+        public void ThrowIfNegative()
+        {
+            if (Top < 0 || Left < 0 || Bottom < 0 || Right < 0)
+                throw new InvalidOperationException($"{nameof(MarginPadding)} may not have negative values, but values are {this}.");
+        }
+
         public int CompareTo(object obj)
         {
             throw new NotImplementedException();

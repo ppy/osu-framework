@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class PerformanceOverlay : FlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
+    class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
         private readonly TextureAtlas atlas;
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay()
         {
-            Direction = FlowDirections.Vertical;
+            Direction = FillDirection.Down;
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
         }
     }

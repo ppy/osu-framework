@@ -257,6 +257,11 @@ namespace osu.Framework.Graphics.Containers
                     (t as IContainer)?.Clear();
                     t.Dispose();
                 }
+                else
+                {
+                    t.Parent = null;
+                    t.Invalidate();
+                }
 
                 Trace.Assert(t.Parent == null);
             }
@@ -323,7 +328,7 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        internal override void UpdateClock(IFrameBasedClock clock)
+        internal sealed override void UpdateClock(IFrameBasedClock clock)
         {
             if (Clock == clock)
                 return;
@@ -340,7 +345,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
 
-        protected internal override bool UpdateSubTree()
+        internal sealed override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
@@ -384,7 +389,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (AutoSizeAxes == Axes.None) return;
 
-            if ((invalidation & Invalidation.Geometry) > 0)
+            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
                 autoSize.Invalidate();
         }
 
@@ -522,7 +527,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected internal override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
@@ -813,6 +818,7 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
+                padding.ThrowIfNegative();
 
                 foreach (T c in internalChildren)
                     c.Invalidate(Invalidation.Geometry);

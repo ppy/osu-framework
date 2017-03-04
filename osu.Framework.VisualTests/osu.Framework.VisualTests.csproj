@@ -38,7 +38,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1339\lib\net45\OpenTK.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1340\lib\net45\OpenTK.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -53,6 +53,7 @@
     <Compile Include="Tests\TestCaseColourGradient.cs" />
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
+    <Compile Include="Tests\TestCaseFlow.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
     <Compile Include="Tests\TestCaseDropDownBox.cs" />

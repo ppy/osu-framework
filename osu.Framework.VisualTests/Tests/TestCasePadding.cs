@@ -24,7 +24,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new FlowContainer
+                new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]

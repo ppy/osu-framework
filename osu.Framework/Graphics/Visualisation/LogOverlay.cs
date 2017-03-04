@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     class LogOverlay : OverlayContainer
     {
-        private FlowContainer flow;
+        private FillFlowContainer flow;
 
         private Bindable<bool> enabled;
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             Children = new Drawable[]
             {
-                flow = new FlowContainer
+                flow = new FillFlowContainer
                 {
                     LayoutDuration = 150,
                     LayoutEasing = EasingTypes.OutQuart,
