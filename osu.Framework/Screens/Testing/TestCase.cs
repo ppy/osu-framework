@@ -52,7 +52,8 @@ namespace osu.Framework.Screens.Testing
                     {
                         Direction = FillDirection.Vertical,
                         Spacing = new Vector2(15, 5),
-                        AutoSizeAxes = Axes.Both,
+                        Width = 150,
+                        AutoSizeAxes = Axes.Y,
                     },
                 };
             }
