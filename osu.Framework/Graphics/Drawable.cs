@@ -1118,11 +1118,10 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
+                Invalidate(Invalidation.Geometry | Invalidation.Colour);
+
                 if (parent != null)
-                {
                     UpdateClock(parent.Clock);
-                    Invalidate(Invalidation.Geometry | Invalidation.Colour);
-                }
             }
         }
 

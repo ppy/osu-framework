@@ -201,8 +201,6 @@ namespace osu.Framework.Graphics.Containers
 
             if (!result) return false;
 
-            drawable.Invalidate();
-
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry, drawable);
 
@@ -258,10 +256,7 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
-                {
                     t.Parent = null;
-                    t.Invalidate();
-                }
 
                 Trace.Assert(t.Parent == null);
             }
