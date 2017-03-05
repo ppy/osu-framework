@@ -698,7 +698,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.Geometry, this);
+                Parent?.InvalidateFromChild(Invalidation.Geometry);
             }
         }
 
@@ -1299,7 +1299,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+                Parent.InvalidateFromChild(invalidation);
 
             bool alreadyInvalidated = true;
 

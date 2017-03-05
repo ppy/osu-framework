@@ -92,12 +92,12 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
+        public override void InvalidateFromChild(Invalidation invalidation)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
 
-            base.InvalidateFromChild(invalidation, source);
+            base.InvalidateFromChild(invalidation);
         }
 
         protected virtual IEnumerable<T> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
