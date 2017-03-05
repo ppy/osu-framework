@@ -4,24 +4,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using osu.Framework.DebugUtils;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
-using osu.Framework.Lists;
-using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Threading;
 using System.Threading;
 using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Caching;
+using osu.Framework.DebugUtils;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Transforms;
+using osu.Framework.Input;
+using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
-using osu.Framework.Graphics.Colour;
-using osu.Framework.Input;
-using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics
 {

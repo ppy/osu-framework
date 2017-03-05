@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.UserInterface
         private List<DropDownMenuItem<T>> items = new List<DropDownMenuItem<T>>();
         private readonly Dictionary<T, int> itemDictionary = new Dictionary<T, int>();
 
+        protected IReadOnlyList<DropDownMenuItem<T>> ItemList => items;
+        protected IReadOnlyDictionary<T, int> ItemDictionary => itemDictionary;
         protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<KeyValuePair<string, T>> values);
 
         public IEnumerable<KeyValuePair<string, T>> Items
@@ -51,12 +53,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected DropDownHeader Header;
+        protected BasicDropDownHeader Header;
 
         protected Container ContentContainer;
         protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
 
-        protected abstract DropDownHeader CreateHeader();
+        protected abstract BasicDropDownHeader CreateHeader();
 
         private int maxDropDownHeight = 100;
 

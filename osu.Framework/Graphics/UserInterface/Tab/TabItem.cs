@@ -1,0 +1,38 @@
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using System;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+
+namespace osu.Framework.Graphics.UserInterface.Tab
+{
+    public class TabItem<T> : ClickableContainer
+    {
+        internal Action<TabItem<T>> SelectAction;
+
+        public T Value { get; set; }
+
+        private bool active;
+        public virtual bool Active
+        {
+            get { return active; }
+            set
+            {
+                if (active == value)
+                    return;
+
+                active = value;
+                if (active)
+                    SelectAction?.Invoke(this);
+            }
+        }
+
+        protected override bool OnClick(InputState state)
+        {
+            base.OnClick(state);
+            Active = true;
+            return true;
+        }
+    }
+}
