@@ -120,22 +120,19 @@ namespace osu.Framework.Graphics
         /// after loading is complete.
         /// </param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
+                loadTask = null;
             }));
-
-            await loadTask;
-
-            loadTask = null;
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
