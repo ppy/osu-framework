@@ -388,7 +388,7 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Positional offset of <see cref="Origin"/> to <see cref="AnchorPosition"/> in the
+        /// Positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/> in the
         /// <see cref="Parent"/>'s coordinate system. May be in absolute or relative units
         /// (controlled by <see cref="RelativePositionAxes"/>).
         /// </summary>
@@ -480,7 +480,7 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Absolute positional offset of <see cref="Origin"/> to <see cref="AnchorPosition"/>
+        /// Absolute positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/>
         /// in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
         public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
@@ -836,7 +836,7 @@ namespace osu.Framework.Graphics
         /// in the coordinate system with origin at the top left corner of the
         /// <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
-        /// or a fixed absolute position via <see cref="AnchorPosition"/>.
+        /// or a fixed absolute position via <see cref="RelativeAnchorPosition"/>.
         /// </summary>
         public Anchor Anchor
         {
@@ -855,32 +855,49 @@ namespace osu.Framework.Graphics
         }
 
 
-        private Vector2 customAnchor;
+        private Vector2 customRelativeAnchorPosition;
+
+        /// <summary>
+        /// Specifies in relative coordinates where <see cref="Origin"/> is attached
+        /// to the <see cref="Parent"/> in the coordinate system with origin at the top
+        /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>, and
+        /// a value of <see cref="Vector2.One"/> referring to the bottom right corner of
+        /// the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
+        /// </summary>
+        public Vector2 RelativeAnchorPosition
+        {
+            get
+            {
+                if (Anchor == Anchor.Custom)
+                    return customRelativeAnchorPosition;
+
+                Vector2 result = Vector2.Zero;
+                if ((anchor & Anchor.x1) > 0)
+                    result.X = 0.5f;
+                else if ((anchor & Anchor.x2) > 0)
+                    result.X = 1;
+
+                if ((anchor & Anchor.y1) > 0)
+                    result.Y = 0.5f;
+                else if ((anchor & Anchor.y2) > 0)
+                    result.Y = 1;
+
+                return result;
+            }
+
+            set
+            {
+                customRelativeAnchorPosition = value;
+                Anchor = Anchor.Custom;
+            }
+        }
 
         /// <summary>
         /// Specifies in absolute coordinates where <see cref="Origin"/> is attached
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
         /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// </summary>
-        public virtual Vector2 AnchorPosition
-        {
-            get
-            {
-                if (Anchor == Anchor.Custom)
-                    return customAnchor;
-
-                if (Anchor == Anchor.TopLeft || Parent == null)
-                    return Vector2.Zero;
-
-                return computeAnchorPosition(Parent.ChildSize, Anchor);
-            }
-
-            set
-            {
-                customAnchor = value;
-                Anchor = Anchor.Custom;
-            }
-        }
+        public Vector2 AnchorPosition => RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
 
         /// <summary>
         /// Helper function to compute an absolute position given an absolute size and
@@ -1221,69 +1238,50 @@ namespace osu.Framework.Graphics
                 return di;
             });
 
-        private Cached<Vector2> boundingSizeWithOriginBacking = new Cached<Vector2>();
+        private Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
 
         /// <summary>
         /// Returns the size of the smallest axis aligned box in parent space which
-        /// encompasses this drawable and the parent's origin. Note, that negative
-        /// sizes are clamped to zero (i.e. can never be negative).
+        /// encompasses this drawable while preserving this drawable's
+        /// <see cref="RelativeAnchorPosition"/>.
+        /// If a component of <see cref="RelativeAnchorPosition"/> is smaller than zero
+        /// or larger than one, then it is impossible to preserve <see cref="RelativeAnchorPosition"/>
+        /// while fitting into the parent, and thus <see cref="RelativeAnchorPosition"/> returns
+        /// zero in that dimension; i.e. we no longer fit into the parent.
+        /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 BoundingSizeWithOrigin => boundingSizeWithOriginBacking.EnsureValid()
-            ? boundingSizeWithOriginBacking.Value
-            : boundingSizeWithOriginBacking.Refresh(() =>
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.EnsureValid()
+            ? requiredParentSizeToFitBacking.Value
+            : requiredParentSizeToFitBacking.Refresh(() =>
             {
-                //field will be none when the drawable isn't requesting auto-sizing
+                // Auxilary variables required for the computation 
+                Vector2 ap = AnchorPosition;
+                Vector2 rap = RelativeAnchorPosition;
+
+                Vector2 ratio1 = new Vector2(
+                    rap.X <= 0 ? 0 : (1 / rap.X),
+                    rap.Y <= 0 ? 0 : (1 / rap.Y));
+
+                Vector2 ratio2 = new Vector2(
+                    rap.X >= 1 ? 0 : (1 / (1 - rap.X)),
+                    rap.Y >= 1 ? 0 : (1 / (1 - rap.Y)));
+
                 RectangleF bbox = BoundingBox;
 
-                Vector2 bounds = new Vector2(0, 0);
+                // Compute the required size of the parent such that we fit in snugly when positioned
+                // at our relative anchor in the parent.
+                Vector2 topLeftOffset = ap - bbox.TopLeft;
+                Vector2 topLeftSize1 = topLeftOffset * ratio1;
+                Vector2 topLeftSize2 = -topLeftOffset * ratio2;
 
-                // Without this, 0x0 objects (like FontText with no string) produce weird results.
-                // When all vertices of the quad are at the same location, then the object is effectively invisible.
-                // Thus we don't need its actual bounding box, but can just assume a size of 0.
-                if (bbox.Width <= 0 && bbox.Height <= 0)
-                    return bounds;
+                Vector2 bottomRightOffset = ap - bbox.BottomRight;
+                Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
+                Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
 
-                Vector2 a = AnchorPosition;
-
-                foreach (Vector2 p in new[] { new Vector2(bbox.Left, bbox.Top), new Vector2(bbox.Right, bbox.Bottom) })
-                {
-                    // Compute the clipped offset depending on anchoring.
-                    Vector2 offset;
-
-                    // Right
-                    if ((Anchor & Anchor.x2) > 0)
-                        offset.X = a.X - p.X;
-                    // Left
-                    else if ((Anchor & Anchor.x0) > 0)
-                        offset.X = p.X - a.X;
-                    // Centre or custom
-                    else
-                        offset.X = Math.Abs(p.X - a.X);
-
-                    // Bottom
-                    if ((Anchor & Anchor.y2) > 0)
-                        offset.Y = a.Y - p.Y;
-                    // Top
-                    else if ((Anchor & Anchor.y0) > 0)
-                        offset.Y = p.Y - a.Y;
-                    // Centre or custom
-                    else
-                        offset.Y = Math.Abs(p.Y - a.Y);
-
-                    // Expand bounds according to clipped offset
-                    bounds.X = Math.Max(bounds.X, offset.X);
-                    bounds.Y = Math.Max(bounds.Y, offset.Y);
-                }
-
-                // When anchoring an object at the center of the parent, then the parent's size needs to be twice as big
-                // as the child's size.
-                if ((Anchor & Anchor.x1) > 0)
-                    bounds.X *= 2;
-
-                if ((Anchor & Anchor.y1) > 0)
-                    bounds.Y *= 2;
-
-                return bounds;
+                // Expand bounds according to clipped offset
+                return Vector2.ComponentMax(
+                    Vector2.ComponentMax(topLeftSize1, topLeftSize2),
+                    Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
             });
 
         private static AtomicCounter invalidationCounter = new AtomicCounter();
@@ -1307,7 +1305,7 @@ namespace osu.Framework.Graphics
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
             {
                 if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                    alreadyInvalidated &= !boundingSizeWithOriginBacking.Invalidate();
+                    alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
                 alreadyInvalidated &= !drawInfoBacking.Invalidate();
