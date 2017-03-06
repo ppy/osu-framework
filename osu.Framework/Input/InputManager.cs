@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Handlers;
@@ -81,6 +82,12 @@ namespace osu.Framework.Input
         public InputManager()
         {
             RelativeSizeAxes = Axes.Both;
+        }
+
+        [BackgroundDependencyLoader(permitNulls: true)]
+        private void load(GameHost host)
+        {
+            Host = host;
         }
 
         /// <summary>
@@ -302,7 +309,6 @@ namespace osu.Framework.Input
             }
         }
 
-        InputState mouseDownState;
         List<Drawable> mouseDownInputQueue;
 
         private void updateMouseEvents(InputState state)
@@ -380,7 +386,6 @@ namespace osu.Framework.Input
                 Button = button
             };
 
-            mouseDownState = state;
             mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
 
             return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args)) != null;

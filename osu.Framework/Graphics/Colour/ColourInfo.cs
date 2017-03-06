@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Colour
                     return false;
 
                 return
-                    HasSingleColour == other.HasSingleColour &&
+                    !HasSingleColour &&
                     TopLeft.Equals(other.TopLeft) &&
                     TopRight.Equals(other.TopRight) &&
                     BottomLeft.Equals(other.BottomLeft) &&

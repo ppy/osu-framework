@@ -261,13 +261,11 @@ namespace osu.Framework.Threading
     /// </summary>
     public class ThreadedScheduler : Scheduler
     {
-        Thread workerThread;
-
         bool isDisposed;
 
         public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {
-            workerThread = new Thread(() =>
+            var workerThread = new Thread(() =>
             {
                 while (!isDisposed)
                 {

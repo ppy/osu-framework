@@ -13,15 +13,15 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A <see cref="FlowContainer{Drawable}"/> that fills space by arranging its children
     /// next to each other.
-    /// <see cref="Children"/> can be arranged horizontally, vertically, and in a
+    /// <see cref="Container{T}.Children"/> can be arranged horizontally, vertically, and in a
     /// combined fashion, which is controlled by <see cref="Direction"/>.
-    /// <see cref="Children"/> are arranged from left-to-right if their
+    /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
     /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
     /// They are arranged from right-to-left otherwise.
-    /// <see cref="Children"/> are arranged from top-to-bottom if their
+    /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
-    /// If non-<see cref="Drawable"/> <see cref="Children"/> are desired, use
+    /// If non-<see cref="Drawable"/> <see cref="Container{T}.Children"/> are desired, use
     /// <see cref="FillFlowContainer{T}"/>. 
     /// </summary>
     public class FillFlowContainer : FillFlowContainer<Drawable>
@@ -30,12 +30,12 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// A <see cref="FlowContainer{T}"/> that fills space by arranging its children
     /// next to each other.
-    /// <see cref="Children"/> can be arranged horizontally, vertically, and in a
+    /// <see cref="Container{T}.Children"/> can be arranged horizontally, vertically, and in a
     /// combined fashion, which is controlled by <see cref="Direction"/>.
-    /// <see cref="Children"/> are arranged from left-to-right if their
+    /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
     /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
     /// They are arranged from right-to-left otherwise.
-    /// <see cref="Children"/> are arranged from top-to-bottom if their
+    /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
     /// </summary>
@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Containers
         private FillDirection direction = FillDirection.Full;
 
         /// <summary>
-        /// The direction of the fill. Default is <see cref="Full"/>.
+        /// The direction of the fill. Default is <see cref="FillDirection.Full"/>.
         /// </summary>
         public FillDirection Direction
         {
@@ -127,11 +127,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 Vector2 size = children[i].BoundingBox.Size;
 
-                Vector2 spacing = size;
-                if (spacing.X > 0)
-                    spacing.X = Math.Max(0, spacing.X + Spacing.X);
-                if (spacing.Y > 0)
-                    spacing.Y = Math.Max(0, spacing.Y + Spacing.Y);
+                Vector2 usableSpacing = size;
+                if (usableSpacing.X > 0)
+                    usableSpacing.X = Math.Max(0, usableSpacing.X + Spacing.X);
+                if (usableSpacing.Y > 0)
+                    usableSpacing.Y = Math.Max(0, usableSpacing.Y + Spacing.Y);
 
                 //We've exceeded our allowed width, move to a new row
                 if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(current.X + size.X, max.X) || direction == FillDirection.Vertical))
@@ -148,9 +148,9 @@ namespace osu.Framework.Graphics.Containers
 
                 rowIndices[i] = rowWidths.Count;
 
-                if (spacing.Y > rowMaxHeight)
-                    rowMaxHeight = spacing.Y;
-                current.X += spacing.X;
+                if (usableSpacing.Y > rowMaxHeight)
+                    rowMaxHeight = usableSpacing.Y;
+                current.X += usableSpacing.X;
             }
 
             rowWidths.Add(result.Last().X);

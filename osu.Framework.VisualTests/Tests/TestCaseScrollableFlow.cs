@@ -24,13 +24,13 @@ namespace osu.Framework.VisualTests.Tests
         FillFlowContainer flow;
         Direction scrollDir;
 
-        private void createArea(Direction scrollDir)
+        private void createArea(Direction dir)
         {
-            Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
+            Axes scrollAxis = dir == Direction.Horizontal ? Axes.X : Axes.Y;
 
             Children = new[]
             {
-                scroll = new ScrollContainer(scrollDir)
+                scroll = new ScrollContainer(dir)
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
@@ -97,7 +97,7 @@ namespace osu.Framework.VisualTests.Tests
             AddButton("Both", delegate { createAreaBoth(); });
 
             AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopLeft : Anchor.TopLeft; });
+            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
 
             AddButton("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
             AddButton("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });

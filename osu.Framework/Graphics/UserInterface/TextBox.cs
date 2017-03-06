@@ -119,9 +119,9 @@ namespace osu.Framework.Graphics.UserInterface
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
                 };
-                textInput.OnNewImeResult += delegate (string s)
+                textInput.OnNewImeResult += delegate
                 {
-                    textUpdateScheduler.Add(() => onImeResult(s));
+                    textUpdateScheduler.Add(onImeResult);
                     cursorAndLayout.Invalidate();
                 };
             }
@@ -159,7 +159,7 @@ namespace osu.Framework.Graphics.UserInterface
                 textUpdateScheduler.Update();
 
                 Vector2 cursorPos = Vector2.Zero;
-                if (text?.Length > 0)
+                if (text.Length > 0)
                     cursorPos.X = getPositionAt(selectionLeft);
 
                 float cursorPosEnd = getPositionAt(selectionEnd);
@@ -413,6 +413,8 @@ namespace osu.Framework.Graphics.UserInterface
                 if (value == text)
                     return;
 
+                value = value ?? string.Empty;
+
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
                 textUpdateScheduler.Add(delegate
@@ -657,6 +659,9 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (HasFocus) return true;
 
+            if (!state.Mouse.PositionMouseDown.HasValue)
+                throw new ArgumentNullException(nameof(state.Mouse.PositionMouseDown));
+
             Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);
@@ -771,13 +776,11 @@ namespace osu.Framework.Graphics.UserInterface
             textInput.Activate(this);
         }
 
-        private void onImeResult(string s)
+        private void onImeResult()
         {
             //we only succeeded if there is pending data in the textbox
             if (imeDrawables.Count > 0)
             {
-                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-
                 foreach (Drawable d in imeDrawables)
                 {
                     d.Colour = Color4.White;

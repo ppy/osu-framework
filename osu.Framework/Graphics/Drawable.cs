@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : IDisposable, IHasLifetime, IDrawable
+    public abstract class Drawable : IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -1180,20 +1180,20 @@ namespace osu.Framework.Graphics
             {
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
-                Vector2 position = DrawPosition + AnchorPosition;
-                Vector2 scale = DrawScale;
-                BlendingMode blendingMode = BlendingMode;
+                Vector2 pos = DrawPosition + AnchorPosition;
+                Vector2 drawScale = DrawScale;
+                BlendingMode blending = BlendingMode;
 
                 if (Parent != null)
                 {
-                    position += Parent.ChildOffset;
+                    pos += Parent.ChildOffset;
 
-                    if (blendingMode == BlendingMode.Inherit)
-                        blendingMode = Parent.BlendingMode;
+                    if (blending == BlendingMode.Inherit)
+                        blending = Parent.BlendingMode;
                 }
 
-                di.ApplyTransform(position, scale, Rotation, Shear, OriginPosition);
-                di.Blending = new BlendingInfo(blendingMode);
+                di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+                di.Blending = new BlendingInfo(blending);
 
                 // We need an additional parent null check here, since the following block
                 // requires up-to-date matrices.

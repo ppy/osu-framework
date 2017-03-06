@@ -118,7 +118,7 @@ namespace osu.Framework.Configuration
         /// <returns>A weakly bound copy of the specified bindable.</returns>
         public Bindable<T> GetBoundCopy()
         {
-            var copy = MemberwiseClone() as Bindable<T>;
+            var copy = (Bindable<T>)MemberwiseClone();
 
             copy.bindings = new List<WeakReference<Bindable<T>>>();
             copy.BindTo(this);

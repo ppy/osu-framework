@@ -36,7 +36,8 @@ namespace osu.Framework.Desktop.Platform.Windows
 
                 // We need to call the OleInitialize()-Method because otherwise we will get an E_OUTOFMEMORY-Error from the RegisterDragDrop-Method we are about to call.
                 oleInitializeMethod.Invoke(null, null);
-                var errorCode = registerDragDropMethod.Invoke(null, new[] { new HandleRef(this, WindowInfo.Handle), dropTarget });
+                //note that this returns an error code we may want to handle in the future.
+                registerDragDropMethod.Invoke(null, new[] { new HandleRef(this, WindowInfo.Handle), dropTarget });
             }
             catch
             {

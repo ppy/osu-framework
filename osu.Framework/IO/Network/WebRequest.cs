@@ -224,6 +224,9 @@ namespace osu.Framework.IO.Network
                 req = System.Net.WebRequest.Create(requestUrl.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
             }
 
+            if (req == null)
+                throw new InvalidOperationException(@"request could not be created");
+
             req.UserAgent = @"osu!";
             req.KeepAlive = useFallbackPath != true;
             req.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -685,6 +688,7 @@ namespace osu.Framework.IO.Network
             try
             {
                 if (request?.ServicePoint.BindIPEndPointDelegate != null)
+                    // ReSharper disable once DelegateSubtraction
                     request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
             }
             catch

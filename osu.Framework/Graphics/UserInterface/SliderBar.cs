@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Diagnostics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
@@ -90,6 +91,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnDragStart(InputState state)
         {
+            if (!state.Mouse.PositionMouseDown.HasValue)
+                throw new ArgumentNullException(nameof(state.Mouse.PositionMouseDown));
+
             Vector2 posDiff = state.Mouse.PositionMouseDown.Value - state.Mouse.Position;
 
             return Math.Abs(posDiff.X) > Math.Abs(posDiff.Y);

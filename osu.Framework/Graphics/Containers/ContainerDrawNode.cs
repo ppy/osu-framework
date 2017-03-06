@@ -93,7 +93,7 @@ namespace osu.Framework.Graphics.Containers
         public MaskingInfo? MaskingInfo;
 
         /// <summary>
-        /// The screen-space version of <see cref="MaskingInfo.MaskingRect"/>.
+        /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
         /// Used as cache of screen-space masking quads computed in previous frames.
         /// Assign null to reset.
         /// </summary>

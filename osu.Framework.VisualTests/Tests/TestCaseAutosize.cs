@@ -929,8 +929,7 @@ namespace osu.Framework.VisualTests.Tests
 
     class InfofulBoxAutoSize : Container
     {
-        [BackgroundDependencyLoader]
-        private void load(Game game)
+        public InfofulBoxAutoSize()
         {
             AutoSizeAxes = Axes.Both;
 
@@ -963,8 +962,6 @@ namespace osu.Framework.VisualTests.Tests
 
     class InfofulBox : Container
     {
-        private SpriteText debugInfo;
-
         public bool Chameleon = false;
         public bool AllowDrag = true;
 
@@ -990,12 +987,6 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
                 Depth = float.MaxValue,
             });
-
-            debugInfo = new SpriteText
-            {
-                Colour = Color4.Black
-            };
-            Add(debugInfo);
         }
 
         int lastSwitch;
@@ -1030,8 +1021,6 @@ namespace osu.Framework.VisualTests.Tests
             }
 
             base.Update();
-
-            //debugInfo.Text = ToString();
         }
     }
 }

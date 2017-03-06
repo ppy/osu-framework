@@ -11,17 +11,13 @@ namespace osu.Framework.VisualTests
     {
         private double timePerTest = 200;
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            Host.MaximumDrawHz = int.MaxValue;
-            Host.MaximumUpdateHz = int.MaxValue;
-            Host.MaximumInactiveHz = int.MaxValue;
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            Host.MaximumDrawHz = int.MaxValue;
+            Host.MaximumUpdateHz = int.MaxValue;
+            Host.MaximumInactiveHz = int.MaxValue;
 
             TestBrowser f = new TestBrowser();
             Add(f);

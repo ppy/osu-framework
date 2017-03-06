@@ -66,11 +66,6 @@ namespace osu.Framework.Platform
             throw new ArgumentException(nameof(version));
         }
 
-        protected override void OnKeyDown(KeyboardKeyEventArgs e)
-        {
-            base.OnKeyDown(e);
-        }
-
         public void SetTitle(string title)
         {
             Title = title;

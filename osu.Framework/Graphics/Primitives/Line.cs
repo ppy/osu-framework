@@ -7,17 +7,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public class ColouredLine : Line
-    {
-        public Color4 Colour = Color4.White;
-
-        public ColouredLine(Vector2 p1, Vector2 p2, Color4 color)
-            : base(p1, p2)
-        {
-            Colour = color;
-        }
-    }
-
     /// <summary>
     /// Represents a single line segment.  Drawing is handled by the LineManager class.
     /// </summary>

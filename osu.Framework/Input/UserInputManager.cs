@@ -12,13 +12,8 @@ namespace osu.Framework.Input
     {
         public override bool Contains(Vector2 screenSpacePos) => true;
 
-        public UserInputManager(GameHost host)
-        {
-            Host = host;
-        }
-
         [BackgroundDependencyLoader]
-        private void load(Game game)
+        private void load()
         {
             if (Host != null)
             {

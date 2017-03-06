@@ -38,8 +38,11 @@ namespace osu.Framework.IO.Stores
         /// <param name="stores">The collection of stores.</param>
         public ResourceStore(IResourceStore<T>[] stores)
         {
-            foreach (ResourceStore<T> store in stores)
+            foreach (var resourceStore in stores)
+            {
+                var store = (ResourceStore<T>)resourceStore;
                 AddStore(store);
+            }
         }
 
         /// <summary>
