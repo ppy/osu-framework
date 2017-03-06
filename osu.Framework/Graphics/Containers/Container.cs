@@ -201,10 +201,8 @@ namespace osu.Framework.Graphics.Containers
 
             if (!result) return false;
 
-            drawable.Invalidate();
-
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry, drawable);
+                InvalidateFromChild(Invalidation.Geometry);
 
             return true;
         }
@@ -258,17 +256,15 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
-                {
                     t.Parent = null;
-                    t.Invalidate();
-                }
 
                 Trace.Assert(t.Parent == null);
             }
 
             internalChildren.Clear();
 
-            Invalidate(Invalidation.Geometry);
+            if (AutoSizeAxes != Axes.None)
+                InvalidateFromChild(Invalidation.Geometry);
         }
 
         /// <summary>
@@ -296,7 +292,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry, drawable);
+                InvalidateFromChild(Invalidation.Geometry);
         }
 
         /// <summary>
@@ -385,7 +381,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
         /// <param name="source">The child that got invalidated.</param>
-        public virtual void InvalidateFromChild(Invalidation invalidation, IDrawable source)
+        public virtual void InvalidateFromChild(Invalidation invalidation)
         {
             if (AutoSizeAxes == Axes.None) return;
 

@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
         Vector2 ChildSize { get; }
         Vector2 ChildOffset { get; }
 
-        void InvalidateFromChild(Invalidation invalidation, IDrawable source);
+        void InvalidateFromChild(Invalidation invalidation);
 
         void Clear(bool dispose = true);
     }

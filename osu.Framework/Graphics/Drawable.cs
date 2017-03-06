@@ -698,7 +698,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.Geometry, this);
+                Parent?.InvalidateFromChild(Invalidation.Geometry);
             }
         }
 
@@ -1118,11 +1118,10 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
+                Invalidate(Invalidation.Geometry | Invalidation.Colour);
+
                 if (parent != null)
-                {
                     UpdateClock(parent.Clock);
-                    Invalidate(Invalidation.Geometry | Invalidation.Colour);
-                }
             }
         }
 
@@ -1300,7 +1299,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+                Parent.InvalidateFromChild(invalidation);
 
             bool alreadyInvalidated = true;
 
