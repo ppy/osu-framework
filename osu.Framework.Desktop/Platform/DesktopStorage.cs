@@ -46,9 +46,7 @@ namespace osu.Framework.Desktop.Platform
                         return null;
                     return File.Open(path, FileMode.Open, access, FileShare.Read);
                 default:
-                    var directory = Path.GetDirectoryName(path);
-                    if (directory != null)
-                        Directory.CreateDirectory(directory);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
                     return File.Open(path, mode, access);
             }
         }

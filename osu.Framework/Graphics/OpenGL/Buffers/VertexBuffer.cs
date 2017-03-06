@@ -107,21 +107,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
-        public static int Stride
-        {
-            get
-            {
-                return stride;
-            }
-        }
+        public static int Stride => stride;
 
-        public static int Stride1
-        {
-            get
-            {
-                return stride;
-            }
-        }
+        public static int Stride1 => stride;
 
         public void Draw()
         {

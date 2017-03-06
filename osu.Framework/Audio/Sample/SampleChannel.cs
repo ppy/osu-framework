@@ -14,7 +14,7 @@ namespace osu.Framework.Audio.Sample
 
         private Action<SampleChannel> onPlay;
 
-        public SampleChannel(Sample sample, Action<SampleChannel> onPlay)
+        protected SampleChannel(Sample sample, Action<SampleChannel> onPlay)
         {
             if (sample == null)
                 throw new ArgumentNullException(nameof(sample));

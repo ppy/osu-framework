@@ -7,12 +7,10 @@ namespace osu.Framework.Graphics
     {
         public ProxyDrawable(Drawable original)
         {
-            this.original = original;
+            Original = original;
         }
 
-        private Drawable original;
-
-        internal sealed override Drawable Original => original;
+        internal sealed override Drawable Original { get; }
 
         // We do not want to receive updates. That is the business
         // of the original drawable.

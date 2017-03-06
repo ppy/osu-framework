@@ -267,18 +267,7 @@ namespace osu.Framework.Graphics
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler
-        {
-            get
-            {
-                if (scheduler == null)
-                    // mainThread could be null at this point.
-                    // If so, then it will be set upon LoadComplete.
-                    scheduler = new Scheduler(mainThread);
-
-                return scheduler;
-            }
-        }
+        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(mainThread));
 
         private LifetimeList<ITransform> transforms;
 
@@ -461,12 +450,12 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
-                    X = conversion.X == 0 ? 0 : (X / conversion.X);
+                    X = conversion.X == 0 ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     X *= conversion.X;
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
-                    Y = conversion.Y == 0 ? 0 : (Y / conversion.Y);
+                    Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     Y *= conversion.Y;
 
@@ -565,12 +554,12 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                    Width = conversion.X == 0 ? 0 : (Width / conversion.X);
+                    Width = conversion.X == 0 ? 0 : Width / conversion.X;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                     Width *= conversion.X;
 
                 if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                    Height = conversion.Y == 0 ? 0 : (Height / conversion.Y);
+                    Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                     Height *= conversion.Y;
 

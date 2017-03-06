@@ -94,7 +94,7 @@ namespace osu.Framework.VisualTests.Tests
 
             AddButton("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
             AddButton("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
-            AddButton("Both", delegate { createAreaBoth(); });
+            AddButton("Both", createAreaBoth);
 
             AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
             AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });

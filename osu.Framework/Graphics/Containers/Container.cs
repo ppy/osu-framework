@@ -400,6 +400,7 @@ namespace osu.Framework.Graphics.Containers
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
             List<T> current = internalChildren;
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
                 T c = current[i];
@@ -474,6 +475,7 @@ namespace osu.Framework.Graphics.Containers
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
             List<T> current = parentContainer.internalChildren.AliveItems;
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
                 Drawable drawable = current[i];

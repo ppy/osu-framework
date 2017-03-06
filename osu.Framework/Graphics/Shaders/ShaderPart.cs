@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Shaders
             this.manager = manager;
 
             shaderCodes.Add(loadFile(data));
-            shaderCodes.RemoveAll(c => string.IsNullOrEmpty(c));
+            shaderCodes.RemoveAll(string.IsNullOrEmpty);
 
             if (shaderCodes.Count == 0)
                 return;

@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Visualisation
                     GoUpOneParent = delegate
                     {
                         var parent = Target?.Parent;
-                        if (parent != null && parent.Parent != null)
+                        if (parent?.Parent != null)
                             Target = Target?.Parent;
                     }
                 },

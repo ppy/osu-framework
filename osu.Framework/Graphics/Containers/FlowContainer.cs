@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if ((d.RelativeSizeAxes & AutoSizeAxes) != 0)
                             throw new InvalidOperationException(
-                                $"Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
+                                "Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
                                 $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {RelativeSizeAxes} axes.");
 
                         if (d.RelativePositionAxes != Axes.None)
