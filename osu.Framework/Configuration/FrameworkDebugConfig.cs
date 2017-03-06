@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Runtime;
+using osu.Framework.Caching;
 
 namespace osu.Framework.Configuration
 {
@@ -19,11 +20,13 @@ namespace osu.Framework.Configuration
             base.InitialiseDefaults();
 
             Set(FrameworkDebugConfig.ActiveGCMode, GCLatencyMode.SustainedLowLatency);
+            Set(FrameworkDebugConfig.BypassCaching, false).ValueChanged += delegate { StaticCached.BypassCache = Get<bool>(FrameworkDebugConfig.BypassCaching); };
         }
     }
 
     public enum FrameworkDebugConfig
     {
         ActiveGCMode,
+        BypassCaching
     }
 }
