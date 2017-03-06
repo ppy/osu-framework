@@ -1171,18 +1171,18 @@ namespace osu.Framework.Graphics
 
                 Vector2 pos = DrawPosition + AnchorPosition;
                 Vector2 drawScale = DrawScale;
-                BlendingMode blending = BlendingMode;
+                BlendingMode localBlendingMode = BlendingMode;
 
                 if (Parent != null)
                 {
                     pos += Parent.ChildOffset;
 
-                    if (blending == BlendingMode.Inherit)
-                        blending = Parent.BlendingMode;
+                    if (localBlendingMode == BlendingMode.Inherit)
+                        localBlendingMode = Parent.BlendingMode;
                 }
 
                 di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-                di.Blending = new BlendingInfo(blending);
+                di.Blending = new BlendingInfo(localBlendingMode);
 
                 // We need an additional parent null check here, since the following block
                 // requires up-to-date matrices.

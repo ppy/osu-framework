@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace osu.Framework.IO.Stores
 {
@@ -38,11 +39,8 @@ namespace osu.Framework.IO.Stores
         /// <param name="stores">The collection of stores.</param>
         public ResourceStore(IResourceStore<T>[] stores)
         {
-            foreach (var resourceStore in stores)
-            {
-                var store = (ResourceStore<T>)resourceStore;
-                AddStore(store);
-            }
+            foreach (var resourceStore in stores.Cast<ResourceStore<T>>())
+                AddStore(resourceStore);
         }
 
         /// <summary>

@@ -40,6 +40,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private FlashyBox layout;
         private FlashyBox shape;
+        private FlashyBox childShape;
 
         public InfoOverlay()
         {
@@ -57,7 +58,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Colour = Color4.Blue,
                     Alpha = 0.5f,
                 },
-                new FlashyBox(delegate(Drawable d)
+                childShape = new FlashyBox(delegate(Drawable d)
                 {
                     var c = d as IContainer;
                     if (c == null)
@@ -80,6 +81,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             layout.FlashColour(Color4.White, 250);
             shape.FlashColour(Color4.White, 250);
+            childShape.FlashColour(Color4.White, 250);
         }
 
         protected override void Update()

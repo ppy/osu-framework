@@ -127,11 +127,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 Vector2 size = children[i].BoundingBox.Size;
 
-                Vector2 usableSpacing = size;
-                if (usableSpacing.X > 0)
-                    usableSpacing.X = Math.Max(0, usableSpacing.X + Spacing.X);
-                if (usableSpacing.Y > 0)
-                    usableSpacing.Y = Math.Max(0, usableSpacing.Y + Spacing.Y);
+                Vector2 stride = size;
+                if (stride.X > 0)
+                    stride.X = Math.Max(0, stride.X + Spacing.X);
+                if (stride.Y > 0)
+                    stride.Y = Math.Max(0, stride.Y + Spacing.Y);
 
                 //We've exceeded our allowed width, move to a new row
                 if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(current.X + size.X, max.X) || direction == FillDirection.Vertical))
@@ -148,9 +148,9 @@ namespace osu.Framework.Graphics.Containers
 
                 rowIndices[i] = rowWidths.Count;
 
-                if (usableSpacing.Y > rowMaxHeight)
-                    rowMaxHeight = usableSpacing.Y;
-                current.X += usableSpacing.X;
+                if (stride.Y > rowMaxHeight)
+                    rowMaxHeight = stride.Y;
+                current.X += stride.X;
             }
 
             rowWidths.Add(result.Last().X);

@@ -615,12 +615,12 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Contains(Vector2 screenSpacePos)
         {
-            float radius = CornerRadius;
+            float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
-            if (!Masking || radius == 0.0f)
+            if (!Masking || cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
-            return DrawRectangle.Shrink(radius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= radius * radius;
+            return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue)
@@ -783,17 +783,17 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                float radius = CornerRadius;
-                if (!Masking || radius == 0.0f)
+                float cRadius = CornerRadius;
+                if (!Masking || cRadius == 0.0f)
                     return base.BoundingBox;
 
-                RectangleF drawRect = LayoutRectangle.Shrink(radius);
+                RectangleF drawRect = LayoutRectangle.Shrink(cRadius);
 
                 // Inflate bounding box in parent space by the half-size of the bounding box of the
                 // ellipse obtained by transforming the unit circle into parent space.
                 Vector2 offset = ToParentSpace(Vector2.Zero);
-                Vector2 u = ToParentSpace(new Vector2(radius, 0)) - offset;
-                Vector2 v = ToParentSpace(new Vector2(0, radius)) - offset;
+                Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
+                Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
                 Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);
