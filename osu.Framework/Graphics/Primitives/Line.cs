@@ -3,7 +3,6 @@
 
 using System;
 using OpenTK;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Primitives
 {
