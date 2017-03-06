@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics;
 using osu.Framework.Caching;
 using osu.Framework.DebugUtils;
 using osu.Framework.Extensions;
@@ -22,6 +20,8 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics
 {

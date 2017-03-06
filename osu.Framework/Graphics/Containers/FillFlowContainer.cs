@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using OpenTK;
 using System.Linq;
 using osu.Framework.Graphics.Transforms;
@@ -108,13 +107,6 @@ namespace osu.Framework.Graphics.Containers
             var children = FlowingChildren.ToArray();
             if (children.Length == 0)
                 return new List<Vector2>();
-
-            // TODO: Remove (for debugging)
-            foreach (var child in FlowingChildren.ToArray()) {
-                if (child.Parent == null) {
-                    Debug.WriteLine("Orphan child " + child);
-                }
-            }
 
             // The positions for each child we will return later on.
             Vector2[] result = new Vector2[children.Length];

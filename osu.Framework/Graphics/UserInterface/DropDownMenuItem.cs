@@ -64,8 +64,22 @@ namespace osu.Framework.Graphics.UserInterface
                 FormatBackground();
             }
         }
+
+        private Color4 foregroundColour = Color4.White;
+        protected Color4 ForegroundColour
+        {
+            get { return foregroundColour; }
+            set
+            {
+                foregroundColour = value;
+                FormatForeground();
+            }
+        }
+
         protected Color4 BackgroundColourHover { get; set; } = Color4.DarkGray;
         protected Color4 BackgroundColourSelected { get; set; } = Color4.SlateGray;
+        protected Color4 ForegroundColourHover { get; set; } = Color4.White;
+        protected Color4 ForegroundColourSelected { get; set; } = Color4.White;
 
         protected override Container<Drawable> Content => Foreground;
 
@@ -102,6 +116,11 @@ namespace osu.Framework.Graphics.UserInterface
             Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
         }
 
+        protected virtual void FormatForeground(bool hover = false)
+        {
+            Foreground.FadeColour(hover ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -111,6 +130,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected override bool OnHover(InputState state)
         {
             FormatBackground(true);
+            FormatForeground(true);
             return base.OnHover(state);
         }
 
@@ -118,6 +138,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.OnHover(state);
             FormatBackground();
+            FormatForeground();
         }
     }
 }

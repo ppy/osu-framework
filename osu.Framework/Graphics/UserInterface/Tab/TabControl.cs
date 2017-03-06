@@ -3,187 +3,120 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
     public abstract class TabControl<T> : Container
     {
-        public event EventHandler<T> ValueChanged;
+        private static AtomicCounter orderCounter = new AtomicCounter();
+        private Dictionary<T, TabItem<T>> tabMap;
+        private TabDropDownMenu<T> dropDown;
+        private TabFillFlowContainer<TabItem<T>> tabs;
+        private TabItem<T> selectedTab;
 
         protected abstract TabDropDownMenu<T> CreateDropDownMenu();
         protected abstract TabItem<T> CreateTabItem(T value);
 
-        private TabDropDownMenu<T> dropDown;
-        private FillFlowContainer<TabItem<T>> pinnedTabs;
-        private FillFlowContainer<TabItem<T>> visibleTabs;
-        private TabItem<T> selectedTab;
+        /// <summary>
+        /// Occurs when the selected tab changes.
+        /// </summary>
+        public event EventHandler<T> ValueChanged;
 
-        private float visibleMaxWidth => pinnedMaxWidth - pinnedTabs.Width;
-        private float pinnedMaxWidth => Width - dropDown.HeaderWidth - Prefix.Width;
+        /// <summary>
+        /// When true, the recently selected tabs are moved to the front of the list
+        /// </summary>
+        public bool AutoSort { set; get; }
 
-        public FillFlowContainer Prefix { get; }
+        protected TabControl(params T[] pinned) : this(0, pinned)
+        {
+        }
 
-        protected TabControl()
+        protected TabControl(float offset, params T[] pinned)
         {
             AutoSizeAxes = Axes.Y;
-
             dropDown = CreateDropDownMenu();
             dropDown.ValueChanged += dropDownValueChanged;
 
-            // Populate visible with as many items as fit
-            var items = dropDown.Items.ToList();
-            /*var allTabs = new List<TabItem<T>>();
-            for (int i = items.Count - 1; i >= 10; i--) {
-                var tab = CreateTabItem(items[i].Value);
+            // Create Map of all items
+            tabMap = dropDown.Items.ToDictionary(item => item.Value, item =>
+            {
+                var tab = CreateTabItem(item.Value);
                 tab.SelectAction += selectTab;
-                dropDown.HideItem(items[i].Value);
-                allTabs.Add(tab);
-                Debug.WriteLine("PREADDED" + tab);
+                return tab;
+            });
+            // Pinned tabs
+            foreach (var value in pinned)
+            {
+                TabItem<T> tab;
+                if (tabMap.TryGetValue(value, out tab))
+                    tab.Depth = int.MaxValue;
             }
-            visibleTabs.Children = allTabs;*/
 
             Children = new Drawable[]
             {
-                new FillFlowContainer
+                tabs = new TabFillFlowContainer<TabItem<T>>
                 {
-                    Direction = FillDirection.Horizontal,
-                    AutoSizeAxes = Axes.Both,
-                    Children = new Drawable[]
+                    Direction = FillDirection.Full,
+                    RelativeSizeAxes = Axes.X,
+                    Height = dropDown.HeaderHeight,
+                    Masking = true,
+                    Padding = new MarginPadding
                     {
-                        Prefix = new FillFlowContainer
-                        {
-                            Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.Both
-                        },
-                        pinnedTabs = new FillFlowContainer<TabItem<T>>
-                        {
-                            Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.Both
-                        },
-                        visibleTabs = new ReverseFillFlowContainer<TabItem<T>>
-                        {
-                            Direction = FillDirection.Horizontal,
-                            AutoSizeAxes = Axes.Both,
-                            // Temp for debugging
-                            Children = new TabItem<T>[]
-                            {
-                                CreateTabItem(items[0].Value),
-                                CreateTabItem(items[1].Value)
-                            }
-                        }
-                    }
+                        Left = offset,
+                        Right = dropDown.HeaderWidth
+                    },
+                    UpdateChild = updateDropDown,
+                    Children = tabMap.Values
                 },
                 dropDown
             };
+        }
 
-            Prefix.OnAutoSize += truncateTabs;
-            pinnedTabs.OnAutoSize += truncateTabs;
-            visibleTabs.OnAutoSize += truncateTabs;
+        // Default to first selection in list
+        protected override void LoadComplete()
+        {
+            tabs.Children.First().Active = true;
+        }
+
+        // Manages the visibility of dropdownitem based on visible tabs
+        private void updateDropDown(TabItem<T> tab, bool isVisible) {
+            if (isVisible) {
+                dropDown.HideItem(tab.Value);
+            } else {
+                dropDown.ShowItem(tab.Value);
+            }
         }
 
         private void dropDownValueChanged(object sender, EventArgs eventArgs)
         {
             var dropDownMenu = sender as DropDownMenu<T>;
-            if (dropDownMenu != null)
-                Select(dropDownMenu.SelectedValue);
-        }
-
-        // Pins a value so it is always showing at far left
-        public void Pin(T tab)
-        {
-            // Move from visible or hide from dropdown
-            var visibleTab = findTab(FindMode.Visible, tab);
-            if (visibleTab != null)
-                visibleTabs.Remove(visibleTab);
-            else
-                dropDown.HideItem(tab);
-
-            var pinned = CreateTabItem(tab);
-            pinned.SelectAction += selectTab;
-            pinnedTabs.Add(pinned);
-        }
-
-        // Select a tab by value
-        public void Select(T value)
-        {
-            var modes = Enum.GetValues(typeof(FindMode)).Cast<FindMode>();
-            foreach (var mode in modes)
-            {
-                TabItem<T> tab = findTab(mode, value);
-                if (tab != null)
-                {
-                    selectTab(tab);
-                    tab.SelectAction += selectTab;
-                    return;
-                }
+            if (dropDownMenu != null) {
+                TabItem<T> tab;
+                if (tabMap.TryGetValue(dropDownMenu.SelectedValue, out tab))
+                    tab.Active = true;
             }
         }
 
         // Select a tab by reference
         private void selectTab(TabItem<T> tab)
         {
+            // Only reorder if not pinned
+            if (AutoSort && tab.Depth != int.MaxValue)
+            {
+                tabs.Remove(tab);
+                tab.Depth = orderCounter.Increment();
+                tabs.Add(tab);
+            }
+
             // Deactivate previously selected tab
             if (selectedTab != null)
                 selectedTab.Active = false;
-            tab.Active = true;
             selectedTab = tab;
             ValueChanged?.Invoke(this, tab.Value);
-        }
-
-        private TabItem<T> findTab(FindMode mode, T value)
-        {
-            switch (mode)
-            {
-                case FindMode.Pinned:
-                    return pinnedTabs.Children.FirstOrDefault(c => EqualityComparer<T>.Default.Equals(value, c.Value));
-                case FindMode.Visible:
-                    return visibleTabs.Children.FirstOrDefault(c => EqualityComparer<T>.Default.Equals(value, c.Value));
-                case FindMode.DropDown:
-                    return findDropDown(value);
-            }
-            return null;
-        }
-
-        private TabItem<T> findDropDown(T value)
-        {
-            // Can't select default value
-            if (EqualityComparer<T>.Default.Equals(value, default(T)))
-                return null;
-
-            var visible = CreateTabItem(value);
-            dropDown.HideItem(value);
-            visibleTabs.Add(visible);
-            return visible;
-        }
-
-        // Remove any tabs that cannot fit anymore
-        // TODO: Truncate pinned tabs too
-        private void truncateTabs()
-        {
-            float visibleWidth = 0;
-            List<TabItem<T>> remove = new List<TabItem<T>>();
-            foreach (var child in visibleTabs.Children)
-            {
-                visibleWidth += child.Width;
-                if (visibleWidth > visibleMaxWidth)
-                    remove.Add(child);
-            }
-            // Move value back to dropdown
-            foreach (var child in remove)
-            {
-                dropDown.ShowItem(child.Value);
-                Remove(child);
-            }
-        }
-
-        private enum FindMode
-        {
-            Pinned,
-            Visible,
-            DropDown
         }
     }
 }

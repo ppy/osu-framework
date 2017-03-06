@@ -9,7 +9,9 @@ namespace osu.Framework.Graphics.UserInterface.Tab
     // Keep abstract for now, until a generic styled header can be determined
     public abstract class TabDropDownMenu<T> : DropDownMenu<T>
     {
-        internal float HeaderWidth => Header.Width;
+        // These need to be set manually until there is a dynamic way to determine
+        public abstract float HeaderWidth { get; }
+        public abstract float HeaderHeight { get; }
 
         protected TabDropDownMenu()
         {
@@ -20,18 +22,13 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             ContentContainer.Origin = Anchor.TopRight;
         }
 
-        // Consider making these menuitem manipulation internal
-        public bool Contains(T val)
+        internal void HideItem(T val)
         {
-            return ItemDictionary.ContainsKey(val);
-        }
-
-        public void HideItem(T val) {
             if (ItemDictionary.TryGetValue(val, out int index))
                 ItemList[index]?.Hide();
         }
 
-        public void ShowItem(T val) {
+        internal void ShowItem(T val) {
             if (ItemDictionary.TryGetValue(val, out int index))
                 ItemList[index]?.Show();
         }

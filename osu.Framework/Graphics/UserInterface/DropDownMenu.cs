@@ -56,6 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected BasicDropDownHeader Header;
 
         protected Container ContentContainer;
+        protected ScrollContainer ScrollContainer;
         protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
 
         protected abstract BasicDropDownHeader CreateHeader();
@@ -188,7 +189,7 @@ namespace osu.Framework.Graphics.UserInterface
                             RelativeSizeAxes = Axes.Both,
                             Colour = Color4.Black,
                         },
-                        new ScrollContainer
+                        ScrollContainer = new ScrollContainer
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = false,

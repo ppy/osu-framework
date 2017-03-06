@@ -7,7 +7,11 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
-    public class TabItem<T> : ClickableContainer
+    public abstract class TabItem : ClickableContainer
+    {
+    }
+
+    public class TabItem<T> : TabItem
     {
         internal Action<TabItem<T>> SelectAction;
 
