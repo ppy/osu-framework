@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
