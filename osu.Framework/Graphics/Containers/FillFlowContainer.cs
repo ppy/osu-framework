@@ -46,11 +46,11 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The direction of the fill. Default is <see cref="FillDirection.Full"/>.
         /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Horizontal"/>,
-        /// <see cref="Children"/> are arranged from left-to-right if their
+        /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
         /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
         /// They are arranged from right-to-left otherwise.
         /// If <see cref="FillDirection.Full"/> or <see cref="FillDirection.Vertical"/>,
-        /// <see cref="Children"/> are arranged from top-to-bottom if their
+        /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
         /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
         /// They are arranged from bottom-to-top otherwise.
         /// </summary>
