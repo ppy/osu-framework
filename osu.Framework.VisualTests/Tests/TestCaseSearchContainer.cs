@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSearchContainer : TestCase
+    internal class TestCaseSearchContainer : TestCase
     {
         public override string Description => "Tests the SearchContainer";
 
@@ -83,7 +83,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SearchableText : SpriteText, ISearchable
         {
-            public string[] Keywords => new string[] { Text };
+            public string[] Keywords => new [] { Text };
         }
 
         private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
