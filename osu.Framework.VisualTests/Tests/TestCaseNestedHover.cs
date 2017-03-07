@@ -11,7 +11,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseNestedHover : TestCase
+    internal class TestCaseNestedHover : TestCase
     {
         public override string Description => @"Hovering multiple nested elements";
 
@@ -45,7 +45,7 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        class HoverBox : Container
+        private class HoverBox : Container
         {
             private Color4 normalColour;
             private Color4 hoveredColour;

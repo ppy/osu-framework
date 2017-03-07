@@ -17,23 +17,23 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseFlow : TestCase
+    internal class TestCaseFlow : TestCase
     {
         public override string Description => "Test lots of different settings for Flow Containers";
 
         private FillFlowContainer dropdownContainer;
 
-        FlowTestCase current;
-        FillDirectionDropdown selectionDropdown;
-        Container testContainer;
+        private FlowTestCase current;
+        private FillDirectionDropdown selectionDropdown;
+        private Container testContainer;
 
-        Anchor childAnchor = Anchor.TopLeft;
-        AnchorDropDown anchorDropdown;
+        private Anchor childAnchor = Anchor.TopLeft;
+        private AnchorDropDown anchorDropdown;
 
-        Anchor childOrigin = Anchor.TopLeft;
-        AnchorDropDown originDropdown;
+        private Anchor childOrigin = Anchor.TopLeft;
+        private AnchorDropDown originDropdown;
 
-        FillFlowContainer fc;
+        private FillFlowContainer fc;
         private ScheduledDelegate scheduledAdder;
 
         protected override Container<Drawable> Content => testContainer;
@@ -378,7 +378,8 @@ namespace osu.Framework.VisualTests.Tests
                 TestCase = testCase;
             }
         }
-        enum FlowTestCase
+
+        private enum FlowTestCase
         {
             Full,
             Horizontal,

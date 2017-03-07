@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        const float default_text_size = 20;
+        private const float default_text_size = 20;
 
         private float textSize = default_text_size;
 
@@ -148,7 +148,7 @@ namespace osu.Framework.Graphics.Sprites
             refreshLayout();
         }
 
-        string lastText;
+        private string lastText;
 
         private void refreshLayout()
         {

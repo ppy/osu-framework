@@ -13,7 +13,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
-    class OpenTKMouseHandler : InputHandler
+    internal class OpenTKMouseHandler : InputHandler
     {
         private ScheduledDelegate scheduled;
 
@@ -55,7 +55,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             scheduled.Cancel();
         }
 
-        class TkMouseState : MouseState
+        private class TkMouseState : MouseState
         {
             public bool WasActive;
 

@@ -10,7 +10,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseTextBox : TestCase
+    internal class TestCaseTextBox : TestCase
     {
         public override string Description => @"Text entry evolved";
 

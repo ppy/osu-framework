@@ -14,13 +14,13 @@ namespace osu.Framework.Allocation
     {
         private readonly ObjectUsage<T>[] buffers = new ObjectUsage<T>[3];
 
-        int read;
-        int write;
-        int lastWrite = -1;
+        private int read;
+        private int write;
+        private int lastWrite = -1;
 
-        long currentFrame;
+        private long currentFrame;
 
-        Action<ObjectUsage<T>, UsageType> finishDelegate;
+        private Action<ObjectUsage<T>, UsageType> finishDelegate;
 
         public TripleBuffer()
         {

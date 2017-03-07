@@ -87,7 +87,7 @@ namespace osu.Framework.Allocation
 
         #endregion
 
-        class TimedObject<T>
+        private class TimedObject<T>
         {
             public long LastAccessTime;
 

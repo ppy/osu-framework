@@ -18,14 +18,14 @@ namespace osu.Framework.Desktop.Platform.Windows
         private static extern IntPtr GetClipboardData(uint uFormat);
 
         [DllImport("user32.dll")]
-        static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+        private static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
 
         [DllImport("User32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool OpenClipboard(IntPtr hWndNewOwner);
 
         [DllImport("user32.dll")]
-        static extern bool EmptyClipboard();
+        private static extern bool EmptyClipboard();
 
         [DllImport("User32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

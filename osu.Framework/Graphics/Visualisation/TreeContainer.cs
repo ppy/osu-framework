@@ -13,7 +13,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    enum TreeContainerStatus
+    internal enum TreeContainerStatus
     {
         Onscreen,
         Offscreen
@@ -21,9 +21,9 @@ namespace osu.Framework.Graphics.Visualisation
 
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
-        ScrollContainer scroll;
+        private ScrollContainer scroll;
 
-        SpriteText waitingText;
+        private SpriteText waitingText;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
@@ -32,8 +32,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Box titleBar;
 
-        const float width = 400;
-        const float height = 600;
+        private const float width = 400;
+        private const float height = 600;
 
         private TreeContainerStatus state;
 

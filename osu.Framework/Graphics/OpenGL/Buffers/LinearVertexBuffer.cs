@@ -6,7 +6,7 @@ using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    static class LinearIndexData
+    internal static class LinearIndexData
     {
         static LinearIndexData()
         {

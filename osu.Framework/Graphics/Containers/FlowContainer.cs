@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected void InvalidateLayout() => layout.Invalidate();
 
-        Vector2 maximumSize;
+        private Vector2 maximumSize;
 
         /// <summary>
         /// Optional maximum dimensions for this container. Note that the meaning of this value can change

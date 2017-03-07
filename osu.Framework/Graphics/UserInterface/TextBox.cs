@@ -245,15 +245,15 @@ namespace osu.Framework.Graphics.UserInterface
             return i;
         }
 
-        int selectionStart;
-        int selectionEnd;
+        private int selectionStart;
+        private int selectionEnd;
 
-        int selectionLength => Math.Abs(selectionEnd - selectionStart);
+        private int selectionLength => Math.Abs(selectionEnd - selectionStart);
 
-        int selectionLeft => Math.Min(selectionStart, selectionEnd);
-        int selectionRight => Math.Max(selectionStart, selectionEnd);
+        private int selectionLeft => Math.Min(selectionStart, selectionEnd);
+        private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
-        Cached<Vector2> cursorAndLayout = new Cached<Vector2>();
+        private Cached<Vector2> cursorAndLayout = new Cached<Vector2>();
 
         private void moveSelection(int offset, bool expand)
         {

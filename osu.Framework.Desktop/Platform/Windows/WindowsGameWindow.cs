@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace osu.Framework.Desktop.Platform.Windows
 {
-    class WindowsGameWindow : DesktopGameWindow
+    internal class WindowsGameWindow : DesktopGameWindow
     {
         protected override void OnLoad(EventArgs e)
         {

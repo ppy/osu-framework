@@ -8,7 +8,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSpriteText : TestCase
+    internal class TestCaseSpriteText : TestCase
     {
         public override string Description => @"Test all sizes of text rendering";
 

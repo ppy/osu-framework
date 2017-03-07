@@ -1,18 +1,17 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics;
 using osu.Framework.Input;
 using osu.Framework.Screens.Testing;
 using OpenTK;
 using OpenTK.Graphics;
-using Triangle = osu.Framework.Graphics.Sprites.Triangle;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseTriangles : TestCase
+    internal class TestCaseTriangles : TestCase
     {
         public override string Description => @"Various scenarios which potentially challenge triangles.";
 
@@ -27,10 +26,7 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
             });
 
-            string[] testNames = new[]
-            {
-                @"Bounding box / input",
-            };
+            string[] testNames = { @"Bounding box / input" };
 
             for (int i = 0; i < testNames.Length; i++)
             {
@@ -175,7 +171,7 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    class DraggableTriangle : Triangle
+    internal class DraggableTriangle : Triangle
     {
         public bool AllowDrag = true;
         public override bool HandleInput => true;

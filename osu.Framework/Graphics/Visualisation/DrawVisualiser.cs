@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Visualisation
             removeRootVisualisedDrawable();
         }
 
-        bool targetSearching;
+        private bool targetSearching;
 
         private void chooseTarget()
         {

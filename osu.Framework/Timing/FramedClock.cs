@@ -42,11 +42,11 @@ namespace osu.Framework.Timing
 
         public bool IsRunning => Source?.IsRunning ?? false;
 
-        double timeUntilNextCalculation;
-        double timeSinceLastCalculation;
-        int framesSinceLastCalculation;
+        private double timeUntilNextCalculation;
+        private double timeSinceLastCalculation;
+        private int framesSinceLastCalculation;
 
-        const int fps_calculation_interval = 250;
+        private const int fps_calculation_interval = 250;
 
         public virtual void ProcessFrame()
         {

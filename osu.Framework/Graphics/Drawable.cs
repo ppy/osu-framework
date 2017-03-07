@@ -394,8 +394,8 @@ namespace osu.Framework.Graphics
             }
         }
 
-        float x;
-        float y;
+        private float x;
+        private float y;
 
         /// <summary>
         /// X component of <see cref="Position"/>.
@@ -955,7 +955,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        const float visibility_cutoff = 0.0001f;
+        private const float visibility_cutoff = 0.0001f;
 
         /// <summary>
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.

@@ -207,7 +207,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The work task.
         /// </summary>
-        Action task;
+        private Action task;
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.
@@ -261,7 +261,7 @@ namespace osu.Framework.Threading
     /// </summary>
     public class ThreadedScheduler : Scheduler
     {
-        bool isDisposed;
+        private bool isDisposed;
 
         public ThreadedScheduler(string threadName = null, int runInterval = 50)
         {

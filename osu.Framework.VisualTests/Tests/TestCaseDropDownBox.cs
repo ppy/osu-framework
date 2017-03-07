@@ -13,7 +13,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseDropDownBox : TestCase
+    internal class TestCaseDropDownBox : TestCase
     {
         public override string Description => @"Drop-down boxes";
 
