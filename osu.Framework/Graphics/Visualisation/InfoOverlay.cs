@@ -81,6 +81,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             layout.FlashColour(Color4.White, 250);
             shape.FlashColour(Color4.White, 250);
+            childShape.FlashColour(Color4.White, 250);
         }
 
         protected override void Update()

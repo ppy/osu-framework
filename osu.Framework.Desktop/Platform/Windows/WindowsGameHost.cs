@@ -6,7 +6,6 @@ using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Desktop.Platform.Windows.Native;
 using osu.Framework.Input.Handlers;
-using OpenTK.Graphics;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Platform.Windows
@@ -17,7 +16,7 @@ namespace osu.Framework.Desktop.Platform.Windows
 
         public override Clipboard GetClipboard() => new WindowsClipboard();
 
-        internal WindowsGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
+        internal WindowsGameHost(string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {
             // OnActivate / OnDeactivate may not fire, so the initial activity state may be unknown here.
             // In order to be certain we have the correct activity state we are querying the Windows API here.

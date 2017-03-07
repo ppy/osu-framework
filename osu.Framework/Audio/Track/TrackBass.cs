@@ -212,7 +212,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override bool HasCompleted => base.HasCompleted || (IsLoaded && !IsRunning && CurrentTime >= Length);
+        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
 
         private class DataStreamFileProcedures
         {

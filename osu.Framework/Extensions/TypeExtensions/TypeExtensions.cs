@@ -12,7 +12,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             string result = t.Name;
 
             // Trim away amount of type arguments
-            int amountTypeArgumentsPos = result.IndexOf("`");
+            int amountTypeArgumentsPos = result.IndexOf("`", StringComparison.Ordinal);
             if (amountTypeArgumentsPos >= 0)
                 result = result.Substring(0, amountTypeArgumentsPos);
 

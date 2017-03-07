@@ -173,7 +173,7 @@ namespace osu.Framework.Logging
             backgroundScheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
-                if (!hasLogDirectory.Value)
+                if (hasLogDirectory.HasValue && !hasLogDirectory.Value)
                     return;
 
                 try

@@ -138,38 +138,23 @@ namespace osu.Framework.VisualTests.Tests
 
             var rotateBtn = AddToggle("Rotate Container", state =>
             {
-                if (!state)
-                    fc.RotateTo(0f, 1000);
-                else
-                    fc.RotateTo(45f, 1000);
+                fc.RotateTo(state ? 45f : 0, 1000);
             });
             AddToggle("Scale Container", state =>
             {
-                if (state)
-                    fc.ScaleTo(1.2f, 1000);
-                else
-                    fc.ScaleTo(1f, 1000);
+                fc.ScaleTo(state ? 1.2f : 1f, 1000);
             });
             AddToggle("Shear Container", state =>
             {
-                if (state)
-                    fc.Shear = new Vector2(0.5f, 0f);
-                else
-                    fc.Shear = new Vector2(0f, 0f);
+                fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
             });
             AddToggle("Center Container Anchor", state =>
             {
-                if (state)
-                    fc.Anchor = Anchor.Centre;
-                else
-                    fc.Anchor = Anchor.TopLeft;
+                fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
             });
             AddToggle("Center Container Origin", state =>
             {
-                if (state)
-                    fc.Origin = Anchor.Centre;
-                else
-                    fc.Origin = Anchor.TopLeft;
+                fc.Origin = state ? Anchor.Centre : Anchor.TopLeft;
             });
             AddToggle("Autosize Container", state =>
             {
@@ -386,7 +371,7 @@ namespace osu.Framework.VisualTests.Tests
         [AttributeUsage(AttributeTargets.Method)]
         private class FlowTestCaseAttribute : Attribute
         {
-            public FlowTestCase TestCase { get; private set; }
+            public FlowTestCase TestCase { get; }
 
             public FlowTestCaseAttribute(FlowTestCase testCase)
             {

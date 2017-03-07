@@ -221,17 +221,17 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            // right now we are relying on the finalizer for correct disposal.
-            // correct method would be to schedule these to update thread and
-            // then to the draw thread.
+        //protected override void Dispose(bool isDisposing)
+        //{
+        //     right now we are relying on the finalizer for correct disposal.
+        //     correct method would be to schedule these to update thread and
+        //     then to the draw thread.
 
-            //foreach (FrameBuffer frameBuffer in frameBuffers)
-            //  frameBuffer.Dispose();
+        //    foreach (FrameBuffer frameBuffer in frameBuffers)
+        //      frameBuffer.Dispose();
 
-            base.Dispose(isDisposing);
-        }
+        //    base.Dispose(isDisposing);
+        //}
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{T}"/> that blurs

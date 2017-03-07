@@ -23,14 +23,14 @@ namespace osu.Framework.Graphics.Performance
 {
     class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
-        private const int width = 800;
-        private const int height = 100;
+        protected const int WIDTH = 800;
+        protected const int HEIGHT = 100;
 
         const int amount_count_steps = 5;
 
         const int amount_ms_steps = 5;
         const float visible_ms_range = 20;
-        const float scale = height / visible_ms_range;
+        const float scale = HEIGHT / visible_ms_range;
 
         const float alpha_when_inactive = 0.75f;
 
@@ -42,8 +42,8 @@ namespace osu.Framework.Graphics.Performance
 
         private int currentX;
 
-        private int timeBarIndex => currentX / width;
-        private int timeBarX => currentX % width;
+        private int timeBarIndex => currentX / WIDTH;
+        private int timeBarX => currentX % WIDTH;
 
         private bool processFrames = true;
 
@@ -85,7 +85,7 @@ namespace osu.Framework.Graphics.Performance
                         break;
                     case FrameStatisticsMode.Full:
                         mainContainer.AutoSizeAxes = Axes.None;
-                        mainContainer.Size = new Vector2(width, height);
+                        mainContainer.Size = new Vector2(WIDTH, HEIGHT);
 
                         timeBarsContainer.Show();
 
@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Performance
                                     {
                                         counterBarBackground = new Sprite
                                         {
-                                            Texture = atlas.Add(1, height),
+                                            Texture = atlas.Add(1, HEIGHT),
                                             RelativeSizeAxes = Axes.Both,
                                             Size = new Vector2(1, 1),
                                         },
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Performance
                         },
                         mainContainer = new Container
                         {
-                            Size = new Vector2(width, height),
+                            Size = new Vector2(WIDTH, HEIGHT),
                             Children = new[]
                             {
                                 timeBarsContainer = new Container
@@ -228,23 +228,23 @@ namespace osu.Framework.Graphics.Performance
                 },
             };
 
-            textureBufferStack = new BufferStack<byte>(timeBars.Length * width);
+            textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
         }
 
         [BackgroundDependencyLoader]
         private void load()
         {
             //initialise background
-            byte[] column = new byte[height * 4];
-            byte[] fullBackground = new byte[width * height * 4];
+            byte[] column = new byte[HEIGHT * 4];
+            byte[] fullBackground = new byte[WIDTH * HEIGHT * 4];
 
-            addArea(null, PerformanceCollectionType.AmountTypes, height, column, amount_ms_steps);
+            addArea(null, PerformanceCollectionType.AmountTypes, HEIGHT, column, amount_ms_steps);
 
-            for (int i = 0; i < height; i++)
-                for (int k = 0; k < width; k++)
-                    Buffer.BlockCopy(column, i * 4, fullBackground, i * width * 4 + k * 4, 4);
+            for (int i = 0; i < HEIGHT; i++)
+                for (int k = 0; k < WIDTH; k++)
+                    Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
 
-            addArea(null, PerformanceCollectionType.AmountTypes, height, column, amount_count_steps);
+            addArea(null, PerformanceCollectionType.AmountTypes, HEIGHT, column, amount_count_steps);
 
             counterBarBackground?.Texture.SetData(new TextureUpload(column));
             Schedule(() =>
@@ -324,21 +324,21 @@ namespace osu.Framework.Graphics.Performance
         private void applyFrameTime(FrameStatistics frame)
         {
             TimeBar timeBar = timeBars[timeBarIndex];
-            TextureUpload upload = new TextureUpload(height * 4, textureBufferStack)
+            TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
             {
-                Bounds = new Rectangle(timeBarX, 0, 1, height)
+                Bounds = new Rectangle(timeBarX, 0, 1, HEIGHT)
             };
 
-            int currentHeight = height;
+            int currentHeight = HEIGHT;
 
             for (int i = 0; i <= (int)PerformanceCollectionType.AmountTypes; i++)
                 currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data, amount_ms_steps);
 
             timeBar.Sprite.Texture.SetData(upload);
 
-            timeBars[timeBarIndex].MoveToX(width - timeBarX);
+            timeBars[timeBarIndex].MoveToX(WIDTH - timeBarX);
             timeBars[(timeBarIndex + 1) % timeBars.Length].MoveToX(-timeBarX);
-            currentX = (currentX + 1) % (timeBars.Length * width);
+            currentX = (currentX + 1) % (timeBars.Length * WIDTH);
 
             foreach (Drawable e in timeBars[(timeBarIndex + 1) % timeBars.Length].Children)
                 if (e is Box && e.DrawPosition.X <= timeBarX)
@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Performance
 
         private int addArea(FrameStatistics frame, PerformanceCollectionType frameTimeType, int currentHeight, byte[] textureData, int amountSteps)
         {
-            Trace.Assert(textureData.Length >= height * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
+            Trace.Assert(textureData.Length >= HEIGHT * 4, $"textureData is too small ({textureData.Length}) to hold area data.");
 
             double elapsedMilliseconds;
             int drawHeight;
@@ -460,11 +460,14 @@ namespace osu.Framework.Graphics.Performance
             {
                 if (drawHeight-- == 0) break;
 
-                bool acceptableRange = (float)currentHeight / height > 1 - monitor.FrameAimTime / visible_ms_range;
+                bool acceptableRange = (float)currentHeight / HEIGHT > 1 - monitor.FrameAimTime / visible_ms_range;
 
                 float brightnessAdjust = 1;
                 if (frameTimeType == PerformanceCollectionType.AmountTypes)
-                    brightnessAdjust *= 1 - i * amountSteps / height / 8f;
+                {
+                    int step = amountSteps / HEIGHT;
+                    brightnessAdjust *= 1 - i * step / 8f;
+                }
                 else if (acceptableRange)
                     brightnessAdjust *= 0.8f;
 
@@ -486,13 +489,13 @@ namespace osu.Framework.Graphics.Performance
 
             public TimeBar(TextureAtlas atlas)
             {
-                Size = new Vector2(width, height);
+                Size = new Vector2(WIDTH, HEIGHT);
                 Children = new[]
                 {
                     Sprite = new Sprite()
                 };
 
-                Sprite.Texture = atlas.Add(width, height);
+                Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }
 
             public override bool HandleInput => false;

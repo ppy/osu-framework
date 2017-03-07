@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         const int line_height = 12;
 
-        public FillFlowContainer Flow;
+        public FillFlowContainer<VisualisedDrawable> Flow;
 
         private TreeContainer tree;
 
@@ -51,7 +51,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             this.tree = tree;
 
-            this.nestingDepth = (parent?.nestingDepth ?? 0) + 1;
+            nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
 
             attachEvents();
@@ -108,7 +108,7 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     }
                 },
-                Flow = new FillFlowContainer
+                Flow = new FillFlowContainer<VisualisedDrawable>
                 {
                     Direction = FillDirection.Vertical,
                     AutoSizeAxes = Axes.Both,

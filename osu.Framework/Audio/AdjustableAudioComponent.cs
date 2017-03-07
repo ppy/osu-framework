@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Audio
 {
@@ -52,7 +51,7 @@ namespace osu.Framework.Audio
 
         protected readonly BindableDouble FrequencyCalculated = new BindableDouble(1);
 
-        protected AdjustableAudioComponent(Scheduler scheduler = null)
+        protected AdjustableAudioComponent()
         {
             Volume.ValueChanged += InvalidateState;
             Balance.ValueChanged += InvalidateState;

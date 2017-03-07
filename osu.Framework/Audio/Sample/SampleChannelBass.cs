@@ -68,7 +68,7 @@ namespace osu.Framework.Audio.Sample
             // Played does not become true for a short moment.
             playing = true;
 
-            base.Play();
+            base.Play(restart);
         }
 
         public override void Update()

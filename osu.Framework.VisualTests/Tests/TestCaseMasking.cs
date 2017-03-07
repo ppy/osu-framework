@@ -89,9 +89,6 @@ namespace osu.Framework.VisualTests.Tests
             {
                 default:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(box = new InfofulBoxAutoSize
                         {
@@ -124,9 +121,6 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 1:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(new InfofulBoxAutoSize
                         {
@@ -153,9 +147,6 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 2:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(new InfofulBoxAutoSize
                         {
