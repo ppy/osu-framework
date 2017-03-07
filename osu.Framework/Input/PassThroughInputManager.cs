@@ -45,8 +45,8 @@ namespace osu.Framework.Input
             foreach (var s in pendingParentStates)
                 pendingStates.Add(new InputState
                 {
-                    Mouse = s.Mouse.NativeState,
-                    Keyboard = s.Keyboard
+                    Mouse = (s.Mouse.NativeState as MouseState)?.Clone(),
+                    Keyboard = (s.Keyboard as KeyboardState)?.Clone()
                 });
 
             pendingParentStates.Clear();

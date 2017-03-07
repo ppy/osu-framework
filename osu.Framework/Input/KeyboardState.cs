@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Input;
@@ -19,5 +20,12 @@ namespace osu.Framework.Input
         /// Win key on Windows, or Command key on Mac.
         /// </summary>
         public bool SuperPressed => Keys.Any(k => k == Key.LWin || k == Key.RWin);
+
+        public KeyboardState Clone()
+        {
+            var clone = (KeyboardState)MemberwiseClone();
+            clone.Keys = new List<Key>(Keys);
+            return clone;
+        }
     }
 }
