@@ -13,7 +13,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     class TestCaseSearchContainer : TestCase
     {
-        public override string Name => "Search Container";
         public override string Description => "Tests the SearchContainer";
 
         private SearchContainer search;
@@ -60,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         new SearchableFlowContainer<SearchableText>()
                         {
-                            Direction = FillDirection.Down,
+                            Direction = FillDirection.Vertical,
                             Children = text,
                             RelativeSizeAxes = Axes.Both,
                             Margin = new MarginPadding { Top = 30 },
