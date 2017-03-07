@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -10,5 +11,7 @@ namespace osu.Framework.Graphics.Containers
     public interface ISearchableChildren
     {
         IEnumerable<Drawable> SearchableChildren { get; }
+
+        Action AfterSearch { get; }
     }
 }

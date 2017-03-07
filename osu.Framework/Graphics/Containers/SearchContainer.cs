@@ -63,6 +63,7 @@ namespace osu.Framework.Graphics.Containers
                 else if(search is ISearchableChildren)
                 {
                     match((search as ISearchableChildren).SearchableChildren);
+                    (search as ISearchableChildren).AfterSearch?.Invoke();
                 }
             }
         }

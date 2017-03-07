@@ -90,6 +90,8 @@ namespace osu.Framework.VisualTests.Tests
         private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
         {
             public IEnumerable<Drawable> SearchableChildren => Children;
+
+            public Action AfterSearch => null;
         }
     }
 
