@@ -24,7 +24,7 @@ namespace osu.Framework
 {
     public class Game : Container
     {
-        public GameWindow Window => host?.Window;
+        public GameWindow Window => Host?.Window;
 
         public ResourceStore<byte[]> Resources;
 
@@ -37,9 +37,7 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => Host.FullPath;
 
-        private GameHost host;
-
-        public GameHost Host => host;
+        public GameHost Host { get; private set; }
 
         private bool isActive;
 
@@ -100,7 +98,7 @@ namespace osu.Framework
         /// <param name="host"></param>
         public virtual void SetHost(GameHost host)
         {
-            this.host = host;
+            Host = host;
             host.Exiting += OnExiting;
         }
 
@@ -122,7 +120,7 @@ namespace osu.Framework
                 EventScheduler = Scheduler
             });
 
-            host.RegisterThread(Audio.Thread);
+            Host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
             config.BindWith(FrameworkConfig.AudioDevice, Audio.AudioDevice);
@@ -156,7 +154,7 @@ namespace osu.Framework
                 Depth = float.MinValue
             }).LoadAsync(this, delegate(Drawable overlay)
             {
-                performanceContainer.Threads.AddRange(host.Threads.Reverse());
+                performanceContainer.Threads.AddRange(Host.Threads.Reverse());
 
                 // Note, that RegisterCounters only has an effect for the first
                 // GameHost to be passed into it; i.e. the first GameHost
@@ -231,7 +229,7 @@ namespace osu.Framework
 
         public void Exit()
         {
-            host.Exit();
+            Host.Exit();
         }
 
         protected virtual void OnActivated()

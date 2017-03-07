@@ -10,7 +10,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSmoothedEdges : TestCase
+    internal class TestCaseSmoothedEdges : TestCase
     {
         public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 

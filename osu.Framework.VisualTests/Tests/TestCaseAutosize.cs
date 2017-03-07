@@ -13,7 +13,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSizing : TestCase
+    internal class TestCaseSizing : TestCase
     {
         public override string Description => @"Various scenarios which potentially challenge size calculations.";
 
@@ -926,7 +926,7 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    class InfofulBoxAutoSize : Container
+    internal class InfofulBoxAutoSize : Container
     {
         public InfofulBoxAutoSize()
         {
@@ -959,7 +959,7 @@ namespace osu.Framework.VisualTests.Tests
         protected override bool OnDragStart(InputState state) => AllowDrag;
     }
 
-    class InfofulBox : Container
+    internal class InfofulBox : Container
     {
         public bool Chameleon = false;
         public bool AllowDrag = true;
@@ -988,7 +988,7 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        int lastSwitch;
+        private int lastSwitch;
 
         protected override void Update()
         {

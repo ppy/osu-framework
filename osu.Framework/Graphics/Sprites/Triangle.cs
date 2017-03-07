@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override DrawNode CreateDrawNode() => new TriangleDrawNode();
 
-        class TriangleDrawNode : SpriteDrawNode
+        private class TriangleDrawNode : SpriteDrawNode
         {
             protected override void Blit(Action<TexturedVertex2D> vertexAction)
             {

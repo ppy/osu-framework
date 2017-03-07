@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    class TextureGLSub : TextureGL
+    internal class TextureGLSub : TextureGL
     {
         private readonly TextureGLSingle parent;
         private Rectangle bounds;

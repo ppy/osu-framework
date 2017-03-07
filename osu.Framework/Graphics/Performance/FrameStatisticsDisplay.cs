@@ -21,18 +21,18 @@ using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
+    internal class FrameStatisticsDisplay : Container, IStateful<FrameStatisticsMode>
     {
         protected const int WIDTH = 800;
         protected const int HEIGHT = 100;
 
-        const int amount_count_steps = 5;
+        private const int amount_count_steps = 5;
 
-        const int amount_ms_steps = 5;
-        const float visible_ms_range = 20;
-        const float scale = HEIGHT / visible_ms_range;
+        private const int amount_ms_steps = 5;
+        private const float visible_ms_range = 20;
+        private const float scale = HEIGHT / visible_ms_range;
 
-        const float alpha_when_inactive = 0.75f;
+        private const float alpha_when_inactive = 0.75f;
 
         private TimeBar[] timeBars;
         private BufferStack<byte> textureBufferStack;
@@ -47,15 +47,15 @@ namespace osu.Framework.Graphics.Performance
 
         private bool processFrames = true;
 
-        Container overlayContainer;
-        Drawable labelText;
-        Sprite counterBarBackground;
+        private Container overlayContainer;
+        private Drawable labelText;
+        private Sprite counterBarBackground;
 
-        Container mainContainer;
-        Container timeBarsContainer;
+        private Container mainContainer;
+        private Container timeBarsContainer;
 
-        Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.AmountTypes];
-        Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
+        private Drawable[] legendMapping = new Drawable[(int)PerformanceCollectionType.AmountTypes];
+        private Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private FpsDisplay fpsDisplay;
 
@@ -483,7 +483,7 @@ namespace osu.Framework.Graphics.Performance
             return currentHeight;
         }
 
-        class TimeBar : Container
+        private class TimeBar : Container
         {
             public Sprite Sprite;
 
@@ -501,7 +501,7 @@ namespace osu.Framework.Graphics.Performance
             public override bool HandleInput => false;
         }
 
-        class CounterBar : Container
+        private class CounterBar : Container
         {
             private readonly Box box;
             private SpriteText text;

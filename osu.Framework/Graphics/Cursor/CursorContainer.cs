@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Cursor
             return base.OnMouseMove(state);
         }
 
-        class Cursor : CircularContainer
+        private class Cursor : CircularContainer
         {
             public Cursor()
             {

@@ -14,15 +14,15 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseScrollableFlow : TestCase
+    internal class TestCaseScrollableFlow : TestCase
     {
         private ScheduledDelegate boxCreator;
 
         public override string Description => @"A flow container in a scroll container";
-        
-        ScrollContainer scroll;
-        FillFlowContainer flow;
-        Direction scrollDir;
+
+        private ScrollContainer scroll;
+        private FillFlowContainer flow;
+        private Direction scrollDir;
 
         private void createArea(Direction dir)
         {

@@ -11,7 +11,7 @@ namespace osu.Framework.Configuration
         static BindableNumber()
         {
             // check supported types against provided type argument.
-            var allowedTypes = new HashSet<Type>()
+            var allowedTypes = new HashSet<Type>
             {
                 typeof(sbyte), typeof(byte),
                 typeof(short), typeof(ushort),

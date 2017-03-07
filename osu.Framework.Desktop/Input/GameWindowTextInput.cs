@@ -11,7 +11,7 @@ namespace osu.Framework.Desktop.Input
     {
         private GameWindow window;
 
-        string pending = string.Empty;
+        private string pending = string.Empty;
 
         public GameWindowTextInput(GameWindow window)
         {

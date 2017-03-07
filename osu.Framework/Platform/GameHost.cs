@@ -252,7 +252,7 @@ namespace osu.Framework.Platform
                 Window.VSync = VSyncMode.Off;
         }
 
-        long lastDrawFrameId;
+        private long lastDrawFrameId;
 
         protected virtual void DrawFrame()
         {
@@ -401,7 +401,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        InvokeOnDisposal inputPerformanceCollectionPeriod;
+        private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
         private Bindable<GCLatencyMode> activeGCMode;
 

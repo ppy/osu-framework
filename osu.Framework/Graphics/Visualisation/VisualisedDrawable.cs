@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Action RequestTarget;
 
-        const int line_height = 12;
+        private const int line_height = 12;
 
         public FillFlowContainer<VisualisedDrawable> Flow;
 

@@ -309,7 +309,7 @@ namespace osu.Framework.Input
             }
         }
 
-        List<Drawable> mouseDownInputQueue;
+        private List<Drawable> mouseDownInputQueue;
 
         private void updateMouseEvents(InputState state)
         {

@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace osu.Framework.Desktop.Platform.Windows.Native
 {
-    static class Execution
+    internal static class Execution
     {
         [DllImport("kernel32.dll")]
         internal static extern uint SetThreadExecutionState(ExecutionState state);

@@ -10,7 +10,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class FpsDisplay : Container
+    internal class FpsDisplay : Container
     {
         private readonly SpriteText counter;
 

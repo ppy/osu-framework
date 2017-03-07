@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
+    internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
         private readonly TextureAtlas atlas;
 

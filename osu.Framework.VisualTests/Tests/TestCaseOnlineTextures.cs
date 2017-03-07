@@ -11,11 +11,11 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseOnlineTextures : TestCase
+    internal class TestCaseOnlineTextures : TestCase
     {
         private FillFlowContainer flow;
 
-        int loadId = 55;
+        private int loadId = 55;
         private Game game;
 
         public override void Reset()

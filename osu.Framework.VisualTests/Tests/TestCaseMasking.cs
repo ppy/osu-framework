@@ -11,7 +11,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseMasking : TestCase
+    internal class TestCaseMasking : TestCase
     {
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";
 
