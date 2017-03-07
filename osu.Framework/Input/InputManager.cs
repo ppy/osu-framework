@@ -133,10 +133,10 @@ namespace osu.Framework.Input
                     Mouse = s.Mouse,
                 };
 
-                TransformState(CurrentState);
-
                 if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
                 if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
+
+                TransformState(CurrentState);
 
                 //move above?
                 updateInputQueues(CurrentState);
@@ -265,46 +265,45 @@ namespace osu.Framework.Input
 
             var last = state.Last?.Keyboard;
 
-            if (last != null)
+            if (last == null) return;
+
+            foreach (var k in last.Keys)
             {
-                foreach (var k in last.Keys)
+                if (!keyboard.Keys.Contains(k))
+                    handleKeyUp(state, k);
+            }
+
+            foreach (Key k in keyboard.Keys.Distinct())
+            {
+                bool isModifier = k == Key.LControl || k == Key.RControl
+                                  || k == Key.LAlt || k == Key.RAlt
+                                  || k == Key.LShift || k == Key.RShift
+                                  || k == Key.LWin || k == Key.RWin;
+
+                LastActionTime = Time.Current;
+
+                bool isRepetition = last.Keys.Contains(k);
+
+                if (isModifier)
                 {
-                    if (!keyboard.Keys.Contains(k))
-                        handleKeyUp(state, k);
+                    //modifiers shouldn't affect or report key repeat
+                    if (!isRepetition)
+                        handleKeyDown(state, k, false);
+                    continue;
                 }
 
-                foreach (Key k in keyboard.Keys.Distinct())
+                if (isRepetition)
                 {
-                    bool isModifier = k == Key.LControl || k == Key.RControl
-                                      || k == Key.LAlt || k == Key.RAlt
-                                      || k == Key.LShift || k == Key.RShift
-                                      || k == Key.LWin || k == Key.RWin;
-
-                    LastActionTime = Time.Current;
-
-                    bool isRepetition = last.Keys.Contains(k);
-
-                    if (isModifier)
+                    if (keyboardRepeatTime <= 0)
                     {
-                        //modifiers shouldn't affect or report key repeat
-                        if (!isRepetition)
-                            handleKeyDown(state, k, false);
-                        continue;
+                        keyboardRepeatTime += repeat_tick_rate;
+                        handleKeyDown(state, k, true);
                     }
-
-                    if (isRepetition)
-                    {
-                        if (keyboardRepeatTime <= 0)
-                        {
-                            keyboardRepeatTime += repeat_tick_rate;
-                            handleKeyDown(state, k, true);
-                        }
-                    }
-                    else
-                    {
-                        keyboardRepeatTime = repeat_initial_delay;
-                        handleKeyDown(state, k, false);
-                    }
+                }
+                else
+                {
+                    keyboardRepeatTime = repeat_initial_delay;
+                    handleKeyDown(state, k, false);
                 }
             }
         }
@@ -315,7 +314,11 @@ namespace osu.Framework.Input
         {
             MouseState mouse = (MouseState)state.Mouse;
 
-            if (mouse.Position != mouse.LastState?.Position)
+            var last = state.Last?.Mouse as MouseState;
+
+            if (last == null) return;
+
+            if (mouse.Position != last.Position)
             {
                 handleMouseMove(state);
                 if (isDragging)
@@ -324,7 +327,7 @@ namespace osu.Framework.Input
 
             foreach (MouseState.ButtonState b in mouse.ButtonStates)
             {
-                if (b.State != ((mouse.LastState as MouseState)?.ButtonStates.Find(c => c.Button == b.Button).State ?? false))
+                if (b.State != last.ButtonStates.Find(c => c.Button == b.Button).State)
                 {
                     if (b.State)
                         handleMouseDown(state, b.Button);
@@ -338,7 +341,7 @@ namespace osu.Framework.Input
 
             if (mouse.HasMainButtonPressed)
             {
-                if (mouse.LastState?.HasMainButtonPressed != true)
+                if (last.HasMainButtonPressed != true)
                 {
                     //stuff which only happens once after the mousedown state
                     mouse.PositionMouseDown = state.Mouse.Position;
@@ -363,7 +366,7 @@ namespace osu.Framework.Input
                     handleMouseDragStart(state);
                 }
             }
-            else if (mouse.LastState?.HasMainButtonPressed == true)
+            else if (last.HasMainButtonPressed)
             {
                 if (isValidClick && (draggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
