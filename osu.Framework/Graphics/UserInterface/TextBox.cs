@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public int? LengthLimit;
 
-        public bool AllowClipboardExport => true;
+        public virtual bool AllowClipboardExport => true;
 
         //represents the left/right selection coordinates of the word double clicked on when dragging
         private int[] doubleClickWord;
@@ -232,7 +232,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private int getCharacterClosestTo(Vector2 pos)
         {
-            pos = TextFlow.ToLocalSpace(pos * DrawInfo.Matrix);
+            pos = Parent.ToSpaceOfOtherDrawable(pos, TextFlow);
 
             int i = 0;
             foreach (Drawable d in TextFlow.Children)
@@ -668,13 +668,21 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (text.Length == 0) return true;
 
-            int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            if (AllowClipboardExport)
+            {
+                int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
+            
+                int lastSeparator = findSeparatorIndex(text, hover, -1);
+                int nextSeparator = findSeparatorIndex(text, hover, 1);
 
-            int lastSeparator = findSeparatorIndex(text, hover, -1);
-            int nextSeparator = findSeparatorIndex(text, hover, 1);
-
-            selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
-            selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+                selectionStart = lastSeparator >= 0 ? lastSeparator + 1 : 0;
+                selectionEnd = nextSeparator >= 0 ? nextSeparator : text.Length;
+            }
+            else
+            {
+                selectionStart = 0;
+                selectionEnd = text.Length;
+            }
 
             //in order to keep the home word selected
             doubleClickWord = new[] { selectionStart, selectionEnd };
