@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         /// <summary>
         /// The stride of the vertex type T. We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
         /// </summary>
-        private static readonly int stride = (int)(typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null));
+        private static readonly int stride = (int)(typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? 0);
 
         /// <summary>
         /// The static Bind method of vertex type T, used to bind the correct vertex attribute locations for use in shaders.
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 bind_attributes();
 
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * stride), IntPtr.Zero, usage);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Stride), IntPtr.Zero, usage);
         }
 
         public virtual void Bind(bool forRendering)
@@ -107,6 +107,10 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
+        public static int Stride => stride;
+
+        public static int Stride1 => stride;
+
         public void Draw()
         {
             DrawRange(0, Vertices.Length);
@@ -132,7 +136,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Bind(false);
 
             int amountVertices = endIndex - startIndex;
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * stride), (IntPtr)(amountVertices * stride), ref Vertices[startIndex]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * Stride), (IntPtr)(amountVertices * Stride), ref Vertices[startIndex]);
 
             Unbind();
 

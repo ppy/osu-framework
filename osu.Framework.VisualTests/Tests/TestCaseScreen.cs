@@ -15,10 +15,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseScreen : TestCase
+    internal class TestCaseScreen : TestCase
     {
-        public override string Name => @"Screen";
-
         public override string Description => @"Test stackable game screens";
 
         public override void Reset()
@@ -28,12 +26,12 @@ namespace osu.Framework.VisualTests.Tests
             Add(new TestScreen());
         }
 
-        class TestScreen : Screen
+        private class TestScreen : Screen
         {
             public int Sequence;
             private Button popButton;
 
-            const int transition_time = 500;
+            private const int transition_time = 500;
 
             protected override void OnEntering(Screen last)
             {

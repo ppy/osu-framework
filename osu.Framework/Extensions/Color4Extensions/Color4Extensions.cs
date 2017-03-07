@@ -20,6 +20,10 @@ namespace osu.Framework.Extensions.Color4Extensions
             return color < 0.0031308 ? 12.92 * color : 1.055 * Math.Pow(color, 1.0 / GAMMA) - 0.055;
         }
 
+        public static Color4 Opacity(this Color4 color, float a) => new Color4(color.R, color.G, color.B, a);
+
+        public static Color4 Opacity(this Color4 color, byte a) => new Color4(color.R, color.G, color.B, a / 255f);
+
         public static Color4 ToLinear(this Color4 colour)
         {
             return new Color4(
@@ -94,7 +98,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         public static Color4 Multiply(this Color4 colour, float scalar)
         {
             if (scalar < 0)
-                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, $"Can not multiply colours by negative values.");
+                throw new ArgumentOutOfRangeException(nameof(scalar), scalar, "Can not multiply colours by negative values.");
 
             return new Color4(
                 Math.Min(1, colour.R * scalar),

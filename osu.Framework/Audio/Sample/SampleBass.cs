@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace osu.Framework.Audio.Sample
 {
-    class SampleBass : Sample, IBassAudio
+    internal class SampleBass : Sample, IBassAudio
     {
         private volatile int sampleId;
 

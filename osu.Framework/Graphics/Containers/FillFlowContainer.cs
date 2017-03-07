@@ -5,23 +5,46 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
-    using static FillDirection;
-
+    /// <summary>
+    /// A <see cref="FlowContainer{Drawable}"/> that fills space by arranging its children
+    /// next to each other.
+    /// <see cref="Container{T}.Children"/> can be arranged horizontally, vertically, and in a
+    /// combined fashion, which is controlled by <see cref="Direction"/>.
+    /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
+    /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
+    /// They are arranged from right-to-left otherwise.
+    /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
+    /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
+    /// They are arranged from bottom-to-top otherwise.
+    /// If non-<see cref="Drawable"/> <see cref="Container{T}.Children"/> are desired, use
+    /// <see cref="FillFlowContainer{T}"/>. 
+    /// </summary>
     public class FillFlowContainer : FillFlowContainer<Drawable>
     { }
 
+    /// <summary>
+    /// A <see cref="FlowContainer{T}"/> that fills space by arranging its children
+    /// next to each other.
+    /// <see cref="Container{T}.Children"/> can be arranged horizontally, vertically, and in a
+    /// combined fashion, which is controlled by <see cref="Direction"/>.
+    /// <see cref="Container{T}.Children"/> are arranged from left-to-right if their
+    /// <see cref="Drawable.Anchor"/> is to the left or centered horizontally.
+    /// They are arranged from right-to-left otherwise.
+    /// <see cref="Container{T}.Children"/> are arranged from top-to-bottom if their
+    /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
+    /// They are arranged from bottom-to-top otherwise.
+    /// </summary>
     public class FillFlowContainer<T> : FlowContainer<T> where T : Drawable
     {
-        private FillDirection direction = RightDown;
+        private FillDirection direction = FillDirection.Full;
 
         /// <summary>
-        /// The direction of the fill. Default is <see cref="RightDown"/>.
+        /// The direction of the fill. Default is <see cref="FillDirection.Full"/>.
         /// </summary>
         public FillDirection Direction
         {
@@ -35,11 +58,6 @@ namespace osu.Framework.Graphics.Containers
                 InvalidateLayout();
             }
         }
-
-        private bool flowsRightToLeft => direction == LeftDown || direction == LeftUp || direction == Left;
-        private bool flowsBottomToTop => direction == RightUp || direction == LeftUp || direction == Up;
-        private bool flowsVertical => direction != Right && direction != Left;
-        private bool flowsHorizontal => direction != Up && direction != Down;
 
         private Vector2 spacing;
         /// <summary>
@@ -75,10 +93,6 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
-            var elementSizes = FlowingChildren.Select(d => d.BoundingBox.Size).ToArray();
-
-            var current = Vector2.Zero;
-
             var max = MaximumSize;
             if (max == Vector2.Zero)
             {
@@ -89,51 +103,88 @@ namespace osu.Framework.Graphics.Containers
                 max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
                 max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
             }
-            float rowMaxHeight = 0;
-            KeyValuePair<Vector2, Vector2>[] result = new KeyValuePair<Vector2, Vector2>[elementSizes.Length];
+            
+            var children = FlowingChildren.ToArray();
+            if (children.Length == 0)
+                return new List<Vector2>();
 
-            var i = -1;
-            foreach (var size in elementSizes)
+            // The positions for each child we will return later on.
+            Vector2[] result = new Vector2[children.Length];
+
+            // We need to keep track of row widths such that we can compute correct
+            // positions for horizontal centre anchor children.
+            // We also store for each child to which row it belongs.
+            int[] rowIndices = new int[children.Length];
+            List<float> rowWidths = new List<float>();
+
+            // Variables keeping track of the current state while iterating over children
+            // and computing initial flow positions.
+            float rowMaxHeight = 0;
+            var current = Vector2.Zero;
+
+            // First pass, computing initial flow positions
+            for (int i = 0; i < children.Length; ++i)
             {
-                ++i;
-                
-                Vector2 spacing = size;
-                if (spacing.X > 0)
-                    spacing.X = Math.Max(0, spacing.X + Spacing.X);
-                if (spacing.Y > 0)
-                    spacing.Y = Math.Max(0, spacing.Y + Spacing.Y);
+                Vector2 size = children[i].BoundingBox.Size;
+
+                Vector2 stride = size;
+                if (stride.X > 0)
+                    stride.X = Math.Max(0, stride.X + Spacing.X);
+                if (stride.Y > 0)
+                    stride.Y = Math.Max(0, stride.Y + Spacing.Y);
 
                 //We've exceeded our allowed width, move to a new row
-                if (flowsVertical && (Precision.DefinitelyBigger(current.X + size.X, max.X) || !flowsHorizontal))
+                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(current.X + size.X, max.X) || direction == FillDirection.Vertical))
                 {
                     current.X = 0;
                     current.Y += rowMaxHeight;
 
-                    result[i] = new KeyValuePair<Vector2, Vector2>(size, current);
-
+                    result[i] = current;
+                    rowWidths.Add(i == 0 ? 0 : result[i - 1].X);
                     rowMaxHeight = 0;
                 }
                 else
-                    result[i] = new KeyValuePair<Vector2, Vector2>(size, current);
+                    result[i] = current;
 
-                if (spacing.Y > rowMaxHeight)
-                    rowMaxHeight = spacing.Y;
-                current.X += spacing.X;
+                rowIndices[i] = rowWidths.Count;
+
+                if (stride.Y > rowMaxHeight)
+                    rowMaxHeight = stride.Y;
+                current.X += stride.X;
             }
 
-            IEnumerable<KeyValuePair<Vector2, Vector2>> resultEnum = result;
-            if (flowsRightToLeft)
+            rowWidths.Add(result.Last().X);
+            float height = result.Last().Y;
+
+            Anchor ourAnchor = children[0].Anchor;
+
+            // Second pass, adjusting the positions for anchors of children.
+            // Uses rowWidths and height for centre-anchors.
+            for (int i = 0; i < children.Length; ++i)
             {
-                var maxX = (AutoSizeAxes & Axes.X) > 0 ? result.Max(kvp => kvp.Value.X) : max.X;
-                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(maxX - kvp.Value.X - kvp.Key.X, kvp.Value.Y)));
-            }
-            if (flowsBottomToTop)
-            {
-                var maxY = (AutoSizeAxes & Axes.Y) > 0 ? result.Max(kvp => kvp.Value.Y) : max.Y;
-                resultEnum = resultEnum.Select(kvp => new KeyValuePair<Vector2, Vector2>(kvp.Key, new Vector2(kvp.Value.X, maxY - kvp.Value.Y - kvp.Key.Y)));
+                var c = children[i];
+
+                if (c.Anchor != ourAnchor)
+                    throw new InvalidOperationException(
+                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} ({ourAnchor} != {c.Anchor}). " +
+                        $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+
+                if ((c.Anchor & Anchor.x1) > 0)
+                    // Begin flow at centre of row
+                    result[i].X -= rowWidths[rowIndices[i]] / 2;
+                else if ((c.Anchor & Anchor.x2) > 0)
+                    // Flow right-to-left
+                    result[i].X = -result[i].X;
+
+                if ((c.Anchor & Anchor.y1) > 0)
+                    // Begin flow at centre of total height
+                    result[i].Y -= height / 2;
+                else if ((c.Anchor & Anchor.y2) > 0)
+                    // Flow bottom-to-top
+                    result[i].Y = -result[i].Y;
             }
 
-            return resultEnum.Select(kvp => kvp.Value);
+            return result;
         }
     }
 
@@ -143,36 +194,16 @@ namespace osu.Framework.Graphics.Containers
     public enum FillDirection
     {
         /// <summary>
-        /// Flow left to right, then top to bottom.
+        /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
-        RightDown,
+        Full,
         /// <summary>
-        /// Flow left to right, then bottom to top.
+        /// Fill only horizontally.
         /// </summary>
-        RightUp,
+        Horizontal,
         /// <summary>
-        /// Flow left to right.
+        /// Fill only vertically.
         /// </summary>
-        Right,
-        /// <summary>
-        /// Flow right to left, then top to bottom.
-        /// </summary>
-        LeftDown,
-        /// <summary>
-        /// Flow right to left, then bottom to top.
-        /// </summary>
-        LeftUp,
-        /// <summary>
-        /// Flow right to left.
-        /// </summary>
-        Left,
-        /// <summary>
-        /// Flow top to bottom.
-        /// </summary>
-        Down,
-        /// <summary>
-        /// Flow bottom to top.
-        /// </summary>
-        Up,
+        Vertical,
     }
 }

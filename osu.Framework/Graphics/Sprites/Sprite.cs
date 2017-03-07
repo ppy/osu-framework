@@ -111,7 +111,10 @@ namespace osu.Framework.Graphics.Sprites
 
         public override string ToString()
         {
-            return base.ToString() + $" tex: {texture?.AssetName}";
+            string result = base.ToString();
+            if (!string.IsNullOrEmpty(texture?.AssetName))
+                result += $" tex: {texture?.AssetName}";
+            return result;
         }
 
         public FillMode FillMode { get; set; }

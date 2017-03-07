@@ -14,7 +14,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
-    class OpenTKKeyboardHandler : InputHandler
+    internal class OpenTKKeyboardHandler : InputHandler
     {
         private ScheduledDelegate scheduled;
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
             scheduled.Cancel();
         }
 
-        class TkKeyboardState : KeyboardState
+        private class TkKeyboardState : KeyboardState
         {
             private static readonly IEnumerable<Key> all_keys = Enum.GetValues(typeof(Key)).Cast<Key>();
 

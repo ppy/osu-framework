@@ -11,9 +11,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseMasking : TestCase
+    internal class TestCaseMasking : TestCase
     {
-        public override string Name => @"Masking";
         public override string Description => @"Various scenarios which potentially challenge masking calculations.";
 
         protected Container TestContainer;
@@ -90,9 +89,6 @@ namespace osu.Framework.VisualTests.Tests
             {
                 default:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(box = new InfofulBoxAutoSize
                         {
@@ -125,9 +121,6 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 1:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(new InfofulBoxAutoSize
                         {
@@ -154,9 +147,6 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 2:
                     {
-                        Color4 glowColour = Color4.Aquamarine;
-                        glowColour.A = 0.5f;
-
                         Container box;
                         TestContainer.Add(new InfofulBoxAutoSize
                         {

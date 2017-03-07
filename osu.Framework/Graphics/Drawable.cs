@@ -21,6 +21,7 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Input;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -36,7 +37,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : IDisposable, IHasLifetime, IDrawable
+    public abstract class Drawable : IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -119,22 +120,19 @@ namespace osu.Framework.Graphics
         /// after loading is complete.
         /// </param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        public async Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
+                loadTask = null;
             }));
-
-            await loadTask;
-
-            loadTask = null;
         }
 
         private static StopwatchClock perf = new StopwatchClock(true);
@@ -269,18 +267,7 @@ namespace osu.Framework.Graphics
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler
-        {
-            get
-            {
-                if (scheduler == null)
-                    // mainThread could be null at this point.
-                    // If so, then it will be set upon LoadComplete.
-                    scheduler = new Scheduler(mainThread);
-
-                return scheduler;
-            }
-        }
+        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(mainThread));
 
         private LifetimeList<ITransform> transforms;
 
@@ -407,8 +394,8 @@ namespace osu.Framework.Graphics
             }
         }
 
-        float x;
-        float y;
+        private float x;
+        private float y;
 
         /// <summary>
         /// X component of <see cref="Position"/>.
@@ -463,12 +450,12 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
-                    X = conversion.X == 0 ? 0 : (X / conversion.X);
+                    X = conversion.X == 0 ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     X *= conversion.X;
 
                 if ((value & Axes.Y) > (relativePositionAxes & Axes.Y))
-                    Y = conversion.Y == 0 ? 0 : (Y / conversion.Y);
+                    Y = conversion.Y == 0 ? 0 : Y / conversion.Y;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
                     Y *= conversion.Y;
 
@@ -567,12 +554,12 @@ namespace osu.Framework.Graphics
                 // Convert coordinates from relative to absolute or vice versa
                 Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                    Width = conversion.X == 0 ? 0 : (Width / conversion.X);
+                    Width = conversion.X == 0 ? 0 : Width / conversion.X;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                     Width *= conversion.X;
 
                 if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                    Height = conversion.Y == 0 ? 0 : (Height / conversion.Y);
+                    Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                     Height *= conversion.Y;
 
@@ -697,7 +684,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.Geometry, this);
+                Parent?.InvalidateFromChild(Invalidation.Geometry);
             }
         }
 
@@ -968,7 +955,7 @@ namespace osu.Framework.Graphics
             }
         }
 
-        const float visibility_cutoff = 0.0001f;
+        private const float visibility_cutoff = 0.0001f;
 
         /// <summary>
         /// Determines whether this Drawable is present based on its <see cref="Alpha"/> value.
@@ -1044,7 +1031,7 @@ namespace osu.Framework.Graphics
         /// uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        internal virtual void UpdateClock(IFrameBasedClock clock)
+        public virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
         }
@@ -1117,6 +1104,8 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
+                Invalidate(Invalidation.Geometry | Invalidation.Colour);
+
                 if (parent != null)
                     UpdateClock(parent.Clock);
             }
@@ -1180,20 +1169,20 @@ namespace osu.Framework.Graphics
             {
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
-                Vector2 position = DrawPosition + AnchorPosition;
-                Vector2 scale = DrawScale;
-                BlendingMode blendingMode = BlendingMode;
+                Vector2 pos = DrawPosition + AnchorPosition;
+                Vector2 drawScale = DrawScale;
+                BlendingMode localBlendingMode = BlendingMode;
 
                 if (Parent != null)
                 {
-                    position += Parent.ChildOffset;
+                    pos += Parent.ChildOffset;
 
-                    if (blendingMode == BlendingMode.Inherit)
-                        blendingMode = Parent.BlendingMode;
+                    if (localBlendingMode == BlendingMode.Inherit)
+                        localBlendingMode = Parent.BlendingMode;
                 }
 
-                di.ApplyTransform(position, scale, Rotation, Shear, OriginPosition);
-                di.Blending = new BlendingInfo(blendingMode);
+                di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+                di.Blending = new BlendingInfo(localBlendingMode);
 
                 // We need an additional parent null check here, since the following block
                 // requires up-to-date matrices.
@@ -1296,7 +1285,7 @@ namespace osu.Framework.Graphics
                 return false;
 
             if (shallPropagate && Parent != null && source != Parent)
-                Parent.InvalidateFromChild(invalidation, this);
+                Parent.InvalidateFromChild(invalidation);
 
             bool alreadyInvalidated = true;
 
@@ -2040,17 +2029,16 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// A name used to identify this Drawable internally.
         /// </summary>
-        public virtual string Name => string.Empty;
+        public string Name = string.Empty;
 
         public override string ToString()
         {
-            string shortClass = base.ToString();
-            shortClass = shortClass.Substring(shortClass.LastIndexOf('.') + 1);
+            string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
                 shortClass = $@"{Name} ({shortClass})";
 
-            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) @ {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
     }
 

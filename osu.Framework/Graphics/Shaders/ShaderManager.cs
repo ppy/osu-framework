@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using OpenTK.Graphics.ES30;
-using System.IO;
 
 namespace osu.Framework.Graphics.Shaders
 {
@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Shaders
         private ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
         private ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
 
-        ResourceStore<byte[]> store;
+        private ResourceStore<byte[]> store;
 
         public ShaderManager(ResourceStore<byte[]> store)
         {

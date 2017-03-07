@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected void InvalidateLayout() => layout.Invalidate();
 
-        Vector2 maximumSize;
+        private Vector2 maximumSize;
 
         /// <summary>
         /// Optional maximum dimensions for this container. Note that the meaning of this value can change
@@ -92,12 +92,12 @@ namespace osu.Framework.Graphics.Containers
             return changed;
         }
 
-        public override void InvalidateFromChild(Invalidation invalidation, IDrawable source)
+        public override void InvalidateFromChild(Invalidation invalidation)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
                 layout.Invalidate();
 
-            base.InvalidateFromChild(invalidation, source);
+            base.InvalidateFromChild(invalidation);
         }
 
         protected virtual IEnumerable<T> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
@@ -127,7 +127,7 @@ namespace osu.Framework.Graphics.Containers
 
                         if ((d.RelativeSizeAxes & AutoSizeAxes) != 0)
                             throw new InvalidOperationException(
-                                $"Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
+                                "Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
                                 $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {RelativeSizeAxes} axes.");
 
                         if (d.RelativePositionAxes != Axes.None)

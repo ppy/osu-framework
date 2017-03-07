@@ -210,7 +210,7 @@ namespace osu.Framework.Graphics.Textures
         {
         }
 
-        protected override RectangleF TextureBounds(RectangleF? textureRect = default(RectangleF?))
+        protected override RectangleF TextureBounds(RectangleF? textureRect = null)
         {
             // We need non-zero texture bounds for EdgeSmoothness to work correctly.
             // Let's be very conservative and use a tenth of the size of a pixel in the

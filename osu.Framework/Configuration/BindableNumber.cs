@@ -11,7 +11,7 @@ namespace osu.Framework.Configuration
         static BindableNumber()
         {
             // check supported types against provided type argument.
-            var allowedTypes = new HashSet<Type>()
+            var allowedTypes = new HashSet<Type>
             {
                 typeof(sbyte), typeof(byte),
                 typeof(short), typeof(ushort),
@@ -59,45 +59,53 @@ namespace osu.Framework.Configuration
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Byte:
-                    BindableNumber<byte> byteBindable = this as BindableNumber<byte>;
+                    var byteBindable = this as BindableNumber<byte>;
+                    if (byteBindable == null) throw new ArgumentNullException(nameof(byteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     byteBindable.Value = Convert.ToByte(val);
                     break;
                 case TypeCode.SByte:
-                    BindableNumber<sbyte> sbyteBindable = this as BindableNumber<sbyte>;
+                    var sbyteBindable = this as BindableNumber<sbyte>;
+                    if (sbyteBindable == null) throw new ArgumentNullException(nameof(sbyteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     sbyteBindable.Value = Convert.ToSByte(val);
                     break;
                 case TypeCode.UInt16:
-                    BindableNumber<ushort> ushortBindable = this as BindableNumber<ushort>;
+                    var ushortBindable = this as BindableNumber<ushort>;
+                    if (ushortBindable == null) throw new ArgumentNullException(nameof(ushortBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     ushortBindable.Value = Convert.ToUInt16(val);
                     break;
                 case TypeCode.Int16:
-                    BindableNumber<short> shortBindable = this as BindableNumber<short>;
+                    var shortBindable = this as BindableNumber<short>;
+                    if (shortBindable == null) throw new ArgumentNullException(nameof(shortBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     shortBindable.Value = Convert.ToInt16(val);
                     break;
                 case TypeCode.UInt32:
-                    BindableNumber<uint> uintBindable = this as BindableNumber<uint>;
+                    var uintBindable = this as BindableNumber<uint>;
+                    if (uintBindable == null) throw new ArgumentNullException(nameof(uintBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     uintBindable.Value = Convert.ToUInt32(val);
                     break;
                 case TypeCode.Int32:
-                    BindableNumber<int> intBindable = this as BindableNumber<int>;
+                    var intBindable = this as BindableNumber<int>;
+                    if (intBindable == null) throw new ArgumentNullException(nameof(intBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     intBindable.Value = Convert.ToInt32(val);
                     break;
                 case TypeCode.UInt64:
-                    BindableNumber<ulong> ulongBindable = this as BindableNumber<ulong>;
-
+                    var ulongBindable = this as BindableNumber<ulong>;
+                    if (ulongBindable == null) throw new ArgumentNullException(nameof(ulongBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     ulongBindable.Value = Convert.ToUInt64(val);
                     break;
                 case TypeCode.Int64:
-                    BindableNumber<long> longBindable = this as BindableNumber<long>;
+                    var longBindable = this as BindableNumber<long>;
+                    if (longBindable == null) throw new ArgumentNullException(nameof(longBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     longBindable.Value = Convert.ToInt64(val);
                     break;
                 case TypeCode.Single:
-                    BindableNumber<float> floatBindable = this as BindableNumber<float>;
-
+                    var floatBindable = this as BindableNumber<float>;
+                    if (floatBindable == null) throw new ArgumentNullException(nameof(floatBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     floatBindable.Value = Convert.ToSingle(val);
                     break;
                 case TypeCode.Double:
-                    BindableNumber<double> doubleBindable = this as BindableNumber<double>;
+                    var doubleBindable = this as BindableNumber<double>;
+                    if (doubleBindable == null) throw new ArgumentNullException(nameof(doubleBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     doubleBindable.Value = Convert.ToDouble(val);
                     break;
             }
@@ -109,43 +117,53 @@ namespace osu.Framework.Configuration
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Byte:
-                    BindableNumber<byte> byteBindable = this as BindableNumber<byte>;
+                    var byteBindable = this as BindableNumber<byte>;
+                    if (byteBindable == null) throw new ArgumentNullException(nameof(byteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");                 
                     byteBindable.Value += Convert.ToByte(val);
                     break;
                 case TypeCode.SByte:
-                    BindableNumber<sbyte> sbyteBindable = this as BindableNumber<sbyte>;
+                    var sbyteBindable = this as BindableNumber<sbyte>;
+                    if (sbyteBindable == null) throw new ArgumentNullException(nameof(sbyteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     sbyteBindable.Value += Convert.ToSByte(val);
                     break;
                 case TypeCode.UInt16:
-                    BindableNumber<ushort> ushortBindable = this as BindableNumber<ushort>;
+                    var ushortBindable = this as BindableNumber<ushort>;
+                    if (ushortBindable == null) throw new ArgumentNullException(nameof(ushortBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     ushortBindable.Value += Convert.ToUInt16(val);
                     break;
                 case TypeCode.Int16:
-                    BindableNumber<short> shortBindable = this as BindableNumber<short>;
+                    var shortBindable = this as BindableNumber<short>;
+                    if (shortBindable == null) throw new ArgumentNullException(nameof(shortBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     shortBindable.Value += Convert.ToInt16(val);
                     break;
                 case TypeCode.UInt32:
-                    BindableNumber<uint> uintBindable = this as BindableNumber<uint>;
+                    var uintBindable = this as BindableNumber<uint>;
+                    if (uintBindable == null) throw new ArgumentNullException(nameof(uintBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     uintBindable.Value += Convert.ToUInt32(val);
                     break;
                 case TypeCode.Int32:
-                    BindableNumber<int> intBindable = this as BindableNumber<int>;
+                    var intBindable = this as BindableNumber<int>;
+                    if (intBindable == null) throw new ArgumentNullException(nameof(intBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     intBindable.Value += Convert.ToInt32(val);
                     break;
                 case TypeCode.UInt64:
-                    BindableNumber<ulong> ulongBindable = this as BindableNumber<ulong>;
+                    var ulongBindable = this as BindableNumber<ulong>;
+                    if (ulongBindable == null) throw new ArgumentNullException(nameof(ulongBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     ulongBindable.Value += Convert.ToUInt64(val);
                     break;
                 case TypeCode.Int64:
-                    BindableNumber<long> longBindable = this as BindableNumber<long>;
+                    var longBindable = this as BindableNumber<long>;
+                    if (longBindable == null) throw new ArgumentNullException(nameof(longBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     longBindable.Value += Convert.ToInt64(val);
                     break;
                 case TypeCode.Single:
-                    BindableNumber<float> floatBindable = this as BindableNumber<float>;
+                    var floatBindable = this as BindableNumber<float>;
+                    if (floatBindable == null) throw new ArgumentNullException(nameof(floatBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     floatBindable.Value += Convert.ToSingle(val);
                     break;
                 case TypeCode.Double:
-                    BindableNumber<double> doubleBindable = this as BindableNumber<double>;
+                    var doubleBindable = this as BindableNumber<double>;
+                    if (doubleBindable == null) throw new ArgumentNullException(nameof(doubleBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     doubleBindable.Value += Convert.ToDouble(val);
                     break;
             }

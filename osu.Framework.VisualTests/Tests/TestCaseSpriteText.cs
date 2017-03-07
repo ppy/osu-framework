@@ -8,10 +8,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSpriteText : TestCase
+    internal class TestCaseSpriteText : TestCase
     {
-        public override string Name => @"SpriteText";
-
         public override string Description => @"Test all sizes of text rendering";
 
         public override void Reset()
@@ -31,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             Anchor = Anchor.TopLeft,
                             AutoSizeAxes = Axes.Both,
-                            Direction = FillDirection.Down,
+                            Direction = FillDirection.Vertical,
                         }
                     }
                 }

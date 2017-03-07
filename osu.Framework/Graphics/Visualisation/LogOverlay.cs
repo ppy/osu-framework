@@ -13,7 +13,7 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    class LogOverlay : OverlayContainer
+    internal class LogOverlay : OverlayContainer
     {
         private FillFlowContainer flow;
 
@@ -86,9 +86,9 @@ namespace osu.Framework.Graphics.Visualisation
         }
     }
 
-    class DrawableLogEntry : Container
+    internal class DrawableLogEntry : Container
     {
-        const float target_box_width = 90;
+        private const float target_box_width = 90;
 
         public DrawableLogEntry(LogEntry entry)
         {

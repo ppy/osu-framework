@@ -12,25 +12,25 @@ namespace osu.Framework.IO
 {
     internal class AsyncBufferStream : Stream
     {
-        const int block_size = 32768;
+        private const int block_size = 32768;
 
         #region Concurrent access
 
-        readonly byte[] data;
+        private readonly byte[] data;
 
-        readonly bool[] blockLoadedStatus;
+        private readonly bool[] blockLoadedStatus;
 
-        volatile bool isClosed;
-        volatile bool isLoaded;
+        private volatile bool isClosed;
+        private volatile bool isLoaded;
 
-        volatile int position;
-        volatile int amountBytesToRead;
+        private volatile int position;
+        private volatile int amountBytesToRead;
 
         #endregion
 
-        readonly int blocksToReadAhead;
+        private readonly int blocksToReadAhead;
 
-        readonly Stream underlyingStream;
+        private readonly Stream underlyingStream;
 
         private Thread loadThread;
 

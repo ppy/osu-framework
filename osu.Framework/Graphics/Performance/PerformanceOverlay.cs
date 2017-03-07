@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
-using System.Linq;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
@@ -11,7 +10,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Performance
 {
-    class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
+    internal class PerformanceOverlay : FillFlowContainer<FrameStatisticsDisplay>, IStateful<FrameStatisticsMode>
     {
         private readonly TextureAtlas atlas;
 
@@ -56,7 +55,7 @@ namespace osu.Framework.Graphics.Performance
 
         public PerformanceOverlay()
         {
-            Direction = FillDirection.Down;
+            Direction = FillDirection.Vertical;
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
         }
     }

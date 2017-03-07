@@ -8,7 +8,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
 {
-    class VisualTestGame : Game
+    internal class VisualTestGame : Game
     {
         [BackgroundDependencyLoader]
         private void load()

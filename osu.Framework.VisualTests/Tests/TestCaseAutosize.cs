@@ -9,14 +9,12 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSizing : TestCase
+    internal class TestCaseSizing : TestCase
     {
-        public override string Name => @"Size calculations";
         public override string Description => @"Various scenarios which potentially challenge size calculations.";
 
         private Container testContainer;
@@ -335,7 +333,7 @@ namespace osu.Framework.VisualTests.Tests
                             boxes = new FillFlowContainer {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
-                                Direction = FillDirection.Down,
+                                Direction = FillDirection.Vertical,
                                 Spacing = new Vector2(0, 10),
                             }
                         }
@@ -928,10 +926,9 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    class InfofulBoxAutoSize : Container
+    internal class InfofulBoxAutoSize : Container
     {
-        [BackgroundDependencyLoader]
-        private void load(Game game)
+        public InfofulBoxAutoSize()
         {
             AutoSizeAxes = Axes.Both;
 
@@ -962,10 +959,8 @@ namespace osu.Framework.VisualTests.Tests
         protected override bool OnDragStart(InputState state) => AllowDrag;
     }
 
-    class InfofulBox : Container
+    internal class InfofulBox : Container
     {
-        private SpriteText debugInfo;
-
         public bool Chameleon = false;
         public bool AllowDrag = true;
 
@@ -991,15 +986,9 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
                 Depth = float.MaxValue,
             });
-
-            debugInfo = new SpriteText
-            {
-                Colour = Color4.Black
-            };
-            Add(debugInfo);
         }
 
-        int lastSwitch;
+        private int lastSwitch;
 
         protected override void Update()
         {
@@ -1031,8 +1020,6 @@ namespace osu.Framework.VisualTests.Tests
             }
 
             base.Update();
-
-            //debugInfo.Text = ToString();
         }
     }
 }

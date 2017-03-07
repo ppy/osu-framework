@@ -15,9 +15,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseDrawablePath : TestCase
+    internal class TestCaseDrawablePath : TestCase
     {
-        public override string Name => @"Drawable Paths";
         public override string Description => @"Various cases of drawable paths.";
 
         public override void Reset()
@@ -151,7 +150,7 @@ namespace osu.Framework.VisualTests.Tests
             });
         }
 
-        class DrawablePath : Path
+        private class DrawablePath : Path
         {
             public override bool HandleInput => true;
 

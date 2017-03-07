@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -153,6 +154,18 @@ namespace osu.Framework.Extensions
         {
             if (task.IsFaulted)
                 ExceptionDispatchInfo.Capture(task.Exception?.InnerException).Throw();
+        }
+
+        public static string GetMd5Hash(this Stream stream)
+        {
+            string hash;
+
+            stream.Seek(0, SeekOrigin.Begin);
+            using (var md5 = MD5.Create())
+                hash = BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+            stream.Seek(0, SeekOrigin.Begin);
+
+            return hash;
         }
     }
 }

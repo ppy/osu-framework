@@ -12,10 +12,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCasePadding : TestCase
+    internal class TestCasePadding : TestCase
     {
-        public override string Name => @"Padding";
-
         public override string Description => @"Add fixed padding via a PaddingContainer";
 
         public override void Reset()
@@ -210,11 +208,11 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
-        class PaddedBox : Container
+        private class PaddedBox : Container
         {
             private SpriteText t1, t2, t3, t4;
 
-            Container content;
+            private Container content;
 
             protected override Container<Drawable> Content => content;
 

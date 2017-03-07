@@ -10,10 +10,8 @@ using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseCheckBox : TestCase
+    internal class TestCaseCheckBox : TestCase
     {
-        public override string Name => @"Checkboxes";
-
         public override string Description => @"CheckBoxes with clickable labels";
 
         public override void Reset()
@@ -26,7 +24,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Direction = FillDirection.Down,
+                    Direction = FillDirection.Vertical,
                     Spacing = new Vector2(0, 10),
                     Padding = new MarginPadding(10),
                     AutoSizeAxes = Axes.Both,

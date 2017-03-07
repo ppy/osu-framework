@@ -10,10 +10,8 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseTextBox : TestCase
+    internal class TestCaseTextBox : TestCase
     {
-        public override string Name => @"TextBox";
-
         public override string Description => @"Text entry evolved";
 
         public override void Reset()
@@ -22,7 +20,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer textBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -74,7 +72,7 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer otherTextBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
                 Padding = new MarginPadding
                 {
@@ -104,10 +102,9 @@ namespace osu.Framework.VisualTests.Tests
 
             FillFlowContainer nestedTextBoxes = new FillFlowContainer
             {
-                Direction = FillDirection.Down,
+                Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 50),
-                Anchor = Anchor.TopCentre,
-                Origin = Anchor.TopCentre,
+                Margin = new MarginPadding { Left = 50 },
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.8f, 1)
             };

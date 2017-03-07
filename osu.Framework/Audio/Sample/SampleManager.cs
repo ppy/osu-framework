@@ -11,9 +11,9 @@ namespace osu.Framework.Audio.Sample
 {
     public class SampleManager : AudioCollectionManager<SampleChannel>, IResourceStore<SampleChannel>
     {
-        readonly IResourceStore<byte[]> store;
+        private readonly IResourceStore<byte[]> store;
 
-        ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
+        private ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
 
         public SampleManager(IResourceStore<byte[]> store)
         {

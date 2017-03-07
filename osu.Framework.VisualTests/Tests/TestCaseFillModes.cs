@@ -13,13 +13,11 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseFillModes : TestCase
+    internal class TestCaseFillModes : TestCase
     {
-        public override string Name => @"Sprites - FillModes";
-
         public override string Description => @"Test sprite display and fill modes";
 
-        Texture sampleTexture;
+        private Texture sampleTexture;
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
@@ -174,11 +172,11 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
-        class PaddedBox : Container
+        private class PaddedBox : Container
         {
             private SpriteText t1, t2, t3, t4;
 
-            Container content;
+            private Container content;
 
             protected override Container<Drawable> Content => content;
 

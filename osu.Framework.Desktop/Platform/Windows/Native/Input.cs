@@ -375,7 +375,7 @@ namespace osu.Framework.Desktop.Platform.Windows.Native
     /// Value type for raw input.
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct RawInput
+    internal struct RawInput
     {
         public RawInputHeader Header;
         public RawInputData Data;

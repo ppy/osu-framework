@@ -373,22 +373,25 @@ namespace osu.Framework.IO.File
         {
             SecurityIdentifier sid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
             NTAccount acct = sid.Translate(typeof(NTAccount)) as NTAccount;
-            string strEveryoneAccount = acct.ToString();
-
-            try
+            if (acct != null)
             {
-                AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                    InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
-                    AccessControlType.Allow);
-                AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
-                    InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
-                    PropagationFlags.InheritOnly, AccessControlType.Allow);
+                string strEveryoneAccount = acct.ToString();
 
-                RemoveReadOnlyRecursive(directory);
-            }
-            catch
-            {
-                return false;
+                try
+                {
+                    AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
+                        InheritanceFlags.None, PropagationFlags.NoPropagateInherit,
+                        AccessControlType.Allow);
+                    AddDirectorySecurity(directory, strEveryoneAccount, FileSystemRights.FullControl,
+                        InheritanceFlags.ObjectInherit | InheritanceFlags.ContainerInherit,
+                        PropagationFlags.InheritOnly, AccessControlType.Allow);
+
+                    RemoveReadOnlyRecursive(directory);
+                }
+                catch
+                {
+                    return false;
+                }
             }
 
             return true;
