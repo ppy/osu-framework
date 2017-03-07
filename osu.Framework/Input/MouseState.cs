@@ -1,7 +1,6 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Input;
@@ -23,8 +22,6 @@ namespace osu.Framework.Input
             new ButtonState(MouseButton.Button2)
         });
 
-
-        private IMouseState nativeState;
 
         public bool LeftButton => ButtonStates.Find(b => b.Button == MouseButton.Left).State;
         public bool RightButton => ButtonStates.Find(b => b.Button == MouseButton.Right).State;
