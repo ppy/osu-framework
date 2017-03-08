@@ -1,0 +1,27 @@
+version: '{build}'
+configuration: Debug
+install:
+- cmd: >-
+    git submodule update --init --recursive
+    choco install resharper-clt -y
+    choco install nvika -y
+    appveyor DownloadFile https://github.com/peppy/CodeFileSanity/releases/download/v0.1/CodeFileSanity.exe
+before_build:
+- cmd: >-
+    nuget restore
+    CodeFileSanity.exe
+build:
+  project: osu-framework.sln
+  parallel: true
+  verbosity: minimal
+after_build:
+- cmd: >-
+    inspectcode /o="inspectcodereport.xml" /caches-home="inspectcode" osu.sln
+    NVika parsereport "inspectcodereport.xml"
+artifacts:
+- path: inspectcodereport.xml
+notifications:
+- provider: GitHubPullRequest
+  on_build_success: false
+  on_build_failure: true
+  on_build_status_changed: false
