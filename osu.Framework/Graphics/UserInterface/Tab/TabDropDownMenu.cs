@@ -24,12 +24,15 @@ namespace osu.Framework.Graphics.UserInterface.Tab
 
         internal void HideItem(T val)
         {
-            if (ItemDictionary.TryGetValue(val, out int index))
+            int index;
+            if (ItemDictionary.TryGetValue(val, out index))
                 ItemList[index]?.Hide();
         }
 
-        internal void ShowItem(T val) {
-            if (ItemDictionary.TryGetValue(val, out int index))
+        internal void ShowItem(T val)
+        {
+            int index;
+            if (ItemDictionary.TryGetValue(val, out index))
                 ItemList[index]?.Show();
         }
 
