@@ -1,4 +1,7 @@
-﻿using osu.Framework.Threading;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 
@@ -23,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
                 Delay(RematchDelay);
                 rematch = Schedule(delegate
                 {
-                    match(Children);
+                    match(Children, new List<string>());
                     AfterMatching();
                 });
             }
@@ -41,27 +44,39 @@ namespace osu.Framework.Graphics.Containers
 
         private ScheduledDelegate rematch;
 
-        private void match(IEnumerable<Drawable> children)
+        private void match(IEnumerable<Drawable> children, List<string> parentKeywords)
         {
-            foreach (Drawable search in children)
+            foreach (Drawable drawable in children)
             {
-                if (search is ISearchable)
+                var search = drawable as ISearchable;
+                if (search == null)
+                    continue;
+
+                var searchableContainer = search as ISearchableChildren;
+                if(searchableContainer != null)
+                {
+                    if (searchableContainer.Keywords != null && searchableContainer.Keywords.Length != 0)
+                    {
+                        var childrenKeywords = new List<string>(parentKeywords);
+                        childrenKeywords.AddRange(searchableContainer.Keywords);
+                        match(searchableContainer.SearchableChildren, childrenKeywords);
+                    }
+                    else
+                        match(searchableContainer.SearchableChildren, parentKeywords);
+                    searchableContainer.AfterSearch?.Invoke();
+                }
+                else if (search.Keywords != null && search.Keywords.Length != 0)
                 {
                     bool contains = false;
 
-                    foreach (string keyword in (search as ISearchable).Keywords)
+                    foreach (string keyword in search.Keywords)
                         if (AreMatching(keyword, Filter))
                             contains = true;
 
                     if (contains)
-                        OnMatch(search);
+                        OnMatch(drawable);
                     else
-                        OnMismatch(search);
-                }
-                else if(search is ISearchableChildren)
-                {
-                    match((search as ISearchableChildren).SearchableChildren);
-                    (search as ISearchableChildren).AfterSearch?.Invoke();
+                        OnMismatch(drawable);
                 }
             }
         }

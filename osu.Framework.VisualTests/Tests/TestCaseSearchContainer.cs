@@ -1,11 +1,14 @@
-﻿using osu.Framework.Graphics;
-using osu.Framework.Screens.Testing;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.UserInterface;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
 using OpenTK;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.MathUtils;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.MathUtils;
+using osu.Framework.Screens.Testing;
 using System;
 using System.Collections.Generic;
 
@@ -88,6 +91,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
         {
+            public string[] Keywords => null;
             public IEnumerable<Drawable> SearchableChildren => Children;
 
             public Action AfterSearch => null;
