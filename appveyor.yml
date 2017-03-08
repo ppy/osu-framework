@@ -1,5 +1,10 @@
 version: '{build}'
 configuration: Debug
+cache:
+- C:\ProgramData\chocolatey\bin -> appveyor.yml
+- C:\ProgramData\chocolatey\lib -> appveyor.yml
+- inspectcode -> appveyor.yml
+- packages -> **\packages.config
 install:
 - cmd: >-
     git submodule update --init --recursive
