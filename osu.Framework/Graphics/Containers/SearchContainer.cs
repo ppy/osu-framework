@@ -31,8 +31,10 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public IEnumerable<Drawable> SearchableContent { get; set; } = null;
+
         public string[] Keywords => null;
-        public IEnumerable<Drawable> SearchableChildren => Children;
+        public IEnumerable<Drawable> SearchableChildren => SearchableContent ?? Children;
         public Action AfterSearch { get; set; }
 
         public int RematchDelay { get; set; } = 200;
