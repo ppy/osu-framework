@@ -10,7 +10,9 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.MathUtils;
 using osu.Framework.Screens.Testing;
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -20,30 +22,28 @@ namespace osu.Framework.VisualTests.Tests
 
         private SearchContainer search;
         private TextBox textBox;
+        private List<SearchableText> text;
 
         public override void Reset()
         {
             base.Reset();
 
-            SearchableText[] text = new SearchableText[10];
-            for(int i = 0; i < text.Length-2; i++)
+            text = new List<SearchableText>();
+            for(int i = 0; i < 8; i++)
             {
-                text[i] = new SearchableText
+                text.Add(new SearchableText
                 {
-                    Position = new Vector2(0,30*i+30),
                     Text = RNG.Next(1000).ToString(),
-                };
+                });
             }
-            text[8] = new SearchableText
+            text.Add(new SearchableText
             {
-                
                 Text = "TEST",
-            };
-            text[9] = new SearchableText
+            });
+            text.Add(new SearchableText
             {
-
                 Text = "test",
-            };
+            });
 
             Children = new Drawable[]
             {
@@ -58,7 +58,7 @@ namespace osu.Framework.VisualTests.Tests
                 search = new SearchContainer
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Children = new Drawable[] 
+                    Children = new Drawable[]
                     {
                         new SearchableFlowContainer<SearchableText>()
                         {
@@ -70,19 +70,17 @@ namespace osu.Framework.VisualTests.Tests
                     },
                     OnMatch = match,
                     OnMismatch = mismatch,
+                    AfterSearch = afterSearch,
                 }
             };
         }
 
-        private void match(Drawable searchable)
-        {
-            searchable.FadeIn(200);
-        }
+        private void match(Drawable searchable) => searchable.FadeIn(100);
 
-        private void mismatch(Drawable searchable)
-        {
-            searchable.FadeOut(200);
-        }
+        private void mismatch(Drawable searchable) => searchable.FadeOut(100);
+
+        private void afterSearch() => Scheduler.AddDelayed(() => text.ForEach((SearchableText textColorChange) => textColorChange.FadeColour(text.All((SearchableText text) => text.IsPresent) ? Color4.White : Color4.Red, 100)),100);
+        
 
         private class SearchableText : SpriteText, ISearchable
         {
@@ -91,7 +89,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
         {
-            public string[] Keywords => null;
+            public string[] Keywords => new[] { "flowcontainer" };
             public IEnumerable<Drawable> SearchableChildren => Children;
 
             public Action AfterSearch => null;

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class SearchContainer : SearchContainer<Drawable>
+    public class SearchContainer : SearchContainer<Drawable>, ISearchableChildren
     { }
 
     public class SearchContainer<T> : Container<T> where T : Drawable
@@ -26,11 +26,14 @@ namespace osu.Framework.Graphics.Containers
                 Delay(RematchDelay);
                 rematch = Schedule(delegate
                 {
-                    match(Children, new List<string>());
-                    AfterMatching();
+                    match(new[] {this}, new List<string>());
                 });
             }
         }
+
+        public string[] Keywords => null;
+        public IEnumerable<Drawable> SearchableChildren => Children;
+        public Action AfterSearch { get; set; }
 
         public int RematchDelay { get; set; } = 200;
 
@@ -38,7 +41,6 @@ namespace osu.Framework.Graphics.Containers
 
         public OnSearchHandler OnMatch { get; set; } = delegate { };
         public OnSearchHandler OnMismatch { get; set; } = delegate { };
-        public Action AfterMatching { get; set; } = delegate { };
 
         protected virtual bool AreMatching(string value1, string value2) => value1?.IndexOf(value2, StringComparison.InvariantCultureIgnoreCase) >= 0;
 
@@ -70,6 +72,10 @@ namespace osu.Framework.Graphics.Containers
                     bool contains = false;
 
                     foreach (string keyword in search.Keywords)
+                        if (AreMatching(keyword, Filter))
+                            contains = true;
+
+                    foreach (string keyword in parentKeywords)
                         if (AreMatching(keyword, Filter))
                             contains = true;
 
