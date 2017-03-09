@@ -1245,12 +1245,12 @@ namespace osu.Framework.Graphics
                 Vector2 rap = RelativeAnchorPosition;
 
                 Vector2 ratio1 = new Vector2(
-                    rap.X <= 0 ? 0 : (1 / rap.X),
-                    rap.Y <= 0 ? 0 : (1 / rap.Y));
+                    rap.X <= 0 ? 0 : 1 / rap.X,
+                    rap.Y <= 0 ? 0 : 1 / rap.Y);
 
                 Vector2 ratio2 = new Vector2(
-                    rap.X >= 1 ? 0 : (1 / (1 - rap.X)),
-                    rap.Y >= 1 ? 0 : (1 / (1 - rap.Y)));
+                    rap.X >= 1 ? 0 : 1 / (1 - rap.X),
+                    rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
                 RectangleF bbox = BoundingBox;
 
