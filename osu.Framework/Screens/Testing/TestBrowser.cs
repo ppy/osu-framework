@@ -23,7 +23,7 @@ namespace osu.Framework.Screens.Testing
     {
         private class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
-            public override string Filename => @"visualtests.cfg";
+            protected override string Filename => @"visualtests.cfg";
 
             public TestBrowserConfig(Storage storage) : base(storage)
             {

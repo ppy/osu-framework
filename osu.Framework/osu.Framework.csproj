@@ -283,8 +283,6 @@
     <Compile Include="Allocation\InvokeOnDisposal.cs" />
     <Compile Include="Statistics\PerformanceMonitor.cs" />
     <Compile Include="Threading\Scheduler.cs" />
-    <Compile Include="Threading\SleepHandle.cs" />
-    <Compile Include="Threading\SleepScheduler.cs" />
     <Compile Include="Graphics\Textures\RawTexture.cs" />
     <Compile Include="Graphics\Textures\RawTextureLoaderStore.cs" />
     <Compile Include="Platform\Storage.cs" />

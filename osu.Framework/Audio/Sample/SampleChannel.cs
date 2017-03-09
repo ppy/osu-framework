@@ -10,7 +10,7 @@ namespace osu.Framework.Audio.Sample
     {
         protected bool WasStarted;
 
-        public Sample Sample { get; protected set; }
+        protected Sample Sample { get; set; }
 
         private Action<SampleChannel> onPlay;
 
