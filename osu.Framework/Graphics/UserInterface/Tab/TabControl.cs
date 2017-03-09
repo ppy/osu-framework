@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
     public abstract class TabControl<T> : Container
     {
-        private static AtomicCounter orderCounter = new AtomicCounter();
+        private int orderCounter;
         private Dictionary<T, TabItem<T>> tabMap;
         private TabDropDownMenu<T> dropDown;
         private TabFillFlowContainer<TabItem<T>> tabs;
@@ -108,7 +107,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             if (AutoSort && tab.Depth != int.MaxValue)
             {
                 tabs.Remove(tab);
-                tab.Depth = orderCounter.Increment();
+                tab.Depth = ++orderCounter;
                 tabs.Add(tab);
             }
 

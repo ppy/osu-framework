@@ -39,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropDownMenu : DropDownMenu<string>
         {
-            protected override BasicDropDownHeader CreateHeader()
+            protected override DropDownHeader CreateHeader()
             {
                 return new StyledDropDownHeader();
             }

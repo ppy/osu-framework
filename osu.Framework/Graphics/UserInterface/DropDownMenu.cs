@@ -53,13 +53,13 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected BasicDropDownHeader Header;
+        protected DropDownHeader Header;
 
         protected Container ContentContainer;
         protected ScrollContainer ScrollContainer;
         protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
 
-        protected abstract BasicDropDownHeader CreateHeader();
+        protected abstract DropDownHeader CreateHeader();
 
         private int maxDropDownHeight = 100;
 

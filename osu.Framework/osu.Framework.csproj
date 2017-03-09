@@ -113,7 +113,6 @@
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\Containers\TabFillFlowContainer.cs" />
-    <Compile Include="Graphics\UserInterface\BasicDropDownHeader.cs" />
     <Compile Include="Graphics\UserInterface\Tab\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\Tab\TabDropDownMenu.cs" />
     <Compile Include="Graphics\UserInterface\Tab\TabItem.cs" />

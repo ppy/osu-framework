@@ -303,7 +303,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class AnchorDropDown : DropDownMenu<Anchor>
         {
-            protected override BasicDropDownHeader CreateHeader()
+            protected override DropDownHeader CreateHeader()
             {
                 return new TestCaseDropDownHeader();
             }
@@ -343,7 +343,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class FillDirectionDropdown : DropDownMenu<FlowTestCase>
         {
-            protected override BasicDropDownHeader CreateHeader()
+            protected override DropDownHeader CreateHeader()
             {
                 return new TestCaseDropDownHeader();
             }

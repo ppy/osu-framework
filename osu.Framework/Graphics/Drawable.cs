@@ -560,7 +560,7 @@ namespace osu.Framework.Graphics
 
                 if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
                     Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
-                else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
                     Height *= conversion.Y;
 
                 relativeSizeAxes = value;
