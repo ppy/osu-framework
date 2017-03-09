@@ -171,7 +171,9 @@ namespace osu.Framework.Platform
             MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
             MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
 
-            Environment.CurrentDirectory = System.IO.Path.GetDirectoryName(FullPath);
+            var path = System.IO.Path.GetDirectoryName(FullPath);
+            if (path != null)
+                Environment.CurrentDirectory = path;
         }
 
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
@@ -207,7 +209,7 @@ namespace osu.Framework.Platform
             while (!response.HasValue)
                 Thread.Sleep(1);
 
-            if (response.Value)
+            if (response ?? false)
                 return true;
 
             Exit();
@@ -250,7 +252,7 @@ namespace osu.Framework.Platform
                 Window.VSync = VSyncMode.Off;
         }
 
-        long lastDrawFrameId;
+        private long lastDrawFrameId;
 
         protected virtual void DrawFrame()
         {
@@ -355,7 +357,7 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager(this)
+            var root = new UserInputManager
             {
                 Clock = UpdateThread.Clock,
                 Children = new[] { game },
@@ -399,7 +401,7 @@ namespace osu.Framework.Platform
             }
         }
 
-        InvokeOnDisposal inputPerformanceCollectionPeriod;
+        private InvokeOnDisposal inputPerformanceCollectionPeriod;
 
         private Bindable<GCLatencyMode> activeGCMode;
 
@@ -417,7 +419,7 @@ namespace osu.Framework.Platform
         public abstract ITextInputSource GetTextInput();
 
         #region IDisposable Support
-        private bool isDisposed = false; // To detect redundant calls
+        private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
         {

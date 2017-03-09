@@ -7,7 +7,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics.ES30;
-using OpenTK.Input;
 
 namespace osu.Framework.Platform
 {
@@ -64,11 +63,6 @@ namespace osu.Framework.Platform
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
             if (result != null) return result;
             throw new ArgumentException(nameof(version));
-        }
-
-        protected override void OnKeyDown(KeyboardKeyEventArgs e)
-        {
-            base.OnKeyDown(e);
         }
 
         public void SetTitle(string title)

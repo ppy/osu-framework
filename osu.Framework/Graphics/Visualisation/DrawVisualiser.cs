@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Visualisation
                     GoUpOneParent = delegate
                     {
                         var parent = Target?.Parent;
-                        if (parent != null && parent.Parent != null)
+                        if (parent?.Parent != null)
                             Target = Target?.Parent;
                     }
                 },
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Visualisation
             removeRootVisualisedDrawable();
         }
 
-        bool targetSearching;
+        private bool targetSearching;
 
         private void chooseTarget()
         {
@@ -185,8 +185,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             vis.CheckExpiry();
 
-            var drawables = vis.Flow.Children.Cast<VisualisedDrawable>();
-            foreach (var dd in drawables)
+            foreach (var dd in vis.Flow.Children)
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
 
@@ -198,7 +197,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             foreach (var c in dContainer.InternalChildren)
             {
-                var dr = drawables.FirstOrDefault(x => x.Target == c);
+                var dr = vis.Flow.Children.FirstOrDefault(x => x.Target == c);
 
                 if (dr == null)
                 {

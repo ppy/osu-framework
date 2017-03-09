@@ -19,5 +19,12 @@ namespace osu.Framework.Input
         /// Win key on Windows, or Command key on Mac.
         /// </summary>
         public bool SuperPressed => Keys.Any(k => k == Key.LWin || k == Key.RWin);
+
+        public KeyboardState Clone()
+        {
+            var clone = (KeyboardState)MemberwiseClone();
+            clone.Keys = new List<Key>(Keys);
+            return clone;
+        }
     }
 }

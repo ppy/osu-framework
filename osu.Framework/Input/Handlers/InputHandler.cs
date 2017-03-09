@@ -43,7 +43,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         #region IDisposable Support
-        protected bool IsDisposed = false; // To detect redundant calls
+        protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
         {

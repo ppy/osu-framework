@@ -17,23 +17,23 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseFlow : TestCase
+    internal class TestCaseFlow : TestCase
     {
         public override string Description => "Test lots of different settings for Flow Containers";
 
         private FillFlowContainer dropdownContainer;
 
-        FlowTestCase current;
-        FillDirectionDropdown selectionDropdown;
-        Container testContainer;
+        private FlowTestCase current;
+        private FillDirectionDropdown selectionDropdown;
+        private Container testContainer;
 
-        Anchor childAnchor = Anchor.TopLeft;
-        AnchorDropDown anchorDropdown;
+        private Anchor childAnchor = Anchor.TopLeft;
+        private AnchorDropDown anchorDropdown;
 
-        Anchor childOrigin = Anchor.TopLeft;
-        AnchorDropDown originDropdown;
+        private Anchor childOrigin = Anchor.TopLeft;
+        private AnchorDropDown originDropdown;
 
-        FillFlowContainer fc;
+        private FillFlowContainer fc;
         private ScheduledDelegate scheduledAdder;
 
         protected override Container<Drawable> Content => testContainer;
@@ -138,38 +138,23 @@ namespace osu.Framework.VisualTests.Tests
 
             var rotateBtn = AddToggle("Rotate Container", state =>
             {
-                if (!state)
-                    fc.RotateTo(0f, 1000);
-                else
-                    fc.RotateTo(45f, 1000);
+                fc.RotateTo(state ? 45f : 0, 1000);
             });
             AddToggle("Scale Container", state =>
             {
-                if (state)
-                    fc.ScaleTo(1.2f, 1000);
-                else
-                    fc.ScaleTo(1f, 1000);
+                fc.ScaleTo(state ? 1.2f : 1f, 1000);
             });
             AddToggle("Shear Container", state =>
             {
-                if (state)
-                    fc.Shear = new Vector2(0.5f, 0f);
-                else
-                    fc.Shear = new Vector2(0f, 0f);
+                fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
             });
             AddToggle("Center Container Anchor", state =>
             {
-                if (state)
-                    fc.Anchor = Anchor.Centre;
-                else
-                    fc.Anchor = Anchor.TopLeft;
+                fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
             });
             AddToggle("Center Container Origin", state =>
             {
-                if (state)
-                    fc.Origin = Anchor.Centre;
-                else
-                    fc.Origin = Anchor.TopLeft;
+                fc.Origin = state ? Anchor.Centre : Anchor.TopLeft;
             });
             AddToggle("Autosize Container", state =>
             {
@@ -386,14 +371,15 @@ namespace osu.Framework.VisualTests.Tests
         [AttributeUsage(AttributeTargets.Method)]
         private class FlowTestCaseAttribute : Attribute
         {
-            public FlowTestCase TestCase { get; private set; }
+            public FlowTestCase TestCase { get; }
 
             public FlowTestCaseAttribute(FlowTestCase testCase)
             {
                 TestCase = testCase;
             }
         }
-        enum FlowTestCase
+
+        private enum FlowTestCase
         {
             Full,
             Horizontal,

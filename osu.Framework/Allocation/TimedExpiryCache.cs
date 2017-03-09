@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace osu.Framework.Allocation
 {
@@ -22,11 +22,13 @@ namespace osu.Framework.Allocation
         /// <summary>
         /// The interval in milliseconds between checks for expiry.
         /// </summary>
-        public int CheckPeriod = 5000;
+        public readonly int CheckPeriod = 5000;
+
+        private Timer timer;
 
         public TimedExpiryCache()
         {
-            checkExpiryAsync();
+            timer = new Timer(checkExpiry, null, 0, CheckPeriod);
         }
 
         internal void Add(TKey key, TValue value)
@@ -34,7 +36,7 @@ namespace osu.Framework.Allocation
             dictionary.TryAdd(key, new TimedObject<TValue>(value));
         }
 
-        private async Task checkExpiryAsync()
+        private void checkExpiry(object state)
         {
             var now = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
 
@@ -44,13 +46,6 @@ namespace osu.Framework.Allocation
                 if (now - v.Value.LastAccessTime > ExpiryTime)
                     dictionary.TryRemove(v.Key, out val);
             }
-
-            await Task.Delay(CheckPeriod);
-
-            if (isDisposed)
-                return;
-
-            Task.Run(checkExpiryAsync);
         }
 
         public bool TryGetValue(TKey key, out TValue value)
@@ -73,7 +68,10 @@ namespace osu.Framework.Allocation
         protected virtual void Dispose(bool disposing)
         {
             if (!isDisposed)
+            {
                 isDisposed = true;
+                timer.Dispose();
+            }
         }
 
         ~TimedExpiryCache()
@@ -89,7 +87,7 @@ namespace osu.Framework.Allocation
 
         #endregion
 
-        class TimedObject<T>
+        private class TimedObject<T>
         {
             public long LastAccessTime;
 

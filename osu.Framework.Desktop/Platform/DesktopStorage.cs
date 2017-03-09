@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using SQLite.Net;
 using System.IO;
 using osu.Framework.Platform;
@@ -34,6 +35,10 @@ namespace osu.Framework.Desktop.Platform
         public override Stream GetStream(string path, FileAccess access = FileAccess.Read, FileMode mode = FileMode.OpenOrCreate)
         {
             path = Path.Combine(BasePath, path);
+
+            if (string.IsNullOrEmpty(path))
+                throw new ArgumentNullException(nameof(path));
+
             switch (access)
             {
                 case FileAccess.Read:

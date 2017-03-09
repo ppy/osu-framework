@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
@@ -11,17 +10,13 @@ namespace osu.Framework.VisualTests
     {
         private double timePerTest = 200;
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            Host.MaximumDrawHz = int.MaxValue;
-            Host.MaximumUpdateHz = int.MaxValue;
-            Host.MaximumInactiveHz = int.MaxValue;
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            Host.MaximumDrawHz = int.MaxValue;
+            Host.MaximumUpdateHz = int.MaxValue;
+            Host.MaximumInactiveHz = int.MaxValue;
 
             TestBrowser f = new TestBrowser();
             Add(f);

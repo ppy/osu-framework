@@ -173,7 +173,7 @@ namespace osu.Framework.Logging
             backgroundScheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
-                if (!hasLogDirectory.Value)
+                if (hasLogDirectory.HasValue && !hasLogDirectory.Value)
                     return;
 
                 try
@@ -216,11 +216,11 @@ namespace osu.Framework.Logging
             Add(@"----------------------------------------------------------");
         }
 
-        static List<string> filters = new List<string>();
-        static Dictionary<LoggingTarget, Logger> staticLoggers = new Dictionary<LoggingTarget, Logger>();
-        static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
-        static bool? hasLogDirectory;
-        static string logDirectory;
+        private static List<string> filters = new List<string>();
+        private static Dictionary<LoggingTarget, Logger> staticLoggers = new Dictionary<LoggingTarget, Logger>();
+        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
+        private static bool? hasLogDirectory;
+        private static string logDirectory;
 
         private void ensureLogDirectoryExists()
         {

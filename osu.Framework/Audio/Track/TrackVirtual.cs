@@ -5,11 +5,11 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
-    class TrackVirtual : Track
+    internal class TrackVirtual : Track
     {
-        StopwatchClock clock = new StopwatchClock();
+        private StopwatchClock clock = new StopwatchClock();
 
-        double seekOffset;
+        private double seekOffset;
 
         public override bool Seek(double seek)
         {

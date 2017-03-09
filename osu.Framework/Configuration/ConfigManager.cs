@@ -18,11 +18,11 @@ namespace osu.Framework.Configuration
 
         public virtual bool AddMissingEntries => true;
 
-        bool hasUnsavedChanges;
+        private bool hasUnsavedChanges;
 
-        Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
+        private Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        Storage storage;
+        private Storage storage;
 
         public ConfigManager(Storage storage)
         {

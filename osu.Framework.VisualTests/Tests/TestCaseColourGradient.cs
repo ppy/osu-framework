@@ -11,7 +11,7 @@ using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseColourGradient : TestCase
+    internal class TestCaseColourGradient : TestCase
     {
         public override string Description => @"Various cases of colour gradients.";
 

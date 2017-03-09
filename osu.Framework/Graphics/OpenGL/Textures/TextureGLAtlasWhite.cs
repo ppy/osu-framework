@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     /// A special texture which refers to the area of a texture atlas which is white.
     /// Allows use of such areas while being unaware of whether we need to bind a texture or not.
     /// </summary>
-    class TextureGLAtlasWhite : TextureGLSub
+    internal class TextureGLAtlasWhite : TextureGLSub
     {
         public TextureGLAtlasWhite(TextureGLSingle parent) : base(new Rectangle(0, 0, 1, 1), parent)
         {

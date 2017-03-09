@@ -6,7 +6,7 @@ using ManagedBass;
 
 namespace osu.Framework.Audio.Sample
 {
-    class SampleChannelBass : SampleChannel, IBassAudio
+    internal class SampleChannelBass : SampleChannel, IBassAudio
     {
         private volatile int channel;
         private volatile bool playing;
@@ -68,7 +68,7 @@ namespace osu.Framework.Audio.Sample
             // Played does not become true for a short moment.
             playing = true;
 
-            base.Play();
+            base.Play(restart);
         }
 
         public override void Update()

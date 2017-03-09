@@ -8,7 +8,7 @@ using System;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseBufferedContainer : TestCaseMasking
+    internal class TestCaseBufferedContainer : TestCaseMasking
     {
         public override string Description => @"Buffered containers containing almost all visual effects.";
 

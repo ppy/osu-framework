@@ -45,8 +45,8 @@ namespace osu.Framework.Input
             foreach (var s in pendingParentStates)
                 pendingStates.Add(new InputState
                 {
-                    Mouse = s.Mouse.NativeState,
-                    Keyboard = s.Keyboard
+                    Mouse = (s.Mouse.NativeState as MouseState)?.Clone(),
+                    Keyboard = (s.Keyboard as KeyboardState)?.Clone()
                 });
 
             pendingParentStates.Clear();
@@ -54,7 +54,7 @@ namespace osu.Framework.Input
             return pendingStates;
         }
 
-        List<InputState> pendingParentStates = new List<InputState>();
+        private List<InputState> pendingParentStates = new List<InputState>();
 
         private bool acceptState(InputState state)
         {

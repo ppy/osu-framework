@@ -71,6 +71,8 @@ namespace osu.Framework.Desktop.Platform
 
             string shadowExe = exe?.Replace(@".exe", @"_shadow.exe");
 
+            if (shadowExe == null) return;
+
             int attempts = 5;
             while (attempts-- > 0)
             {

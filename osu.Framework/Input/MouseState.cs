@@ -11,7 +11,9 @@ namespace osu.Framework.Input
     {
         public IMouseState LastState;
 
-        public List<ButtonState> ButtonStates = new List<ButtonState>(new[]
+        public List<ButtonState> ButtonStates = createButtonStates();
+
+        private static List<ButtonState> createButtonStates() => new List<ButtonState>(new[]
         {
             new ButtonState(MouseButton.Left),
             new ButtonState(MouseButton.Middle),
@@ -19,6 +21,7 @@ namespace osu.Framework.Input
             new ButtonState(MouseButton.Button1),
             new ButtonState(MouseButton.Button2)
         });
+
 
         public bool LeftButton => ButtonStates.Find(b => b.Button == MouseButton.Left).State;
         public bool RightButton => ButtonStates.Find(b => b.Button == MouseButton.Right).State;
@@ -52,6 +55,11 @@ namespace osu.Framework.Input
                 Button = button;
                 State = false;
             }
+
+            public override string ToString()
+            {
+                return $"{Button}: {State}";
+            }
         }
 
         public void SetLast(IMouseState last)
@@ -61,6 +69,15 @@ namespace osu.Framework.Input
             LastState = last;
             if (last != null)
                 PositionMouseDown = last.PositionMouseDown;
+        }
+
+        public MouseState Clone()
+        {
+            var clone = (MouseState)MemberwiseClone();
+            clone.ButtonStates = createButtonStates();
+            clone.ButtonStates.ForEach(s => s.State = ButtonStates.Find(b => b.Button == s.Button).State);
+            clone.LastState = null;
+            return clone;
         }
     }
 }

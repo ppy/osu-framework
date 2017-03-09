@@ -125,9 +125,9 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public int Timeout = DEFAULT_TIMEOUT;
 
-        static Logger logger;
+        private static Logger logger;
 
-        static SmartThreadPool threadPool;
+        private static SmartThreadPool threadPool;
         private IWorkItemResult workItem;
 
         /// <summary>
@@ -177,7 +177,7 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public static bool UseExplicitIPv4Requests;
 
-        static bool? useFallbackPath;
+        private static bool? useFallbackPath;
         private bool didGetIPv6IP;
 
         protected virtual HttpWebRequest CreateWebRequest(string requestString = null)
@@ -223,6 +223,9 @@ namespace osu.Framework.IO.Network
 
                 req = System.Net.WebRequest.Create(requestUrl.Replace(baseHost, $"{address}:443")) as HttpWebRequest;
             }
+
+            if (req == null)
+                throw new InvalidOperationException(@"request could not be created");
 
             req.UserAgent = @"osu!";
             req.KeepAlive = useFallbackPath != true;
@@ -685,6 +688,7 @@ namespace osu.Framework.IO.Network
             try
             {
                 if (request?.ServicePoint.BindIPEndPointDelegate != null)
+                    // ReSharper disable once DelegateSubtraction
                     request.ServicePoint.BindIPEndPointDelegate -= bindEndPoint;
             }
             catch
@@ -694,11 +698,11 @@ namespace osu.Framework.IO.Network
 
         #region Timeout Handling
 
-        long lastAction;
+        private long lastAction;
 
-        long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
+        private long timeSinceLastAction => (DateTime.Now.Ticks - lastAction) / TimeSpan.TicksPerMillisecond;
 
-        bool hasExceededTimeout => timeSinceLastAction > Timeout;
+        private bool hasExceededTimeout => timeSinceLastAction > Timeout;
 
         private object checkTimeoutLoop(object state)
         {

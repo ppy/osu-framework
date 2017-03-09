@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers;
-using OpenTK.Graphics;
 
 namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
         private readonly OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
-        internal LinuxGameHost(GraphicsContextFlags flags, string gameName, bool bindIPC = false) : base(gameName, bindIPC)
+        internal LinuxGameHost(string gameName, bool bindIPC = false) : base(gameName, bindIPC)
         {
             Window = new DesktopGameWindow();
             Window.WindowStateChanged += (sender, e) =>

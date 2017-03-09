@@ -21,7 +21,7 @@ namespace osu.Framework.Screens.Testing
 {
     public class TestBrowser : Screen
     {
-        class TestBrowserConfig : ConfigManager<TestBrowserOption>
+        private class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
             public override string Filename => @"visualtests.cfg";
 
@@ -30,7 +30,7 @@ namespace osu.Framework.Screens.Testing
             }
         }
 
-        enum TestBrowserOption
+        private enum TestBrowserOption
         {
             LastTest
         }
@@ -41,13 +41,13 @@ namespace osu.Framework.Screens.Testing
         private TestCase loadedTest;
         private Container testContainer;
 
-        List<TestCase> testCases = new List<TestCase>();
+        private List<TestCase> testCases = new List<TestCase>();
 
         public int TestCount => testCases.Count;
 
         private List<TestCase> tests = new List<TestCase>();
 
-        ConfigManager<TestBrowserOption> config;
+        private ConfigManager<TestBrowserOption> config;
 
         public TestBrowser()
         {
@@ -151,7 +151,7 @@ namespace osu.Framework.Screens.Testing
             }
         }
 
-        class TestCaseButton : ClickableContainer
+        private class TestCaseButton : ClickableContainer
         {
             private readonly Box box;
 

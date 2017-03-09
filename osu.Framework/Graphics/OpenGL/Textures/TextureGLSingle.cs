@@ -16,7 +16,7 @@ using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
-    class TextureGLSingle : TextureGL
+    internal class TextureGLSingle : TextureGL
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
@@ -306,7 +306,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             return true;
         }
 
-        bool manualMipmaps;
+        private bool manualMipmaps;
 
         internal override bool Upload()
         {

@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Sprites
         protected virtual char[] FixedWidthExceptionCharacters => default_fixed_width_exceptions;
 
         /// <summary>
-        /// Decide whether we want to make our SpriteText's vertical size to be <see cref="TextHeight"/> (the full height) or precisely the size of used characters.
+        /// Decide whether we want to make our SpriteText's vertical size to be <see cref="TextSize"/> (the full height) or precisely the size of used characters.
         /// Set to false to allow better centering of individual characters/numerals/etc.
         /// </summary>
         public bool UseFullGlyphHeight = true;
@@ -34,13 +34,7 @@ namespace osu.Framework.Graphics.Sprites
         public bool AllowMultiline
         {
             get { return Direction == FillDirection.Full; }
-            set
-            {
-                if (value)
-                    Direction = FillDirection.Full;
-                else
-                    Direction = FillDirection.Horizontal;
-            }
+            set { Direction = value ? FillDirection.Full : FillDirection.Horizontal; }
         }
 
         private string font;
@@ -94,7 +88,7 @@ namespace osu.Framework.Graphics.Sprites
             AutoSizeAxes = Axes.Both;
         }
 
-        const float default_text_size = 20;
+        private const float default_text_size = 20;
 
         private float textSize = default_text_size;
 
@@ -130,7 +124,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private string text;
+        private string text = string.Empty;
 
         public string Text
         {
@@ -140,7 +134,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (text == value)
                     return;
 
-                text = value;
+                text = value ?? string.Empty;
                 internalSize.Invalidate();
             }
         }
@@ -154,7 +148,7 @@ namespace osu.Framework.Graphics.Sprites
             refreshLayout();
         }
 
-        string lastText;
+        private string lastText;
 
         private void refreshLayout()
         {
@@ -167,11 +161,13 @@ namespace osu.Framework.Graphics.Sprites
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
-                int length = Math.Min(lastText?.Length ?? 0, text?.Length ?? 0);
+                int length = Math.Min(lastText?.Length ?? 0, text.Length);
 
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
                 Remove(keepDrawables);
                 Clear();
+
+                if (text.Length == 0) return Vector2.Zero;
 
                 foreach (var k in keepDrawables)
                     Add(k);
