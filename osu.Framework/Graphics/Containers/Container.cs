@@ -999,7 +999,7 @@ namespace osu.Framework.Graphics.Containers
                     if (!c.IsPresent)
                         continue;
 
-                    Vector2 cBound = c.BoundingSizeWithOrigin;
+                    Vector2 cBound = c.RequiredParentSizeToFit;
 
                     if ((c.BypassAutoSizeAxes & Axes.X) == 0)
                         maxBoundSize.X = Math.Max(maxBoundSize.X, cBound.X);
