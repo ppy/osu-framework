@@ -9,7 +9,7 @@ namespace osu.Framework.Platform
 {
     public abstract class Storage
     {
-        public string BaseName { get; set; }
+        protected string BaseName { get; set; }
     
         protected Storage(string baseName)
         {
