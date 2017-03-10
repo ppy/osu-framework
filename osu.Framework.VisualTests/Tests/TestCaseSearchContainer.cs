@@ -85,11 +85,13 @@ namespace osu.Framework.VisualTests.Tests
         private class SearchableText : SpriteText, ISearchable
         {
             public string[] Keywords => new [] { Text };
+            public bool LastMatch { get; set; }
         }
 
         private class SearchableFlowContainer<T> : FillFlowContainer<T>, ISearchableChildren where T : Drawable
         {
             public string[] Keywords => new[] { "flowcontainer" };
+            public bool LastMatch { get; set; }
             public IEnumerable<Drawable> SearchableChildren => Children;
 
             public Action AfterSearch => null;

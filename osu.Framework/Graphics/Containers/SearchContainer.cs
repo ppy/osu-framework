@@ -4,6 +4,7 @@
 using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -34,6 +35,7 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<Drawable> SearchableContent { get; set; } = null;
 
         public string[] Keywords => null;
+        public bool LastMatch { get; set; }
         public IEnumerable<Drawable> SearchableChildren => SearchableContent ?? Children;
         public Action AfterSearch { get; set; }
 
@@ -67,6 +69,7 @@ namespace osu.Framework.Graphics.Containers
                     }
                     else
                         match(searchableContainer.SearchableChildren, parentKeywords);
+                    searchableContainer.LastMatch = searchableContainer.SearchableChildren.OfType<ISearchable>().Any((ISearchable searchable) => searchable.LastMatch);
                     searchableContainer.AfterSearch?.Invoke();
                 }
                 else if (search.Keywords != null && search.Keywords.Length != 0)
@@ -81,6 +84,7 @@ namespace osu.Framework.Graphics.Containers
                         if (AreMatching(keyword, Filter))
                             contains = true;
 
+                    search.LastMatch = contains;
                     if (contains)
                         OnMatch(drawable);
                     else

@@ -9,6 +9,8 @@ namespace osu.Framework.Graphics.Containers
     public interface ISearchable
     {
         string[] Keywords { get; }
+
+        bool LastMatch { get; set; }
     }
 
     public interface ISearchableChildren : ISearchable
