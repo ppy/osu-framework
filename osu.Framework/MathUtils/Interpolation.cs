@@ -57,11 +57,6 @@ namespace osu.Framework.MathUtils
             return ApplyEasing(easing, current, val1, val2 - val1, duration);
         }
 
-        public static float ValueAt(double time, float val1, float val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
-        {
-            return (float)ValueAt(time, (double)val1, val2, startTime, endTime, easing);
-        }
-
         public static Vector2 ValueAt(double time, Vector2 val1, Vector2 val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
         {
             float current = (float)(time - startTime);
