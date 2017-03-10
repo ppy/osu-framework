@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Containers
                     }
                     else
                         match(searchableContainer.SearchableChildren, parentKeywords);
-                    searchableContainer.LastMatch = searchableContainer.SearchableChildren.OfType<ISearchable>().Any((ISearchable searchable) => searchable.LastMatch);
+                    searchableContainer.LastMatch = searchableContainer.SearchableChildren.OfType<ISearchable>().Any((searchable) => searchable.LastMatch);
                     searchableContainer.AfterSearch?.Invoke();
                 }
                 else if (search.Keywords != null && search.Keywords.Length != 0)

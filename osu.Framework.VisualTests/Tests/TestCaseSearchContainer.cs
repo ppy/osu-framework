@@ -79,7 +79,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void mismatch(Drawable searchable) => searchable.FadeOut(100);
 
-        private void afterSearch() => Scheduler.AddDelayed(() => text.ForEach((SearchableText textColorChange) => textColorChange.FadeColour(text.All((SearchableText text) => text.IsPresent) ? Color4.White : Color4.Red, 100)),105);
+        private void afterSearch() => Scheduler.AddDelayed(() => text.ForEach((textColorChange) => textColorChange.FadeColour(text.All((text) => text.IsPresent) ? Color4.White : Color4.Red, 100)),105);
         
 
         private class SearchableText : SpriteText, ISearchable
