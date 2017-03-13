@@ -78,9 +78,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 Position = position;
             }
 
-            private void addIfPressed(OpenTK.Input.ButtonState tkState, MouseButton button)
+            private void addIfPressed(ButtonState tkState, MouseButton button)
             {
-                if (tkState == OpenTK.Input.ButtonState.Pressed)
+                if (tkState == ButtonState.Pressed)
                     PressedButtons.Add(button);
             }
         }
