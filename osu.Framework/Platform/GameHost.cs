@@ -71,7 +71,7 @@ namespace osu.Framework.Platform
 
         public virtual Clipboard GetClipboard() => null;
 
-        public virtual Storage Storage { get; protected set; } //public set currently required for visualtests setup.
+        public virtual Storage Storage { get; protected set; }
 
         private List<GameThread> threads;
 

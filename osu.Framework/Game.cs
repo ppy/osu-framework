@@ -22,7 +22,7 @@ using GameWindow = osu.Framework.Platform.GameWindow;
 
 namespace osu.Framework
 {
-    public class Game : Container
+    public abstract class Game : Container
     {
         public GameWindow Window => Host?.Window;
 
@@ -37,7 +37,7 @@ namespace osu.Framework
         /// </summary>
         protected virtual string MainResourceFile => Host.FullPath;
 
-        public GameHost Host { get; private set; }
+        protected GameHost Host { get; private set; }
 
         private bool isActive;
 
@@ -57,7 +57,7 @@ namespace osu.Framework
 
         public DependencyContainer Dependencies => Host.Dependencies;
 
-        public Game()
+        protected Game()
         {
             RelativeSizeAxes = Axes.Both;
 

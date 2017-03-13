@@ -7,7 +7,7 @@ namespace osu.Framework.Configuration
 {
     public class FrameworkConfigManager : ConfigManager<FrameworkConfig>
     {
-        public override string Filename => @"framework.ini";
+        protected override string Filename => @"framework.ini";
 
         protected override void InitialiseDefaults()
         {

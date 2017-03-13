@@ -8,7 +8,7 @@ namespace osu.Framework.Configuration
 {
     public class FrameworkDebugConfigManager : ConfigManager<FrameworkDebugConfig>
     {
-        public override string Filename => null;
+        protected override string Filename => null;
 
         public FrameworkDebugConfigManager()
             : base(null)
