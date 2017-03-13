@@ -94,11 +94,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                InvalidateLayout();
-
-            //IsPresent of a child may change due to alpha transitioning between zero and non-zero.
-            if ((invalidation & Invalidation.Colour) > 0)
+            if ((invalidation & (Invalidation.SizeInParentSpace | Invalidation.Colour)) > 0)
                 InvalidateLayout();
 
             base.InvalidateFromChild(invalidation);
