@@ -30,11 +30,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         /// </summary>
         public bool AutoSort { set; get; }
 
-        protected TabControl(params T[] pinned) : this(0, pinned)
-        {
-        }
-
-        protected TabControl(float offset, params T[] pinned)
+        protected TabControl(float offset = 0)
         {
             AutoSizeAxes = Axes.Y;
             dropDown = CreateDropDownMenu();
@@ -47,13 +43,6 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                 tab.SelectAction += selectTab;
                 return tab;
             });
-            // Pinned tabs
-            foreach (var value in pinned)
-            {
-                TabItem<T> tab;
-                if (tabMap.TryGetValue(value, out tab))
-                    tab.Depth = int.MaxValue;
-            }
 
             Children = new Drawable[]
             {
@@ -78,7 +67,36 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            tabs.Children.First().Active = true;
+            if (tabs.Children.Any())
+                tabs.Children.First().Active = true;
+        }
+
+        public void PinTab(T value)
+        {
+            TabItem<T> tab;
+            if (!tabMap.TryGetValue(value, out tab))
+                return;
+            if (IsLoaded)
+            {
+                tabs.Remove(tab);
+                tab.Depth = int.MaxValue;
+                tabs.Add(tab);
+            }
+            else
+                tab.Depth = int.MaxValue;
+        }
+
+        public void AddTab(T value)
+        {
+            var tab = CreateTabItem(value);
+            tab.SelectAction += selectTab;
+
+            if (!tabMap.ContainsKey(value))
+            {
+                tabMap[value] = tab;
+                dropDown.AddDropDownItem(value.ToString(), value);
+                tabs.Add(tab);
+            }
         }
 
         // Manages the visibility of dropdownitem based on visible tabs

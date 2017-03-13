@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected IReadOnlyList<DropDownMenuItem<T>> ItemList => items;
         protected IReadOnlyDictionary<T, int> ItemDictionary => itemDictionary;
-        protected abstract IEnumerable<DropDownMenuItem<T>> GetDropDownItems(IEnumerable<KeyValuePair<string, T>> values);
+        protected abstract DropDownMenuItem<T> CreateDropDownItem(string key, T value);
 
         public IEnumerable<KeyValuePair<string, T>> Items
         {
@@ -34,24 +34,34 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 listInitialized = false;
                 ClearItems();
-                foreach (var item in GetDropDownItems(value))
-                {
-                    item.PositionIndex = items.Count - 1;
-                    items.Add(item);
-                    if (item.CanSelect)
-                    {
-                        item.Index = selectableItems.Count;
-                        item.Action = delegate
-                        {
-                            if (State == DropDownMenuState.Opened)
-                                SelectedIndex = item.Index;
-                        };
-                        selectableItems.Add(item);
-                        itemDictionary[item.Value] = item.Index;
-                    }
-                }
+                if (value == null)
+                    return;
+
+                foreach (var entry in value)
+                    AddDropDownItem(entry.Key, entry.Value);
             }
         }
+
+        public void AddDropDownItem(string key, T value)
+        {
+            var item = CreateDropDownItem(key, value);
+            item.PositionIndex = items.Count - 1;
+            items.Add(item);
+            if (item.CanSelect)
+            {
+                item.Index = selectableItems.Count;
+                item.Action = delegate
+                {
+                    if (State == DropDownMenuState.Opened)
+                        SelectedIndex = item.Index;
+                };
+                selectableItems.Add(item);
+                itemDictionary[item.Value] = item.Index;
+            }
+            if (listInitialized)
+                DropDownItemsContainer.Add(item);
+        }
+        // TODO: RemoveDropDownItem?
 
         protected DropDownHeader Header;
 

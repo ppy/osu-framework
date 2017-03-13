@@ -1,8 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
-using System.Linq;
+using System;
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics.UserInterface.Tab;
 using osu.Framework.Screens.Testing;
-using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -24,18 +23,30 @@ namespace osu.Framework.VisualTests.Tests
 
             StyledTabControl simpleTabcontrol = new StyledTabControl
             {
-                Position = new Vector2(100, 75),
+                Position = new Vector2(200, 50),
                 Width = 200,
             };
+            int i = 0;
+            while (i < 10)
+                simpleTabcontrol.AddTab(@"test " + i++);
 
-            StyledTabControl pinnedAndAutoSort = new StyledTabControl("test 6", "test 9")
+            StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
-                Position = new Vector2(400, 75),
+                Position = new Vector2(500, 50),
                 Width = 200,
                 AutoSort = true
             };
+
+            i = 0;
+            while (i < 10)
+                pinnedAndAutoSort.AddTab(@"test " + i++);
+            pinnedAndAutoSort.PinTab("test 7");
+
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
+
+            AddButton("AddItem", () => pinnedAndAutoSort.AddTab(@"test " + i++));
+            AddButton("PinItem", () => pinnedAndAutoSort.PinTab(@"test " + new Random().Next(i)));
         }
 
         private class StyledTabControl : TabControl<string>
@@ -43,10 +54,6 @@ namespace osu.Framework.VisualTests.Tests
             protected override TabDropDownMenu<string> CreateDropDownMenu() => new StyledDropDownMenu();
 
             protected override TabItem<string> CreateTabItem(string value) => new StyledTabItem { Value = value };
-
-            public StyledTabControl(params string[] pinned) : base(pinned)
-            {
-            }
         }
 
         private class StyledTabItem : TabItem<string>
@@ -106,18 +113,13 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
-            protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<KeyValuePair<string, string>> values) =>
-                values.Select(v => new StyledDropDownMenuItem(v.Key));
+            protected override DropDownMenuItem<string> CreateDropDownItem(string key, string value) => new StyledDropDownMenuItem(key);
 
             public StyledDropDownMenu()
             {
                 MaxDropDownHeight = int.MaxValue;
                 ContentContainer.CornerRadius = 4;
                 ScrollContainer.ScrollDraggerVisible = false;
-                string[] testItems = new string[10];
-                for (int i = 0; i < 10; i++)
-                    testItems[i] = @"test " + i;
-                Items = testItems.Select(i => new KeyValuePair<string, string>(i, i));
             }
 
             protected override void AnimateOpen()
