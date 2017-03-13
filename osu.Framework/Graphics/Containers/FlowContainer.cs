@@ -94,6 +94,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {
+            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
+            //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.SizeInParentSpace | Invalidation.Colour)) > 0)
                 InvalidateLayout();
 
