@@ -43,6 +43,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tabMap = dropDown.Items.ToDictionary(item => item.Value, item =>
             {
                 var tab = CreateTabItem(item.Value);
+                tab.PinnedChanged += resortTab;
                 tab.SelectAction += selectTab;
                 return tab;
             });
@@ -79,7 +80,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             TabItem<T> tab;
             if (!tabMap.TryGetValue(value, out tab))
                 return;
-            setTabDepth(tab, int.MaxValue);
+            tab.Pinned = true;
         }
 
         public void UnpinTab(T value)
@@ -87,9 +88,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             TabItem<T> tab;
             if (!tabMap.TryGetValue(value, out tab))
                 return;
-            // Only unpin if pinned
-            if (tab.Depth == int.MaxValue)
-                setTabDepth(tab, ++orderCounter);
+            tab.Pinned = false;
         }
 
         public void AddTab(T value)
@@ -99,6 +98,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                 return;
 
             var tab = CreateTabItem(value);
+            tab.PinnedChanged += resortTab;
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
@@ -126,12 +126,11 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             }
         }
 
-        // Select a tab by reference
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && tab.Depth != int.MaxValue)
-                setTabDepth(tab, ++orderCounter);
+            if (AutoSort && !tab.IsPresent && !tab.Pinned)
+                resortTab(tab);
 
             // Deactivate previously selected tab
             if (selectedTab != null)
@@ -140,14 +139,16 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             ValueChanged?.Invoke(this, tab.Value);
         }
 
-        private void setTabDepth(TabItem<T> tab, float depth) {
+        private void resortTab(TabItem<T> tab)
+        {
             if (IsLoaded)
                 tabs.Remove(tab);
+
+            tab.Depth = tab.Pinned ? int.MaxValue : ++orderCounter;
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
             tab.Y = 0;
-            tab.Depth = depth;
 
             if (IsLoaded)
                 tabs.Add(tab);
