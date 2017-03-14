@@ -23,18 +23,21 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
             string[] testItems = new string[10];
-            for (int i = 0; i < 10; i++)
-                testItems[i] = @"test " + i;
+            int i = 0;
+            while (i < 10)
+                testItems[i] = @"test " + i++;
             styledDropDownMenu = new StyledDropDownMenu
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
                 Description = @"Drop-down menu",
                 Depth = 1,
-                Items = testItems.Select(i => new KeyValuePair<string, string>(i, i)),
+                Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
                 SelectedIndex = 4,
             };
             Add(styledDropDownMenu);
+
+            AddButton("AddItem", () => styledDropDownMenu.AddDropDownItem(@"test " + i, @"test " + i++));
         }
 
         private class StyledDropDownMenu : DropDownMenu<string>
@@ -44,10 +47,7 @@ namespace osu.Framework.VisualTests.Tests
                 return new StyledDropDownHeader();
             }
 
-            protected override IEnumerable<DropDownMenuItem<string>> GetDropDownItems(IEnumerable<KeyValuePair<string, string>> values)
-            {
-                return values.Select(v => new StyledDropDownMenuItem(v.Key));
-            }
+            protected override DropDownMenuItem<string> CreateDropDownItem(string key, string value) => new StyledDropDownMenuItem(key);
 
             public StyledDropDownMenu()
             {

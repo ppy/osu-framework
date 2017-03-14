@@ -60,21 +60,48 @@ namespace osu.Framework.VisualTests.Tests
                     selectionDropdown = new FillDirectionDropdown
                     {
                         RelativeSizeAxes = Axes.X,
-                        Items = null,
+                        Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
+                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
                         SelectedIndex = 0,
                     },
                     new SpriteText { Text = @"Child anchor" },
                     anchorDropdown = new AnchorDropDown
                     {
                         RelativeSizeAxes = Axes.X,
-                        Items = null,
+                        Items = new[]
+                        {
+                            Anchor.TopLeft,
+                            Anchor.TopCentre,
+                            Anchor.TopRight,
+
+                            Anchor.CentreLeft,
+                            Anchor.Centre,
+                            Anchor.CentreRight,
+
+                            Anchor.BottomLeft,
+                            Anchor.BottomCentre,
+                            Anchor.BottomRight,
+                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
                         SelectedIndex = 0,
                     },
                     new SpriteText { Text = @"Child origin" },
                     originDropdown = new AnchorDropDown
                     {
                         RelativeSizeAxes = Axes.X,
-                        Items = null,
+                        Items = new[]
+                        {
+                            Anchor.TopLeft,
+                            Anchor.TopCentre,
+                            Anchor.TopRight,
+
+                            Anchor.CentreLeft,
+                            Anchor.Centre,
+                            Anchor.CentreRight,
+
+                            Anchor.BottomLeft,
+                            Anchor.BottomCentre,
+                            Anchor.BottomRight,
+                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
                         SelectedIndex = 0,
                     },
                 }
@@ -308,23 +335,7 @@ namespace osu.Framework.VisualTests.Tests
                 return new TestCaseDropDownHeader();
             }
 
-            protected override IEnumerable<DropDownMenuItem<Anchor>> GetDropDownItems(IEnumerable<KeyValuePair<string, Anchor>> values)
-            {
-                return new[]
-                {
-                    Anchor.TopLeft,
-                    Anchor.TopCentre,
-                    Anchor.TopRight,
-
-                    Anchor.CentreLeft,
-                    Anchor.Centre,
-                    Anchor.CentreRight,
-
-                    Anchor.BottomLeft,
-                    Anchor.BottomCentre,
-                    Anchor.BottomRight,
-                }.Select(ftc => new AnchorDropdownMenuItem(ftc));
-            }
+            protected override DropDownMenuItem<Anchor> CreateDropDownItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
         }
 
         private class AnchorDropdownMenuItem : DropDownMenuItem<Anchor>
@@ -348,10 +359,7 @@ namespace osu.Framework.VisualTests.Tests
                 return new TestCaseDropDownHeader();
             }
 
-            protected override IEnumerable<DropDownMenuItem<FlowTestCase>> GetDropDownItems(IEnumerable<KeyValuePair<string, FlowTestCase>> values)
-            {
-                return Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>().Select(ftc => new FillDirectionDropdownMenuItem(ftc));
-            }
+            protected override DropDownMenuItem<FlowTestCase> CreateDropDownItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
         }
 
         private class FillDirectionDropdownMenuItem : DropDownMenuItem<FlowTestCase>
