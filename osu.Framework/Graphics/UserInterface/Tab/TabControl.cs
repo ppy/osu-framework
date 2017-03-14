@@ -12,16 +12,17 @@ namespace osu.Framework.Graphics.UserInterface.Tab
     public abstract class TabControl<T> : Container
     {
         private int orderCounter;
-        private Dictionary<T, TabItem<T>> tabMap;
+        private readonly Dictionary<T, TabItem<T>> tabMap;
         private TabDropDownMenu<T> dropDown;
         private TabFillFlowContainer<TabItem<T>> tabs;
-        private TabItem<T> selectedTab;
 
-        public T SelectedValue => selectedTab.Value;
-        public IEnumerable<T> Tabs => tabs.Children.Select(tab => tab.Value);
-
+        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
+        protected TabItem<T> SelectedTab;
         protected abstract TabDropDownMenu<T> CreateDropDownMenu();
         protected abstract TabItem<T> CreateTabItem(T value);
+
+        public T SelectedValue => SelectedTab.Value;
+        public IEnumerable<T> Tabs => tabs.Children.Select(tab => tab.Value);
 
         /// <summary>
         /// Occurs when the selected tab changes.
@@ -133,9 +134,9 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                 resortTab(tab);
 
             // Deactivate previously selected tab
-            if (selectedTab != null)
-                selectedTab.Active = false;
-            selectedTab = tab;
+            if (SelectedTab != null)
+                SelectedTab.Active = false;
+            SelectedTab = tab;
             ValueChanged?.Invoke(this, tab.Value);
         }
 
