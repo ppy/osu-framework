@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics
 {
-    public interface IHasDrawableRepresentation<T> where T : Drawable
+    public interface IHasDrawableRepresentation<in T> where T : Drawable
     {
         T CreateDrawable();
     }
