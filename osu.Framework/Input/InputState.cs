@@ -10,5 +10,12 @@ namespace osu.Framework.Input
         public IKeyboardState Keyboard;
         public IMouseState Mouse;
         public InputState Last;
+
+        public InputState Clone() => new InputState
+        {
+            Keyboard = Keyboard,
+            Mouse = Mouse,
+            Last = Last
+        };
     }
 }

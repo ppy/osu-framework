@@ -43,11 +43,7 @@ namespace osu.Framework.Input
             pendingStates.Clear();
 
             foreach (var s in pendingParentStates)
-                pendingStates.Add(new InputState
-                {
-                    Mouse = (s.Mouse.NativeState as MouseState)?.Clone(),
-                    Keyboard = (s.Keyboard as KeyboardState)?.Clone()
-                });
+                pendingStates.Add(new PassThroughInputState(s));
 
             pendingParentStates.Clear();
 
@@ -72,5 +68,17 @@ namespace osu.Framework.Input
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 
         protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => acceptState(state);
+
+        /// <summary>
+        /// An input state which allows for transformations to state which don't affect the source state.
+        /// </summary>
+        public class PassThroughInputState : InputState
+        {
+            public PassThroughInputState(InputState state)
+            {
+                Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
+                Keyboard = (state.Keyboard as KeyboardState)?.Clone();
+            }
+        }
     }
 }

@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Containers
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
             if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                layout.Invalidate();
+                InvalidateLayout();
 
             return base.Invalidate(invalidation, source, shallPropagate);
         }
@@ -87,15 +87,17 @@ namespace osu.Framework.Graphics.Containers
             bool changed = base.UpdateChildrenLife();
 
             if (changed)
-                layout.Invalidate();
+                InvalidateLayout();
 
             return changed;
         }
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
-                layout.Invalidate();
+            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
+            //Invalidation could be further separated into presence changes.
+            if ((invalidation & (Invalidation.SizeInParentSpace | Invalidation.Colour)) > 0)
+                InvalidateLayout();
 
             base.InvalidateFromChild(invalidation);
         }

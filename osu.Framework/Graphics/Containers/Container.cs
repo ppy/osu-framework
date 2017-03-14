@@ -385,6 +385,8 @@ namespace osu.Framework.Graphics.Containers
         {
             if (AutoSizeAxes == Axes.None) return;
 
+            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
+            //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
                 autoSize.Invalidate();
         }

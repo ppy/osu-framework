@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using OpenTK.Input;
 
 namespace osu.Framework.Input
 {
@@ -20,6 +21,8 @@ namespace osu.Framework.Input
         Vector2? PositionMouseDown { get; }
 
         bool HasMainButtonPressed { get; }
+
+        bool IsPressed(MouseButton button);
 
         bool LeftButton { get; }
         bool MiddleButton { get; }
