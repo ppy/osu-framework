@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             if (IsLoaded)
                 tabs.Remove(tab);
 
-            tab.Depth = tab.Pinned ? int.MaxValue : ++orderCounter;
+            tab.Depth = tab.Pinned ? float.MaxValue : ++orderCounter;
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
