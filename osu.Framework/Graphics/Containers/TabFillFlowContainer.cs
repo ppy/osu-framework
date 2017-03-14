@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
 {
     public class TabFillFlowContainer<T> : FillFlowContainer<T> where T : TabItem
     {
-        public Action<T, bool> UpdateChild;
+        public Action<T, bool> TabVisibilityChanged;
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
         private Dictionary<T, bool> previousValues = new Dictionary<T, bool>();
         private void updateChildIfNeeded(T child, bool isVisible) {
             if (!previousValues.ContainsKey(child) || previousValues[child] != isVisible) {
-                UpdateChild?.Invoke(child, isVisible);
+                TabVisibilityChanged?.Invoke(child, isVisible);
                 previousValues[child] = isVisible;
             }
         }

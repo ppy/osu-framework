@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                         Left = offset,
                         Right = dropDown.HeaderWidth
                     },
-                    UpdateChild = updateDropDown,
+                    TabVisibilityChanged = updateDropDown,
                     Children = tabMap.Values
                 },
                 dropDown
