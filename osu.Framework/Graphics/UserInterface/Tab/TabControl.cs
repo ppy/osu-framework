@@ -17,7 +17,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         private TabFillFlowContainer<TabItem<T>> tabs;
         private TabItem<T> selectedTab;
 
-        public IEnumerable<TabItem<T>> Tabs => tabMap.Values;
+        public T SelectedValue => selectedTab.Value;
+        public IEnumerable<T> Tabs => tabs.Children.Select(tab => tab.Value);
 
         protected abstract TabDropDownMenu<T> CreateDropDownMenu();
         protected abstract TabItem<T> CreateTabItem(T value);
@@ -73,36 +74,36 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                 tabs.Children.First().Active = true;
         }
 
-        private void resortTab(TabItem<T> tab)
-        {
-            if (IsLoaded)
-                tabs.Remove(tab);
-
-            tab.Depth = tab.Pinned ? int.MaxValue : ++orderCounter;
-
-            // IsPresent of TabItems is based on Y position.
-            // We reset it here to allow tabs to get a correct initial position.
-            tab.Y = 0;
-
-            if (IsLoaded)
-                tabs.Add(tab);
-        }
-
-        public TabItem<T> AddTab(T value)
+        public void PinTab(T value)
         {
             TabItem<T> tab;
-            if (tabMap.TryGetValue(value, out tab))
-                return tab;
+            if (!tabMap.TryGetValue(value, out tab))
+                return;
+            setTabDepth(tab, int.MaxValue);
+        }
 
-            tab = CreateTabItem(value);
-            tab.PinnedChanged += resortTab;
+        public void UnpinTab(T value)
+        {
+            TabItem<T> tab;
+            if (!tabMap.TryGetValue(value, out tab))
+                return;
+            // Only unpin if pinned
+            if (tab.Depth == int.MaxValue)
+                setTabDepth(tab, ++orderCounter);
+        }
+
+        public void AddTab(T value)
+        {
+            // Do not allow duplicate adding
+            if (tabMap.ContainsKey(value))
+                return;
+
+            var tab = CreateTabItem(value);
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
             dropDown.AddDropDownItem(value.ToString(), value);
             tabs.Add(tab);
-
-            return tab;
         }
 
         // Manages the visibility of dropdownitem based on visible tabs
@@ -125,17 +126,31 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             }
         }
 
+        // Select a tab by reference
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && !tab.Pinned)
-                resortTab(tab);
+            if (AutoSort && !tab.IsPresent && tab.Depth != int.MaxValue)
+                setTabDepth(tab, ++orderCounter);
 
             // Deactivate previously selected tab
             if (selectedTab != null)
                 selectedTab.Active = false;
             selectedTab = tab;
             ValueChanged?.Invoke(this, tab.Value);
+        }
+
+        private void setTabDepth(TabItem<T> tab, float depth) {
+            if (IsLoaded)
+                tabs.Remove(tab);
+
+            // IsPresent of TabItems is based on Y position.
+            // We reset it here to allow tabs to get a correct initial position.
+            tab.Y = 0;
+            tab.Depth = depth;
+
+            if (IsLoaded)
+                tabs.Add(tab);
         }
     }
 }

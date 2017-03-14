@@ -1,9 +1,13 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -21,14 +25,16 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
+            List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
+            foreach (var val in (TestEnum[])Enum.GetValues(typeof(TestEnum)))
+                items.Add(new KeyValuePair<string, TestEnum>(val.GetDescription(), val));
+
             StyledTabControl simpleTabcontrol = new StyledTabControl
             {
                 Position = new Vector2(200, 50),
                 Width = 200,
             };
-            int i = 0;
-            while (i < 10)
-                simpleTabcontrol.AddTab(@"test " + i++);
+            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddTab(item.Value));
 
             StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
@@ -36,36 +42,43 @@ namespace osu.Framework.VisualTests.Tests
                 Width = 200,
                 AutoSort = true
             };
-
-            i = 0;
-            while (i < 10)
-                pinnedAndAutoSort.AddTab(@"test " + i++);
-            pinnedAndAutoSort.Tabs.Skip(6).First().Pinned = true;
+            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddTab(item.Value));
+            pinnedAndAutoSort.PinTab(TestEnum.Test5);
 
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddTab(@"test " + i++));
-            AddButton("PinItem", () => pinnedAndAutoSort.AddTab(@"test " + i++).Pinned =true);
+            var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
+                                                         .Select(item => item.Value)
+                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Tabs.Contains(test)));
+
+            AddButton("AddItem", () => pinnedAndAutoSort.AddTab(nextTest.Invoke()));
+            AddButton("PinItem", () =>
+            {
+                var test = nextTest.Invoke();
+                pinnedAndAutoSort.AddTab(test);
+                pinnedAndAutoSort.PinTab(test);
+            });
+            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinTab(pinnedAndAutoSort.Tabs.First()));
         }
 
-        private class StyledTabControl : TabControl<string>
+        private class StyledTabControl : TabControl<TestEnum>
         {
-            protected override TabDropDownMenu<string> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override TabDropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
 
-            protected override TabItem<string> CreateTabItem(string value) => new StyledTabItem { Value = value };
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
 
-        private class StyledTabItem : TabItem<string>
+        private class StyledTabItem : TabItem<TestEnum>
         {
             private SpriteText text;
-            public new string Value
+            public new TestEnum Value
             {
                 get { return base.Value; }
                 set
                 {
                     base.Value = value;
-                    text.Text = value;
+                    text.Text = value.ToString();
                 }
             }
 
@@ -106,14 +119,14 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : TabDropDownMenu<string>
+        private class StyledDropDownMenu : TabDropDownMenu<TestEnum>
         {
             public override float HeaderWidth => 20;
             public override float HeaderHeight => 20;
 
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
-            protected override DropDownMenuItem<string> CreateDropDownItem(string key, string value) => new StyledDropDownMenuItem(key);
+            protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
 
             public StyledDropDownMenu()
             {
@@ -146,9 +159,9 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenuItem : DropDownMenuItem<string>
+        private class StyledDropDownMenuItem : DropDownMenuItem<TestEnum>
         {
-            public StyledDropDownMenuItem(string text) : base(text, text)
+            public StyledDropDownMenuItem(string text, TestEnum value) : base(text, value)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -159,5 +172,7 @@ namespace osu.Framework.VisualTests.Tests
                 };
             }
         }
+
+        private enum TestEnum { Test0, Test1, Test2, Test3, Test4, Test5, Test6, Test7, Test8, Test9, Test10, Test11, Test12 }
     }
 }
