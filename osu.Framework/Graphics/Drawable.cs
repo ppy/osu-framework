@@ -1649,6 +1649,8 @@ namespace osu.Framework.Graphics
             public bool RightButton => NativeState.RightButton;
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;
+
+            public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
         }
 
         #endregion
