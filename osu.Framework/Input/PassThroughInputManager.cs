@@ -74,7 +74,7 @@ namespace osu.Framework.Input
         /// </summary>
         public class PassThroughInputState : InputState
         {
-            public PassThroughInputState(InputState state) : base(state)
+            public PassThroughInputState(InputState state)
             {
                 Mouse = (state.Mouse.NativeState as MouseState)?.Clone();
                 Keyboard = (state.Keyboard as KeyboardState)?.Clone();
