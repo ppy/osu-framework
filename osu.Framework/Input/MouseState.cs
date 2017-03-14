@@ -53,5 +53,7 @@ namespace osu.Framework.Input
             clone.LastState = null;
             return clone;
         }
+
+        public bool IsPressed(MouseButton button) => PressedButtons.Contains(button);
     }
 }
