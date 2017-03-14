@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
     {
         internal Action<TabItem<T>> SelectAction;
 
+        public override bool IsPresent => base.IsPresent && Y == 0;
+
         public T Value { get; set; }
 
         private bool active;

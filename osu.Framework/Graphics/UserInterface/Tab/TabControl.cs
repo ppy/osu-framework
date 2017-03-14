@@ -79,6 +79,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             if (IsLoaded)
             {
                 tabs.Remove(tab);
+                tab.Y = 0; // Allows FlowContainer to position properly
                 tab.Depth = int.MaxValue;
                 tabs.Add(tab);
             }
@@ -100,18 +101,19 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         }
 
         // Manages the visibility of dropdownitem based on visible tabs
-        private void updateDropDown(TabItem<T> tab, bool isVisible) {
-            if (isVisible) {
+        private void updateDropDown(TabItem<T> tab, bool isVisible)
+        {
+            if (isVisible)
                 dropDown.HideItem(tab.Value);
-            } else {
+            else
                 dropDown.ShowItem(tab.Value);
-            }
         }
 
         private void dropDownValueChanged(object sender, EventArgs eventArgs)
         {
             var dropDownMenu = sender as DropDownMenu<T>;
-            if (dropDownMenu != null) {
+            if (dropDownMenu != null)
+            {
                 TabItem<T> tab;
                 if (tabMap.TryGetValue(dropDownMenu.SelectedValue, out tab))
                     tab.Active = true;
@@ -121,10 +123,11 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         // Select a tab by reference
         private void selectTab(TabItem<T> tab)
         {
-            // Only reorder if not pinned
-            if (AutoSort && tab.Depth != int.MaxValue)
+            // Only reorder if not pinned and not showing
+            if (AutoSort && !tab.IsPresent && tab.Depth != int.MaxValue)
             {
                 tabs.Remove(tab);
+                tab.Y = 0; // Allows FlowContainer to position properly
                 tab.Depth = ++orderCounter;
                 tabs.Add(tab);
             }
