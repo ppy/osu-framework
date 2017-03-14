@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -40,13 +41,13 @@ namespace osu.Framework.VisualTests.Tests
             i = 0;
             while (i < 10)
                 pinnedAndAutoSort.AddTab(@"test " + i++);
-            pinnedAndAutoSort.PinTab("test 7");
+            pinnedAndAutoSort.Tabs.Skip(6).First().Pinned = true;
 
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
 
             AddButton("AddItem", () => pinnedAndAutoSort.AddTab(@"test " + i++));
-            AddButton("PinItem", () => pinnedAndAutoSort.PinTab(@"test " + new Random().Next(i)));
+            AddButton("PinItem", () => pinnedAndAutoSort.AddTab(@"test " + i++).Pinned =true);
         }
 
         private class StyledTabControl : TabControl<string>

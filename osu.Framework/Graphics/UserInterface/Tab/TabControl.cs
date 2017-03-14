@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         private TabFillFlowContainer<TabItem<T>> tabs;
         private TabItem<T> selectedTab;
 
+        public IEnumerable<TabItem<T>> Tabs => tabMap.Values;
+
         protected abstract TabDropDownMenu<T> CreateDropDownMenu();
         protected abstract TabItem<T> CreateTabItem(T value);
 
@@ -80,24 +82,27 @@ namespace osu.Framework.Graphics.UserInterface.Tab
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
-            tab.Y = 0; 
+            tab.Y = 0;
 
             if (IsLoaded)
                 tabs.Add(tab);
         }
 
-        public void AddTab(T value)
+        public TabItem<T> AddTab(T value)
         {
-            var tab = CreateTabItem(value);
+            TabItem<T> tab;
+            if (tabMap.TryGetValue(value, out tab))
+                return tab;
+
+            tab = CreateTabItem(value);
             tab.PinnedChanged += resortTab;
             tab.SelectAction += selectTab;
 
-            if (!tabMap.ContainsKey(value))
-            {
-                tabMap[value] = tab;
-                dropDown.AddDropDownItem(value.ToString(), value);
-                tabs.Add(tab);
-            }
+            tabMap[value] = tab;
+            dropDown.AddDropDownItem(value.ToString(), value);
+            tabs.Add(tab);
+
+            return tab;
         }
 
         // Manages the visibility of dropdownitem based on visible tabs
