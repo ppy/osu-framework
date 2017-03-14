@@ -10,5 +10,30 @@ namespace osu.Framework.Input
         public IKeyboardState Keyboard;
         public IMouseState Mouse;
         public InputState Last;
+
+        /// <summary>
+        /// Sometimes InputStates may be modified/transformed in game code.
+        /// This will return the original untransformed state.
+        /// </summary>
+        public readonly InputState OriginalState;
+
+        public InputState() : this(null)
+        {
+        }
+
+        protected InputState(InputState original = null)
+        {
+            OriginalState = original ?? this;
+        }
+
+        public InputState Clone()
+        {
+            return new InputState(OriginalState)
+            {
+                Keyboard = Keyboard,
+                Mouse = Mouse,
+                Last = Last
+            };
+        }
     }
 }

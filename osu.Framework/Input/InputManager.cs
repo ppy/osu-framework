@@ -126,12 +126,8 @@ namespace osu.Framework.Input
                 //avoid lingering references that would stay forever.
                 last.Last = null;
 
-                CurrentState = new InputState
-                {
-                    Last = last,
-                    Keyboard = s.Keyboard,
-                    Mouse = s.Mouse,
-                };
+                CurrentState = s;
+                CurrentState.Last = last;
 
                 if (CurrentState.Keyboard == null) CurrentState.Keyboard = last.Keyboard ?? new KeyboardState();
                 if (CurrentState.Mouse == null) CurrentState.Mouse = last.Mouse ?? new MouseState();
@@ -402,6 +398,8 @@ namespace osu.Framework.Input
 
         private bool handleMouseUp(InputState state, MouseButton button)
         {
+            if (mouseDownInputQueue == null) return false;
+
             MouseUpEventArgs args = new MouseUpEventArgs
             {
                 Button = button
