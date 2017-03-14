@@ -325,39 +325,44 @@ namespace osu.Framework.Input
                     handleMouseDrag(state);
             }
 
-            foreach (MouseState.ButtonState b in mouse.ButtonStates)
+            foreach (MouseButton b in last.PressedButtons)
             {
-                if (b.State != last.ButtonStates.Find(c => c.Button == b.Button).State)
-                {
-                    if (b.State)
-                        handleMouseDown(state, b.Button);
-                    else
-                        handleMouseUp(state, b.Button);
-                }
+                if (!mouse.PressedButtons.Contains(b))
+                    handleMouseUp(state, b);
+            }
+
+            foreach (MouseButton b in mouse.PressedButtons)
+            {
+                if (!last.PressedButtons.Contains(b))
+                    handleMouseDown(state, b);
             }
 
             if (mouse.WheelDelta != 0)
                 handleWheel(state);
 
-            if (mouse.HasMainButtonPressed)
+            if (mouse.HasAnyButtonPressed)
             {
-                if (last.HasMainButtonPressed != true)
+                if (!last.HasAnyButtonPressed)
                 {
                     //stuff which only happens once after the mousedown state
                     mouse.PositionMouseDown = state.Mouse.Position;
                     LastActionTime = Time.Current;
-                    isValidClick = true;
 
-                    if (Time.Current - lastClickTime < double_click_time)
+                    if (mouse.LeftButton)
                     {
-                        if (handleMouseDoubleClick(state))
-                            //when we handle a double-click we want to block a normal click from firing.
-                            isValidClick = false;
+                        isValidClick = true;
 
-                        lastClickTime = 0;
+                        if (Time.Current - lastClickTime < double_click_time)
+                        {
+                            if (handleMouseDoubleClick(state))
+                                //when we handle a double-click we want to block a normal click from firing.
+                                isValidClick = false;
+
+                            lastClickTime = 0;
+                        }
+
+                        lastClickTime = Time.Current;
                     }
-
-                    lastClickTime = Time.Current;
                 }
 
                 if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
@@ -366,13 +371,14 @@ namespace osu.Framework.Input
                     handleMouseDragStart(state);
                 }
             }
-            else if (last.HasMainButtonPressed)
+            else if (last.HasAnyButtonPressed)
             {
                 if (isValidClick && (draggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
+                isValidClick = false;
 
                 if (isDragging)
                 {

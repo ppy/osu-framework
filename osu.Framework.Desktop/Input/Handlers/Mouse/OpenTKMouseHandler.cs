@@ -65,33 +65,23 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             {
                 WasActive = active;
 
-                if (active)
+                if (active && tkState.IsAnyButtonDown)
                 {
-                    foreach (var b in ButtonStates)
-                    {
-                        switch (b.Button)
-                        {
-                            case MouseButton.Left:
-                                b.State |= tkState.LeftButton == OpenTK.Input.ButtonState.Pressed;
-                                break;
-                            case MouseButton.Middle:
-                                b.State |= tkState.MiddleButton == OpenTK.Input.ButtonState.Pressed;
-                                break;
-                            case MouseButton.Right:
-                                b.State |= tkState.RightButton == OpenTK.Input.ButtonState.Pressed;
-                                break;
-                            case MouseButton.Button1:
-                                b.State |= tkState.XButton1 == OpenTK.Input.ButtonState.Pressed;
-                                break;
-                            case MouseButton.Button2:
-                                b.State |= tkState.XButton2 == OpenTK.Input.ButtonState.Pressed;
-                                break;
-                        }
-                    }
+                    addIfPressed(tkState.LeftButton, MouseButton.Left);
+                    addIfPressed(tkState.MiddleButton, MouseButton.Middle);
+                    addIfPressed(tkState.RightButton, MouseButton.Right);
+                    addIfPressed(tkState.XButton1, MouseButton.Button1);
+                    addIfPressed(tkState.XButton2, MouseButton.Button2);
                 }
 
                 Wheel = tkState.Wheel;
                 Position = position;
+            }
+
+            private void addIfPressed(ButtonState tkState, MouseButton button)
+            {
+                if (tkState == ButtonState.Pressed)
+                    PressedButtons.Add(button);
             }
         }
     }
