@@ -15,9 +15,25 @@ namespace osu.Framework.Graphics.UserInterface.Tab
     {
         internal Action<TabItem<T>> SelectAction;
 
+        internal Action<TabItem<T>> PinnedChanged;
+
         public override bool IsPresent => base.IsPresent && Y == 0;
 
         public T Value { get; set; }
+
+        private bool pinned;
+
+        public bool Pinned
+        {
+            get { return pinned; }
+            set
+            {
+                if (pinned == value) return;
+
+                pinned = value;
+                PinnedChanged?.Invoke(this);
+            }
+        }
 
         private bool active;
         public virtual bool Active

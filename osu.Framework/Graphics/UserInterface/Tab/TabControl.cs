@@ -71,25 +71,25 @@ namespace osu.Framework.Graphics.UserInterface.Tab
                 tabs.Children.First().Active = true;
         }
 
-        public void PinTab(T value)
+        private void resortTab(TabItem<T> tab)
         {
-            TabItem<T> tab;
-            if (!tabMap.TryGetValue(value, out tab))
-                return;
             if (IsLoaded)
-            {
                 tabs.Remove(tab);
-                tab.Y = 0; // Allows FlowContainer to position properly
-                tab.Depth = int.MaxValue;
+
+            tab.Depth = tab.Pinned ? int.MaxValue : ++orderCounter;
+
+            // IsPresent of TabItems is based on Y position.
+            // We reset it here to allow tabs to get a correct initial position.
+            tab.Y = 0; 
+
+            if (IsLoaded)
                 tabs.Add(tab);
-            }
-            else
-                tab.Depth = int.MaxValue;
         }
 
         public void AddTab(T value)
         {
             var tab = CreateTabItem(value);
+            tab.PinnedChanged += resortTab;
             tab.SelectAction += selectTab;
 
             if (!tabMap.ContainsKey(value))
@@ -120,17 +120,11 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             }
         }
 
-        // Select a tab by reference
         private void selectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
-            if (AutoSort && !tab.IsPresent && tab.Depth != int.MaxValue)
-            {
-                tabs.Remove(tab);
-                tab.Y = 0; // Allows FlowContainer to position properly
-                tab.Depth = ++orderCounter;
-                tabs.Add(tab);
-            }
+            if (AutoSort && !tab.IsPresent && !tab.Pinned)
+                resortTab(tab);
 
             // Deactivate previously selected tab
             if (selectedTab != null)
