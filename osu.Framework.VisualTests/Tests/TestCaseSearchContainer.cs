@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Screens.Testing;
@@ -14,7 +13,7 @@ using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    class TestCaseSearchContainer : TestCase
+    internal class TestCaseSearchContainer : TestCase
     {
         public override string Description => "Tests the SearchContainer";
 
@@ -23,27 +22,28 @@ namespace osu.Framework.VisualTests.Tests
         public override void Reset()
         {
             base.Reset();
-            List<SearchableText> searchable = new List<SearchableText>();
-            searchable.Add(new SearchableText
-            {
-                Text = "test",
-            });
-            searchable.Add(new SearchableText
-            {
-                Text = "TEST",
-            });
-            searchable.Add(new SearchableText
-            {
-                Text = "123",
-            });
-            searchable.Add(new SearchableText
-            {
-                Text = "444",
-            });
-            searchable.Add(new SearchableText
-            {
-                Text = "öüäéèêáàâ",
-            });
+            var searchable = new[] {
+                new SearchableText
+                {
+                    Text = "test",
+                },
+                new SearchableText
+                {
+                    Text = "TEST",
+                },
+                new SearchableText
+                {
+                    Text = "123",
+                },
+                new SearchableText
+                {
+                    Text = "444",
+                },
+                new SearchableText
+                {
+                    Text = "öüäéèêáàâ",
+                }
+            };
             Add(new TextBox
             {
                 Size = new Vector2(300,40),
