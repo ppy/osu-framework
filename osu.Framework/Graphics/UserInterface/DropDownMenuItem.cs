@@ -109,6 +109,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (!IsLoaded)
                 return;
             FormatBackground();
+            FormatForeground();
         }
 
         protected virtual void FormatBackground(bool hover = false)
