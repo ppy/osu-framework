@@ -54,6 +54,7 @@
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
+    <Compile Include="Tests\TestCaseSearchContainer.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
     <Compile Include="Tests\TestCaseDropDownBox.cs" />

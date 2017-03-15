@@ -111,6 +111,8 @@
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
+    <Compile Include="Graphics\Containers\ISearchable.cs" />
+    <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\Containers\TabFillFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\Tab\TabControl.cs" />
