@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class DropDownHeader : ClickableContainer
     {
-        protected Box Background;
+        protected Container Background;
         protected Container Foreground;
 
         private Color4 backgroundColour = Color4.DarkGray;
@@ -37,10 +37,20 @@ namespace osu.Framework.Graphics.UserInterface
             Width = 1;
             InternalChildren = new Drawable[]
             {
-                Background = new Box
+                Background = new Container
                 {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.DarkGray,
+                    Children = new[]
+                    {
+                        new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.White,
+                        },
+                    },
                 },
                 Foreground = new Container
                 {

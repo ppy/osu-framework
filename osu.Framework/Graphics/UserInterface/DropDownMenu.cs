@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
         // TODO: RemoveDropDownItem?
 
-        protected DropDownHeader Header;
+        public DropDownHeader Header;
 
         protected Container ContentContainer;
         protected ScrollContainer ScrollContainer;
