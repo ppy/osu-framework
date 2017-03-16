@@ -33,7 +33,7 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(200, 50),
                 Size = new Vector2(200, 30),
             };
-            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddTab(item.Value));
+            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
 
             StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
@@ -41,24 +41,24 @@ namespace osu.Framework.VisualTests.Tests
                 Size = new Vector2(200, 30),
                 AutoSort = true
             };
-            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddTab(item.Value));
-            pinnedAndAutoSort.PinTab(TestEnum.Test5);
+            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
+            pinnedAndAutoSort.PinItem(TestEnum.Test5);
 
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
-                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Tabs.Contains(test)));
+                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddTab(nextTest.Invoke()));
+            AddButton("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
             AddButton("PinItem", () =>
             {
                 var test = nextTest.Invoke();
-                pinnedAndAutoSort.AddTab(test);
-                pinnedAndAutoSort.PinTab(test);
+                pinnedAndAutoSort.AddItem(test);
+                pinnedAndAutoSort.PinItem(test);
             });
-            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinTab(pinnedAndAutoSort.Tabs.First()));
+            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
         }
 
         private class StyledTabControl : TabControl<TestEnum>
