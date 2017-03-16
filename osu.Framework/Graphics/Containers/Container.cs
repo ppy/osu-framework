@@ -248,6 +248,8 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
+            pendingChildren?.Clear();
+
             foreach (T t in internalChildren)
             {
                 if (disposeChildren)
