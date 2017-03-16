@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             DropDown.ValueChanged += dropDownValueChanged;
 
             // Create Map of all items
-            tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value,false));
+            tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
 
             Children = new Drawable[]
             {
@@ -107,7 +107,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
-            DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
+            if (addToDropdown)
+                DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
             TabContainer.Add(tab);
 
             return tab;
