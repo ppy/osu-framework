@@ -13,8 +13,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
     {
         private int orderCounter;
         private readonly Dictionary<T, TabItem<T>> tabMap;
-        private TabDropDownMenu<T> dropDown;
-        private TabFillFlowContainer<TabItem<T>> tabs;
+        protected TabDropDownMenu<T> DropDown;
+        protected TabFillFlowContainer<TabItem<T>> TabContainer;
 
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
         protected TabItem<T> SelectedTab;
@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         protected abstract TabItem<T> CreateTabItem(T value);
 
         public T SelectedValue => SelectedTab.Value;
-        public IEnumerable<T> Tabs => tabs.Children.Select(tab => tab.Value);
+        public IEnumerable<T> Tabs => TabContainer.Children.Select(tab => tab.Value);
 
         /// <summary>
         /// Occurs when the selected tab changes.
@@ -37,11 +37,11 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         protected TabControl(float offset = 0)
         {
             AutoSizeAxes = Axes.Y;
-            dropDown = CreateDropDownMenu();
-            dropDown.ValueChanged += dropDownValueChanged;
+            DropDown = CreateDropDownMenu();
+            DropDown.ValueChanged += dropDownValueChanged;
 
             // Create Map of all items
-            tabMap = dropDown.Items.ToDictionary(item => item.Value, item =>
+            tabMap = DropDown.Items.ToDictionary(item => item.Value, item =>
             {
                 var tab = CreateTabItem(item.Value);
                 tab.PinnedChanged += resortTab;
@@ -51,29 +51,29 @@ namespace osu.Framework.Graphics.UserInterface.Tab
 
             Children = new Drawable[]
             {
-                tabs = new TabFillFlowContainer<TabItem<T>>
+                TabContainer = new TabFillFlowContainer<TabItem<T>>
                 {
                     Direction = FillDirection.Full,
                     RelativeSizeAxes = Axes.X,
-                    Height = dropDown.HeaderHeight,
+                    Height = DropDown.HeaderHeight,
                     Masking = true,
                     Padding = new MarginPadding
                     {
                         Left = offset,
-                        Right = dropDown.HeaderWidth
+                        Right = DropDown.HeaderWidth
                     },
                     TabVisibilityChanged = updateDropDown,
                     Children = tabMap.Values
                 },
-                dropDown
+                DropDown
             };
         }
 
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (tabs.Children.Any())
-                tabs.Children.First().Active = true;
+            if (TabContainer.Children.Any())
+                TabContainer.Children.First().Active = true;
         }
 
         public void PinTab(T value)
@@ -103,17 +103,17 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
-            dropDown.AddDropDownItem(value.ToString(), value);
-            tabs.Add(tab);
+            DropDown.AddDropDownItem(value.ToString(), value);
+            TabContainer.Add(tab);
         }
 
         // Manages the visibility of dropdownitem based on visible tabs
         private void updateDropDown(TabItem<T> tab, bool isVisible)
         {
             if (isVisible)
-                dropDown.HideItem(tab.Value);
+                DropDown.HideItem(tab.Value);
             else
-                dropDown.ShowItem(tab.Value);
+                DropDown.ShowItem(tab.Value);
         }
 
         private void dropDownValueChanged(object sender, EventArgs eventArgs)
@@ -143,7 +143,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         private void resortTab(TabItem<T> tab)
         {
             if (IsLoaded)
-                tabs.Remove(tab);
+                TabContainer.Remove(tab);
 
             tab.Depth = tab.Pinned ? float.MaxValue : ++orderCounter;
 
@@ -152,7 +152,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tab.Y = 0;
 
             if (IsLoaded)
-                tabs.Add(tab);
+                TabContainer.Add(tab);
         }
     }
 }
