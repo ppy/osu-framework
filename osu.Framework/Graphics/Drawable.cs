@@ -1588,7 +1588,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && InternalContains(screenSpaceMousePos);
+        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
