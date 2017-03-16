@@ -1,7 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-// TODO: Hide header when no items in dropdown
+using System.Linq;
+
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
     public abstract class TabDropDownMenu<T> : DropDownMenu<T>
@@ -32,6 +33,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             int index;
             if (ItemDictionary.TryGetValue(val, out index))
                 ItemList[index]?.Hide();
+
+            updateAlphaVisibility();
         }
 
         internal void ShowItem(T val)
@@ -39,6 +42,10 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             int index;
             if (ItemDictionary.TryGetValue(val, out index))
                 ItemList[index]?.Show();
+
+            updateAlphaVisibility();
         }
+
+        private void updateAlphaVisibility() => Header.Alpha = ItemList.Any(i => i.IsPresent) ? 1 : 0;
     }
 }
