@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Input;
-
 // TODO: Hide header when no items in dropdown
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
@@ -42,8 +40,5 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             if (ItemDictionary.TryGetValue(val, out index))
                 ItemList[index]?.Show();
         }
-
-        // Don't give focus or it will cover tabs
-        protected override bool OnFocus(InputState state) => false;
     }
 }
