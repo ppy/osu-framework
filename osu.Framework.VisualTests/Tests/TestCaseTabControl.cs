@@ -146,12 +146,18 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownHeader : TabDropDownHeader
+        private class StyledDropDownHeader : DropDownHeader
         {
             protected override string Label { get; set; }
 
             public StyledDropDownHeader()
             {
+                Background.Hide(); // don't need a background
+                RelativeSizeAxes = Axes.None;
+                AutoSizeAxes = Axes.Both;
+                Foreground.RelativeSizeAxes = Axes.None;
+                Foreground.AutoSizeAxes = Axes.Both;
+
                 Foreground.Children = new[]
                 {
                     new Box { Width = 20, Height = 20 }
