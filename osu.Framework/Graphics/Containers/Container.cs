@@ -615,8 +615,16 @@ namespace osu.Framework.Graphics.Containers
         // TODO: Evaluate effects of this on performance and address.
         public override bool HandleInput => true;
 
+        /// <summary>
+        /// Sometimes we want to allow input outside of our <see cref="Drawable.DrawRectangle"/> to still receive input (ie. a drop-down menu).
+        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
+        /// </summary>
+        public bool BypassContainsCheck;
+
         public override bool Contains(Vector2 screenSpacePos)
         {
+            if (BypassContainsCheck) return true;
+
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
