@@ -30,8 +30,6 @@ namespace osu.Framework
 
         public TextureStore Textures;
 
-        public override bool Contains(Vector2 screenSpacePos) => true;
-
         /// <summary>
         /// This should point to the main resource dll file. If not specified, it will use resources embedded in your executable.
         /// </summary>
@@ -59,6 +57,7 @@ namespace osu.Framework
 
         protected Game()
         {
+            AlwaysReceiveInput = true;
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]

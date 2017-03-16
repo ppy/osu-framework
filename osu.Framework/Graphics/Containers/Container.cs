@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
-        public bool Contains(T drawable)
+        public bool InternalContains(T drawable)
         {
             return IndexOf(drawable) >= 0;
         }
@@ -615,21 +615,13 @@ namespace osu.Framework.Graphics.Containers
         // TODO: Evaluate effects of this on performance and address.
         public override bool HandleInput => true;
 
-        /// <summary>
-        /// Sometimes we want to allow input outside of our <see cref="Drawable.DrawRectangle"/> to still receive input (ie. a drop-down menu).
-        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
-        /// </summary>
-        public bool BypassContainsCheck;
-
-        public override bool Contains(Vector2 screenSpacePos)
+        protected override bool InternalContains(Vector2 screenSpacePos)
         {
-            if (BypassContainsCheck) return true;
-
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cRadius == 0.0f)
-                return base.Contains(screenSpacePos);
+                return base.InternalContains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
