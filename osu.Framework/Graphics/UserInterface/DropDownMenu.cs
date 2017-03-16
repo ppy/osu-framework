@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
         // TODO: RemoveDropDownItem?
 
-        protected DropDownHeader Header;
+        protected internal DropDownHeader Header;
 
         protected Container ContentContainer;
         protected ScrollContainer ScrollContainer;
@@ -291,6 +291,26 @@ namespace osu.Framework.Graphics.UserInterface
             itemDictionary.Clear();
             DropDownItemsContainer.Clear();
         }
+
+        internal void HideItem(T val)
+        {
+            int index;
+            if (ItemDictionary.TryGetValue(val, out index))
+                ItemList[index]?.Hide();
+
+            updateHeaderVisibility();
+        }
+
+        internal void ShowItem(T val)
+        {
+            int index;
+            if (ItemDictionary.TryGetValue(val, out index))
+                ItemList[index]?.Show();
+
+            updateHeaderVisibility();
+        }
+
+        private void updateHeaderVisibility() => Header.Alpha = ItemList.Any(i => i.IsPresent) ? 1 : 0;
 
         private void initializeDropDownList()
         {

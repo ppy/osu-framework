@@ -1957,7 +1957,7 @@ namespace osu.Framework.Graphics
             TransformVectorTo(Position, newPosition, duration, easing, new TransformPosition());
         }
 
-        public void MoveToOffset(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
             MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
@@ -1967,7 +1967,7 @@ namespace osu.Framework.Graphics
 
         #region Color4-based helpers
 
-        public void FadeColour(SRGBColour newColour, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void FadeColour(SRGBColour newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformColour));
 
@@ -1994,7 +1994,7 @@ namespace osu.Framework.Graphics
             });
         }
 
-        public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
+        public void FlashColour(SRGBColour flashColour, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay != 0)
                 throw new NotImplementedException("FlashColour doesn't support Delay() currently");

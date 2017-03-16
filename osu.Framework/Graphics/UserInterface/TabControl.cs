@@ -3,24 +3,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Extensions;
-using OpenTK;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using OpenTK;
 
-namespace osu.Framework.Graphics.UserInterface.Tab
+namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TabControl<T> : Container
     {
         private int orderCounter;
         private readonly Dictionary<T, TabItem<T>> tabMap;
-        protected TabDropDownMenu<T> DropDown;
+        protected DropDownMenu<T> DropDown;
         protected TabFillFlowContainer<TabItem<T>> TabContainer;
 
         protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
         protected TabItem<T> SelectedTab;
-        protected abstract TabDropDownMenu<T> CreateDropDownMenu();
+        protected abstract DropDownMenu<T> CreateDropDownMenu();
         protected abstract TabItem<T> CreateTabItem(T value);
 
         public T SelectedValue => SelectedTab.Value;
@@ -41,7 +42,13 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         protected TabControl()
         {
             DropDown = CreateDropDownMenu();
+            DropDown.RelativeSizeAxes = Axes.X;
+            DropDown.Anchor = Anchor.TopRight;
+            DropDown.Origin = Anchor.TopRight;
             DropDown.ValueChanged += dropDownValueChanged;
+
+            Trace.Assert((DropDown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(DropDown)} implementation should use a right-based anchor inside a TabControl.");
+            Trace.Assert((DropDown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(DropDown)} implementation's header should have a specific size.");
 
             // Create Map of all items
             tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
@@ -64,10 +71,10 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         {
             base.Update();
 
-            DropDown.HeaderHeight = DrawHeight;
+            DropDown.Header.Height = DrawHeight;
             TabContainer.Padding = new MarginPadding
             {
-                Right = DropDown.HeaderWidth
+                Right = DropDown.Header.Width
             };
         }
 
