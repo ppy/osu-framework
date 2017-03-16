@@ -64,10 +64,10 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         {
             base.Update();
 
-            DropDown.Header.Height = DrawHeight;
+            DropDown.HeaderHeight = DrawHeight;
             TabContainer.Padding = new MarginPadding
             {
-                Right = DropDown.Header.DrawWidth
+                Right = DropDown.HeaderWidth
             };
         }
 

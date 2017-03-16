@@ -17,6 +17,18 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             ContentContainer.Origin = Anchor.TopRight;
         }
 
+        public float HeaderHeight
+        {
+            get { return Header.DrawHeight; }
+            set { Header.Height = value; }
+        }
+
+        public float HeaderWidth
+        {
+            get { return Header.DrawWidth; }
+            set { Header.Width = value; }
+        }
+
         internal void HideItem(T val)
         {
             int index;
