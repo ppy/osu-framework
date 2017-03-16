@@ -1556,12 +1556,27 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
+        /// Receive input even if the cursor is not contained within our <see cref="Drawable.DrawRectangle"/>.
+        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
+        /// Note that this only applied from the current container onwards (ie. if a parent is masking us we will still not receive input).
+        /// </summary>
+        public bool AlwaysReceiveInput;
+
+        /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
         /// Mouse input events are only received when this function is true, or when the drawable
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+        public bool Contains(Vector2 screenSpacePos) => AlwaysReceiveInput || InternalContains(screenSpacePos);
+
+        /// <summary>
+        /// Computes whether a given screen-space position is contained within this drawable.
+        /// Mouse input events are only received when this function is true, or when the drawable
+        /// is in focus.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
+        protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
         /// Whether this Drawable can receive, taking into account all optimizations and masking.
