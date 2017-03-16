@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 
@@ -103,7 +104,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
-            DropDown.AddDropDownItem(value.ToString(), value);
+            DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
             TabContainer.Add(tab);
         }
 

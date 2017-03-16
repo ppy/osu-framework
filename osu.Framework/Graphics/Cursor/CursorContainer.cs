@@ -13,10 +13,9 @@ namespace osu.Framework.Graphics.Cursor
     {
         protected Drawable ActiveCursor;
 
-        public override bool Contains(Vector2 screenSpacePos) => true;
-
         public CursorContainer()
         {
+            AlwaysReceiveInput = true;
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
