@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         public T SelectedValue => SelectedTab.Value;
         public IEnumerable<T> Tabs => TabContainer.Children.Select(tab => tab.Value);
 
-        public override bool Contains(Vector2 screenSpacePos) => base.Contains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
 
         /// <summary>
         /// Occurs when the selected tab changes.
