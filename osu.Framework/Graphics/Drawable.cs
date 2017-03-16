@@ -1578,8 +1578,6 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
         protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
-        
-
         /// <summary>
         /// Whether this Drawable can receive, taking into account all optimizations and masking.
         /// </summary>
