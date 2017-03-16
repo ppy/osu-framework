@@ -1792,7 +1792,7 @@ namespace osu.Framework.Graphics
             FadeTo(1, duration, easing);
         }
 
-        public void FadeInFromZero(double duration)
+        public void FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay == 0)
             {
@@ -1808,6 +1808,7 @@ namespace osu.Framework.Graphics
                 EndTime = startTime + duration,
                 StartValue = 0,
                 EndValue = 1,
+                Easing = easing,
             });
         }
 
@@ -1816,7 +1817,7 @@ namespace osu.Framework.Graphics
             FadeTo(0, duration, easing);
         }
 
-        public void FadeOutFromOne(double duration)
+        public void FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay == 0)
             {
@@ -1832,6 +1833,7 @@ namespace osu.Framework.Graphics
                 EndTime = startTime + duration,
                 StartValue = 1,
                 EndValue = 0,
+                Easing = easing,
             };
 
             Transforms.Add(tr);
