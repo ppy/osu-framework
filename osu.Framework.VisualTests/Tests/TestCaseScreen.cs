@@ -92,7 +92,7 @@ namespace osu.Framework.VisualTests.Tests
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopLeft,
                         Origin = Anchor.TopLeft,
-                        Colour = Color4.Red,
+                        BackgroundColour = Color4.Red,
                         Alpha = 0,
                         Action = delegate {
                             Exit();
@@ -105,7 +105,7 @@ namespace osu.Framework.VisualTests.Tests
                         Size = new Vector2(0.1f),
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
-                        Colour = Color4.YellowGreen,
+                        BackgroundColour = Color4.YellowGreen,
                         Action = delegate {
                             Push(new TestScreen
                             {
