@@ -12,32 +12,70 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    /// <summary>
+    /// A single-row control to display a list of selectable tabs along with a right-aligned dropdown
+    /// containing overflow items (tabs which cannot be displayed in the allocated width). Includes
+    /// support for pinning items, causing them to be displayed before all other items at the
+    /// start of the list.
+    /// </summary>
+    /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : Container
     {
-        private int orderCounter;
-        private readonly Dictionary<T, TabItem<T>> tabMap;
-        protected DropDownMenu<T> DropDown;
-        protected TabFillFlowContainer<TabItem<T>> TabContainer;
+        /// <summary>
+        /// The currently selected item.
+        /// </summary>
+        public T SelectedItem => SelectedTab.Value;
 
-        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
-        protected TabItem<T> SelectedTab;
-        protected abstract DropDownMenu<T> CreateDropDownMenu();
-        protected abstract TabItem<T> CreateTabItem(T value);
-
-        public T SelectedValue => SelectedTab.Value;
-        public IEnumerable<T> Tabs => TabContainer.Children.Select(tab => tab.Value);
-
-        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+        /// <summary>
+        /// A list of items currently in the tab control in the other they are dispalyed.
+        /// </summary>
+        public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
 
         /// <summary>
         /// Occurs when the selected tab changes.
         /// </summary>
-        public event EventHandler<T> ValueChanged;
+        public event EventHandler<T> ItemChanged;
 
         /// <summary>
-        /// When true, the recently selected tabs are moved to the front of the list
+        /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
         /// </summary>
         public bool AutoSort { set; get; }
+
+        /// <summary>
+        /// We need a special case here to allow for the dropdown "overflowing" our own bounds.
+        /// </summary>
+        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+
+        protected DropDownMenu<T> DropDown;
+
+        protected TabFillFlowContainer<TabItem<T>> TabContainer;
+
+        protected IReadOnlyDictionary<T, TabItem<T>> TabMap => tabMap;
+
+        protected TabItem<T> SelectedTab;
+
+        /// <summary>
+        /// Creates the overflow dropdown.
+        /// When implementing this dropdown make sure:
+        ///  - It is made to be anchored to the right-hand side of its parent.
+        ///  - The dropdown's header does *not* have a relative x axis.
+        /// </summary>
+        protected abstract DropDownMenu<T> CreateDropDownMenu();
+
+        /// <summary>
+        /// Creates a tab item.
+        /// </summary>
+        protected abstract TabItem<T> CreateTabItem(T value);
+
+        /// <summary>
+        /// Incremented each time a tab needs to be inserted at the start of the list.
+        /// </summary>
+        private int depthCounter;
+
+        /// <summary>
+        /// A mapping of tabs to their items.
+        /// </summary>
+        private readonly Dictionary<T, TabItem<T>> tabMap;
 
         protected TabControl()
         {
@@ -45,7 +83,7 @@ namespace osu.Framework.Graphics.UserInterface
             DropDown.RelativeSizeAxes = Axes.X;
             DropDown.Anchor = Anchor.TopRight;
             DropDown.Origin = Anchor.TopRight;
-            DropDown.ValueChanged += dropDownValueChanged;
+            DropDown.ValueChanged += delegate { tabMap[DropDown.SelectedValue].Active = true; };
 
             Trace.Assert((DropDown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(DropDown)} implementation should use a right-based anchor inside a TabControl.");
             Trace.Assert((DropDown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(DropDown)} implementation's header should have a specific size.");
@@ -85,23 +123,35 @@ namespace osu.Framework.Graphics.UserInterface
                 TabContainer.Children.First().Active = true;
         }
 
-        public void PinTab(T value)
+        /// <summary>
+        /// Pin an item to the start of the list.
+        /// </summary>
+        /// <param name="item">The item to pin.</param>
+        public void PinItem(T item)
         {
             TabItem<T> tab;
-            if (!tabMap.TryGetValue(value, out tab))
+            if (!tabMap.TryGetValue(item, out tab))
                 return;
             tab.Pinned = true;
         }
 
-        public void UnpinTab(T value)
+        /// <summary>
+        /// Unpin an item and return it to the start of unpinned items.
+        /// </summary>
+        /// <param name="item">The item to unpin.</param>
+        public void UnpinItem(T item)
         {
             TabItem<T> tab;
-            if (!tabMap.TryGetValue(value, out tab))
+            if (!tabMap.TryGetValue(item, out tab))
                 return;
             tab.Pinned = false;
         }
 
-        public void AddTab(T value) => addTab(value);
+        /// <summary>
+        /// Add a new item to the control.
+        /// </summary>
+        /// <param name="item">The item to add.</param>
+        public void AddItem(T item) => addTab(item);
 
         private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
@@ -121,24 +171,16 @@ namespace osu.Framework.Graphics.UserInterface
             return tab;
         }
 
-        // Manages the visibility of dropdownitem based on visible tabs
+        /// <summary>
+        /// Callback on the change of visibility of a tab.
+        /// Used to update the item's status in the overflow dropdown if required.
+        /// </summary>
         private void updateDropDown(TabItem<T> tab, bool isVisible)
         {
             if (isVisible)
                 DropDown.HideItem(tab.Value);
             else
                 DropDown.ShowItem(tab.Value);
-        }
-
-        private void dropDownValueChanged(object sender, EventArgs eventArgs)
-        {
-            var dropDownMenu = sender as DropDownMenu<T>;
-            if (dropDownMenu != null)
-            {
-                TabItem<T> tab;
-                if (tabMap.TryGetValue(dropDownMenu.SelectedValue, out tab))
-                    tab.Active = true;
-            }
         }
 
         private void selectTab(TabItem<T> tab)
@@ -151,7 +193,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (SelectedTab != null)
                 SelectedTab.Active = false;
             SelectedTab = tab;
-            ValueChanged?.Invoke(this, tab.Value);
+            ItemChanged?.Invoke(this, tab.Value);
         }
 
         private void resortTab(TabItem<T> tab)
@@ -159,7 +201,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (IsLoaded)
                 TabContainer.Remove(tab);
 
-            tab.Depth = tab.Pinned ? float.MaxValue : ++orderCounter;
+            tab.Depth = tab.Pinned ? float.MaxValue : ++depthCounter;
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
