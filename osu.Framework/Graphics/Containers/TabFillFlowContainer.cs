@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics.UserInterface.Tab;
+using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Containers

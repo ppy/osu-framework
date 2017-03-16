@@ -5,7 +5,7 @@ using System;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 
-namespace osu.Framework.Graphics.UserInterface.Tab
+namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class TabItem : ClickableContainer
     {

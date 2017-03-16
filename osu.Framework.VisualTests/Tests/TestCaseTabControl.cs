@@ -12,7 +12,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Graphics.UserInterface.Tab;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -32,14 +31,14 @@ namespace osu.Framework.VisualTests.Tests
             StyledTabControl simpleTabcontrol = new StyledTabControl
             {
                 Position = new Vector2(200, 50),
-                Width = 200,
+                Size = new Vector2(200, 30),
             };
             items.AsEnumerable().ForEach(item => simpleTabcontrol.AddTab(item.Value));
 
             StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
                 Position = new Vector2(500, 50),
-                Width = 200,
+                Size = new Vector2(200, 30),
                 AutoSort = true
             };
             items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddTab(item.Value));
@@ -64,12 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledTabControl : TabControl<TestEnum>
         {
-            public StyledTabControl()
-            {
-                Height = 30;
-            }
-
-            protected override TabDropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override DropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
@@ -124,7 +118,7 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : TabDropDownMenu<TestEnum>
+        private class StyledDropDownMenu : DropDownMenu<TestEnum>
         {
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
@@ -135,6 +129,11 @@ namespace osu.Framework.VisualTests.Tests
                 MaxDropDownHeight = int.MaxValue;
                 ContentContainer.CornerRadius = 4;
                 ScrollContainer.ScrollDraggerVisible = false;
+
+                ContentContainer.Anchor = Anchor.TopRight;
+                ContentContainer.Origin = Anchor.TopRight;
+                Header.Anchor = Anchor.TopRight;
+                Header.Origin = Anchor.TopRight;
             }
 
             protected override void AnimateOpen()
