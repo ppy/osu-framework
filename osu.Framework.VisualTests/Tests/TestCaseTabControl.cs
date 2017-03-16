@@ -64,6 +64,11 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledTabControl : TabControl<TestEnum>
         {
+            public StyledTabControl()
+            {
+                Height = 30;
+            }
+
             protected override TabDropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
@@ -121,9 +126,6 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropDownMenu : TabDropDownMenu<TestEnum>
         {
-            public override float HeaderWidth => 20;
-            public override float HeaderHeight => 20;
-
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
             protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
@@ -146,12 +148,20 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownHeader : TabDropDownHeader
+        private class StyledDropDownHeader : DropDownHeader
         {
             protected override string Label { get; set; }
 
             public StyledDropDownHeader()
             {
+                Background.Hide(); // don't need a background
+
+                RelativeSizeAxes = Axes.None;
+                AutoSizeAxes = Axes.X;
+
+                Foreground.RelativeSizeAxes = Axes.None;
+                Foreground.AutoSizeAxes = Axes.Both;
+
                 Foreground.Children = new[]
                 {
                     new Box { Width = 20, Height = 20 }

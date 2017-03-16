@@ -6,13 +6,8 @@ using osu.Framework.Input;
 // TODO: Hide header when no items in dropdown
 namespace osu.Framework.Graphics.UserInterface.Tab
 {
-    // Keep abstract for now, until a generic styled header can be determined
     public abstract class TabDropDownMenu<T> : DropDownMenu<T>
     {
-        // These need to be set manually until there is a dynamic way to determine
-        public abstract float HeaderWidth { get; }
-        public abstract float HeaderHeight { get; }
-
         protected TabDropDownMenu()
         {
             RelativeSizeAxes = Axes.X;
@@ -20,6 +15,18 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             Header.Origin = Anchor.TopRight;
             ContentContainer.Anchor = Anchor.TopRight;
             ContentContainer.Origin = Anchor.TopRight;
+        }
+
+        internal float HeaderHeight
+        {
+            get { return Header.DrawHeight; }
+            set { Header.Height = value; }
+        }
+
+        internal float HeaderWidth
+        {
+            get { return Header.DrawWidth; }
+            set { Header.Width = value; }
         }
 
         internal void HideItem(T val)

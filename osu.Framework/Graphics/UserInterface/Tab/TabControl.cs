@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Extensions;
+using OpenTK;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 
@@ -25,6 +26,8 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         public T SelectedValue => SelectedTab.Value;
         public IEnumerable<T> Tabs => TabContainer.Children.Select(tab => tab.Value);
 
+        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+
         /// <summary>
         /// Occurs when the selected tab changes.
         /// </summary>
@@ -35,38 +38,36 @@ namespace osu.Framework.Graphics.UserInterface.Tab
         /// </summary>
         public bool AutoSort { set; get; }
 
-        protected TabControl(float offset = 0)
+        protected TabControl()
         {
-            AutoSizeAxes = Axes.Y;
             DropDown = CreateDropDownMenu();
             DropDown.ValueChanged += dropDownValueChanged;
 
             // Create Map of all items
-            tabMap = DropDown.Items.ToDictionary(item => item.Value, item =>
-            {
-                var tab = CreateTabItem(item.Value);
-                tab.PinnedChanged += resortTab;
-                tab.SelectAction += selectTab;
-                return tab;
-            });
+            tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
 
             Children = new Drawable[]
             {
                 TabContainer = new TabFillFlowContainer<TabItem<T>>
                 {
                     Direction = FillDirection.Full,
-                    RelativeSizeAxes = Axes.X,
-                    Height = DropDown.HeaderHeight,
+                    RelativeSizeAxes = Axes.Both,
                     Masking = true,
-                    Padding = new MarginPadding
-                    {
-                        Left = offset,
-                        Right = DropDown.HeaderWidth
-                    },
                     TabVisibilityChanged = updateDropDown,
                     Children = tabMap.Values
                 },
                 DropDown
+            };
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            DropDown.HeaderHeight = DrawHeight;
+            TabContainer.Padding = new MarginPadding
+            {
+                Right = DropDown.HeaderWidth
             };
         }
 
@@ -93,19 +94,24 @@ namespace osu.Framework.Graphics.UserInterface.Tab
             tab.Pinned = false;
         }
 
-        public void AddTab(T value)
+        public void AddTab(T value) => addTab(value);
+
+        private TabItem<T> addTab(T value, bool addToDropdown = true)
         {
             // Do not allow duplicate adding
             if (tabMap.ContainsKey(value))
-                return;
+                return null;
 
             var tab = CreateTabItem(value);
             tab.PinnedChanged += resortTab;
             tab.SelectAction += selectTab;
 
             tabMap[value] = tab;
-            DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
+            if (addToDropdown)
+                DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
             TabContainer.Add(tab);
+
+            return tab;
         }
 
         // Manages the visibility of dropdownitem based on visible tabs
