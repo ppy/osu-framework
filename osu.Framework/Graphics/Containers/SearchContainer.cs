@@ -37,27 +37,14 @@ namespace osu.Framework.Graphics.Containers
         private bool match(ISearchable searchable, List<string> parentKeywords = null)
         {
             var searchContainer = searchable as ISearchableChildren;
-            
-            var keywords = new List<string>(searchable.Keywords ?? new string[0]);
-            keywords.AddRange(parentKeywords ?? new string[0].ToList());
+
+            List<string> keywords;
+            (keywords = new List<string>(searchable.Keywords ?? new string[0])).AddRange(parentKeywords ?? new string[0].ToList());
 
             if (searchContainer != null)
-            {
-                bool matching = false;
-                foreach(ISearchable searchableChildren in searchContainer.SearchableChildren)
-                    matching = match(searchableChildren, keywords) || matching;
-                
-
-                searchContainer.Matching = matching;
-                return matching;
-            }
+                return searchContainer.Matching = searchContainer.SearchableChildren.Any(children => match(children, keywords));
             else
-            {
-                bool matching = keywords.Any(keyword => keyword.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
-
-                searchable.Matching = matching;
-                return matching;
-            }
+                return searchable.Matching = keywords.Any(keyword => keyword.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
         }
     }
 }
