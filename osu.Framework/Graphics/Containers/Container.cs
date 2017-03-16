@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
-        public bool InternalContains(T drawable)
+        public bool Contains(T drawable)
         {
             return IndexOf(drawable) >= 0;
         }
