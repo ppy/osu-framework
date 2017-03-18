@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
                     X = conversion.X == 0 ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
@@ -555,7 +555,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
                     Width = conversion.X == 0 ? 0 : Width / conversion.X;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
@@ -659,7 +659,7 @@ namespace osu.Framework.Graphics
         {
             if (relativeAxes != Axes.None)
             {
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((relativeAxes & Axes.X) > 0)
                     v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
@@ -668,7 +668,10 @@ namespace osu.Framework.Graphics
             return v;
         }
 
-        private Vector2 relativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
+        /// <summary>
+        /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
+        /// </summary>
+        public Vector2 RelativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 
