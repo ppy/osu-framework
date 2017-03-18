@@ -1113,7 +1113,7 @@ namespace osu.Framework.Graphics
         public IContainer Parent
         {
             get { return parent; }
-            set
+            internal set
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
