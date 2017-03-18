@@ -21,10 +21,11 @@ namespace osu.Framework.VisualTests
             };
         }
 
-        protected override void LoadComplete()
+        public override void SetHost(GameHost host)
         {
-            base.LoadComplete();
-            Host.Window.CursorState = CursorState.Hidden;
+            base.SetHost(host);
+
+            host.Window.CursorState = CursorState.Hidden;
         }
     }
 }
