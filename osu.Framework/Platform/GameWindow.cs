@@ -19,7 +19,6 @@ namespace osu.Framework.Platform
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
-            Cursor = MouseCursor.Empty;
 
             MakeCurrent();
 
@@ -58,6 +57,55 @@ namespace osu.Framework.Platform
             Context.MakeCurrent(null);
         }
 
+        private CursorState cursorState = CursorState.Visible;
+
+        /// <summary>
+        /// Controls the state of the OS cursor.
+        /// </summary>
+        public CursorState CursorState
+        {
+            get { return cursorState; }
+            set
+            {
+                cursorState = value;
+                switch (cursorState)
+                {
+                    case CursorState.Visible:
+                        base.CursorVisible = true;
+                        base.Cursor = MouseCursor.Default;
+                        break;
+                    case CursorState.Hidden:
+                        base.CursorVisible = true;
+                        base.Cursor = MouseCursor.Empty;
+                        break;
+                    case CursorState.HiddenAndConfined:
+                        base.CursorVisible = false;
+                        base.Cursor = MouseCursor.Empty;
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// We do not support directly using <see cref="Cursor"/>.
+        /// It is controlled internally. Use <see cref="CursorState"/> instead.
+        /// </summary>
+        public new bool Cursor
+        {
+            get { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
+            set { throw new InvalidOperationException($@"{nameof(Cursor)} is not supported. Use {nameof(CursorState)}."); }
+        }
+
+        /// <summary>
+        /// We do not support directly using <see cref="CursorVisible"/>.
+        /// It is controlled internally. Use <see cref="CursorState"/> instead.
+        /// </summary>
+        public new bool CursorVisible
+        {
+            get { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
+            set { throw new InvalidOperationException($@"{nameof(CursorVisible)} is not supported. Use {nameof(CursorState)}."); }
+        }
+
         private string getVersionNumberSubstring(string version)
         {
             string result = version.Split(' ').FirstOrDefault(s => char.IsDigit(s, 0));
@@ -86,5 +134,25 @@ namespace osu.Framework.Platform
         public virtual Vector2 Position { get; set; }
 
         public virtual void CycleMode() {}
+    }
+
+    /// <summary>
+    /// Describes our supported states of the OS cursor.
+    /// </summary>
+    public enum CursorState
+    {
+        /// <summary>
+        /// The OS cursor is always visible and can move anywhere.
+        /// </summary>
+        Visible,
+        /// <summary>
+        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>, but can still move anywhere.
+        /// </summary>
+        Hidden,
+        /// <summary>
+        /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>.
+        /// It is confined to the <see cref="GameWindow"/> while the window is in focus and can move freely otherwise.
+        /// </summary>
+        HiddenAndConfined,
     }
 }
