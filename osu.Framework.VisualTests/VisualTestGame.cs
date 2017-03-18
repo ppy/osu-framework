@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Platform;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests
@@ -18,6 +19,12 @@ namespace osu.Framework.VisualTests
                 new TestBrowser(),
                 new CursorContainer(),
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            Host.Window.CursorState = CursorState.Hidden;
         }
     }
 }
