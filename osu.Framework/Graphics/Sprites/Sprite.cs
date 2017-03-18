@@ -124,17 +124,18 @@ namespace osu.Framework.Graphics.Sprites
             get
             {
                 Vector2 modifier = Vector2.One;
+                Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
 
                 switch (FillMode)
                 {
                     case FillMode.Fill:
-                        modifier = new Vector2(Math.Max(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight));
+                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
                         break;
                     case FillMode.Fit:
-                        modifier = new Vector2(Math.Min(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight));
+                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
                         break;
                     case FillMode.Stretch:
-                        modifier = new Vector2(Parent.DrawSize.X / DrawWidth, Parent.DrawSize.Y / DrawHeight);
+                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
                         break;
                 }
 
