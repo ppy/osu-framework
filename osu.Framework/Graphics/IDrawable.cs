@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        IContainer Parent { get; set; }
+        IContainer Parent { get; }
 
         /// <summary>
         /// Whether this drawable is present for any sort of user-interaction.

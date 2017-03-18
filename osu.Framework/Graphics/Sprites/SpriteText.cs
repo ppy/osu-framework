@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Sprites
 {
     public class SpriteText : FillFlowContainer
     {
-        private static readonly char[] default_fixed_width_exceptions = { '.', ':' };
+        private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
         /// <summary>
         /// An array of characters which should not get a fixed width in a <see cref="FixedWidth"/> instance.
@@ -148,7 +148,16 @@ namespace osu.Framework.Graphics.Sprites
             refreshLayout();
         }
 
+        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
+        {
+            if ((invalidation & Invalidation.Colour) > 0 && Shadow)
+                internalSize.Invalidate(); //we may need to recompute the shadow alpha if our text colour has changed (see shadowAlpha).
+
+            return base.Invalidate(invalidation, source, shallPropagate);
+        }
+
         private string lastText;
+        private float lastShadowAlpha;
 
         private void refreshLayout()
         {
@@ -161,21 +170,33 @@ namespace osu.Framework.Graphics.Sprites
 
                 //keep sprites which haven't changed since last layout.
                 List<Drawable> keepDrawables = new List<Drawable>();
-                int length = Math.Min(lastText?.Length ?? 0, text.Length);
 
-                keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
-                Remove(keepDrawables);
+                bool allowKeepingExistingDrawables = true;
+
+                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
+                //squared result for quadratic fall-off seems to give the best result.
+                var avgColour = (Color4)DrawInfo.Colour.AverageColour;
+                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
+
+                //we can't keep existing drawabled if our shadow has changed, as the shadow is applied in the add-loop.
+                //this could potentially be optimised if necessary.
+                allowKeepingExistingDrawables &= shadowAlpha == lastShadowAlpha;
+
+                lastShadowAlpha = shadowAlpha;
+
+                if (allowKeepingExistingDrawables)
+                {
+                    int length = Math.Min(lastText?.Length ?? 0, text.Length);
+                    keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
+                    Remove(keepDrawables); //doesn't dispose
+                }
+
                 Clear();
 
                 if (text.Length == 0) return Vector2.Zero;
 
                 foreach (var k in keepDrawables)
                     Add(k);
-
-                //adjust shadow alpha based on highest component intensity to avoid muddy display of darker text.
-                //squared result for quadratic fall-off seems to give the best result.
-                var avgColour = (Color4)ColourInfo.AverageColour;
-                float shadowAlpha = (float)Math.Pow(Math.Max(Math.Max(avgColour.R, avgColour.G), avgColour.B), 2);
 
                 for (int index = keepDrawables.Count; index < text.Length; index++)
                 {
@@ -220,7 +241,7 @@ namespace osu.Framework.Graphics.Sprites
                             Children = new[] { d }
                         };
 
-                        if (shadow)
+                        if (shadow && shadowAlpha > 0)
                         {
                             Drawable shadowDrawable = CreateCharacterDrawable(c);
                             shadowDrawable.Position = new Vector2(0, 0.06f);

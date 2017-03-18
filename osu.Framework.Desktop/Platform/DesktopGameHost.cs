@@ -39,7 +39,7 @@ namespace osu.Framework.Desktop.Platform
                 if (IsPrimaryInstance)
                 {
                     ipcProvider.MessageReceived += OnMessageReceived;
-                    ipcTask = ipcProvider.StartAsync();
+                    ipcTask = Task.Factory.StartNew(ipcProvider.StartAsync, TaskCreationOptions.LongRunning);
                 }
             }
         }

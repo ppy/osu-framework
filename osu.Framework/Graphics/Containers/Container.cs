@@ -198,9 +198,10 @@ namespace osu.Framework.Graphics.Containers
                 return Content.Remove(drawable);
 
             bool result = internalChildren.Remove(drawable);
-            drawable.Parent = null;
-
             if (!result) return false;
+
+            Trace.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry);
@@ -247,6 +248,8 @@ namespace osu.Framework.Graphics.Containers
                 Content.Clear(disposeChildren);
                 return;
             }
+
+            pendingChildren?.Clear();
 
             foreach (T t in internalChildren)
             {
@@ -615,13 +618,13 @@ namespace osu.Framework.Graphics.Containers
         // TODO: Evaluate effects of this on performance and address.
         public override bool HandleInput => true;
 
-        public override bool Contains(Vector2 screenSpacePos)
+        protected override bool InternalContains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (!Masking || cRadius == 0.0f)
-                return base.Contains(screenSpacePos);
+                return base.InternalContains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 

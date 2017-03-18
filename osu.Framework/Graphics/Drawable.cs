@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
                     X = conversion.X == 0 ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
@@ -555,7 +555,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
                     Width = conversion.X == 0 ? 0 : Width / conversion.X;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
@@ -659,7 +659,7 @@ namespace osu.Framework.Graphics
         {
             if (relativeAxes != Axes.None)
             {
-                Vector2 conversion = relativeToAbsoluteFactor;
+                Vector2 conversion = RelativeToAbsoluteFactor;
                 if ((relativeAxes & Axes.X) > 0)
                     v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
@@ -668,7 +668,10 @@ namespace osu.Framework.Graphics
             return v;
         }
 
-        private Vector2 relativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
+        /// <summary>
+        /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
+        /// </summary>
+        public Vector2 RelativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 
@@ -1113,7 +1116,7 @@ namespace osu.Framework.Graphics
         public IContainer Parent
         {
             get { return parent; }
-            set
+            internal set
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
@@ -1556,12 +1559,27 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
+        /// Receive input even if the cursor is not contained within our <see cref="Drawable.DrawRectangle"/>.
+        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
+        /// Note that this only applied from the current container onwards (ie. if a parent is masking us we will still not receive input).
+        /// </summary>
+        public bool AlwaysReceiveInput;
+
+        /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
         /// Mouse input events are only received when this function is true, or when the drawable
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+        public bool Contains(Vector2 screenSpacePos) => AlwaysReceiveInput || InternalContains(screenSpacePos);
+
+        /// <summary>
+        /// Computes whether a given screen-space position is contained within this drawable.
+        /// Mouse input events are only received when this function is true, or when the drawable
+        /// is in focus.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
+        protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
         /// Whether this Drawable can receive, taking into account all optimizations and masking.
@@ -1777,7 +1795,7 @@ namespace osu.Framework.Graphics
             FadeTo(1, duration, easing);
         }
 
-        public void FadeInFromZero(double duration)
+        public void FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay == 0)
             {
@@ -1793,6 +1811,7 @@ namespace osu.Framework.Graphics
                 EndTime = startTime + duration,
                 StartValue = 0,
                 EndValue = 1,
+                Easing = easing,
             });
         }
 
@@ -1801,7 +1820,7 @@ namespace osu.Framework.Graphics
             FadeTo(0, duration, easing);
         }
 
-        public void FadeOutFromOne(double duration)
+        public void FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay == 0)
             {
@@ -1817,6 +1836,7 @@ namespace osu.Framework.Graphics
                 EndTime = startTime + duration,
                 StartValue = 1,
                 EndValue = 0,
+                Easing = easing,
             };
 
             Transforms.Add(tr);
@@ -1942,7 +1962,7 @@ namespace osu.Framework.Graphics
             TransformVectorTo(Position, newPosition, duration, easing, new TransformPosition());
         }
 
-        public void MoveToOffset(Vector2 offset, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
             MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
@@ -1952,7 +1972,7 @@ namespace osu.Framework.Graphics
 
         #region Color4-based helpers
 
-        public void FadeColour(SRGBColour newColour, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void FadeColour(SRGBColour newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformColour));
 
@@ -1979,7 +1999,7 @@ namespace osu.Framework.Graphics
             });
         }
 
-        public void FlashColour(SRGBColour flashColour, int duration, EasingTypes easing = EasingTypes.None)
+        public void FlashColour(SRGBColour flashColour, double duration, EasingTypes easing = EasingTypes.None)
         {
             if (transformDelay != 0)
                 throw new NotImplementedException("FlashColour doesn't support Delay() currently");

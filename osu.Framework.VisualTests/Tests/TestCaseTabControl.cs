@@ -12,7 +12,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Graphics.UserInterface.Tab;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -32,39 +31,39 @@ namespace osu.Framework.VisualTests.Tests
             StyledTabControl simpleTabcontrol = new StyledTabControl
             {
                 Position = new Vector2(200, 50),
-                Width = 200,
+                Size = new Vector2(200, 30),
             };
-            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddTab(item.Value));
+            items.AsEnumerable().ForEach(item => simpleTabcontrol.AddItem(item.Value));
 
             StyledTabControl pinnedAndAutoSort = new StyledTabControl
             {
                 Position = new Vector2(500, 50),
-                Width = 200,
+                Size = new Vector2(200, 30),
                 AutoSort = true
             };
-            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddTab(item.Value));
-            pinnedAndAutoSort.PinTab(TestEnum.Test5);
+            items.GetRange(0, 7).AsEnumerable().ForEach(item => pinnedAndAutoSort.AddItem(item.Value));
+            pinnedAndAutoSort.PinItem(TestEnum.Test5);
 
             Add(simpleTabcontrol);
             Add(pinnedAndAutoSort);
 
             var nextTest = new Func<TestEnum>(() => items.AsEnumerable()
                                                          .Select(item => item.Value)
-                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Tabs.Contains(test)));
+                                                         .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddTab(nextTest.Invoke()));
+            AddButton("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
             AddButton("PinItem", () =>
             {
                 var test = nextTest.Invoke();
-                pinnedAndAutoSort.AddTab(test);
-                pinnedAndAutoSort.PinTab(test);
+                pinnedAndAutoSort.AddItem(test);
+                pinnedAndAutoSort.PinItem(test);
             });
-            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinTab(pinnedAndAutoSort.Tabs.First()));
+            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
         }
 
         private class StyledTabControl : TabControl<TestEnum>
         {
-            protected override TabDropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override DropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
@@ -119,11 +118,8 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : TabDropDownMenu<TestEnum>
+        private class StyledDropDownMenu : DropDownMenu<TestEnum>
         {
-            public override float HeaderWidth => 20;
-            public override float HeaderHeight => 20;
-
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
             protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
@@ -133,6 +129,11 @@ namespace osu.Framework.VisualTests.Tests
                 MaxDropDownHeight = int.MaxValue;
                 ContentContainer.CornerRadius = 4;
                 ScrollContainer.ScrollDraggerVisible = false;
+
+                ContentContainer.Anchor = Anchor.TopRight;
+                ContentContainer.Origin = Anchor.TopRight;
+                Header.Anchor = Anchor.TopRight;
+                Header.Origin = Anchor.TopRight;
             }
 
             protected override void AnimateOpen()
@@ -146,12 +147,20 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownHeader : TabDropDownHeader
+        private class StyledDropDownHeader : DropDownHeader
         {
             protected override string Label { get; set; }
 
             public StyledDropDownHeader()
             {
+                Background.Hide(); // don't need a background
+
+                RelativeSizeAxes = Axes.None;
+                AutoSizeAxes = Axes.X;
+
+                Foreground.RelativeSizeAxes = Axes.None;
+                Foreground.AutoSizeAxes = Axes.Both;
+
                 Foreground.Children = new[]
                 {
                     new Box { Width = 20, Height = 20 }

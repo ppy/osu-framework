@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Graphics.UserInterface.Tab;
+using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
@@ -15,6 +15,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
+            foreach (var child in Children)
+                child.Y = 0;
+
             var result = base.ComputeLayoutPositions().ToArray();
             int i = 0;
             foreach (var child in FlowingChildren)
@@ -25,11 +28,14 @@ namespace osu.Framework.Graphics.Containers
             return result;
         }
 
-        private Dictionary<T, bool> previousValues = new Dictionary<T, bool>();
-        private void updateChildIfNeeded(T child, bool isVisible) {
-            if (!previousValues.ContainsKey(child) || previousValues[child] != isVisible) {
+        private Dictionary<T, bool> tabVisibility = new Dictionary<T, bool>();
+
+        private void updateChildIfNeeded(T child, bool isVisible)
+        {
+            if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
+            {
                 TabVisibilityChanged?.Invoke(child, isVisible);
-                previousValues[child] = isVisible;
+                tabVisibility[child] = isVisible;
             }
         }
     }

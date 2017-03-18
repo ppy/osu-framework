@@ -265,7 +265,7 @@ namespace osu.Framework.Platform
                 GLWrapper.ClearColour(Color4.Black);
             }
 
-            while (true)
+            while (!exitInitiated)
             {
                 using (var buffer = DrawRoots.Get(UsageType.Read))
                 {

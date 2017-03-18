@@ -12,7 +12,7 @@ namespace osu.Framework.IO.Stores
     {
         public async Task<byte[]> GetAsync(string url)
         {
-            return await Task.Run(delegate
+            return await Task.Factory.StartNew(delegate
             {
                 if (!url.StartsWith(@"https://", StringComparison.Ordinal))
                     return null;
@@ -27,8 +27,7 @@ namespace osu.Framework.IO.Stores
                 {
                     return null;
                 }
-
-            });
+            }, TaskCreationOptions.LongRunning).ConfigureAwait(false);
         }
 
         public byte[] Get(string url)
