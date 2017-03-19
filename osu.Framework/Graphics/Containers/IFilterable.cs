@@ -5,23 +5,23 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public interface ISearchable
+    public interface IFilterable
     {
         /// <summary>
-        /// List of keywords that <see cref="SearchContainer"/> should match
+        /// Array of keywords that it can be filtered with
         /// </summary>
         string[] Keywords { get; }
         /// <summary>
-        /// Current matching state
+        /// Current filtered state, changes whenever it's getting filtered
         /// </summary>
-        bool Matching { set; }
+        bool FilteredByParent { set; }
     }
 
-    public interface ISearchableChildren : ISearchable
+    public interface IFilterableChildren : IFilterable
     {
         /// <summary>
-        /// List of <see cref="SearchContainer"/> should match
+        /// List of children that can be filtered
         /// </summary>
-        IEnumerable<ISearchable> SearchableChildren { get; }
+        IEnumerable<IFilterable> FilterableChildren { get; }
     }
 }

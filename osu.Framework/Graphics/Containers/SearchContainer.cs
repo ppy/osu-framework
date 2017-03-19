@@ -10,11 +10,11 @@ namespace osu.Framework.Graphics.Containers
     public class SearchContainer : SearchContainer<Drawable>
     { }
 
-    public class SearchContainer<T> : Container<T>, ISearchableChildren where T : Drawable
+    public class SearchContainer<T> : Container<T>, IFilterableChildren where T : Drawable
     {
         private string searchTerm;
         /// <summary>
-        /// String to match with the <see cref="ISearchable"/>s
+        /// String to match with the <see cref="IFilterable"/>s
         /// </summary>
         public string SearchTerm
         {
@@ -29,14 +29,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public IEnumerable<ISearchable> SearchableChildren => Children.OfType<ISearchable>();
+        public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
         public string[] Keywords => null;
-        public bool Matching { get; set; }
+        public bool FilteredByParent { get; set; }
 
 
-        private bool match(ISearchable searchable, List<string> parentKeywords = null)
+        private bool match(IFilterable searchable, List<string> parentKeywords = null)
         {
-            var searchContainer = searchable as ISearchableChildren;
+            var searchContainer = searchable as IFilterableChildren;
             
             var keywords = new List<string>(searchable.Keywords ?? new string[0]);
             keywords.AddRange(parentKeywords ?? new string[0].ToList());
@@ -44,13 +44,13 @@ namespace osu.Framework.Graphics.Containers
             if (searchContainer != null)
             {
                 bool matching = false;
-                foreach(ISearchable searchableChildren in searchContainer.SearchableChildren)
+                foreach(IFilterable searchableChildren in searchContainer.FilterableChildren)
                     matching = match(searchableChildren, keywords) || matching;
-                return searchContainer.Matching = matching;
+                return searchContainer.FilteredByParent = matching;
             }
             else
             {
-                return searchable.Matching = keywords.Any(keyword => keyword.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                return searchable.FilteredByParent = keywords.Any(keyword => keyword.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
             }
         }
     }

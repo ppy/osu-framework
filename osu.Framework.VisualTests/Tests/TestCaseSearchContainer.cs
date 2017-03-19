@@ -22,53 +22,77 @@ namespace osu.Framework.VisualTests.Tests
         public override void Reset()
         {
             base.Reset();
-            var searchable = new[] {
-                new SearchableText
+            Children = new Drawable[] {
+                new TextBox
                 {
-                    Text = "test",
+                    Size = new Vector2(300, 40),
+                    OnChange = (textBox, newText) => search.SearchTerm = textBox.Text
                 },
-                new SearchableText
+                search = new SearchContainer
                 {
-                    Text = "TEST",
-                },
-                new SearchableText
-                {
-                    Text = "123",
-                },
-                new SearchableText
-                {
-                    Text = "444",
-                },
-                new SearchableText
-                {
-                    Text = "öüäéèêáàâ",
-                }
-            };
-            Add(new TextBox
-            {
-                Size = new Vector2(300,40),
-                OnChange = (textBox, newText) => search.SearchTerm = textBox.Text
-            });
-            Add(search = new SearchContainer
-            {
-                AutoSizeAxes = Axes.Both,
-                Margin = new MarginPadding { Top = 40 },
-                Children = new[]
-                {
-                    new HeaderContainer
+                    AutoSizeAxes = Axes.Both,
+                    Margin = new MarginPadding { Top = 40 },
+                    Children = new[]
                     {
-                        AutoSizeAxes = Axes.Both,
-                        Children = searchable,
+                        new HeaderContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Children = new []
+                            {
+                                new HeaderContainer("Subsection 1")
+                                {
+                                    AutoSizeAxes = Axes.Both,
+                                    Children = new[]
+                                    {
+                                        new SearchableText
+                                        {
+                                            Text = "test",
+                                        },
+                                        new SearchableText
+                                        {
+                                            Text = "TEST",
+                                        },
+                                        new SearchableText
+                                        {
+                                            Text = "123",
+                                        },
+                                        new SearchableText
+                                        {
+                                            Text = "444",
+                                        },
+                                        new SearchableText
+                                        {
+                                            Text = "öüäéèêáàâ",
+                                        }
+                                    }
+                                },
+                                new HeaderContainer("Subsection 2")
+                                {
+                                    AutoSizeAxes = Axes.Both,
+                                    Children = new []
+                                    {
+                                        new SearchableText
+                                        {
+                                            Text = "?!()[]{}"
+                                        },
+                                        new SearchableText
+                                        {
+                                            Text = "@€$"
+                                        },
+                                    },
+                                },
+                            },
+                        }
                     }
                 }
-            });
+            };
 
         }
 
-        private class HeaderContainer : Container, ISearchableChildren
+        private class HeaderContainer : Container, IFilterableChildren
         {
             public string[] Keywords => header.Keywords;
-            public bool Matching
+            public bool FilteredByParent
             {
                 set
                 {
@@ -78,17 +102,18 @@ namespace osu.Framework.VisualTests.Tests
                         FadeOut();
                 }
             }
-            public IEnumerable<ISearchable> SearchableChildren => Children.OfType<ISearchable>();
+            public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
 
             protected override Container<Drawable> Content => flowContainer;
 
             private SearchableText header;
             private FillFlowContainer flowContainer;
-            public HeaderContainer()
+
+            public HeaderContainer(string headerText = "Header")
             {
                 AddInternal(header = new SearchableText
-                {   
-                    Text = "Header",
+                {
+                    Text = headerText,
                 });
                 AddInternal(flowContainer = new FillFlowContainer
                 {
@@ -99,11 +124,11 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class SearchableText : SpriteText, ISearchable
+        private class SearchableText : SpriteText, IFilterable
         {
             public string[] Keywords => new[] { Text };
 
-            public bool Matching
+            public bool FilteredByParent
             {
                 set
                 {
