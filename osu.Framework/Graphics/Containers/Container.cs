@@ -322,7 +322,7 @@ namespace osu.Framework.Graphics.Containers
         {
             if (internalChildren.Update(Time))
             {
-                invalidateAutoSize();
+                childrenSizeDependencies.Invalidate();
                 return true;
             }
 
@@ -344,7 +344,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
         internal sealed override bool UpdateSubTree()
         {
@@ -364,7 +364,7 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-            updateAutoSize();
+            updateChildrenSizeDependencies();
             return true;
         }
 
@@ -389,7 +389,7 @@ namespace osu.Framework.Graphics.Containers
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
-                invalidateAutoSize();
+                childrenSizeDependencies.Invalidate();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -872,7 +872,7 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-                invalidateAutoSize();
+                childrenSizeDependencies.Invalidate();
             }
         }
 
@@ -890,20 +890,14 @@ namespace osu.Framework.Graphics.Containers
 
         internal event Action OnAutoSize;
 
-        private Cached autoSize = new Cached();
-
-        private void invalidateAutoSize()
-        {
-            if (AutoSizeAxes != Axes.None)
-                autoSize.Invalidate();
-        }
+        private Cached childrenSizeDependencies = new Cached();
 
         public override float Width
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && (AutoSizeAxes & Axes.X) > 0)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.X) > 0)
+                    updateChildrenSizeDependencies();
                 return base.Width;
             }
 
@@ -919,8 +913,8 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && (AutoSizeAxes & Axes.Y) > 0)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.Y) > 0)
+                    updateChildrenSizeDependencies();
                 return base.Height;
             }
 
@@ -932,13 +926,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingAutosize;
+        private bool isComputingChildrenSizeDependencies;
         public override Vector2 Size
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && AutoSizeAxes != Axes.None)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
+                    updateChildrenSizeDependencies();
                 return base.Size;
             }
 
@@ -948,44 +942,6 @@ namespace osu.Framework.Graphics.Containers
                 if ((AutoSizeAxes & Axes.Both) != 0 && !Transforms.Any(t => t is TransformSize))
                     throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
-            }
-        }
-
-        private void updateAutoSize()
-        {
-            isComputingAutosize = true;
-            try
-            {
-                if (autoSize.EnsureValid()) return;
-
-                autoSize.Refresh(delegate
-                {
-                    if (AutoSizeAxes != Axes.None)
-                    {
-                        Vector2 b = computeAutoSize() + Padding.Total;
-
-                        if (AutoSizeDuration > 0)
-                        {
-                            ResizeTo(new Vector2(
-                                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                                ), AutoSizeDuration, AutoSizeEasing);
-                        }
-                        else
-                        {
-                            if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
-                            if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
-                        }
-                    }
-
-                    //note that this is called before autoSize becomes valid. may be something to consider down the line.
-                    //might work better to add an OnRefresh event in Cached<> and invoke there.
-                    OnAutoSize?.Invoke();
-                });
-            }
-            finally
-            {
-                isComputingAutosize = false;
             }
         }
 
@@ -1029,6 +985,46 @@ namespace osu.Framework.Graphics.Containers
             {
                 Padding = originalPadding;
                 Margin = originalMargin;
+            }
+        }
+
+        private void updateAutoSize()
+        {
+            if (AutoSizeAxes == Axes.None)
+                return;
+
+            Vector2 b = computeAutoSize() + Padding.Total;
+
+            if (AutoSizeDuration > 0)
+            {
+                ResizeTo(new Vector2(
+                        (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                        (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                    ), AutoSizeDuration, AutoSizeEasing);
+            }
+            else
+            {
+                if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
+                if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
+            }
+
+            //note that this is called before autoSize becomes valid. may be something to consider down the line.
+            //might work better to add an OnRefresh event in Cached<> and invoke there.
+            OnAutoSize?.Invoke();
+        }
+
+        private void updateChildrenSizeDependencies()
+        {
+            isComputingChildrenSizeDependencies = true;
+
+            try
+            {
+                if (!childrenSizeDependencies.EnsureValid())
+                    childrenSizeDependencies.Refresh(updateAutoSize);
+            }
+            finally
+            {
+                isComputingChildrenSizeDependencies = false;
             }
         }
 
