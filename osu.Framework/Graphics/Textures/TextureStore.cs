@@ -6,7 +6,6 @@ using System.Drawing;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
-using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -34,7 +33,7 @@ namespace osu.Framework.Graphics.Textures
         /// <summary>
         /// A dictionary of name to lockable objects used to restrict loading of new textures to only happen once.
         /// </summary>
-        private Dictionary<string, object> loadCache = new Dictionary<string, object>();
+        private ConcurrentDictionary<string, object> loadCache = new ConcurrentDictionary<string, object>();
 
         private Texture getTexture(string name)
         {
@@ -81,12 +80,7 @@ namespace osu.Framework.Graphics.Textures
 
             //we want to perform a load for this texture.
             //first let's obtain a lockable object for this load.
-            object mutex;
-            lock (loadCache)
-            {
-                if (!loadCache.TryGetValue(name, out mutex))
-                    loadCache[name] = mutex = new object();
-            }
+            object mutex = loadCache.GetOrAdd(name, n => new object());
 
             lock (mutex)
             {
@@ -96,9 +90,10 @@ namespace osu.Framework.Graphics.Textures
                     //perform the actual load if still required.
                     cachedTex = getTexture(name)?.TextureGL;
                     textureCache[name] = cachedTex;
-                    lock (loadCache) loadCache.Remove(name);
                 }
             }
+
+            loadCache.TryRemove(name, out mutex);
 
             return cachedTex;
         }
