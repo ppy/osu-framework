@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Containers
     {
         private string searchTerm;
         /// <summary>
-        /// String to match with the <see cref="IFilterable"/>s
+        /// String to filter <see cref="IFilterable"/>
         /// </summary>
         public string SearchTerm
         {
