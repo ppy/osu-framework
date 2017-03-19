@@ -320,12 +320,13 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            bool changed = internalChildren.Update(Time);
+            if (internalChildren.Update(Time))
+            {
+                invalidateAutoSize();
+                return true;
+            }
 
-            if (changed && AutoSizeAxes != Axes.None)
-                autoSize.Invalidate();
-
-            return changed;
+            return false;
         }
 
         public sealed override void UpdateClock(IFrameBasedClock clock)
@@ -343,7 +344,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || AutoSizeAxes != Axes.None && !autoSize.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
 
         internal sealed override bool UpdateSubTree()
         {
@@ -363,8 +364,7 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-            if (AutoSizeAxes != Axes.None)
-                updateAutoSize();
+            updateAutoSize();
             return true;
         }
 
@@ -386,12 +386,10 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation)
         {
-            if (AutoSizeAxes == Axes.None) return;
-
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
-                autoSize.Invalidate();
+                invalidateAutoSize();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -874,9 +872,7 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-
-                if (AutoSizeAxes != Axes.None)
-                    autoSize.Invalidate();
+                invalidateAutoSize();
             }
         }
 
@@ -895,6 +891,12 @@ namespace osu.Framework.Graphics.Containers
         internal event Action OnAutoSize;
 
         private Cached autoSize = new Cached();
+
+        private void invalidateAutoSize()
+        {
+            if (AutoSizeAxes != Axes.None)
+                autoSize.Invalidate();
+        }
 
         public override float Width
         {
@@ -958,19 +960,22 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSize.Refresh(delegate
                 {
-                    Vector2 b = computeAutoSize() + Padding.Total;
+                    if (AutoSizeAxes != Axes.None)
+                    {
+                        Vector2 b = computeAutoSize() + Padding.Total;
 
-                    if (AutoSizeDuration > 0)
-                    {
-                        ResizeTo(new Vector2(
-                                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                            ), AutoSizeDuration, AutoSizeEasing);
-                    }
-                    else
-                    {
-                        if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
-                        if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
+                        if (AutoSizeDuration > 0)
+                        {
+                            ResizeTo(new Vector2(
+                                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                                ), AutoSizeDuration, AutoSizeEasing);
+                        }
+                        else
+                        {
+                            if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
+                            if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
+                        }
                     }
 
                     //note that this is called before autoSize becomes valid. may be something to consider down the line.
