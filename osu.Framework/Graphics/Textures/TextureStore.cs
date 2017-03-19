@@ -32,11 +32,6 @@ namespace osu.Framework.Graphics.Textures
                 atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
         }
 
-        /// <summary>
-        /// A dictionary of name to lockable objects used to restrict loading of new textures to only happen once.
-        /// </summary>
-        private ConcurrentDictionary<string, object> loadCache = new ConcurrentDictionary<string, object>();
-
         private Texture getTexture(string name)
         {
             RawTexture raw = base.Get($@"{name}");
