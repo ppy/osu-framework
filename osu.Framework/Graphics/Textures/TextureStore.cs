@@ -1,10 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Concurrent;
 using System.Drawing;
-using System.Threading;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
@@ -33,7 +31,10 @@ namespace osu.Framework.Graphics.Textures
                 atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
         }
 
-        Dictionary<string, object> loadCache = new Dictionary<string, object>();
+        /// <summary>
+        /// A dictionary of name to lockable objects used to restrict loading of new textures to only happen once.
+        /// </summary>
+        private Dictionary<string, object> loadCache = new Dictionary<string, object>();
 
         private Texture getTexture(string name)
         {
@@ -84,7 +85,7 @@ namespace osu.Framework.Graphics.Textures
             lock (loadCache)
             {
                 if (!loadCache.TryGetValue(name, out mutex))
-                    loadCache[name] = (mutex = new object());
+                    loadCache[name] = mutex = new object();
             }
 
             lock (mutex)
