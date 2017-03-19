@@ -6,12 +6,14 @@ using System.Drawing;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
+using System;
+using System.Threading;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        private readonly ConcurrentDictionary<string, TextureGL> textureCache = new ConcurrentDictionary<string, TextureGL>();
+        private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
 
         private TextureAtlas atlas;
 
@@ -70,32 +72,9 @@ namespace osu.Framework.Graphics.Textures
             return tex;
         }
 
-        private TextureGL getCachedTexture(string name)
-        {
-            TextureGL cachedTex;
-
-            //we've already cached this texture; return it up-front.
-            if (textureCache.TryGetValue(name, out cachedTex))
-                return cachedTex;
-
-            //we want to perform a load for this texture.
-            //first let's obtain a lockable object for this load.
-            object mutex = loadCache.GetOrAdd(name, n => new object());
-
-            lock (mutex)
-            {
-                //another thread may have completed the load, so re-check out output cache.
-                if (!textureCache.TryGetValue(name, out cachedTex))
-                {
-                    //perform the actual load if still required.
-                    cachedTex = getTexture(name)?.TextureGL;
-                    textureCache[name] = cachedTex;
-                }
-            }
-
-            loadCache.TryRemove(name, out mutex);
-
-            return cachedTex;
-        }
+        private TextureGL getCachedTexture(string name) =>
+            textureCache.GetOrAdd(name, n =>
+                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
+                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
     }
 }
