@@ -54,7 +54,9 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new virtual Texture Get(string name)
         {
-            var cachedTex = getCachedTexture(name);
+            var cachedTex = textureCache.GetOrAdd(name, n =>
+                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
+                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
             if (cachedTex == null) return null;
 
@@ -66,10 +68,5 @@ namespace osu.Framework.Graphics.Textures
 
             return tex;
         }
-
-        private TextureGL getCachedTexture(string name) =>
-            textureCache.GetOrAdd(name, n =>
-                //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
     }
 }
