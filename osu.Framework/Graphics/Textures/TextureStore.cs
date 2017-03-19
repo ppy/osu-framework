@@ -1,17 +1,20 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Concurrent;
 using System.Drawing;
+using System.Threading;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Textures
 {
     public class TextureStore : ResourceStore<RawTexture>
     {
-        private readonly Dictionary<string, TextureGL> textureCache = new Dictionary<string, TextureGL>();
+        private readonly ConcurrentDictionary<string, TextureGL> textureCache = new ConcurrentDictionary<string, TextureGL>();
 
         private TextureAtlas atlas;
 
@@ -29,6 +32,8 @@ namespace osu.Framework.Graphics.Textures
             if (useAtlas)
                 atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize);
         }
+
+        Dictionary<string, object> loadCache = new Dictionary<string, object>();
 
         private Texture getTexture(string name)
         {
@@ -52,67 +57,49 @@ namespace osu.Framework.Graphics.Textures
         /// <returns>The texture.</returns>
         public new virtual Texture Get(string name)
         {
-            //don't allow concurrent texture retrievals for the time being.
-            //can potentially make this happen if it ever becomes a thing we actually want.
-            lock (textureCache)
+            var cachedTex = getCachedTexture(name);
+
+            if (cachedTex == null) return null;
+
+            //use existing TextureGL (but provide a new texture instance).
+            var tex = new Texture(cachedTex)
             {
-                Texture tex = null;
+                ScaleAdjust = ScaleAdjust
+            };
 
-                try
+            return tex;
+        }
+
+        private TextureGL getCachedTexture(string name)
+        {
+            TextureGL cachedTex;
+
+            //we've already cached this texture; return it up-front.
+            if (textureCache.TryGetValue(name, out cachedTex))
+                return cachedTex;
+
+            //we want to perform a load for this texture.
+            //first let's obtain a lockable object for this load.
+            object mutex;
+            lock (loadCache)
+            {
+                if (!loadCache.TryGetValue(name, out mutex))
+                    loadCache[name] = (mutex = new object());
+            }
+
+            lock (mutex)
+            {
+                //another thread may have completed the load, so re-check out output cache.
+                if (!textureCache.TryGetValue(name, out cachedTex))
                 {
-                    TextureGL cachedTex;
-                    if (textureCache.TryGetValue(name, out cachedTex))
-                    {
-                        //use existing TextureGL (but provide a new texture instance).
-                        return tex = cachedTex != null ? new Texture(cachedTex) : null;
-                    }
-
-                    tex = getTexture(name);
-
-                    //load available mipmaps
-                    //int level = 1;
-                    //int div = 2;
-
-                    //while (tex.Width / div > 0)
-                    //{
-                    //    s = base.GetStream($@"{name}/{div}");
-
-                    //    if (s == null) break;
-
-                    //    int w = tex.Width / div;
-                    //    int h = tex.Height / div;
-
-                    //    TextureUpload upload = new TextureUpload(w * h * 4)
-                    //    {
-                    //        Level = level
-                    //    };
-
-                    //    using (MagickImage image = new MagickImage(s))
-                    //    {
-                    //        if (image.Width != w || image.Height != h)
-                    //        {
-                    //            image.Resize(new MagickGeometry($"{w}x{h}!"));
-                    //        }
-
-                    //        image.Write(new MemoryStream(upload.Data), MagickFormat.Rgba);
-                    //    }
-
-                    //    tex.SetData(upload);
-
-                    //    level++;
-                    //    div *= 2;
-                    //}
-
-                    textureCache[name] = tex?.TextureGL;
-
-                    return tex;
-                }
-                finally
-                {
-                    if (tex != null && ScaleAdjust != 1)
-                        tex.ScaleAdjust = ScaleAdjust;
+                    //perform the actual load if still required.
+                    cachedTex = getTexture(name)?.TextureGL;
+                    textureCache[name] = cachedTex;
+                    lock (loadCache) loadCache.Remove(name);
                 }
             }
+
+            return cachedTex;
         }
     }
 }
