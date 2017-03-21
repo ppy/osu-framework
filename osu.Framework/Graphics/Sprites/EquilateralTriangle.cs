@@ -11,16 +11,26 @@ namespace osu.Framework.Graphics.Sprites
     public class EquilateralTriangle : Triangle
     {
         /// <summary>
-        /// Scaling height by 0.866 results in equilateral triangles.
+        /// For equilateral triangles, height = cos(30) * sidelength = ~0.866.
+        /// This is applied to the side length of the triangle to determine the height.
         /// </summary>
-        private const float equilateral_length_scale = 0.866f;
+        private const float sidelength_scale_for_height = 0.866f;
 
         /// <summary>
-        /// The side lengths of this triangle.
+        /// The size of this triangle.
         /// <para>
-        /// Note: The Y-value is ignored for equilateral triangles.
+        /// When setting the size, the Y-value is ignored (use <see cref="Height"/> if you desire a specific height instead).
         /// </para>
         /// </summary>
-        public override Vector2 Size => new Vector2(base.Size.X, base.Size.X * equilateral_length_scale);
+        public override Vector2 Size => new Vector2(base.Size.X, base.Size.X * sidelength_scale_for_height);
+
+        /// <summary>
+        /// Sets the height of the triangle, adjusting the width as appropriate.
+        /// </summary>
+        public override float Height
+        {
+            get { return Width * sidelength_scale_for_height; }
+            set { Size = new Vector2(value / sidelength_scale_for_height); }
+        }
     }
 }
