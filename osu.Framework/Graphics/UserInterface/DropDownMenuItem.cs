@@ -14,11 +14,10 @@ namespace osu.Framework.Graphics.UserInterface
         Selected,
     }
 
-    public abstract class DropDownMenuItem<T> : ClickableContainer, IStateful<DropDownMenuItemState>
+    public abstract class DropDownMenuItem<T> : MenuItem, IStateful<DropDownMenuItemState>
     {
         public int Index;
         public int PositionIndex;
-        public readonly string DisplayText;
         public readonly T Value;
         public virtual bool CanSelect { get; set; } = true;
 
@@ -51,42 +50,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected Box Background;
-        protected Container Foreground;
-
-        private Color4 backgroundColour = Color4.DarkSlateGray;
-        public Color4 BackgroundColour
-        {
-            get { return backgroundColour; }
-            set
-            {
-                backgroundColour = value;
-                FormatBackground();
-            }
-        }
-
-        private Color4 foregroundColour = Color4.White;
-        public Color4 ForegroundColour
-        {
-            get { return foregroundColour; }
-            set
-            {
-                foregroundColour = value;
-                FormatForeground();
-            }
-        }
-
-        private Color4 backgroundColourHover = Color4.DarkGray;
-        public Color4 BackgroundColourHover
-        {
-            get { return backgroundColourHover; }
-            set
-            {
-                backgroundColourHover = value;
-                FormatBackground();
-            }
-        }
-
         private Color4 backgroundColourSelected = Color4.SlateGray;
         public Color4 BackgroundColourSelected
         {
@@ -95,17 +58,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 backgroundColourSelected = value;
                 FormatBackground();
-            }
-        }
-
-        private Color4 foregroundColourHover = Color4.White;
-        public Color4 ForegroundColourHover
-        {
-            get { return foregroundColourHover; }
-            set
-            {
-                foregroundColourHover = value;
-                FormatForeground();
             }
         }
 
@@ -151,12 +103,12 @@ namespace osu.Framework.Graphics.UserInterface
             FormatForeground();
         }
 
-        protected virtual void FormatBackground(bool hover = false)
+        protected override void FormatBackground(bool hover = false)
         {
             Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
         }
 
-        protected virtual void FormatForeground(bool hover = false)
+        protected override void FormatForeground(bool hover = false)
         {
             Foreground.FadeColour(hover ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
         }
