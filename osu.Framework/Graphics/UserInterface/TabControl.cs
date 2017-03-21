@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
 
-        protected DropDownMenu<T> DropDown;
+        protected DropDown<T> DropDown;
 
         protected TabFillFlowContainer<TabItem<T>> TabContainer;
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         ///  - It is made to be anchored to the right-hand side of its parent.
         ///  - The dropdown's header does *not* have a relative x axis.
         /// </summary>
-        protected abstract DropDownMenu<T> CreateDropDownMenu();
+        protected abstract DropDown<T> CreateDropDownMenu();
 
         /// <summary>
         /// Creates a tab item.

@@ -1,20 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK.Graphics;
-using osu.Framework.Configuration;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using osu.Framework.Input;
+using osu.Framework.Configuration;
+using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownMenu<T> : FillFlowContainer, IBindable, IStateful<DropDownMenuState>
+    public abstract class DropDown<T> : FillFlowContainer, IBindable
     {
-        private bool listInitialized;
+        protected internal DropDownHeader Header;
+        protected Menu DropDownMenu;
+
+        protected abstract DropDownHeader CreateHeader();
+        protected abstract Menu CreateMenu();
 
         private readonly List<DropDownMenuItem<T>> selectableItems = new List<DropDownMenuItem<T>>();
         private List<DropDownMenuItem<T>> items = new List<DropDownMenuItem<T>>();
@@ -32,7 +33,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
             set
             {
-                listInitialized = false;
                 ClearItems();
                 if (value == null)
                     return;
@@ -52,42 +52,15 @@ namespace osu.Framework.Graphics.UserInterface
                 item.Index = selectableItems.Count;
                 item.Action = delegate
                 {
-                    if (State == DropDownMenuState.Opened)
+                    if (DropDownMenu.State == MenuState.Opened)
                         SelectedIndex = item.Index;
                 };
                 selectableItems.Add(item);
                 itemDictionary[item.Value] = item.Index;
             }
-            if (listInitialized)
-                DropDownItemsContainer.Add(item);
+            DropDownMenu.ItemsContainer.Add(item);
         }
         // TODO: RemoveDropDownItem?
-
-        protected internal DropDownHeader Header;
-
-        protected Container ContentContainer;
-        protected ScrollContainer ScrollContainer;
-        protected FlowContainer<DropDownMenuItem<T>> DropDownItemsContainer;
-
-        protected abstract DropDownHeader CreateHeader();
-
-        private int maxDropDownHeight = 100;
-
-        /// <summary>
-        /// Maximum height the Drop-down box can reach.
-        /// </summary>
-        public int MaxDropDownHeight
-        {
-            get
-            {
-                return maxDropDownHeight;
-            }
-            set
-            {
-                maxDropDownHeight = value;
-                UpdateContentHeight();
-            }
-        }
 
         public string Description { get; set; }
 
@@ -111,7 +84,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 if (SelectedItem != null)
                     SelectedItem.IsSelected = true;
-                
+
                 TriggerValueChanged();
             }
         }
@@ -143,44 +116,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private DropDownMenuState state = DropDownMenuState.Closed;
-        protected Box ContentBackground;
-
-        public DropDownMenuState State
-        {
-            get
-            {
-                return state;
-            }
-            set
-            {
-                if (state == value) return;
-                state = value;
-
-                switch (value)
-                {
-                    case DropDownMenuState.Closed:
-                        TriggerFocusLost();
-                        AnimateClose();
-                        break;
-                    case DropDownMenuState.Opened:
-                        TriggerFocus();
-                        if (!listInitialized)
-                            initializeDropDownList();
-                        AnimateOpen();
-                        break;
-                }
-
-                UpdateContentHeight();
-            }
-        }
-
         /// <summary>
         /// Occurs when the selected item changes.
         /// </summary>
         public event EventHandler ValueChanged;
 
-        protected DropDownMenu()
+        protected DropDown()
         {
             AutoSizeAxes = Axes.Y;
             Direction = FillDirection.Vertical;
@@ -188,52 +129,11 @@ namespace osu.Framework.Graphics.UserInterface
             Children = new Drawable[]
             {
                 Header = CreateHeader(),
-                ContentContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    Masking = true,
-                    Children = new Drawable[]
-                    {
-                        ContentBackground = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.Black,
-                        },
-                        ScrollContainer = new ScrollContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = false,
-                            Children = new Drawable[]
-                            {
-                                DropDownItemsContainer = new FillFlowContainer<DropDownMenuItem<T>>
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Direction = FillDirection.Vertical,
-                                },
-                            },
-                        },
-                    },
-                }
+                DropDownMenu = CreateMenu()
             };
 
-            Header.Action = Toggle;
+            Header.Action = DropDownMenu.Toggle;
         }
-
-        protected virtual void UpdateContentHeight()
-        {
-            ContentContainer.Height = ContentHeight;
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-            UpdateContentHeight();
-        }
-
-        protected override bool OnFocus(InputState state) => true;
-
-        protected override void OnFocusLost(InputState state) => State = DropDownMenuState.Closed;
 
         protected override void LoadComplete()
         {
@@ -264,32 +164,16 @@ namespace osu.Framework.Graphics.UserInterface
         public void TriggerValueChanged()
         {
             Header.Label = SelectedItem?.DisplayText;
-            State = DropDownMenuState.Closed;
+            DropDownMenu.State = MenuState.Closed;
             ValueChanged?.Invoke(this, null);
         }
-
-        protected virtual void AnimateOpen()
-        {
-            foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
-                child.Show();
-            ContentContainer.Show();
-        }
-
-        protected virtual void AnimateClose()
-        {
-            foreach (DropDownMenuItem<T> child in DropDownItemsContainer.Children)
-                child.Hide();
-            ContentContainer.Hide();
-        }
-
-        public void Toggle() => State = State == DropDownMenuState.Closed ? DropDownMenuState.Opened : DropDownMenuState.Closed;
 
         public void ClearItems()
         {
             items.Clear();
             selectableItems.Clear();
             itemDictionary.Clear();
-            DropDownItemsContainer.Clear();
+            DropDownMenu.ItemsContainer.Clear();
         }
 
         internal void HideItem(T val)
@@ -311,24 +195,5 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private void updateHeaderVisibility() => Header.Alpha = ItemList.Any(i => i.IsPresent) ? 1 : 0;
-
-        private void initializeDropDownList()
-        {
-            if (DropDownItemsContainer == null || !DropDownItemsContainer.IsLoaded)
-                return;
-
-            foreach (DropDownMenuItem<T> item in items)
-                DropDownItemsContainer.Add(item);
-
-            listInitialized = true;
-        }
-
-        protected float ContentHeight => Math.Min(DropDownItemsContainer.Height, MaxDropDownHeight);
-    }
-
-    public enum DropDownMenuState
-    {
-        Closed,
-        Opened,
     }
 }
