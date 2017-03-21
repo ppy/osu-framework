@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         ///  - It is made to be anchored to the right-hand side of its parent.
         ///  - The dropdown's header does *not* have a relative x axis.
         /// </summary>
-        protected abstract DropDown<T> CreateDropDownMenu();
+        protected abstract DropDown<T> CreateDropDown();
 
         /// <summary>
         /// Creates a tab item.
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TabControl()
         {
-            DropDown = CreateDropDownMenu();
+            DropDown = CreateDropDown();
             DropDown.RelativeSizeAxes = Axes.X;
             DropDown.Anchor = Anchor.TopRight;
             DropDown.Origin = Anchor.TopRight;
