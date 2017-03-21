@@ -8,26 +8,16 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public enum DropDownMenuItemState
+    public abstract class DropDownMenuItem<T> : MenuItem
     {
-        NotSelected,
-        Selected,
-    }
-
-    public abstract class DropDownMenuItem<T> : MenuItem, IStateful<DropDownMenuItemState>
-    {
-        public int Index;
-        public int PositionIndex;
         public readonly T Value;
-        public virtual bool CanSelect { get; set; } = true;
-
         private bool selected;
 
         public bool IsSelected
         {
             get
             {
-                if (!CanSelect)
+                if (!Enabled)
                     return false;
                 return selected;
             }
@@ -35,18 +25,6 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selected = value;
                 OnSelectChange();
-            }
-        }
-
-        public DropDownMenuItemState State
-        {
-            get
-            {
-                return IsSelected ? DropDownMenuItemState.Selected : DropDownMenuItemState.NotSelected;
-            }
-            set
-            {
-                IsSelected = value == DropDownMenuItemState.Selected;
             }
         }
 

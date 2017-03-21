@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.UserInterface
             DropDown.RelativeSizeAxes = Axes.X;
             DropDown.Anchor = Anchor.TopRight;
             DropDown.Origin = Anchor.TopRight;
-            DropDown.ValueChanged += delegate { tabMap[DropDown.SelectedValue].Active = true; };
+            DropDown.SelectedValue.ValueChanged += delegate { tabMap[DropDown.SelectedValue].Active = true; };
 
             Trace.Assert((DropDown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(DropDown)} implementation should use a right-based anchor inside a TabControl.");
             Trace.Assert((DropDown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(DropDown)} implementation's header should have a specific size.");
