@@ -62,6 +62,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Scheduler textUpdateScheduler = new Scheduler();
 
+        public Action Action;
+
         public TextBox()
         {
             Masking = true;
@@ -534,6 +536,7 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Enter:
                     selectionStart = selectionEnd = 0;
                     TriggerFocusLost(state);
+                    Action?.Invoke();
                     return true;
                 case Key.Delete:
                     if (selectionLength == 0)
