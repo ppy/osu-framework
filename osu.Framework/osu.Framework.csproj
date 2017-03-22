@@ -115,6 +115,7 @@
     <Compile Include="Graphics\Containers\TabFillFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
+    <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\EventArgs.cs" />
