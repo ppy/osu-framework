@@ -621,7 +621,7 @@ namespace osu.Framework.Graphics.Containers
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
-            if (!Masking || cRadius == 0.0f)
+            if (cRadius == 0.0f)
                 return base.InternalContains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
@@ -787,7 +787,7 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 float cRadius = CornerRadius;
-                if (!Masking || cRadius == 0.0f)
+                if (cRadius == 0.0f)
                     return base.BoundingBox;
 
                 RectangleF drawRect = LayoutRectangle.Shrink(cRadius);
