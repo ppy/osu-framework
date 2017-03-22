@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class MenuItem : ClickableContainer
     {
-        public string DisplayText;
+        public string Text;
 
         public virtual bool IsEnabled { get; set; } = true;
 

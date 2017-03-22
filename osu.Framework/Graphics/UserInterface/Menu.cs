@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
     }
     public class Menu : Container, IStateful<MenuState>
     {
-        protected Box ContentBackground;
+        public Box Background;
         public readonly FillFlowContainer<MenuItem> ItemsContainer;
 
         protected Menu()
@@ -25,7 +25,7 @@ namespace osu.Framework.Graphics.UserInterface
             Masking = true;
             Children = new Drawable[]
             {
-                ContentBackground = new Box
+                Background = new Box
                 {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black

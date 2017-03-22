@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -54,9 +55,11 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected DropDownMenuItem(string text, T value)
         {
+            if (value == null)
+                throw new ArgumentNullException($"{nameof(DropDownMenuItem<T>)} does not support null value!");
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
-            DisplayText = text;
+            Text = text;
             Value = value;
 
             InternalChildren = new Drawable[]

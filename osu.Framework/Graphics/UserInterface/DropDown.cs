@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract DropDownHeader CreateHeader();
         protected abstract Menu CreateMenu();
-        protected abstract DropDownMenuItem<T> CreateMenuItem(string key, T value);
+        protected abstract DropDownMenuItem<T> CreateMenuItem(string text, T value);
 
         private readonly Dictionary<T, DropDownMenuItem<T>> itemMap = new Dictionary<T, DropDownMenuItem<T>>();
 
@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                return MenuItems.Select(i => new KeyValuePair<string, T>(i.DisplayText, i.Value));
+                return MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
             }
             set
             {
@@ -40,9 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        public void AddDropDownItem(string displayText, T value)
+        public void AddDropDownItem(string text, T value)
         {
-            var item = CreateMenuItem(displayText, value);
+            var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
                 selectedItem = item;
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.LoadComplete();
 
-            Header.Label = SelectedItem?.DisplayText;
+            Header.Label = SelectedItem?.Text;
         }
 
         private void refreshSelection(object sender, EventArgs e)
@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.UserInterface
                 && SelectedValue.Value != null)
                 itemMap.TryGetValue(SelectedValue.Value, out selectedItem);
 
-            Header.Label = SelectedItem?.DisplayText;
+            Header.Label = SelectedItem?.Text;
         }
 
         public void ClearItems()
