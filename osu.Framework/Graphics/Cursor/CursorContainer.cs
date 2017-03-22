@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.Cursor
             public Cursor()
             {
                 AutoSizeAxes = Axes.Both;
+                Origin = Anchor.Centre;
 
                 BorderThickness = 2;
                 BorderColour = new Color4(247, 99, 164, 255);

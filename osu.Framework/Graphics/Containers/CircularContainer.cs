@@ -5,12 +5,14 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
+    /// </summary>
     public class CircularContainer : Container
     {
         public CircularContainer()
         {
             Masking = true;
-            Origin = Anchor.Centre;
         }
 
         public override float CornerRadius
