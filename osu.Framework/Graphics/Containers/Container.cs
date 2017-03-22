@@ -787,7 +787,7 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 float cRadius = CornerRadius;
-                if (!Masking || cRadius == 0.0f)
+                if (cRadius == 0.0f)
                     return base.BoundingBox;
 
                 RectangleF drawRect = LayoutRectangle.Shrink(cRadius);
