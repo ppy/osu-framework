@@ -127,7 +127,7 @@
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
     <Compile Include="Graphics\Containers\BufferedContainerDrawNode.cs" />
-    <Compile Include="Graphics\Containers\CircularContainer.cs" />
+    <Compile Include="Graphics\Containers\CircularMaskedContainer.cs" />
     <Compile Include="Graphics\Containers\ClickableContainer.cs" />
     <Compile Include="Graphics\Containers\FocusedOverlayContainer.cs" />
     <Compile Include="Graphics\Containers\IContainer.cs" />
