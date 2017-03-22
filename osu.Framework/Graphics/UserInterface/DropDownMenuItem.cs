@@ -4,7 +4,6 @@
 using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -57,23 +56,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (value == null)
                 throw new ArgumentNullException($"{nameof(DropDownMenuItem<T>)} does not support null value!");
-            RelativeSizeAxes = Axes.X;
-            AutoSizeAxes = Axes.Y;
             Text = text;
             Value = value;
-
-            InternalChildren = new Drawable[]
-            {
-                Background = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                },
-                Foreground = new Container
-                {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
-                },
-            };
         }
 
         protected virtual void OnSelectChange()

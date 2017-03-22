@@ -61,6 +61,24 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
+        public MenuItem()
+        {
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
+            InternalChildren = new Drawable[]
+            {
+                Background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                },
+                Foreground = new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                },
+            };
+        }
+
         protected virtual void FormatBackground(bool hover = false)
         {
             Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
