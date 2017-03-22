@@ -63,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledTabControl : TabControl<TestEnum>
         {
-            protected override DropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override DropDown<TestEnum> CreateDropDown() => new StyledDropDown();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
@@ -118,32 +118,24 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : DropDownMenu<TestEnum>
+        private class StyledDropDown : DropDown<TestEnum>
         {
+            protected override Menu CreateMenu() => new Menu();
+
             protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
 
-            protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
+            protected override DropDownMenuItem<TestEnum> CreateMenuItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
 
-            public StyledDropDownMenu()
+            public StyledDropDown()
             {
-                MaxDropDownHeight = int.MaxValue;
-                ContentContainer.CornerRadius = 4;
-                ScrollContainer.ScrollDraggerVisible = false;
+                DropDownMenu.MaxHeight = int.MaxValue;
+                DropDownMenu.CornerRadius = 4;
+                DropDownMenu.ScrollContainer.ScrollDraggerVisible = false;
 
-                ContentContainer.Anchor = Anchor.TopRight;
-                ContentContainer.Origin = Anchor.TopRight;
+                DropDownMenu.Anchor = Anchor.TopRight;
+                DropDownMenu.Origin = Anchor.TopRight;
                 Header.Anchor = Anchor.TopRight;
                 Header.Origin = Anchor.TopRight;
-            }
-
-            protected override void AnimateOpen()
-            {
-                ContentContainer.Show();
-            }
-
-            protected override void AnimateClose()
-            {
-                ContentContainer.Hide();
             }
         }
 

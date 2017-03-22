@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class DropDown<T> : FillFlowContainer
     {
         protected internal DropDownHeader Header;
-        protected Menu DropDownMenu;
+        protected internal Menu DropDownMenu;
 
         protected abstract DropDownHeader CreateHeader();
         protected abstract Menu CreateMenu();

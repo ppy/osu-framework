@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -30,39 +30,28 @@ namespace osu.Framework.VisualTests.Tests
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
-                Description = @"Drop-down menu",
+                //Description = @"Drop-down menu",
                 Depth = 1,
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
-                SelectedIndex = 4,
             };
+            styledDropDownMenu.SelectedValue.Value = testItems[4];
             Add(styledDropDownMenu);
 
             AddButton("AddItem", () => styledDropDownMenu.AddDropDownItem(@"test " + i, @"test " + i++));
         }
 
-        private class StyledDropDownMenu : DropDownMenu<string>
+        private class StyledDropDownMenu : DropDown<string>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new StyledDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<string> CreateDropDownItem(string key, string value) => new StyledDropDownMenuItem(key);
+            protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
+
+            protected override DropDownMenuItem<string> CreateMenuItem(string key, string value) => new StyledDropDownMenuItem(key);
 
             public StyledDropDownMenu()
             {
                 Header.CornerRadius = 4;
-                ContentContainer.CornerRadius = 4;
-            }
-
-            protected override void AnimateOpen()
-            {
-                ContentContainer.Show();
-            }
-
-            protected override void AnimateClose()
-            {
-                ContentContainer.Hide();
+                DropDownMenu.CornerRadius = 4;
             }
         }
 

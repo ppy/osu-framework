@@ -16,10 +16,11 @@ namespace osu.Framework.Graphics.UserInterface
     }
     public class Menu : Container, IStateful<MenuState>
     {
-        public Box Background;
+        public readonly Box Background;
         public readonly FillFlowContainer<MenuItem> ItemsContainer;
+        public readonly ScrollContainer ScrollContainer;
 
-        protected Menu()
+        public Menu()
         {
             RelativeSizeAxes = Axes.X;
             Masking = true;
@@ -30,7 +31,7 @@ namespace osu.Framework.Graphics.UserInterface
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black
                 },
-                new ScrollContainer
+                ScrollContainer = new ScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
