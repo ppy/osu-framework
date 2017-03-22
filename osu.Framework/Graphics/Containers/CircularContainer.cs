@@ -7,12 +7,6 @@ namespace osu.Framework.Graphics.Containers
 {
     public class CircularContainer : Container
     {
-        public CircularContainer()
-        {
-            Masking = true;
-            Origin = Anchor.Centre;
-        }
-
         public override float CornerRadius
         {
             get
