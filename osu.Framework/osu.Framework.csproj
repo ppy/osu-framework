@@ -145,9 +145,9 @@
     <Compile Include="Graphics\Transforms\TransformGlowAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownHeader.cs" />
-    <Compile Include="Graphics\UserInterface\DropDown.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
+    <Compile Include="Graphics\UserInterface\Dropdown.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\PasswordTextBox.cs" />
     <Compile Include="Graphics\UserInterface\SliderBar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />

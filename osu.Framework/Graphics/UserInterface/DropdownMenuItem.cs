@@ -8,7 +8,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownMenuItem<T> : MenuItem
+    public abstract class DropdownMenuItem<T> : MenuItem
     {
         public readonly T Value;
         private bool selected;
@@ -52,10 +52,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => Foreground;
 
-        protected DropDownMenuItem(string text, T value)
+        protected DropdownMenuItem(string text, T value)
         {
             if (value == null)
-                throw new ArgumentNullException($"{nameof(DropDownMenuItem<T>)} does not support null value!");
+                throw new ArgumentNullException($"{nameof(DropdownMenuItem<T>)} does not support null value!");
             Text = text;
             Value = value;
         }

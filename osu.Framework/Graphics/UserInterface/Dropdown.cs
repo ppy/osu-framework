@@ -13,15 +13,15 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class DropDown<T> : FillFlowContainer
+    public abstract class Dropdown<T> : FillFlowContainer
     {
-        protected internal DropDownHeader Header;
-        protected internal Menu DropDownMenu;
+        protected internal DropdownHeader Header;
+        protected internal Menu DropdownMenu;
 
         /// <summary>
         /// Creates the header part of the control.
         /// </summary>
-        protected abstract DropDownHeader CreateHeader();
+        protected abstract DropdownHeader CreateHeader();
 
         /// <summary>
         /// Creates the menu body.
@@ -33,19 +33,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        protected abstract DropDownMenuItem<T> CreateMenuItem(string text, T value);
+        protected abstract DropdownMenuItem<T> CreateMenuItem(string text, T value);
 
         /// <summary>
         /// A mapping from menu items to their values.
         /// </summary>
-        private readonly Dictionary<T, DropDownMenuItem<T>> itemMap = new Dictionary<T, DropDownMenuItem<T>>();
+        private readonly Dictionary<T, DropdownMenuItem<T>> itemMap = new Dictionary<T, DropdownMenuItem<T>>();
 
-        protected IEnumerable<DropDownMenuItem<T>> MenuItems => itemMap.Values;
+        protected IEnumerable<DropdownMenuItem<T>> MenuItems => itemMap.Values;
 
         /// <summary>
         /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
         /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
-        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropDownMenuItem{T}.Value"/>.
+        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropdownMenuItem{T}.Value"/>.
         /// </summary>
         public IEnumerable<KeyValuePair<string, T>> Items
         {
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
                     return;
 
                 foreach (var entry in value)
-                    AddDropDownItem(entry.Key, entry.Value);
+                    AddDropdownItem(entry.Key, entry.Value);
 
                 refreshSelection(null, null);
                 if (SelectedItem == null)
@@ -73,26 +73,26 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         /// <param name="text">Text to display on the menu item.</param>
         /// <param name="value">Value selected by the menu item.</param>
-        public void AddDropDownItem(string text, T value)
+        public void AddDropdownItem(string text, T value)
         {
             if (itemMap.ContainsKey(value))
-                throw new ArgumentException($"Duplicated selections in {nameof(DropDown<T>)}!");
+                throw new ArgumentException($"Duplicated selections in {nameof(Dropdown<T>)}!");
             var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
                 selectedItem = item;
                 SelectedValue.Value = item.Value;
-                DropDownMenu.State = MenuState.Closed;
+                DropdownMenu.State = MenuState.Closed;
             };
             itemMap[item.Value] = item;
-            DropDownMenu.ItemsContainer.Add(item);
+            DropdownMenu.ItemsContainer.Add(item);
         }
-        // TODO: RemoveDropDownItem?
+        // TODO: RemoveDropdownItem?
 
         public readonly Bindable<T> SelectedValue = new Bindable<T>();
 
-        private DropDownMenuItem<T> selectedItem;
-        protected DropDownMenuItem<T> SelectedItem
+        private DropdownMenuItem<T> selectedItem;
+        protected DropdownMenuItem<T> SelectedItem
         {
             get { return selectedItem; }
             set
@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        protected DropDown()
+        protected Dropdown()
         {
             AutoSizeAxes = Axes.Y;
             Direction = FillDirection.Vertical;
@@ -111,10 +111,10 @@ namespace osu.Framework.Graphics.UserInterface
             Children = new Drawable[]
             {
                 Header = CreateHeader(),
-                DropDownMenu = CreateMenu()
+                DropdownMenu = CreateMenu()
             };
 
-            Header.Action = DropDownMenu.Toggle;
+            Header.Action = DropdownMenu.Toggle;
             SelectedValue.ValueChanged += refreshSelection;
         }
 
@@ -142,7 +142,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void ClearItems()
         {
             itemMap.Clear();
-            DropDownMenu.ItemsContainer.Clear();
+            DropdownMenu.ItemsContainer.Clear();
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="val">The value to hide.</param>
         internal void HideItem(T val)
         {
-            DropDownMenuItem<T> item;
+            DropdownMenuItem<T> item;
             if (itemMap.TryGetValue(val, out item))
             {
                 item.Hide();
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="val">The value to show.</param>
         internal void ShowItem(T val)
         {
-            DropDownMenuItem<T> item;
+            DropdownMenuItem<T> item;
             if (itemMap.TryGetValue(val, out item))
             {
                 item.Show();

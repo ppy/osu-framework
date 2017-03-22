@@ -44,9 +44,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// We need a special case here to allow for the dropdown "overflowing" our own bounds.
         /// </summary>
-        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || Dropdown.Contains(screenSpacePos);
 
-        protected DropDown<T> DropDown;
+        protected Dropdown<T> Dropdown;
 
         protected TabFillFlowContainer<TabItem<T>> TabContainer;
 
@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         ///  - It is made to be anchored to the right-hand side of its parent.
         ///  - The dropdown's header does *not* have a relative x axis.
         /// </summary>
-        protected abstract DropDown<T> CreateDropDown();
+        protected abstract Dropdown<T> CreateDropdown();
 
         /// <summary>
         /// Creates a tab item.
@@ -79,17 +79,17 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TabControl()
         {
-            DropDown = CreateDropDown();
-            DropDown.RelativeSizeAxes = Axes.X;
-            DropDown.Anchor = Anchor.TopRight;
-            DropDown.Origin = Anchor.TopRight;
-            DropDown.SelectedValue.ValueChanged += delegate { tabMap[DropDown.SelectedValue].Active = true; };
+            Dropdown = CreateDropdown();
+            Dropdown.RelativeSizeAxes = Axes.X;
+            Dropdown.Anchor = Anchor.TopRight;
+            Dropdown.Origin = Anchor.TopRight;
+            Dropdown.SelectedValue.ValueChanged += delegate { tabMap[Dropdown.SelectedValue].Active = true; };
 
-            Trace.Assert((DropDown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(DropDown)} implementation should use a right-based anchor inside a TabControl.");
-            Trace.Assert((DropDown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(DropDown)} implementation's header should have a specific size.");
+            Trace.Assert((Dropdown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+            Trace.Assert((Dropdown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
 
             // Create Map of all items
-            tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
+            tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
 
             Children = new Drawable[]
             {
@@ -98,10 +98,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Direction = FillDirection.Full,
                     RelativeSizeAxes = Axes.Both,
                     Masking = true,
-                    TabVisibilityChanged = updateDropDown,
+                    TabVisibilityChanged = updateDropdown,
                     Children = tabMap.Values
                 },
-                DropDown
+                Dropdown
             };
         }
 
@@ -109,10 +109,10 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Update();
 
-            DropDown.Header.Height = DrawHeight;
+            Dropdown.Header.Height = DrawHeight;
             TabContainer.Padding = new MarginPadding
             {
-                Right = DropDown.Header.Width
+                Right = Dropdown.Header.Width
             };
         }
 
@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             tabMap[value] = tab;
             if (addToDropdown)
-                DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
+                Dropdown.AddDropdownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
             TabContainer.Add(tab);
 
             return tab;
@@ -175,12 +175,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// Callback on the change of visibility of a tab.
         /// Used to update the item's status in the overflow dropdown if required.
         /// </summary>
-        private void updateDropDown(TabItem<T> tab, bool isVisible)
+        private void updateDropdown(TabItem<T> tab, bool isVisible)
         {
             if (isVisible)
-                DropDown.HideItem(tab.Value);
+                Dropdown.HideItem(tab.Value);
             else
-                DropDown.ShowItem(tab.Value);
+                Dropdown.ShowItem(tab.Value);
         }
 
         private void selectTab(TabItem<T> tab)
