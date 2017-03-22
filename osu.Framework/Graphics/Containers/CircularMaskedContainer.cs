@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            Trace.Assert(Masking, $@"{nameof(CircularMaskedContainer)} must always have masking applied");
+            if (!Masking) throw new InvalidOperationException($@"{nameof(CircularMaskedContainer)} must always have masking applied");
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
