@@ -6,7 +6,7 @@ using System;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which come with masking and automatic corner radius based on the smallest edge div 2.
+    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
     /// </summary>
     public class CircularContainer : Container
     {
