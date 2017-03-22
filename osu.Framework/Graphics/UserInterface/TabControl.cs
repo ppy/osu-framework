@@ -210,5 +210,36 @@ namespace osu.Framework.Graphics.UserInterface
             if (IsLoaded)
                 TabContainer.Add(tab);
         }
+
+        public class TabFillFlowContainer<T> : FillFlowContainer<T> where T : TabItem
+        {
+            public Action<T, bool> TabVisibilityChanged;
+
+            protected override IEnumerable<Vector2> ComputeLayoutPositions()
+            {
+                foreach (var child in Children)
+                    child.Y = 0;
+
+                var result = base.ComputeLayoutPositions().ToArray();
+                int i = 0;
+                foreach (var child in FlowingChildren)
+                {
+                    updateChildIfNeeded(child, result[i].Y == 0);
+                    ++i;
+                }
+                return result;
+            }
+
+            private Dictionary<T, bool> tabVisibility = new Dictionary<T, bool>();
+
+            private void updateChildIfNeeded(T child, bool isVisible)
+            {
+                if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
+                {
+                    TabVisibilityChanged?.Invoke(child, isVisible);
+                    tabVisibility[child] = isVisible;
+                }
+            }
+        }
     }
 }
