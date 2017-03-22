@@ -109,6 +109,8 @@
     <Compile Include="DebugUtils\ThreadSafety.cs" />
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
+    <Compile Include="Graphics\Containers\ISearchable.cs" />
+    <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
