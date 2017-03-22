@@ -36,7 +36,10 @@ namespace osu.Framework.Graphics.UserInterface
 
                 foreach (var entry in value)
                     AddDropDownItem(entry.Key, entry.Value);
+
                 refreshSelection(null, null);
+                if (SelectedItem == null)
+                    SelectedItem = MenuItems.FirstOrDefault();
             }
         }
 
@@ -63,7 +66,8 @@ namespace osu.Framework.Graphics.UserInterface
             set
             {
                 selectedItem = value;
-                SelectedValue.Value = value.Value;
+                if (value != null)
+                    SelectedValue.Value = value.Value;
             }
         }
 

@@ -46,6 +46,7 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
             };
+            AnimateClose();
         }
 
         private MenuState state;
