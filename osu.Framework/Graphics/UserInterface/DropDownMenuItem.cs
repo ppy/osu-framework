@@ -18,7 +18,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                if (!IsEnabled)
+                if (!Enabled)
                     return false;
                 return selected;
             }

@@ -12,8 +12,6 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public string Text;
 
-        public virtual bool IsEnabled { get; set; } = true;
-
         protected Box Background;
         protected Container Foreground;
 
@@ -92,7 +90,5 @@ namespace osu.Framework.Graphics.UserInterface
             FormatBackground();
             FormatForeground();
         }
-
-        protected override bool OnClick(InputState state) => IsEnabled ? base.OnClick(state) : true;
     }
 }
