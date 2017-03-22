@@ -9,19 +9,44 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    /// <summary>
+    /// A drop-down menu to select from a group of values.
+    /// </summary>
+    /// <typeparam name="T">Type of value to select.</typeparam>
     public abstract class DropDown<T> : FillFlowContainer
     {
         protected internal DropDownHeader Header;
         protected internal Menu DropDownMenu;
 
+        /// <summary>
+        /// Creates the header part of the control.
+        /// </summary>
         protected abstract DropDownHeader CreateHeader();
+
+        /// <summary>
+        /// Creates the menu body.
+        /// </summary>
         protected abstract Menu CreateMenu();
+
+        /// <summary>
+        /// Creates a menu item.
+        /// </summary>
+        /// <param name="text">Text to display on the menu item.</param>
+        /// <param name="value">Value selected by the menu item.</param>
         protected abstract DropDownMenuItem<T> CreateMenuItem(string text, T value);
 
+        /// <summary>
+        /// A mapping from menu items to their values.
+        /// </summary>
         private readonly Dictionary<T, DropDownMenuItem<T>> itemMap = new Dictionary<T, DropDownMenuItem<T>>();
 
         protected IEnumerable<DropDownMenuItem<T>> MenuItems => itemMap.Values;
 
+        /// <summary>
+        /// Generate menu items by <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// The <see cref="KeyValuePair{TKey, TValue}.Key"/> part will become <see cref="MenuItem.Text"/>,
+        /// the <see cref="KeyValuePair{TKey, TValue}.Value"/> part will become <see cref="DropDownMenuItem{T}.Value"/>.
+        /// </summary>
         public IEnumerable<KeyValuePair<string, T>> Items
         {
             get
@@ -43,8 +68,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Add a menu item directly.
+        /// </summary>
+        /// <param name="text">Text to display on the menu item.</param>
+        /// <param name="value">Value selected by the menu item.</param>
         public void AddDropDownItem(string text, T value)
         {
+            if (itemMap.ContainsKey(value))
+                throw new ArgumentException($"Duplicated selections in {nameof(DropDown<T>)}!");
             var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
@@ -95,6 +127,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void refreshSelection(object sender, EventArgs e)
         {
+            // refresh if SelectedItem and SelectedValue mismatched
+            // null is not a valid value for Dictionary, so neither here
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, SelectedValue.Value))
                 && SelectedValue.Value != null)
                 itemMap.TryGetValue(SelectedValue.Value, out selectedItem);
@@ -102,12 +136,19 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text;
         }
 
+        /// <summary>
+        /// Clear all the menu items.
+        /// </summary>
         public void ClearItems()
         {
             itemMap.Clear();
             DropDownMenu.ItemsContainer.Clear();
         }
 
+        /// <summary>
+        /// Hide the menu item of specified value.
+        /// </summary>
+        /// <param name="val">The value to hide.</param>
         internal void HideItem(T val)
         {
             DropDownMenuItem<T> item;
@@ -118,6 +159,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Show the menu item of specified value.
+        /// </summary>
+        /// <param name="val">The value to show.</param>
         internal void ShowItem(T val)
         {
             DropDownMenuItem<T> item;

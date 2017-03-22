@@ -14,6 +14,10 @@ namespace osu.Framework.Graphics.UserInterface
         Closed,
         Opened
     }
+
+    /// <summary>
+    /// A list of command or selection items.
+    /// </summary>
     public class Menu : Container, IStateful<MenuState>
     {
         public readonly Box Background;
