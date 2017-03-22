@@ -56,7 +56,7 @@
     <Compile Include="Tests\TestCaseFlow.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
     <Compile Include="Tests\TestCaseAutosize.cs" />
-    <Compile Include="Tests\TestCaseDropDownBox.cs" />
+    <Compile Include="Tests\TestCaseDropdownBox.cs" />
     <Compile Include="Tests\TestCaseScreen.cs" />
     <Compile Include="Tests\TestCaseBufferedContainer.cs" />
     <Compile Include="Tests\TestCaseMasking.cs" />

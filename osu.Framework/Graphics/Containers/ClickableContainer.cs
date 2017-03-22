@@ -9,10 +9,12 @@ namespace osu.Framework.Graphics.Containers
     public class ClickableContainer : Container
     {
         public Action Action;
+        public bool Enabled { get; set; } = true;
 
         protected override bool OnClick(InputState state)
         {
-            Action?.Invoke();
+            if (Enabled)
+                Action?.Invoke();
             return true;
         }
     }

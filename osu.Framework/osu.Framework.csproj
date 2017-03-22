@@ -112,6 +112,8 @@
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\UserInterface\MenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\Menu.cs" />
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
@@ -143,9 +145,9 @@
     <Compile Include="Graphics\Transforms\TransformGlowAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownHeader.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
+    <Compile Include="Graphics\UserInterface\Dropdown.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\PasswordTextBox.cs" />
     <Compile Include="Graphics\UserInterface\SliderBar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />

@@ -8,48 +8,9 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public enum DropDownMenuItemState
+    public class MenuItem : ClickableContainer
     {
-        NotSelected,
-        Selected,
-    }
-
-    public abstract class DropDownMenuItem<T> : ClickableContainer, IStateful<DropDownMenuItemState>
-    {
-        public int Index;
-        public int PositionIndex;
-        public readonly string DisplayText;
-        public readonly T Value;
-        public virtual bool CanSelect { get; set; } = true;
-
-        private bool selected;
-
-        public bool IsSelected
-        {
-            get
-            {
-                if (!CanSelect)
-                    return false;
-                return selected;
-            }
-            set
-            {
-                selected = value;
-                OnSelectChange();
-            }
-        }
-
-        public DropDownMenuItemState State
-        {
-            get
-            {
-                return IsSelected ? DropDownMenuItemState.Selected : DropDownMenuItemState.NotSelected;
-            }
-            set
-            {
-                IsSelected = value == DropDownMenuItemState.Selected;
-            }
-        }
+        public string Text;
 
         protected Box Background;
         protected Container Foreground;
@@ -87,17 +48,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private Color4 backgroundColourSelected = Color4.SlateGray;
-        public Color4 BackgroundColourSelected
-        {
-            get { return backgroundColourSelected; }
-            set
-            {
-                backgroundColourSelected = value;
-                FormatBackground();
-            }
-        }
-
         private Color4 foregroundColourHover = Color4.White;
         public Color4 ForegroundColourHover
         {
@@ -109,26 +59,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private Color4 foregroundColourSelected = Color4.White;
-        public Color4 ForegroundColourSelected
-        {
-            get { return foregroundColourSelected; }
-            set
-            {
-                foregroundColourSelected = value;
-                FormatForeground();
-            }
-        }
-
         protected override Container<Drawable> Content => Foreground;
 
-        protected DropDownMenuItem(string text, T value)
+        public MenuItem()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
-            DisplayText = text;
-            Value = value;
-
             InternalChildren = new Drawable[]
             {
                 Background = new Box
@@ -143,28 +79,20 @@ namespace osu.Framework.Graphics.UserInterface
             };
         }
 
-        protected virtual void OnSelectChange()
-        {
-            if (!IsLoaded)
-                return;
-            FormatBackground();
-            FormatForeground();
-        }
-
         protected virtual void FormatBackground(bool hover = false)
         {
-            Background.FadeColour(hover ? BackgroundColourHover : (IsSelected ? BackgroundColourSelected : BackgroundColour));
+            Background.FadeColour(hover ? BackgroundColourHover : BackgroundColour);
         }
 
         protected virtual void FormatForeground(bool hover = false)
         {
-            Foreground.FadeColour(hover ? ForegroundColourHover : (IsSelected ? ForegroundColourSelected : ForegroundColour));
+            Foreground.FadeColour(hover ? ForegroundColourHover : ForegroundColour);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            Background.Colour = IsSelected ? BackgroundColourSelected : BackgroundColour;
+            Background.Colour = BackgroundColour;
         }
 
         protected override bool OnHover(InputState state)

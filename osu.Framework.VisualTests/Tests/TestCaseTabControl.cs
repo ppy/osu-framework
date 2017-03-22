@@ -63,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledTabControl : TabControl<TestEnum>
         {
-            protected override DropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
@@ -118,40 +118,32 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : DropDownMenu<TestEnum>
+        private class StyledDropdown : Dropdown<TestEnum>
         {
-            protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
+            protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            public StyledDropDownMenu()
+            protected override DropdownMenuItem<TestEnum> CreateMenuItem(string key, TestEnum value) => new StyledDropdownMenuItem(key, value);
+
+            public StyledDropdown()
             {
-                MaxDropDownHeight = int.MaxValue;
-                ContentContainer.CornerRadius = 4;
-                ScrollContainer.ScrollDraggerVisible = false;
+                DropdownMenu.MaxHeight = int.MaxValue;
+                DropdownMenu.CornerRadius = 4;
+                DropdownMenu.ScrollContainer.ScrollDraggerVisible = false;
 
-                ContentContainer.Anchor = Anchor.TopRight;
-                ContentContainer.Origin = Anchor.TopRight;
+                DropdownMenu.Anchor = Anchor.TopRight;
+                DropdownMenu.Origin = Anchor.TopRight;
                 Header.Anchor = Anchor.TopRight;
                 Header.Origin = Anchor.TopRight;
             }
-
-            protected override void AnimateOpen()
-            {
-                ContentContainer.Show();
-            }
-
-            protected override void AnimateClose()
-            {
-                ContentContainer.Hide();
-            }
         }
 
-        private class StyledDropDownHeader : DropDownHeader
+        private class StyledDropdownHeader : DropdownHeader
         {
             protected override string Label { get; set; }
 
-            public StyledDropDownHeader()
+            public StyledDropdownHeader()
             {
                 Background.Hide(); // don't need a background
 
@@ -168,9 +160,9 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenuItem : DropDownMenuItem<TestEnum>
+        private class StyledDropdownMenuItem : DropdownMenuItem<TestEnum>
         {
-            public StyledDropDownMenuItem(string text, TestEnum value) : base(text, value)
+            public StyledDropdownMenuItem(string text, TestEnum value) : base(text, value)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);

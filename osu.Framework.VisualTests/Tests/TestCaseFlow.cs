@@ -28,10 +28,10 @@ namespace osu.Framework.VisualTests.Tests
         private Container testContainer;
 
         private Anchor childAnchor = Anchor.TopLeft;
-        private AnchorDropDown anchorDropdown;
+        private AnchorDropdown anchorDropdown;
 
         private Anchor childOrigin = Anchor.TopLeft;
-        private AnchorDropDown originDropdown;
+        private AnchorDropdown originDropdown;
 
         private FillFlowContainer fc;
         private ScheduledDelegate scheduledAdder;
@@ -62,10 +62,9 @@ namespace osu.Framework.VisualTests.Tests
                         RelativeSizeAxes = Axes.X,
                         Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
                             .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
-                        SelectedIndex = 0,
                     },
                     new SpriteText { Text = @"Child anchor" },
-                    anchorDropdown = new AnchorDropDown
+                    anchorDropdown = new AnchorDropdown
                     {
                         RelativeSizeAxes = Axes.X,
                         Items = new[]
@@ -82,10 +81,9 @@ namespace osu.Framework.VisualTests.Tests
                             Anchor.BottomCentre,
                             Anchor.BottomRight,
                         }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                        SelectedIndex = 0,
                     },
                     new SpriteText { Text = @"Child origin" },
-                    originDropdown = new AnchorDropDown
+                    originDropdown = new AnchorDropdown
                     {
                         RelativeSizeAxes = Axes.X,
                         Items = new[]
@@ -102,7 +100,6 @@ namespace osu.Framework.VisualTests.Tests
                             Anchor.BottomCentre,
                             Anchor.BottomRight,
                         }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                        SelectedIndex = 0,
                     },
                 }
             });
@@ -138,7 +135,7 @@ namespace osu.Framework.VisualTests.Tests
             testContainer.Clear();
 
             var method = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
-            if(method != null)
+            if (method != null)
                 method.Invoke(this, new object[0]);
         }
 
@@ -252,7 +249,7 @@ namespace osu.Framework.VisualTests.Tests
                     if (fc.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if(addChildrenBtn.State)
+                    if (addChildrenBtn.State)
                     {
                         fc.Invalidate();
                     }
@@ -307,7 +304,7 @@ namespace osu.Framework.VisualTests.Tests
             buildTest(FillDirection.Vertical, new Vector2(5, 5));
         }
 
-        private class TestCaseDropDownHeader : DropDownHeader
+        private class TestCaseDropdownHeader : DropdownHeader
         {
             private SpriteText label;
             protected override string Label
@@ -316,7 +313,7 @@ namespace osu.Framework.VisualTests.Tests
                 set { label.Text = value; }
             }
 
-            public TestCaseDropDownHeader()
+            public TestCaseDropdownHeader()
             {
                 Foreground.Padding = new MarginPadding(4);
                 BackgroundColour = new Color4(100, 100, 100, 255);
@@ -328,17 +325,16 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class AnchorDropDown : DropDownMenu<Anchor>
+        private class AnchorDropdown : Dropdown<Anchor>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new TestCaseDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<Anchor> CreateDropDownItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
+            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+
+            protected override DropdownMenuItem<Anchor> CreateMenuItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
         }
 
-        private class AnchorDropdownMenuItem : DropDownMenuItem<Anchor>
+        private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
         {
             public AnchorDropdownMenuItem(Anchor anchor) : base(anchor.ToString(), anchor)
             {
@@ -352,17 +348,16 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class FillDirectionDropdown : DropDownMenu<FlowTestCase>
+        private class FillDirectionDropdown : Dropdown<FlowTestCase>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new TestCaseDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<FlowTestCase> CreateDropDownItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
+            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+
+            protected override DropdownMenuItem<FlowTestCase> CreateMenuItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
         }
 
-        private class FillDirectionDropdownMenuItem : DropDownMenuItem<FlowTestCase>
+        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
         {
             public FillDirectionDropdownMenuItem(FlowTestCase testCase) : base(testCase.ToString(), testCase)
             {

@@ -8,7 +8,7 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownHeader : ClickableContainer
+    public abstract class DropdownHeader : ClickableContainer
     {
         protected Container Background;
         protected Container Foreground;
@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected internal abstract string Label { get; set; }
 
-        protected DropDownHeader()
+        protected DropdownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;

@@ -1,23 +1,23 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using System.Collections.Generic;
-using System.Linq;
 using osu.Framework.Screens.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseDropDownBox : TestCase
+    internal class TestCaseDropdownBox : TestCase
     {
         public override string Description => @"Drop-down boxes";
 
-        private StyledDropDownMenu styledDropDownMenu;
+        private StyledDropdownMenu styledDropdownMenu;
 
         public override void Reset()
         {
@@ -26,47 +26,36 @@ namespace osu.Framework.VisualTests.Tests
             int i = 0;
             while (i < 10)
                 testItems[i] = @"test " + i++;
-            styledDropDownMenu = new StyledDropDownMenu
+            styledDropdownMenu = new StyledDropdownMenu
             {
                 Width = 150,
                 Position = new Vector2(200, 70),
-                Description = @"Drop-down menu",
+                //Description = @"Drop-down menu",
                 Depth = 1,
                 Items = testItems.Select(item => new KeyValuePair<string, string>(item, item)),
-                SelectedIndex = 4,
             };
-            Add(styledDropDownMenu);
+            styledDropdownMenu.SelectedValue.Value = testItems[4];
+            Add(styledDropdownMenu);
 
-            AddButton("AddItem", () => styledDropDownMenu.AddDropDownItem(@"test " + i, @"test " + i++));
+            AddButton("AddItem", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++));
         }
 
-        private class StyledDropDownMenu : DropDownMenu<string>
+        private class StyledDropdownMenu : Dropdown<string>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new StyledDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<string> CreateDropDownItem(string key, string value) => new StyledDropDownMenuItem(key);
+            protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            public StyledDropDownMenu()
+            protected override DropdownMenuItem<string> CreateMenuItem(string key, string value) => new StyledDropdownMenuItem(key);
+
+            public StyledDropdownMenu()
             {
                 Header.CornerRadius = 4;
-                ContentContainer.CornerRadius = 4;
-            }
-
-            protected override void AnimateOpen()
-            {
-                ContentContainer.Show();
-            }
-
-            protected override void AnimateClose()
-            {
-                ContentContainer.Hide();
+                DropdownMenu.CornerRadius = 4;
             }
         }
 
-        private class StyledDropDownHeader : DropDownHeader
+        private class StyledDropdownHeader : DropdownHeader
         {
             private SpriteText label;
             protected override string Label
@@ -75,7 +64,7 @@ namespace osu.Framework.VisualTests.Tests
                 set { label.Text = value; }
             }
 
-            public StyledDropDownHeader()
+            public StyledDropdownHeader()
             {
                 Foreground.Padding = new MarginPadding(4);
                 BackgroundColour = new Color4(255, 255, 255, 100);
@@ -87,9 +76,9 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenuItem : DropDownMenuItem<string>
+        private class StyledDropdownMenuItem : DropdownMenuItem<string>
         {
-            public StyledDropDownMenuItem(string text) : base(text, text)
+            public StyledDropdownMenuItem(string text) : base(text, text)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
