@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Cursor
             Alpha = 0;
         }
 
-        private class Cursor : CircularContainer
+        private class Cursor : CircularMaskedContainer
         {
             public Cursor()
             {
