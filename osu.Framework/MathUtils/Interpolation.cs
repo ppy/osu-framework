@@ -221,19 +221,19 @@ namespace osu.Framework.MathUtils
                         if (time < 1) return -.5 * (a * Math.Pow(2, 10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p)) + initial;
                         return a * Math.Pow(2, -10 * (time -= 1)) * Math.Sin((time * duration - s) * (2 * MathHelper.Pi) / p) * .5 + change + initial;
                     }
-                case EasingTypes.InBack:
+                    case EasingTypes.InBack:
                     {
-                        var s = 1.70158;
+                        const double s = 1.70158;
                         return change * (time /= duration) * time * ((s + 1) * time - s) + initial;
                     }
-                case EasingTypes.OutBack:
+                    case EasingTypes.OutBack:
                     {
-                        var s = 1.70158;
+                        const double s = 1.70158;
                         return change * ((time = time / duration - 1) * time * ((s + 1) * time + s) + 1) + initial;
                     }
-                case EasingTypes.InOutBack:
+                    case EasingTypes.InOutBack:
                     {
-                        var s = 1.70158;
+                        double s = 1.70158;
                         if ((time /= duration / 2) < 1) return change / 2 * (time * time * (((s *= 1.525) + 1) * time - s)) + initial;
                         return change / 2 * ((time -= 2) * time * (((s *= 1.525) + 1) * time + s) + 2) + initial;
                     }

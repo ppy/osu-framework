@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Lines
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
-            float step = MathHelper.Pi / MAXRES;
+            const float step = MathHelper.Pi / MAXRES;
 
             float dir = Math.Sign(thetaDiff);
             thetaDiff = dir * thetaDiff;

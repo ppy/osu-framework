@@ -8,7 +8,7 @@ namespace osu.Framework.VisualTests
 {
     public class Benchmark : Game
     {
-        private readonly double timePerTest = 200;
+        private const double time_per_test = 200;
 
         protected override void LoadComplete()
         {
@@ -21,7 +21,7 @@ namespace osu.Framework.VisualTests
             TestBrowser f = new TestBrowser();
             Add(f);
 
-            Console.WriteLine($@"{Time}: Running {f.TestCount} tests for {timePerTest}ms each...");
+            Console.WriteLine($@"{Time}: Running {f.TestCount} tests for {time_per_test}ms each...");
 
             for (int i = 1; i < f.TestCount; i++)
             {
@@ -30,10 +30,10 @@ namespace osu.Framework.VisualTests
                 {
                     f.LoadTest(loadableCase);
                     Console.WriteLine($@"{Time}: Switching to test #{loadableCase}");
-                }, loadableCase * timePerTest);
+                }, loadableCase * time_per_test);
             }
 
-            Scheduler.AddDelayed(Host.Exit, f.TestCount * timePerTest);
+            Scheduler.AddDelayed(Host.Exit, f.TestCount * time_per_test);
         }
     }
 }

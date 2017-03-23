@@ -16,7 +16,8 @@ namespace osu.Framework.Desktop.Platform
 {
     public class TcpIpcProvider : IDisposable
     {
-        private readonly int ipcPort = 45356;
+        private const int ipc_port = 45356;
+
         private TcpListener listener;
         private CancellationTokenSource cancelListener;
 
@@ -24,7 +25,7 @@ namespace osu.Framework.Desktop.Platform
 
         public bool Bind()
         {
-            listener = new TcpListener(IPAddress.Loopback, ipcPort);
+            listener = new TcpListener(IPAddress.Loopback, ipc_port);
             try
             {
                 listener.Start();
@@ -90,7 +91,7 @@ namespace osu.Framework.Desktop.Platform
         {
             using (var client = new TcpClient())
             {
-                await client.ConnectAsync(IPAddress.Loopback, ipcPort);
+                await client.ConnectAsync(IPAddress.Loopback, ipc_port);
                 using (var stream = client.GetStream())
                 {
                     var str = JsonConvert.SerializeObject(message, Formatting.None);
