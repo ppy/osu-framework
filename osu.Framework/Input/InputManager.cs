@@ -152,6 +152,13 @@ namespace osu.Framework.Input
             if (pendingStates.Count == 0)
                 updateInputQueues(CurrentState);
 
+            if (CurrentState.Mouse != null)
+            {
+                foreach (var d in mouseInputQueue)
+                    if (d is IRequireAccurateMousePosition)
+                        d.TriggerMouseMove(CurrentState);
+            }
+
             keyboardRepeatTime -= Time.Elapsed;
 
             if (FocusedDrawable == null)
