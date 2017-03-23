@@ -24,7 +24,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The currently selected item.
         /// </summary>
-        public T SelectedItem => SelectedTab.Value;
+        public T SelectedItem
+        {
+            get
+            {
+                return SelectedTab.Value;
+            }
+
+            set
+            {
+                if (IsLoaded)
+                    selectTab(tabMap[value]);
+                else
+                    //will be handled in LoadComplete
+                    SelectedTab = tabMap[value];
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the other they are dispalyed.
@@ -123,7 +138,9 @@ namespace osu.Framework.Graphics.UserInterface
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (TabContainer.Children.Any())
+            if (SelectedTab != null)
+                selectTab(SelectedTab);
+            else if (TabContainer.Children.Any())
                 TabContainer.Children.First().Active = true;
         }
 
@@ -194,9 +211,11 @@ namespace osu.Framework.Graphics.UserInterface
                 resortTab(tab);
 
             // Deactivate previously selected tab
-            if (SelectedTab != null)
-                SelectedTab.Active = false;
+            if (SelectedTab != tab) SelectedTab.Active = false;
+
             SelectedTab = tab;
+            SelectedTab.Active = true;
+
             ItemChanged?.Invoke(this, tab.Value);
         }
 
