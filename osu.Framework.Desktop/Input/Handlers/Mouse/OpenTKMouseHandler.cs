@@ -57,7 +57,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private class TkMouseState : MouseState
         {
-            public bool WasActive;
+            public readonly bool WasActive;
 
             public override int WheelDelta => WasActive ? base.WheelDelta : 0;
 

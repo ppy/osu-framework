@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.UserInterface
                 return result;
             }
 
-            private Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
+            private readonly Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
 
             private void updateChildIfNeeded(U child, bool isVisible)
             {

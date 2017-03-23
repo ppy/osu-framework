@@ -73,7 +73,7 @@ namespace osu.Framework.Platform
 
         public virtual Storage Storage { get; protected set; }
 
-        private List<GameThread> threads;
+        private readonly List<GameThread> threads;
 
         public IEnumerable<GameThread> Threads => threads;
 

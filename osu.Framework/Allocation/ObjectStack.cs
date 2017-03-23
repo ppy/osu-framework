@@ -7,9 +7,9 @@ namespace osu.Framework.Allocation
 {
     public class ObjectStack<T> where T : new()
     {
-        private int maxAmountObjects;
+        private readonly int maxAmountObjects;
         private readonly Stack<T> freeObjects = new Stack<T>();
-        private HashSet<T> usedObjects = new HashSet<T>();
+        private readonly HashSet<T> usedObjects = new HashSet<T>();
 
         public ObjectStack(int maxAmountObjects = -1)
         {

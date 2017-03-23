@@ -210,9 +210,12 @@ namespace osu.Framework.VisualTests.Tests
 
         private class PaddedBox : Container
         {
-            private SpriteText t1, t2, t3, t4;
+            private readonly SpriteText t1;
+            private readonly SpriteText t2;
+            private readonly SpriteText t3;
+            private readonly SpriteText t4;
 
-            private Container content;
+            private readonly Container content;
 
             protected override Container<Drawable> Content => content;
 
@@ -266,7 +269,7 @@ namespace osu.Framework.VisualTests.Tests
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            public bool AllowDrag = true;
+            public readonly bool AllowDrag = true;
 
             protected override bool OnDrag(InputState state)
             {

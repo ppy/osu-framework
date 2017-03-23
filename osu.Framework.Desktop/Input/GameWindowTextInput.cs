@@ -9,7 +9,7 @@ namespace osu.Framework.Desktop.Input
 {
     public class GameWindowTextInput : ITextInputSource
     {
-        private GameWindow window;
+        private readonly GameWindow window;
 
         private string pending = string.Empty;
 

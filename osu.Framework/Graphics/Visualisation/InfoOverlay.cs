@@ -38,9 +38,9 @@ namespace osu.Framework.Graphics.Visualisation
             return new Quad(pos.X - size.X / 2, pos.Y - size.Y / 2, size.X, size.Y);
         }
 
-        private FlashyBox layout;
-        private FlashyBox shape;
-        private FlashyBox childShape;
+        private readonly FlashyBox layout;
+        private readonly FlashyBox shape;
+        private readonly FlashyBox childShape;
 
         public InfoOverlay()
         {

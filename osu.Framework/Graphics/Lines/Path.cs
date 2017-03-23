@@ -96,7 +96,7 @@ namespace osu.Framework.Graphics.Lines
         private Shader roundedTextureShader;
         private Shader textureShader;
 
-        private PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
+        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
         public bool CanDisposeTexture { get; protected set; }
 

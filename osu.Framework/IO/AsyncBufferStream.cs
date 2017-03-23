@@ -32,7 +32,7 @@ namespace osu.Framework.IO
 
         private readonly Stream underlyingStream;
 
-        private Thread loadThread;
+        private readonly Thread loadThread;
 
         /// <summary>
         /// A stream that buffers the underlying stream to contiguous memory, reading until the whole file is eventually memory-backed.

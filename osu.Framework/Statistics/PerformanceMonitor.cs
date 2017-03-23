@@ -12,11 +12,11 @@ namespace osu.Framework.Statistics
 {
     public class PerformanceMonitor
     {
-        private StopwatchClock ourClock = new StopwatchClock(true);
+        private readonly StopwatchClock ourClock = new StopwatchClock(true);
 
-        private Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
+        private readonly Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
-        private InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[(int)PerformanceCollectionType.AmountTypes];
+        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[(int)PerformanceCollectionType.AmountTypes];
 
         private FrameStatistics currentFrame;
 
@@ -84,7 +84,7 @@ namespace osu.Framework.Statistics
 
         public int TargetFrameRate;
 
-        private int[] lastAmountGarbageCollects = new int[3];
+        private readonly int[] lastAmountGarbageCollects = new int[3];
 
         public bool HandleGC = true;
 

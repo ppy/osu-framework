@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.UserInterface
         public OnCommitHandler OnCommit;
         public OnCommitHandler OnChange;
 
-        private Scheduler textUpdateScheduler = new Scheduler();
+        private readonly Scheduler textUpdateScheduler = new Scheduler();
 
         public TextBox()
         {

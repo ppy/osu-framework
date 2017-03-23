@@ -41,11 +41,11 @@ namespace osu.Framework.Screens.Testing
         private TestCase loadedTest;
         private Container testContainer;
 
-        private List<TestCase> testCases = new List<TestCase>();
+        private readonly List<TestCase> testCases = new List<TestCase>();
 
         public int TestCount => testCases.Count;
 
-        private List<TestCase> tests = new List<TestCase>();
+        private readonly List<TestCase> tests = new List<TestCase>();
 
         private ConfigManager<TestBrowserOption> config;
 

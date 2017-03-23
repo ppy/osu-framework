@@ -20,9 +20,9 @@ namespace osu.Framework.Configuration
 
         private bool hasUnsavedChanges;
 
-        private Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
+        private readonly Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        private Storage storage;
+        private readonly Storage storage;
 
         public ConfigManager(Storage storage)
         {

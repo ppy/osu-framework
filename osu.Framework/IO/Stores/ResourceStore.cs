@@ -10,9 +10,9 @@ namespace osu.Framework.IO.Stores
 {
     public class ResourceStore<T> : IResourceStore<T>
     {
-        private Dictionary<string, Action> actionList = new Dictionary<string, Action>();
+        private readonly Dictionary<string, Action> actionList = new Dictionary<string, Action>();
 
-        private List<IResourceStore<T>> stores = new List<IResourceStore<T>>();
+        private readonly List<IResourceStore<T>> stores = new List<IResourceStore<T>>();
 
         private readonly List<string> searchExtensions = new List<string>();
 

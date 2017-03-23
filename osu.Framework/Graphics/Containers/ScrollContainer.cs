@@ -41,8 +41,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Container content;
-        private ScrollBar scrollDragger;
+        private readonly Container content;
+        private readonly ScrollBar scrollDragger;
 
 
         private bool scrollDraggerOverlapsContent = true;
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
 
         private bool isDragging;
 
-        private Direction scrollDir;
+        private readonly Direction scrollDir;
         private int scrollDim => (int)scrollDir;
 
         public ScrollContainer(Direction scrollDir = Direction.Vertical)
@@ -356,7 +356,7 @@ namespace osu.Framework.Graphics.Containers
             private static readonly Color4 hover_colour = Color4.White;
             private static readonly Color4 default_colour = Color4.LightGray;
             private static readonly Color4 highlight_colour = Color4.GreenYellow;
-            private Box box;
+            private readonly Box box;
 
             private float dragOffset;
 

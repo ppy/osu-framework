@@ -17,8 +17,8 @@ namespace osu.Framework.Screens
 
         public bool IsCurrentScreen => !hasExited && ChildScreen == null;
 
-        private Container content;
-        private Container childModeContainer;
+        private readonly Container content;
+        private readonly Container childModeContainer;
 
         protected Game Game;
 

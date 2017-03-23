@@ -13,12 +13,12 @@ namespace osu.Framework.Graphics.Visualisation
 {
     public class DrawVisualiser : OverlayContainer
     {
-        private TreeContainer treeContainer;
+        private readonly TreeContainer treeContainer;
 
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
-        private SortedList<VisualisedDrawable> hoveredDrawables =
+        private readonly SortedList<VisualisedDrawable> hoveredDrawables =
             new SortedList<VisualisedDrawable>(VisualisedDrawable.Comparer);
 
         public DrawVisualiser()

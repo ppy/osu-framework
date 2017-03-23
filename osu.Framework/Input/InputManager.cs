@@ -68,15 +68,15 @@ namespace osu.Framework.Input
         /// <summary>
         /// The sequential list in which to handle mouse input.
         /// </summary>
-        private List<Drawable> mouseInputQueue = new List<Drawable>();
+        private readonly List<Drawable> mouseInputQueue = new List<Drawable>();
 
         /// <summary>
         /// The sequential list in which to handle keyboard input.
         /// </summary>
-        private List<Drawable> keyboardInputQueue = new List<Drawable>();
+        private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
-        private List<Drawable> hoveredDrawables = new List<Drawable>();
+        private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
         public InputManager()

@@ -27,12 +27,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
-        private Box textBg;
-        private SpriteText text;
-        private Drawable previewBox;
-        private Drawable activityInvalidate;
-        private Drawable activityAutosize;
-        private Drawable activityLayout;
+        private readonly Box textBg;
+        private readonly SpriteText text;
+        private readonly Drawable previewBox;
+        private readonly Drawable activityInvalidate;
+        private readonly Drawable activityAutosize;
+        private readonly Drawable activityLayout;
 
         public Action HoverGained;
         public Action HoverLost;
@@ -43,9 +43,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public FillFlowContainer<VisualisedDrawable> Flow;
 
-        private TreeContainer tree;
+        private readonly TreeContainer tree;
 
-        private int nestingDepth;
+        private readonly int nestingDepth;
 
         public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
         {

@@ -13,16 +13,16 @@ namespace osu.Framework.IO.Stores
 {
     public class GlyphStore : IResourceStore<RawTexture>
     {
-        private string assetName;
+        private readonly string assetName;
 
-        private string fontName;
+        private readonly string fontName;
 
         private const float default_size = 96;
 
-        private ResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        private TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
+        private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
         private Task fontLoadTask;
 

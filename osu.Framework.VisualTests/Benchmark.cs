@@ -8,7 +8,7 @@ namespace osu.Framework.VisualTests
 {
     public class Benchmark : Game
     {
-        private double timePerTest = 200;
+        private readonly double timePerTest = 200;
 
         protected override void LoadComplete()
         {

@@ -10,9 +10,9 @@ namespace osu.Framework.Audio
 {
     public class AdjustableAudioComponent : AudioComponent
     {
-        private List<BindableDouble> volumeAdjustments = new List<BindableDouble>();
-        private List<BindableDouble> balanceAdjustments = new List<BindableDouble>();
-        private List<BindableDouble> frequencyAdjustments = new List<BindableDouble>();
+        private readonly List<BindableDouble> volumeAdjustments = new List<BindableDouble>();
+        private readonly List<BindableDouble> balanceAdjustments = new List<BindableDouble>();
+        private readonly List<BindableDouble> frequencyAdjustments = new List<BindableDouble>();
 
         /// <summary>
         /// Global volume of this component.
