@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -58,7 +59,10 @@ namespace osu.Framework.Platform
         public event Func<bool> Exiting;
         public event Action Exited;
 
-        public event Action<Exception> ExceptionThrown;
+        /// <summary>
+        /// An unhandled exception was thrown. Return true to ignore and continue running.
+        /// </summary>
+        public event Func<Exception, bool> ExceptionThrown;
 
         public event Action<IpcMessage> MessageReceived;
 
@@ -180,12 +184,14 @@ namespace osu.Framework.Platform
         {
             var exception = (Exception)e.ExceptionObject;
 
-            if (ExceptionThrown != null)
-                ExceptionThrown.Invoke(exception);
-            else
+            var exInfo = ExceptionDispatchInfo.Capture(exception);
+
+            if (ExceptionThrown?.Invoke(exception) != true)
             {
                 AppDomain.CurrentDomain.UnhandledException -= exceptionHandler;
-                throw exception;
+
+                //we want to throw this exception on the input thread to interrupt window and also headless execution.
+                InputThread.Scheduler.Add(() => { exInfo.Throw(); });
             }
         }
 
