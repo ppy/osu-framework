@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.UserInterface
                 resortTab(tab);
 
             // Deactivate previously selected tab
-            if (SelectedTab != tab) SelectedTab.Active = false;
+            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active = false;
 
             SelectedTab = tab;
             SelectedTab.Active = true;
