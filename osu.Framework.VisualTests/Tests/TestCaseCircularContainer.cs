@@ -125,7 +125,6 @@ namespace osu.Framework.VisualTests.Tests
             protected override void OnHoverLost(InputState state)
             {
                 ScaleTo(1f, 100);
-                return;
             }
         }
     }
