@@ -16,10 +16,10 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
+        private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
+        private readonly ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
 
-        private ResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
 
         public ShaderManager(ResourceStore<byte[]> store)
         {

@@ -47,11 +47,11 @@ namespace osu.Framework.VisualTests.Tests
 
         private class HoverBox : Container
         {
-            private Color4 normalColour;
-            private Color4 hoveredColour;
+            private readonly Color4 normalColour;
+            private readonly Color4 hoveredColour;
 
-            private Box box;
-            private bool propagateHover;
+            private readonly Box box;
+            private readonly bool propagateHover;
 
             public HoverBox(Color4 normalColour, Color4 hoveredColour, bool propagateHover = true)
             {

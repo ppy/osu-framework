@@ -70,7 +70,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledTabItem : TabItem<TestEnum>
         {
-            private SpriteText text;
+            private readonly SpriteText text;
             public new TestEnum Value
             {
                 get { return base.Value; }

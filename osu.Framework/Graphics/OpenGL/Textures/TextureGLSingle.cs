@@ -23,12 +23,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private static QuadBatch<TexturedVertex2D> quadBatch;
         private static LinearBatch<TexturedVertex2D> triangleBatch;
 
-        private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
+        private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
 
-        private All filteringMode;
+        private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;

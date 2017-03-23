@@ -12,8 +12,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         public T[] Vertices;
 
-        private int vboId;
-        private BufferUsageHint usage;
+        private readonly int vboId;
+        private readonly BufferUsageHint usage;
 
         /// <summary>
         /// The stride of the vertex type T. We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.

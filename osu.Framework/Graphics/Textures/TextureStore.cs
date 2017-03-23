@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Textures
     {
         private readonly ConcurrentDictionary<string, Lazy<TextureGL>> textureCache = new ConcurrentDictionary<string, Lazy<TextureGL>>();
 
-        private TextureAtlas atlas;
+        private readonly TextureAtlas atlas;
 
         /// <summary>
         /// Decides at what resolution multiple this texturestore is providing sprites at.

@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics
 
         protected Drawable()
         {
-            creationID = creationCounter.Increment();
+            creationID = creation_counter.Increment();
         }
 
         ~Drawable()
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics
         public LoadState LoadState => loadState;
 
         private Task loadTask;
-        private object loadLock = new object();
+        private readonly object loadLock = new object();
 
         /// <summary>
         /// Loads this Drawable asynchronously.
@@ -138,7 +138,7 @@ namespace osu.Framework.Graphics
             }));
         }
 
-        private static StopwatchClock perf = new StopwatchClock(true);
+        private static readonly StopwatchClock perf = new StopwatchClock(true);
 
         internal void Load(Game game)
         {
@@ -202,7 +202,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Depth"/>.
         /// </summary>
         private long creationID { get; }
-        private static AtomicCounter creationCounter = new AtomicCounter();
+        private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         private float depth;
 
@@ -1276,7 +1276,7 @@ namespace osu.Framework.Graphics
                     Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
             });
 
-        private static AtomicCounter invalidationCounter = new AtomicCounter();
+        private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
         private long invalidationID;
 
         /// <summary>
@@ -1305,7 +1305,7 @@ namespace osu.Framework.Graphics
             }
 
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
-                invalidationID = invalidationCounter.Increment();
+                invalidationID = invalidation_counter.Increment();
 
             OnInvalidate?.Invoke();
 
@@ -1316,7 +1316,7 @@ namespace osu.Framework.Graphics
 
         #region DrawNode
 
-        private DrawNode[] drawNodes = new DrawNode[3];
+        private readonly DrawNode[] drawNodes = new DrawNode[3];
 
         /// <summary>
         /// Generates the DrawNode for ourselves.

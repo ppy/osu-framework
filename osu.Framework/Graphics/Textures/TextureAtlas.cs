@@ -17,18 +17,18 @@ namespace osu.Framework.Graphics.Textures
         // inflating texture rectangles.
         private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
-        private List<Rectangle> subTextureBounds = new List<Rectangle>();
+        private readonly List<Rectangle> subTextureBounds = new List<Rectangle>();
         private TextureGLSingle atlasTexture;
 
-        private int atlasWidth;
-        private int atlasHeight;
+        private readonly int atlasWidth;
+        private readonly int atlasHeight;
 
         private int currentY;
 
         private int mipmapLevels => (int)Math.Log(atlasWidth, 2);
 
-        private bool manualMipmaps;
-        private All filteringMode;
+        private readonly bool manualMipmaps;
+        private readonly All filteringMode;
 
         public TextureAtlas(int width, int height, bool manualMipmaps = false, All filteringMode = All.Linear)
         {

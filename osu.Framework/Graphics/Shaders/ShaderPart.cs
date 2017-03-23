@@ -25,11 +25,11 @@ namespace osu.Framework.Graphics.Shaders
 
         private int partID = -1;
 
-        private List<string> shaderCodes = new List<string>();
+        private readonly List<string> shaderCodes = new List<string>();
 
-        private Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
+        private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
 
-        private ShaderManager manager;
+        private readonly ShaderManager manager;
 
         internal ShaderPart(string name, byte[] data, ShaderType type, ShaderManager manager)
         {

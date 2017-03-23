@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => content;
 
-        private Container content;
+        private readonly Container content;
 
         protected Box Background;
         protected SpriteText SpriteText;

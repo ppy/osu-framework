@@ -7,7 +7,7 @@ namespace osu.Framework.Audio.Track
 {
     internal class TrackVirtual : Track
     {
-        private StopwatchClock clock = new StopwatchClock();
+        private readonly StopwatchClock clock = new StopwatchClock();
 
         private double seekOffset;
 

@@ -14,7 +14,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 
-        private Box[] boxes = new Box[4];
+        private readonly Box[] boxes = new Box[4];
 
         public override void Reset()
         {

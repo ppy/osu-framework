@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class LogOverlay : OverlayContainer
     {
-        private FillFlowContainer flow;
+        private readonly FillFlowContainer flow;
 
         private Bindable<bool> enabled;
 

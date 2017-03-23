@@ -122,7 +122,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private LifetimeList<T> internalChildren;
+        private readonly LifetimeList<T> internalChildren;
 
         /// <summary>
         /// This container's own list of children.
@@ -423,7 +423,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private readonly ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
         private Shader shader;
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();

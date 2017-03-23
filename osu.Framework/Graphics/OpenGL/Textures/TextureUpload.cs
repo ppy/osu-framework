@@ -10,18 +10,18 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 {
     public class TextureUpload : IDisposable
     {
-        private static BufferStack<byte> globalBufferStack = new BufferStack<byte>(10);
+        private static readonly BufferStack<byte> global_buffer_stack = new BufferStack<byte>(10);
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
         public Rectangle Bounds;
         public readonly byte[] Data;
 
-        private BufferStack<byte> bufferStack;
+        private readonly BufferStack<byte> bufferStack;
 
         public TextureUpload(int size, BufferStack<byte> bufferStack = null)
         {
-            this.bufferStack = bufferStack ?? globalBufferStack;
+            this.bufferStack = bufferStack ?? global_buffer_stack;
             Data = this.bufferStack.ReserveBuffer(size);
         }
 

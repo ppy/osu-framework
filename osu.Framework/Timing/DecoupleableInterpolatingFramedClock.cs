@@ -19,7 +19,7 @@ namespace osu.Framework.Timing
 
         private bool useDecoupledClock => SourceClock == null || !IsCoupled && !SourceClock.IsRunning;
 
-        private FramedClock decoupledClock;
+        private readonly FramedClock decoupledClock;
         private readonly StopwatchClock decoupledStopwatch;
 
         /// <summary>

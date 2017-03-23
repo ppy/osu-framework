@@ -306,7 +306,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class TestCaseDropdownHeader : DropdownHeader
         {
-            private SpriteText label;
+            private readonly SpriteText label;
             protected override string Label
             {
                 get { return label.Text; }

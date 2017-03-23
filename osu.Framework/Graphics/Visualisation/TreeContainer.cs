@@ -21,16 +21,16 @@ namespace osu.Framework.Graphics.Visualisation
 
     internal class TreeContainer : Container, IStateful<TreeContainerStatus>
     {
-        private ScrollContainer scroll;
+        private readonly ScrollContainer scroll;
 
-        private SpriteText waitingText;
+        private readonly SpriteText waitingText;
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
 
         protected override Container<Drawable> Content => scroll;
 
-        private Box titleBar;
+        private readonly Box titleBar;
 
         private const float width = 400;
         private const float height = 600;

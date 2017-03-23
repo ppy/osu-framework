@@ -95,8 +95,8 @@ namespace osu.Framework.Desktop.Platform.Windows
         [StructLayout(LayoutKind.Sequential)]
         private struct TimeCaps
         {
-            internal int wPeriodMin;
-            internal int wPeriodMax;
+            internal readonly int wPeriodMin;
+            internal readonly int wPeriodMax;
         }
     }
 }

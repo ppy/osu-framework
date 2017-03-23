@@ -7,7 +7,7 @@ namespace osu.Framework.Allocation
 {
     public class InvokeOnDisposal : IDisposable
     {
-        private Action action;
+        private readonly Action action;
 
         public InvokeOnDisposal(Action action)
         {

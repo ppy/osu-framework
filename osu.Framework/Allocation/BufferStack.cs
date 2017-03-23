@@ -7,9 +7,9 @@ namespace osu.Framework.Allocation
 {
     public class BufferStack<T>
     {
-        private int maxAmountBuffers;
+        private readonly int maxAmountBuffers;
         private readonly Stack<T[]> freeDataBuffers = new Stack<T[]>();
-        private HashSet<T[]> usedDataBuffers = new HashSet<T[]>();
+        private readonly HashSet<T[]> usedDataBuffers = new HashSet<T[]>();
 
         public BufferStack(int maxAmountBuffers)
         {
