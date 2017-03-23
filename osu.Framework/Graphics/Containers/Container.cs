@@ -432,7 +432,7 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = (ContainerDrawNode)node;
 
-            if (!Masking && (CornerRadius != 0.0f || BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
+            if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
                 throw new InvalidOperationException("Can not have rounded corners, border effects, or edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
