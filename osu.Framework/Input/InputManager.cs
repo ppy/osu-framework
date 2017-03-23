@@ -155,7 +155,7 @@ namespace osu.Framework.Input
             if (CurrentState.Mouse != null)
             {
                 foreach (var d in mouseInputQueue)
-                    if (d is IRequireAccurateMousePosition)
+                    if (d is IRequireHighFrequencyMousePosition)
                         d.TriggerMouseMove(CurrentState);
             }
 

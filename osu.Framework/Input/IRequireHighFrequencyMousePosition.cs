@@ -6,9 +6,10 @@ using osu.Framework.Graphics;
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Declares that a drawable is requesting mouse position updates (via OnMouseMove) as frequently as possible.
+    /// Guarantees that a drawable will receive at least one OnMouseMove position update
+    /// per update frame (in addition to any input-triggered occurrences).
     /// </summary>
-    public interface IRequireAccurateMousePosition : IDrawable
+    public interface IRequireHighFrequencyMousePosition : IDrawable
     {
     }
 }

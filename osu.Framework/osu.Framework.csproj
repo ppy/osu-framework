@@ -119,7 +119,7 @@
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\EventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
-    <Compile Include="Input\IRequireAccurateMousePosition.cs" />
+    <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
     <Compile Include="Input\PassThroughInputManager.cs" />
     <Compile Include="Screens\Testing\TestBrowser.cs" />
     <Compile Include="Screens\Testing\TestCase.cs" />
