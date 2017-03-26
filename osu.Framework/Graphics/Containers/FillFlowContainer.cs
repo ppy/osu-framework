@@ -171,10 +171,27 @@ namespace osu.Framework.Graphics.Containers
             {
                 var c = children[i];
 
-                if (c.Anchor != ourAnchor)
-                    throw new InvalidOperationException(
-                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} ({ourAnchor} != {c.Anchor}). " +
-                        $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                switch (Direction)
+                {
+                    case FillDirection.Vertical:
+                        if ((c.Anchor & (Anchor.y0 | Anchor.y1 | Anchor.y2)) != (ourAnchor & (Anchor.y0 | Anchor.y1 | Anchor.y2)))
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} for the given {nameof(FillDirection)}({Direction}) ({ourAnchor} != {c.Anchor}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    case FillDirection.Horizontal:
+                        if ((c.Anchor & (Anchor.x0 | Anchor.x1 | Anchor.x2)) != (ourAnchor & (Anchor.x0 | Anchor.x1 | Anchor.x2)))
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} for the given {nameof(FillDirection)}({Direction}) ({ourAnchor} != {c.Anchor}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    default:
+                        if (c.Anchor != ourAnchor)
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} for the given {nameof(FillDirection)}({Direction}) ({ourAnchor} != {c.Anchor}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                }
 
                 if ((c.Anchor & Anchor.x1) > 0)
                     // Begin flow at centre of row
