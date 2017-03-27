@@ -1856,7 +1856,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -1921,7 +1921,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -1970,6 +1970,11 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        /// <summary>
+        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// </summary>
+        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
+
         #region Color4-based helpers
 
         public void FadeColour(SRGBColour newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1987,7 +1992,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             addTransform(new TransformColour
             {
@@ -2007,7 +2012,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             addTransform(new TransformColour
             {
