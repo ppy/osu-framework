@@ -162,8 +162,8 @@ namespace osu.Framework.Graphics.Containers
 
             rowWidths.Add(result.Last().X);
             float height = result.Last().Y;
-
-            Anchor ourAnchor = children[0].Anchor;
+            
+            Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
             // Second pass, adjusting the positions for anchors of children.
             // Uses rowWidths and height for centre-anchors.
@@ -173,19 +173,18 @@ namespace osu.Framework.Graphics.Containers
 
                 bool exception = false;
                 if (Direction == FillDirection.Vertical)
-                    if ((c.Anchor & (Anchor.y0 | Anchor.y1 | Anchor.y2)) != (ourAnchor & (Anchor.y0 | Anchor.y1 | Anchor.y2)))
+                    if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
                     { exception = true; }
                 else if (Direction == FillDirection.Horizontal)
-                    if ((c.Anchor & (Anchor.x0 | Anchor.x1 | Anchor.x2)) != (ourAnchor & (Anchor.x0 | Anchor.x1 | Anchor.x2)))
+                    if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
                         { exception = true; }
-                else if (c.Anchor != ourAnchor)
+                else if (c.RelativeAnchorPosition != ourRelativeAnchor)
                     exception = true;
 
                 if(exception)
                     throw new InvalidOperationException(
-                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} for the given {nameof(FillDirection)}({Direction}) ({ourAnchor} != {c.Anchor}). " +
+                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). " +
                         $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
-                
 
                 if ((c.Anchor & Anchor.x1) > 0)
                     // Begin flow at centre of row
