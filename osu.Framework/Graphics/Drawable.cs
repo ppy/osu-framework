@@ -1747,7 +1747,7 @@ namespace osu.Framework.Graphics
             }
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
-            double max = Time.Current + transformDelay;
+            double max = TransformStartTime;
             foreach (ITransform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
@@ -1803,7 +1803,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            double startTime = Time.Current + transformDelay;
+            double startTime = TransformStartTime;
 
             Transforms.Add(new TransformAlpha
             {
@@ -1828,7 +1828,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            double startTime = Time.Current + transformDelay;
+            double startTime = TransformStartTime;
 
             TransformAlpha tr = new TransformAlpha
             {
