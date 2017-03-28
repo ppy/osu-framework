@@ -112,6 +112,7 @@ namespace osu.Framework.Testing
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Masking = true,
+                Depth = float.MinValue,
                 CornerRadius = 5,
                 AutoSizeAxes = Axes.Both,
                 Children = new Drawable[]
