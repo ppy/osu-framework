@@ -114,6 +114,10 @@ namespace osu.Framework.Input
 
             unfocusIfNoLongerValid(CurrentState);
 
+            //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
+            if (pendingStates.Count == 0)
+                pendingStates.Add(CurrentState);
+
             foreach (InputState s in pendingStates)
             {
                 bool hasKeyboard = s.Keyboard != null;
@@ -147,10 +151,6 @@ namespace osu.Framework.Input
                 if (hasKeyboard)
                     updateKeyboardEvents(CurrentState);
             }
-
-            //we still want to make sure to update the input queues! they may be used for focus changes.
-            if (pendingStates.Count == 0)
-                updateInputQueues(CurrentState);
 
             if (CurrentState.Mouse != null)
             {
