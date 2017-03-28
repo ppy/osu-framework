@@ -42,6 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         InOutBack,
         InBounce,
         OutBounce,
-        InOutBounce
+        InOutBounce,
+        OutPow10,
     }
 }
