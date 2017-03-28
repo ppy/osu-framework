@@ -48,7 +48,6 @@ namespace osu.Framework.Graphics.Containers
             loadTask = content.LoadAsync(game, d =>
             {
                 AddInternal(d);
-                d.FadeInFromZero(150);
                 FinishedLoading?.Invoke(this);
             });
         }
