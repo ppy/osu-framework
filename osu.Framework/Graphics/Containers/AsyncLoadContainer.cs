@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Called when async loading of children has completed.
         /// </summary>
-        public Action FinishedLoading;
+        public Action<AsyncLoadContainer> FinishedLoading;
 
         protected override Container<Drawable> Content => content;
 
@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 AddInternal(d);
                 d.FadeInFromZero(150);
-                FinishedLoading?.Invoke();
+                FinishedLoading?.Invoke(this);
             });
         }
 
