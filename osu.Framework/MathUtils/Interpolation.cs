@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
 using OpenTK;
 using OpenTK.Graphics;
 
