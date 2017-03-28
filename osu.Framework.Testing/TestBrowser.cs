@@ -16,6 +16,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
@@ -46,6 +47,7 @@ namespace osu.Framework.Testing
         private Container leftScrollContainer;
         private TestCase loadedTest;
         private Container testContainer;
+        private Container compilingNotice;
 
         private readonly List<TestCase> testCases = new List<TestCase>();
 
@@ -66,11 +68,9 @@ namespace osu.Framework.Testing
         }
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage, FrameworkConfigManager frameworkConfig)
+        private void load(Storage storage)
         {
             config = new TestBrowserConfig(storage);
-
-            frameworkConfig.Set(FrameworkConfig.ShowLogOverlay, true);
 
             Add(leftContainer = new Container
             {
@@ -104,6 +104,28 @@ namespace osu.Framework.Testing
             {
                 RelativeSizeAxes = Axes.Both,
                 Padding = new MarginPadding { Left = 200 }
+            });
+
+            testContainer.Add(compilingNotice = new Container
+            {
+                Alpha = 0,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                Masking = true,
+                CornerRadius = 5,
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
+                {
+                    new Box {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Black,
+                    },
+                    new SpriteText
+                    {
+                        TextSize = 30,
+                        Text = @"Compiling new version..."
+                    }
+                },
             });
 
             foreach (var testCase in tests)
@@ -166,7 +188,8 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
         /// </summary>
-        private static readonly Lazy<CSharpCodeProvider> code_provider = new Lazy<CSharpCodeProvider>(() => {
+        private static readonly Lazy<CSharpCodeProvider> code_provider = new Lazy<CSharpCodeProvider>(() =>
+        {
             var csc = new CSharpCodeProvider();
 
             var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
@@ -216,7 +239,19 @@ namespace osu.Framework.Testing
 
                 Logger.Log($@"Recompiling {e.Name}...", LoggingTarget.Runtime, LogLevel.Important);
 
+                Schedule(() =>
+                {
+                    compilingNotice.Show();
+                    compilingNotice.FadeColour(Color4.White);
+                });
+
                 CompilerResults compile = code_provider.Value.CompileAssemblyFromSource(cp, source);
+
+                Schedule(() =>
+                {
+                    compilingNotice.FadeOut(800, EasingTypes.InQuint);
+                    compilingNotice.FadeColour(compile.Errors.HasErrors ? Color4.Red : Color4.YellowGreen, 100);
+                });
 
                 Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
 
