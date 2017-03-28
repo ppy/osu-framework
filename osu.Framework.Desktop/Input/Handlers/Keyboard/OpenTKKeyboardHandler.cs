@@ -22,14 +22,20 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         public override int Priority => 0;
 
+        private OpenTK.Input.KeyboardState lastState;
+
         public override bool Initialize(GameHost host)
         {
             host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
-                PendingStates.Enqueue(new InputState
-                {
-                    Keyboard = new TkKeyboardState(host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState())
-                });
+                var state = host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState();
+
+                if (state.Equals(lastState))
+                    return;
+
+                lastState = state;
+
+                PendingStates.Enqueue(new InputState { Keyboard = new TkKeyboardState(state) });
 
                 FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
             }, 0, 0));
