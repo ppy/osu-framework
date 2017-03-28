@@ -3,14 +3,14 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Extensions.TypeExtensions;
 
-namespace osu.Framework.Screens.Testing
+namespace osu.Framework.Testing
 {
     public abstract class TestCase : Container
     {

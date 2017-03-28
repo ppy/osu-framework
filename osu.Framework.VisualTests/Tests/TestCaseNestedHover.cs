@@ -7,7 +7,7 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {

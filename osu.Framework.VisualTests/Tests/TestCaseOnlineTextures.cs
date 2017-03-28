@@ -1,13 +1,15 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -44,6 +46,17 @@ namespace osu.Framework.VisualTests.Tests
                         new DelayedLoadContainer
                         {
                             RelativeSizeAxes = Axes.Both,
+                            FinishedLoading = d => {
+                                if ((d.Children.First() as Sprite)?.Texture == null)
+                                {
+                                    d.Add(new SpriteText {
+                                        Colour = Color4.Gray,
+                                        Text = @"nope",
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                    });
+                                }
+                            },
                             Children = new Drawable[]
                             {
                                 new Avatar(i) { RelativeSizeAxes = Axes.Both }

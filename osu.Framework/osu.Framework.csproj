@@ -123,8 +123,6 @@
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
     <Compile Include="Input\PassThroughInputManager.cs" />
-    <Compile Include="Screens\Testing\TestBrowser.cs" />
-    <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />

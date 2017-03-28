@@ -11,7 +11,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
