@@ -131,7 +131,14 @@ namespace osu.Framework.Testing
             foreach (var testCase in tests)
                 addTest(testCase);
 
-            startBackgroundCompiling();
+            try
+            {
+                startBackgroundCompiling();
+            }
+            catch
+            {
+                //it's okay for this to fail for now.
+            }
         }
 
         protected override void LoadComplete()
