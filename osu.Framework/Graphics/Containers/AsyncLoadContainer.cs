@@ -52,6 +52,10 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
+        /// <summary>
+        /// True if the load task for our content has been started.
+        /// Will remain true even after load is completed.
+        /// </summary>
         protected bool LoadTriggered => loadTask != null;
     }
 }

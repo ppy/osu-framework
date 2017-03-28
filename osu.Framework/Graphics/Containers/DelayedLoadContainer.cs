@@ -23,10 +23,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void Update()
         {
-            if (LoadTriggered || !isIntersecting)
-                timeVisible = 0;
-            else
-                timeVisible += Time.Elapsed;
+            //this code can be expensive, so only run if we haven't yet loaded.
+            if (!LoadTriggered)
+            {
+                if (!isIntersecting)
+                    timeVisible = 0;
+                else
+                    timeVisible += Time.Elapsed;
+            }
 
             base.Update();
         }
