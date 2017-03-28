@@ -193,18 +193,29 @@ namespace osu.Framework.Testing
         private FileSystemWatcher fsw;
 
         /// <summary>
-        /// Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
+        /// Find the base path of the closest solution folder
         /// </summary>
-        private static readonly Lazy<CSharpCodeProvider> code_provider = new Lazy<CSharpCodeProvider>(() =>
+        private static string findSolutionPath()
+        {
+            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            while (!Directory.GetFiles(di.FullName, "*.sln").Any())
+                di = di.Parent;
+            return di.FullName;
+        }
+
+        private static CSharpCodeProvider createCodeProvider()
         {
             var csc = new CSharpCodeProvider();
 
+            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.1.3.2", "tools", "csc.exe");
+
+            //Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
             var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
             var path = settings?.GetType().GetField("_compilerFullPath", BindingFlags.Instance | BindingFlags.NonPublic);
-            path?.SetValue(settings, ((string)path.GetValue(settings)).Replace(@"bin\roslyn\", @"roslyn\"));
+            path?.SetValue(settings, newPath);
 
             return csc;
-        });
+        }
 
         private void startBackgroundCompiling()
         {
@@ -252,36 +263,41 @@ namespace osu.Framework.Testing
                     compilingNotice.FadeColour(Color4.White);
                 });
 
-                CompilerResults compile = code_provider.Value.CompileAssemblyFromSource(cp, source);
+                TestCase newVersion = null;
+
+                using (var provider = createCodeProvider())
+                {
+                    CompilerResults compile = provider.CompileAssemblyFromSource(cp, source);
+
+                    if (compile.Errors.HasErrors)
+                    {
+                        string text = "Compile error: ";
+                        foreach (CompilerError ce in compile.Errors)
+                            text += "\r\n" + ce;
+
+                        Logger.Log(text, LoggingTarget.Runtime, LogLevel.Error);
+                    }
+                    else
+                    {
+                        Module module = compile.CompiledAssembly.GetModules()[0];
+                        if (module != null)
+                            newVersion = (TestCase)Activator.CreateInstance(module.GetTypes()[0]);
+                    }
+                }
 
                 Schedule(() =>
                 {
                     compilingNotice.FadeOut(800, EasingTypes.InQuint);
-                    compilingNotice.FadeColour(compile.Errors.HasErrors ? Color4.Red : Color4.YellowGreen, 100);
+                    compilingNotice.FadeColour(newVersion == null ? Color4.Red : Color4.YellowGreen, 100);
                 });
+
+                if (newVersion == null) return;
 
                 Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
 
-                if (compile.Errors.HasErrors)
-                {
-                    string text = "Compile error: ";
-                    foreach (CompilerError ce in compile.Errors)
-                        text += "\r\n" + ce;
-
-                    Logger.Log(text, LoggingTarget.Runtime, LogLevel.Error);
-                    return;
-                }
-
-                Module module = compile.CompiledAssembly.GetModules()[0];
-
-                if (module == null) return;
-
-                Type type = module.GetTypes()[0];
-                var newVersion = (TestCase)Activator.CreateInstance(type);
-
                 Schedule(() =>
                 {
-                    int i = testCases.FindIndex(t => t.GetType().Name == type.Name);
+                    int i = testCases.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
                     testCases[i] = newVersion;
                     LoadTest(i);
                 });
