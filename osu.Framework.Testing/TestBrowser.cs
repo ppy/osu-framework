@@ -199,8 +199,10 @@ namespace osu.Framework.Testing
         private static string findSolutionPath()
         {
             var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-            while (!Directory.GetFiles(di.FullName, "*.sln").Any())
+
+            while (!Directory.GetFiles(di.FullName, "*.sln").Any() && di.Parent != null)
                 di = di.Parent;
+
             return di.FullName;
         }
 
