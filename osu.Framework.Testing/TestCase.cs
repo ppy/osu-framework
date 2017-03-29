@@ -98,7 +98,8 @@ namespace osu.Framework.Testing
         {
             StepsContainer.Add(new RepeatStepButton(waitCount)
             {
-                Text = @"Wait"
+                Text = @"Wait",
+                BackgroundColour = Color4.Gray
             });
         }
     }
@@ -142,6 +143,8 @@ namespace osu.Framework.Testing
             this.count = count;
 
             updateText();
+
+            BackgroundColour = Color4.Sienna;
 
             base.Action = () =>
             {
