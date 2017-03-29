@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
@@ -267,7 +267,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     Width = 50,
                                     Height = 50,
-                                    Colour = new Color4(255, 255, 255, 255)
+                                    Colour = Color4.White
                                 },
                                 new SpriteText
                                 {

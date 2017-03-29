@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests

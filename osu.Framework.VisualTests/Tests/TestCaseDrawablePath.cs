@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Input;
 using System.Collections.Generic;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
