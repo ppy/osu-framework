@@ -68,10 +68,13 @@ namespace osu.Framework.Graphics.Containers
                 i.Parent = this;
             };
 
-            if (pendingChildren != null)
+            try
             {
-                AddInternal(pendingChildren);
-                pendingChildren = null;
+                internalChildren.Update(game.Clock?.TimeInfo ?? default(FrameTimeInfo));
+            }
+            catch (ObjectDisposedException)
+            {
+                //a child may have been disposed while we were loading, but we don't mind at this point.
             }
         }
 
@@ -97,12 +100,6 @@ namespace osu.Framework.Graphics.Containers
         /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
         /// </summary>
         protected virtual Container<T> Content => this;
-
-        /// <summary>
-        /// We only want to add to <see cref="internalChildren"/> once we are loaded.
-        /// This list holds children-to-be-added until we are loaded.
-        /// </summary>
-        private List<T> pendingChildren;
 
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
@@ -249,8 +246,6 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            pendingChildren?.Clear();
-
             foreach (T t in internalChildren)
             {
                 if (disposeChildren)
@@ -281,19 +276,10 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == this)
                 throw new InvalidOperationException("Container may not be added to itself.");
 
-            if (LoadState == LoadState.NotLoaded)
-            {
-                if (pendingChildren == null)
-                    pendingChildren = new List<T>();
-                pendingChildren.Add(drawable);
-            }
-            else
-            {
-                if (drawable.IsLoaded)
-                    drawable.Parent = this;
+            if (drawable.IsLoaded)
+                drawable.Parent = this;
 
-                internalChildren.Add(drawable);
-            }
+            internalChildren.Add(drawable);
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry);
