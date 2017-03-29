@@ -48,8 +48,8 @@ namespace osu.Framework.VisualTests
             if (browser.CurrentTest != loadableTest)
                 browser.LoadTest(loadableTest);
 
+            Console.WriteLine($@"{Time.Current:N0}: running test {testIndex + 1}.{actionIndex + 1}.{actionRepetition}");
             actionRepetition++;
-            Console.WriteLine($@"{Time}: running test #{testIndex + 1}.{actionIndex + 1}.{actionRepetition + 1}");
             loadableStep?.TriggerClick();
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
