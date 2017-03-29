@@ -51,14 +51,14 @@ namespace osu.Framework.VisualTests.Tests
                                                          .Select(item => item.Value)
                                                          .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
-            AddButton("PinItem", () =>
+            AddStep("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
+            AddStep("PinItem", () =>
             {
                 var test = nextTest.Invoke();
                 pinnedAndAutoSort.AddItem(test);
                 pinnedAndAutoSort.PinItem(test);
             });
-            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
+            AddStep("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
         }
 
         private class StyledTabControl : TabControl<TestEnum>

@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
             styledDropdownMenu.SelectedValue.Value = testItems[4];
             Add(styledDropdownMenu);
 
-            AddButton("AddItem", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++));
+            AddRepeatStep("AddItem", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++), 10);
         }
 
         private class StyledDropdownMenu : Dropdown<string>

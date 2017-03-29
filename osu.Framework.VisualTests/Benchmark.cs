@@ -27,35 +27,42 @@ namespace osu.Framework.VisualTests
             runNext();
         }
 
-        private int testIndex = -1;
+        private int testIndex;
         private int actionIndex = -1;
+        private int actionRepetition;
 
-        private TestCase currentTest => testIndex >= 0 ? browser.Tests.Skip(testIndex).FirstOrDefault() : null;
+        private TestCase loadableTest => testIndex >= 0 ? browser.Tests.Skip(testIndex).FirstOrDefault() : null;
+        private StepButton loadableStep => actionIndex >= 0 ? loadableTest?.StepsContainer.Children.Skip(actionIndex).FirstOrDefault() : null;
 
         private TestBrowser browser;
 
         private void runNext()
         {
-            if (currentTest != null && actionIndex < currentTest.ButtonsContainer.Children.Count() - 1)
+            if (loadableTest == null)
+            {
+                //we're done
+                Scheduler.AddDelayed(Host.Exit, time_per_action);
+                return;
+            }
+
+            if (browser.CurrentTest != loadableTest)
+                browser.LoadTest(loadableTest);
+
+            actionRepetition++;
+            Console.WriteLine($@"{Time}: running test #{testIndex + 1}.{actionIndex + 1}.{actionRepetition + 1}");
+            loadableStep?.TriggerClick();
+
+            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
                 actionIndex++;
-                Console.WriteLine($@"{Time}: Switching to test #{testIndex + 1}-{actionIndex + 1}");
-                currentTest.ButtonsContainer.Children.Skip(actionIndex).First().TriggerClick();
+                actionRepetition = 0;
             }
-            else
+
+            if (actionIndex > loadableTest.StepsContainer.Children.Count() - 1)
             {
                 testIndex++;
-                if (currentTest != null)
-                {
-                    browser.LoadTest(currentTest);
-                    actionIndex = -1;
-                }
-                else
-                {
-                    //we're done
-                    Scheduler.AddDelayed(Host.Exit, time_per_action);
-                    return;
-                }
+                actionRepetition = 0;
+                actionIndex = -1;
             }
 
             Scheduler.AddDelayed(runNext, time_per_action);

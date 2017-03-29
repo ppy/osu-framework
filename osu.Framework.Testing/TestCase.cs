@@ -6,6 +6,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
@@ -16,7 +17,7 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        public FillFlowContainer<Button> ButtonsContainer;
+        public FillFlowContainer<StepButton> StepsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
@@ -50,50 +51,114 @@ namespace osu.Framework.Testing
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    ButtonsContainer = new FillFlowContainer<Button>
+                    StepsContainer = new FillFlowContainer<StepButton>
                     {
                         Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(15, 5),
-                        Width = 150,
-                        AutoSizeAxes = Axes.Y,
+                        Depth = float.MinValue,
+                        Padding = new MarginPadding(5),
+                        Spacing = new Vector2(5),
+                        AutoSizeAxes = Axes.Both,
                     },
                 };
             }
             else
             {
                 Contents.Clear();
-                ButtonsContainer.Clear();
+                StepsContainer.Clear();
             }
         }
 
-        public Button AddButton(string text, Action action)
+        public void AddStep(string description, Action action)
         {
-            Button b;
-            ButtonsContainer.Add(b = new Button
+            StepsContainer.Add(new StepButton
             {
-                BackgroundColour = Color4.DarkBlue,
-                Size = new Vector2(150, 50),
-                Text = text
+                Text = description,
+                Action = action
             });
-
-            b.Action += action;
-
-            return b;
         }
 
-        public ToggleButton AddToggle(string text, Action<bool> action)
+        public void AddRepeatStep(string description, Action action, int invocationCount)
         {
-            ToggleButton b;
-            ButtonsContainer.Add(b = new ToggleButton(action)
+            StepsContainer.Add(new RepeatStepButton(invocationCount)
             {
-                Size = new Vector2(150, 50),
-                Text = text
+                Text = description,
+                Action = action
             });
-            return b;
+        }
+
+        public void AddToggleStep(string description, Action<bool> action)
+        {
+            StepsContainer.Add(new ToggleStepButton(action)
+            {
+                Text = description
+            });
+        }
+
+        public void AddWaitStep(int waitCount)
+        {
+            StepsContainer.Add(new RepeatStepButton(waitCount)
+            {
+                Text = @"Wait"
+            });
         }
     }
 
-    public class ToggleButton : Button
+    public class StepButton : Button
+    {
+        public virtual int RequiredRepetitions => 1;
+
+        public StepButton()
+        {
+            Size = new Vector2(200, 25);
+            BackgroundColour = Color4.BlueViolet;
+
+            CornerRadius = 2;
+            Masking = true;
+
+            SpriteText.Anchor = Anchor.CentreLeft;
+            SpriteText.Origin = Anchor.CentreLeft;
+            SpriteText.Padding = new MarginPadding(5);
+        }
+    }
+
+    public class RepeatStepButton : StepButton
+    {
+        private readonly int count;
+        private int invocations;
+
+        public override int RequiredRepetitions => count;
+
+        public new Action Action;
+
+        private string text;
+        public new string Text
+        {
+            get { return text; }
+            set { base.Text = text = value; }
+        }
+
+        public RepeatStepButton(int count = 1)
+        {
+            this.count = count;
+
+            updateText();
+
+            base.Action = () =>
+            {
+                invocations++;
+                updateText();
+
+                Action?.Invoke();
+            };
+        }
+
+        private void updateText()
+        {
+            base.Text = $@"{Text} {invocations}/{count}";
+        }
+    }
+
+    public class ToggleStepButton : StepButton
     {
         private readonly Action<bool> reloadCallback;
         private static readonly Color4 off_colour = Color4.Red;
@@ -101,11 +166,12 @@ namespace osu.Framework.Testing
 
         public bool State;
 
-        public ToggleButton(Action<bool> reloadCallback)
+        public override int RequiredRepetitions => 2;
+
+        public ToggleStepButton(Action<bool> reloadCallback)
         {
             this.reloadCallback = reloadCallback;
 
-            Size = new Vector2(100, 50);
             BackgroundColour = off_colour;
             Action += clickAction;
         }

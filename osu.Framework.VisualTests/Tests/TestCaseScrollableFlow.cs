@@ -91,15 +91,15 @@ namespace osu.Framework.VisualTests.Tests
 
             createArea(scrollDir = Direction.Vertical);
 
-            AddButton("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
-            AddButton("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
-            AddButton("Both", createAreaBoth);
+            AddStep("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
+            AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
+            AddStep("Both", createAreaBoth);
 
-            AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
+            AddStep("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddStep("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
 
-            AddButton("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
-            AddButton("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
+            AddStep("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
+            AddStep("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate

@@ -33,6 +33,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private FillFlowContainer fc;
         private ScheduledDelegate scheduledAdder;
+        private bool addChildren;
 
         protected override Container<Drawable> Content => testContainer;
 
@@ -165,27 +166,27 @@ namespace osu.Framework.VisualTests.Tests
             };
             Add(cnt);
 
-            var rotateBtn = AddToggle("Rotate Container", state =>
+            AddToggleStep("Rotate Container", state =>
             {
                 fc.RotateTo(state ? 45f : 0, 1000);
             });
-            AddToggle("Scale Container", state =>
+            AddToggleStep("Scale Container", state =>
             {
                 fc.ScaleTo(state ? 1.2f : 1f, 1000);
             });
-            AddToggle("Shear Container", state =>
+            AddToggleStep("Shear Container", state =>
             {
                 fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
             });
-            AddToggle("Center Container Anchor", state =>
+            AddToggleStep("Center Container Anchor", state =>
             {
                 fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
             });
-            AddToggle("Center Container Origin", state =>
+            AddToggleStep("Center Container Origin", state =>
             {
                 fc.Origin = state ? Anchor.Centre : Anchor.TopLeft;
             });
-            AddToggle("Autosize Container", state =>
+            AddToggleStep("Autosize Container", state =>
             {
                 if (state)
                 {
@@ -200,7 +201,7 @@ namespace osu.Framework.VisualTests.Tests
                     fc.Height = 1;
                 }
             });
-            AddToggle("Rotate children", state =>
+            AddToggleStep("Rotate children", state =>
             {
                 if (state)
                 {
@@ -213,7 +214,7 @@ namespace osu.Framework.VisualTests.Tests
                         child.RotateTo(0f, 1000);
                 }
             });
-            AddToggle("Shear children", state =>
+            AddToggleStep("Shear children", state =>
             {
                 if (state)
                 {
@@ -226,7 +227,7 @@ namespace osu.Framework.VisualTests.Tests
                         child.Shear = Vector2.Zero;
                 }
             });
-            AddToggle("Scale children", state =>
+            AddToggleStep("Scale children", state =>
             {
                 if (state)
                 {
@@ -239,13 +240,12 @@ namespace osu.Framework.VisualTests.Tests
                         child.ScaleTo(1f, 1000);
                 }
             });
-            var addChildrenBtn = AddToggle("Stop adding children", state => { });
-            cnt.Position = new Vector2(rotateBtn.Width, 0f);
-            cnt.Padding = new MarginPadding(25f) { Top = cnt.Padding.Top, Right = 25f + cnt.Position.X };
             Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.TopLeft, this), Origin = Anchor.Centre });
             Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.TopRight, this), Origin = Anchor.Centre });
             Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.BottomLeft, this), Origin = Anchor.Centre });
             Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.BottomRight, this), Origin = Anchor.Centre });
+
+            AddToggleStep("Stop adding children", state => { addChildren = state; });
 
             scheduledAdder?.Cancel();
             scheduledAdder = Scheduler.AddDelayed(
@@ -254,12 +254,12 @@ namespace osu.Framework.VisualTests.Tests
                     if (fc.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if (addChildrenBtn.State)
+                    if (addChildren)
                     {
                         fc.Invalidate();
                     }
 
-                    if (fc.Children.Count() < 1000 && !addChildrenBtn.State)
+                    if (fc.Children.Count() < 1000 && !addChildren)
                     {
                         fc.Add(new Container
                         {

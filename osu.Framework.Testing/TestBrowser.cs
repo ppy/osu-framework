@@ -27,6 +27,8 @@ namespace osu.Framework.Testing
 {
     public class TestBrowser : Screen
     {
+        public TestCase CurrentTest;
+
         private class TestBrowserConfig : ConfigManager<TestBrowserOption>
         {
             protected override string Filename => @"visualtests.cfg";
@@ -44,7 +46,6 @@ namespace osu.Framework.Testing
         private Container leftContainer;
         private Container<Drawable> leftFlowContainer;
         private Container leftScrollContainer;
-        private TestCase loadedTest;
         private Container testContainer;
         private Container compilingNotice;
 
@@ -170,16 +171,16 @@ namespace osu.Framework.Testing
 
             config.Set(TestBrowserOption.LastTest, testCase?.Name);
 
-            if (loadedTest != null)
+            if (CurrentTest != null)
             {
-                testContainer.Remove(loadedTest);
-                loadedTest.Clear();
-                loadedTest = null;
+                testContainer.Remove(CurrentTest);
+                CurrentTest.Clear();
+                CurrentTest = null;
             }
 
             if (testCase != null)
             {
-                testContainer.Add(loadedTest = testCase);
+                testContainer.Add(CurrentTest = testCase);
                 testCase.Reset();
             }
         }

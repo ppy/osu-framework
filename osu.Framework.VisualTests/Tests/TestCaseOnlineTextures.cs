@@ -65,6 +65,8 @@ namespace osu.Framework.VisualTests.Tests
                         new SpriteText { Text = i.ToString() },
                     }
                 });
+
+            AddWaitStep(5);
         }
 
         private class FillFlowContainerNoInput : FillFlowContainer
