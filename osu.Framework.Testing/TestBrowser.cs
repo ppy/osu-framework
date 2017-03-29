@@ -192,7 +192,7 @@ namespace osu.Framework.Testing
             }
         }
 
-        private TestCaseButton buttonFor(TestCase currentTest) => leftFlowContainer.Children.Where(b => b.TestCase.Name == currentTest.Name).FirstOrDefault();
+        private TestCaseButton buttonFor(TestCase currentTest) => leftFlowContainer.Children.FirstOrDefault(b => b.TestCase.Name == currentTest.Name);
 
         private FileSystemWatcher fsw;
 
@@ -315,7 +315,7 @@ namespace osu.Framework.Testing
             private readonly Box box;
             private readonly Container text;
 
-            public TestCase TestCase;
+            public readonly TestCase TestCase;
 
             public bool Current
             {
