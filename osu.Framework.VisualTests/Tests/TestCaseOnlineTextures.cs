@@ -28,7 +28,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainer
+                        flow = new FillFlowContainerNoInput
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -47,7 +47,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             RelativeSizeAxes = Axes.Both,
                             FinishedLoading = d => {
-                                if ((d.Children.First() as Sprite)?.Texture == null)
+                                if ((d.Children.FirstOrDefault() as Sprite)?.Texture == null)
                                 {
                                     d.Add(new SpriteText {
                                         Colour = Color4.Gray,
@@ -65,6 +65,11 @@ namespace osu.Framework.VisualTests.Tests
                         new SpriteText { Text = i.ToString() },
                     }
                 });
+        }
+
+        private class FillFlowContainerNoInput : FillFlowContainer
+        {
+            public override bool HandleInput => false;
         }
     }
 
