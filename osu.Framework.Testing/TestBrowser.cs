@@ -44,7 +44,7 @@ namespace osu.Framework.Testing
         }
 
         private Container leftContainer;
-        private Container<Drawable> leftFlowContainer;
+        private FillFlowContainer<TestCaseButton> leftFlowContainer;
         private Container leftScrollContainer;
         private Container testContainer;
         private Container compilingNotice;
@@ -88,7 +88,7 @@ namespace osu.Framework.Testing
                 ScrollDraggerOverlapsContent = false
             });
 
-            leftScrollContainer.Add(leftFlowContainer = new FillFlowContainer
+            leftScrollContainer.Add(leftFlowContainer = new FillFlowContainer<TestCaseButton>
             {
                 Padding = new MarginPadding(3),
                 Direction = FillDirection.Vertical,
@@ -175,6 +175,10 @@ namespace osu.Framework.Testing
             {
                 testContainer.Remove(CurrentTest);
                 CurrentTest.Clear();
+
+                var button = buttonFor(CurrentTest);
+                if (button != null) button.Current = false;
+
                 CurrentTest = null;
             }
 
@@ -182,8 +186,13 @@ namespace osu.Framework.Testing
             {
                 testContainer.Add(CurrentTest = testCase);
                 testCase.Reset();
+
+                var button = buttonFor(CurrentTest);
+                if (button != null) button.Current = true;
             }
         }
+
+        private TestCaseButton buttonFor(TestCase currentTest) => leftFlowContainer.Children.Where(b => b.TestCase.Name == currentTest.Name).FirstOrDefault();
 
         private FileSystemWatcher fsw;
 
@@ -304,10 +313,35 @@ namespace osu.Framework.Testing
         private class TestCaseButton : ClickableContainer
         {
             private readonly Box box;
+            private readonly Container text;
+
+            public TestCase TestCase;
+
+            public bool Current
+            {
+                set
+                {
+                    const float transition_duration = 100;
+
+                    if (value)
+                    {
+                        box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
+                        text.FadeColour(Color4.Black, transition_duration);
+                    }
+                    else
+                    {
+                        box.FadeColour(new Color4(140, 140, 140, 255), transition_duration);
+                        text.FadeColour(Color4.White, transition_duration);
+                    }
+                }
+            }
 
             public TestCaseButton(TestCase test)
             {
                 Masking = true;
+
+                TestCase = test;
+
                 CornerRadius = 5;
                 RelativeSizeAxes = Axes.X;
                 Size = new Vector2(1, 60);
@@ -320,7 +354,7 @@ namespace osu.Framework.Testing
                         Colour = new Color4(140, 140, 140, 255),
                         Alpha = 0.7f
                     },
-                    new Container
+                    text = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
                         Padding = new MarginPadding
@@ -361,12 +395,6 @@ namespace osu.Framework.Testing
             {
                 box.FadeTo(0.7f, 150);
                 base.OnHoverLost(state);
-            }
-
-            protected override bool OnClick(InputState state)
-            {
-                box.FlashColour(Color4.White, 300);
-                return base.OnClick(state);
             }
         }
     }
