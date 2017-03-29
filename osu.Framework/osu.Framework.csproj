@@ -296,7 +296,7 @@
     <Compile Include="Platform\IpcMessage.cs" />
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
-    <Compile Include="Timing\TimeInfo.cs" />
+    <Compile Include="Timing\FrameTimeInfo.cs" />
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
