@@ -21,8 +21,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Test lots of different settings for Flow Containers";
 
-        private FillFlowContainer dropdownContainer;
-
         private FlowTestCase current;
         private FillDirectionDropdown selectionDropdown;
         private Container testContainer;
@@ -49,60 +47,67 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
             });
 
-            ButtonsContainer.Add(dropdownContainer = new FillFlowContainer
-            {
-                Direction = FillDirection.Vertical,
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Children = new Drawable[]
+            AddInternal(
+                new Container
                 {
-                    new SpriteText { Text = @"Fill mode" },
-                    selectionDropdown = new FillDirectionDropdown
+                    RelativeSizeAxes = Axes.Both,
+                    Width = 0.2f,
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    Children = new[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
-                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
-                    },
-                    new SpriteText { Text = @"Child anchor" },
-                    anchorDropdown = new AnchorDropdown
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        Items = new[]
+                        new FillFlowContainer
                         {
-                            Anchor.TopLeft,
-                            Anchor.TopCentre,
-                            Anchor.TopRight,
-
-                            Anchor.CentreLeft,
-                            Anchor.Centre,
-                            Anchor.CentreRight,
-
-                            Anchor.BottomLeft,
-                            Anchor.BottomCentre,
-                            Anchor.BottomRight,
-                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                    },
-                    new SpriteText { Text = @"Child origin" },
-                    originDropdown = new AnchorDropdown
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        Items = new[]
-                        {
-                            Anchor.TopLeft,
-                            Anchor.TopCentre,
-                            Anchor.TopRight,
-
-                            Anchor.CentreLeft,
-                            Anchor.Centre,
-                            Anchor.CentreRight,
-
-                            Anchor.BottomLeft,
-                            Anchor.BottomCentre,
-                            Anchor.BottomRight,
-                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                    },
-                }
-            });
+                            Direction = FillDirection.Vertical,
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Fill mode" },
+                                selectionDropdown = new FillDirectionDropdown
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
+                                                .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
+                                },
+                                new SpriteText { Text = @"Child anchor" },
+                                anchorDropdown = new AnchorDropdown
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Items = new[]
+                                    {
+                                        Anchor.TopLeft,
+                                        Anchor.TopCentre,
+                                        Anchor.TopRight,
+                                        Anchor.CentreLeft,
+                                        Anchor.Centre,
+                                        Anchor.CentreRight,
+                                        Anchor.BottomLeft,
+                                        Anchor.BottomCentre,
+                                        Anchor.BottomRight,
+                                    }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                                },
+                                new SpriteText { Text = @"Child origin" },
+                                originDropdown = new AnchorDropdown
+                                {
+                                    RelativeSizeAxes = Axes.X,
+                                    Items = new[]
+                                    {
+                                        Anchor.TopLeft,
+                                        Anchor.TopCentre,
+                                        Anchor.TopRight,
+                                        Anchor.CentreLeft,
+                                        Anchor.Centre,
+                                        Anchor.CentreRight,
+                                        Anchor.BottomLeft,
+                                        Anchor.BottomCentre,
+                                        Anchor.BottomRight,
+                                    }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                                },
+                            }
+                        }
+                    }
+                });
 
             changeTest(FlowTestCase.Full);
         }
@@ -141,7 +146,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void buildTest(FillDirection dir, Vector2 spacing)
         {
-            ButtonsContainer.RemoveAll(dr => dr != dropdownContainer);
+            //ButtonsContainer.RemoveAll(dr => dr != dropdownContainer);
 
             var cnt = new Container
             {

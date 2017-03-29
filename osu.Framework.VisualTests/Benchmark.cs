@@ -2,13 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests
 {
     public class Benchmark : Game
     {
-        private const double time_per_test = 200;
+        private const double time_per_action = 200;
 
         protected override void LoadComplete()
         {
@@ -18,22 +19,46 @@ namespace osu.Framework.VisualTests
             Host.MaximumUpdateHz = int.MaxValue;
             Host.MaximumInactiveHz = int.MaxValue;
 
-            TestBrowser f = new TestBrowser();
-            Add(f);
+            browser = new TestBrowser();
+            Add(browser);
 
-            Console.WriteLine($@"{Time}: Running {f.TestCount} tests for {time_per_test}ms each...");
+            Console.WriteLine($@"{Time}: Running {browser.TestCount} tests for {time_per_action}ms each...");
 
-            for (int i = 1; i < f.TestCount; i++)
+            runNext();
+        }
+
+        private int testIndex = -1;
+        private int actionIndex = -1;
+
+        private TestCase currentTest => testIndex >= 0 ? browser.Tests.Skip(testIndex).FirstOrDefault() : null;
+
+        private TestBrowser browser;
+
+        private void runNext()
+        {
+            if (currentTest != null && actionIndex < currentTest.ButtonsContainer.Children.Count() - 1)
             {
-                int loadableCase = i;
-                Scheduler.AddDelayed(delegate
+                actionIndex++;
+                Console.WriteLine($@"{Time}: Switching to test #{testIndex + 1}-{actionIndex + 1}");
+                currentTest.ButtonsContainer.Children.Skip(actionIndex).First().TriggerClick();
+            }
+            else
+            {
+                testIndex++;
+                if (currentTest != null)
                 {
-                    f.LoadTest(loadableCase);
-                    Console.WriteLine($@"{Time}: Switching to test #{loadableCase}");
-                }, loadableCase * time_per_test);
+                    browser.LoadTest(currentTest);
+                    actionIndex = -1;
+                }
+                else
+                {
+                    //we're done
+                    Scheduler.AddDelayed(Host.Exit, time_per_action);
+                    return;
+                }
             }
 
-            Scheduler.AddDelayed(Host.Exit, f.TestCount * time_per_test);
+            Scheduler.AddDelayed(runNext, time_per_action);
         }
     }
 }

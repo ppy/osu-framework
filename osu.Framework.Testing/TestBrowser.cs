@@ -48,11 +48,9 @@ namespace osu.Framework.Testing
         private Container testContainer;
         private Container compilingNotice;
 
-        private readonly List<TestCase> testCases = new List<TestCase>();
+        public int TestCount => Tests.Count;
 
-        public int TestCount => testCases.Count;
-
-        private readonly List<TestCase> tests = new List<TestCase>();
+        public readonly List<TestCase> Tests = new List<TestCase>();
 
         private ConfigManager<TestBrowserOption> config;
 
@@ -61,9 +59,9 @@ namespace osu.Framework.Testing
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             Assembly asm = Assembly.GetCallingAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
-                tests.Add((TestCase)Activator.CreateInstance(type));
+                Tests.Add((TestCase)Activator.CreateInstance(type));
 
-            tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+            Tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]
@@ -128,8 +126,8 @@ namespace osu.Framework.Testing
                 },
             });
 
-            foreach (var testCase in tests)
-                addTest(testCase);
+            foreach (var t in Tests)
+                addTest(t);
 
             try
             {
@@ -145,7 +143,7 @@ namespace osu.Framework.Testing
         {
             base.LoadComplete();
 
-            loadTest(tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+            LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }
 
         protected override bool OnExiting(Screen next)
@@ -159,20 +157,16 @@ namespace osu.Framework.Testing
         private void addTest(TestCase testCase)
         {
             TestCaseButton button = new TestCaseButton(testCase);
-            button.Action += delegate { loadTest(testCase); };
+            button.Action += delegate { LoadTest(testCase); };
             leftFlowContainer.Add(button);
-            testCases.Add(testCase);
         }
 
-        public void LoadTest(int testIndex)
-        {
-            loadTest(testCases[testIndex]);
-        }
+        public void LoadTest(int testIndex) => LoadTest(Tests[testIndex]);
 
-        private void loadTest(TestCase testCase = null)
+        public void LoadTest(TestCase testCase = null)
         {
-            if (testCase == null && testCases.Count > 0)
-                testCase = testCases[0];
+            if (testCase == null && Tests.Count > 0)
+                testCase = Tests[0];
 
             config.Set(TestBrowserOption.LastTest, testCase?.Name);
 
@@ -299,8 +293,8 @@ namespace osu.Framework.Testing
 
                 Schedule(() =>
                 {
-                    int i = testCases.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
-                    testCases[i] = newVersion;
+                    int i = Tests.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
+                    Tests[i] = newVersion;
                     LoadTest(i);
                 });
             };

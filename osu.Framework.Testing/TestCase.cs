@@ -16,7 +16,7 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        protected FillFlowContainer ButtonsContainer;
+        public FillFlowContainer<Button> ButtonsContainer;
 
         // TODO: Figure out how to make this private (e.g. through reflection).
         //       Right now this is required for DrawVis to inspect the Drawable tree.
@@ -50,7 +50,7 @@ namespace osu.Framework.Testing
                     {
                         RelativeSizeAxes = Axes.Both,
                     },
-                    ButtonsContainer = new FillFlowContainer
+                    ButtonsContainer = new FillFlowContainer<Button>
                     {
                         Direction = FillDirection.Vertical,
                         Spacing = new Vector2(15, 5),
