@@ -208,7 +208,7 @@ namespace osu.Framework.Testing
         {
             var csc = new CSharpCodeProvider();
 
-            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.1.3.2", "tools", "csc.exe");
+            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.2.0.1", "tools", "csc.exe");
 
             //Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
             var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
