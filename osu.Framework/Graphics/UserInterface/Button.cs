@@ -25,6 +25,12 @@ namespace osu.Framework.Graphics.UserInterface
             get { return Background.Colour; }
             set { Background.Colour = value; }
         }
+        
+        public Button()
+        {
+            Height = 25;
+            Colour = new Color4(14, 132, 165, 255);
+        }
 
         protected override Container<Drawable> Content => content;
 
