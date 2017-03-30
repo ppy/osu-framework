@@ -7,6 +7,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using OpenTK;
 using OpenTK.Graphics;
@@ -41,15 +42,19 @@ namespace osu.Framework.Testing
             Dependencies = deps;
         }
 
+        const float steps_width = 180;
+
         public virtual void Reset()
         {
             if (Contents == null)
             {
                 InternalChildren = new Drawable[]
                 {
-                    Contents = new Container
+                    new Box
                     {
-                        RelativeSizeAxes = Axes.Both,
+                        Colour = new Color4(25, 25, 25, 255),
+                        RelativeSizeAxes = Axes.Y,
+                        Width = steps_width,
                     },
                     StepsContainer = new FillFlowContainer<StepButton>
                     {
@@ -57,7 +62,13 @@ namespace osu.Framework.Testing
                         Depth = float.MinValue,
                         Padding = new MarginPadding(5),
                         Spacing = new Vector2(5),
-                        AutoSizeAxes = Axes.Both,
+                        AutoSizeAxes = Axes.Y,
+                        Width = steps_width,
+                    },
+                    Contents = new Container
+                    {
+                        Padding = new MarginPadding { Left = steps_width },
+                        RelativeSizeAxes = Axes.Both,
                     },
                 };
             }
@@ -110,7 +121,9 @@ namespace osu.Framework.Testing
 
         public StepButton()
         {
-            Size = new Vector2(200, 25);
+            Height = 25;
+            RelativeSizeAxes = Axes.X;
+
             BackgroundColour = Color4.BlueViolet;
 
             CornerRadius = 2;
