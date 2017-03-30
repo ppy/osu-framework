@@ -1,7 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-namespace osu.Framework.Graphics.Transforms
+namespace osu.Framework.Graphics
 {
     /// <summary>
     /// See http://easings.net/ for more samples.
@@ -42,6 +42,7 @@ namespace osu.Framework.Graphics.Transforms
         InOutBack,
         InBounce,
         OutBounce,
-        InOutBounce
+        InOutBounce,
+        OutPow10,
     }
 }

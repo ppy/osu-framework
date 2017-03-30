@@ -1,4 +1,4 @@
-# osu-framework [![Build status](https://ci.appveyor.com/api/projects/status/fh5mnml3vsfheymp?svg=true)](https://ci.appveyor.com/project/peppy/osu-framework)
+# osu!framework [![Build status](https://ci.appveyor.com/api/projects/status/fh5mnml3vsfheymp?svg=true)](https://ci.appveyor.com/project/peppy/osu-framework)
 [dev chat](https://discord.gg/ppy)
 
 A game framework written with osu! in mind.

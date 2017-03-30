@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
@@ -13,7 +12,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : Container
+    public class ScrollContainer : Container, DelayedLoadContainer.IOnScreenOptimisingContainer
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.

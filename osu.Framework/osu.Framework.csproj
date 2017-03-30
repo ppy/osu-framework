@@ -110,6 +110,8 @@
     <Compile Include="Extensions\GeneralExtensions.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
+    <Compile Include="Graphics\Containers\AsyncLoadContainer.cs" />
+    <Compile Include="Graphics\Containers\DelayedLoadContainer.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
@@ -121,8 +123,6 @@
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
     <Compile Include="Input\PassThroughInputManager.cs" />
-    <Compile Include="Screens\Testing\TestBrowser.cs" />
-    <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
@@ -241,7 +241,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
-    <Compile Include="Graphics\Transforms\EasingTypes.cs" />
+    <Compile Include="Graphics\EasingTypes.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />

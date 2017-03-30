@@ -1747,7 +1747,7 @@ namespace osu.Framework.Graphics
             }
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
-            double max = Time.Current + transformDelay;
+            double max = TransformStartTime;
             foreach (ITransform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
@@ -1803,7 +1803,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            double startTime = Time.Current + transformDelay;
+            double startTime = TransformStartTime;
 
             Transforms.Add(new TransformAlpha
             {
@@ -1828,7 +1828,7 @@ namespace osu.Framework.Graphics
                 Transforms.RemoveAll(t => t is TransformAlpha);
             }
 
-            double startTime = Time.Current + transformDelay;
+            double startTime = TransformStartTime;
 
             TransformAlpha tr = new TransformAlpha
             {
@@ -1856,7 +1856,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -1921,7 +1921,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             transform.StartTime = startTime;
             transform.EndTime = startTime + duration;
@@ -1970,6 +1970,11 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        /// <summary>
+        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// </summary>
+        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
+
         #region Color4-based helpers
 
         public void FadeColour(SRGBColour newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1987,7 +1992,7 @@ namespace osu.Framework.Graphics
             else
                 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? startValue;
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             addTransform(new TransformColour
             {
@@ -2007,7 +2012,7 @@ namespace osu.Framework.Graphics
             Color4 startValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour.Linear;
             Transforms.RemoveAll(t => t is TransformColour);
 
-            double startTime = Clock != null ? Time.Current + transformDelay : 0;
+            double startTime = TransformStartTime;
 
             addTransform(new TransformColour
             {

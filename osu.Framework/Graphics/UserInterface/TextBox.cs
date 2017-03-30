@@ -417,6 +417,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
+                if (!IsLoaded)
+                    text = value;
+
                 textUpdateScheduler.Add(delegate
                 {
                     int startBefore = selectionStart;

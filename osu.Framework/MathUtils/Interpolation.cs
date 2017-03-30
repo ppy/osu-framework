@@ -2,8 +2,8 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -121,6 +121,8 @@ namespace osu.Framework.MathUtils
                     return change * (time /= duration) * time * time * time * time + initial;
                 case EasingTypes.OutQuint:
                     return change * ((time = time / duration - 1) * time * time * time * time + 1) + initial;
+                case EasingTypes.OutPow10:
+                    return change * ((time = time / duration - 1) * Math.Pow(time, 10) + 1) + initial;
                 case EasingTypes.InOutQuint:
                     if ((time /= duration / 2) < 1) return change / 2 * time * time * time * time * time + initial;
                     return change / 2 * ((time -= 2) * time * time * time * time + 2) + initial;

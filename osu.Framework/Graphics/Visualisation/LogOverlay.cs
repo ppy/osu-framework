@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
@@ -37,8 +36,6 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 flow = new FillFlowContainer
                 {
-                    LayoutDuration = 150,
-                    LayoutEasing = EasingTypes.OutQuart,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                 }
@@ -50,6 +47,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void logger_NewEntry(LogEntry entry)
         {
+            if (entry.Level <= LogLevel.Verbose)
+                return;
+
             Schedule(() =>
             {
                 var drawEntry = new DrawableLogEntry(entry);

@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using OpenTK;
 using OpenTK.Graphics;
 

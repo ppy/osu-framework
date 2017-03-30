@@ -1,22 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Testing;
 using OpenTK;
-using osu.Framework.Allocation;
-using osu.Framework.Screens.Testing;
+using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseOnlineTextures : TestCase
     {
         private FillFlowContainer flow;
-
-        private int loadId = 55;
-        private Game game;
 
         public override void Reset()
         {
@@ -29,7 +28,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainer()
+                        flow = new FillFlowContainer
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -38,21 +37,34 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            getNextAvatar();
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(Game game)
-        {
-            this.game = game;
-        }
-
-        private void getNextAvatar()
-        {
-            new Avatar(loadId).LoadAsync(game, flow.Add);
-
-            loadId++;
-            Scheduler.AddDelayed(getNextAvatar, 400);
+            for (int i = 55; i < 2048; i++)
+                flow.Add(new Container
+                {
+                    Size = new Vector2(128),
+                    Children = new Drawable[]
+                    {
+                        new DelayedLoadContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            FinishedLoading = d => {
+                                if ((d.Children.First() as Sprite)?.Texture == null)
+                                {
+                                    d.Add(new SpriteText {
+                                        Colour = Color4.Gray,
+                                        Text = @"nope",
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                    });
+                                }
+                            },
+                            Children = new Drawable[]
+                            {
+                                new Avatar(i) { RelativeSizeAxes = Axes.Both }
+                            }
+                        },
+                        new SpriteText { Text = i.ToString() },
+                    }
+                });
         }
     }
 
@@ -69,22 +81,6 @@ namespace osu.Framework.VisualTests.Tests
         private void load(TextureStore textures)
         {
             Texture = textures.Get($@"https://a.ppy.sh/{userId}");
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            if (Texture == null)
-            {
-                Expire();
-                return;
-            }
-
-            //override texture size
-            Size = new Vector2(128);
-
-            FadeInFromZero(500);
         }
     }
 }
