@@ -32,7 +32,6 @@ namespace osu.Framework.VisualTests.Tests
                 scroll = new ScrollContainer(dir)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = 150 },
                     Children = new []
                     {
                         flow = new FillFlowContainer
