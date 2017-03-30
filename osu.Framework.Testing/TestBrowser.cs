@@ -229,6 +229,9 @@ namespace osu.Framework.Testing
 
             var basePath = Path.Combine(di.Parent?.Parent?.FullName, @"Tests");
 
+            if (!Directory.Exists(basePath))
+                return;
+
             fsw = new FileSystemWatcher(basePath, @"*.cs")
             {
                 EnableRaisingEvents = true,
