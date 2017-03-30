@@ -315,13 +315,14 @@ namespace osu.Framework.Platform
             if (Window != null)
             {
                 Window.SetupWindow(config);
-                Window.Title = $@"osu.Framework (running ""{Name}"")";
+                Window.Title = $@"osu!framework (running ""{Name}"")";
             }
-
-            Task.Run(() => bootstrapSceneGraph(game));
 
             DrawThread.Start();
             UpdateThread.Start();
+
+            DrawThread.WaitUntilInitialized();
+            bootstrapSceneGraph(game);
 
             try
             {

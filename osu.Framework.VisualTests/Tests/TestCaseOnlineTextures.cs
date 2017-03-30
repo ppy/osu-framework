@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            for (int i = 55; i < 2048; i++)
+            for (int i = 55; i < 256; i++)
                 flow.Add(new Container
                 {
                     Size = new Vector2(128),
