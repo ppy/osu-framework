@@ -33,7 +33,13 @@ namespace osu.Framework.Testing.Drawables.StepButtons
 
             base.Action = () =>
             {
+                if (invocations == count) return;
+
                 invocations++;
+
+                if (invocations == count)
+                    BackgroundColour = Color4.YellowGreen;
+
                 updateText();
 
                 Action?.Invoke();
