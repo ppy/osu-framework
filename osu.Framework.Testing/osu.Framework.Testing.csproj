@@ -45,6 +45,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestRunner.cs" />
     <Compile Include="Drawables\StepButtons\AssertButton.cs" />
     <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
     <Compile Include="DynamicClassCompiler.cs" />

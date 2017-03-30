@@ -20,7 +20,6 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing
 {
-
     public class TestBrowser : Screen
     {
         public TestCase CurrentTest { get; private set; }
@@ -159,7 +158,8 @@ namespace osu.Framework.Testing
         {
             base.LoadComplete();
 
-            LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+            if (CurrentTest == null)
+                LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
         }
 
         protected override bool OnExiting(Screen next)
@@ -172,7 +172,7 @@ namespace osu.Framework.Testing
 
         public void LoadTest(int testIndex) => LoadTest(Tests[testIndex]);
 
-        public void LoadTest(TestCase testCase = null)
+        public void LoadTest(TestCase testCase = null, Action onCompletion = null)
         {
             if (testCase == null && Tests.Count > 0)
                 testCase = Tests[0];
@@ -194,6 +194,7 @@ namespace osu.Framework.Testing
             {
                 testContentContainer.Add(CurrentTest = testCase);
                 testCase.Reset();
+                testCase.RunAllSteps(onCompletion);
 
                 var button = getButtonFor(CurrentTest);
                 if (button != null) button.Current = true;

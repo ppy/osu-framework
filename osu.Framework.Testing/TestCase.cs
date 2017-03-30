@@ -2,12 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing.Drawables.StepButtons;
+using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -73,6 +75,45 @@ namespace osu.Framework.Testing
                 content.Clear();
                 StepsContainer.Clear();
             }
+        }
+
+        private int actionIndex;
+        private int actionRepetition;
+        private ScheduledDelegate stepRunner;
+
+        public void RunAllSteps(Action onCompletion = null)
+        {
+            stepRunner?.Cancel();
+
+            actionIndex = -1;
+            actionRepetition = 0;
+            runNextStep(onCompletion);
+        }
+
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.Skip(actionIndex).FirstOrDefault() : null;
+
+        protected virtual double TimePerAction => 200;
+
+        private void runNextStep(Action onCompletion)
+        {
+            Console.WriteLine($@"{Time.Current:N0}: {GetType().ReadableName()} test {actionIndex + 1}.{actionRepetition}");
+            actionRepetition++;
+            loadableStep?.TriggerClick();
+
+            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
+            {
+                actionIndex++;
+                actionRepetition = 0;
+            }
+
+            if (actionIndex > StepsContainer.Children.Count() - 1)
+            {
+                onCompletion?.Invoke();
+                return;
+            }
+
+            if (Parent != null)
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion), TimePerAction);
         }
 
         protected void AddStep(string description, Action action)
