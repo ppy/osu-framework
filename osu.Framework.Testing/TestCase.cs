@@ -96,9 +96,22 @@ namespace osu.Framework.Testing
 
         private void runNextStep(Action onCompletion)
         {
-            Console.WriteLine($@"{Time.Current:N0}: {GetType().ReadableName()} test {actionIndex + 1}.{actionRepetition}");
-            actionRepetition++;
             loadableStep?.TriggerClick();
+
+            string text = $"{(int)Time.Current}: ".PadLeft(7);
+
+            if (actionIndex < 0)
+                text += $"{GetType().ReadableName()}";
+            else
+            {
+                if (actionRepetition == 0)
+                    text += $"  Step #{actionIndex + 1}";
+                text = text.PadRight(20) + $"{loadableStep?.ToString() ?? string.Empty}";
+            }
+
+            Console.WriteLine(text);
+
+            actionRepetition++;
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {

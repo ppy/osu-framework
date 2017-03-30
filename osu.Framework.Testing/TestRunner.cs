@@ -34,7 +34,7 @@ namespace osu.Framework.Testing
 
             Push(browser);
 
-            Console.WriteLine($@"{Time}: Running {browser.Tests.Count} tests using a delay of {time_between_tests}ms per action...");
+            Console.WriteLine($@"{(int)Time.Current}: Running {browser.Tests.Count} visual test cases...");
 
             runNext();
         }

@@ -33,5 +33,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             if (!State)
                 Success();
         }
+
+        public override string ToString() => $"Toggle: {base.ToString()} ({(State ? "on" : "off")})";
     }
 }

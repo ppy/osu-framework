@@ -32,5 +32,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             Background.Alpha = 0.4f;
             SpriteText.Alpha = 0.8f;
         }
+
+        public override string ToString() => Text;
     }
 }

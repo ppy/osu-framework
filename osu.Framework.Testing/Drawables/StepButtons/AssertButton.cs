@@ -28,5 +28,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             else
                 throw new Exception($"{Text} {ExtendedDescription}");
         }
+
+        public override string ToString() => "Assert: " + base.ToString();
     }
 }

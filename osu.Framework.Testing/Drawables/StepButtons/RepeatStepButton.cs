@@ -50,5 +50,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
         {
             base.Text = $@"{Text} {invocations}/{count}";
         }
+
+        public override string ToString() => "Repeat: " + base.ToString();
     }
 }
