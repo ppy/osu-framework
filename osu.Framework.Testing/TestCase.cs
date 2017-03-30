@@ -77,7 +77,7 @@ namespace osu.Framework.Testing
 
         protected void AddStep(string description, Action action)
         {
-            StepsContainer.Add(new StepButton
+            StepsContainer.Add(new SingleStepButton
             {
                 Text = description,
                 Action = action

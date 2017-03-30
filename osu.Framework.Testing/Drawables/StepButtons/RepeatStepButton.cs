@@ -38,7 +38,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
                 invocations++;
 
                 if (invocations == count)
-                    BackgroundColour = Color4.YellowGreen;
+                    Success();
 
                 updateText();
 

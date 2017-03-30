@@ -8,11 +8,11 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Testing.Drawables.StepButtons
 {
-    public class StepButton : Button
+    public abstract class StepButton : Button
     {
         public virtual int RequiredRepetitions => 1;
 
-        public StepButton()
+        protected StepButton()
         {
             Height = 25;
             RelativeSizeAxes = Axes.X;
@@ -25,6 +25,12 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             SpriteText.Anchor = Anchor.CentreLeft;
             SpriteText.Origin = Anchor.CentreLeft;
             SpriteText.Padding = new MarginPadding(5);
+        }
+
+        protected void Success()
+        {
+            Background.Alpha = 0.4f;
+            SpriteText.Alpha = 0.8f;
         }
     }
 }

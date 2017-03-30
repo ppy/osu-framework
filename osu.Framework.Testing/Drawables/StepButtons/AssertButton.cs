@@ -21,7 +21,10 @@ namespace osu.Framework.Testing.Drawables.StepButtons
         private void checkAssert()
         {
             if (Assertion())
+            {
+                Success();
                 BackgroundColour = Color4.YellowGreen;
+            }
             else
                 throw new Exception($"{Text} {ExtendedDescription}");
         }

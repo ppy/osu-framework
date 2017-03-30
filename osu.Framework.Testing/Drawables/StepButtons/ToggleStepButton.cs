@@ -21,7 +21,7 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             this.reloadCallback = reloadCallback;
 
             BackgroundColour = off_colour;
-            Action += clickAction;
+            Action = clickAction;
         }
 
         private void clickAction()
@@ -29,6 +29,9 @@ namespace osu.Framework.Testing.Drawables.StepButtons
             State = !State;
             BackgroundColour = State ? on_colour : off_colour;
             reloadCallback?.Invoke(State);
+
+            if (!State)
+                Success();
         }
     }
 }

@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Drawables\StepButtons\AssertButton.cs" />
+    <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
     <Compile Include="DynamicClassCompiler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Drawables\StepButtons\RepeatStepButton.cs" />
