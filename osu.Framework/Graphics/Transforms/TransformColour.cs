@@ -3,7 +3,6 @@
 
 using osu.Framework.MathUtils;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.Graphics.Transforms
 {
