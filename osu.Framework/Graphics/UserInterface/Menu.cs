@@ -64,12 +64,14 @@ namespace osu.Framework.Graphics.UserInterface
                 switch (value)
                 {
                     case MenuState.Closed:
-                        TriggerFocusLost();
                         AnimateClose();
+                        TriggerFocusLost();
                         break;
                     case MenuState.Opened:
-                        TriggerFocus();
                         AnimateOpen();
+                        
+                        //schedule required as we may not be present currently.
+                        Schedule(() => TriggerFocus());
                         break;
                 }
 
