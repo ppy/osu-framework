@@ -15,7 +15,10 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseOnlineTextures : TestCase
     {
-        private FillFlowContainer flow;
+        private FillFlowContainerNoInput flow;
+        private ScrollContainer scroll;
+
+        private const int panel_count = 2048;
 
         public override void Reset()
         {
@@ -23,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new ScrollContainer
+                scroll = new ScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
@@ -37,7 +40,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            for (int i = 55; i < 256; i++)
+            for (int i = 1; i < panel_count; i++)
                 flow.Add(new Container
                 {
                     Size = new Vector2(128),
@@ -66,10 +69,17 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 });
 
-            AddWaitStep(5);
+            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadContainer>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
+
+            AddWaitStep(10);
+            AddStep("scroll down", () => scroll.ScrollToEnd());
+            AddWaitStep(10);
+            AddAssert("any panels loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+            AddAssert("too many panels loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
+            AddAssert("any panels loaded", () => childrenWithAvatarsLoaded.Count() > 5);
         }
 
-        private class FillFlowContainerNoInput : FillFlowContainer
+        private class FillFlowContainerNoInput : FillFlowContainer<Container>
         {
             public override bool HandleInput => false;
         }

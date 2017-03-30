@@ -120,6 +120,16 @@ namespace osu.Framework.Testing
                 BackgroundColour = Color4.Gray
             });
         }
+
+        public void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
+        {
+            StepsContainer.Add(new AssertButton()
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                Assertion = assert,
+            });
+        }
     }
 
     public class StepButton : Button
@@ -139,6 +149,27 @@ namespace osu.Framework.Testing
             SpriteText.Anchor = Anchor.CentreLeft;
             SpriteText.Origin = Anchor.CentreLeft;
             SpriteText.Padding = new MarginPadding(5);
+        }
+    }
+
+    public class AssertButton : StepButton
+    {
+        public Func<bool> Assertion;
+
+        public string ExtendedDescription;
+
+        public AssertButton()
+        {
+            BackgroundColour = Color4.OrangeRed;
+            Action += checkAssert;
+        }
+
+        private void checkAssert()
+        {
+            if (Assertion())
+                BackgroundColour = Color4.YellowGreen;
+            else
+                throw new Exception($"{Text} {ExtendedDescription}");
         }
     }
 
