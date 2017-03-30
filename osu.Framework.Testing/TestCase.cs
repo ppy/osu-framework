@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -20,13 +19,9 @@ namespace osu.Framework.Testing
 
         public FillFlowContainer<StepButton> StepsContainer;
 
-        // TODO: Figure out how to make this private (e.g. through reflection).
-        //       Right now this is required for DrawVis to inspect the Drawable tree.
-        public Container Contents;
+        private Container content;
 
-        protected override Container<Drawable> Content => Contents;
-
-        protected DependencyContainer Dependencies { get; private set; }
+        protected override Container<Drawable> Content => content;
 
         protected TestCase()
         {
@@ -36,18 +31,12 @@ namespace osu.Framework.Testing
             Masking = true;
         }
 
-        [BackgroundDependencyLoader]
-        private void load(DependencyContainer deps)
-        {
-            Dependencies = deps;
-        }
-
         private const float steps_width = 180;
         private const float padding = 10;
 
         public virtual void Reset()
         {
-            if (Contents == null)
+            if (content == null)
             {
                 InternalChildren = new Drawable[]
                 {
@@ -66,7 +55,7 @@ namespace osu.Framework.Testing
                         AutoSizeAxes = Axes.Y,
                         Width = steps_width,
                     },
-                    Contents = new Container
+                    content = new Container
                     {
                         Padding = new MarginPadding
                         {
@@ -81,7 +70,7 @@ namespace osu.Framework.Testing
             }
             else
             {
-                Contents.Clear();
+                content.Clear();
                 StepsContainer.Clear();
             }
         }
