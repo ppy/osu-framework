@@ -367,18 +367,18 @@ namespace osu.Framework.Testing
                         {
                             new SpriteText
                             {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
                                 Text = test.Name,
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
                             },
                             new SpriteText
                             {
+                                Anchor = Anchor.BottomLeft,
+                                Origin = Anchor.BottomLeft,
                                 Text = test.Description,
                                 TextSize = 15,
                                 AutoSizeAxes = Axes.Y,
                                 RelativeSizeAxes = Axes.X,
-                                Anchor = Anchor.BottomLeft,
-                                Origin = Anchor.BottomLeft
                             }
                         }
                     }
