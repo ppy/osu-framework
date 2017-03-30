@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         private FillFlowContainerNoInput flow;
         private ScrollContainer scroll;
 
-        private const int panel_count = 2048;
+        private const int panel_count = 512;
 
         public override void Reset()
         {
@@ -74,9 +74,8 @@ namespace osu.Framework.VisualTests.Tests
             AddWaitStep(10);
             AddStep("scroll down", () => scroll.ScrollToEnd());
             AddWaitStep(10);
-            AddAssert("any panels loaded", () => childrenWithAvatarsLoaded.Count() > 5);
-            AddAssert("too many panels loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
-            AddAssert("any panels loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+            AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
         }
 
         private class FillFlowContainerNoInput : FillFlowContainer<Container>
