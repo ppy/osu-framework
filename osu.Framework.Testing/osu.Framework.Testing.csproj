@@ -53,12 +53,6 @@
     <Compile Include="TestBrowserConfig.cs" />
     <Compile Include="TestCase.cs" />
     <Compile Include="Drawables\TestCaseButton.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
-      <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
-      <Name>osu.Framework</Name>
-    </ProjectReference>
     <Compile Include="Drawables\StepButtons\ToggleStepButton.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +61,12 @@
     </None>
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
+      <Project>{c76bf5b3-985e-4d39-95fe-97c9c879b83a}</Project>
+      <Name>osu.Framework</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
