@@ -16,40 +16,23 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
+using osu.Framework.Testing.Drawables;
 using OpenTK;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Testing
 {
+
     public class TestBrowser : Screen
     {
-        public TestCase CurrentTest;
+        public TestCase CurrentTest { get; private set; }
 
-        private class TestBrowserConfig : ConfigManager<TestBrowserOption>
-        {
-            protected override string Filename => @"visualtests.cfg";
-
-            public TestBrowserConfig(Storage storage) : base(storage)
-            {
-            }
-        }
-
-        private enum TestBrowserOption
-        {
-            LastTest
-        }
-
-        private Container leftContainer;
         private FillFlowContainer<TestCaseButton> leftFlowContainer;
-        private Container leftScrollContainer;
-        private Container testContainer;
+        private Container testContentContainer;
         private Container compilingNotice;
-
-        public int TestCount => Tests.Count;
 
         public readonly List<TestCase> Tests = new List<TestCase>();
 
@@ -70,65 +53,72 @@ namespace osu.Framework.Testing
         {
             config = new TestBrowserConfig(storage);
 
-            Add(leftContainer = new Container
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Y,
-                Size = new Vector2(200, 1)
-            });
-
-            leftContainer.Add(new Box
-            {
-                Colour = Color4.DimGray,
-                RelativeSizeAxes = Axes.Both
-            });
-
-            leftContainer.Add(leftScrollContainer = new ScrollContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                ScrollDraggerOverlapsContent = false
-            });
-
-            leftScrollContainer.Add(leftFlowContainer = new FillFlowContainer<TestCaseButton>
-            {
-                Padding = new MarginPadding(3),
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(0, 5),
-                AutoSizeAxes = Axes.Y,
-                RelativeSizeAxes = Axes.X,
-            });
-
-            //this is where the actual tests are loaded.
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-                Padding = new MarginPadding { Left = 200 }
-            });
-
-            testContainer.Add(compilingNotice = new Container
-            {
-                Alpha = 0,
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Masking = true,
-                Depth = float.MinValue,
-                CornerRadius = 5,
-                AutoSizeAxes = Axes.Both,
-                Children = new Drawable[]
+                new Container
                 {
-                    new Box {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Black,
-                    },
-                    new SpriteText
+                    RelativeSizeAxes = Axes.Y,
+                    Size = new Vector2(200, 1),
+                    Children = new Drawable[]
                     {
-                        TextSize = 30,
-                        Text = @"Compiling new version..."
+                        new Box
+                        {
+                            Colour = Color4.DimGray,
+                            RelativeSizeAxes = Axes.Both
+                        },
+                        new ScrollContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            ScrollDraggerOverlapsContent = false,
+                            Children = new[]
+                            {
+                                leftFlowContainer = new FillFlowContainer<TestCaseButton>
+                                {
+                                    Padding = new MarginPadding(3),
+                                    Direction = FillDirection.Vertical,
+                                    Spacing = new Vector2(0, 5),
+                                    AutoSizeAxes = Axes.Y,
+                                    RelativeSizeAxes = Axes.X,
+                                }
+                            }
+                        }
                     }
                 },
-            });
+                testContentContainer = new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Left = 200 },
+                    Children = new Drawable[]
+                    {
+                        compilingNotice = new Container
+                        {
+                            Alpha = 0,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Masking = true,
+                            Depth = float.MinValue,
+                            CornerRadius = 5,
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Black,
+                                },
+                                new SpriteText
+                                {
+                                    TextSize = 30,
+                                    Text = @"Compiling new version..."
+                                }
+                            },
+                        }
+                    }
+                }
+            };
 
-            foreach (var t in Tests)
-                addTest(t);
+            //Add buttons for each TestCase.
+            leftFlowContainer.Add(Tests.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
             try
             {
@@ -155,13 +145,6 @@ namespace osu.Framework.Testing
             return base.OnExiting(next);
         }
 
-        private void addTest(TestCase testCase)
-        {
-            TestCaseButton button = new TestCaseButton(testCase);
-            button.Action += delegate { LoadTest(testCase); };
-            leftFlowContainer.Add(button);
-        }
-
         public void LoadTest(int testIndex) => LoadTest(Tests[testIndex]);
 
         public void LoadTest(TestCase testCase = null)
@@ -173,10 +156,10 @@ namespace osu.Framework.Testing
 
             if (CurrentTest != null)
             {
-                testContainer.Remove(CurrentTest);
+                testContentContainer.Remove(CurrentTest);
                 CurrentTest.Clear();
 
-                var button = buttonFor(CurrentTest);
+                var button = getButtonFor(CurrentTest);
                 if (button != null) button.Current = false;
 
                 CurrentTest = null;
@@ -184,15 +167,15 @@ namespace osu.Framework.Testing
 
             if (testCase != null)
             {
-                testContainer.Add(CurrentTest = testCase);
+                testContentContainer.Add(CurrentTest = testCase);
                 testCase.Reset();
 
-                var button = buttonFor(CurrentTest);
+                var button = getButtonFor(CurrentTest);
                 if (button != null) button.Current = true;
             }
         }
 
-        private TestCaseButton buttonFor(TestCase currentTest) => leftFlowContainer.Children.FirstOrDefault(b => b.TestCase.Name == currentTest.Name);
+        private TestCaseButton getButtonFor(TestCase currentTest) => leftFlowContainer.Children.FirstOrDefault(b => b.TestCase.Name == currentTest.Name);
 
         private FileSystemWatcher fsw;
 
@@ -311,94 +294,6 @@ namespace osu.Framework.Testing
                     LoadTest(i);
                 });
             };
-        }
-
-        private class TestCaseButton : ClickableContainer
-        {
-            private readonly Box box;
-            private readonly Container text;
-
-            public readonly TestCase TestCase;
-
-            public bool Current
-            {
-                set
-                {
-                    const float transition_duration = 100;
-
-                    if (value)
-                    {
-                        box.FadeColour(new Color4(220, 220, 220, 255), transition_duration);
-                        text.FadeColour(Color4.Black, transition_duration);
-                    }
-                    else
-                    {
-                        box.FadeColour(new Color4(140, 140, 140, 255), transition_duration);
-                        text.FadeColour(Color4.White, transition_duration);
-                    }
-                }
-            }
-
-            public TestCaseButton(TestCase test)
-            {
-                Masking = true;
-
-                TestCase = test;
-
-                CornerRadius = 5;
-                RelativeSizeAxes = Axes.X;
-                Size = new Vector2(1, 60);
-
-                Add(new Drawable[]
-                {
-                    box = new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = new Color4(140, 140, 140, 255),
-                        Alpha = 0.7f
-                    },
-                    text = new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Padding = new MarginPadding
-                        {
-                            Left = 4,
-                            Right = 4,
-                            Bottom = 2,
-                        },
-                        Children = new[]
-                        {
-                            new SpriteText
-                            {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                Text = test.Name,
-                            },
-                            new SpriteText
-                            {
-                                Anchor = Anchor.BottomLeft,
-                                Origin = Anchor.BottomLeft,
-                                Text = test.Description,
-                                TextSize = 15,
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
-                            }
-                        }
-                    }
-                });
-            }
-
-            protected override bool OnHover(InputState state)
-            {
-                box.FadeTo(1, 150);
-                return true;
-            }
-
-            protected override void OnHoverLost(InputState state)
-            {
-                box.FadeTo(0.7f, 150);
-                base.OnHoverLost(state);
-            }
         }
     }
 }

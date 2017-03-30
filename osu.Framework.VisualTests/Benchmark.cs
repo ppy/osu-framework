@@ -22,7 +22,7 @@ namespace osu.Framework.VisualTests
             browser = new TestBrowser();
             Add(browser);
 
-            Console.WriteLine($@"{Time}: Running {browser.TestCount} tests for {time_per_action}ms each...");
+            Console.WriteLine($@"{Time}: Running {browser.Tests.Count} tests using a delay of {time_per_action}ms per action...");
 
             runNext();
         }
