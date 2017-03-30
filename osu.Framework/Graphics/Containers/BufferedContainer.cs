@@ -239,7 +239,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformBlurSigma));
             TransformTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
         }
 

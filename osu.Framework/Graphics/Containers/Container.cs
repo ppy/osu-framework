@@ -604,7 +604,6 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformEdgeEffectAlpha));
             TransformTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
         }
 
