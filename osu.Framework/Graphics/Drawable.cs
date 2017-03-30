@@ -118,19 +118,17 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="onLoaded">
-        /// Callback to be invoked asynchronously
-        /// after loading is complete.
-        /// </param>
+        /// <param name="clock">The clock of our future parent.</param>
+        /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync(Game game, IFrameBasedClock clock, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(game, clock)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -140,8 +138,10 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
-        internal void Load(Game game)
+        internal void Load(Game game, IFrameBasedClock clock)
         {
+            UpdateClock(clock);
+
             // Blocks when loading from another thread already.
             lock (loadLock)
             {
@@ -1130,7 +1130,12 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry | Invalidation.Colour);
 
                 if (parent != null)
+                {
+                    //we should already have a clock at this point (from our LoadRequested invocation)
+                    //this just ensures we have the most recent parent clock.
+                    //we may want to consider enforcing that parent.Clock == clock here.
                     UpdateClock(parent.Clock);
+                }
             }
         }
 

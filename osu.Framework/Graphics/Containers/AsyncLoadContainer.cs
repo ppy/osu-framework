@@ -21,14 +21,12 @@ namespace osu.Framework.Graphics.Containers
 
         private readonly Container content = new Container { RelativeSizeAxes = Axes.Both };
 
-        private Game game;
 
         protected virtual bool ShouldLoadContent => true;
 
         [BackgroundDependencyLoader]
-        private void load(Game game)
+        private void load()
         {
-            this.game = game;
             if (ShouldLoadContent)
                 loadContentAsync();
         }
@@ -45,7 +43,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void loadContentAsync()
         {
-            loadTask = content.LoadAsync(game, d =>
+            loadTask = LoadComponentAsync(content, d =>
             {
                 AddInternal(d);
                 FinishedLoading?.Invoke(this);

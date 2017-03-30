@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Linq;
+using System.Threading.Tasks;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
@@ -56,21 +57,27 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
+        private Game game;
+
+        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, Clock, onLoaded);
+
         [BackgroundDependencyLoader(true)]
         private void load(Game game, ShaderManager shaders)
         {
+            this.game = game;
+
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
             internalChildren.LoadRequested += i =>
             {
-                i.Load(game);
+                i.Load(game, Clock);
                 i.Parent = this;
             };
 
             try
             {
-                internalChildren.Update(game.Clock?.TimeInfo ?? default(FrameTimeInfo));
+                internalChildren.Update(Clock.TimeInfo);
             }
             catch (ObjectDisposedException)
             {
