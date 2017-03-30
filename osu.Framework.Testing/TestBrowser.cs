@@ -2,13 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using Microsoft.CodeDom.Providers.DotNetCompilerPlatform;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
@@ -16,7 +12,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Framework.Testing.Drawables;
@@ -37,6 +32,8 @@ namespace osu.Framework.Testing
         public readonly List<TestCase> Tests = new List<TestCase>();
 
         private ConfigManager<TestBrowserOption> config;
+
+        private DynamicClassCompiler<TestCase> backgroundCompiler;
 
         public TestBrowser()
         {
@@ -120,14 +117,42 @@ namespace osu.Framework.Testing
             //Add buttons for each TestCase.
             leftFlowContainer.Add(Tests.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
+            backgroundCompiler = new DynamicClassCompiler<TestCase>()
+            {
+                CompilationStarted = compileStarted,
+                CompilationFinished = compileFinished,
+                WatchDirectory = @"Tests",
+            };
+
             try
             {
-                startBackgroundCompiling();
+                backgroundCompiler.Start();
             }
             catch
             {
                 //it's okay for this to fail for now.
             }
+        }
+
+        private void compileStarted()
+        {
+            compilingNotice.Show();
+            compilingNotice.FadeColour(Color4.White);
+        }
+
+        private void compileFinished(TestCase newVersion)
+        {
+            Schedule(() =>
+            {
+                compilingNotice.FadeOut(800, EasingTypes.InQuint);
+                compilingNotice.FadeColour(newVersion == null ? Color4.Red : Color4.YellowGreen, 100);
+
+                if (newVersion == null) return;
+
+                int i = Tests.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
+                Tests[i] = newVersion;
+                LoadTest(i);
+            });
         }
 
         protected override void LoadComplete()
@@ -176,124 +201,5 @@ namespace osu.Framework.Testing
         }
 
         private TestCaseButton getButtonFor(TestCase currentTest) => leftFlowContainer.Children.FirstOrDefault(b => b.TestCase.Name == currentTest.Name);
-
-        private FileSystemWatcher fsw;
-
-        /// <summary>
-        /// Find the base path of the closest solution folder
-        /// </summary>
-        private static string findSolutionPath()
-        {
-            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-
-            while (!Directory.GetFiles(di.FullName, "*.sln").Any() && di.Parent != null)
-                di = di.Parent;
-
-            return di.FullName;
-        }
-
-        private static CSharpCodeProvider createCodeProvider()
-        {
-            var csc = new CSharpCodeProvider();
-
-            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.2.0.1", "tools", "csc.exe");
-
-            //Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
-            var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
-            var path = settings?.GetType().GetField("_compilerFullPath", BindingFlags.Instance | BindingFlags.NonPublic);
-            path?.SetValue(settings, newPath);
-
-            return csc;
-        }
-
-        private void startBackgroundCompiling()
-        {
-            var di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
-
-            var basePath = Path.Combine(di.Parent?.Parent?.FullName, @"Tests");
-
-            if (!Directory.Exists(basePath))
-                return;
-
-            fsw = new FileSystemWatcher(basePath, @"*.cs")
-            {
-                EnableRaisingEvents = true,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime,
-            };
-
-            fsw.Changed += (sender, e) =>
-            {
-                CompilerParameters cp = new CompilerParameters
-                {
-                    GenerateInMemory = true,
-                    TreatWarningsAsErrors = false,
-                    GenerateExecutable = false,
-                };
-
-                var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Select(a => a.Location);
-                cp.ReferencedAssemblies.AddRange(assemblies.ToArray());
-
-                string source;
-                while (true)
-                {
-                    try
-                    {
-                        source = File.ReadAllText(e.FullPath);
-                        break;
-                    }
-                    catch
-                    {
-                        Thread.Sleep(100);
-                    }
-                }
-
-                Logger.Log($@"Recompiling {e.Name}...", LoggingTarget.Runtime, LogLevel.Important);
-
-                Schedule(() =>
-                {
-                    compilingNotice.Show();
-                    compilingNotice.FadeColour(Color4.White);
-                });
-
-                TestCase newVersion = null;
-
-                using (var provider = createCodeProvider())
-                {
-                    CompilerResults compile = provider.CompileAssemblyFromSource(cp, source);
-
-                    if (compile.Errors.HasErrors)
-                    {
-                        string text = "Compile error: ";
-                        foreach (CompilerError ce in compile.Errors)
-                            text += "\r\n" + ce;
-
-                        Logger.Log(text, LoggingTarget.Runtime, LogLevel.Error);
-                    }
-                    else
-                    {
-                        Module module = compile.CompiledAssembly.GetModules()[0];
-                        if (module != null)
-                            newVersion = (TestCase)Activator.CreateInstance(module.GetTypes()[0]);
-                    }
-                }
-
-                Schedule(() =>
-                {
-                    compilingNotice.FadeOut(800, EasingTypes.InQuint);
-                    compilingNotice.FadeColour(newVersion == null ? Color4.Red : Color4.YellowGreen, 100);
-                });
-
-                if (newVersion == null) return;
-
-                Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
-
-                Schedule(() =>
-                {
-                    int i = Tests.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
-                    Tests[i] = newVersion;
-                    LoadTest(i);
-                });
-            };
-        }
     }
 }
