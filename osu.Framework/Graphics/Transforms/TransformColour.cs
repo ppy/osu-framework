@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Transforms
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            d.Colour = new SRGBColour { Linear = CurrentValue };
+            d.Colour = CurrentValue;
         }
     }
 }
