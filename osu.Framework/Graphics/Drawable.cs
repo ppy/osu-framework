@@ -292,17 +292,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        protected void UpdateTransformsOfType(Type specificType)
-        {
-            //For simplicity let's just update *all* transforms.
-            //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
-            updateTransforms();
-
-            //foreach (ITransform t in Transforms.AliveItems)
-            //    if (t.GetType() == specificType)
-            //        t.Apply(this);
-        }
-
         /// <summary>
         /// Process updates to this drawable based on loaded transforms.
         /// </summary>
@@ -1844,39 +1833,16 @@ namespace osu.Framework.Graphics
 
         #region Float-based helpers
 
-        protected void TransformFloatTo(float startValue, float newValue, double duration, EasingTypes easing, TransformFloat transform)
-        {
-            Type type = transform.GetType();
-            if (transformDelay == 0)
-            {
-                Transforms.RemoveAll(t => t.GetType() == type);
-                if (startValue == newValue)
-                    return;
-            }
-            else
-                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformFloat)?.EndValue ?? startValue;
-
-            double startTime = TransformStartTime;
-
-            transform.StartTime = startTime;
-            transform.EndTime = startTime + duration;
-            transform.StartValue = startValue;
-            transform.EndValue = newValue;
-            transform.Easing = easing;
-
-            addTransform(transform);
-        }
-
         public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformAlpha));
-            TransformFloatTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
+            TransformTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
         }
 
         public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformRotation));
-            TransformFloatTo(Rotation, newRotation, duration, easing, new TransformRotation());
+            TransformTo(Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
         public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1895,31 +1861,44 @@ namespace osu.Framework.Graphics
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPositionX));
-            TransformFloatTo(Position.X, destination, duration, easing, new TransformPositionX());
+            TransformTo(Position.X, destination, duration, easing, new TransformPositionX());
         }
 
         public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPositionY));
-            TransformFloatTo(Position.Y, destination, duration, easing, new TransformPositionY());
+            TransformTo(Position.Y, destination, duration, easing, new TransformPositionY());
         }
 
         #endregion
 
         #region Vector2-based helpers
 
-        protected void TransformVectorTo(Vector2 startValue, Vector2 newValue, double duration, EasingTypes easing, TransformVector transform)
+        protected void TransformTo<T>(T startValue, T newValue, double duration, EasingTypes easing, Transform<T> transform) where T : IEquatable<T>
         {
             Type type = transform.GetType();
+
+            //For simplicity let's just update *all* transforms.
+            //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
+            updateTransforms();
+
+            //foreach (ITransform t in Transforms.AliveItems)
+            //    if (t.GetType() == type)
+            //        t.Apply(this);
+
             if (transformDelay == 0)
             {
                 Transforms.RemoveAll(t => t.GetType() == type);
 
-                if (startValue == newValue)
+                if (startValue.Equals(newValue))
                     return;
             }
             else
-                startValue = (Transforms.FindLast(t => t.GetType() == type) as TransformVector)?.EndValue ?? startValue;
+            {
+                Transform<T> last = Transforms.FindLast(t => t.GetType() == type) as Transform<T>;
+                if (last != null)
+                    startValue = last.EndValue;
+            }
 
             double startTime = TransformStartTime;
 
@@ -1935,31 +1914,31 @@ namespace osu.Framework.Graphics
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            TransformVectorTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+            TransformTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformScale));
-            TransformVectorTo(Scale, newScale, duration, easing, new TransformScale());
+            TransformTo(Scale, newScale, duration, easing, new TransformScale());
         }
 
         public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            TransformVectorTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+            TransformTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformSize));
-            TransformVectorTo(Size, newSize, duration, easing, new TransformSize());
+            TransformTo(Size, newSize, duration, easing, new TransformSize());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             UpdateTransformsOfType(typeof(TransformPosition));
-            TransformVectorTo(Position, newPosition, duration, easing, new TransformPosition());
+            TransformTo(Position, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
