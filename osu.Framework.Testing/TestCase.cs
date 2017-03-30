@@ -42,7 +42,8 @@ namespace osu.Framework.Testing
             Dependencies = deps;
         }
 
-        const float steps_width = 180;
+        private const float steps_width = 180;
+        private const float padding = 10;
 
         public virtual void Reset()
         {
@@ -67,7 +68,13 @@ namespace osu.Framework.Testing
                     },
                     Contents = new Container
                     {
-                        Padding = new MarginPadding { Left = steps_width },
+                        Padding = new MarginPadding
+                        {
+                            Left = steps_width + padding,
+                            Right = padding,
+                            Top = padding,
+                            Bottom = padding,
+                        },
                         RelativeSizeAxes = Axes.Both,
                     },
                 };
@@ -145,6 +152,7 @@ namespace osu.Framework.Testing
         public new Action Action;
 
         private string text;
+
         public new string Text
         {
             get { return text; }
