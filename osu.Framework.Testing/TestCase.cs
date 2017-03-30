@@ -75,7 +75,7 @@ namespace osu.Framework.Testing
             }
         }
 
-        public void AddStep(string description, Action action)
+        protected void AddStep(string description, Action action)
         {
             StepsContainer.Add(new StepButton
             {
@@ -84,7 +84,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        public void AddRepeatStep(string description, Action action, int invocationCount)
+        protected void AddRepeatStep(string description, Action action, int invocationCount)
         {
             StepsContainer.Add(new RepeatStepButton(invocationCount)
             {
@@ -93,7 +93,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        public void AddToggleStep(string description, Action<bool> action)
+        protected void AddToggleStep(string description, Action<bool> action)
         {
             StepsContainer.Add(new ToggleStepButton(action)
             {
@@ -101,7 +101,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        public void AddWaitStep(int waitCount)
+        protected void AddWaitStep(int waitCount)
         {
             StepsContainer.Add(new RepeatStepButton(waitCount)
             {
@@ -110,7 +110,7 @@ namespace osu.Framework.Testing
             });
         }
 
-        public void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
         {
             StepsContainer.Add(new AssertButton()
             {
