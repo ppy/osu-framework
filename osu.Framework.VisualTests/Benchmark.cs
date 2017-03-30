@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Testing;
+using osu.Framework.Testing.Drawables.StepButtons;
 
 namespace osu.Framework.VisualTests
 {

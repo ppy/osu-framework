@@ -8,7 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Testing.Drawables.StepButtons;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -129,113 +129,6 @@ namespace osu.Framework.Testing
                 ExtendedDescription = extendedDescription,
                 Assertion = assert,
             });
-        }
-    }
-
-    public class StepButton : Button
-    {
-        public virtual int RequiredRepetitions => 1;
-
-        public StepButton()
-        {
-            Height = 25;
-            RelativeSizeAxes = Axes.X;
-
-            BackgroundColour = Color4.BlueViolet;
-
-            CornerRadius = 2;
-            Masking = true;
-
-            SpriteText.Anchor = Anchor.CentreLeft;
-            SpriteText.Origin = Anchor.CentreLeft;
-            SpriteText.Padding = new MarginPadding(5);
-        }
-    }
-
-    public class AssertButton : StepButton
-    {
-        public Func<bool> Assertion;
-
-        public string ExtendedDescription;
-
-        public AssertButton()
-        {
-            BackgroundColour = Color4.OrangeRed;
-            Action += checkAssert;
-        }
-
-        private void checkAssert()
-        {
-            if (Assertion())
-                BackgroundColour = Color4.YellowGreen;
-            else
-                throw new Exception($"{Text} {ExtendedDescription}");
-        }
-    }
-
-    public class RepeatStepButton : StepButton
-    {
-        private readonly int count;
-        private int invocations;
-
-        public override int RequiredRepetitions => count;
-
-        public new Action Action;
-
-        private string text;
-
-        public new string Text
-        {
-            get { return text; }
-            set { base.Text = text = value; }
-        }
-
-        public RepeatStepButton(int count = 1)
-        {
-            this.count = count;
-
-            updateText();
-
-            BackgroundColour = Color4.Sienna;
-
-            base.Action = () =>
-            {
-                invocations++;
-                updateText();
-
-                Action?.Invoke();
-            };
-        }
-
-        private void updateText()
-        {
-            base.Text = $@"{Text} {invocations}/{count}";
-        }
-    }
-
-    public class ToggleStepButton : StepButton
-    {
-        private readonly Action<bool> reloadCallback;
-        private static readonly Color4 off_colour = Color4.Red;
-        private static readonly Color4 on_colour = Color4.YellowGreen;
-
-        public bool State;
-
-        public override int RequiredRepetitions => 2;
-
-        public ToggleStepButton(Action<bool> reloadCallback)
-        {
-            this.reloadCallback = reloadCallback;
-
-            BackgroundColour = off_colour;
-            Action += clickAction;
-        }
-
-        private void clickAction()
-        {
-            State = !State;
-            BackgroundColour = State ? on_colour : off_colour;
-            reloadCallback?.Invoke(State);
         }
     }
 }
