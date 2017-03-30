@@ -162,19 +162,35 @@ namespace osu.Framework.Graphics.Containers
 
             rowWidths.Add(result.Last().X);
             float height = result.Last().Y;
-
-            Anchor ourAnchor = children[0].Anchor;
+            
+            Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
             // Second pass, adjusting the positions for anchors of children.
             // Uses rowWidths and height for centre-anchors.
             for (int i = 0; i < children.Length; ++i)
             {
                 var c = children[i];
-
-                if (c.Anchor != ourAnchor)
-                    throw new InvalidOperationException(
-                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} ({ourAnchor} != {c.Anchor}). " +
-                        $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                
+                switch (Direction) {
+                    case FillDirection.Vertical:
+                        if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    case FillDirection.Horizontal:
+                        if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    default:
+                        if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                            throw new InvalidOperationException(
+                                $@"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). " +
+                                $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                }
 
                 if ((c.Anchor & Anchor.x1) > 0)
                     // Begin flow at centre of row
