@@ -1779,7 +1779,11 @@ namespace osu.Framework.Graphics
             FadeIn();
         }
 
-        
+        /// <summary>
+        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// </summary>
+        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
+
         protected void TransformTo<T>(T startValue, T newValue, double duration, EasingTypes easing, Transform<T> transform) where T : IEquatable<T>
         {
             Type type = transform.GetType();
@@ -1817,6 +1821,32 @@ namespace osu.Framework.Graphics
             addTransform(transform);
         }
 
+        private void addTransform(ITransform transform)
+        {
+            if (Clock == null)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
+                transform.Apply(this);
+                return;
+            }
+
+            //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
+            bool canApplyInstant = transform.Duration == 0 && transformDelay == 0;
+
+            //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
+            if (canApplyInstant || transform.StartTime < Time.Current)
+            {
+                transform.UpdateTime(Time);
+                transform.Apply(this);
+                if (canApplyInstant)
+                    return;
+            }
+
+            Transforms.Add(transform);
+        }
+
+        #region Helpers
+
         public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             FadeTo(1, duration, easing);
@@ -1838,8 +1868,6 @@ namespace osu.Framework.Graphics
             FadeTo(1);
             FadeOut(duration, easing);
         }
-
-        #region Float-based helpers
 
         public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
@@ -1874,10 +1902,6 @@ namespace osu.Framework.Graphics
             TransformTo(Position.Y, destination, duration, easing, new TransformPositionY());
         }
 
-        #endregion
-
-        #region Vector2-based helpers
-
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
@@ -1908,15 +1932,6 @@ namespace osu.Framework.Graphics
             MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
 
-        #endregion
-
-        /// <summary>
-        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
-        /// </summary>
-        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
-
-        #region Color4-based helpers
-
         public void FadeColour(SRGBColour newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(Colour, newColour, duration, easing, new TransformColour());
@@ -1930,30 +1945,6 @@ namespace osu.Framework.Graphics
 
             FadeColour(flashColour);
             FadeColour(endValue, duration, easing);
-        }
-
-        private void addTransform(ITransform transform)
-        {
-            if (Clock == null)
-            {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(this);
-                return;
-            }
-
-            //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
-            bool canApplyInstant = transform.Duration == 0 && transformDelay == 0;
-
-            //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
-            if (canApplyInstant || transform.StartTime < Time.Current)
-            {
-                transform.UpdateTime(Time);
-                transform.Apply(this);
-                if (canApplyInstant)
-                    return;
-            }
-
-            Transforms.Add(transform);
         }
 
         #endregion
