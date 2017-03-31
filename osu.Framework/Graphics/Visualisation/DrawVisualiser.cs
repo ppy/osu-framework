@@ -211,7 +211,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
         }
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        protected override bool OnMouseDown(InputState state, MouseEventArgs args)
         {
             return targetSearching;
         }

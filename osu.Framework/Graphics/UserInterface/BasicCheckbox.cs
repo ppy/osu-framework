@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class BasicCheckBox : CheckBox
+    public class BasicCheckbox : Checkbox
     {
         public Color4 CheckedColor { get; set; } = Color4.Cyan;
         public Color4 UncheckedColor { get; set; } = Color4.White;
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Box box;
         private readonly SpriteText labelSpriteText;
 
-        public BasicCheckBox()
+        public BasicCheckbox()
         {
             AutoSizeAxes = Axes.Both;
 
