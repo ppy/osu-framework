@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Input;
 using OpenTK.Input;
+using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -73,7 +74,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnHover(InputState state) => BlockPassThroughInput;
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughInput;
+        protected override bool OnMouseDown(InputState state, MouseEventArgs args) => BlockPassThroughInput;
 
         protected override bool OnClick(InputState state) => BlockPassThroughInput;
 
