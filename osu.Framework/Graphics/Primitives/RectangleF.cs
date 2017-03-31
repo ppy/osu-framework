@@ -432,7 +432,6 @@ namespace osu.Framework.Graphics.Primitives
                         {
                             OsuGame.LineManager.DrawPoint(xPmin + xPctr, yPmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                             OsuGame.LineManager.DrawPoint(xPmax + xPctr, yPmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-            
                             OsuGame.LineManager.DrawPoint(xQmin + xPctr, yQmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                             OsuGame.LineManager.DrawPoint(xQmax + xPctr, yQmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                         }

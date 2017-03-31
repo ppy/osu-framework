@@ -1246,7 +1246,7 @@ namespace osu.Framework.Graphics
             ? requiredParentSizeToFitBacking.Value
             : requiredParentSizeToFitBacking.Refresh(() =>
             {
-                // Auxilary variables required for the computation 
+                // Auxilary variables required for the computation
                 Vector2 ap = AnchorPosition;
                 Vector2 rap = RelativeAnchorPosition;
 
