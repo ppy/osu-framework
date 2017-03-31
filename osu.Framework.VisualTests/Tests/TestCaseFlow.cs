@@ -61,7 +61,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         RelativeSizeAxes = Axes.X,
                         Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
-                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
+                                    .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
                     },
                     new SpriteText { Text = @"Child anchor" },
                     anchorDropdown = new AnchorDropdown
@@ -72,11 +72,9 @@ namespace osu.Framework.VisualTests.Tests
                             Anchor.TopLeft,
                             Anchor.TopCentre,
                             Anchor.TopRight,
-
                             Anchor.CentreLeft,
                             Anchor.Centre,
                             Anchor.CentreRight,
-
                             Anchor.BottomLeft,
                             Anchor.BottomCentre,
                             Anchor.BottomRight,
@@ -91,11 +89,9 @@ namespace osu.Framework.VisualTests.Tests
                             Anchor.TopLeft,
                             Anchor.TopCentre,
                             Anchor.TopRight,
-
                             Anchor.CentreLeft,
                             Anchor.Centre,
                             Anchor.CentreRight,
-
                             Anchor.BottomLeft,
                             Anchor.BottomCentre,
                             Anchor.BottomRight,
@@ -134,7 +130,8 @@ namespace osu.Framework.VisualTests.Tests
             current = testCase;
             testContainer.Clear();
 
-            var method = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
+            var method =
+                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
             if (method != null)
                 method.Invoke(this, new object[0]);
         }
@@ -160,26 +157,11 @@ namespace osu.Framework.VisualTests.Tests
             };
             Add(cnt);
 
-            var rotateBtn = AddToggle("Rotate Container", state =>
-            {
-                fc.RotateTo(state ? 45f : 0, 1000);
-            });
-            AddToggle("Scale Container", state =>
-            {
-                fc.ScaleTo(state ? 1.2f : 1f, 1000);
-            });
-            AddToggle("Shear Container", state =>
-            {
-                fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
-            });
-            AddToggle("Center Container Anchor", state =>
-            {
-                fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
-            });
-            AddToggle("Center Container Origin", state =>
-            {
-                fc.Origin = state ? Anchor.Centre : Anchor.TopLeft;
-            });
+            var rotateBtn = AddToggle("Rotate Container", state => { fc.RotateTo(state ? 45f : 0, 1000); });
+            AddToggle("Scale Container", state => { fc.ScaleTo(state ? 1.2f : 1f, 1000); });
+            AddToggle("Shear Container", state => { fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f); });
+            AddToggle("Center Container Anchor", state => { fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggle("Center Container Origin", state => { fc.Origin = state ? Anchor.Centre : Anchor.TopLeft; });
             AddToggle("Autosize Container", state =>
             {
                 if (state)
@@ -307,6 +289,7 @@ namespace osu.Framework.VisualTests.Tests
         private class TestCaseDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
+
             protected override string Label
             {
                 get { return label.Text; }
@@ -336,7 +319,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
         {
-            public AnchorDropdownMenuItem(Anchor anchor) : base(anchor.ToString(), anchor)
+            public AnchorDropdownMenuItem(Anchor anchor)
+                : base(anchor.ToString(), anchor)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -359,7 +343,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
         {
-            public FillDirectionDropdownMenuItem(FlowTestCase testCase) : base(testCase.ToString(), testCase)
+            public FillDirectionDropdownMenuItem(FlowTestCase testCase)
+                : base(testCase.ToString(), testCase)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);

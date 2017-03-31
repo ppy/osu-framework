@@ -13,17 +13,24 @@ namespace osu.Framework.Configuration
             // check supported types against provided type argument.
             var allowedTypes = new HashSet<Type>
             {
-                typeof(sbyte), typeof(byte),
-                typeof(short), typeof(ushort),
-                typeof(int), typeof(uint),
-                typeof(long), typeof(ulong),
-                typeof(float), typeof(double)
+                typeof(sbyte),
+                typeof(byte),
+                typeof(short),
+                typeof(ushort),
+                typeof(int),
+                typeof(uint),
+                typeof(long),
+                typeof(ulong),
+                typeof(float),
+                typeof(double)
             };
             if (!allowedTypes.Contains(typeof(T)))
-                throw new ArgumentException($"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
+                throw new ArgumentException(
+                    $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
         }
 
-        protected BindableNumber(T value = default(T)) : base(value)
+        protected BindableNumber(T value = default(T))
+            : base(value)
         {
         }
 
@@ -118,7 +125,7 @@ namespace osu.Framework.Configuration
             {
                 case TypeCode.Byte:
                     var byteBindable = this as BindableNumber<byte>;
-                    if (byteBindable == null) throw new ArgumentNullException(nameof(byteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");                 
+                    if (byteBindable == null) throw new ArgumentNullException(nameof(byteBindable), $"Generic type {typeof(T)} does not match actual bindable type {GetType()}.");
                     byteBindable.Value += Convert.ToByte(val);
                     break;
                 case TypeCode.SByte:

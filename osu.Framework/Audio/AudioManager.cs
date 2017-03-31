@@ -367,7 +367,9 @@ namespace osu.Framework.Audio
                     }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
     }
 }

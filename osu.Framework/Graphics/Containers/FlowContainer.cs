@@ -22,14 +22,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EasingTypes LayoutEasing
         {
-            get
-            {
-                return AutoSizeEasing;
-            }
-            set
-            {
-                AutoSizeEasing = value;
-            }
+            get { return AutoSizeEasing; }
+            set { AutoSizeEasing = value; }
         }
 
         /// <summary>
@@ -37,10 +31,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float LayoutDuration
         {
-            get
-            {
-                return AutoSizeDuration * 2;
-            }
+            get { return AutoSizeDuration * 2; }
             set
             {
                 //coupling with autosizeduration allows us to smoothly transition our size
@@ -124,7 +115,8 @@ namespace osu.Framework.Graphics.Containers
                     foreach (var d in FlowingChildren)
                     {
                         if (i > positions.Length)
-                            throw new InvalidOperationException($"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                            throw new InvalidOperationException(
+                                $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
 
                         if ((d.RelativeSizeAxes & AutoSizeAxes) != 0)
                             throw new InvalidOperationException(
@@ -142,7 +134,8 @@ namespace osu.Framework.Graphics.Containers
                     }
 
                     if (i != positions.Length)
-                        throw new InvalidOperationException($"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
+                        throw new InvalidOperationException(
+                            $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
                 });
             }
         }

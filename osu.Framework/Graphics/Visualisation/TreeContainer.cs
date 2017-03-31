@@ -39,10 +39,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public TreeContainerStatus State
         {
-            get
-            {
-                return state;
-            }
+            get { return state; }
 
             set
             {
@@ -94,7 +91,8 @@ namespace osu.Framework.Graphics.Visualisation
                             Size = new Vector2(1, 40),
                             Children = new Drawable[]
                             {
-                                new Box {
+                                new Box
+                                {
                                     Colour = new Color4(20, 20, 20, 255),
                                     RelativeSizeAxes = Axes.Both,
                                 },
@@ -110,9 +108,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Choose Target",
-                                            Action = delegate {
-                                                ChooseTarget?.Invoke();
-                                            }
+                                            Action = delegate { ChooseTarget?.Invoke(); }
                                         },
                                         new Button
                                         {
@@ -120,9 +116,7 @@ namespace osu.Framework.Graphics.Visualisation
                                             Size = new Vector2(100, 1),
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Up one parent",
-                                            Action = delegate {
-                                                GoUpOneParent?.Invoke();
-                                            },
+                                            Action = delegate { GoUpOneParent?.Invoke(); },
                                         },
                                     },
                                 },

@@ -8,7 +8,8 @@ namespace osu.Framework.Desktop.Platform.Windows
 {
     public class WindowsStorage : DesktopStorage
     {
-        public WindowsStorage(string baseName) : base(baseName)
+        public WindowsStorage(string baseName)
+            : base(baseName)
         {
         }
 

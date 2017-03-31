@@ -22,7 +22,6 @@ namespace osu.Framework.Timing
         public FramedOffsetClock(IClock source)
             : base(source)
         {
-
         }
     }
 }

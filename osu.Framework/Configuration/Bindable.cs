@@ -90,7 +90,6 @@ namespace osu.Framework.Configuration
                 else
                     bindings.Remove(w);
             }
-
         }
 
         public void UnbindAll()

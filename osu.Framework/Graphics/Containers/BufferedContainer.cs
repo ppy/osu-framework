@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
-    { };
+    {
+    };
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -95,6 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 pixelSnapping = value;
             }
         }
+
         private Shader blurShader;
 
         /// <summary>

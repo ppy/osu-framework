@@ -26,10 +26,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public T SelectedItem
         {
-            get
-            {
-                return SelectedTab.Value;
-            }
+            get { return SelectedTab.Value; }
 
             set
             {

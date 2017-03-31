@@ -521,7 +521,7 @@ namespace osu.Framework.IO.Network
             Exception exc = null;
             bool completed = false;
 
-            Finished += delegate (WebRequest r, Exception e)
+            Finished += delegate(WebRequest r, Exception e)
             {
                 exc = e;
                 completed = true;

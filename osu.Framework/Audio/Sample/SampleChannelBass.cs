@@ -15,7 +15,8 @@ namespace osu.Framework.Audio.Sample
 
         private float initialFrequency;
 
-        public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay) : base(sample, onPlay)
+        public SampleChannelBass(Sample sample, Action<SampleChannel> onPlay)
+            : base(sample, onPlay)
         {
         }
 

@@ -13,7 +13,8 @@ namespace osu.Framework.Lists
 
         public event Action<T> LoadRequested;
 
-        public LifetimeList(IComparer<T> comparer) : base(comparer)
+        public LifetimeList(IComparer<T> comparer)
+            : base(comparer)
         {
             AliveItems = new SortedList<T>(comparer);
         }

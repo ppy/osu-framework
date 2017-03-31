@@ -31,7 +31,8 @@ namespace osu.Framework.Testing
         {
             protected override string Filename => @"visualtests.cfg";
 
-            public TestBrowserConfig(Storage storage) : base(storage)
+            public TestBrowserConfig(Storage storage)
+                : base(storage)
             {
             }
         }
@@ -116,7 +117,8 @@ namespace osu.Framework.Testing
                 AutoSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new Box {
+                    new Box
+                    {
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Black,
                     },
