@@ -228,6 +228,9 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
+                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
+                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
                 return x.creationID.CompareTo(y.creationID);
@@ -238,6 +241,9 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
+                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
+                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
                 return y.creationID.CompareTo(x.creationID);
