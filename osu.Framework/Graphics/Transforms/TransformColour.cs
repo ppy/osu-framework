@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>
-        protected override Color4 CurrentValue
+        public override Color4 CurrentValue
         {
             get
             {
