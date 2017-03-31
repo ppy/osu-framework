@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         private FillFlowContainerNoInput flow;
         private ScrollContainer scroll;
 
-        private const int panel_count = 512;
+        private const int panel_count = 2048;
 
         public override void Reset()
         {
