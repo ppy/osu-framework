@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Primitives
                 return new Vector2(-dir.Y, dir.X);
             }
         }
-        
+
 
         public Line(Vector2 p1, Vector2 p2)
         {

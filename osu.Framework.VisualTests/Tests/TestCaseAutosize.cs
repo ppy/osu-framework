@@ -329,7 +329,8 @@ namespace osu.Framework.VisualTests.Tests
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
-                            boxes = new FillFlowContainer {
+                            boxes = new FillFlowContainer
+                            {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
                                 Direction = FillDirection.Vertical,

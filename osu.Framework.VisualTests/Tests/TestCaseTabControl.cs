@@ -71,6 +71,7 @@ namespace osu.Framework.VisualTests.Tests
         private class StyledTabItem : TabItem<TestEnum>
         {
             private readonly SpriteText text;
+
             public new TestEnum Value
             {
                 get { return base.Value; }
@@ -162,7 +163,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropdownMenuItem : DropdownMenuItem<TestEnum>
         {
-            public StyledDropdownMenuItem(string text, TestEnum value) : base(text, value)
+            public StyledDropdownMenuItem(string text, TestEnum value)
+                : base(text, value)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -174,6 +176,21 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private enum TestEnum { Test0, Test1, Test2, Test3, Test4, Test5, Test6, Test7, Test8, Test9, Test10, Test11, Test12 }
+        private enum TestEnum
+        {
+            Test0,
+            Test1,
+            Test2,
+            Test3,
+            Test4,
+            Test5,
+            Test6,
+            Test7,
+            Test8,
+            Test9,
+            Test10,
+            Test11,
+            Test12
+        }
     }
 }

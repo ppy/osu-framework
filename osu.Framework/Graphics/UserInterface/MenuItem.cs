@@ -16,6 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Container Foreground;
 
         private Color4 backgroundColour = Color4.DarkSlateGray;
+
         public Color4 BackgroundColour
         {
             get { return backgroundColour; }
@@ -27,6 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 foregroundColour = Color4.White;
+
         public Color4 ForegroundColour
         {
             get { return foregroundColour; }
@@ -38,6 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 backgroundColourHover = Color4.DarkGray;
+
         public Color4 BackgroundColourHover
         {
             get { return backgroundColourHover; }
@@ -49,6 +52,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 foregroundColourHover = Color4.White;
+
         public Color4 ForegroundColourHover
         {
             get { return foregroundColourHover; }

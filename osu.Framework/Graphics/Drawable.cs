@@ -189,7 +189,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Play initial animation etc.
         /// </summary>
-        protected virtual void LoadComplete() { }
+        protected virtual void LoadComplete()
+        {
+        }
 
         #endregion
 
@@ -202,6 +204,7 @@ namespace osu.Framework.Graphics
         /// <see cref="Depth"/>.
         /// </summary>
         private long creationID { get; }
+
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         private float depth;
@@ -368,7 +371,11 @@ namespace osu.Framework.Graphics
         private Vector2 position
         {
             get { return new Vector2(x, y); }
-            set { x = value.X; y = value.Y; }
+            set
+            {
+                x = value.X;
+                y = value.Y;
+            }
         }
 
         /// <summary>
@@ -378,10 +385,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 Position
         {
-            get
-            {
-                return position;
-            }
+            get { return position; }
 
             set
             {
@@ -472,7 +476,11 @@ namespace osu.Framework.Graphics
         private Vector2 size
         {
             get { return new Vector2(width, height); }
-            set { width = value.X; height = value.Y; }
+            set
+            {
+                width = value.X;
+                height = value.Y;
+            }
         }
 
         /// <summary>
@@ -481,10 +489,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public virtual Vector2 Size
         {
-            get
-            {
-                return size;
-            }
+            get { return size; }
 
             set
             {
@@ -575,9 +580,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.EnsureValid() ?
-            drawSizeBacking.Value :
-            drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
+        public Vector2 DrawSize => drawSizeBacking.EnsureValid()
+            ? drawSizeBacking.Value
+            : drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -938,10 +943,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public SRGBColour Colour
         {
-            get
-            {
-                return colourInfo.Colour;
-            }
+            get { return colourInfo.Colour; }
 
             set
             {
@@ -1139,6 +1141,7 @@ namespace osu.Framework.Graphics
         /// True iff <see cref="CreateProxy"/> has been called before.
         /// </summary>
         internal bool HasProxy => proxy != null;
+
         private ProxyDrawable proxy;
 
         /// <summary>
@@ -1183,7 +1186,9 @@ namespace osu.Framework.Graphics
         /// Contains a linear transformation, colour information, and blending information
         /// of this drawable.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid() ? drawInfoBacking.Value : drawInfoBacking.Refresh(delegate
+        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid()
+            ? drawInfoBacking.Value
+            : drawInfoBacking.Refresh(delegate
             {
                 DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
 
@@ -1241,7 +1246,7 @@ namespace osu.Framework.Graphics
             ? requiredParentSizeToFitBacking.Value
             : requiredParentSizeToFitBacking.Refresh(() =>
             {
-                // Auxilary variables required for the computation 
+                // Auxilary variables required for the computation
                 Vector2 ap = AnchorPosition;
                 Vector2 rap = RelativeAnchorPosition;
 

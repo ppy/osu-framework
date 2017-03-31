@@ -20,9 +20,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// scene graph padding / margin functionality.
         /// </summary>
         public float RangePadding;
+
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
         private float keyboardStep;
+
         public float KeyboardStep
         {
             get { return keyboardStep; }
@@ -32,6 +34,7 @@ namespace osu.Framework.Graphics.UserInterface
                 stepInitialized = true;
             }
         }
+
         private bool stepInitialized;
 
         public BindableNumber<T> Bindable

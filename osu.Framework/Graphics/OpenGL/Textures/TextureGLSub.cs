@@ -93,7 +93,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public override void SetData(TextureUpload upload)
         {
             if (upload.Bounds.Width > bounds.Width || upload.Bounds.Height > bounds.Height)
-                throw new ArgumentOutOfRangeException($"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.", nameof(upload));
+                throw new ArgumentOutOfRangeException(
+                    $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.",
+                    nameof(upload));
 
             if (upload.Bounds.Size.IsEmpty)
                 upload.Bounds = bounds;

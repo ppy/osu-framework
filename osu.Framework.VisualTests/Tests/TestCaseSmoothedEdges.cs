@@ -28,7 +28,7 @@ namespace osu.Framework.VisualTests.Tests
                     new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new []
+                        Children = new[]
                         {
                             new Container
                             {

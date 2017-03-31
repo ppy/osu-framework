@@ -63,6 +63,7 @@ namespace osu.Framework.Allocation
         }
 
         #region IDisposable Support
+
         private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
@@ -97,7 +98,6 @@ namespace osu.Framework.Allocation
             {
                 get
                 {
-
                     updateAccessTime();
                     return value;
                 }

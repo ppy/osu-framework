@@ -11,7 +11,8 @@ namespace osu.Framework.Desktop.Platform
     /// </summary>
     public class HeadlessGameHost : DesktopGameHost
     {
-        public HeadlessGameHost(string gameName = @"", bool bindIPC = false) : base(gameName, bindIPC)
+        public HeadlessGameHost(string gameName = @"", bool bindIPC = false)
+            : base(gameName, bindIPC)
         {
             UpdateThread.Scheduler.Update();
             Dependencies.Cache(Storage = new DesktopStorage(string.Empty));

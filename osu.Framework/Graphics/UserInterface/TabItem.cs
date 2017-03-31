@@ -22,6 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
         public T Value { get; set; }
 
         private bool pinned;
+
         public bool Pinned
         {
             get { return pinned; }
@@ -35,6 +36,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private bool active;
+
         public virtual bool Active
         {
             get { return active; }

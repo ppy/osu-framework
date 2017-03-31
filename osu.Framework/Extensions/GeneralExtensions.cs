@@ -148,7 +148,7 @@ namespace osu.Framework.Extensions
 
         public static string GetDescription(this Enum value)
             => value.GetType().GetField(value.ToString())
-            .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
+                    .GetCustomAttribute<DescriptionAttribute>()?.Description ?? value.ToString();
 
         public static void ThrowIfFaulted(this Task task)
         {

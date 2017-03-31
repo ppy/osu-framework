@@ -9,6 +9,7 @@ namespace osu.Framework.Graphics.UserInterface
     public abstract class CheckBox : Container, IStateful<CheckBoxState>
     {
         private CheckBoxState state = CheckBoxState.Unchecked;
+
         public CheckBoxState State
         {
             get { return state; }

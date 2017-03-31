@@ -32,7 +32,9 @@ namespace osu.Framework.Graphics.Containers
 
             base.LoadComplete();
         }
+
         private Visibility state;
+
         public Visibility State
         {
             get { return state; }
