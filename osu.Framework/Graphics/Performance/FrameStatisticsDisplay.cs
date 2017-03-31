@@ -60,12 +60,10 @@ namespace osu.Framework.Graphics.Performance
         private readonly FpsDisplay fpsDisplay;
 
         private FrameStatisticsMode state;
+
         public FrameStatisticsMode State
         {
-            get
-            {
-                return state;
-            }
+            get { return state; }
 
             set
             {
@@ -133,36 +131,38 @@ namespace osu.Framework.Graphics.Performance
                                     Anchor = Anchor.CentreLeft,
                                     Rotation = -90,
                                 },
-                                !hasCounters ? new Container { Width = 2 } : new Container
-                                {
-                                    Masking = true,
-                                    CornerRadius = 5,
-                                    AutoSizeAxes = Axes.X,
-                                    RelativeSizeAxes = Axes.Y,
-                                    Margin = new MarginPadding { Right = 2, Left = 2 },
-                                    Children = new Drawable[]
+                                !hasCounters
+                                    ? new Container { Width = 2 }
+                                    : new Container
                                     {
-                                        counterBarBackground = new Sprite
+                                        Masking = true,
+                                        CornerRadius = 5,
+                                        AutoSizeAxes = Axes.X,
+                                        RelativeSizeAxes = Axes.Y,
+                                        Margin = new MarginPadding { Right = 2, Left = 2 },
+                                        Children = new Drawable[]
                                         {
-                                            Texture = atlas.Add(1, HEIGHT),
-                                            RelativeSizeAxes = Axes.Both,
-                                            Size = new Vector2(1, 1),
-                                        },
-                                        new FillFlowContainer
-                                        {
-                                            Direction = FillDirection.Horizontal,
-                                            AutoSizeAxes = Axes.X,
-                                            RelativeSizeAxes = Axes.Y,
-                                            Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
-                                                       where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
-                                                       select counterBars[t] = new CounterBar
+                                            counterBarBackground = new Sprite
                                             {
-                                                Colour = getColour(t),
-                                                Label = t.ToString(),
+                                                Texture = atlas.Add(1, HEIGHT),
+                                                RelativeSizeAxes = Axes.Both,
+                                                Size = new Vector2(1, 1),
                                             },
-                                        },
+                                            new FillFlowContainer
+                                            {
+                                                Direction = FillDirection.Horizontal,
+                                                AutoSizeAxes = Axes.X,
+                                                RelativeSizeAxes = Axes.Y,
+                                                Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                           where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
+                                                           select counterBars[t] = new CounterBar
+                                                           {
+                                                               Colour = getColour(t),
+                                                               Label = t.ToString(),
+                                                           },
+                                            },
+                                        }
                                     }
-                                }
                             }
                         },
                         mainContainer = new Container
@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics.Performance
                                 {
                                     RelativeSizeAxes = Axes.Both,
                                     Alpha = 0,
-                                    Children = new []
+                                    Children = new[]
                                     {
                                         new FillFlowContainer
                                         {
@@ -202,11 +202,11 @@ namespace osu.Framework.Graphics.Performance
                                             Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
                                                        where t < PerformanceCollectionType.AmountTypes
                                                        select legendMapping[(int)t] = new SpriteText
-                                            {
-                                                Colour = getColour(t),
-                                                Text = t.ToString(),
-                                                Alpha = 0
-                                            },
+                                                       {
+                                                           Colour = getColour(t),
+                                                           Text = t.ToString(),
+                                                           Alpha = 0
+                                                       },
                                         },
                                         new SpriteText
                                         {
@@ -241,8 +241,8 @@ namespace osu.Framework.Graphics.Performance
             addArea(null, PerformanceCollectionType.AmountTypes, HEIGHT, column, amount_ms_steps);
 
             for (int i = 0; i < HEIGHT; i++)
-                for (int k = 0; k < WIDTH; k++)
-                    Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
+            for (int k = 0; k < WIDTH; k++)
+                Buffer.BlockCopy(column, i * 4, fullBackground, i * WIDTH * 4 + k * 4, 4);
 
             addArea(null, PerformanceCollectionType.AmountTypes, HEIGHT, column, amount_count_steps);
 
@@ -268,6 +268,7 @@ namespace osu.Framework.Graphics.Performance
         }
 
         private bool active = true;
+
         public bool Active
         {
             get { return active; }
@@ -509,6 +510,7 @@ namespace osu.Framework.Graphics.Performance
             public string Label;
 
             private bool active;
+
             public bool Active
             {
                 get { return active; }
@@ -567,10 +569,7 @@ namespace osu.Framework.Graphics.Performance
 
             public long Value
             {
-                set
-                {
-                    height = Math.Log10(value + 1) / amount_count_steps;
-                }
+                set { height = Math.Log10(value + 1) / amount_count_steps; }
             }
 
             protected override void Update()

@@ -93,9 +93,7 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.TopLeft,
                         BackgroundColour = Color4.Red,
                         Alpha = 0,
-                        Action = delegate {
-                            Exit();
-                        }
+                        Action = delegate { Exit(); }
                     },
                     new Button
                     {
@@ -105,7 +103,8 @@ namespace osu.Framework.VisualTests.Tests
                         Anchor = Anchor.TopRight,
                         Origin = Anchor.TopRight,
                         BackgroundColour = Color4.YellowGreen,
-                        Action = delegate {
+                        Action = delegate
+                        {
                             Push(new TestScreen
                             {
                                 Sequence = Sequence + 1,

@@ -33,5 +33,4 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
     }
-
 }

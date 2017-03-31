@@ -49,10 +49,12 @@ namespace osu.Framework.VisualTests.Tests
                         new DelayedLoadContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            FinishedLoading = d => {
+                            FinishedLoading = d =>
+                            {
                                 if ((d.Children.FirstOrDefault() as Sprite)?.Texture == null)
                                 {
-                                    d.Add(new SpriteText {
+                                    d.Add(new SpriteText
+                                    {
                                         Colour = Color4.Gray,
                                         Text = @"nope",
                                         Anchor = Anchor.Centre,

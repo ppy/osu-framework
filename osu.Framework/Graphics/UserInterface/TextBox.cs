@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate (string s)
+                textInput.OnNewImeComposition += delegate(string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
@@ -397,10 +397,7 @@ namespace osu.Framework.Graphics.UserInterface
         public string PlaceholderText
         {
             get { return Placeholder.Text; }
-            set
-            {
-                Placeholder.Text = value;
-            }
+            set { Placeholder.Text = value; }
         }
 
         private string text = string.Empty;
@@ -679,7 +676,7 @@ namespace osu.Framework.Graphics.UserInterface
             if (AllowClipboardExport)
             {
                 int hover = Math.Min(text.Length - 1, getCharacterClosestTo(state.Mouse.Position));
-            
+
                 int lastSeparator = findSeparatorIndex(text, hover, -1);
                 int nextSeparator = findSeparatorIndex(text, hover, 1);
 

@@ -23,7 +23,8 @@ namespace osu.Framework.Graphics.Textures
         /// </summary>
         public float ScaleAdjust = 2;
 
-        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true) : base(store)
+        public TextureStore(IResourceStore<RawTexture> store = null, bool useAtlas = true)
+            : base(store)
         {
             AddExtension(@"png");
             AddExtension(@"jpg");
@@ -56,7 +57,7 @@ namespace osu.Framework.Graphics.Textures
         {
             var cachedTex = textureCache.GetOrAdd(name, n =>
                 //Laziness ensure we are only ever creating the texture once (and blocking on other access until it is done).
-                new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+                    new Lazy<TextureGL>(() => getTexture(name)?.TextureGL, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
             if (cachedTex == null) return null;
 

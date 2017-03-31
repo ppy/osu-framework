@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
         public bool Contains(RectangleF rect) => X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
-                    rect.Y + rect.Height <= Y + Height;
+                                                 rect.Y + rect.Height <= Y + Height;
 
         public bool ContainsRotated(Vector2 pt, Vector2 rotationCenter, float angle)
         {
@@ -213,8 +213,8 @@ namespace osu.Framework.Graphics.Primitives
             // ReSharper disable NonReadonlyMemberInGetHashCode
             return
                 (int)((uint)X ^ (uint)Y << 13 | (uint)Y >> 0x13 ^
-                  (uint)Width << 0x1a | (uint)Width >> 6 ^
-                 (uint)Height << 7 | (uint)Height >> 0x19);
+                      (uint)Width << 0x1a | (uint)Width >> 6 ^
+                      (uint)Height << 7 | (uint)Height >> 0x19);
             // ReSharper restore NonReadonlyMemberInGetHashCode
         }
 
@@ -247,10 +247,10 @@ namespace osu.Framework.Graphics.Primitives
         public RectangleF Inflate(Vector2 amount) => Inflate(new MarginPadding { Left = amount.X, Right = amount.X, Top = amount.Y, Bottom = amount.Y });
 
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
-                X - amount.Left,
-                Y - amount.Top,
-                Width + amount.TotalHorizontal,
-                Height + amount.TotalVertical);
+            X - amount.Left,
+            Y - amount.Top,
+            Width + amount.TotalHorizontal,
+            Height + amount.TotalVertical);
 
         public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
 
@@ -352,8 +352,8 @@ namespace osu.Framework.Graphics.Primitives
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
         public override string ToString() => "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
-                    ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
-                    Height.ToString(CultureInfo.CurrentCulture) + "}";
+                                             ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
+                                             Height.ToString(CultureInfo.CurrentCulture) + "}";
 
         static RectangleF()
         {
@@ -432,7 +432,6 @@ namespace osu.Framework.Graphics.Primitives
                         {
                             OsuGame.LineManager.DrawPoint(xPmin + xPctr, yPmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                             OsuGame.LineManager.DrawPoint(xPmax + xPctr, yPmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-            
                             OsuGame.LineManager.DrawPoint(xQmin + xPctr, yQmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                             OsuGame.LineManager.DrawPoint(xQmax + xPctr, yQmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
                         }
@@ -452,26 +451,26 @@ namespace osu.Framework.Graphics.Primitives
                 if (sPos)
                 {
                     return c * xQmax + s * yQmax >= -xPdif
-                        && c * xQmin + s * yQmin <= xPdif
-                        && c * yQmax - s * xQmin >= -yPdif
-                        && c * yQmin - s * xQmax <= yPdif;
+                           && c * xQmin + s * yQmin <= xPdif
+                           && c * yQmax - s * xQmin >= -yPdif
+                           && c * yQmin - s * xQmax <= yPdif;
                 }
                 return c * xQmax + s * yQmin >= -xPdif
-                    && c * xQmin + s * yQmax <= xPdif
-                    && c * yQmax - s * xQmax >= -yPdif
-                    && c * yQmin - s * xQmin <= yPdif;
+                       && c * xQmin + s * yQmax <= xPdif
+                       && c * yQmax - s * xQmax >= -yPdif
+                       && c * yQmin - s * xQmin <= yPdif;
             }
             if (sPos)
             {
                 return c * xQmin + s * yQmax >= -xPdif
-                    && c * xQmax + s * yQmin <= xPdif
-                    && c * yQmin - s * xQmin >= -yPdif
-                    && c * yQmax - s * xQmax <= yPdif;
+                       && c * xQmax + s * yQmin <= xPdif
+                       && c * yQmin - s * xQmin >= -yPdif
+                       && c * yQmax - s * xQmax <= yPdif;
             }
             return c * xQmin + s * yQmin >= -xPdif
-                && c * xQmax + s * yQmax <= xPdif
-                && c * yQmin - s * xQmax >= -yPdif
-                && c * yQmax - s * xQmin <= yPdif;
+                   && c * xQmax + s * yQmax <= xPdif
+                   && c * yQmin - s * xQmax >= -yPdif
+                   && c * yQmax - s * xQmin <= yPdif;
         }
     }
 }

@@ -143,6 +143,7 @@ namespace osu.Framework.IO
         }
 
         private volatile bool isDisposed;
+
         protected override void Dispose(bool disposing)
         {
             isDisposed = true;

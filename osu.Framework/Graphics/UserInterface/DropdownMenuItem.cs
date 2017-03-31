@@ -29,6 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 backgroundColourSelected = Color4.SlateGray;
+
         public Color4 BackgroundColourSelected
         {
             get { return backgroundColourSelected; }
@@ -40,6 +41,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private Color4 foregroundColourSelected = Color4.White;
+
         public Color4 ForegroundColourSelected
         {
             get { return foregroundColourSelected; }

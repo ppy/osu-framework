@@ -18,10 +18,7 @@ namespace osu.Framework.Graphics.Performance
 
         public FrameStatisticsMode State
         {
-            get
-            {
-                return state;
-            }
+            get { return state; }
 
             set
             {

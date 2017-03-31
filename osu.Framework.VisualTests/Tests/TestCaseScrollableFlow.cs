@@ -32,7 +32,7 @@ namespace osu.Framework.VisualTests.Tests
                 scroll = new ScrollContainer(dir)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Children = new []
+                    Children = new[]
                     {
                         flow = new FillFlowContainer
                         {
@@ -109,7 +109,8 @@ namespace osu.Framework.VisualTests.Tests
                 Container container = new Container
                 {
                     Size = new Vector2(80, 80),
-                    Children = new[] {
+                    Children = new[]
+                    {
                         box = new Box
                         {
                             RelativeSizeAxes = Axes.Both,

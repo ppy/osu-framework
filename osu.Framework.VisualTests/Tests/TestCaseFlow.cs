@@ -133,7 +133,8 @@ namespace osu.Framework.VisualTests.Tests
         private void changeTest(FlowTestCase testCase)
         {
             current = testCase;
-            var method = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
+            var method =
+                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
             if (method != null)
                 method.Invoke(this, new object[0]);
         }
@@ -156,26 +157,11 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            AddToggleStep("Rotate Container", state =>
-            {
-                fillContainer.RotateTo(state ? 45f : 0, 1000);
-            });
-            AddToggleStep("Scale Container", state =>
-            {
-                fillContainer.ScaleTo(state ? 1.2f : 1f, 1000);
-            });
-            AddToggleStep("Shear Container", state =>
-            {
-                fillContainer.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
-            });
-            AddToggleStep("Center Container Anchor", state =>
-            {
-                fillContainer.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
-            });
-            AddToggleStep("Center Container Origin", state =>
-            {
-                fillContainer.Origin = state ? Anchor.Centre : Anchor.TopLeft;
-            });
+            AddToggleStep("Rotate Container", state => { fillContainer.RotateTo(state ? 45f : 0, 1000); });
+            AddToggleStep("Scale Container", state => { fillContainer.ScaleTo(state ? 1.2f : 1f, 1000); });
+            AddToggleStep("Shear Container", state => { fillContainer.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f); });
+            AddToggleStep("Center Container Anchor", state => { fillContainer.Anchor = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggleStep("Center Container Origin", state => { fillContainer.Origin = state ? Anchor.Centre : Anchor.TopLeft; });
             AddToggleStep("Autosize Container", state =>
             {
                 if (state)
@@ -303,6 +289,7 @@ namespace osu.Framework.VisualTests.Tests
         private class TestCaseDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
+
             protected override string Label
             {
                 get { return label.Text; }
@@ -332,7 +319,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
         {
-            public AnchorDropdownMenuItem(Anchor anchor) : base(anchor.ToString(), anchor)
+            public AnchorDropdownMenuItem(Anchor anchor)
+                : base(anchor.ToString(), anchor)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -355,7 +343,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
         {
-            public FillDirectionDropdownMenuItem(FlowTestCase testCase) : base(testCase.ToString(), testCase)
+            public FillDirectionDropdownMenuItem(FlowTestCase testCase)
+                : base(testCase.ToString(), testCase)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);

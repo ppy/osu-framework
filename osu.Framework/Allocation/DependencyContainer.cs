@@ -52,16 +52,16 @@ namespace osu.Framework.Allocation
             {
                 var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoader>().PermitNulls;
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
-                    .Select(t => (Func<object>)(() =>
-                        {
-                            var val = get(t);
-                            if (val == null && !permitNull)
-                            {
-                                throw new InvalidOperationException(
-                                    $@"Type {t.FullName} is not registered, and is a dependency of {type.FullName}");
-                            }
-                            return val;
-                        })).ToList();
+                                            .Select(t => (Func<object>)(() =>
+                                            {
+                                                var val = get(t);
+                                                if (val == null && !permitNull)
+                                                {
+                                                    throw new InvalidOperationException(
+                                                        $@"Type {t.FullName} is not registered, and is a dependency of {type.FullName}");
+                                                }
+                                                return val;
+                                            })).ToList();
                 // Test that we already have all the dependencies registered
                 if (!lazy)
                     parameters.ForEach(p => p());

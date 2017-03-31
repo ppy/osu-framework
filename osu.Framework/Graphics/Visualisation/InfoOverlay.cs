@@ -11,12 +11,10 @@ namespace osu.Framework.Graphics.Visualisation
     internal class InfoOverlay : Container<FlashyBox>
     {
         private Drawable target;
+
         public Drawable Target
         {
-            get
-            {
-                return target;
-            }
+            get { return target; }
 
             set
             {

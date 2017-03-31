@@ -54,6 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private MenuState state;
+
         public MenuState State
         {
             get { return state; }
@@ -69,7 +70,7 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
-                        
+
                         //schedule required as we may not be present currently.
                         Schedule(() => TriggerFocus());
                         break;
@@ -82,6 +83,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Toggle() => State = State == MenuState.Closed ? MenuState.Opened : MenuState.Closed;
 
         private float maxHeight = float.MaxValue;
+
         public float MaxHeight
         {
             get { return maxHeight; }

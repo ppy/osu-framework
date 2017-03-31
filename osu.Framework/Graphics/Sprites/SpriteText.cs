@@ -50,6 +50,7 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private bool shadow;
+
         public bool Shadow
         {
             get { return shadow; }
@@ -64,6 +65,7 @@ namespace osu.Framework.Graphics.Sprites
 
 
         private Color4 shadowColour = new Color4(0f, 0f, 0f, 0.2f);
+
         public Color4 ShadowColour
         {
             get { return shadowColour; }
@@ -94,10 +96,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public float TextSize
         {
-            get
-            {
-                return textSize;
-            }
+            get { return textSize; }
             set
             {
                 if (textSize == value) return;

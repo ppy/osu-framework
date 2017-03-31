@@ -65,7 +65,6 @@ namespace osu.Framework.Allocation
                     }
 
                     return buffers[read];
-
             }
 
             return null;
