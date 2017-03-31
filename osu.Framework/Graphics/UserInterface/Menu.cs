@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.UserInterface
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
-                        
+
                         //schedule required as we may not be present currently.
                         Schedule(() => TriggerFocus());
                         break;

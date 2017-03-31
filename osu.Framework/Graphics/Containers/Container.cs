@@ -371,7 +371,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
-        /// </summary>		
+        /// </summary>
         protected virtual void UpdateAfterChildren()
         {
         }

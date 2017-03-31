@@ -34,7 +34,7 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             };
-            
+
             flow.Add(new SpriteText
             {
                 Text = @"the quick red fox jumps over the lazy brown dog"

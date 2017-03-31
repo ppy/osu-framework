@@ -20,7 +20,7 @@ namespace osu.Framework.Configuration
             MinValue = int.MinValue;
             MaxValue = int.MaxValue;
         }
-        
+
         public override void BindTo(Bindable<int> them)
         {
             var i = them as BindableInt;
