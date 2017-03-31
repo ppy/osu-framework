@@ -1784,7 +1784,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
 
-        protected void TransformTo<T>(T startValue, T newValue, double duration, EasingTypes easing, Transform<T> transform) where T : IEquatable<T>
+        public void TransformTo<T>(T startValue, T newValue, double duration, EasingTypes easing, Transform<T> transform) where T : struct, IEquatable<T>
         {
             Type type = transform.GetType();
 
