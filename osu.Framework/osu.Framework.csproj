@@ -107,7 +107,7 @@
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
-    <Compile Include="Extensions\GeneralExtensions.cs" />
+    <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadContainer.cs" />
@@ -145,7 +145,7 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
-    <Compile Include="Graphics\Transforms\TransformGlowAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
@@ -181,7 +181,7 @@
     <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
-    <Compile Include="Input\TextInputSource.cs" />
+    <Compile Include="Input\ITextInputSource.cs" />
     <Compile Include="IO\File\FileSafety.cs" />
     <Compile Include="IO\Network\FileWebRequest.cs" />
     <Compile Include="IO\Network\HttpMethod.cs" />
@@ -298,7 +298,7 @@
     <Compile Include="Platform\IpcMessage.cs" />
     <Compile Include="Graphics\UserInterface\CheckBox.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
-    <Compile Include="Timing\TimeInfo.cs" />
+    <Compile Include="Timing\FrameTimeInfo.cs" />
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />

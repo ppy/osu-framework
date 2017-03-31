@@ -10,7 +10,7 @@ using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseCheckBox : TestCase
+    internal class TestCaseCheckBoxes : TestCase
     {
         public override string Description => @"CheckBoxes with clickable labels";
 
