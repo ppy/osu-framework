@@ -997,12 +997,10 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             if (AutoSizeDuration > 0)
-            {
                 autoSizeResizeTo(new Vector2(
-                        (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                        (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                    ), AutoSizeDuration, AutoSizeEasing);
-            }
+                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                ), AutoSizeDuration, AutoSizeEasing);
             else
             {
                 if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
@@ -1054,7 +1052,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                Container c = (Container)d;
+                var c = (Container)d;
                 c.setBaseSize(CurrentValue);
             }
         }
