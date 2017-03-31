@@ -16,7 +16,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
-using System.Linq;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
@@ -941,8 +940,7 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                //transform check here is to allow AutoSizeDuration to work below.
-                if ((AutoSizeAxes & Axes.Both) != 0 && !Transforms.Any(t => t is TransformSize))
+                if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
             }
@@ -999,12 +997,10 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             if (AutoSizeDuration > 0)
-            {
-                ResizeTo(new Vector2(
+                autoSizeResizeTo(new Vector2(
                     (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
                     (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
                 ), AutoSizeDuration, AutoSizeEasing);
-            }
             else
             {
                 if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
@@ -1028,6 +1024,36 @@ namespace osu.Framework.Graphics.Containers
             finally
             {
                 isComputingChildrenSizeDependencies = false;
+            }
+        }
+
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(Size, newSize, duration, easing, new TransformAutoSize());
+        }
+
+        /// <summary>
+        /// A helper method for <see cref="TransformAutoSize"/> to change the size of auto size containers.
+        /// </summary>
+        /// <param name="newSize"></param>
+        private void setBaseSize(Vector2 newSize)
+        {
+            base.Width = newSize.X;
+            base.Height = newSize.Y;
+        }
+
+        /// <summary>
+        /// A special type of transform which can change the size of auto size containers.
+        /// Used for <see cref="AutoSizeDuration"/>.
+        /// </summary>
+        private class TransformAutoSize : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+
+                var c = (Container<T>)d;
+                c.setBaseSize(CurrentValue);
             }
         }
 
