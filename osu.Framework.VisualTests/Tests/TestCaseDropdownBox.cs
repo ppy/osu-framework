@@ -58,6 +58,7 @@ namespace osu.Framework.VisualTests.Tests
         private class StyledDropdownHeader : DropdownHeader
         {
             private readonly SpriteText label;
+
             protected override string Label
             {
                 get { return label.Text; }
@@ -78,7 +79,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropdownMenuItem : DropdownMenuItem<string>
         {
-            public StyledDropdownMenuItem(string text) : base(text, text)
+            public StyledDropdownMenuItem(string text)
+                : base(text, text)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);

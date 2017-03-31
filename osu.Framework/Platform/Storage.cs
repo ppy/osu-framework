@@ -10,7 +10,7 @@ namespace osu.Framework.Platform
     public abstract class Storage
     {
         protected string BaseName { get; set; }
-    
+
         protected Storage(string baseName)
         {
             BaseName = FileSafety.FilenameStrip(baseName);

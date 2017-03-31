@@ -68,7 +68,6 @@ namespace osu.Framework.Graphics.Primitives
                 float s = (a + b + c) / 2.0f;
                 return Math.Sqrt(s * (s - a) * (s - b) * (s - c));
             }
-
         }
     }
 }

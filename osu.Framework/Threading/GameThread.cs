@@ -21,6 +21,7 @@ namespace osu.Framework.Threading
         private readonly Action onNewFrame;
 
         private bool isActive = true;
+
         public bool IsActive
         {
             get { return isActive; }
@@ -32,12 +33,10 @@ namespace osu.Framework.Threading
         }
 
         private double activeHz = DEFAULT_ACTIVE_HZ;
+
         public double ActiveHz
         {
-            get
-            {
-                return activeHz;
-            }
+            get { return activeHz; }
 
             set
             {
@@ -48,12 +47,10 @@ namespace osu.Framework.Threading
         }
 
         private double inactiveHz = DEFAULT_INACTIVE_HZ;
+
         public double InactiveHz
         {
-            get
-            {
-                return inactiveHz;
-            }
+            get { return inactiveHz; }
 
             set
             {

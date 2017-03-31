@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
     {
         IEnumerable<T> InternalChildren { get; }
         IEnumerable<T> Children { get; }
-        
+
         int RemoveAll(Predicate<T> match);
     }
 

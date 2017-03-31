@@ -49,10 +49,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public IEnumerable<KeyValuePair<string, T>> Items
         {
-            get
-            {
-                return MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value));
-            }
+            get { return MenuItems.Select(i => new KeyValuePair<string, T>(i.Text, i.Value)); }
             set
             {
                 ClearItems();
@@ -87,11 +84,13 @@ namespace osu.Framework.Graphics.UserInterface
             itemMap[item.Value] = item;
             DropdownMenu.ItemsContainer.Add(item);
         }
+
         // TODO: RemoveDropdownItem?
 
         public readonly Bindable<T> SelectedValue = new Bindable<T>();
 
         private DropdownMenuItem<T> selectedItem;
+
         protected DropdownMenuItem<T> SelectedItem
         {
             get { return selectedItem; }

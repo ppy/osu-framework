@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Children = new Drawable[]
             {
-                    Box = new Box { RelativeSizeAxes = Axes.Both },
-                    SelectionBox = new Box { RelativeSizeAxes = Axes.Both }
+                Box = new Box { RelativeSizeAxes = Axes.Both },
+                SelectionBox = new Box { RelativeSizeAxes = Axes.Both }
             };
         }
 

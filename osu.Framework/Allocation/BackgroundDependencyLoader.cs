@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+
 namespace osu.Framework.Allocation
 {
     [AttributeUsage(AttributeTargets.Method)]

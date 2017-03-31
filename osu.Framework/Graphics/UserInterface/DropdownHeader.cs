@@ -14,6 +14,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected Container Foreground;
 
         private Color4 backgroundColour = Color4.DarkGray;
+
         protected Color4 BackgroundColour
         {
             get { return backgroundColour; }
@@ -23,6 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Background.Colour = value;
             }
         }
+
         protected Color4 BackgroundColourHover { get; set; } = Color4.Gray;
 
         protected override Container<Drawable> Content => Foreground;

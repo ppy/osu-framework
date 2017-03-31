@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Textures
     public class Texture : IDisposable
     {
         private static Texture whitePixel;
+
         public static Texture WhitePixel
         {
             get

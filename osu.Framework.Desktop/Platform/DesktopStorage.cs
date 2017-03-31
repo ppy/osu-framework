@@ -15,7 +15,8 @@ namespace osu.Framework.Desktop.Platform
 {
     public class DesktopStorage : Storage
     {
-        public DesktopStorage(string baseName) : base(baseName)
+        public DesktopStorage(string baseName)
+            : base(baseName)
         {
             //todo: this is obviously not the right way to do this.
             Logger.LogDirectory = Path.Combine(BasePath, @"logs");

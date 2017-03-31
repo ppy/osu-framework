@@ -30,7 +30,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="Container{T}"/>.
     /// </summary>
     public class Container : Container<Drawable>
-    { }
+    {
+    }
 
     /// <summary>
     /// A drawable which can have children added to it. Transformations applied to
@@ -110,10 +111,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get
-            {
-                return Content != this ? Content.Children : internalChildren;
-            }
+            get { return Content != this ? Content.Children : internalChildren; }
 
             set
             {
@@ -371,7 +369,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
-        /// </summary>		
+        /// </summary>
         protected virtual void UpdateAfterChildren()
         {
         }
@@ -437,20 +435,22 @@ namespace osu.Framework.Graphics.Containers
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
-            {
-                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
-                ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = CornerRadius,
-                BorderThickness = BorderThickness,
-                BorderColour = BorderColour,
-                // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                // This results in the optimal trade-off between crispness and smoothness of the
-                // edges of the masked region according to sampling theory.
-                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
-            };
+            n.MaskingInfo = !Masking
+                ? (MaskingInfo?)null
+                : new MaskingInfo
+                {
+                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                    MaskingRect = DrawRectangle,
+                    ToMaskingSpace = DrawInfo.MatrixInverse,
+                    CornerRadius = CornerRadius,
+                    BorderThickness = BorderThickness,
+                    BorderColour = BorderColour,
+                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                    // This results in the optimal trade-off between crispness and smoothness of the
+                    // edges of the masked region according to sampling theory.
+                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    AlphaExponent = 1,
+                };
 
             n.EdgeEffect = EdgeEffect;
 
@@ -489,7 +489,9 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 // Take drawable.Original until drawable.Original == drawable
-                while (drawable != (drawable = drawable.Original)) { }
+                while (drawable != (drawable = drawable.Original))
+                {
+                }
 
                 if (!drawable.IsPresent)
                     continue;
@@ -503,7 +505,7 @@ namespace osu.Framework.Graphics.Containers
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
                     container.IsMaskedAway = container.internalChildren.AliveItems.Count >= amount_children_required_for_masking_check &&
-                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
@@ -810,6 +812,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private MarginPadding padding;
+
         public MarginPadding Padding
         {
             get { return padding; }
@@ -926,6 +929,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private bool isComputingChildrenSizeDependencies;
+
         public override Vector2 Size
         {
             get

@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
         private static Color4 clearColour = new Color4(-1, -1, -1, -1);
+
         public static void ClearColour(Color4 c)
         {
             if (clearColour != c)
@@ -601,8 +602,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix2 mat = (Matrix2)value;
                         GL.UniformMatrix2(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.BoolVec3:
                 case ActiveUniformType.IntVec3:
                 case ActiveUniformType.FloatVec3:
@@ -612,8 +613,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix3 mat = (Matrix3)value;
                         GL.UniformMatrix3(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.BoolVec4:
                 case ActiveUniformType.IntVec4:
                 case ActiveUniformType.FloatVec4:
@@ -623,8 +624,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix4 mat = (Matrix4)value;
                         GL.UniformMatrix4(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.Sampler2D:
                     GL.Uniform1(location, (int)value);
                     break;
@@ -643,6 +644,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// It is used by a shader to determine which pixels to discard.
         /// </summary>
         public Matrix3 ToMaskingSpace;
+
         public float CornerRadius;
 
         public float BorderThickness;
