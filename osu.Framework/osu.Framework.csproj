@@ -114,6 +114,8 @@
     <Compile Include="Graphics\Containers\DelayedLoadContainer.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
+    <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
@@ -296,8 +298,6 @@
     <Compile Include="Platform\Storage.cs" />
     <Compile Include="Platform\IpcChannel.cs" />
     <Compile Include="Platform\IpcMessage.cs" />
-    <Compile Include="Graphics\UserInterface\CheckBox.cs" />
-    <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
     <Compile Include="Timing\FrameTimeInfo.cs" />
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
