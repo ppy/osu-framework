@@ -165,7 +165,7 @@ namespace osu.Framework.Graphics.Visualisation
             return base.OnDrag(state);
         }
 
-        protected override bool OnMouseDown(InputState state, MouseEventArgs args) => true;
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => true;
 
         protected override bool OnClick(InputState state) => true;
 

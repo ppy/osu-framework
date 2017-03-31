@@ -17,7 +17,6 @@ using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Platform;
-using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -710,7 +709,7 @@ namespace osu.Framework.Graphics.UserInterface
             return -1;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseEventArgs args)
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             if (textInput?.ImeActive == true) return true;
 
@@ -721,7 +720,7 @@ namespace osu.Framework.Graphics.UserInterface
             return false;
         }
 
-        protected override bool OnMouseUp(InputState state, MouseEventArgs args)
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
             doubleClickWord = null;
             return true;

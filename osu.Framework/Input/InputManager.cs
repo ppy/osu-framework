@@ -393,7 +393,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseDown(InputState state, MouseButton button)
         {
-            MouseEventArgs args = new MouseEventArgs
+            MouseDownEventArgs args = new MouseDownEventArgs
             {
                 Button = button
             };
@@ -407,7 +407,7 @@ namespace osu.Framework.Input
         {
             if (mouseDownInputQueue == null) return false;
 
-            MouseEventArgs args = new MouseEventArgs
+            MouseUpEventArgs args = new MouseUpEventArgs
             {
                 Button = button
             };

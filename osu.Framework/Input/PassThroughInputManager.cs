@@ -61,9 +61,9 @@ namespace osu.Framework.Input
 
         protected override bool OnMouseMove(InputState state) => acceptState(state);
 
-        protected override bool OnMouseDown(InputState state, MouseEventArgs args) => acceptState(state);
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => acceptState(state);
 
-        protected override bool OnMouseUp(InputState state, MouseEventArgs args) => acceptState(state);
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args) => acceptState(state);
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args) => acceptState(state);
 
