@@ -6,11 +6,11 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class CheckBox : Container, IStateful<CheckBoxState>
+    public abstract class Checkbox : Container, IStateful<CheckboxState>
     {
-        private CheckBoxState state = CheckBoxState.Unchecked;
+        private CheckboxState state = CheckboxState.Unchecked;
 
-        public CheckBoxState State
+        public CheckboxState State
         {
             get { return state; }
             set
@@ -21,10 +21,10 @@ namespace osu.Framework.Graphics.UserInterface
                 state = value;
                 switch (state)
                 {
-                    case CheckBoxState.Checked:
+                    case CheckboxState.Checked:
                         OnChecked();
                         break;
-                    case CheckBoxState.Unchecked:
+                    case CheckboxState.Unchecked:
                         OnUnchecked();
                         break;
                 }
@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            State = State == CheckBoxState.Checked ? CheckBoxState.Unchecked : CheckBoxState.Checked;
+            State = State == CheckboxState.Checked ? CheckboxState.Unchecked : CheckboxState.Checked;
             base.OnClick(state);
             return true;
         }
@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected abstract void OnUnchecked();
     }
 
-    public enum CheckBoxState
+    public enum CheckboxState
     {
         Checked,
         Unchecked

@@ -51,13 +51,14 @@
     <Compile Include="AutomatedVisualTestGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\TestCaseCheckboxes.cs" />
     <Compile Include="Tests\TestCaseCircularContainer.cs" />
     <Compile Include="Tests\TestCaseColourGradient.cs" />
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
+    <Compile Include="Tests\TestCaseSizing.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
-    <Compile Include="Tests\TestCaseAutosize.cs" />
     <Compile Include="Tests\TestCaseDropdownBox.cs" />
     <Compile Include="Tests\TestCaseScreen.cs" />
     <Compile Include="Tests\TestCaseBufferedContainer.cs" />
@@ -76,7 +77,6 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="packages.config" />
-    <Compile Include="Tests\TestCaseCheckBoxes.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
