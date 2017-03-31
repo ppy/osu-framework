@@ -34,7 +34,7 @@ namespace osu.Framework.Testing
         }
 
         private const float steps_width = 180;
-        private const float padding = 10;
+        private const float padding = 0;
 
         public virtual void Reset()
         {
@@ -57,8 +57,9 @@ namespace osu.Framework.Testing
                         AutoSizeAxes = Axes.Y,
                         Width = steps_width,
                     },
-                    content = new Container
+                    new Container
                     {
+                        Masking = true,
                         Padding = new MarginPadding
                         {
                             Left = steps_width + padding,
@@ -67,6 +68,14 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
+                        Children = new []
+                        {
+                            content = new Container
+                            {
+                                Masking = true,
+                                RelativeSizeAxes = Axes.Both
+                            }
+                        }
                     },
                 };
             }
