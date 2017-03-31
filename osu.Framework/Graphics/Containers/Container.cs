@@ -1052,7 +1052,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                var c = (Container)d;
+                var c = (Container<T>)d;
                 c.setBaseSize(CurrentValue);
             }
         }
