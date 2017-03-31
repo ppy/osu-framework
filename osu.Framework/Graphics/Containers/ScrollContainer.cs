@@ -191,7 +191,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        protected override bool OnMouseDown(InputState state, MouseEventArgs args)
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
             // Continue from where we currently are scrolled to.
             target = Current;
@@ -405,14 +405,14 @@ namespace osu.Framework.Graphics.Containers
                 return true;
             }
 
-            protected override bool OnMouseDown(InputState state, MouseEventArgs args)
+            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlight_colour, 100);
                 return true;
             }
 
-            protected override bool OnMouseUp(InputState state, MouseEventArgs args)
+            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
             {
                 box.FadeColour(Color4.White, 100);
 

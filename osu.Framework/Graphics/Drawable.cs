@@ -24,7 +24,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using KeyboardState = osu.Framework.Input.KeyboardState;
-using MouseEventArgs = osu.Framework.Input.MouseEventArgs;
 using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Graphics
@@ -1437,13 +1436,13 @@ namespace osu.Framework.Graphics
         {
         }
 
-        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnMouseDown(InputState state, MouseEventArgs args) => false;
+        protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
-        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
-        protected virtual bool OnMouseUp(InputState state, MouseEventArgs args) => false;
+        protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         public bool TriggerClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
