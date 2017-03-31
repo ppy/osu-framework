@@ -119,9 +119,11 @@
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
-    <Compile Include="Input\EventArgs.cs" />
+    <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
+    <Compile Include="Input\KeyDownEventArgs.cs" />
+    <Compile Include="Input\MouseEventArgs.cs" />
     <Compile Include="Input\PassThroughInputManager.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
