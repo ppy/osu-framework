@@ -227,7 +227,8 @@ namespace osu.Framework.Platform
             if (Root == null) return;
 
             if (Window?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) : Vector2.One;
+                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
+                    new Vector2(config.Get<int>(FrameworkConfig.Width), config.Get<int>(FrameworkConfig.Height));
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
