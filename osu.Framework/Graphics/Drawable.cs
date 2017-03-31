@@ -1796,7 +1796,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
 
-        public void TransformTo<T>(T startValue, T newValue, double duration, EasingTypes easing, Transform<T> transform) where T : struct, IEquatable<T>
+        public void TransformTo<TValue>(TValue startValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
             Type type = transform.GetType();
 
@@ -1810,7 +1810,7 @@ namespace osu.Framework.Graphics
 
             double startTime = TransformStartTime;
 
-            Transform<T> last = Transforms.FindLast(t => t.GetType() == type) as Transform<T>;
+            var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
             if (last != null)
             {
                 //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
