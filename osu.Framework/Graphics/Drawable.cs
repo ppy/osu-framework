@@ -140,8 +140,6 @@ namespace osu.Framework.Graphics
 
         internal void Load(Game game, IFrameBasedClock clock)
         {
-            UpdateClock(clock);
-
             // Blocks when loading from another thread already.
             lock (loadLock)
             {
@@ -159,6 +157,8 @@ namespace osu.Framework.Graphics
                         Trace.Assert(false, "Impossible loading state.");
                         break;
                 }
+
+                UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
                 game.Dependencies.Initialize(this);
