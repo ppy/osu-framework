@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Containers
         private bool match(IFilterable searchable, List<string> parentKeywords = null)
         {
             var searchContainer = searchable as IFilterableChildren;
-            
+
             var keywords = new List<string>(searchable.Keywords ?? new string[0]);
             keywords.AddRange(parentKeywords ?? new string[0].ToList());
 
