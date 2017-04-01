@@ -50,7 +50,7 @@ namespace osu.Framework.Input
             return pendingStates;
         }
 
-        private List<InputState> pendingParentStates = new List<InputState>();
+        private readonly List<InputState> pendingParentStates = new List<InputState>();
 
         private bool acceptState(InputState state)
         {

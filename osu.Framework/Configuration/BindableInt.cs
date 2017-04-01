@@ -15,12 +15,13 @@ namespace osu.Framework.Configuration
             set { base.Value = MathHelper.Clamp(value, MinValue, MaxValue); }
         }
 
-        public BindableInt(int value = 0) : base(value)
+        public BindableInt(int value = 0)
+            : base(value)
         {
             MinValue = int.MinValue;
             MaxValue = int.MaxValue;
         }
-        
+
         public override void BindTo(Bindable<int> them)
         {
             var i = them as BindableInt;
@@ -29,7 +30,8 @@ namespace osu.Framework.Configuration
                 MinValue = Math.Max(MinValue, i.MinValue);
                 MaxValue = Math.Min(MaxValue, i.MaxValue);
                 if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException($"Can not weld bindable ints with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
+                    throw new ArgumentOutOfRangeException(
+                        $"Can not weld bindable ints with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
             }
 
             base.BindTo(them);

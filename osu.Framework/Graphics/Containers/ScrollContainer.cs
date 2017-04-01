@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
@@ -13,7 +12,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : Container
+    public class ScrollContainer : Container, DelayedLoadContainer.IOnScreenOptimisingContainer
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -31,6 +30,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private bool scrollDraggerVisible = true;
+
         public bool ScrollDraggerVisible
         {
             get { return scrollDraggerVisible; }
@@ -41,8 +41,8 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Container content;
-        private ScrollBar scrollDragger;
+        private readonly Container content;
+        private readonly ScrollBar scrollDragger;
 
 
         private bool scrollDraggerOverlapsContent = true;
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
 
         private bool isDragging;
 
-        private Direction scrollDir;
+        private readonly Direction scrollDir;
         private int scrollDim => (int)scrollDir;
 
         public ScrollContainer(Direction scrollDir = Direction.Vertical)
@@ -136,7 +136,8 @@ namespace osu.Framework.Graphics.Containers
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
             AddInternal(new Drawable[]
             {
-                content = new Container {
+                content = new Container
+                {
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
                 },
@@ -168,15 +169,15 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (scrollDir == Direction.Vertical)
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                        new MarginPadding { Left = scrollDragger.Width } :
-                        new MarginPadding { Right = scrollDragger.Width };
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Left = scrollDragger.Width }
+                        : new MarginPadding { Right = scrollDragger.Width };
                 }
                 else
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                        new MarginPadding { Top = scrollDragger.Height } :
-                        new MarginPadding { Bottom = scrollDragger.Height };
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Top = scrollDragger.Height }
+                        : new MarginPadding { Bottom = scrollDragger.Height };
                 }
             }
         }
@@ -356,7 +357,7 @@ namespace osu.Framework.Graphics.Containers
             private static readonly Color4 hover_colour = Color4.White;
             private static readonly Color4 default_colour = Color4.LightGray;
             private static readonly Color4 highlight_colour = Color4.GreenYellow;
-            private Box box;
+            private readonly Box box;
 
             private float dragOffset;
 

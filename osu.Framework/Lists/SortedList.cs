@@ -42,7 +42,7 @@ namespace osu.Framework.Lists
             if (index < 0)
                 index = ~index;
 
-            // Binary search is not guaranteed to give the last index 
+            // Binary search is not guaranteed to give the last index
             // when duplicates are involved, so let's move towards it
             for (; index < Count; index++)
             {

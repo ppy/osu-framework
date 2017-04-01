@@ -13,16 +13,16 @@ namespace osu.Framework.IO.Stores
 {
     public class GlyphStore : IResourceStore<RawTexture>
     {
-        private string assetName;
+        private readonly string assetName;
 
-        private string fontName;
+        private readonly string fontName;
 
         private const float default_size = 96;
 
-        private ResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
         private BitmapFont font;
 
-        private TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
+        private readonly TimedExpiryCache<int, RawTexture> texturePages = new TimedExpiryCache<int, RawTexture>();
 
         private Task fontLoadTask;
 
@@ -87,7 +87,7 @@ namespace osu.Framework.IO.Stores
                         && x - c.Offset.X < c.Bounds.Width && y - c.Offset.Y < c.Bounds.Height)
                     {
                         int srci = (c.Bounds.Y + y - c.Offset.Y) * page.Width * 4
-                            + (c.Bounds.X + x - c.Offset.X) * 4;
+                                   + (c.Bounds.X + x - c.Offset.X) * 4;
                         pixels[desti] = page.Pixels[srci];
                         pixels[desti + 1] = page.Pixels[srci + 1];
                         pixels[desti + 2] = page.Pixels[srci + 2];
@@ -132,7 +132,8 @@ namespace osu.Framework.IO.Stores
 
     public sealed class FontLoadException : Exception
     {
-        public FontLoadException(string assetName) :
+        public FontLoadException(string assetName)
+            :
             base($@"Couldn't load font asset from {assetName}.")
         {
         }
@@ -144,7 +145,8 @@ namespace osu.Framework.IO.Stores
         {
         }
 
-        public FontStore(GlyphStore glyphStore) : base(glyphStore)
+        public FontStore(GlyphStore glyphStore)
+            : base(glyphStore)
         {
         }
     }

@@ -5,7 +5,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -31,7 +31,7 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                AddButton(testNames[i], delegate { loadTest(test); });
+                AddStep(testNames[i], delegate { loadTest(test); });
             }
 
             loadTest(0);

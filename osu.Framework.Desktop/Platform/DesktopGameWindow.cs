@@ -30,7 +30,8 @@ namespace osu.Framework.Desktop.Platform
 
         private readonly Bindable<WindowMode> mode = new Bindable<WindowMode>();
 
-        public DesktopGameWindow() : base(default_width, default_height)
+        public DesktopGameWindow()
+            : base(default_width, default_height)
         {
         }
 
@@ -119,7 +120,7 @@ namespace osu.Framework.Desktop.Platform
             get
             {
                 return new Vector2((float)Location.X / (DisplayDevice.Default.Width - Size.Width),
-                                   (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
+                    (float)Location.Y / (DisplayDevice.Default.Height - Size.Height));
             }
 
             set

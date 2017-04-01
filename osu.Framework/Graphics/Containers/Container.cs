@@ -16,7 +16,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
-using System.Linq;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
@@ -30,7 +29,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="Container{T}"/>.
     /// </summary>
     public class Container : Container<Drawable>
-    { }
+    {
+    }
 
     /// <summary>
     /// A drawable which can have children added to it. Transformations applied to
@@ -110,10 +110,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get
-            {
-                return Content != this ? Content.Children : internalChildren;
-            }
+            get { return Content != this ? Content.Children : internalChildren; }
 
             set
             {
@@ -122,7 +119,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private LifetimeList<T> internalChildren;
+        private readonly LifetimeList<T> internalChildren;
 
         /// <summary>
         /// This container's own list of children.
@@ -320,12 +317,13 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
         {
-            bool changed = internalChildren.Update(Time);
+            if (internalChildren.Update(Time))
+            {
+                childrenSizeDependencies.Invalidate();
+                return true;
+            }
 
-            if (changed && AutoSizeAxes != Axes.None)
-                autoSize.Invalidate();
-
-            return changed;
+            return false;
         }
 
         public sealed override void UpdateClock(IFrameBasedClock clock)
@@ -343,7 +341,7 @@ namespace osu.Framework.Graphics.Containers
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
-        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !autoSize.IsValid;
+        protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
         internal sealed override bool UpdateSubTree()
         {
@@ -363,15 +361,14 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-            if (AutoSizeAxes != Axes.None)
-                updateAutoSize();
+            updateChildrenSizeDependencies();
             return true;
         }
 
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
-        /// </summary>		
+        /// </summary>
         protected virtual void UpdateAfterChildren()
         {
         }
@@ -386,12 +383,10 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation)
         {
-            if (AutoSizeAxes == Axes.None) return;
-
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
-                autoSize.Invalidate();
+                childrenSizeDependencies.Invalidate();
         }
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
@@ -425,7 +420,7 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private readonly ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
         private Shader shader;
 
         protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
@@ -434,25 +429,27 @@ namespace osu.Framework.Graphics.Containers
         {
             ContainerDrawNode n = (ContainerDrawNode)node;
 
-            if (!Masking && (CornerRadius != 0.0f || BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
-                throw new InvalidOperationException("Can not have rounded corners, border effects, or edge effects if masking is disabled.");
+            if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
+                throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
-            {
-                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
-                ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = CornerRadius,
-                BorderThickness = BorderThickness,
-                BorderColour = BorderColour,
-                // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                // This results in the optimal trade-off between crispness and smoothness of the
-                // edges of the masked region according to sampling theory.
-                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
-            };
+            n.MaskingInfo = !Masking
+                ? (MaskingInfo?)null
+                : new MaskingInfo
+                {
+                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                    MaskingRect = DrawRectangle,
+                    ToMaskingSpace = DrawInfo.MatrixInverse,
+                    CornerRadius = CornerRadius,
+                    BorderThickness = BorderThickness,
+                    BorderColour = BorderColour,
+                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                    // This results in the optimal trade-off between crispness and smoothness of the
+                    // edges of the masked region according to sampling theory.
+                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    AlphaExponent = 1,
+                };
 
             n.EdgeEffect = EdgeEffect;
 
@@ -491,7 +488,9 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 // Take drawable.Original until drawable.Original == drawable
-                while (drawable != (drawable = drawable.Original)) { }
+                while (drawable != (drawable = drawable.Original))
+                {
+                }
 
                 if (!drawable.IsPresent)
                     continue;
@@ -505,7 +504,7 @@ namespace osu.Framework.Graphics.Containers
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
                     container.IsMaskedAway = container.internalChildren.AliveItems.Count >= amount_children_required_for_masking_check &&
-                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
@@ -606,8 +605,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformEdgeEffectAlpha));
-            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+            TransformTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
         }
 
         #endregion
@@ -623,7 +621,7 @@ namespace osu.Framework.Graphics.Containers
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
-            if (!Masking || cRadius == 0.0f)
+            if (cRadius == 0.0f)
                 return base.InternalContains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
@@ -789,7 +787,7 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 float cRadius = CornerRadius;
-                if (!Masking || cRadius == 0.0f)
+                if (cRadius == 0.0f)
                     return base.BoundingBox;
 
                 RectangleF drawRect = LayoutRectangle.Shrink(cRadius);
@@ -813,6 +811,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private MarginPadding padding;
+
         public MarginPadding Padding
         {
             get { return padding; }
@@ -874,9 +873,7 @@ namespace osu.Framework.Graphics.Containers
                     throw new InvalidOperationException("No axis can be relatively sized and automatically sized at the same time.");
 
                 autoSizeAxes = value;
-
-                if (AutoSizeAxes != Axes.None)
-                    autoSize.Invalidate();
+                childrenSizeDependencies.Invalidate();
             }
         }
 
@@ -894,14 +891,14 @@ namespace osu.Framework.Graphics.Containers
 
         internal event Action OnAutoSize;
 
-        private Cached autoSize = new Cached();
+        private Cached childrenSizeDependencies = new Cached();
 
         public override float Width
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && (AutoSizeAxes & Axes.X) > 0)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.X) > 0)
+                    updateChildrenSizeDependencies();
                 return base.Width;
             }
 
@@ -917,8 +914,8 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && (AutoSizeAxes & Axes.Y) > 0)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.Y) > 0)
+                    updateChildrenSizeDependencies();
                 return base.Height;
             }
 
@@ -930,57 +927,22 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private bool isComputingAutosize;
+        private bool isComputingChildrenSizeDependencies;
+
         public override Vector2 Size
         {
             get
             {
-                if (!StaticCached.BypassCache && !isComputingAutosize && AutoSizeAxes != Axes.None)
-                    updateAutoSize();
+                if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
+                    updateChildrenSizeDependencies();
                 return base.Size;
             }
 
             set
             {
-                //transform check here is to allow AutoSizeDuration to work below.
-                if ((AutoSizeAxes & Axes.Both) != 0 && !Transforms.Any(t => t is TransformSize))
+                if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
-            }
-        }
-
-        private void updateAutoSize()
-        {
-            isComputingAutosize = true;
-            try
-            {
-                if (autoSize.EnsureValid()) return;
-
-                autoSize.Refresh(delegate
-                {
-                    Vector2 b = computeAutoSize() + Padding.Total;
-
-                    if (AutoSizeDuration > 0)
-                    {
-                        ResizeTo(new Vector2(
-                                (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                                (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                            ), AutoSizeDuration, AutoSizeEasing);
-                    }
-                    else
-                    {
-                        if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
-                        if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
-                    }
-
-                    //note that this is called before autoSize becomes valid. may be something to consider down the line.
-                    //might work better to add an OnRefresh event in Cached<> and invoke there.
-                    OnAutoSize?.Invoke();
-                });
-            }
-            finally
-            {
-                isComputingAutosize = false;
             }
         }
 
@@ -1024,6 +986,74 @@ namespace osu.Framework.Graphics.Containers
             {
                 Padding = originalPadding;
                 Margin = originalMargin;
+            }
+        }
+
+        private void updateAutoSize()
+        {
+            if (AutoSizeAxes == Axes.None)
+                return;
+
+            Vector2 b = computeAutoSize() + Padding.Total;
+
+            if (AutoSizeDuration > 0)
+                autoSizeResizeTo(new Vector2(
+                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                ), AutoSizeDuration, AutoSizeEasing);
+            else
+            {
+                if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
+                if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
+            }
+
+            //note that this is called before autoSize becomes valid. may be something to consider down the line.
+            //might work better to add an OnRefresh event in Cached<> and invoke there.
+            OnAutoSize?.Invoke();
+        }
+
+        private void updateChildrenSizeDependencies()
+        {
+            isComputingChildrenSizeDependencies = true;
+
+            try
+            {
+                if (!childrenSizeDependencies.EnsureValid())
+                    childrenSizeDependencies.Refresh(updateAutoSize);
+            }
+            finally
+            {
+                isComputingChildrenSizeDependencies = false;
+            }
+        }
+
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(Size, newSize, duration, easing, new TransformAutoSize());
+        }
+
+        /// <summary>
+        /// A helper method for <see cref="TransformAutoSize"/> to change the size of auto size containers.
+        /// </summary>
+        /// <param name="newSize"></param>
+        private void setBaseSize(Vector2 newSize)
+        {
+            base.Width = newSize.X;
+            base.Height = newSize.Y;
+        }
+
+        /// <summary>
+        /// A special type of transform which can change the size of auto size containers.
+        /// Used for <see cref="AutoSizeDuration"/>.
+        /// </summary>
+        private class TransformAutoSize : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+
+                var c = (Container<T>)d;
+                c.setBaseSize(CurrentValue);
             }
         }
 

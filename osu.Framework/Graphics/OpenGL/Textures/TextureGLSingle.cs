@@ -23,12 +23,12 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         private static QuadBatch<TexturedVertex2D> quadBatch;
         private static LinearBatch<TexturedVertex2D> triangleBatch;
 
-        private ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
+        private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
         private int internalWidth;
         private int internalHeight;
 
-        private All filteringMode;
+        private readonly All filteringMode;
         private TextureWrapMode internalWrapMode;
 
         public override bool Loaded => textureId > 0 || uploadQueue.Count > 0;
@@ -353,7 +353,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                             textureId = textures[0];
 
                             GLWrapper.BindTexture(this);
-                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
+                            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                                (int)(manualMipmaps ? filteringMode : (filteringMode == All.Linear ? All.LinearMipmapLinear : All.Nearest)));
                             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)filteringMode);
 
                             // 33085 is GL_TEXTURE_MAX_LEVEL, which is not available within TextureParameterName.

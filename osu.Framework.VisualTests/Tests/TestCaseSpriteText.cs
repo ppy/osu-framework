@@ -4,7 +4,7 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -34,7 +34,7 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             };
-            
+
             flow.Add(new SpriteText
             {
                 Text = @"the quick red fox jumps over the lazy brown dog"

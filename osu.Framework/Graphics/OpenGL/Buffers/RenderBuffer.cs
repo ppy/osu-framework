@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 {
     public class RenderBuffer : IDisposable
     {
-        private static Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>> renderBufferCache = new Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>>();
+        private static readonly Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>> render_buffer_cache = new Dictionary<RenderbufferInternalFormat, Stack<RenderBufferInfo>>();
 
         public Vector2 Size = Vector2.One;
         public RenderbufferInternalFormat Format { get; }
@@ -57,19 +57,19 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (info != null)
                 return;
 
-            if (!renderBufferCache.ContainsKey(Format))
-                renderBufferCache[Format] = new Stack<RenderBufferInfo>();
+            if (!render_buffer_cache.ContainsKey(Format))
+                render_buffer_cache[Format] = new Stack<RenderBufferInfo>();
 
             // Make sure we have renderbuffers available
-            if (renderBufferCache[Format].Count == 0)
-                renderBufferCache[Format].Push(new RenderBufferInfo
+            if (render_buffer_cache[Format].Count == 0)
+                render_buffer_cache[Format].Push(new RenderBufferInfo
                 {
                     RenderBufferID = GL.GenRenderbuffer(),
                     FrameBufferID = -1
                 });
 
             // Get a renderbuffer from the cache
-            info = renderBufferCache[Format].Pop();
+            info = render_buffer_cache[Format].Pop();
 
             // Check if we need to update the size
             if (info.Size != Size)
@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 return;
 
             // Return the renderbuffer to the cache
-            renderBufferCache[Format].Push(info);
+            render_buffer_cache[Format].Push(info);
 
             info = null;
         }

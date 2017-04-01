@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         public static int MaxTextureSize { get; private set; }
 
-        private static Scheduler resetScheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
+        private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
         public static bool IsInitialized { get; private set; }
 
@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.OpenGL
             if (IsInitialized) return;
 
             GLWrapper.host = host;
-            resetScheduler.SetCurrentThread();
+            reset_scheduler.SetCurrentThread();
 
             MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
 
@@ -62,14 +62,14 @@ namespace osu.Framework.Graphics.OpenGL
 
         internal static void ScheduleDisposal(Action disposalAction)
         {
-            host?.UpdateThread.Scheduler.Add(() => resetScheduler.Add(disposalAction.Invoke));
+            host?.UpdateThread.Scheduler.Add(() => reset_scheduler.Add(disposalAction.Invoke));
         }
 
         internal static void Reset(Vector2 size)
         {
-            Trace.Assert(shaderStack.Count == 0);
+            Trace.Assert(shader_stack.Count == 0);
 
-            resetScheduler.Update();
+            reset_scheduler.Update();
 
             lastBoundTexture = null;
 
@@ -78,21 +78,21 @@ namespace osu.Framework.Graphics.OpenGL
             lastBlendingInfo = new BlendingInfo();
             lastBlendingEnabledState = null;
 
-            foreach (IVertexBatch b in thisFrameBatches)
+            foreach (IVertexBatch b in this_frame_batches)
                 b.ResetCounters();
 
-            thisFrameBatches.Clear();
+            this_frame_batches.Clear();
             if (lastActiveBatch != null)
-                thisFrameBatches.Add(lastActiveBatch);
+                this_frame_batches.Add(lastActiveBatch);
 
             lastFrameBuffer = 0;
 
-            viewportStack.Clear();
-            orthoStack.Clear();
-            maskingStack.Clear();
-            scissorRectStack.Clear();
+            viewport_stack.Clear();
+            ortho_stack.Clear();
+            masking_stack.Clear();
+            scissor_rect_stack.Clear();
 
-            scissorRectStack.Push(new Rectangle(0, 0, (int)size.X, (int)size.Y));
+            scissor_rect_stack.Push(new Rectangle(0, 0, (int)size.X, (int)size.Y));
 
             Viewport = Rectangle.Empty;
             Ortho = Rectangle.Empty;
@@ -110,6 +110,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         // We initialize to an invalid value such that we are not missing an initial GL.ClearColor call.
         private static Color4 clearColour = new Color4(-1, -1, -1, -1);
+
         public static void ClearColour(Color4 c)
         {
             if (clearColour != c)
@@ -128,10 +129,10 @@ namespace osu.Framework.Graphics.OpenGL
         public static void EnqueueTextureUpload(TextureGL texture)
         {
             //todo: don't use scheduler
-            resetScheduler.Add(() => texture.Upload());
+            reset_scheduler.Add(() => texture.Upload());
         }
 
-        private static int[] lastBoundBuffers = new int[2];
+        private static readonly int[] last_bound_buffers = new int[2];
 
         /// <summary>
         /// Bind an OpenGL buffer object.
@@ -142,17 +143,17 @@ namespace osu.Framework.Graphics.OpenGL
         public static bool BindBuffer(BufferTarget target, int buffer)
         {
             int bufferIndex = target - BufferTarget.ArrayBuffer;
-            if (lastBoundBuffers[bufferIndex] == buffer)
+            if (last_bound_buffers[bufferIndex] == buffer)
                 return false;
 
-            lastBoundBuffers[bufferIndex] = buffer;
+            last_bound_buffers[bufferIndex] = buffer;
             GL.BindBuffer(target, buffer);
             return true;
         }
 
         private static IVertexBatch lastActiveBatch;
 
-        private static List<IVertexBatch> thisFrameBatches = new List<IVertexBatch>();
+        private static readonly List<IVertexBatch> this_frame_batches = new List<IVertexBatch>();
 
         /// <summary>
         /// Sets the last vertex batch used for drawing.
@@ -168,8 +169,8 @@ namespace osu.Framework.Graphics.OpenGL
 
             FlushCurrentBatch();
 
-            if (batch != null && !thisFrameBatches.Contains(batch))
-                thisFrameBatches.Add(batch);
+            if (batch != null && !this_frame_batches.Contains(batch))
+                this_frame_batches.Add(batch);
 
             lastActiveBatch = batch;
         }
@@ -268,7 +269,7 @@ namespace osu.Framework.Graphics.OpenGL
             return last;
         }
 
-        private static Stack<Rectangle> viewportStack = new Stack<Rectangle>();
+        private static readonly Stack<Rectangle> viewport_stack = new Stack<Rectangle>();
 
         /// <summary>
         /// Applies a new viewport rectangle.
@@ -292,7 +293,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             PushOrtho(viewport);
 
-            viewportStack.Push(actualRect);
+            viewport_stack.Push(actualRect);
 
             if (Viewport == actualRect)
                 return;
@@ -308,12 +309,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopViewport()
         {
-            Trace.Assert(viewportStack.Count > 1);
+            Trace.Assert(viewport_stack.Count > 1);
 
             PopOrtho();
 
-            viewportStack.Pop();
-            Rectangle actualRect = viewportStack.Peek();
+            viewport_stack.Pop();
+            Rectangle actualRect = viewport_stack.Peek();
 
             if (Viewport == actualRect)
                 return;
@@ -324,7 +325,7 @@ namespace osu.Framework.Graphics.OpenGL
             UpdateScissorToCurrentViewportAndOrtho();
         }
 
-        private static Stack<RectangleF> orthoStack = new Stack<RectangleF>();
+        private static readonly Stack<RectangleF> ortho_stack = new Stack<RectangleF>();
 
         /// <summary>
         /// Applies a new orthographic projection rectangle.
@@ -334,7 +335,7 @@ namespace osu.Framework.Graphics.OpenGL
         {
             FlushCurrentBatch();
 
-            orthoStack.Push(ortho);
+            ortho_stack.Push(ortho);
             if (Ortho == ortho)
                 return;
             Ortho = ortho;
@@ -350,12 +351,12 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopOrtho()
         {
-            Trace.Assert(orthoStack.Count > 1);
+            Trace.Assert(ortho_stack.Count > 1);
 
             FlushCurrentBatch();
 
-            orthoStack.Pop();
-            RectangleF actualRect = orthoStack.Peek();
+            ortho_stack.Pop();
+            RectangleF actualRect = ortho_stack.Peek();
 
             if (Ortho == actualRect)
                 return;
@@ -367,15 +368,15 @@ namespace osu.Framework.Graphics.OpenGL
             UpdateScissorToCurrentViewportAndOrtho();
         }
 
-        private static Stack<MaskingInfo> maskingStack = new Stack<MaskingInfo>();
-        private static Stack<Rectangle> scissorRectStack = new Stack<Rectangle>();
+        private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
+        private static readonly Stack<Rectangle> scissor_rect_stack = new Stack<Rectangle>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
             RectangleF viewportRect = Viewport;
             Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
 
-            Rectangle currentScissorRect = scissorRectStack.Peek();
+            Rectangle currentScissorRect = scissor_rect_stack.Peek();
 
             Rectangle scissorRect = new Rectangle(
                 currentScissorRect.X + (int)Math.Floor(offset.X),
@@ -439,16 +440,16 @@ namespace osu.Framework.Graphics.OpenGL
                     currentScissorRect = actualRect;
                 else
                 {
-                    currentScissorRect = scissorRectStack.Peek();
+                    currentScissorRect = scissor_rect_stack.Peek();
                     currentScissorRect.Intersect(actualRect);
                 }
 
-                scissorRectStack.Push(currentScissorRect);
+                scissor_rect_stack.Push(currentScissorRect);
             }
             else
             {
-                Trace.Assert(scissorRectStack.Count > 1);
-                scissorRectStack.Pop();
+                Trace.Assert(scissor_rect_stack.Count > 1);
+                scissor_rect_stack.Pop();
             }
 
             UpdateScissorToCurrentViewportAndOrtho();
@@ -459,7 +460,7 @@ namespace osu.Framework.Graphics.OpenGL
             lastActiveBatch?.Draw();
         }
 
-        public static bool IsMaskingActive => maskingStack.Count > 1;
+        public static bool IsMaskingActive => masking_stack.Count > 1;
 
         /// <summary>
         /// Applies a new scissor rectangle.
@@ -468,7 +469,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// <param name="overwritePreviousScissor">Whether or not to shrink an existing scissor rectangle.</param>
         public static void PushMaskingInfo(MaskingInfo maskingInfo, bool overwritePreviousScissor = false)
         {
-            maskingStack.Push(maskingInfo);
+            masking_stack.Push(maskingInfo);
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
 
@@ -481,10 +482,10 @@ namespace osu.Framework.Graphics.OpenGL
         /// </summary>
         public static void PopMaskingInfo()
         {
-            Trace.Assert(maskingStack.Count > 1);
+            Trace.Assert(masking_stack.Count > 1);
 
-            maskingStack.Pop();
-            MaskingInfo maskingInfo = maskingStack.Peek();
+            masking_stack.Pop();
+            MaskingInfo maskingInfo = masking_stack.Peek();
 
             if (CurrentMaskingInfo.Equals(maskingInfo))
                 return;
@@ -547,7 +548,7 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static int currentShader;
 
-        private static Stack<int> shaderStack = new Stack<int>();
+        private static readonly Stack<int> shader_stack = new Stack<int>();
 
         public static void UseProgram(int? shader)
         {
@@ -555,18 +556,18 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (shader != null)
             {
-                shaderStack.Push(shader.Value);
+                shader_stack.Push(shader.Value);
             }
             else
             {
-                shaderStack.Pop();
+                shader_stack.Pop();
 
                 //check if the stack is empty, and if so don't restore the previous shader.
-                if (shaderStack.Count == 0)
+                if (shader_stack.Count == 0)
                     return;
             }
 
-            int s = shader ?? shaderStack.Peek();
+            int s = shader ?? shader_stack.Peek();
 
             if (currentShader == s) return;
 
@@ -601,8 +602,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix2 mat = (Matrix2)value;
                         GL.UniformMatrix2(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.BoolVec3:
                 case ActiveUniformType.IntVec3:
                 case ActiveUniformType.FloatVec3:
@@ -612,8 +613,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix3 mat = (Matrix3)value;
                         GL.UniformMatrix3(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.BoolVec4:
                 case ActiveUniformType.IntVec4:
                 case ActiveUniformType.FloatVec4:
@@ -623,8 +624,8 @@ namespace osu.Framework.Graphics.OpenGL
                     {
                         Matrix4 mat = (Matrix4)value;
                         GL.UniformMatrix4(location, false, ref mat);
+                        break;
                     }
-                    break;
                 case ActiveUniformType.Sampler2D:
                     GL.Uniform1(location, (int)value);
                     break;
@@ -643,6 +644,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// It is used by a shader to determine which pixels to discard.
         /// </summary>
         public Matrix3 ToMaskingSpace;
+
         public float CornerRadius;
 
         public float BorderThickness;

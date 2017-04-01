@@ -5,14 +5,14 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using OpenTK;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseCheckBox : TestCase
+    internal class TestCaseCheckboxes : TestCase
     {
-        public override string Description => @"CheckBoxes with clickable labels";
+        public override string Description => @"Checkboxes with clickable labels";
 
         public override void Reset()
         {
@@ -30,16 +30,16 @@ namespace osu.Framework.VisualTests.Tests
                     AutoSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        new BasicCheckBox
+                        new BasicCheckbox
                         {
                             LabelText = @"Basic Test"
                         },
-                        new BasicCheckBox
+                        new BasicCheckbox
                         {
                             LabelText = @"FadeDuration Test",
                             FadeDuration = 300
                         },
-                        new ActionsTestCheckBox
+                        new ActionsTestCheckbox
                         {
                             LabelText = @"Enabled/Disabled Actions Test",
                         },
@@ -49,7 +49,7 @@ namespace osu.Framework.VisualTests.Tests
         }
     }
 
-    public class ActionsTestCheckBox : BasicCheckBox
+    public class ActionsTestCheckbox : BasicCheckbox
     {
         protected override void OnChecked()
         {

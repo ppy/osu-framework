@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Sample
     {
         private readonly IResourceStore<byte[]> store;
 
-        private ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
+        private readonly ConcurrentDictionary<string, Sample> sampleCache = new ConcurrentDictionary<string, Sample>();
 
         public SampleManager(IResourceStore<byte[]> store)
         {

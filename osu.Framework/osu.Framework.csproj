@@ -107,21 +107,30 @@
     <Compile Include="Audio\Sample\SampleManager.cs" />
     <Compile Include="Audio\Track\TrackManager.cs" />
     <Compile Include="DebugUtils\ThreadSafety.cs" />
-    <Compile Include="Extensions\GeneralExtensions.cs" />
+    <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
+    <Compile Include="Graphics\Containers\AsyncLoadContainer.cs" />
+    <Compile Include="Graphics\Containers\DelayedLoadContainer.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
-    <Compile Include="Graphics\Containers\TabFillFlowContainer.cs" />
+    <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
+    <Compile Include="Graphics\UserInterface\Checkbox.cs" />
+    <Compile Include="Graphics\UserInterface\MenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\Menu.cs" />
+    <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
-    <Compile Include="Input\EventArgs.cs" />
+    <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
+    <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
+    <Compile Include="Input\KeyDownEventArgs.cs" />
+    <Compile Include="Input\MouseDownEventArgs.cs" />
+    <Compile Include="Input\MouseEventArgs.cs" />
+    <Compile Include="Input\MouseUpEventArgs.cs" />
     <Compile Include="Input\PassThroughInputManager.cs" />
-    <Compile Include="Screens\Testing\TestBrowser.cs" />
-    <Compile Include="Screens\Testing\TestCase.cs" />
     <Compile Include="Graphics\BlendingInfo.cs" />
     <Compile Include="Graphics\Colour\ColourInfo.cs" />
     <Compile Include="Graphics\Colour\SRGBColour.cs" />
@@ -142,12 +151,12 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
-    <Compile Include="Graphics\Transforms\TransformGlowAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownHeader.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenu.cs" />
-    <Compile Include="Graphics\UserInterface\DropDownMenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
+    <Compile Include="Graphics\UserInterface\Dropdown.cs" />
+    <Compile Include="Graphics\UserInterface\DropdownMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\PasswordTextBox.cs" />
     <Compile Include="Graphics\UserInterface\SliderBar.cs" />
     <Compile Include="Graphics\Visualisation\DrawVisualiser.cs" />
@@ -178,7 +187,7 @@
     <Compile Include="Graphics\Visualisation\VisualisedDrawable.cs" />
     <Compile Include="Input\IKeyboardState.cs" />
     <Compile Include="Input\IMouseState.cs" />
-    <Compile Include="Input\TextInputSource.cs" />
+    <Compile Include="Input\ITextInputSource.cs" />
     <Compile Include="IO\File\FileSafety.cs" />
     <Compile Include="IO\Network\FileWebRequest.cs" />
     <Compile Include="IO\Network\HttpMethod.cs" />
@@ -240,7 +249,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
-    <Compile Include="Graphics\Transforms\EasingTypes.cs" />
+    <Compile Include="Graphics\EasingTypes.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
@@ -293,9 +302,7 @@
     <Compile Include="Platform\Storage.cs" />
     <Compile Include="Platform\IpcChannel.cs" />
     <Compile Include="Platform\IpcMessage.cs" />
-    <Compile Include="Graphics\UserInterface\CheckBox.cs" />
-    <Compile Include="Graphics\UserInterface\BasicCheckBox.cs" />
-    <Compile Include="Timing\TimeInfo.cs" />
+    <Compile Include="Timing\FrameTimeInfo.cs" />
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
@@ -325,9 +332,7 @@
     <EmbeddedResource Include="Resources\Fonts\OpenSans_1.png" />
     <EmbeddedResource Include="Resources\Fonts\OpenSans_0.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Input\Events\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

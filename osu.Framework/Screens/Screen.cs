@@ -17,8 +17,8 @@ namespace osu.Framework.Screens
 
         public bool IsCurrentScreen => !hasExited && ChildScreen == null;
 
-        private Container content;
-        private Container childModeContainer;
+        private readonly Container content;
+        private readonly Container childModeContainer;
 
         protected Game Game;
 
@@ -72,7 +72,9 @@ namespace osu.Framework.Screens
         /// Called when this Screen is being entered. Only happens once, ever.
         /// </summary>
         /// <param name="last">The next Screen.</param>
-        protected virtual void OnEntering(Screen last) { }
+        protected virtual void OnEntering(Screen last)
+        {
+        }
 
         /// <summary>
         /// Called when this Screen is exiting. Only happens once, ever.
@@ -85,13 +87,17 @@ namespace osu.Framework.Screens
         /// Called when this Screen is being returned to from a child exiting.
         /// </summary>
         /// <param name="last">The next Screen.</param>
-        protected virtual void OnResuming(Screen last) { }
+        protected virtual void OnResuming(Screen last)
+        {
+        }
 
         /// <summary>
         /// Called when this Screen is being left to a new child.
         /// </summary>
         /// <param name="next">The new Screen</param>
-        protected virtual void OnSuspending(Screen next) { }
+        protected virtual void OnSuspending(Screen next)
+        {
+        }
 
         [BackgroundDependencyLoader]
         private void load(Game game)

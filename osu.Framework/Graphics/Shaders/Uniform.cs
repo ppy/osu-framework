@@ -5,7 +5,7 @@ namespace osu.Framework.Graphics.Shaders
 {
     public class Uniform<T>
     {
-        private UniformBase uniformBase;
+        private readonly UniformBase uniformBase;
 
         internal Uniform(UniformBase uniformBase)
         {

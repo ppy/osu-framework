@@ -19,6 +19,9 @@ namespace osu.Framework.Graphics.Visualisation
         {
             public int Compare(VisualisedDrawable x, VisualisedDrawable y)
             {
+                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
+                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+
                 return x.nestingDepth.CompareTo(y.nestingDepth);
             }
         }
@@ -27,12 +30,12 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
-        private Box textBg;
-        private SpriteText text;
-        private Drawable previewBox;
-        private Drawable activityInvalidate;
-        private Drawable activityAutosize;
-        private Drawable activityLayout;
+        private readonly Box textBg;
+        private readonly SpriteText text;
+        private readonly Drawable previewBox;
+        private readonly Drawable activityInvalidate;
+        private readonly Drawable activityAutosize;
+        private readonly Drawable activityLayout;
 
         public Action HoverGained;
         public Action HoverLost;
@@ -43,9 +46,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         public FillFlowContainer<VisualisedDrawable> Flow;
 
-        private TreeContainer tree;
+        private readonly TreeContainer tree;
 
-        private int nestingDepth;
+        private readonly int nestingDepth;
 
         public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
         {
@@ -82,16 +85,17 @@ namespace osu.Framework.Graphics.Visualisation
                     Position = new Vector2(0, 0),
                     Alpha = 0
                 },
-                previewBox = sprite?.Texture == null ? previewBox = new Box { Colour = Color4.White } : new Sprite
-                {
-                    Texture = sprite.Texture,
-                    Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
-                },
+                previewBox = sprite?.Texture == null
+                    ? previewBox = new Box { Colour = Color4.White }
+                    : new Sprite
+                    {
+                        Texture = sprite.Texture,
+                        Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
+                    },
                 new Container
                 {
                     AutoSizeAxes = Axes.Both,
                     Position = new Vector2(24, -3),
-
                     Children = new Drawable[]
                     {
                         textBg = new Box

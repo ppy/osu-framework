@@ -9,10 +9,10 @@ namespace osu.Framework.Audio.Track
 {
     public class TrackManager : AudioCollectionManager<Track>
     {
-        private IResourceStore<byte[]> store;
+        private readonly IResourceStore<byte[]> store;
 
         private Track exclusiveTrack;
-        private object exclusiveMutex = new object();
+        private readonly object exclusiveMutex = new object();
 
         public TrackManager(IResourceStore<byte[]> store)
         {

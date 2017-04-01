@@ -8,12 +8,13 @@ using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public abstract class DropDownHeader : ClickableContainer
+    public abstract class DropdownHeader : ClickableContainer
     {
         protected Container Background;
         protected Container Foreground;
 
         private Color4 backgroundColour = Color4.DarkGray;
+
         protected Color4 BackgroundColour
         {
             get { return backgroundColour; }
@@ -23,13 +24,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Background.Colour = value;
             }
         }
+
         protected Color4 BackgroundColourHover { get; set; } = Color4.Gray;
 
         protected override Container<Drawable> Content => Foreground;
 
         protected internal abstract string Label { get; set; }
 
-        protected DropDownHeader()
+        protected DropdownHeader()
         {
             Masking = true;
             RelativeSizeAxes = Axes.X;

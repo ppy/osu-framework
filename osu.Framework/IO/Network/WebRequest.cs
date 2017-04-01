@@ -125,9 +125,9 @@ namespace osu.Framework.IO.Network
         /// </summary>
         public int Timeout = DEFAULT_TIMEOUT;
 
-        private static Logger logger;
+        private static readonly Logger logger;
 
-        private static SmartThreadPool threadPool;
+        private static readonly SmartThreadPool thread_pool;
         private IWorkItemResult workItem;
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace osu.Framework.IO.Network
 
         static WebRequest()
         {
-            threadPool = new SmartThreadPool(new STPStartInfo
+            thread_pool = new SmartThreadPool(new STPStartInfo
             {
                 MaxWorkerThreads = 64,
                 AreThreadsBackground = true,
@@ -169,7 +169,7 @@ namespace osu.Framework.IO.Network
 
         private Stream internalResponseStream;
 
-        private static AddressFamily? preferredNetwork = AddressFamily.InterNetwork;
+        private static readonly AddressFamily? preferred_network = AddressFamily.InterNetwork;
 
         /// <summary>
         /// Does a manual DNS lookup and forcefully uses IPv4 by shoving IP addresses where the host normally is.
@@ -201,7 +201,7 @@ namespace osu.Framework.IO.Network
 
                 foreach (var ip in addresses)
                 {
-                    bool preferred = ip.AddressFamily == preferredNetwork;
+                    bool preferred = ip.AddressFamily == preferred_network;
 
                     if (!preferred && address != null)
                         continue;
@@ -308,8 +308,8 @@ namespace osu.Framework.IO.Network
             if (workItem != null)
                 throw new InvalidOperationException("Can not perform a web request multiple times.");
 
-            workItem = threadPool.QueueWorkItem(perform);
-            if (threadPool.InUseThreads == threadPool.MaxThreads)
+            workItem = thread_pool.QueueWorkItem(perform);
+            if (thread_pool.InUseThreads == thread_pool.MaxThreads)
                 logger.Add(@"WARNING: ThreadPool is saturated!", LogLevel.Error);
         }
 
@@ -323,7 +323,7 @@ namespace osu.Framework.IO.Network
             try
             {
                 reportForwardProgress();
-                threadPool.QueueWorkItem(checkTimeoutLoop);
+                thread_pool.QueueWorkItem(checkTimeoutLoop);
 
                 requestBody = new MemoryStream();
 
@@ -521,7 +521,7 @@ namespace osu.Framework.IO.Network
             Exception exc = null;
             bool completed = false;
 
-            Finished += delegate (WebRequest r, Exception e)
+            Finished += delegate(WebRequest r, Exception e)
             {
                 exc = e;
                 completed = true;

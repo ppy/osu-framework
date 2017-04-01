@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
-    { };
+    {
+    };
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -95,6 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 pixelSnapping = value;
             }
         }
+
         private Shader blurShader;
 
         /// <summary>
@@ -122,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
 
         // We need 2 frame buffers such that we can accumulate post-processing effects in a
         // ping-pong fashion going back and forth (reading from one buffer, writing into the other).
-        private FrameBuffer[] frameBuffers = new FrameBuffer[2];
+        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[2];
 
         // In order to signal the draw thread to re-draw the buffered container we version it.
         // Our own version (update) keeps track of which version we are on, whereas the
@@ -130,11 +132,11 @@ namespace osu.Framework.Graphics.Containers
         // When forcing a redraw we increment updateVersion, pass it into each new drawnode
         // and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
         private long updateVersion;
-        private AtomicCounter drawVersion = new AtomicCounter();
+        private readonly AtomicCounter drawVersion = new AtomicCounter();
 
-        private QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
+        private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
 
-        private List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
+        private readonly List<RenderbufferInternalFormat> attachedFormats = new List<RenderbufferInternalFormat>();
 
         protected override bool CanBeFlattened => false;
 
@@ -239,8 +241,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformBlurSigma));
-            TransformVectorTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
+            TransformTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
         }
 
         protected class TransformBlurSigma : TransformVector

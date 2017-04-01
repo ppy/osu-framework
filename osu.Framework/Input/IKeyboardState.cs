@@ -11,6 +11,7 @@ namespace osu.Framework.Input
         bool AltPressed { get; }
         bool ControlPressed { get; }
         bool ShiftPressed { get; }
+
         /// <summary>
         /// Win key on Windows, or Command key on Mac.
         /// </summary>

@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Logging;
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,7 +14,7 @@ namespace osu.Framework.Graphics.Visualisation
 {
     internal class LogOverlay : OverlayContainer
     {
-        private FillFlowContainer flow;
+        private readonly FillFlowContainer flow;
 
         private Bindable<bool> enabled;
 
@@ -37,12 +36,9 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 flow = new FillFlowContainer
                 {
-                    LayoutDuration = 150,
-                    LayoutEasing = EasingTypes.OutQuart,
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                 }
-
             };
 
             Logger.NewEntry += logger_NewEntry;
@@ -50,6 +46,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void logger_NewEntry(LogEntry entry)
         {
+            if (entry.Level <= LogLevel.Verbose)
+                return;
+
             Schedule(() =>
             {
                 var drawEntry = new DrawableLogEntry(entry);
@@ -70,7 +69,6 @@ namespace osu.Framework.Graphics.Visualisation
         {
             enabled = config.GetBindable<bool>(FrameworkConfig.ShowLogOverlay);
             State = enabled.Value ? Visibility.Visible : Visibility.Hidden;
-
         }
 
         protected override void PopIn()
@@ -117,7 +115,6 @@ namespace osu.Framework.Graphics.Visualisation
                     Size = new Vector2(target_box_width, 20),
                     CornerRadius = 5,
                     Masking = true,
-
                     Children = new Drawable[]
                     {
                         new Box
@@ -127,7 +124,6 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                         new SpriteText
                         {
-
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
@@ -140,15 +136,14 @@ namespace osu.Framework.Graphics.Visualisation
                     AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
                     Padding = new MarginPadding { Left = target_box_width + 10 },
-
                     Children = new Drawable[]
                     {
-                    new SpriteText
-                    {
-                        AutoSizeAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.X,
-                        Text = entry.Message
-                    }
+                        new SpriteText
+                        {
+                            AutoSizeAxes = Axes.Y,
+                            RelativeSizeAxes = Axes.X,
+                            Text = entry.Message
+                        }
                     }
                 }
             };

@@ -18,6 +18,7 @@ namespace osu.Framework.Graphics.Textures
     public class Texture : IDisposable
     {
         private static Texture whitePixel;
+
         public static Texture WhitePixel
         {
             get
@@ -147,14 +148,14 @@ namespace osu.Framework.Graphics.Textures
 
             byte[] data = upload.Data;
 
-            int bytesPerPixel = 4;
+            const int bytes_per_pixel = 4;
             byte* bDataPointer = (byte*)bData.Scan0;
 
             for (var y = 0; y < height; y++)
             {
                 // This is why real scan-width is important to have!
                 IntPtr row = new IntPtr(bDataPointer + y * bData.Stride);
-                Marshal.Copy(row, data, width * bytesPerPixel * y, width * bytesPerPixel);
+                Marshal.Copy(row, data, width * bytes_per_pixel * y, width * bytes_per_pixel);
             }
 
             bitmap.UnlockBits(bData);

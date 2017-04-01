@@ -12,7 +12,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class TimedExpiryCache<TKey, TValue> : IDisposable
     {
-        private ConcurrentDictionary<TKey, TimedObject<TValue>> dictionary = new ConcurrentDictionary<TKey, TimedObject<TValue>>();
+        private readonly ConcurrentDictionary<TKey, TimedObject<TValue>> dictionary = new ConcurrentDictionary<TKey, TimedObject<TValue>>();
 
         /// <summary>
         /// Time in milliseconds after last access after which items will be cleaned up.
@@ -24,7 +24,7 @@ namespace osu.Framework.Allocation
         /// </summary>
         public readonly int CheckPeriod = 5000;
 
-        private Timer timer;
+        private readonly Timer timer;
 
         public TimedExpiryCache()
         {
@@ -63,6 +63,7 @@ namespace osu.Framework.Allocation
         }
 
         #region IDisposable Support
+
         private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
@@ -97,7 +98,6 @@ namespace osu.Framework.Allocation
             {
                 get
                 {
-
                     updateAccessTime();
                     return value;
                 }

@@ -27,12 +27,13 @@ namespace osu.Framework.Configuration
             }
         }
 
-        public BindableDouble(double value = 0) : base(value)
+        public BindableDouble(double value = 0)
+            : base(value)
         {
             MinValue = double.MinValue;
             MaxValue = double.MaxValue;
         }
-        
+
         public override void BindTo(Bindable<double> them)
         {
             var dbl = them as BindableDouble;
@@ -41,7 +42,8 @@ namespace osu.Framework.Configuration
                 MinValue = Math.Max(MinValue, dbl.MinValue);
                 MaxValue = Math.Min(MaxValue, dbl.MaxValue);
                 if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException($"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(them));
+                    throw new ArgumentOutOfRangeException(
+                        $"Can not weld bindable doubles with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{dbl.MinValue} - {dbl.MaxValue}].", nameof(them));
             }
 
             base.BindTo(them);

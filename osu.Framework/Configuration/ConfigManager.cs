@@ -20,9 +20,9 @@ namespace osu.Framework.Configuration
 
         private bool hasUnsavedChanges;
 
-        private Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
+        private readonly Dictionary<T, IBindable> configStore = new Dictionary<T, IBindable>();
 
-        private Storage storage;
+        private readonly Storage storage;
 
         public ConfigManager(Storage storage)
         {
@@ -153,7 +153,7 @@ namespace osu.Framework.Configuration
             {
                 if (stream == null)
                     return;
-                
+
                 using (var reader = new StreamReader(stream))
                 {
                     string line;

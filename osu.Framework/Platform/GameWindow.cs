@@ -15,7 +15,8 @@ namespace osu.Framework.Platform
         internal Version GLVersion;
         internal Version GLSLVersion;
 
-        protected GameWindow(int width, int height) : base(width, height)
+        protected GameWindow(int width, int height)
+            : base(width, height)
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
@@ -133,7 +134,9 @@ namespace osu.Framework.Platform
 
         public virtual Vector2 Position { get; set; }
 
-        public virtual void CycleMode() {}
+        public virtual void CycleMode()
+        {
+        }
     }
 
     /// <summary>
@@ -145,10 +148,12 @@ namespace osu.Framework.Platform
         /// The OS cursor is always visible and can move anywhere.
         /// </summary>
         Visible,
+
         /// <summary>
         /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>, but can still move anywhere.
         /// </summary>
         Hidden,
+
         /// <summary>
         /// The OS cursor is hidden while hovering the <see cref="GameWindow"/>.
         /// It is confined to the <see cref="GameWindow"/> while the window is in focus and can move freely otherwise.

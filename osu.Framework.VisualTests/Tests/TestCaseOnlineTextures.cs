@@ -1,22 +1,24 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Testing;
 using OpenTK;
-using osu.Framework.Allocation;
-using osu.Framework.Screens.Testing;
+using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseOnlineTextures : TestCase
     {
-        private FillFlowContainer flow;
+        private FillFlowContainerNoInput flow;
+        private ScrollContainer scroll;
 
-        private int loadId = 55;
-        private Game game;
+        private const int panel_count = 2048;
 
         public override void Reset()
         {
@@ -24,12 +26,12 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new ScrollContainer
+                scroll = new ScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainer()
+                        flow = new FillFlowContainerNoInput
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -38,21 +40,50 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            getNextAvatar();
+            for (int i = 1; i < panel_count; i++)
+                flow.Add(new Container
+                {
+                    Size = new Vector2(128),
+                    Children = new Drawable[]
+                    {
+                        new DelayedLoadContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            FinishedLoading = d =>
+                            {
+                                if ((d.Children.FirstOrDefault() as Sprite)?.Texture == null)
+                                {
+                                    d.Add(new SpriteText
+                                    {
+                                        Colour = Color4.Gray,
+                                        Text = @"nope",
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                    });
+                                }
+                            },
+                            Children = new Drawable[]
+                            {
+                                //TODO: re-enable post merge of https://github.com/ppy/osu-framework/pull/605
+                                //new Avatar(i) { RelativeSizeAxes = Axes.Both }
+                            }
+                        },
+                        new SpriteText { Text = i.ToString() },
+                    }
+                });
+
+            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadContainer>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
+
+            AddWaitStep(10);
+            AddStep("scroll down", () => scroll.ScrollToEnd());
+            AddWaitStep(10);
+            AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
         }
 
-        [BackgroundDependencyLoader]
-        private void load(Game game)
+        private class FillFlowContainerNoInput : FillFlowContainer<Container>
         {
-            this.game = game;
-        }
-
-        private void getNextAvatar()
-        {
-            new Avatar(loadId).LoadAsync(game, flow.Add);
-
-            loadId++;
-            Scheduler.AddDelayed(getNextAvatar, 400);
+            public override bool HandleInput => false;
         }
     }
 
@@ -69,22 +100,6 @@ namespace osu.Framework.VisualTests.Tests
         private void load(TextureStore textures)
         {
             Texture = textures.Get($@"https://a.ppy.sh/{userId}");
-        }
-
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            if (Texture == null)
-            {
-                Expire();
-                return;
-            }
-
-            //override texture size
-            Size = new Vector2(128);
-
-            FadeInFromZero(500);
         }
     }
 }

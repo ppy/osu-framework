@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using System;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -39,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                AddButton(testNames[i], delegate { loadTest(test); });
+                AddStep(testNames[i], delegate { loadTest(test); });
             }
 
             loadTest(0);
@@ -141,7 +141,11 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        box.OnUpdate += delegate { box.Rotation += 0.05f; box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01); };
+                        box.OnUpdate += delegate
+                        {
+                            box.Rotation += 0.05f;
+                            box.CornerRadius = 100 + 100 * (float)Math.Sin(box.Rotation * 0.01);
+                        };
                         break;
                     }
 
@@ -230,7 +234,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 4:
                     {
-                        Func<float, Drawable> createMaskingBox = delegate (float scale)
+                        Func<float, Drawable> createMaskingBox = delegate(float scale)
                         {
                             float size = 200 / scale;
                             return new Container
@@ -343,5 +347,4 @@ namespace osu.Framework.VisualTests.Tests
 #endif
         }
     }
-
 }

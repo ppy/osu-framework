@@ -20,7 +20,7 @@ namespace osu.Framework.Allocation
 
         private long currentFrame;
 
-        private Action<ObjectUsage<T>, UsageType> finishDelegate;
+        private readonly Action<ObjectUsage<T>, UsageType> finishDelegate;
 
         public TripleBuffer()
         {
@@ -65,7 +65,6 @@ namespace osu.Framework.Allocation
                     }
 
                     return buffers[read];
-
             }
 
             return null;

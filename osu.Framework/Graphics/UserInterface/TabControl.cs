@@ -13,7 +13,7 @@ using OpenTK;
 namespace osu.Framework.Graphics.UserInterface
 {
     /// <summary>
-    /// A single-row control to display a list of selectable tabs along with a right-aligned dropdown
+    /// A single-row control to display a list of selectable tabs along with an optional right-aligned dropdown
     /// containing overflow items (tabs which cannot be displayed in the allocated width). Includes
     /// support for pinning items, causing them to be displayed before all other items at the
     /// start of the list.
@@ -24,7 +24,19 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The currently selected item.
         /// </summary>
-        public T SelectedItem => SelectedTab.Value;
+        public T SelectedItem
+        {
+            get { return SelectedTab.Value; }
+
+            set
+            {
+                if (IsLoaded)
+                    selectTab(tabMap[value]);
+                else
+                    //will be handled in LoadComplete
+                    SelectedTab = tabMap[value];
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the other they are dispalyed.
@@ -44,9 +56,9 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// We need a special case here to allow for the dropdown "overflowing" our own bounds.
         /// </summary>
-        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || DropDown.Contains(screenSpacePos);
+        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || (Dropdown?.Contains(screenSpacePos) ?? false);
 
-        protected DropDownMenu<T> DropDown;
+        protected Dropdown<T> Dropdown;
 
         protected TabFillFlowContainer<TabItem<T>> TabContainer;
 
@@ -55,12 +67,12 @@ namespace osu.Framework.Graphics.UserInterface
         protected TabItem<T> SelectedTab;
 
         /// <summary>
-        /// Creates the overflow dropdown.
+        /// Creates an optional overflow dropdown.
         /// When implementing this dropdown make sure:
         ///  - It is made to be anchored to the right-hand side of its parent.
         ///  - The dropdown's header does *not* have a relative x axis.
         /// </summary>
-        protected abstract DropDownMenu<T> CreateDropDownMenu();
+        protected abstract Dropdown<T> CreateDropdown();
 
         /// <summary>
         /// Creates a tab item.
@@ -79,47 +91,53 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected TabControl()
         {
-            DropDown = CreateDropDownMenu();
-            DropDown.RelativeSizeAxes = Axes.X;
-            DropDown.Anchor = Anchor.TopRight;
-            DropDown.Origin = Anchor.TopRight;
-            DropDown.ValueChanged += delegate { tabMap[DropDown.SelectedValue].Active = true; };
-
-            Trace.Assert((DropDown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(DropDown)} implementation should use a right-based anchor inside a TabControl.");
-            Trace.Assert((DropDown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(DropDown)} implementation's header should have a specific size.");
-
-            // Create Map of all items
-            tabMap = DropDown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
-
-            Children = new Drawable[]
+            Dropdown = CreateDropdown();
+            if (Dropdown != null)
             {
-                TabContainer = new TabFillFlowContainer<TabItem<T>>
-                {
-                    Direction = FillDirection.Full,
-                    RelativeSizeAxes = Axes.Both,
-                    Masking = true,
-                    TabVisibilityChanged = updateDropDown,
-                    Children = tabMap.Values
-                },
-                DropDown
-            };
+                Dropdown.RelativeSizeAxes = Axes.X;
+                Dropdown.Anchor = Anchor.TopRight;
+                Dropdown.Origin = Anchor.TopRight;
+                Dropdown.SelectedValue.ValueChanged += delegate { tabMap[Dropdown.SelectedValue].Active = true; };
+
+                Add(Dropdown);
+
+                Trace.Assert((Dropdown.Header.Anchor & Anchor.x2) > 0, $@"The {nameof(Dropdown)} implementation should use a right-based anchor inside a TabControl.");
+                Trace.Assert((Dropdown.Header.RelativeSizeAxes & Axes.X) == 0, $@"The {nameof(Dropdown)} implementation's header should have a specific size.");
+
+                // create tab items for already existing items in dropdown (if any).
+                tabMap = Dropdown.Items.ToDictionary(item => item.Value, item => addTab(item.Value, false));
+            }
+            else
+                tabMap = new Dictionary<T, TabItem<T>>();
+
+            Add(TabContainer = new TabFillFlowContainer<TabItem<T>>
+            {
+                Direction = FillDirection.Full,
+                RelativeSizeAxes = Axes.Both,
+                Depth = -1,
+                Masking = true,
+                TabVisibilityChanged = updateDropdown,
+                Children = tabMap.Values
+            });
         }
 
         protected override void Update()
         {
             base.Update();
 
-            DropDown.Header.Height = DrawHeight;
-            TabContainer.Padding = new MarginPadding
+            if (Dropdown != null)
             {
-                Right = DropDown.Header.Width
-            };
+                Dropdown.Header.Height = DrawHeight;
+                TabContainer.Padding = new MarginPadding { Right = Dropdown.Header.Width };
+            }
         }
 
         // Default to first selection in list
         protected override void LoadComplete()
         {
-            if (TabContainer.Children.Any())
+            if (SelectedTab != null)
+                selectTab(SelectedTab);
+            else if (TabContainer.Children.Any())
                 TabContainer.Children.First().Active = true;
         }
 
@@ -165,7 +183,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             tabMap[value] = tab;
             if (addToDropdown)
-                DropDown.AddDropDownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
+                Dropdown?.AddDropdownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
             TabContainer.Add(tab);
 
             return tab;
@@ -175,12 +193,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// Callback on the change of visibility of a tab.
         /// Used to update the item's status in the overflow dropdown if required.
         /// </summary>
-        private void updateDropDown(TabItem<T> tab, bool isVisible)
+        private void updateDropdown(TabItem<T> tab, bool isVisible)
         {
             if (isVisible)
-                DropDown.HideItem(tab.Value);
+                Dropdown?.HideItem(tab.Value);
             else
-                DropDown.ShowItem(tab.Value);
+                Dropdown?.ShowItem(tab.Value);
         }
 
         private void selectTab(TabItem<T> tab)
@@ -190,9 +208,11 @@ namespace osu.Framework.Graphics.UserInterface
                 resortTab(tab);
 
             // Deactivate previously selected tab
-            if (SelectedTab != null)
-                SelectedTab.Active = false;
+            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active = false;
+
             SelectedTab = tab;
+            SelectedTab.Active = true;
+
             ItemChanged?.Invoke(this, tab.Value);
         }
 
@@ -209,6 +229,37 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (IsLoaded)
                 TabContainer.Add(tab);
+        }
+
+        public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
+        {
+            public Action<U, bool> TabVisibilityChanged;
+
+            protected override IEnumerable<Vector2> ComputeLayoutPositions()
+            {
+                foreach (var child in Children)
+                    child.Y = 0;
+
+                var result = base.ComputeLayoutPositions().ToArray();
+                int i = 0;
+                foreach (var child in FlowingChildren)
+                {
+                    updateChildIfNeeded(child, result[i].Y == 0);
+                    ++i;
+                }
+                return result;
+            }
+
+            private readonly Dictionary<U, bool> tabVisibility = new Dictionary<U, bool>();
+
+            private void updateChildIfNeeded(U child, bool isVisible)
+            {
+                if (!tabVisibility.ContainsKey(child) || tabVisibility[child] != isVisible)
+                {
+                    TabVisibilityChanged?.Invoke(child, isVisible);
+                    tabVisibility[child] = isVisible;
+                }
+            }
         }
     }
 }

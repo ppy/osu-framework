@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -174,9 +174,12 @@ namespace osu.Framework.VisualTests.Tests
 
         private class PaddedBox : Container
         {
-            private SpriteText t1, t2, t3, t4;
+            private readonly SpriteText t1;
+            private readonly SpriteText t2;
+            private readonly SpriteText t3;
+            private readonly SpriteText t4;
 
-            private Container content;
+            private readonly Container content;
 
             protected override Container<Drawable> Content => content;
 
@@ -230,22 +233,15 @@ namespace osu.Framework.VisualTests.Tests
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            public bool AllowDrag = true;
-
             protected override bool OnDrag(InputState state)
             {
-                if (!AllowDrag) return false;
-
                 Position += state.Mouse.Delta;
                 return true;
             }
 
-            protected override bool OnDragEnd(InputState state)
-            {
-                return true;
-            }
+            protected override bool OnDragEnd(InputState state) => true;
 
-            protected override bool OnDragStart(InputState state) => AllowDrag;
+            protected override bool OnDragStart(InputState state) => true;
         }
     }
 }

@@ -10,7 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
@@ -21,22 +21,18 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Test lots of different settings for Flow Containers";
 
-        private FillFlowContainer dropdownContainer;
-
         private FlowTestCase current;
         private FillDirectionDropdown selectionDropdown;
-        private Container testContainer;
 
         private Anchor childAnchor = Anchor.TopLeft;
-        private AnchorDropDown anchorDropdown;
+        private AnchorDropdown anchorDropdown;
 
         private Anchor childOrigin = Anchor.TopLeft;
-        private AnchorDropDown originDropdown;
+        private AnchorDropdown originDropdown;
 
-        private FillFlowContainer fc;
+        private FillFlowContainer fillContainer;
         private ScheduledDelegate scheduledAdder;
-
-        protected override Container<Drawable> Content => testContainer;
+        private bool addChildren;
 
         public override void Reset()
         {
@@ -44,90 +40,92 @@ namespace osu.Framework.VisualTests.Tests
 
             scheduledAdder?.Cancel();
 
-            AddInternal(testContainer = new Container
+            Add(new Container
             {
                 RelativeSizeAxes = Axes.Both,
-            });
-
-            ButtonsContainer.Add(dropdownContainer = new FillFlowContainer
-            {
-                Direction = FillDirection.Vertical,
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Children = new Drawable[]
+                Width = 0.2f,
+                Anchor = Anchor.TopRight,
+                Origin = Anchor.TopRight,
+                Depth = float.MinValue,
+                Children = new[]
                 {
-                    new SpriteText { Text = @"Fill mode" },
-                    selectionDropdown = new FillDirectionDropdown
+                    new FillFlowContainer
                     {
+                        Direction = FillDirection.Vertical,
                         RelativeSizeAxes = Axes.X,
-                        Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
-                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
-                        SelectedIndex = 0,
-                    },
-                    new SpriteText { Text = @"Child anchor" },
-                    anchorDropdown = new AnchorDropDown
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        Items = new[]
+                        AutoSizeAxes = Axes.Y,
+                        Children = new Drawable[]
                         {
-                            Anchor.TopLeft,
-                            Anchor.TopCentre,
-                            Anchor.TopRight,
-
-                            Anchor.CentreLeft,
-                            Anchor.Centre,
-                            Anchor.CentreRight,
-
-                            Anchor.BottomLeft,
-                            Anchor.BottomCentre,
-                            Anchor.BottomRight,
-                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                        SelectedIndex = 0,
-                    },
-                    new SpriteText { Text = @"Child origin" },
-                    originDropdown = new AnchorDropDown
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        Items = new[]
-                        {
-                            Anchor.TopLeft,
-                            Anchor.TopCentre,
-                            Anchor.TopRight,
-
-                            Anchor.CentreLeft,
-                            Anchor.Centre,
-                            Anchor.CentreRight,
-
-                            Anchor.BottomLeft,
-                            Anchor.BottomCentre,
-                            Anchor.BottomRight,
-                        }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
-                        SelectedIndex = 0,
-                    },
+                            new SpriteText { Text = @"Fill mode" },
+                            selectionDropdown = new FillDirectionDropdown
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Items = Enum.GetValues(typeof(FlowTestCase)).Cast<FlowTestCase>()
+                                            .Select(value => new KeyValuePair<string, FlowTestCase>(value.ToString(), value)),
+                            },
+                            new SpriteText { Text = @"Child anchor" },
+                            anchorDropdown = new AnchorDropdown
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Items = new[]
+                                {
+                                    Anchor.TopLeft,
+                                    Anchor.TopCentre,
+                                    Anchor.TopRight,
+                                    Anchor.CentreLeft,
+                                    Anchor.Centre,
+                                    Anchor.CentreRight,
+                                    Anchor.BottomLeft,
+                                    Anchor.BottomCentre,
+                                    Anchor.BottomRight,
+                                }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                            },
+                            new SpriteText { Text = @"Child origin" },
+                            originDropdown = new AnchorDropdown
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Items = new[]
+                                {
+                                    Anchor.TopLeft,
+                                    Anchor.TopCentre,
+                                    Anchor.TopRight,
+                                    Anchor.CentreLeft,
+                                    Anchor.Centre,
+                                    Anchor.CentreRight,
+                                    Anchor.BottomLeft,
+                                    Anchor.BottomCentre,
+                                    Anchor.BottomRight,
+                                }.Select(anchor => new KeyValuePair<string, Anchor>(anchor.ToString(), anchor)),
+                            },
+                        }
+                    }
                 }
             });
 
-            changeTest(FlowTestCase.Full);
+            selectionDropdown.SelectedValue.ValueChanged += (o, e) =>
+            {
+                current = selectionDropdown.SelectedValue;
+                Reset();
+            };
+
+            changeTest(current);
         }
 
         protected override void Update()
         {
             base.Update();
 
-            if (current != selectionDropdown.SelectedValue)
-                changeTest(selectionDropdown.SelectedValue);
-
             if (childAnchor != anchorDropdown.SelectedValue)
             {
                 childAnchor = anchorDropdown.SelectedValue;
-                foreach (var child in fc.Children)
+                foreach (var child in fillContainer.Children)
                     child.Anchor = childAnchor;
             }
 
             if (childOrigin != originDropdown.SelectedValue)
             {
                 childOrigin = originDropdown.SelectedValue;
-                foreach (var child in fc.Children)
+                foreach (var child in fillContainer.Children)
                     child.Origin = childOrigin;
             }
         }
@@ -135,24 +133,21 @@ namespace osu.Framework.VisualTests.Tests
         private void changeTest(FlowTestCase testCase)
         {
             current = testCase;
-            testContainer.Clear();
-
-            var method = GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
-            if(method != null)
+            var method =
+                GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
+            if (method != null)
                 method.Invoke(this, new object[0]);
         }
 
         private void buildTest(FillDirection dir, Vector2 spacing)
         {
-            ButtonsContainer.RemoveAll(dr => dr != dropdownContainer);
-
-            var cnt = new Container
+            Add(new Container
             {
-                Padding = new MarginPadding(25f) { Top = 100f },
+                Padding = new MarginPadding(25f),
                 RelativeSizeAxes = Axes.Both,
                 Children = new[]
                 {
-                    fc = new FillFlowContainer
+                    fillContainer = new FillFlowContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         AutoSizeAxes = Axes.None,
@@ -160,106 +155,90 @@ namespace osu.Framework.VisualTests.Tests
                         Spacing = spacing,
                     }
                 }
-            };
-            Add(cnt);
+            });
 
-            var rotateBtn = AddToggle("Rotate Container", state =>
-            {
-                fc.RotateTo(state ? 45f : 0, 1000);
-            });
-            AddToggle("Scale Container", state =>
-            {
-                fc.ScaleTo(state ? 1.2f : 1f, 1000);
-            });
-            AddToggle("Shear Container", state =>
-            {
-                fc.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f);
-            });
-            AddToggle("Center Container Anchor", state =>
-            {
-                fc.Anchor = state ? Anchor.Centre : Anchor.TopLeft;
-            });
-            AddToggle("Center Container Origin", state =>
-            {
-                fc.Origin = state ? Anchor.Centre : Anchor.TopLeft;
-            });
-            AddToggle("Autosize Container", state =>
+            AddToggleStep("Rotate Container", state => { fillContainer.RotateTo(state ? 45f : 0, 1000); });
+            AddToggleStep("Scale Container", state => { fillContainer.ScaleTo(state ? 1.2f : 1f, 1000); });
+            AddToggleStep("Shear Container", state => { fillContainer.Shear = state ? new Vector2(0.5f, 0f) : new Vector2(0f, 0f); });
+            AddToggleStep("Center Container Anchor", state => { fillContainer.Anchor = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggleStep("Center Container Origin", state => { fillContainer.Origin = state ? Anchor.Centre : Anchor.TopLeft; });
+            AddToggleStep("Autosize Container", state =>
             {
                 if (state)
                 {
-                    fc.RelativeSizeAxes = Axes.None;
-                    fc.AutoSizeAxes = Axes.Both;
+                    fillContainer.RelativeSizeAxes = Axes.None;
+                    fillContainer.AutoSizeAxes = Axes.Both;
                 }
                 else
                 {
-                    fc.AutoSizeAxes = Axes.None;
-                    fc.RelativeSizeAxes = Axes.Both;
-                    fc.Width = 1;
-                    fc.Height = 1;
+                    fillContainer.AutoSizeAxes = Axes.None;
+                    fillContainer.RelativeSizeAxes = Axes.Both;
+                    fillContainer.Width = 1;
+                    fillContainer.Height = 1;
                 }
             });
-            AddToggle("Rotate children", state =>
+            AddToggleStep("Rotate children", state =>
             {
                 if (state)
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.RotateTo(45f, 1000);
                 }
                 else
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.RotateTo(0f, 1000);
                 }
             });
-            AddToggle("Shear children", state =>
+            AddToggleStep("Shear children", state =>
             {
                 if (state)
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.Shear = new Vector2(0.2f, 0.2f);
                 }
                 else
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.Shear = Vector2.Zero;
                 }
             });
-            AddToggle("Scale children", state =>
+            AddToggleStep("Scale children", state =>
             {
                 if (state)
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.ScaleTo(1.25f, 1000);
                 }
                 else
                 {
-                    foreach (var child in fc.Children)
+                    foreach (var child in fillContainer.Children)
                         child.ScaleTo(1f, 1000);
                 }
             });
-            var addChildrenBtn = AddToggle("Stop adding children", state => { });
-            cnt.Position = new Vector2(rotateBtn.Width, 0f);
-            cnt.Padding = new MarginPadding(25f) { Top = cnt.Padding.Top, Right = 25f + cnt.Position.X };
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.TopLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.TopRight, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.BottomLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = fc.Parent.ToSpaceOfOtherDrawable(fc.BoundingBox.BottomRight, this), Origin = Anchor.Centre });
+
+            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopLeft, this), Origin = Anchor.Centre });
+            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopRight, this), Origin = Anchor.Centre });
+            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomLeft, this), Origin = Anchor.Centre });
+            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomRight, this), Origin = Anchor.Centre });
+
+            AddToggleStep("Stop adding children", state => { addChildren = state; });
 
             scheduledAdder?.Cancel();
             scheduledAdder = Scheduler.AddDelayed(
                 () =>
                 {
-                    if (fc.Parent == null)
+                    if (fillContainer.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if(addChildrenBtn.State)
+                    if (addChildren)
                     {
-                        fc.Invalidate();
+                        fillContainer.Invalidate();
                     }
 
-                    if (fc.Children.Count() < 1000 && !addChildrenBtn.State)
+                    if (fillContainer.Children.Count() < 1000 && !addChildren)
                     {
-                        fc.Add(new Container
+                        fillContainer.Add(new Container
                         {
                             Anchor = childAnchor,
                             Origin = childOrigin,
@@ -270,7 +249,7 @@ namespace osu.Framework.VisualTests.Tests
                                 {
                                     Width = 50,
                                     Height = 50,
-                                    Colour = new Color4(255, 255, 255, 255)
+                                    Colour = Color4.White
                                 },
                                 new SpriteText
                                 {
@@ -278,7 +257,7 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativePositionAxes = Axes.Both,
                                     Position = new Vector2(0.5f, 0.5f),
                                     Origin = Anchor.Centre,
-                                    Text = fc.Children.Count().ToString()
+                                    Text = fillContainer.Children.Count().ToString()
                                 }
                             }
                         });
@@ -307,16 +286,17 @@ namespace osu.Framework.VisualTests.Tests
             buildTest(FillDirection.Vertical, new Vector2(5, 5));
         }
 
-        private class TestCaseDropDownHeader : DropDownHeader
+        private class TestCaseDropdownHeader : DropdownHeader
         {
-            private SpriteText label;
+            private readonly SpriteText label;
+
             protected override string Label
             {
                 get { return label.Text; }
                 set { label.Text = value; }
             }
 
-            public TestCaseDropDownHeader()
+            public TestCaseDropdownHeader()
             {
                 Foreground.Padding = new MarginPadding(4);
                 BackgroundColour = new Color4(100, 100, 100, 255);
@@ -328,19 +308,19 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class AnchorDropDown : DropDownMenu<Anchor>
+        private class AnchorDropdown : Dropdown<Anchor>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new TestCaseDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<Anchor> CreateDropDownItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
+            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+
+            protected override DropdownMenuItem<Anchor> CreateMenuItem(string key, Anchor value) => new AnchorDropdownMenuItem(value);
         }
 
-        private class AnchorDropdownMenuItem : DropDownMenuItem<Anchor>
+        private class AnchorDropdownMenuItem : DropdownMenuItem<Anchor>
         {
-            public AnchorDropdownMenuItem(Anchor anchor) : base(anchor.ToString(), anchor)
+            public AnchorDropdownMenuItem(Anchor anchor)
+                : base(anchor.ToString(), anchor)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -352,19 +332,19 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class FillDirectionDropdown : DropDownMenu<FlowTestCase>
+        private class FillDirectionDropdown : Dropdown<FlowTestCase>
         {
-            protected override DropDownHeader CreateHeader()
-            {
-                return new TestCaseDropDownHeader();
-            }
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<FlowTestCase> CreateDropDownItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
+            protected override DropdownHeader CreateHeader() => new TestCaseDropdownHeader();
+
+            protected override DropdownMenuItem<FlowTestCase> CreateMenuItem(string key, FlowTestCase value) => new FillDirectionDropdownMenuItem(value);
         }
 
-        private class FillDirectionDropdownMenuItem : DropDownMenuItem<FlowTestCase>
+        private class FillDirectionDropdownMenuItem : DropdownMenuItem<FlowTestCase>
         {
-            public FillDirectionDropdownMenuItem(FlowTestCase testCase) : base(testCase.ToString(), testCase)
+            public FillDirectionDropdownMenuItem(FlowTestCase testCase)
+                : base(testCase.ToString(), testCase)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);

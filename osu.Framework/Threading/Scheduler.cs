@@ -20,7 +20,7 @@ namespace osu.Framework.Threading
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
-        private Stopwatch timer = new Stopwatch();
+        private readonly Stopwatch timer = new Stopwatch();
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
@@ -207,7 +207,7 @@ namespace osu.Framework.Threading
         /// <summary>
         /// The work task.
         /// </summary>
-        private Action task;
+        private readonly Action task;
 
         /// <summary>
         /// Set to true to skip scheduled executions until we are ready.

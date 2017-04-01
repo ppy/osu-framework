@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Various cases of colour gradients.";
 
-        private Box[] boxes = new Box[4];
+        private readonly Box[] boxes = new Box[4];
 
         public override void Reset()
         {

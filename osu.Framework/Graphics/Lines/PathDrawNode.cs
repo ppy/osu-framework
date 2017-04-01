@@ -43,13 +43,13 @@ namespace osu.Framework.Graphics.Lines
 
         private Vector2 relativePosition(Vector2 localPos) => Vector2.Divide(localPos, DrawSize);
 
-        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour ?
-            DrawInfo.Colour.Colour.Linear :
-            DrawInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
+        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
+            ? DrawInfo.Colour.Colour.Linear
+            : DrawInfo.Colour.Interpolate(relativePosition(localPos)).Linear;
 
         private void addLineCap(Vector2 origin, float theta, float thetaDiff)
         {
-            float step = MathHelper.Pi / MAXRES;
+            const float step = MathHelper.Pi / MAXRES;
 
             float dir = Math.Sign(thetaDiff);
             thetaDiff = dir * thetaDiff;
@@ -98,6 +98,7 @@ namespace osu.Framework.Graphics.Lines
                 });
             }
         }
+
         private void addLineQuads(Line line)
         {
             Vector2 ortho = line.OrthogonalDirection;

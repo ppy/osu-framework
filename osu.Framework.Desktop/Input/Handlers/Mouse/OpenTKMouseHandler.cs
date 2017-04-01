@@ -17,21 +17,24 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private ScheduledDelegate scheduled;
 
+        private OpenTK.Input.MouseState lastState;
+
         public override bool Initialize(GameHost host)
         {
             host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
-                OpenTK.Input.MouseState state = OpenTK.Input.Mouse.GetCursorState();
-                Point point = host.Window.PointToClient(new Point(state.X, state.Y));
+                var state = OpenTK.Input.Mouse.GetCursorState();
 
-                //todo: reimplement if necessary
-                //Vector2 pos = Vector2.Multiply(point, Vector2.Divide(host.DrawSize, this.Size));
+                if (state.Equals(lastState))
+                    return;
+
+                lastState = state;
+
+                Point point = host.Window.PointToClient(new Point(state.X, state.Y));
 
                 Vector2 pos = new Vector2(point.X, point.Y);
 
-                var tkState = new TkMouseState(state, pos, host.IsActive);
-
-                PendingStates.Enqueue(new InputState { Mouse = tkState });
+                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
 
                 FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
             }, 0, 0));
@@ -57,7 +60,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private class TkMouseState : MouseState
         {
-            public bool WasActive;
+            public readonly bool WasActive;
 
             public override int WheelDelta => WasActive ? base.WheelDelta : 0;
 

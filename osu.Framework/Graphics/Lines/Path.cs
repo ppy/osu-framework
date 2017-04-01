@@ -13,6 +13,7 @@ namespace osu.Framework.Graphics.Lines
     public class Path : Drawable
     {
         private List<Vector2> positions = new List<Vector2>();
+
         public List<Vector2> Positions
         {
             set
@@ -79,6 +80,7 @@ namespace osu.Framework.Graphics.Lines
         }
 
         private float pathWidth = 10f;
+
         public float PathWidth
         {
             get { return pathWidth; }
@@ -96,7 +98,7 @@ namespace osu.Framework.Graphics.Lines
         private Shader roundedTextureShader;
         private Shader textureShader;
 
-        private PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
+        private readonly PathDrawNodeSharedData pathDrawNodeSharedData = new PathDrawNodeSharedData();
 
         public bool CanDisposeTexture { get; protected set; }
 

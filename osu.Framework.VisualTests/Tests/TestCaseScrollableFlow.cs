@@ -3,14 +3,13 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -33,8 +32,7 @@ namespace osu.Framework.VisualTests.Tests
                 scroll = new ScrollContainer(dir)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Left = 150 },
-                    Children = new []
+                    Children = new[]
                     {
                         flow = new FillFlowContainer
                         {
@@ -92,15 +90,15 @@ namespace osu.Framework.VisualTests.Tests
 
             createArea(scrollDir = Direction.Vertical);
 
-            AddButton("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
-            AddButton("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
-            AddButton("Both", createAreaBoth);
+            AddStep("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });
+            AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
+            AddStep("Both", createAreaBoth);
 
-            AddButton("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddButton("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
+            AddStep("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddStep("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
 
-            AddButton("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
-            AddButton("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
+            AddStep("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
+            AddStep("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate
@@ -111,7 +109,8 @@ namespace osu.Framework.VisualTests.Tests
                 Container container = new Container
                 {
                     Size = new Vector2(80, 80),
-                    Children = new[] {
+                    Children = new[]
+                    {
                         box = new Box
                         {
                             RelativeSizeAxes = Axes.Both,

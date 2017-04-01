@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Transforms
             LoopCount = loopCount;
         }
 
-        protected abstract T CurrentValue { get; }
+        public abstract T CurrentValue { get; }
 
         public double LifetimeStart => StartTime;
 

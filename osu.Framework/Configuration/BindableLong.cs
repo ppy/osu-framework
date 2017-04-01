@@ -14,7 +14,8 @@ namespace osu.Framework.Configuration
             set { base.Value = Math.Max(MinValue, Math.Min(MaxValue, value)); }
         }
 
-        public BindableLong(long value = 0) : base(value)
+        public BindableLong(long value = 0)
+            : base(value)
         {
             MinValue = long.MinValue;
             MaxValue = long.MaxValue;
@@ -28,7 +29,8 @@ namespace osu.Framework.Configuration
                 MinValue = Math.Max(MinValue, i.MinValue);
                 MaxValue = Math.Min(MaxValue, i.MaxValue);
                 if (MinValue > MaxValue)
-                    throw new ArgumentOutOfRangeException($"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
+                    throw new ArgumentOutOfRangeException(
+                        $"Can not weld bindable longs with non-overlapping min/max-ranges. The ranges were [{MinValue} - {MaxValue}] and [{i.MinValue} - {i.MaxValue}].", nameof(them));
             }
 
             base.BindTo(them);

@@ -12,7 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -51,26 +51,27 @@ namespace osu.Framework.VisualTests.Tests
                                                          .Select(item => item.Value)
                                                          .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
-            AddButton("PinItem", () =>
+            AddStep("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
+            AddStep("PinItem", () =>
             {
                 var test = nextTest.Invoke();
                 pinnedAndAutoSort.AddItem(test);
                 pinnedAndAutoSort.PinItem(test);
             });
-            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
+            AddStep("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
         }
 
         private class StyledTabControl : TabControl<TestEnum>
         {
-            protected override DropDownMenu<TestEnum> CreateDropDownMenu() => new StyledDropDownMenu();
+            protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
 
             protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
         }
 
         private class StyledTabItem : TabItem<TestEnum>
         {
-            private SpriteText text;
+            private readonly SpriteText text;
+
             public new TestEnum Value
             {
                 get { return base.Value; }
@@ -118,40 +119,32 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenu : DropDownMenu<TestEnum>
+        private class StyledDropdown : Dropdown<TestEnum>
         {
-            protected override DropDownHeader CreateHeader() => new StyledDropDownHeader();
+            protected override Menu CreateMenu() => new Menu();
 
-            protected override DropDownMenuItem<TestEnum> CreateDropDownItem(string key, TestEnum value) => new StyledDropDownMenuItem(key, value);
+            protected override DropdownHeader CreateHeader() => new StyledDropdownHeader();
 
-            public StyledDropDownMenu()
+            protected override DropdownMenuItem<TestEnum> CreateMenuItem(string key, TestEnum value) => new StyledDropdownMenuItem(key, value);
+
+            public StyledDropdown()
             {
-                MaxDropDownHeight = int.MaxValue;
-                ContentContainer.CornerRadius = 4;
-                ScrollContainer.ScrollDraggerVisible = false;
+                DropdownMenu.MaxHeight = int.MaxValue;
+                DropdownMenu.CornerRadius = 4;
+                DropdownMenu.ScrollContainer.ScrollDraggerVisible = false;
 
-                ContentContainer.Anchor = Anchor.TopRight;
-                ContentContainer.Origin = Anchor.TopRight;
+                DropdownMenu.Anchor = Anchor.TopRight;
+                DropdownMenu.Origin = Anchor.TopRight;
                 Header.Anchor = Anchor.TopRight;
                 Header.Origin = Anchor.TopRight;
             }
-
-            protected override void AnimateOpen()
-            {
-                ContentContainer.Show();
-            }
-
-            protected override void AnimateClose()
-            {
-                ContentContainer.Hide();
-            }
         }
 
-        private class StyledDropDownHeader : DropDownHeader
+        private class StyledDropdownHeader : DropdownHeader
         {
             protected override string Label { get; set; }
 
-            public StyledDropDownHeader()
+            public StyledDropdownHeader()
             {
                 Background.Hide(); // don't need a background
 
@@ -168,9 +161,10 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class StyledDropDownMenuItem : DropDownMenuItem<TestEnum>
+        private class StyledDropdownMenuItem : DropdownMenuItem<TestEnum>
         {
-            public StyledDropDownMenuItem(string text, TestEnum value) : base(text, value)
+            public StyledDropdownMenuItem(string text, TestEnum value)
+                : base(text, value)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -182,6 +176,21 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private enum TestEnum { Test0, Test1, Test2, Test3, Test4, Test5, Test6, Test7, Test8, Test9, Test10, Test11, Test12 }
+        private enum TestEnum
+        {
+            Test0,
+            Test1,
+            Test2,
+            Test3,
+            Test4,
+            Test5,
+            Test6,
+            Test7,
+            Test8,
+            Test9,
+            Test10,
+            Test11,
+            Test12
+        }
     }
 }

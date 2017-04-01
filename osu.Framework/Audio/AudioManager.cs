@@ -309,60 +309,66 @@ namespace osu.Framework.Audio
 
         private void checkAudioDeviceChanged()
         {
-            if (AudioDevice.Value == string.Empty)
+            try
             {
-                // use default device
-                var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
-                if (!device.IsDefault && !setAudioDevice())
+                if (AudioDevice.Value == string.Empty)
                 {
-                    if (!device.IsEnabled || !setAudioDevice(device.Name))
+                    // use default device
+                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                    if (!device.IsDefault && !setAudioDevice())
                     {
-                        foreach (var d in getAllDevices())
+                        if (!device.IsEnabled || !setAudioDevice(device.Name))
                         {
-                            if (d.Name == device.Name || !d.IsEnabled)
-                                continue;
+                            foreach (var d in getAllDevices())
+                            {
+                                if (d.Name == device.Name || !d.IsEnabled)
+                                    continue;
 
-                            if (setAudioDevice(d.Name))
-                                break;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // use whatever is the preferred device
-                var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
-                if (device.Name == AudioDevice.Value)
-                {
-                    if (!device.IsEnabled && !setAudioDevice())
-                    {
-                        foreach (var d in getAllDevices())
-                        {
-                            if (d.Name == device.Name || !d.IsEnabled)
-                                continue;
-
-                            if (setAudioDevice(d.Name))
-                                break;
+                                if (setAudioDevice(d.Name))
+                                    break;
+                            }
                         }
                     }
                 }
                 else
                 {
-                    var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
-                    if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
-                        setAudioDevice(preferredDevice.Name);
-                    else if (!device.IsEnabled && !setAudioDevice())
+                    // use whatever is the preferred device
+                    var device = Bass.GetDeviceInfo(Bass.CurrentDevice);
+                    if (device.Name == AudioDevice.Value)
                     {
-                        foreach (var d in getAllDevices())
+                        if (!device.IsEnabled && !setAudioDevice())
                         {
-                            if (d.Name == device.Name || !d.IsEnabled)
-                                continue;
+                            foreach (var d in getAllDevices())
+                            {
+                                if (d.Name == device.Name || !d.IsEnabled)
+                                    continue;
 
-                            if (setAudioDevice(d.Name))
-                                break;
+                                if (setAudioDevice(d.Name))
+                                    break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var preferredDevice = getAllDevices().SingleOrDefault(d => d.Name == AudioDevice.Value);
+                        if (preferredDevice.Name == AudioDevice.Value && preferredDevice.IsEnabled)
+                            setAudioDevice(preferredDevice.Name);
+                        else if (!device.IsEnabled && !setAudioDevice())
+                        {
+                            foreach (var d in getAllDevices())
+                            {
+                                if (d.Name == device.Name || !d.IsEnabled)
+                                    continue;
+
+                                if (setAudioDevice(d.Name))
+                                    break;
+                            }
                         }
                     }
                 }
+            }
+            catch
+            {
             }
         }
     }

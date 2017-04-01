@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
@@ -16,10 +15,10 @@ namespace osu.Framework.Graphics.Shaders
     {
         private const string shader_prefix = @"sh_";
 
-        private ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
-        private ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
+        private readonly ConcurrentDictionary<string, ShaderPart> partCache = new ConcurrentDictionary<string, ShaderPart>();
+        private readonly ConcurrentDictionary<string, Shader> shaderCache = new ConcurrentDictionary<string, Shader>();
 
-        private ResourceStore<byte[]> store;
+        private readonly ResourceStore<byte[]> store;
 
         public ShaderManager(ResourceStore<byte[]> store)
         {
@@ -49,25 +48,7 @@ namespace osu.Framework.Graphics.Shaders
             return name + ending;
         }
 
-        internal byte[] LoadRaw(string name)
-        {
-            byte[] rawData = null;
-
-#if DEBUG
-            if (File.Exists(name))
-                rawData = File.ReadAllBytes(name);
-#endif
-
-            if (rawData == null)
-            {
-                rawData = store.Get(name);
-
-                if (rawData == null)
-                    return null;
-            }
-
-            return rawData;
-        }
+        internal byte[] LoadRaw(string name) => store.Get(name);
 
         private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
         {
@@ -101,9 +82,7 @@ namespace osu.Framework.Graphics.Shaders
 
             Shader shader = new Shader(name, parts);
 
-#if !DEBUG
             if (!shader.Loaded)
-#endif
             {
                 StringBuilder logContents = new StringBuilder();
                 logContents.AppendLine($@"Loading shader {name}:");

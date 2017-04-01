@@ -110,9 +110,9 @@ namespace osu.Framework.Logging
         public static Logger GetLogger(LoggingTarget target = LoggingTarget.Runtime, bool clearOnConstruct = false)
         {
             Logger l;
-            if (!staticLoggers.TryGetValue(target, out l))
+            if (!static_loggers.TryGetValue(target, out l))
             {
-                staticLoggers[target] = l = new Logger(target);
+                static_loggers[target] = l = new Logger(target);
                 if (clearOnConstruct) l.Clear();
             }
 
@@ -170,7 +170,7 @@ namespace osu.Framework.Logging
 
             NewEntry?.Invoke(entry);
 
-            backgroundScheduler.Add(delegate
+            background_scheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
                 if (hasLogDirectory.HasValue && !hasLogDirectory.Value)
@@ -196,7 +196,7 @@ namespace osu.Framework.Logging
         {
             if (Filename == null) return;
 
-            backgroundScheduler.Add(delegate
+            background_scheduler.Add(delegate
             {
                 if (!string.IsNullOrEmpty(lastLogSuffix))
                     FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
@@ -216,9 +216,9 @@ namespace osu.Framework.Logging
             Add(@"----------------------------------------------------------");
         }
 
-        private static List<string> filters = new List<string>();
-        private static Dictionary<LoggingTarget, Logger> staticLoggers = new Dictionary<LoggingTarget, Logger>();
-        private static ThreadedScheduler backgroundScheduler = new ThreadedScheduler(@"Logger");
+        private static readonly List<string> filters = new List<string>();
+        private static readonly Dictionary<LoggingTarget, Logger> static_loggers = new Dictionary<LoggingTarget, Logger>();
+        private static readonly ThreadedScheduler background_scheduler = new ThreadedScheduler(@"Logger");
         private static bool? hasLogDirectory;
         private static string logDirectory;
 

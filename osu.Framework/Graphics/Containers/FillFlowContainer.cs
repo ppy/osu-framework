@@ -25,7 +25,8 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="FillFlowContainer{T}"/>. 
     /// </summary>
     public class FillFlowContainer : FillFlowContainer<Drawable>
-    { }
+    {
+    }
 
     /// <summary>
     /// A <see cref="FlowContainer{T}"/> that fills space by arranging its children
@@ -67,6 +68,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Vector2 spacing;
+
         /// <summary>
         /// The spacing between individual elements. Default is <see cref="Vector2.Zero"/>.
         /// </summary>
@@ -85,8 +87,7 @@ namespace osu.Framework.Graphics.Containers
 
         public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformSpacing));
-            TransformVectorTo(Spacing, newSpacing, duration, easing, new TransformSpacing());
+            TransformTo(Spacing, newSpacing, duration, easing, new TransformSpacing());
         }
 
         public class TransformSpacing : TransformVector
@@ -110,7 +111,7 @@ namespace osu.Framework.Graphics.Containers
                 max.X = (AutoSizeAxes & Axes.X) > 0 ? float.MaxValue : s.X;
                 max.Y = (AutoSizeAxes & Axes.Y) > 0 ? float.MaxValue : s.Y;
             }
-            
+
             var children = FlowingChildren.ToArray();
             if (children.Length == 0)
                 return new List<Vector2>();
@@ -163,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
             rowWidths.Add(result.Last().X);
             float height = result.Last().Y;
 
-            Anchor ourAnchor = children[0].Anchor;
+            Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
 
             // Second pass, adjusting the positions for anchors of children.
             // Uses rowWidths and height for centre-anchors.
@@ -171,10 +172,27 @@ namespace osu.Framework.Graphics.Containers
             {
                 var c = children[i];
 
-                if (c.Anchor != ourAnchor)
-                    throw new InvalidOperationException(
-                        $@"All drawables in a {nameof(FillFlowContainer)} must use the same {nameof(Anchor)} ({ourAnchor} != {c.Anchor}). " +
-                        $@"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                switch (Direction)
+                {
+                    case FillDirection.Vertical:
+                        if (c.RelativeAnchorPosition.Y != ourRelativeAnchor.Y)
+                            throw new InvalidOperationException(
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.Y} != {c.RelativeAnchorPosition.Y}). "
+                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    case FillDirection.Horizontal:
+                        if (c.RelativeAnchorPosition.X != ourRelativeAnchor.X)
+                            throw new InvalidOperationException(
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor.X} != {c.RelativeAnchorPosition.X}). "
+                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                    default:
+                        if (c.RelativeAnchorPosition != ourRelativeAnchor)
+                            throw new InvalidOperationException(
+                                $"All drawables in a {nameof(FillFlowContainer)} must use the same RelativeAnchorPosition for the given {nameof(FillDirection)}({Direction}) ({ourRelativeAnchor} != {c.RelativeAnchorPosition}). "
+                                + $"Consider using multiple instances of {nameof(FillFlowContainer)} if this is intentional.");
+                        break;
+                }
 
                 if ((c.Anchor & Anchor.x1) > 0)
                     // Begin flow at centre of row
@@ -204,10 +222,12 @@ namespace osu.Framework.Graphics.Containers
         /// Fill horizontally first, then fill vertically via multiple rows.
         /// </summary>
         Full,
+
         /// <summary>
         /// Fill only horizontally.
         /// </summary>
         Horizontal,
+
         /// <summary>
         /// Fill only vertically.
         /// </summary>

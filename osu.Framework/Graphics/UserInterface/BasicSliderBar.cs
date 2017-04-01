@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -29,8 +28,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Children = new Drawable[]
             {
-                    Box = new Box { RelativeSizeAxes = Axes.Both },
-                    SelectionBox = new Box { RelativeSizeAxes = Axes.Both }
+                Box = new Box { RelativeSizeAxes = Axes.Both },
+                SelectionBox = new Box { RelativeSizeAxes = Axes.Both }
             };
         }
 

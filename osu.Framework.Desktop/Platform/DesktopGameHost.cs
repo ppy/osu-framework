@@ -17,7 +17,8 @@ namespace osu.Framework.Desktop.Platform
         private readonly TcpIpcProvider ipcProvider;
         private readonly Task ipcTask;
 
-        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false) : base(gameName)
+        protected DesktopGameHost(string gameName = @"", bool bindIPCPort = false)
+            : base(gameName)
         {
             //todo: yeah.
             Architecture.SetIncludePath();

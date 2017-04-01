@@ -11,7 +11,7 @@ using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Input;
 using System.Collections.Generic;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -23,7 +23,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            int width = 20;
+            const int width = 20;
             Texture gradientTexture = new Texture(width, 1, true);
             byte[] data = new byte[width * 4];
             for (int i = 0; i < width; ++i)

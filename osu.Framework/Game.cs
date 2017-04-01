@@ -45,7 +45,7 @@ namespace osu.Framework
 
         public FontStore Fonts;
 
-        private Container content;
+        private readonly Container content;
         private PerformanceOverlay performanceContainer;
         internal DrawVisualiser DrawVisualiser;
 
@@ -223,7 +223,6 @@ namespace osu.Framework
             }
 
             return base.OnKeyDown(state, args);
-
         }
 
         public void Exit()

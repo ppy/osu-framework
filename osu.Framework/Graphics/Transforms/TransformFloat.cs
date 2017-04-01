@@ -7,7 +7,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformFloat : Transform<float>
     {
-        protected override float CurrentValue
+        public override float CurrentValue
         {
             get
             {

@@ -5,25 +5,16 @@ using System;
 
 namespace osu.Framework.Graphics.Containers
 {
+    /// <summary>
+    /// A container which is rounded (via automatic corner-radius) on the shortest edge.
+    /// </summary>
     public class CircularContainer : Container
     {
-        public CircularContainer()
-        {
-            Masking = true;
-            Origin = Anchor.Centre;
-        }
-
         public override float CornerRadius
         {
-            get
-            {
-                return Math.Min(DrawSize.X, DrawSize.Y) / 2f;
-            }
+            get { return Math.Min(DrawSize.X, DrawSize.Y) / 2f; }
 
-            set
-            {
-                throw new InvalidOperationException($"Cannot manually set {nameof(CornerRadius)} of {nameof(CircularContainer)}.");
-            }
+            set { throw new InvalidOperationException($"Cannot manually set {nameof(CornerRadius)} of {nameof(CircularContainer)}."); }
         }
     }
 }

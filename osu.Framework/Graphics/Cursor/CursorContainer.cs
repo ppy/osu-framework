@@ -9,7 +9,7 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContainer : OverlayContainer
+    public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition
     {
         protected Drawable ActiveCursor;
 
@@ -51,6 +51,7 @@ namespace osu.Framework.Graphics.Cursor
             public Cursor()
             {
                 AutoSizeAxes = Axes.Both;
+                Origin = Anchor.Centre;
 
                 BorderThickness = 2;
                 BorderColour = new Color4(247, 99, 164, 255);

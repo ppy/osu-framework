@@ -68,15 +68,15 @@ namespace osu.Framework.Input
         /// <summary>
         /// The sequential list in which to handle mouse input.
         /// </summary>
-        private List<Drawable> mouseInputQueue = new List<Drawable>();
+        private readonly List<Drawable> mouseInputQueue = new List<Drawable>();
 
         /// <summary>
         /// The sequential list in which to handle keyboard input.
         /// </summary>
-        private List<Drawable> keyboardInputQueue = new List<Drawable>();
+        private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
-        private List<Drawable> hoveredDrawables = new List<Drawable>();
+        private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
         public InputManager()
@@ -114,6 +114,10 @@ namespace osu.Framework.Input
 
             unfocusIfNoLongerValid(CurrentState);
 
+            //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
+            if (pendingStates.Count == 0)
+                pendingStates.Add(CurrentState);
+
             foreach (InputState s in pendingStates)
             {
                 bool hasKeyboard = s.Keyboard != null;
@@ -148,9 +152,12 @@ namespace osu.Framework.Input
                     updateKeyboardEvents(CurrentState);
             }
 
-            //we still want to make sure to update the input queues! they may be used for focus changes.
-            if (pendingStates.Count == 0)
-                updateInputQueues(CurrentState);
+            if (CurrentState.Mouse != null)
+            {
+                foreach (var d in mouseInputQueue)
+                    if (d is IRequireHighFrequencyMousePosition)
+                        d.TriggerMouseMove(CurrentState);
+            }
 
             keyboardRepeatTime -= Time.Elapsed;
 
