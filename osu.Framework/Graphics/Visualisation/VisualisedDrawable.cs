@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Visualisation
             Scheduler.Add(() => activityLayout.FadeOutFromOne(1));
         }
 
-        private void onInvalidate()
+        private void onInvalidate(Drawable d)
         {
             Scheduler.Add(() => activityInvalidate.FadeOutFromOne(1));
         }
