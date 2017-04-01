@@ -115,8 +115,8 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override Container<Drawable> Content => flowContainer;
 
-            private SearchableText header;
-            private FillFlowContainer flowContainer;
+            private readonly SearchableText header;
+            private readonly FillFlowContainer flowContainer;
 
             public HeaderContainer(string headerText = "Header")
             {
