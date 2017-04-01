@@ -3,7 +3,7 @@
 
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Screens.Testing;
+using osu.Framework.Testing;
 using System.Linq;
 using System.Collections.Generic;
 using osu.Framework.Graphics.UserInterface;
@@ -87,6 +87,15 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
+            new List<string>
+            {
+                "test",
+                "sUbSeCtIoN 2",
+                "€",
+                "èê",
+                "321",
+                "?!"
+            }.ForEach(term => AddStep("Search term: " + term, () => search.SearchTerm = term));
         }
 
         private class HeaderContainer : Container, IFilterableChildren
