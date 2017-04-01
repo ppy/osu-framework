@@ -12,15 +12,18 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class AsyncLoadContainer : Container
     {
-        /// <summary>
-        /// Called when async loading of children has completed.
-        /// </summary>
-        public Action<AsyncLoadContainer> FinishedLoading;
+        public AsyncLoadContainer(Container content)
+        {
+            if (content == null)
+                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {content}.");
 
-        protected override Container<Drawable> Content => content;
+            this.content = content;
 
-        private readonly Container content = new Container { RelativeSizeAxes = Axes.Both };
+            RelativeSizeAxes = content.RelativeSizeAxes;
+            AutoSizeAxes = content.AutoSizeAxes;
+        }
 
+        private readonly Container content;
 
         protected virtual bool ShouldLoadContent => true;
 
@@ -43,11 +46,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void loadContentAsync()
         {
-            loadTask = LoadComponentAsync(content, d =>
-            {
-                AddInternal(d);
-                FinishedLoading?.Invoke(this);
-            });
+            loadTask = LoadComponentAsync(content, AddInternal);
         }
 
         /// <summary>

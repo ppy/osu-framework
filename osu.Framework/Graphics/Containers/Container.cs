@@ -69,20 +69,18 @@ namespace osu.Framework.Graphics.Containers
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
+            // From now on, since we ourself are loaded now,
+            // we actually permit children to be loaded if our
+            // lifetimelist (internalChildren) requests a load.
             internalChildren.LoadRequested += i =>
             {
                 i.Load(game, Clock);
                 i.Parent = this;
             };
 
-            try
-            {
-                internalChildren.Update(Clock.TimeInfo);
-            }
-            catch (ObjectDisposedException)
-            {
-                //a child may have been disposed while we were loading, but we don't mind at this point.
-            }
+            // This updates the alive status of our children according to our new
+            // clock, and recursively loads each alive child.
+            internalChildren.Update(Clock.TimeInfo);
         }
 
         protected override void Dispose(bool isDisposing)

@@ -3,6 +3,7 @@
 
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
+using System;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -12,6 +13,11 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class DelayedLoadContainer : AsyncLoadContainer
     {
+        public DelayedLoadContainer(Container content)
+            : base(content)
+        {
+        }
+
         /// <summary>
         /// The amount of time on-screen before we begin a load of children.
         /// </summary>

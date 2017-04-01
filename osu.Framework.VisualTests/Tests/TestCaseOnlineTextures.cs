@@ -43,13 +43,15 @@ namespace osu.Framework.VisualTests.Tests
                     Size = new Vector2(128),
                     Children = new Drawable[]
                     {
-                        new DelayedLoadContainer
+                        new DelayedLoadContainer(new Container
                         {
                             RelativeSizeAxes = Axes.Both,
-                            FinishedLoading = d => {
-                                if ((d.Children.First() as Sprite)?.Texture == null)
+                            OnLoadComplete = d =>
+                            {
+                                var c = (Container)d;
+                                if ((c.Children.First() as Sprite)?.Texture == null)
                                 {
-                                    d.Add(new SpriteText {
+                                    c.Add(new SpriteText {
                                         Colour = Color4.Gray,
                                         Text = @"nope",
                                         Anchor = Anchor.Centre,
@@ -61,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 new Avatar(i) { RelativeSizeAxes = Axes.Both }
                             }
-                        },
+                        }),
                         new SpriteText { Text = i.ToString() },
                     }
                 });
