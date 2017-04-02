@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
             this.content = content;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
-            AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? Axes.None;
+            AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
         private readonly Drawable content;
