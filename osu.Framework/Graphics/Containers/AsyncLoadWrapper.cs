@@ -8,21 +8,28 @@ using osu.Framework.Allocation;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which asynchronously loads its children.
+    /// A container which asynchronously loads specified content.
     /// </summary>
-    public class AsyncLoadContainer : Container
+    public class AsyncLoadWrapper : Container
     {
         /// <param name="content">The content which should be asynchronously loaded. Note that the <see cref="Drawable.RelativeSizeAxes"/> and <see cref="Container{T}.AutoSizeAxes"/> of this container
-        /// will be transferred as the default for this <see cref="AsyncLoadContainer"/>.</param>
-        public AsyncLoadContainer(Drawable content)
+        /// will be transferred as the default for this <see cref="AsyncLoadWrapper"/>.</param>
+        public AsyncLoadWrapper(Drawable content)
         {
             if (content == null)
-                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {nameof(content)}.");
+                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadWrapper)} required non-null {nameof(content)}.");
 
             this.content = content;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
             AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? AutoSizeAxes;
+        }
+
+        protected sealed override Container<Drawable> Content => base.Content;
+
+        public override void Add(Drawable drawable)
+        {
+            throw new InvalidOperationException($@"{nameof(AsyncLoadWrapper)} doesn't support manually adding children. Please specify loadable conetnt in the constructor.");
         }
 
         private readonly Drawable content;

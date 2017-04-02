@@ -7,12 +7,12 @@ using osu.Framework.Graphics.Primitives;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A container which delays the loading of children until we have been on-screen for a specified duration.
+    /// A wrapper which delays the loading of children until we have been on-screen for a specified duration.
     /// In order to benefit from delayed load, we must be inside a <see cref="ScrollContainer"/>.
     /// </summary>
-    public class DelayedLoadContainer : AsyncLoadContainer
+    public class DelayedLoadWrapper : AsyncLoadWrapper
     {
-        public DelayedLoadContainer(Drawable content)
+        public DelayedLoadWrapper(Drawable content)
             : base(content)
         {
         }
