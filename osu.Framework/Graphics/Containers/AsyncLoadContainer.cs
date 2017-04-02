@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Containers
     {
         /// <param name="content">The content which should be asynchronously loaded. Note that the <see cref="Drawable.RelativeSizeAxes"/> and <see cref="Container{T}.AutoSizeAxes"/> of this container
         /// will be transferred as the default for this <see cref="AsyncLoadContainer"/>.</param>
-        public AsyncLoadContainer(Container content)
+        public AsyncLoadContainer(Drawable content)
         {
             if (content == null)
                 throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {nameof(content)}.");
@@ -22,10 +22,10 @@ namespace osu.Framework.Graphics.Containers
             this.content = content;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
-            AutoSizeAxes = content.AutoSizeAxes;
+            AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? Axes.None;
         }
 
-        private readonly Container content;
+        private readonly Drawable content;
 
         protected virtual bool ShouldLoadContent => true;
 

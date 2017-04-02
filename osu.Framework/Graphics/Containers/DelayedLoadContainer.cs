@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class DelayedLoadContainer : AsyncLoadContainer
     {
-        public DelayedLoadContainer(Container content)
+        public DelayedLoadContainer(Drawable content)
             : base(content)
         {
         }
