@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class AsyncLoadContainer : Container
     {
+        /// <param name="content">The content which should be asynchronously loaded. Note that the <see cref="RelativeSizeAxes"/> and <see cref="AutoSizeAxes"/> of this container
+        /// will be transferred as the default for this <see cref="AsyncLoadContainer"/>'s content.</param>
         public AsyncLoadContainer(Container content)
         {
             if (content == null)
