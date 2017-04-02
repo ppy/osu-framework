@@ -30,6 +30,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private bool scrollDraggerVisible = true;
+
         public bool ScrollDraggerVisible
         {
             get { return scrollDraggerVisible; }
@@ -135,7 +136,8 @@ namespace osu.Framework.Graphics.Containers
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
             AddInternal(new Drawable[]
             {
-                content = new Container {
+                content = new Container
+                {
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
                 },
@@ -167,15 +169,15 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (scrollDir == Direction.Vertical)
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                        new MarginPadding { Left = scrollDragger.Width } :
-                        new MarginPadding { Right = scrollDragger.Width };
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Left = scrollDragger.Width }
+                        : new MarginPadding { Right = scrollDragger.Width };
                 }
                 else
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft ?
-                        new MarginPadding { Top = scrollDragger.Height } :
-                        new MarginPadding { Bottom = scrollDragger.Height };
+                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Top = scrollDragger.Height }
+                        : new MarginPadding { Bottom = scrollDragger.Height };
                 }
             }
         }

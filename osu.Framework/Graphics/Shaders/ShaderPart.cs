@@ -69,11 +69,11 @@ namespace osu.Framework.Graphics.Shaders
                     {
                         string includeName = includeMatch.Groups[1].Value.Trim();
 
-//#if DEBUG
-//                        byte[] rawData = null;
-//                        if (File.Exists(includeName))
-//                            rawData = File.ReadAllBytes(includeName);
-//#endif
+                        //#if DEBUG
+                        //                        byte[] rawData = null;
+                        //                        if (File.Exists(includeName))
+                        //                            rawData = File.ReadAllBytes(includeName);
+                        //#endif
                         shaderCodes.Add(loadFile(manager.LoadRaw(includeName)));
                     }
                     else

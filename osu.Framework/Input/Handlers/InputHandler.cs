@@ -43,6 +43,7 @@ namespace osu.Framework.Input.Handlers
         public abstract int Priority { get; }
 
         #region IDisposable Support
+
         protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
@@ -63,6 +64,7 @@ namespace osu.Framework.Input.Handlers
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 
@@ -70,6 +72,9 @@ namespace osu.Framework.Input.Handlers
     {
         public int Compare(InputHandler h1, InputHandler h2)
         {
+            if (h1 == null) throw new NullReferenceException($@"{nameof(h1)} cannot be null");
+            if (h2 == null) throw new NullReferenceException($@"{nameof(h2)} cannot be null");
+
             return h2.Priority.CompareTo(h1.Priority);
         }
     }

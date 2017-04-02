@@ -2,11 +2,14 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Allocation;
+using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Testing.Drawables.StepButtons;
+using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
 
@@ -16,15 +19,11 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        protected FillFlowContainer ButtonsContainer;
+        public FillFlowContainer<StepButton> StepsContainer;
 
-        // TODO: Figure out how to make this private (e.g. through reflection).
-        //       Right now this is required for DrawVis to inspect the Drawable tree.
-        public Container Contents;
+        private Container content;
 
-        protected override Container<Drawable> Content => Contents;
-
-        protected DependencyContainer Dependencies { get; private set; }
+        protected override Container<Drawable> Content => content;
 
         protected TestCase()
         {
@@ -34,87 +33,154 @@ namespace osu.Framework.Testing
             Masking = true;
         }
 
-        [BackgroundDependencyLoader]
-        private void load(DependencyContainer deps)
-        {
-            Dependencies = deps;
-        }
+        private const float steps_width = 180;
+        private const float padding = 0;
 
         public virtual void Reset()
         {
-            if (Contents == null)
+            if (content == null)
             {
                 InternalChildren = new Drawable[]
                 {
-                    Contents = new Container
+                    new Box
                     {
-                        RelativeSizeAxes = Axes.Both,
+                        Colour = new Color4(25, 25, 25, 255),
+                        RelativeSizeAxes = Axes.Y,
+                        Width = steps_width,
                     },
-                    ButtonsContainer = new FillFlowContainer
+                    StepsContainer = new FillFlowContainer<StepButton>
                     {
                         Direction = FillDirection.Vertical,
-                        Spacing = new Vector2(15, 5),
-                        Width = 150,
+                        Depth = float.MinValue,
+                        Padding = new MarginPadding(5),
+                        Spacing = new Vector2(5),
                         AutoSizeAxes = Axes.Y,
+                        Width = steps_width,
+                    },
+                    new Container
+                    {
+                        Masking = true,
+                        Padding = new MarginPadding
+                        {
+                            Left = steps_width + padding,
+                            Right = padding,
+                            Top = padding,
+                            Bottom = padding,
+                        },
+                        RelativeSizeAxes = Axes.Both,
+                        Children = new []
+                        {
+                            content = new Container
+                            {
+                                Masking = true,
+                                RelativeSizeAxes = Axes.Both
+                            }
+                        }
                     },
                 };
             }
             else
             {
-                Contents.Clear();
-                ButtonsContainer.Clear();
+                content.Clear();
+                StepsContainer.Clear();
             }
         }
 
-        public Button AddButton(string text, Action action)
+        private int actionIndex;
+        private int actionRepetition;
+        private ScheduledDelegate stepRunner;
+
+        public void RunAllSteps(Action onCompletion = null)
         {
-            Button b;
-            ButtonsContainer.Add(b = new Button
+            stepRunner?.Cancel();
+
+            actionIndex = -1;
+            actionRepetition = 0;
+            runNextStep(onCompletion);
+        }
+
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.Skip(actionIndex).FirstOrDefault() : null;
+
+        protected virtual double TimePerAction => 200;
+
+        private void runNextStep(Action onCompletion)
+        {
+            loadableStep?.TriggerClick();
+
+            string text = $"{(int)Time.Current}: ".PadLeft(7);
+
+            if (actionIndex < 0)
+                text += $"{GetType().ReadableName()}";
+            else
             {
-                BackgroundColour = Color4.DarkBlue,
-                Size = new Vector2(150, 50),
-                Text = text
-            });
+                if (actionRepetition == 0)
+                    text += $"  Step #{actionIndex + 1}";
+                text = text.PadRight(20) + $"{loadableStep?.ToString() ?? string.Empty}";
+            }
 
-            b.Action += action;
+            Console.WriteLine(text);
 
-            return b;
-        }
+            actionRepetition++;
 
-        public ToggleButton AddToggle(string text, Action<bool> action)
-        {
-            ToggleButton b;
-            ButtonsContainer.Add(b = new ToggleButton(action)
+            if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
-                Size = new Vector2(150, 50),
-                Text = text
+                actionIndex++;
+                actionRepetition = 0;
+            }
+
+            if (actionIndex > StepsContainer.Children.Count() - 1)
+            {
+                onCompletion?.Invoke();
+                return;
+            }
+
+            if (Parent != null)
+                stepRunner = Scheduler.AddDelayed(() => runNextStep(onCompletion), TimePerAction);
+        }
+
+        protected void AddStep(string description, Action action)
+        {
+            StepsContainer.Add(new SingleStepButton
+            {
+                Text = description,
+                Action = action
             });
-            return b;
-        }
-    }
-
-    public class ToggleButton : Button
-    {
-        private readonly Action<bool> reloadCallback;
-        private static readonly Color4 off_colour = Color4.Red;
-        private static readonly Color4 on_colour = Color4.YellowGreen;
-
-        public bool State;
-
-        public ToggleButton(Action<bool> reloadCallback)
-        {
-            this.reloadCallback = reloadCallback;
-
-            Size = new Vector2(100, 50);
-            BackgroundColour = off_colour;
-            Action += clickAction;
         }
 
-        private void clickAction()
+        protected void AddRepeatStep(string description, Action action, int invocationCount)
         {
-            State = !State;
-            BackgroundColour = State ? on_colour : off_colour;
-            reloadCallback?.Invoke(State);
+            StepsContainer.Add(new RepeatStepButton(invocationCount)
+            {
+                Text = description,
+                Action = action
+            });
+        }
+
+        protected void AddToggleStep(string description, Action<bool> action)
+        {
+            StepsContainer.Add(new ToggleStepButton(action)
+            {
+                Text = description
+            });
+        }
+
+        protected void AddWaitStep(int waitCount)
+        {
+            StepsContainer.Add(new RepeatStepButton(waitCount)
+            {
+                Text = @"Wait",
+                BackgroundColour = Color4.Gray
+            });
+        }
+
+        protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
+        {
+            StepsContainer.Add(new AssertButton()
+            {
+                Text = description,
+                ExtendedDescription = extendedDescription,
+                Assertion = assert,
+            });
         }
     }
 }

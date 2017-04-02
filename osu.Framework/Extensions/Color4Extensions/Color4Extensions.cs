@@ -46,7 +46,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            
+
             if (second.Equals(Color4.White))
                 return first;
 
@@ -64,7 +64,7 @@ namespace osu.Framework.Extensions.Color4Extensions
         {
             if (first.Equals(Color4.White))
                 return second;
-            
+
             if (second.Equals(Color4.White))
                 return first;
 

@@ -46,9 +46,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Platform\HeadlessGameHostTest.cs" />
-    <Compile Include="Benchmark\BenchmarkTests.cs" />
+    <Compile Include="Benchmark\VisualTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\osu.Framework.Testing\osu.Framework.Testing.csproj">
+      <Project>{007B2356-AB6F-4BD9-96D5-116FC2DCE69A}</Project>
+      <Name>osu.Framework.Testing</Name>
+    </ProjectReference>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
       <Project>{C76BF5B3-985E-4D39-95FE-97C9C879B83A}</Project>
       <Name>osu.Framework</Name>

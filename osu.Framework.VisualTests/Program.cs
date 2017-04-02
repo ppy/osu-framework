@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests
             using (GameHost host = Host.GetSuitableHost(@"visual-tests"))
             {
                 if (benchmark)
-                    host.Run(new Benchmark());
+                    host.Run(new AutomatedVisualTestGame());
                 else
                     host.Run(new VisualTestGame());
             }

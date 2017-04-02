@@ -135,6 +135,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
 
         private IDrawable target;
+
         public IDrawable Target
         {
             get { return target; }

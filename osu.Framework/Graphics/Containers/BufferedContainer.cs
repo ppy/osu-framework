@@ -27,7 +27,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="BufferedContainer{T}"/>.
     /// </summary>
     public class BufferedContainer : BufferedContainer<Drawable>
-    { };
+    {
+    };
 
     /// <summary>
     /// A container that renders its children to an internal framebuffer, and then
@@ -95,6 +96,7 @@ namespace osu.Framework.Graphics.Containers
                 pixelSnapping = value;
             }
         }
+
         private Shader blurShader;
 
         /// <summary>
@@ -239,8 +241,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformBlurSigma));
-            TransformVectorTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
+            TransformTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
         }
 
         protected class TransformBlurSigma : TransformVector

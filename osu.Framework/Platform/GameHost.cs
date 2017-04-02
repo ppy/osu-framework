@@ -94,38 +94,23 @@ namespace osu.Framework.Platform
 
         public double MaximumUpdateHz
         {
-            get
-            {
-                return maximumUpdateHz;
-            }
+            get { return maximumUpdateHz; }
 
-            set
-            {
-                UpdateThread.ActiveHz = maximumUpdateHz = value;
-            }
+            set { UpdateThread.ActiveHz = maximumUpdateHz = value; }
         }
 
         private double maximumDrawHz;
 
         public double MaximumDrawHz
         {
-            get
-            {
-                return maximumDrawHz;
-            }
+            get { return maximumDrawHz; }
 
-            set
-            {
-                DrawThread.ActiveHz = maximumDrawHz = value;
-            }
+            set { DrawThread.ActiveHz = maximumDrawHz = value; }
         }
 
         public double MaximumInactiveHz
         {
-            get
-            {
-                return DrawThread.InactiveHz;
-            }
+            get { return DrawThread.InactiveHz; }
 
             set
             {
@@ -138,12 +123,15 @@ namespace osu.Framework.Platform
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
         private Cached<string> fullPathBacking = new Cached<string>();
-        public string FullPath => fullPathBacking.EnsureValid() ? fullPathBacking.Value : fullPathBacking.Refresh(() =>
-        {
-            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-            UriBuilder uri = new UriBuilder(codeBase);
-            return Uri.UnescapeDataString(uri.Path);
-        });
+
+        public string FullPath => fullPathBacking.EnsureValid()
+            ? fullPathBacking.Value
+            : fullPathBacking.Refresh(() =>
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                return Uri.UnescapeDataString(uri.Path);
+            });
 
         protected string Name { get; }
 
@@ -206,10 +194,7 @@ namespace osu.Framework.Platform
 
             bool? response = null;
 
-            UpdateThread.Scheduler.Add(delegate
-            {
-                response = Exiting?.Invoke() == true;
-            });
+            UpdateThread.Scheduler.Add(delegate { response = Exiting?.Invoke() == true; });
 
             //wait for a potentially blocking response
             while (!response.HasValue)
@@ -242,7 +227,8 @@ namespace osu.Framework.Platform
             if (Root == null) return;
 
             if (Window?.WindowState != WindowState.Minimized)
-                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) : Vector2.One;
+                Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
+                    new Vector2(config.Get<int>(FrameworkConfig.Width), config.Get<int>(FrameworkConfig.Height));
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
@@ -315,13 +301,14 @@ namespace osu.Framework.Platform
             if (Window != null)
             {
                 Window.SetupWindow(config);
-                Window.Title = $@"osu.Framework (running ""{Name}"")";
+                Window.Title = $@"osu!framework (running ""{Name}"")";
             }
-
-            Task.Run(() => bootstrapSceneGraph(game));
 
             DrawThread.Start();
             UpdateThread.Start();
+
+            DrawThread.WaitUntilInitialized();
+            bootstrapSceneGraph(game);
 
             try
             {
@@ -425,6 +412,7 @@ namespace osu.Framework.Platform
         public abstract ITextInputSource GetTextInput();
 
         #region IDisposable Support
+
         private bool isDisposed;
 
         protected virtual void Dispose(bool disposing)
@@ -445,6 +433,7 @@ namespace osu.Framework.Platform
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
         #endregion
     }
 }

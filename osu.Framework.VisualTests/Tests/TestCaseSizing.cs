@@ -46,7 +46,7 @@ namespace osu.Framework.VisualTests.Tests
             for (int i = 0; i < testNames.Length; i++)
             {
                 int test = i;
-                AddButton(testNames[i], delegate { loadTest(test); });
+                AddStep(testNames[i], delegate { loadTest(test); });
             }
 
             loadTest(0);
@@ -167,7 +167,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box, 10, Color4.YellowGreen);
 
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 50; i++)
                     {
                         box.Add(box = new InfofulBoxAutoSize
                         {
@@ -329,7 +329,8 @@ namespace osu.Framework.VisualTests.Tests
                                 Colour = Color4.AliceBlue,
                                 Alpha = 0.2f
                             },
-                            boxes = new FillFlowContainer {
+                            boxes = new FillFlowContainer
+                            {
                                 RelativeSizeAxes = Axes.X,
                                 AutoSizeAxes = Axes.Y,
                                 Direction = FillDirection.Vertical,
@@ -927,17 +928,26 @@ namespace osu.Framework.VisualTests.Tests
 
     internal class InfofulBoxAutoSize : Container
     {
+        protected override Container<Drawable> Content { get; }
+
         public InfofulBoxAutoSize()
         {
             AutoSizeAxes = Axes.Both;
 
             Masking = true;
 
-            Add(new Box
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Depth = float.MaxValue,
-            });
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Depth = float.MaxValue,
+                },
+                Content = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                }
+            };
         }
 
         public bool AllowDrag = true;

@@ -8,17 +8,19 @@ namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxStorage : DesktopStorage
     {
-        public LinuxStorage(string baseName) : base(baseName)
+        public LinuxStorage(string baseName)
+            : base(baseName)
         {
         }
-        
+
         protected override string BasePath
         {
             get
             {
                 string home = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
                 string xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-                string[] paths = {
+                string[] paths =
+                {
                     Path.Combine(xdg ?? Path.Combine(home, ".local", "share"), BaseName),
                     Path.Combine(home, "." + BaseName)
                 };

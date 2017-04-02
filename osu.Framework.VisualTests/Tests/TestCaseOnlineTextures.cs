@@ -15,7 +15,10 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseOnlineTextures : TestCase
     {
-        private FillFlowContainer flow;
+        private FillFlowContainerNoInput flow;
+        private ScrollContainer scroll;
+
+        private const int panel_count = 2048;
 
         public override void Reset()
         {
@@ -23,12 +26,12 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new ScrollContainer
+                scroll = new ScrollContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        flow = new FillFlowContainer
+                        flow = new FillFlowContainerNoInput
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -37,7 +40,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            for (int i = 55; i < 2048; i++)
+            for (int i = 1; i < panel_count; i++)
                 flow.Add(new Container
                 {
                     Size = new Vector2(128),
@@ -49,7 +52,8 @@ namespace osu.Framework.VisualTests.Tests
                             OnLoadComplete = d =>
                             {
                                 var c = (Container)d;
-                                if ((c.Children.First() as Sprite)?.Texture == null)
+
+                                if ((c.Children.FirstOrDefault() as Sprite)?.Texture == null)
                                 {
                                     c.Add(new SpriteText {
                                         Colour = Color4.Gray,
@@ -61,12 +65,26 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             Children = new Drawable[]
                             {
-                                new Avatar(i) { RelativeSizeAxes = Axes.Both }
+                                //TODO: re-enable post merge of https://github.com/ppy/osu-framework/pull/605
+                                //new Avatar(i) { RelativeSizeAxes = Axes.Both }
                             }
                         }),
                         new SpriteText { Text = i.ToString() },
                     }
                 });
+
+            var childrenWithAvatarsLoaded = flow.Children.Where(c => c.Children.OfType<DelayedLoadContainer>().First().Children.FirstOrDefault()?.IsLoaded ?? false);
+
+            AddWaitStep(10);
+            AddStep("scroll down", () => scroll.ScrollToEnd());
+            AddWaitStep(10);
+            AddAssert("some loaded", () => childrenWithAvatarsLoaded.Count() > 5);
+            AddAssert("not too many loaded", () => childrenWithAvatarsLoaded.Count() < panel_count / 4);
+        }
+
+        private class FillFlowContainerNoInput : FillFlowContainer<Container>
+        {
+            public override bool HandleInput => false;
         }
     }
 

@@ -31,7 +31,8 @@ namespace osu.Framework.Graphics.Containers
     /// generic version <see cref="Container{T}"/>.
     /// </summary>
     public class Container : Container<Drawable>
-    { }
+    {
+    }
 
     /// <summary>
     /// A drawable which can have children added to it. Transformations applied to
@@ -112,10 +113,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get
-            {
-                return Content != this ? Content.Children : internalChildren;
-            }
+            get { return Content != this ? Content.Children : internalChildren; }
 
             set
             {
@@ -362,7 +360,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// An opportunity to update state once-per-frame after <see cref="Drawable.Update"/> has been called
         /// for all <see cref="InternalChildren"/>.
-        /// </summary>		
+        /// </summary>
         protected virtual void UpdateAfterChildren()
         {
         }
@@ -428,20 +426,22 @@ namespace osu.Framework.Graphics.Containers
 
             Vector3 scale = DrawInfo.MatrixInverse.ExtractScale();
 
-            n.MaskingInfo = !Masking ? (MaskingInfo?)null : new MaskingInfo
-            {
-                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                MaskingRect = DrawRectangle,
-                ToMaskingSpace = DrawInfo.MatrixInverse,
-                CornerRadius = CornerRadius,
-                BorderThickness = BorderThickness,
-                BorderColour = BorderColour,
-                // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                // This results in the optimal trade-off between crispness and smoothness of the
-                // edges of the masked region according to sampling theory.
-                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                AlphaExponent = 1,
-            };
+            n.MaskingInfo = !Masking
+                ? (MaskingInfo?)null
+                : new MaskingInfo
+                {
+                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                    MaskingRect = DrawRectangle,
+                    ToMaskingSpace = DrawInfo.MatrixInverse,
+                    CornerRadius = CornerRadius,
+                    BorderThickness = BorderThickness,
+                    BorderColour = BorderColour,
+                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                    // This results in the optimal trade-off between crispness and smoothness of the
+                    // edges of the masked region according to sampling theory.
+                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                    AlphaExponent = 1,
+                };
 
             n.EdgeEffect = EdgeEffect;
 
@@ -480,7 +480,9 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 // Take drawable.Original until drawable.Original == drawable
-                while (drawable != (drawable = drawable.Original)) { }
+                while (drawable != (drawable = drawable.Original))
+                {
+                }
 
                 if (!drawable.IsPresent)
                     continue;
@@ -494,7 +496,7 @@ namespace osu.Framework.Graphics.Containers
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
                     container.IsMaskedAway = container.internalChildren.AliveItems.Count >= amount_children_required_for_masking_check &&
-                        !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds);
@@ -595,8 +597,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            UpdateTransformsOfType(typeof(TransformEdgeEffectAlpha));
-            TransformFloatTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+            TransformTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
         }
 
         #endregion
@@ -802,6 +803,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private MarginPadding padding;
+
         public MarginPadding Padding
         {
             get { return padding; }
@@ -918,6 +920,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private bool isComputingChildrenSizeDependencies;
+
         public override Vector2 Size
         {
             get
@@ -929,8 +932,7 @@ namespace osu.Framework.Graphics.Containers
 
             set
             {
-                //transform check here is to allow AutoSizeDuration to work below.
-                if ((AutoSizeAxes & Axes.Both) != 0 && !Transforms.Any(t => t is TransformSize))
+                if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
                 base.Size = value;
             }
@@ -987,12 +989,10 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             if (AutoSizeDuration > 0)
-            {
-                ResizeTo(new Vector2(
-                        (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                        (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                    ), AutoSizeDuration, AutoSizeEasing);
-            }
+                autoSizeResizeTo(new Vector2(
+                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
+                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
+                ), AutoSizeDuration, AutoSizeEasing);
             else
             {
                 if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
@@ -1016,6 +1016,36 @@ namespace osu.Framework.Graphics.Containers
             finally
             {
                 isComputingChildrenSizeDependencies = false;
+            }
+        }
+
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(Size, newSize, duration, easing, new TransformAutoSize());
+        }
+
+        /// <summary>
+        /// A helper method for <see cref="TransformAutoSize"/> to change the size of auto size containers.
+        /// </summary>
+        /// <param name="newSize"></param>
+        private void setBaseSize(Vector2 newSize)
+        {
+            base.Width = newSize.X;
+            base.Height = newSize.Y;
+        }
+
+        /// <summary>
+        /// A special type of transform which can change the size of auto size containers.
+        /// Used for <see cref="AutoSizeDuration"/>.
+        /// </summary>
+        private class TransformAutoSize : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+
+                var c = (Container<T>)d;
+                c.setBaseSize(CurrentValue);
             }
         }
 

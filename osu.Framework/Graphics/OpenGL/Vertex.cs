@@ -102,10 +102,10 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Equals(TexturedVertex2D other)
         {
             return Position.Equals(other.Position)
-                && TexturePosition.Equals(other.TexturePosition)
-                && Colour.Equals(other.Colour)
-                && TextureRect.Equals(other.TextureRect)
-                && BlendRange.Equals(other.BlendRange);
+                   && TexturePosition.Equals(other.TexturePosition)
+                   && Colour.Equals(other.Colour)
+                   && TextureRect.Equals(other.TextureRect)
+                   && BlendRange.Equals(other.BlendRange);
         }
 
         public static void Bind()

@@ -153,7 +153,7 @@ namespace osu.Framework.Configuration
             {
                 if (stream == null)
                     return;
-                
+
                 using (var reader = new StreamReader(stream))
                 {
                     string line;

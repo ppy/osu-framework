@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Lists;
 
@@ -32,6 +33,9 @@ namespace osu.Framework.Graphics.Transforms
     {
         public int Compare(ITransform x, ITransform y)
         {
+            if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
+            if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+
             int compare = x.StartTime.CompareTo(y.StartTime);
             if (compare != 0) return compare;
             compare = x.EndTime.CompareTo(y.EndTime);

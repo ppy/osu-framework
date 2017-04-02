@@ -51,14 +51,14 @@ namespace osu.Framework.VisualTests.Tests
                                                          .Select(item => item.Value)
                                                          .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddButton("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
-            AddButton("PinItem", () =>
+            AddStep("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
+            AddStep("PinItem", () =>
             {
                 var test = nextTest.Invoke();
                 pinnedAndAutoSort.AddItem(test);
                 pinnedAndAutoSort.PinItem(test);
             });
-            AddButton("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
+            AddStep("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
         }
 
         private class StyledTabControl : TabControl<TestEnum>
@@ -71,6 +71,7 @@ namespace osu.Framework.VisualTests.Tests
         private class StyledTabItem : TabItem<TestEnum>
         {
             private readonly SpriteText text;
+
             public new TestEnum Value
             {
                 get { return base.Value; }
@@ -162,7 +163,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private class StyledDropdownMenuItem : DropdownMenuItem<TestEnum>
         {
-            public StyledDropdownMenuItem(string text, TestEnum value) : base(text, value)
+            public StyledDropdownMenuItem(string text, TestEnum value)
+                : base(text, value)
             {
                 AutoSizeAxes = Axes.Y;
                 Foreground.Padding = new MarginPadding(2);
@@ -174,6 +176,21 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private enum TestEnum { Test0, Test1, Test2, Test3, Test4, Test5, Test6, Test7, Test8, Test9, Test10, Test11, Test12 }
+        private enum TestEnum
+        {
+            Test0,
+            Test1,
+            Test2,
+            Test3,
+            Test4,
+            Test5,
+            Test6,
+            Test7,
+            Test8,
+            Test9,
+            Test10,
+            Test11,
+            Test12
+        }
     }
 }

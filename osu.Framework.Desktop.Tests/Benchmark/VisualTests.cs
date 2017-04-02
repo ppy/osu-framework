@@ -3,17 +3,18 @@
 
 using NUnit.Framework;
 using osu.Framework.Desktop.Platform;
+using osu.Framework.VisualTests;
 
 namespace osu.Framework.Desktop.Tests.Benchmark
 {
     [TestFixture]
-    public class BenchmarkTests
+    public class VisualTests
     {
         [Test]
-        public void TestBenchmark()
+        public void TestVisualTests()
         {
             using (var host = new HeadlessGameHost())
-                host.Run(new VisualTests.Benchmark());
+                host.Run(new AutomatedVisualTestGame());
         }
     }
 }

@@ -223,7 +223,6 @@ namespace osu.Framework
             }
 
             return base.OnKeyDown(state, args);
-
         }
 
         public void Exit()

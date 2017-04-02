@@ -84,7 +84,8 @@ namespace osu.Framework.Desktop.Platform
                 }
             }
             catch (TaskCanceledException)
-            { }
+            {
+            }
         }
 
         public async Task SendMessageAsync(IpcMessage message)
@@ -111,4 +112,3 @@ namespace osu.Framework.Desktop.Platform
         }
     }
 }
-
