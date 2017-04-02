@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Containers
         public AsyncLoadContainer(Container content)
         {
             if (content == null)
-                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {content}.");
+                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {nameof(content)}.");
 
             this.content = content;
 
