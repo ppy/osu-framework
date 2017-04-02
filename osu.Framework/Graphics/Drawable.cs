@@ -278,7 +278,7 @@ namespace osu.Framework.Graphics
         /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
         /// This event is fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
-        internal Action<Drawable> OnInvalidate;
+        internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
         private Thread mainThread;

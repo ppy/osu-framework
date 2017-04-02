@@ -16,9 +16,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
-using System.Linq;
 using System.Threading.Tasks;
-using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.Containers
 {

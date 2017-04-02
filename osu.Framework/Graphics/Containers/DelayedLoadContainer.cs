@@ -3,7 +3,6 @@
 
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Primitives;
-using System;
 
 namespace osu.Framework.Graphics.Containers
 {
