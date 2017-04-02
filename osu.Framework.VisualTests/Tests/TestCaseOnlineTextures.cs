@@ -46,15 +46,16 @@ namespace osu.Framework.VisualTests.Tests
                     Size = new Vector2(128),
                     Children = new Drawable[]
                     {
-                        new DelayedLoadContainer
+                        new DelayedLoadContainer(new Container
                         {
                             RelativeSizeAxes = Axes.Both,
-                            FinishedLoading = d =>
+                            OnLoadComplete = d =>
                             {
-                                if ((d.Children.FirstOrDefault() as Sprite)?.Texture == null)
+                                var c = (Container)d;
+
+                                if ((c.Children.FirstOrDefault() as Sprite)?.Texture == null)
                                 {
-                                    d.Add(new SpriteText
-                                    {
+                                    c.Add(new SpriteText {
                                         Colour = Color4.Gray,
                                         Text = @"nope",
                                         Anchor = Anchor.Centre,
@@ -67,7 +68,7 @@ namespace osu.Framework.VisualTests.Tests
                                 //TODO: re-enable post merge of https://github.com/ppy/osu-framework/pull/605
                                 //new Avatar(i) { RelativeSizeAxes = Axes.Both }
                             }
-                        },
+                        }),
                         new SpriteText { Text = i.ToString() },
                     }
                 });

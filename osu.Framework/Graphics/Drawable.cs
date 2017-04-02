@@ -118,19 +118,17 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="onLoaded">
-        /// Callback to be invoked asynchronously
-        /// after loading is complete.
-        /// </param>
+        /// <param name="clock">The clock of our future parent.</param>
+        /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        public Task LoadAsync(Game game, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync(Game game, IFrameBasedClock clock, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(game)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(game, clock)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -140,7 +138,7 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
-        internal void Load(Game game)
+        internal void Load(Game game, IFrameBasedClock clock)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -159,6 +157,8 @@ namespace osu.Framework.Graphics
                         Trace.Assert(false, "Impossible loading state.");
                         break;
                 }
+
+                UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
                 game.Dependencies.Initialize(this);
@@ -183,6 +183,7 @@ namespace osu.Framework.Graphics
             Invalidate();
             loadState = LoadState.Alive;
             LoadComplete();
+            OnLoadComplete?.Invoke(this);
             return true;
         }
 
@@ -264,13 +265,20 @@ namespace osu.Framework.Graphics
         /// <see cref="UpdateSubTree"/>. It should be used when a simple action should be performed
         /// at the end of every update call which does not warrant overriding the Drawable.
         /// </summary>
-        public event Action OnUpdate;
+        public Action<Drawable> OnUpdate;
+
+        /// <summary>
+        /// This event is fired after the <see cref="LoadComplete"/> method is called.
+        /// It should be used when a simple action should be performed
+        /// when the Drawable is loaded which does not warrant overriding the Drawable.
+        /// </summary>
+        public Action<Drawable> OnLoadComplete;
 
         /// <summary>
         /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
         /// This event is fired after the <see cref="Invalidate(Invalidation, Drawable, bool)"/> method is called.
         /// </summary>
-        internal event Action OnInvalidate;
+        internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
         private Thread mainThread;
@@ -351,7 +359,7 @@ namespace osu.Framework.Graphics
             }
 
             Update();
-            OnUpdate?.Invoke();
+            OnUpdate?.Invoke(this);
             return true;
         }
 
@@ -1127,7 +1135,12 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.Geometry | Invalidation.Colour);
 
                 if (parent != null)
+                {
+                    //we should already have a clock at this point (from our LoadRequested invocation)
+                    //this just ensures we have the most recent parent clock.
+                    //we may want to consider enforcing that parent.Clock == clock here.
                     UpdateClock(parent.Clock);
+                }
             }
         }
 
@@ -1307,7 +1320,7 @@ namespace osu.Framework.Graphics
             if (!alreadyInvalidated || (invalidation & Invalidation.DrawNode) > 0)
                 invalidationID = invalidation_counter.Increment();
 
-            OnInvalidate?.Invoke();
+            OnInvalidate?.Invoke(this);
 
             return !alreadyInvalidated;
         }

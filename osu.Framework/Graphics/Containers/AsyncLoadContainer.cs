@@ -12,23 +12,26 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class AsyncLoadContainer : Container
     {
-        /// <summary>
-        /// Called when async loading of children has completed.
-        /// </summary>
-        public Action<AsyncLoadContainer> FinishedLoading;
+        /// <param name="content">The content which should be asynchronously loaded. Note that the <see cref="Drawable.RelativeSizeAxes"/> and <see cref="Container{T}.AutoSizeAxes"/> of this container
+        /// will be transferred as the default for this <see cref="AsyncLoadContainer"/>.</param>
+        public AsyncLoadContainer(Container content)
+        {
+            if (content == null)
+                throw new ArgumentNullException(nameof(content), $@"{nameof(AsyncLoadContainer)} required non-null {nameof(content)}.");
 
-        protected override Container<Drawable> Content => content;
+            this.content = content;
 
-        private readonly Container content = new Container { RelativeSizeAxes = Axes.Both };
+            RelativeSizeAxes = content.RelativeSizeAxes;
+            AutoSizeAxes = content.AutoSizeAxes;
+        }
 
-        private Game game;
+        private readonly Container content;
 
         protected virtual bool ShouldLoadContent => true;
 
         [BackgroundDependencyLoader]
-        private void load(Game game)
+        private void load()
         {
-            this.game = game;
             if (ShouldLoadContent)
                 loadContentAsync();
         }
@@ -45,11 +48,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void loadContentAsync()
         {
-            loadTask = content.LoadAsync(game, d =>
-            {
-                AddInternal(d);
-                FinishedLoading?.Invoke(this);
-            });
+            loadTask = LoadComponentAsync(content, AddInternal);
         }
 
         /// <summary>
