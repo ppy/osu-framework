@@ -190,9 +190,9 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsRunning => isRunning;
 
-        internal override void OnStateChanged(object sender, EventArgs e)
+        internal override void OnStateChanged()
         {
-            base.OnStateChanged(sender, e);
+            base.OnStateChanged();
 
             setDirection(FrequencyCalculated.Value < 0);
 

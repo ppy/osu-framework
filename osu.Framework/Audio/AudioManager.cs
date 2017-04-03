@@ -130,9 +130,9 @@ namespace osu.Framework.Audio
             base.Dispose(disposing);
         }
 
-        private void onDeviceChanged(object sender, EventArgs e)
+        private void onDeviceChanged(string newDevice)
         {
-            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(AudioDevice.Value) ? null : AudioDevice.Value));
+            scheduler.Add(() => setAudioDevice(string.IsNullOrEmpty(newDevice) ? null : newDevice));
         }
 
         private TrackManager globalTrackManager;

@@ -104,16 +104,14 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = tabMap.Values
             });
 
-            SelectedItem.ValueChanged += selectedItem_ValueChanged;
-        }
-
-        private void selectedItem_ValueChanged(object sender, EventArgs e)
-        {
-            if (IsLoaded)
-                selectTab(tabMap[SelectedItem]);
-            else
-                //will be handled in LoadComplete
-                SelectedTab = tabMap[SelectedItem];
+            SelectedItem.ValueChanged += newSelection =>
+            {
+                if (IsLoaded)
+                    selectTab(tabMap[SelectedItem]);
+                else
+                    //will be handled in LoadComplete
+                    SelectedTab = tabMap[SelectedItem];
+            };
         }
 
         protected override void Update()

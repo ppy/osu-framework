@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private bool stepInitialized;
 
-        public BindableNumber<T> Bindable
+        public BindableNumber<T> Value
         {
             get { return bindable; }
             set
@@ -54,11 +54,11 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                if (Bindable == null)
+                if (Value == null)
                     return 0;
-                var min = Convert.ToSingle(Bindable.MinValue);
-                var max = Convert.ToSingle(Bindable.MaxValue);
-                var val = Convert.ToSingle(Bindable.Value);
+                var min = Convert.ToSingle(Value.MinValue);
+                var max = Convert.ToSingle(Value.MaxValue);
+                var val = Convert.ToSingle(Value.Value);
                 return (val - min) / (max - min);
             }
         }
@@ -69,8 +69,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void Dispose(bool isDisposing)
         {
-            if (Bindable != null)
-                Bindable.ValueChanged -= bindableValueChanged;
+            if (Value != null)
+                Value.ValueChanged -= bindableValueChanged;
             base.Dispose(isDisposing);
         }
 
@@ -109,29 +109,29 @@ namespace osu.Framework.Graphics.UserInterface
             if (!Hovering)
                 return false;
             if (!stepInitialized)
-                KeyboardStep = (Convert.ToSingle(Bindable.MaxValue) - Convert.ToSingle(Bindable.MinValue)) / 20;
+                KeyboardStep = (Convert.ToSingle(Value.MaxValue) - Convert.ToSingle(Value.MinValue)) / 20;
             var step = KeyboardStep;
-            if (Bindable.IsInteger)
+            if (Value.IsInteger)
                 step = (float)Math.Ceiling(step);
             switch (args.Key)
             {
                 case Key.Right:
-                    Bindable.Add(step);
+                    Value.Add(step);
                     return true;
                 case Key.Left:
-                    Bindable.Add(-step);
+                    Value.Add(-step);
                     return true;
                 default:
                     return false;
             }
         }
 
-        private void bindableValueChanged(object sender, EventArgs e) => UpdateValue(NormalizedValue);
+        private void bindableValueChanged(T newValue) => UpdateValue(NormalizedValue);
 
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
-            Bindable.SetProportional(xPosition / UsableWidth);
+            Value.SetProportional(xPosition / UsableWidth);
         }
     }
 }
