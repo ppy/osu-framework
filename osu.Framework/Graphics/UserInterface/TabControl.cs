@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
@@ -24,29 +25,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The currently selected item.
         /// </summary>
-        public T SelectedItem
-        {
-            get { return SelectedTab.Value; }
-
-            set
-            {
-                if (IsLoaded)
-                    selectTab(tabMap[value]);
-                else
-                    //will be handled in LoadComplete
-                    SelectedTab = tabMap[value];
-            }
-        }
+        public readonly Bindable<T> SelectedItem = new Bindable<T>();
 
         /// <summary>
         /// A list of items currently in the tab control in the other they are dispalyed.
         /// </summary>
         public IEnumerable<T> Items => TabContainer.Children.Select(tab => tab.Value);
-
-        /// <summary>
-        /// Occurs when the selected tab changes.
-        /// </summary>
-        public event EventHandler<T> ItemChanged;
 
         /// <summary>
         /// When true, tabs selected from the overflow dropdown will be moved to the front of the list (after pinned items).
@@ -119,6 +103,15 @@ namespace osu.Framework.Graphics.UserInterface
                 TabVisibilityChanged = updateDropdown,
                 Children = tabMap.Values
             });
+
+            SelectedItem.ValueChanged += newSelection =>
+            {
+                if (IsLoaded)
+                    selectTab(tabMap[SelectedItem]);
+                else
+                    //will be handled in LoadComplete
+                    SelectedTab = tabMap[SelectedItem];
+            };
         }
 
         protected override void Update()
@@ -213,7 +206,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectedTab = tab;
             SelectedTab.Active = true;
 
-            ItemChanged?.Invoke(this, tab.Value);
+            SelectedItem.Value = SelectedTab.Value;
         }
 
         private void resortTab(TabItem<T> tab)

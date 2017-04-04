@@ -102,9 +102,9 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            selectionDropdown.SelectedValue.ValueChanged += (o, e) =>
+            selectionDropdown.SelectedValue.ValueChanged += newValue =>
             {
-                current = selectionDropdown.SelectedValue;
+                current = newValue;
                 Reset();
             };
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -35,11 +34,11 @@ namespace osu.Framework.Audio
             PendingActions.Enqueue(() => item.AddAdjustmentDependency(this));
         }
 
-        internal override void OnStateChanged(object sender, EventArgs e)
+        internal override void OnStateChanged()
         {
-            base.OnStateChanged(sender, e);
+            base.OnStateChanged();
             foreach (var item in Items)
-                item.OnStateChanged(sender, e);
+                item.OnStateChanged();
         }
 
         public virtual void UpdateDevice(int deviceIndex)

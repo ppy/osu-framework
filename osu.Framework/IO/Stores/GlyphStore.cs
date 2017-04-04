@@ -73,6 +73,8 @@ namespace osu.Framework.IO.Stores
 
             RawTexture page = getTexturePage(c.TexturePage);
 
+            loadedGlyphCount++;
+
             int width = c.Bounds.Width + c.Offset.X + 1;
             int height = c.Bounds.Height + c.Offset.Y + 1;
             int length = width * height * 4;
@@ -117,6 +119,7 @@ namespace osu.Framework.IO.Stores
             RawTexture t;
             if (!texturePages.TryGetValue(texturePage, out t))
             {
+                loadedPageCount++;
                 using (var stream = store.GetStream($@"{assetName}_{texturePage.ToString().PadLeft((font.Pages.Length - 1).ToString().Length, '0')}.png"))
                     texturePages.Add(texturePage, t = RawTexture.FromStream(stream));
             }
@@ -128,6 +131,11 @@ namespace osu.Framework.IO.Stores
         {
             throw new NotImplementedException();
         }
+
+        private int loadedPageCount;
+        private int loadedGlyphCount;
+
+        public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
     }
 
     public sealed class FontLoadException : Exception

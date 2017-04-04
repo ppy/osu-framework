@@ -65,22 +65,12 @@ namespace osu.Framework.VisualTests.Tests
         {
             protected override Dropdown<TestEnum> CreateDropdown() => new StyledDropdown();
 
-            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem { Value = value };
+            protected override TabItem<TestEnum> CreateTabItem(TestEnum value) => new StyledTabItem(value);
         }
 
         private class StyledTabItem : TabItem<TestEnum>
         {
             private readonly SpriteText text;
-
-            public new TestEnum Value
-            {
-                get { return base.Value; }
-                set
-                {
-                    base.Value = value;
-                    text.Text = value.ToString();
-                }
-            }
 
             public override bool Active
             {
@@ -105,7 +95,7 @@ namespace osu.Framework.VisualTests.Tests
                 text.Colour = Color4.White;
             }
 
-            public StyledTabItem()
+            public StyledTabItem(TestEnum value) : base(value)
             {
                 AutoSizeAxes = Axes.Both;
                 Children = new Drawable[]
@@ -113,6 +103,7 @@ namespace osu.Framework.VisualTests.Tests
                     text = new SpriteText
                     {
                         Margin = new MarginPadding(2),
+                        Text = value.ToString(),
                         TextSize = 18
                     }
                 };
