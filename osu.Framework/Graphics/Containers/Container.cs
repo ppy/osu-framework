@@ -72,15 +72,21 @@ namespace osu.Framework.Graphics.Containers
             // From now on, since we ourself are loaded now,
             // we actually permit children to be loaded if our
             // lifetimelist (internalChildren) requests a load.
-            internalChildren.LoadRequested += i =>
-            {
-                i.Load(game, Clock);
-                i.Parent = this;
-            };
+            internalChildren.LoadRequested += loadChild;
 
-            // This updates the alive status of our children according to our new
-            // clock, and recursively loads each alive child.
+            // We are in a potentially async context, so let's aggressively load all our children
+            // regardless of their alive state. this also gives children a clock so they can be checked
+            // for their correct alive state in the case LifetimeStart is set to a definite value.
+            internalChildren.ForEach(loadChild);
+
+            // Let's also perform an update on our LifetimeList to add any alive children.
             internalChildren.Update(Clock.TimeInfo);
+        }
+
+        private void loadChild(T child)
+        {
+            child.Load(game, Clock);
+            child.Parent = this;
         }
 
         protected override void Dispose(bool isDisposing)
