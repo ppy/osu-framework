@@ -23,6 +23,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         {
             host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
+                if (host.Window.WindowState == WindowState.Minimized)
+                    return;
+
                 var state = OpenTK.Input.Mouse.GetCursorState();
 
                 if (state.Equals(lastState))
