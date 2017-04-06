@@ -179,7 +179,6 @@ namespace osu.Framework.Graphics
             mainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(mainThread);
 
-            LifetimeStart = Time.Current;
             Invalidate();
             loadState = LoadState.Alive;
             LoadComplete();
