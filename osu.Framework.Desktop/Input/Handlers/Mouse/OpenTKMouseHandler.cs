@@ -25,6 +25,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             {
                 if (host.Window.WindowState == WindowState.Minimized)
                     return;
+
                 var state = OpenTK.Input.Mouse.GetCursorState();
 
                 if (state.Equals(lastState))
