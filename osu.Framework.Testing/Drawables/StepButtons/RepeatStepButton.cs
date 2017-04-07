@@ -33,14 +33,13 @@ namespace osu.Framework.Testing.Drawables.StepButtons
 
             base.Action = () =>
             {
-                if (invocations == count) return;
-
                 invocations++;
 
                 if (invocations == count)
                     Success();
 
-                updateText();
+                if (invocations <= count)
+                    updateText();
 
                 Action?.Invoke();
             };
