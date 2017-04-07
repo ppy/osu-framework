@@ -1071,12 +1071,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
         /// </summary>
-        public double LifetimeStart { get; set; } = double.MinValue;
+        public virtual double LifetimeStart { get; set; } = double.MinValue;
 
         /// <summary>
         /// The time at which this drawable is no longer valid (and is considered for disposal).
         /// </summary>
-        public double LifetimeEnd { get; set; } = double.MaxValue;
+        public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
         /// Updates the current time to the provided time. For drawables this is a no-op

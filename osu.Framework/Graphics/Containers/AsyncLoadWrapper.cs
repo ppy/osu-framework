@@ -25,6 +25,10 @@ namespace osu.Framework.Graphics.Containers
             AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
+        public override double LifetimeStart => content.LifetimeStart;
+
+        public override double LifetimeEnd => content.LifetimeEnd;
+
         protected sealed override Container<Drawable> Content => base.Content;
 
         public override void Add(Drawable drawable)
