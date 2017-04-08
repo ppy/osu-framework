@@ -99,6 +99,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private Vector2 spacingFactor(T c)
+        {
+            Vector2 result = c.RelativeOriginPosition;
+            if ((c.Anchor & Anchor.x2) > 0)
+                result.X = 1 - result.X;
+            if ((c.Anchor & Anchor.y2) > 0)
+                result.Y = 1 - result.Y;
+            return result;
+        }
+
         protected override IEnumerable<Vector2> ComputeLayoutPositions()
         {
             var max = MaximumSize;
@@ -123,45 +133,73 @@ namespace osu.Framework.Graphics.Containers
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
             int[] rowIndices = new int[children.Length];
-            List<float> rowWidths = new List<float>();
+            List<float> rowOffsetsToMiddle = new List<float>() { 0 };
 
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
-            float rowMaxHeight = 0;
+            float rowHeight = 0;
+            float rowBeginOffset = 0;
             var current = Vector2.Zero;
 
             // First pass, computing initial flow positions
+            Vector2 size = Vector2.Zero;
             for (int i = 0; i < children.Length; ++i)
             {
-                Vector2 size = children[i].BoundingBox.Size;
+                T c = children[i];
 
-                Vector2 stride = size;
-                if (stride.X > 0)
-                    stride.X = Math.Max(0, stride.X + Spacing.X);
-                if (stride.Y > 0)
-                    stride.Y = Math.Max(0, stride.Y + Spacing.Y);
+                // Populate running variables with sane initial values.
+                if (i == 0)
+                {
+                    size = c.BoundingBox.Size;
+                    rowBeginOffset = spacingFactor(c).X * size.X;
+                }
+
+                float rowWidth = rowBeginOffset + current.X + (1 - spacingFactor(c).X) * size.X;
 
                 //We've exceeded our allowed width, move to a new row
-                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(current.X + size.X, max.X) || direction == FillDirection.Vertical))
+                if (direction != FillDirection.Horizontal && (Precision.DefinitelyBigger(rowWidth, max.X) || direction == FillDirection.Vertical))
                 {
                     current.X = 0;
-                    current.Y += rowMaxHeight;
+                    current.Y += rowHeight;
 
                     result[i] = current;
-                    rowWidths.Add(i == 0 ? 0 : result[i - 1].X);
-                    rowMaxHeight = 0;
+
+                    rowOffsetsToMiddle.Add(0);
+                    rowBeginOffset = spacingFactor(c).X * size.X;
+
+                    rowHeight = 0;
                 }
                 else
+                {
                     result[i] = current;
 
-                rowIndices[i] = rowWidths.Count;
+                    // Compute offset to the middle of the row, to be applied in case of centre anchor
+                    // in a second pass.
+                    rowOffsetsToMiddle[rowOffsetsToMiddle.Count - 1] = rowBeginOffset - rowWidth / 2;
+                }
 
-                if (stride.Y > rowMaxHeight)
-                    rowMaxHeight = stride.Y;
+                rowIndices[i] = rowOffsetsToMiddle.Count - 1;
+
+                Vector2 stride = Vector2.Zero;
+                if (i < children.Length - 1)
+                {
+                    // Compute stride. Note, that the stride depends on the origins of the drawables
+                    // on both sides of the step to be taken.
+                    stride = (Vector2.One - spacingFactor(c)) * size;
+
+                    c = children[i + 1];
+                    size = c.BoundingBox.Size;
+
+                    stride += spacingFactor(c) * size;
+                }
+
+                stride += Spacing;
+
+                if (stride.Y > rowHeight)
+                    rowHeight = stride.Y;
                 current.X += stride.X;
             }
 
-            rowWidths.Add(result.Last().X);
             float height = result.Last().Y;
 
             Vector2 ourRelativeAnchor = children[0].RelativeAnchorPosition;
@@ -196,7 +234,7 @@ namespace osu.Framework.Graphics.Containers
 
                 if ((c.Anchor & Anchor.x1) > 0)
                     // Begin flow at centre of row
-                    result[i].X -= rowWidths[rowIndices[i]] / 2;
+                    result[i].X += rowOffsetsToMiddle[rowIndices[i]];
                 else if ((c.Anchor & Anchor.x2) > 0)
                     // Flow right-to-left
                     result[i].X = -result[i].X;
