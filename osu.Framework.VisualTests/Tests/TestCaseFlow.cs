@@ -254,6 +254,46 @@ namespace osu.Framework.VisualTests.Tests
                         child.ScaleTo(1f, 1000);
                 }
             });
+            AddToggleStep("Randomly scale children", state =>
+            {
+                if (state)
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.ScaleTo(RNG.NextSingle(1, 2), 1000);
+                }
+                else
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.ScaleTo(1f, 1000);
+                }
+            });
+            AddToggleStep("Randomly set child origins", state =>
+            {
+                if (state)
+                {
+                    foreach (var child in fillContainer.Children)
+                    {
+                        switch (RNG.Next(9))
+                        {
+                            case 0: child.Origin = Anchor.TopLeft; break;
+                            case 1: child.Origin = Anchor.TopCentre; break;
+                            case 2: child.Origin = Anchor.TopRight; break;
+                            case 3: child.Origin = Anchor.CentreLeft; break;
+                            case 4: child.Origin = Anchor.Centre; break;
+                            case 5: child.Origin = Anchor.CentreRight; break;
+                            case 6: child.Origin = Anchor.BottomLeft; break;
+                            case 7: child.Origin = Anchor.BottomCentre; break;
+                            case 8: child.Origin = Anchor.BottomRight; break;
+                        }
+                    }
+                        
+                }
+                else
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.Origin = originDropdown.SelectedValue;
+                }
+            });
 
             AddToggleStep("Stop adding children", state => { addChildren = state; });
 
