@@ -21,8 +21,12 @@ namespace osu.Framework.Input
 
         bool IsPressed(MouseButton button);
 
+        void SetPressed(MouseButton button, bool pressed);
+
         int Wheel { get; }
 
         int WheelDelta { get; }
+
+        IMouseState Clone();
     }
 }

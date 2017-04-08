@@ -1641,9 +1641,12 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            var state = screenSpaceState.Clone();
-            state.Mouse = new LocalMouseState(screenSpaceState.Mouse, this);
-            return state;
+            return new InputState
+            {
+                Keyboard = screenSpaceState.Keyboard,
+                Mouse = new LocalMouseState(screenSpaceState.Mouse, this),
+                Last = screenSpaceState.Last
+            };
         }
 
         /// <summary>
@@ -1703,6 +1706,13 @@ namespace osu.Framework.Graphics
             public int WheelDelta => NativeState.WheelDelta;
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+
+            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+
+            public IMouseState Clone()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

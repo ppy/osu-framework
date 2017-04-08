@@ -87,7 +87,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             private void addIfPressed(ButtonState tkState, MouseButton button)
             {
                 if (tkState == ButtonState.Pressed)
-                    PressedButtons.Add(button);
+                    SetPressed(button, true);
             }
         }
     }

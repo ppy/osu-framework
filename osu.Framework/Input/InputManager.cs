@@ -110,13 +110,13 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            List<InputState> pendingStates = GetPendingStates();
+            var pendingStates = splitInputStates(GetPendingStates()).ToArray();
 
             unfocusIfNoLongerValid(CurrentState);
 
             //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
-            if (pendingStates.Count == 0)
-                pendingStates.Add(CurrentState);
+            if (pendingStates.Length == 0)
+                pendingStates = new[] { CurrentState };
 
             foreach (InputState s in pendingStates)
             {
@@ -165,6 +165,77 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable(CurrentState);
 
             base.Update();
+        }
+
+        /// <summary>
+        /// Ensure 
+        /// </summary>
+        /// <param name="pendingStates"></param>
+        /// <returns></returns>
+        private IEnumerable<InputState> splitInputStates(List<InputState> pendingStates)
+        {
+            InputState last = CurrentState;
+
+            foreach (var i in pendingStates)
+            {
+                var iWithoutButtons = i.Clone();
+
+                var iHasMouse = iWithoutButtons.Mouse != null;
+                var iHasKeyboard = iWithoutButtons.Keyboard != null;
+
+                if (iHasMouse)
+                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                        iWithoutButtons.Mouse.SetPressed(b, last.Mouse?.IsPressed(b) ?? false);
+
+                if (iHasKeyboard)
+                    iWithoutButtons.Keyboard.Keys = last.Keyboard.Keys;
+
+                yield return iWithoutButtons;
+                last = iWithoutButtons;
+
+                if (iHasMouse)
+                {
+                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                    {
+                        if (i.Mouse.IsPressed(b) != (last.Mouse?.IsPressed(b) ?? false))
+                        {
+                            var intermediateState = last.Clone();
+                            if (intermediateState.Mouse == null) intermediateState.Mouse = new MouseState();
+
+                            //add our single local change
+                            intermediateState.Mouse.SetPressed(b, i.Mouse.IsPressed(b));
+
+                            last = intermediateState;
+                            yield return intermediateState;
+                        }
+                    }
+                }
+
+                if (iHasKeyboard)
+                {
+                    foreach (var releasedKey in last.Keyboard?.Keys.Except(i.Keyboard.Keys) ?? new Key[] { })
+                    {
+                        var intermediateState = last.Clone();
+                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+
+                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Where(d => d != releasedKey);
+
+                        last = intermediateState;
+                        yield return intermediateState;
+                    }
+
+                    foreach (var pressedKey in i.Keyboard.Keys.Except(last.Keyboard?.Keys ?? new Key[] { }))
+                    {
+                        var intermediateState = last.Clone();
+                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+
+                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Union(new[] { pressedKey });
+
+                        last = intermediateState;
+                        yield return intermediateState;
+                    }
+                }
+            }
         }
 
         protected virtual List<InputState> GetPendingStates()
@@ -328,16 +399,17 @@ namespace osu.Framework.Input
                     handleMouseDrag(state);
             }
 
-            foreach (MouseButton b in last.PressedButtons)
+            for (MouseButton b = 0; b < MouseButton.LastButton; b++)
             {
-                if (!mouse.PressedButtons.Contains(b))
-                    handleMouseUp(state, b);
-            }
+                var lastPressed = last.IsPressed(b);
 
-            foreach (MouseButton b in mouse.PressedButtons)
-            {
-                if (!last.PressedButtons.Contains(b))
-                    handleMouseDown(state, b);
+                if (lastPressed != mouse.IsPressed(b))
+                {
+                    if (lastPressed)
+                        handleMouseUp(state, b);
+                    else
+                        handleMouseDown(state, b);
+                }
             }
 
             if (mouse.WheelDelta != 0)
