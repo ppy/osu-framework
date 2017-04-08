@@ -886,6 +886,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EasingTypes AutoSizeEasing;
 
+        /// <summary>
+        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
+        /// This event will fire after our <see cref="Size"/> is updated from autosizing.
+        /// </summary>
         internal event Action OnAutoSize;
 
         private Cached childrenSizeDependencies = new Cached();
