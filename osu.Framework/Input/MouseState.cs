@@ -13,19 +13,13 @@ namespace osu.Framework.Input
 
         public HashSet<MouseButton> PressedButtons = new HashSet<MouseButton>();
 
-        public bool LeftButton => PressedButtons.Contains(MouseButton.Left);
-        public bool RightButton => PressedButtons.Contains(MouseButton.Right);
-        public bool MiddleButton => PressedButtons.Contains(MouseButton.Middle);
-        public bool BackButton => PressedButtons.Contains(MouseButton.Button1);
-        public bool ForwardButton => PressedButtons.Contains(MouseButton.Button2);
-
         public IMouseState NativeState => this;
 
         public virtual int WheelDelta => Wheel - (LastState?.Wheel ?? 0);
 
         public int Wheel { get; set; }
 
-        public bool HasMainButtonPressed => LeftButton || RightButton;
+        public bool HasMainButtonPressed => IsPressed(MouseButton.Left )|| IsPressed(MouseButton.Right);
 
         public bool HasAnyButtonPressed => PressedButtons.Count > 0;
 

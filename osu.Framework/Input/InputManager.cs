@@ -351,7 +351,7 @@ namespace osu.Framework.Input
                     mouse.PositionMouseDown = state.Mouse.Position;
                     LastActionTime = Time.Current;
 
-                    if (mouse.LeftButton)
+                    if (mouse.IsPressed(MouseButton.Left))
                     {
                         isValidClick = true;
 

@@ -1691,9 +1691,6 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public bool BackButton => NativeState.BackButton;
-            public bool ForwardButton => NativeState.ForwardButton;
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
@@ -1702,9 +1699,6 @@ namespace osu.Framework.Graphics
 
             public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-            public bool LeftButton => NativeState.LeftButton;
-            public bool MiddleButton => NativeState.MiddleButton;
-            public bool RightButton => NativeState.RightButton;
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;
 
