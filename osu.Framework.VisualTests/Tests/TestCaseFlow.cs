@@ -146,8 +146,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private void buildTest(FillDirection dir, Vector2 spacing)
         {
-            Container testCase;
-            Add(testCase = new Container
+            Add(new Container
             {
                 Padding = new MarginPadding(25f),
                 RelativeSizeAxes = Axes.Both,
@@ -286,7 +285,6 @@ namespace osu.Framework.VisualTests.Tests
                             case 8: child.Origin = Anchor.BottomRight; break;
                         }
                     }
-                        
                 }
                 else
                 {
