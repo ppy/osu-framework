@@ -802,6 +802,33 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// The origin of the local coordinate system of this Drawable
+        /// in relative coordinates expressed in the coordinate system with origin at the
+        /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
+        /// </summary>
+        public Vector2 RelativeOriginPosition
+        {
+            get
+            {
+                if (Origin == Anchor.Custom)
+                    throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
+
+                Vector2 result = Vector2.Zero;
+                if ((origin & Anchor.x1) > 0)
+                    result.X = 0.5f;
+                else if ((origin & Anchor.x2) > 0)
+                    result.X = 1;
+
+                if ((origin & Anchor.y1) > 0)
+                    result.Y = 0.5f;
+                else if ((origin & Anchor.y2) > 0)
+                    result.Y = 1;
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// The origin of the local coordinate system of this Drawable
         /// in absolute coordinates expressed in the coordinate system with origin at the
         /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
         /// </summary>
