@@ -14,6 +14,7 @@ using osu.Framework.Testing;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -104,10 +105,14 @@ namespace osu.Framework.VisualTests.Tests
 
             selectionDropdown.SelectedValue.ValueChanged += newValue =>
             {
+                if (current == newValue)
+                    return;
+
                 current = newValue;
                 Reset();
             };
 
+            selectionDropdown.SelectedValue.Value = current;
             changeTest(current);
         }
 
@@ -141,11 +146,12 @@ namespace osu.Framework.VisualTests.Tests
 
         private void buildTest(FillDirection dir, Vector2 spacing)
         {
-            Add(new Container
+            Container testCase;
+            Add(testCase = new Container
             {
                 Padding = new MarginPadding(25f),
                 RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                Children = new Drawable[]
                 {
                     fillContainer = new FillFlowContainer
                     {
@@ -153,6 +159,38 @@ namespace osu.Framework.VisualTests.Tests
                         AutoSizeAxes = Axes.None,
                         Direction = dir,
                         Spacing = spacing,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(3, 1),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(3, 1),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.X,
+                        Size = new Vector2(1, 3),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.X,
+                        Size = new Vector2(1, 3),
+                        Colour = Color4.HotPink,
                     }
                 }
             });
@@ -216,11 +254,6 @@ namespace osu.Framework.VisualTests.Tests
                         child.ScaleTo(1f, 1000);
                 }
             });
-
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopRight, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomRight, this), Origin = Anchor.Centre });
 
             AddToggleStep("Stop adding children", state => { addChildren = state; });
 
