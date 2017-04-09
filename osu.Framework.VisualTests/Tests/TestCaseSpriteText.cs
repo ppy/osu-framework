@@ -1,6 +1,8 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK.Graphics;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -35,6 +37,25 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
+            flow.Add(new Container
+            {
+                Width = 350,
+                AutoSizeAxes = Axes.Y,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.White.Opacity(0.25f),
+                    },
+                    new Paragraph
+                    {
+                        Text = "the considerably swift vermilion reynard bounds above the slothful mahogany hound.\n\n\n\n\n\nTHE CONSIDERABLY SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\n\nI'm a paragraph, newlines are cool",
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    }
+                }
+            });
             flow.Add(new SpriteText
             {
                 Text = @"the quick red fox jumps over the lazy brown dog"
