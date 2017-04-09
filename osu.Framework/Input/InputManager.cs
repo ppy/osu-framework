@@ -110,7 +110,7 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            var pendingStates = splitInputStates(GetPendingStates()).ToArray();
+            var pendingStates = createDistinctInputStates(GetPendingStates()).ToArray();
 
             unfocusIfNoLongerValid(CurrentState);
 
@@ -168,16 +168,20 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Ensure 
+        /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
+        /// main loop in<see cref="updateInputQueues(InputState)"/> after each and every button or key change. This allows 
+        /// correct behaviour in a case where the input queues change based on triggered by a button or key.
         /// </summary>
-        /// <param name="pendingStates"></param>
-        /// <returns></returns>
-        private IEnumerable<InputState> splitInputStates(List<InputState> pendingStates)
+        /// <param name="states">A list of <see cref="InputState"/>s</param>
+        /// <returns>Processed states such that at most one button change occurs between any two consecutive states.</returns>
+        private IEnumerable<InputState> createDistinctInputStates(List<InputState> states)
         {
             InputState last = CurrentState;
 
-            foreach (var i in pendingStates)
+            foreach (var i in states)
             {
+                //first we want to create a copy of ourselves without any button changes
+                //we do this by updating our buttons to the state of the last frame.
                 var iWithoutButtons = i.Clone();
 
                 var iHasMouse = iWithoutButtons.Mouse != null;
@@ -190,9 +194,11 @@ namespace osu.Framework.Input
                 if (iHasKeyboard)
                     iWithoutButtons.Keyboard.Keys = last.Keyboard?.Keys ?? new Key[] { };
 
+                //we start by adding this state to the processed list...
                 yield return iWithoutButtons;
                 last = iWithoutButtons;
 
+                //and then iterate over each button/key change, adding intermediate states along the way.
                 if (iHasMouse)
                 {
                     for (MouseButton b = 0; b < MouseButton.LastButton; b++)
