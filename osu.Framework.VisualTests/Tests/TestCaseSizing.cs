@@ -167,7 +167,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box, 10, Color4.YellowGreen);
 
-                    for (int i = 0; i < 100; i++)
+                    for (int i = 0; i < 50; i++)
                     {
                         box.Add(box = new InfofulBoxAutoSize
                         {
@@ -928,17 +928,26 @@ namespace osu.Framework.VisualTests.Tests
 
     internal class InfofulBoxAutoSize : Container
     {
+        protected override Container<Drawable> Content { get; }
+
         public InfofulBoxAutoSize()
         {
             AutoSizeAxes = Axes.Both;
 
             Masking = true;
 
-            Add(new Box
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Depth = float.MaxValue,
-            });
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Depth = float.MaxValue,
+                },
+                Content = new Container
+                {
+                    AutoSizeAxes = Axes.Both,
+                }
+            };
         }
 
         public bool AllowDrag = true;

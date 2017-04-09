@@ -14,9 +14,11 @@ namespace osu.Framework.Configuration
 
         public bool Disabled;
 
+        public delegate void BindableValueChanged<in TValue>(TValue newValue);
+
         public virtual bool IsDefault => Equals(value, Default);
 
-        public event EventHandler ValueChanged;
+        public event BindableValueChanged<T> ValueChanged;
 
         public virtual T Value
         {
@@ -80,7 +82,7 @@ namespace osu.Framework.Configuration
 
         public void TriggerChange()
         {
-            ValueChanged?.Invoke(this, null);
+            ValueChanged?.Invoke(value);
 
             foreach (var w in bindings.ToArray())
             {

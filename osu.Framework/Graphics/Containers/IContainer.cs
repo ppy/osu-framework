@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.Containers
         void InvalidateFromChild(Invalidation invalidation);
 
         void Clear(bool dispose = true);
+
+        Axes AutoSizeAxes { get; set; }
     }
 
     public interface IContainerEnumerable<out T> : IContainer

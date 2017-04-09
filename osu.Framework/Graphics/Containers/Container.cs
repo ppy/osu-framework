@@ -8,6 +8,7 @@ using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -16,7 +17,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
-using osu.Framework.Graphics.Sprites;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -56,23 +57,36 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
+        private Game game;
+
+        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, Clock, onLoaded);
+
         [BackgroundDependencyLoader(true)]
         private void load(Game game, ShaderManager shaders)
         {
+            this.game = game;
+
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
 
-            internalChildren.LoadRequested += i =>
-            {
-                i.Load(game);
-                i.Parent = this;
-            };
+            // From now on, since we ourself are loaded now,
+            // we actually permit children to be loaded if our
+            // lifetimelist (internalChildren) requests a load.
+            internalChildren.LoadRequested += loadChild;
 
-            if (pendingChildren != null)
-            {
-                AddInternal(pendingChildren);
-                pendingChildren = null;
-            }
+            // We are in a potentially async context, so let's aggressively load all our children
+            // regardless of their alive state. this also gives children a clock so they can be checked
+            // for their correct alive state in the case LifetimeStart is set to a definite value.
+            internalChildren.ForEach(loadChild);
+
+            // Let's also perform an update on our LifetimeList to add any alive children.
+            internalChildren.Update(Clock.TimeInfo);
+        }
+
+        private void loadChild(T child)
+        {
+            child.Load(game, Clock);
+            child.Parent = this;
         }
 
         protected override void Dispose(bool isDisposing)
@@ -97,12 +111,6 @@ namespace osu.Framework.Graphics.Containers
         /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
         /// </summary>
         protected virtual Container<T> Content => this;
-
-        /// <summary>
-        /// We only want to add to <see cref="internalChildren"/> once we are loaded.
-        /// This list holds children-to-be-added until we are loaded.
-        /// </summary>
-        private List<T> pendingChildren;
 
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
@@ -246,8 +254,6 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            pendingChildren?.Clear();
-
             foreach (T t in internalChildren)
             {
                 if (disposeChildren)
@@ -278,19 +284,10 @@ namespace osu.Framework.Graphics.Containers
             if (drawable == this)
                 throw new InvalidOperationException("Container may not be added to itself.");
 
-            if (LoadState == LoadState.NotLoaded)
-            {
-                if (pendingChildren == null)
-                    pendingChildren = new List<T>();
-                pendingChildren.Add(drawable);
-            }
-            else
-            {
-                if (drawable.IsLoaded)
-                    drawable.Parent = this;
+            if (drawable.IsLoaded)
+                drawable.Parent = this;
 
-                internalChildren.Add(drawable);
-            }
+            internalChildren.Add(drawable);
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry);
@@ -889,6 +886,10 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public EasingTypes AutoSizeEasing;
 
+        /// <summary>
+        /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
+        /// This event will fire after our <see cref="Size"/> is updated from autosizing.
+        /// </summary>
         internal event Action OnAutoSize;
 
         private Cached childrenSizeDependencies = new Cached();

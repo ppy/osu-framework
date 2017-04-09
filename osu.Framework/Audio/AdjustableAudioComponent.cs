@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
@@ -58,12 +57,12 @@ namespace osu.Framework.Audio
             Frequency.ValueChanged += InvalidateState;
         }
 
-        internal void InvalidateState(object sender = null, EventArgs e = null)
+        internal void InvalidateState(double newValue = 0)
         {
-            PendingActions.Enqueue(() => OnStateChanged(this, null));
+            PendingActions.Enqueue(OnStateChanged);
         }
 
-        internal virtual void OnStateChanged(object sender, EventArgs e)
+        internal virtual void OnStateChanged()
         {
             VolumeCalculated.Value = volumeAdjustments.Aggregate(Volume.Value, (current, adj) => current * adj);
             BalanceCalculated.Value = balanceAdjustments.Aggregate(Balance.Value, (current, adj) => current + adj);

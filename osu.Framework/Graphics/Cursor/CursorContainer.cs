@@ -15,6 +15,9 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool BlockPassThroughInput => false;
 
+        //OverlayContainer tried to be smart about this, but we don't want none of that.
+        public override bool HandleInput => IsPresent;
+
         protected override bool HideOnEscape => false;
 
         public CursorContainer()

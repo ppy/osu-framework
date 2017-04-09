@@ -110,8 +110,8 @@
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
-    <Compile Include="Graphics\Containers\AsyncLoadContainer.cs" />
-    <Compile Include="Graphics\Containers\DelayedLoadContainer.cs" />
+    <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
+    <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
@@ -206,7 +206,6 @@
     <Compile Include="Configuration\BindableInt.cs" />
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
-    <Compile Include="Configuration\IValueChangedObservable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
     <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />

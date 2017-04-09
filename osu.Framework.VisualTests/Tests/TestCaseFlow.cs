@@ -14,6 +14,7 @@ using osu.Framework.Testing;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -102,12 +103,16 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            selectionDropdown.SelectedValue.ValueChanged += (o, e) =>
+            selectionDropdown.SelectedValue.ValueChanged += newValue =>
             {
-                current = selectionDropdown.SelectedValue;
+                if (current == newValue)
+                    return;
+
+                current = newValue;
                 Reset();
             };
 
+            selectionDropdown.SelectedValue.Value = current;
             changeTest(current);
         }
 
@@ -145,7 +150,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 Padding = new MarginPadding(25f),
                 RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                Children = new Drawable[]
                 {
                     fillContainer = new FillFlowContainer
                     {
@@ -153,6 +158,38 @@ namespace osu.Framework.VisualTests.Tests
                         AutoSizeAxes = Axes.None,
                         Direction = dir,
                         Spacing = spacing,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(3, 1),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.Y,
+                        Size = new Vector2(3, 1),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.X,
+                        Size = new Vector2(1, 3),
+                        Colour = Color4.HotPink,
+                    },
+                    new Box
+                    {
+                        Anchor = Anchor.BottomCentre,
+                        Origin = Anchor.Centre,
+                        RelativeSizeAxes = Axes.X,
+                        Size = new Vector2(1, 3),
+                        Colour = Color4.HotPink,
                     }
                 }
             });
@@ -216,11 +253,45 @@ namespace osu.Framework.VisualTests.Tests
                         child.ScaleTo(1f, 1000);
                 }
             });
-
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.TopRight, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomLeft, this), Origin = Anchor.Centre });
-            Add(new Box { Colour = Color4.HotPink, Width = 3, Height = 3, Position = Content.ToSpaceOfOtherDrawable(fillContainer.BoundingBox.BottomRight, this), Origin = Anchor.Centre });
+            AddToggleStep("Randomly scale children", state =>
+            {
+                if (state)
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.ScaleTo(RNG.NextSingle(1, 2), 1000);
+                }
+                else
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.ScaleTo(1f, 1000);
+                }
+            });
+            AddToggleStep("Randomly set child origins", state =>
+            {
+                if (state)
+                {
+                    foreach (var child in fillContainer.Children)
+                    {
+                        switch (RNG.Next(9))
+                        {
+                            case 0: child.Origin = Anchor.TopLeft; break;
+                            case 1: child.Origin = Anchor.TopCentre; break;
+                            case 2: child.Origin = Anchor.TopRight; break;
+                            case 3: child.Origin = Anchor.CentreLeft; break;
+                            case 4: child.Origin = Anchor.Centre; break;
+                            case 5: child.Origin = Anchor.CentreRight; break;
+                            case 6: child.Origin = Anchor.BottomLeft; break;
+                            case 7: child.Origin = Anchor.BottomCentre; break;
+                            case 8: child.Origin = Anchor.BottomRight; break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var child in fillContainer.Children)
+                        child.Origin = originDropdown.SelectedValue;
+                }
+            });
 
             AddToggleStep("Stop adding children", state => { addChildren = state; });
 

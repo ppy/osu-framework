@@ -361,7 +361,7 @@ namespace osu.Framework.Platform
 
             game.SetHost(this);
 
-            root.Load(game);
+            root.Load(game, game.Clock);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;

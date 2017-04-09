@@ -59,7 +59,8 @@ namespace osu.Framework.Graphics.UserInterface
                 foreach (var entry in value)
                     AddDropdownItem(entry.Key, entry.Value);
 
-                refreshSelection(null, null);
+                selectionChanged();
+
                 if (SelectedItem == null)
                     SelectedItem = MenuItems.FirstOrDefault();
             }
@@ -114,7 +115,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Header.Action = DropdownMenu.Toggle;
-            SelectedValue.ValueChanged += refreshSelection;
+            SelectedValue.ValueChanged += selectionChanged;
         }
 
         protected override void LoadComplete()
@@ -124,13 +125,13 @@ namespace osu.Framework.Graphics.UserInterface
             Header.Label = SelectedItem?.Text;
         }
 
-        private void refreshSelection(object sender, EventArgs e)
+        private void selectionChanged(T newSelection = default(T))
         {
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
-            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, SelectedValue.Value))
-                && SelectedValue.Value != null)
-                itemMap.TryGetValue(SelectedValue.Value, out selectedItem);
+            if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
+                && newSelection != null)
+                itemMap.TryGetValue(newSelection, out selectedItem);
 
             Header.Label = SelectedItem?.Text;
         }

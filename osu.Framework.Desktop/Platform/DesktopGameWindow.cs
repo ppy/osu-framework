@@ -66,9 +66,9 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        private void mode_ValueChanged(object sender, EventArgs e)
+        private void mode_ValueChanged(WindowMode newMode)
         {
-            switch (mode.Value)
+            switch (newMode)
             {
                 case WindowMode.Fullscreen:
                     DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);

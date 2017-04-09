@@ -78,8 +78,7 @@ namespace osu.Framework.Lists
 
         public new int Add(T item)
         {
-            if (item.IsAlive && !item.IsLoaded)
-                LoadRequested?.Invoke(item);
+            LoadRequested?.Invoke(item);
 
             int i = base.Add(item);
             current.Insert(i, false);
