@@ -37,7 +37,9 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            flow.Add(new Container
+            Container paragraphContainer;
+            Paragraph paragraph;
+            flow.Add(paragraphContainer = new Container
             {
                 Width = 350,
                 AutoSizeAxes = Axes.Y,
@@ -48,9 +50,10 @@ namespace osu.Framework.VisualTests.Tests
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.White.Opacity(0.25f),
                     },
-                    new Paragraph
+                    paragraph = new Paragraph
                     {
-                        Text = "the considerably swift vermilion reynard bounds above the slothful mahogany hound.\n\n\n\n\n\nTHE CONSIDERABLY SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\n\nI'm a paragraph, newlines are cool",
+                        HeaderIndent = 5,
+                        BodyIndent = 10,
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                     }
@@ -79,6 +82,16 @@ namespace osu.Framework.VisualTests.Tests
 
                 flow.Add(text);
             }
+
+            paragraph.AddText(@"the considerably swift vermilion reynard bounds above the slothful mahogany hound.", t => t.Colour = Color4.Yellow);
+            paragraph.AddText("\n\n\n\n\n\nTHE CONSIDERABLY SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
+            paragraph.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
+            paragraph.AddText("\n\nI'm a paragraph, newlines are cool", t => t.Colour = Color4.Beige);
+
+            AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 200f; });
+            AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 500f; });
+            AddStep(@"header inset", () => { paragraph.HeaderIndent += 2; });
+            AddStep(@"body inset", () => { paragraph.BodyIndent += 4; });
         }
     }
 }
