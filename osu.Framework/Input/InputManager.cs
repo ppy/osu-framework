@@ -188,7 +188,7 @@ namespace osu.Framework.Input
                         iWithoutButtons.Mouse.SetPressed(b, last.Mouse?.IsPressed(b) ?? false);
 
                 if (iHasKeyboard)
-                    iWithoutButtons.Keyboard.Keys = last.Keyboard.Keys;
+                    iWithoutButtons.Keyboard.Keys = last.Keyboard?.Keys ?? new Key[] { };
 
                 yield return iWithoutButtons;
                 last = iWithoutButtons;
