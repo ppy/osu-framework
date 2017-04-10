@@ -37,16 +37,17 @@ namespace osu.Framework.VisualTests.Tests
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
-                Value = sliderBarValue,
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
                 KeyboardStep = 1
             };
 
+            sliderBar.Current.BindTo(sliderBarValue);
+
             Add(sliderBar);
             Add(sliderbarText);
 
-            Add(new BasicSliderBar<double>
+            Add(sliderBar = new BasicSliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 RangePadding = 20,
@@ -54,8 +55,9 @@ namespace osu.Framework.VisualTests.Tests
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
                 KeyboardStep = 1,
-                Value = sliderBarValue,
             });
+
+            sliderBar.Current.BindTo(sliderBarValue);
         }
 
         private void sliderBarValueChanged(double newValue)

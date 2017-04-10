@@ -9,13 +9,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public abstract class Checkbox : Container, IHasCurrentValue<bool>
     {
-        private readonly Bindable<bool> current = new Bindable<bool>();
-
-        public Bindable<bool> Current
-        {
-            get { return current; }
-            set { current.BindTo(value); }
-        }
+        public Bindable<bool> Current { get; } = new Bindable<bool>();
 
         protected override bool OnClick(InputState state)
         {

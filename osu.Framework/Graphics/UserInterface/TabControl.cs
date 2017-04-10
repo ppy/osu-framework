@@ -22,21 +22,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
     public abstract class TabControl<T> : Container, IHasCurrentValue<T>
     {
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        /// <summary>
-        /// The currently selected item.
-        /// </summary>
-        public Bindable<T> Current
-        {
-            get { return current; }
-            set
-            {
-                current.BindTo(value);
-                if (value?.Disabled ?? true)
-                    Alpha = 0.3f;
-            }
-        }
+        public Bindable<T> Current { get; } = new Bindable<T>();
 
         /// <summary>
         /// A list of items currently in the tab control in the other they are dispalyed.
@@ -92,7 +78,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.Current = Current;
+                Dropdown.Current.BindTo(Current);
 
                 Add(Dropdown);
 
