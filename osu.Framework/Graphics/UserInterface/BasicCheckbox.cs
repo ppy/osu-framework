@@ -35,11 +35,12 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private readonly Box box;
         private readonly SpriteText labelSpriteText;
 
         public BasicCheckbox()
         {
+            Box box;
+
             AutoSizeAxes = Axes.Both;
 
             Children = new Drawable[]
@@ -65,10 +66,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
             };
+
+            Current.ValueChanged += c => box.FadeColour(c ? CheckedColor : UncheckedColor, FadeDuration);
         }
-
-        protected override void OnUnchecked() => box.FadeColour(UncheckedColor, FadeDuration);
-
-        protected override void OnChecked() => box.FadeColour(CheckedColor, FadeDuration);
     }
 }

@@ -51,16 +51,9 @@ namespace osu.Framework.VisualTests.Tests
 
     public class ActionsTestCheckbox : BasicCheckbox
     {
-        protected override void OnChecked()
+        public ActionsTestCheckbox()
         {
-            base.OnChecked();
-            RotateTo(45, 100);
-        }
-
-        protected override void OnUnchecked()
-        {
-            base.OnUnchecked();
-            RotateTo(0, 100);
+            Current.ValueChanged += v => RotateTo(v ? 45 : 0, 100);
         }
     }
 }

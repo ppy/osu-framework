@@ -55,10 +55,10 @@ namespace osu.Framework.VisualTests.Tests
             AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children.Skip(13).First().TriggerClick());
 
             AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdownMenu.SelectedValue == styledDropdownMenu.Items.Skip(13).First().Value);
+            AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.Skip(13).First().Value);
 
-            AddStep("select item 15", () => styledDropdownMenu.SelectedValue.Value = styledDropdownMenu.Items.Skip(15).First().Value);
-            AddAssert("item 15 is selected", () => styledDropdownMenu.SelectedValue == styledDropdownMenu.Items.Skip(15).First().Value);
+            AddStep("select item 15", () => styledDropdownMenu.Current.Value = styledDropdownMenu.Items.Skip(15).First().Value);
+            AddAssert("item 15 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.Skip(15).First().Value);
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdownMenu));
             AddAssert("dropdown1 is open", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Opened);

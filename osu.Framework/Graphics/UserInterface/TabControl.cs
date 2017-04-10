@@ -20,12 +20,23 @@ namespace osu.Framework.Graphics.UserInterface
     /// start of the list.
     /// </summary>
     /// <typeparam name="T">The type of item to be represented by tabs.</typeparam>
-    public abstract class TabControl<T> : Container
+    public abstract class TabControl<T> : Container, IHasCurrentValue<T>
     {
+        private readonly Bindable<T> current = new Bindable<T>();
+
         /// <summary>
         /// The currently selected item.
         /// </summary>
-        public readonly Bindable<T> SelectedItem = new Bindable<T>();
+        public Bindable<T> Current
+        {
+            get { return current; }
+            set
+            {
+                current.BindTo(value);
+                if (value?.Disabled ?? true)
+                    Alpha = 0.3f;
+            }
+        }
 
         /// <summary>
         /// A list of items currently in the tab control in the other they are dispalyed.
@@ -81,7 +92,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown.RelativeSizeAxes = Axes.X;
                 Dropdown.Anchor = Anchor.TopRight;
                 Dropdown.Origin = Anchor.TopRight;
-                Dropdown.SelectedValue.ValueChanged += delegate { tabMap[Dropdown.SelectedValue].Active = true; };
+                Dropdown.Current = Current;
 
                 Add(Dropdown);
 
@@ -104,13 +115,13 @@ namespace osu.Framework.Graphics.UserInterface
                 Children = tabMap.Values
             });
 
-            SelectedItem.ValueChanged += newSelection =>
+            Current.ValueChanged += newSelection =>
             {
                 if (IsLoaded)
-                    selectTab(tabMap[SelectedItem]);
+                    selectTab(tabMap[Current]);
                 else
                     //will be handled in LoadComplete
-                    SelectedTab = tabMap[SelectedItem];
+                    SelectedTab = tabMap[Current];
             };
         }
 
@@ -206,7 +217,7 @@ namespace osu.Framework.Graphics.UserInterface
             SelectedTab = tab;
             SelectedTab.Active = true;
 
-            SelectedItem.Value = SelectedTab.Value;
+            Current.Value = SelectedTab.Value;
         }
 
         private void resortTab(TabItem<T> tab)
