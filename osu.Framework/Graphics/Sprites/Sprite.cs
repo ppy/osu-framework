@@ -118,39 +118,5 @@ namespace osu.Framework.Graphics.Sprites
                 result += $" tex: {texture?.AssetName}";
             return result;
         }
-
-        public FillMode FillMode { get; set; }
-
-        protected override Vector2 DrawScale
-        {
-            get
-            {
-                Vector2 modifier = Vector2.One;
-                Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
-
-                switch (FillMode)
-                {
-                    case FillMode.Fill:
-                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Fit:
-                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Stretch:
-                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
-                        break;
-                }
-
-                return base.DrawScale * modifier;
-            }
-        }
-    }
-
-    public enum FillMode
-    {
-        None,
-        Fill,
-        Fit,
-        Stretch
     }
 }

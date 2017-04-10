@@ -729,9 +729,39 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// The method to use to fill this drawable's parent space.
+        /// </summary>
+        public FillMode FillMode { get; set; }
+
+        /// <summary>
         /// Relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
-        protected virtual Vector2 DrawScale => Scale;
+        protected virtual Vector2 DrawScale
+        {
+            get
+            {
+                if (FillMode == FillMode.None)
+                    return Scale;
+
+                Vector2 modifier = Vector2.One;
+                Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
+
+                switch (FillMode)
+                {
+                    case FillMode.Fill:
+                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
+                        break;
+                    case FillMode.Fit:
+                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
+                        break;
+                    case FillMode.Stretch:
+                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
+                        break;
+                }
+
+                return Scale * modifier;
+            }
+        }
 
         private Vector2 shear = Vector2.Zero;
 
@@ -2127,5 +2157,25 @@ namespace osu.Framework.Graphics
         Loading,
         Loaded,
         Alive
+    }
+
+    public enum FillMode
+    {
+        /// <summary>
+        /// This drawable shouldn't automatically fill its parent space.
+        /// </summary>
+        None,
+        /// <summary>
+        /// This drawable should be scaled to fill its parent space while maintaining aspect ratio.
+        /// </summary>
+        Fill,
+        /// <summary>
+        /// This drawable should be scaled to fit inside the dimensions of its parent space while maintaining aspect ratio.
+        /// </summary>
+        Fit,
+        /// <summary>
+        /// This drawable should stretch to fill its parent space.
+        /// </summary>
+        Stretch
     }
 }
