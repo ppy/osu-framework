@@ -40,11 +40,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private readonly BindableNumber<T> current;
 
-        public Bindable<T> Current
-        {
-            get { return current; }
-            set { current.BindTo(value); }
-        }
+        public Bindable<T> Current => current;
 
         protected SliderBar()
         {

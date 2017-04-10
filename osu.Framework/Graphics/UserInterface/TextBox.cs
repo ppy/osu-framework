@@ -402,13 +402,7 @@ namespace osu.Framework.Graphics.UserInterface
             set { Placeholder.Text = value; }
         }
 
-        private readonly Bindable<string> current = new Bindable<string>();
-
-        public Bindable<string> Current
-        {
-            get { return current; }
-            set { current.BindTo(value); }
-        }
+        public Bindable<string> Current { get; } = new Bindable<string>();
 
         private string text = string.Empty;
 

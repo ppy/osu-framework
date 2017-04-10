@@ -88,13 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         // TODO: RemoveDropdownItem?
 
-        private readonly Bindable<T> current = new Bindable<T>();
-
-        public Bindable<T> Current
-        {
-            get { return current; }
-            set { current.BindTo(value); }
-        }
+        public Bindable<T> Current { get; } = new Bindable<T>();
 
         private DropdownMenuItem<T> selectedItem;
 
