@@ -17,12 +17,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                if (!Enabled)
-                    return false;
-                return selected;
+                return Enabled && selected;
             }
             set
             {
+                if (selected == value) return;
+
                 selected = value;
                 OnSelectChange();
             }

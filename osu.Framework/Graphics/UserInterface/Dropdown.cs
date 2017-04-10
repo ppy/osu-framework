@@ -133,13 +133,20 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void selectionChanged(T newSelection = default(T))
         {
+            foreach (var i in MenuItems)
+                i.IsSelected = false;
+
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
                 itemMap.TryGetValue(newSelection, out selectedItem);
 
-            Header.Label = SelectedItem?.Text;
+            if (SelectedItem != null)
+            {
+                Header.Label = SelectedItem.Text;
+                SelectedItem.IsSelected = true;
+            }
         }
 
         /// <summary>
