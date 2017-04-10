@@ -1641,9 +1641,12 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            var state = screenSpaceState.Clone();
-            state.Mouse = new LocalMouseState(screenSpaceState.Mouse, this);
-            return state;
+            return new InputState
+            {
+                Keyboard = screenSpaceState.Keyboard,
+                Mouse = new LocalMouseState(screenSpaceState.Mouse, this),
+                Last = screenSpaceState.Last
+            };
         }
 
         /// <summary>
@@ -1691,9 +1694,6 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public bool BackButton => NativeState.BackButton;
-            public bool ForwardButton => NativeState.ForwardButton;
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
@@ -1702,13 +1702,17 @@ namespace osu.Framework.Graphics
 
             public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-            public bool LeftButton => NativeState.LeftButton;
-            public bool MiddleButton => NativeState.MiddleButton;
-            public bool RightButton => NativeState.RightButton;
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+
+            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+
+            public IMouseState Clone()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

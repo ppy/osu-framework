@@ -9,7 +9,7 @@ namespace osu.Framework.Input
 {
     public class KeyboardState : IKeyboardState
     {
-        public IEnumerable<Key> Keys { get; protected set; } = new Key[] { };
+        public IEnumerable<Key> Keys { get; set; } = new Key[] { };
 
         public bool ControlPressed => Keys.Any(k => k == Key.LControl || k == Key.RControl);
         public bool AltPressed => Keys.Any(k => k == Key.LAlt || k == Key.RAlt);
@@ -20,7 +20,7 @@ namespace osu.Framework.Input
         /// </summary>
         public bool SuperPressed => Keys.Any(k => k == Key.LWin || k == Key.RWin);
 
-        public KeyboardState Clone()
+        public IKeyboardState Clone()
         {
             var clone = (KeyboardState)MemberwiseClone();
             clone.Keys = new List<Key>(Keys);

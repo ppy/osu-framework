@@ -1,9 +1,10 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
+using System;
 using OpenTK;
 using OpenTK.Input;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
@@ -11,13 +12,9 @@ namespace osu.Framework.Input
     {
         public IMouseState LastState;
 
-        public HashSet<MouseButton> PressedButtons = new HashSet<MouseButton>();
+        private const int mouse_button_count = (int)MouseButton.LastButton;
 
-        public bool LeftButton => PressedButtons.Contains(MouseButton.Left);
-        public bool RightButton => PressedButtons.Contains(MouseButton.Right);
-        public bool MiddleButton => PressedButtons.Contains(MouseButton.Middle);
-        public bool BackButton => PressedButtons.Contains(MouseButton.Button1);
-        public bool ForwardButton => PressedButtons.Contains(MouseButton.Button2);
+        public bool[] PressedButtons = new bool[mouse_button_count];
 
         public IMouseState NativeState => this;
 
@@ -25,9 +22,9 @@ namespace osu.Framework.Input
 
         public int Wheel { get; set; }
 
-        public bool HasMainButtonPressed => LeftButton || RightButton;
+        public bool HasMainButtonPressed => IsPressed(MouseButton.Left )|| IsPressed(MouseButton.Right);
 
-        public bool HasAnyButtonPressed => PressedButtons.Count > 0;
+        public bool HasAnyButtonPressed => PressedButtons.Any(b => b);
 
         public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
 
@@ -46,14 +43,19 @@ namespace osu.Framework.Input
                 PositionMouseDown = last.PositionMouseDown;
         }
 
-        public MouseState Clone()
+        public IMouseState Clone()
         {
             var clone = (MouseState)MemberwiseClone();
-            clone.PressedButtons = new HashSet<MouseButton>(PressedButtons);
+
+            clone.PressedButtons = new bool[mouse_button_count];
+            Array.Copy(PressedButtons, clone.PressedButtons, mouse_button_count);
+
             clone.LastState = null;
             return clone;
         }
 
-        public bool IsPressed(MouseButton button) => PressedButtons.Contains(button);
+        public bool IsPressed(MouseButton button) => PressedButtons[(int)button];
+
+        public void SetPressed(MouseButton button, bool pressed) => PressedButtons[(int)button] = pressed;
     }
 }
