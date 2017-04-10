@@ -16,11 +16,12 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
+using osu.Framework.Configuration;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class TextBox : TabbableContainer
+    public class TextBox : TabbableContainer, IHasCurrentValue<string>
     {
         protected FillFlowContainer TextFlow;
         protected Box Background;
@@ -58,7 +59,6 @@ namespace osu.Framework.Graphics.UserInterface
         public delegate void OnCommitHandler(TextBox sender, bool newText);
 
         public OnCommitHandler OnCommit;
-        public OnCommitHandler OnChange;
 
         private readonly Scheduler textUpdateScheduler = new Scheduler();
 
@@ -102,6 +102,8 @@ namespace osu.Framework.Graphics.UserInterface
                     },
                 },
             });
+
+            Current.ValueChanged += newValue => { Text = newValue; };
         }
 
         [BackgroundDependencyLoader]
@@ -114,7 +116,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (textInput != null)
             {
-                textInput.OnNewImeComposition += delegate(string s)
+                textInput.OnNewImeComposition += delegate (string s)
                 {
                     textUpdateScheduler.Add(() => onImeComposition(s));
                     cursorAndLayout.Invalidate();
@@ -135,7 +137,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override void Dispose(bool isDisposing)
         {
-            OnChange = null;
             OnCommit = null;
 
             unbindInput();
@@ -208,7 +209,8 @@ namespace osu.Framework.Graphics.UserInterface
                     }
                 }
 
-                OnChange?.Invoke(this, textAtLastLayout != text);
+                if (textAtLastLayout != text)
+                    Current.Value = text;
                 if (textAtLastLayout.Length == 0 || text.Length == 0)
                     Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
 
@@ -400,6 +402,14 @@ namespace osu.Framework.Graphics.UserInterface
             set { Placeholder.Text = value; }
         }
 
+        private readonly Bindable<string> current = new Bindable<string>();
+
+        public Bindable<string> Current
+        {
+            get { return current; }
+            set { current.BindTo(value); }
+        }
+
         private string text = string.Empty;
 
         public virtual string Text
@@ -415,7 +425,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Placeholder.FadeTo(value.Length == 0 ? 1 : 0);
 
                 if (!IsLoaded)
-                    text = value;
+                    Current.Value = text = value;
 
                 textUpdateScheduler.Add(delegate
                 {
