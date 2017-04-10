@@ -740,6 +740,9 @@ namespace osu.Framework.Graphics
         {
             get
             {
+                if (FillMode == FillMode.None)
+                    return Scale;
+
                 Vector2 modifier = Vector2.One;
                 Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
 
