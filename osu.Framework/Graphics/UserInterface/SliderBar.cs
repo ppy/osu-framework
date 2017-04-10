@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.UserInterface
             else if (typeof(T) == typeof(double))
                 current = new BindableDouble() as BindableNumber<T>;
 
-            Trace.Assert(current != null, $"We don't support the generic type of {nameof(BindableNumber<T>)}.");
+            if (current == null) throw new NotImplementedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
 
             current.ValueChanged += v => UpdateValue(NormalizedValue);
         }
