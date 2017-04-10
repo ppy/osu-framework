@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),
-                Value = sliderBarValue,
+                Current = sliderBarValue,
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
                 KeyboardStep = 1
@@ -54,7 +54,7 @@ namespace osu.Framework.VisualTests.Tests
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
                 KeyboardStep = 1,
-                Value = sliderBarValue,
+                Current = sliderBarValue,
             });
         }
 
