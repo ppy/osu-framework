@@ -30,12 +30,7 @@ namespace osu.Framework.Graphics.UserInterface
         public Bindable<T> Current
         {
             get { return current; }
-            set
-            {
-                current.BindTo(value);
-                if (value?.Disabled ?? true)
-                    Alpha = 0.3f;
-            }
+            set { current.BindTo(value); }
         }
 
         /// <summary>
