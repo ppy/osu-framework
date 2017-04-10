@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Containers;
 using System.Text.RegularExpressions;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
-using OpenTK;
 using System;
 
 namespace osu.Framework.Graphics.Sprites
@@ -80,16 +79,16 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool HandleInput => false;
 
-        //private float lastWidth;
+        private float lastWidth;
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
             //partially broken, not properly aligned for most when only running once a resize
             // todo: fix this ^
-            //if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
+            if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
             realignText();
-            //lastWidth = DrawWidth;
+            lastWidth = DrawWidth;
         }
 
         public void AddText(string text, Action<SpriteText> onCreate)
@@ -149,9 +148,10 @@ namespace osu.Framework.Graphics.Sprites
             List<Drawable> children = Children.ToList();
             for (int i = 0; i < children.Count; i++)
             {
+                Console.WriteLine($"{(children[i] as SpriteText)?.Text}: {children[i].Position.X}");
                 children[i].Margin = new MarginPadding
                 {
-                    Left = children[i].DrawPosition.X > 0 ? 0 : children.ElementAtOrDefault(i - 1) is Container ? HeaderIndent : BodyIndent,
+                    Left = children[i].Position.X > 0 || children[i] is Container ? 0 : children.ElementAtOrDefault(i - 1) is Container ? HeaderIndent : BodyIndent,
                 };
             }
         }
