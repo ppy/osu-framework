@@ -1872,6 +1872,8 @@ namespace osu.Framework.Graphics
         {
             Type type = transform.GetType();
 
+            double startTime = TransformStartTime;
+
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
             updateTransforms();
@@ -1879,8 +1881,6 @@ namespace osu.Framework.Graphics
             //foreach (ITransform t in Transforms.AliveItems)
             //    if (t.GetType() == type)
             //        t.Apply(this);
-
-            double startTime = TransformStartTime;
 
             TValue startValue = currentValue();
 
@@ -1890,6 +1890,16 @@ namespace osu.Framework.Graphics
 
                 if (startValue.Equals(newValue))
                     return;
+            }
+            else
+            {
+                var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
+                if (last != null)
+                {
+                    //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
+                    last.UpdateTime(new FrameTimeInfo { Current = startTime });
+                    startValue = last.CurrentValue;
+                }
             }
 
             transform.StartTime = startTime;
