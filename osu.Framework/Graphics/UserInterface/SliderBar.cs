@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
 
 		public Bindable<T> Current => current;
 
-		private bool PlaySound;
+		protected bool PlaySound;
 
 		protected SliderBar()
 		{
