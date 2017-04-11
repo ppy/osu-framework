@@ -602,7 +602,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+            TransformTo(() => EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
         }
 
         #endregion
@@ -1030,7 +1030,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Size, newSize, duration, easing, new TransformAutoSize());
+            TransformTo(() => Size, newSize, duration, easing, new TransformAutoSize());
         }
 
         /// <summary>

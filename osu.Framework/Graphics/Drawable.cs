@@ -1868,7 +1868,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
 
-        public void TransformTo<TValue>(TValue startValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
+        public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
             Type type = transform.GetType();
 
@@ -1882,13 +1882,7 @@ namespace osu.Framework.Graphics
 
             double startTime = TransformStartTime;
 
-            var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
-            if (last != null)
-            {
-                //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
-                last.UpdateTime(new FrameTimeInfo { Current = startTime });
-                startValue = last.CurrentValue;
-            }
+            TValue startValue = currentValue();
 
             if (transformDelay == 0)
             {
@@ -1957,12 +1951,12 @@ namespace osu.Framework.Graphics
 
         public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
+            TransformTo(() => Alpha, newAlpha, duration, easing, new TransformAlpha());
         }
 
         public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Rotation, newRotation, duration, easing, new TransformRotation());
+            TransformTo(() => Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
         public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1980,37 +1974,37 @@ namespace osu.Framework.Graphics
 
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position.X, destination, duration, easing, new TransformPositionX());
+            TransformTo(() => Position.X, destination, duration, easing, new TransformPositionX());
         }
 
         public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position.Y, destination, duration, easing, new TransformPositionY());
+            TransformTo(() => Position.Y, destination, duration, easing, new TransformPositionY());
         }
 
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+            TransformTo(() => Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Scale, newScale, duration, easing, new TransformScale());
+            TransformTo(() => Scale, newScale, duration, easing, new TransformScale());
         }
 
         public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+            TransformTo(() => Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Size, newSize, duration, easing, new TransformSize());
+            TransformTo(() => Size, newSize, duration, easing, new TransformSize());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position, newPosition, duration, easing, new TransformPosition());
+            TransformTo(() => Position, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -2020,7 +2014,7 @@ namespace osu.Framework.Graphics
 
         public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Colour, newColour, duration, easing, new TransformColour());
+            TransformTo(() => Colour, newColour, duration, easing, new TransformColour());
         }
 
         public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
