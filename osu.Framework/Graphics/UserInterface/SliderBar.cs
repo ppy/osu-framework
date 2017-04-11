@@ -41,9 +41,8 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly BindableNumber<T> current;
 
         public Bindable<T> Current => current;
-		PlaySound = false;
 
-		protected bool PlaySound;
+        protected bool PlaySound;
 
         protected SliderBar()
         {
@@ -84,9 +83,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
-			PlaySound = false;
+            PlaySound = false;
             UpdateValue(NormalizedValue);
-			PlaySound = true;
+            PlaySound = true;
         }
 
         protected override bool OnClick(InputState state)
