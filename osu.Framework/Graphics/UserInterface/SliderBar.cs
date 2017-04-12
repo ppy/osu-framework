@@ -24,19 +24,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         public float UsableWidth => DrawWidth - 2 * RangePadding;
 
-        private float keyboardStep;
-
-        public float KeyboardStep
-        {
-            get { return keyboardStep; }
-            set
-            {
-                keyboardStep = value;
-                stepInitialized = true;
-            }
-        }
-
-        private bool stepInitialized;
+        /// <summary>
+        /// A custom step value for each key press which actuates a change on this control.
+        /// </summary>
+        public float KeyboardStep;
 
         private readonly BindableNumber<T> current;
 
@@ -112,18 +103,19 @@ namespace osu.Framework.Graphics.UserInterface
         {
             if (!Hovering)
                 return false;
-            if (!stepInitialized)
-                KeyboardStep = (Convert.ToSingle(current.MaxValue) - Convert.ToSingle(current.MinValue)) / 20;
-            var step = KeyboardStep;
-            if (current.IsInteger)
-                step = (float)Math.Ceiling(step);
+
+            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(current.MaxValue) - Convert.ToSingle(current.MinValue)) / 20;
+            if (current.IsInteger) step = (float)Math.Ceiling(step);
+
             switch (args.Key)
             {
                 case Key.Right:
                     current.Add(step);
+                    OnUserChange();
                     return true;
                 case Key.Left:
                     current.Add(-step);
+                    OnUserChange();
                     return true;
                 default:
                     return false;
@@ -136,6 +128,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
             current.SetProportional(xPosition / UsableWidth);
+            OnUserChange();
         }
+
+        /// <summary>
+        /// Triggered when the value is changed based on end-user input to this control.
+        /// </summary>
+        protected virtual void OnUserChange() { }
     }
 }
