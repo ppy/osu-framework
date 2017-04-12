@@ -121,9 +121,11 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 case Key.Right:
                     current.Add(step);
+                    OnUserChange();
                     return true;
                 case Key.Left:
                     current.Add(-step);
+                    OnUserChange();
                     return true;
                 default:
                     return false;
@@ -136,6 +138,12 @@ namespace osu.Framework.Graphics.UserInterface
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
             current.SetProportional(xPosition / UsableWidth);
+            OnUserChange();
         }
+
+        /// <summary>
+        /// Triggered when the value is changed based on end-user input to this control.
+        /// </summary>
+        protected virtual void OnUserChange() { }
     }
 }
