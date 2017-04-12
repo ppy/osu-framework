@@ -225,7 +225,7 @@ namespace osu.Framework.Graphics.Containers
             childrenUpdateVersion = updateVersion;
         }
 
-        protected override bool RequiresChildrenUpdate => childrenUpdateVersion != updateVersion;
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
 
         public override DrawInfo DrawInfo
         {
