@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : Container
+    public class InputManager : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
