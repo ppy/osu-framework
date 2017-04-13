@@ -31,12 +31,12 @@ namespace osu.Framework.Graphics
     /// <summary>
     /// Drawables are the basic building blocks of a scene graph in this framework.
     /// Anything that is visible or that the user interacts with has to be a Drawable.
-    /// 
+    ///
     /// For example:
     ///  - Boxes
     ///  - Sprites
     ///  - Collections of Drawables
-    /// 
+    ///
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>

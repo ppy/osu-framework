@@ -116,7 +116,7 @@ namespace osu.Framework.Screens
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (args.Repeat) return false;
+            if (args.Repeat || !IsCurrentScreen) return false;
 
             switch (args.Key)
             {
