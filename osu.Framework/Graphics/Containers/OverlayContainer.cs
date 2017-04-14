@@ -87,8 +87,10 @@ namespace osu.Framework.Graphics.Containers
                     return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return BlockPassThroughInput;
         }
+
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughInput;
     }
 
     public enum Visibility
