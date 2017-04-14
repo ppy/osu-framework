@@ -9,7 +9,7 @@ namespace osu.Framework.Input
     /// <summary>
     /// Smooths cursor input to relevant nodes and corners that noticably affect the cursor path.
     /// If the input is a raw/HD input this will return true for every corner.
-    /// Set SmoothHDInput to true to keep behaviour for HD inputs.
+    /// Set SmoothRawInput to true to keep behaviour for HD inputs.
     /// </summary>
     public class InputSmoother
     {
@@ -17,15 +17,15 @@ namespace osu.Framework.Input
 
         private Vector2? lastActualPosition;
 
-        private bool isHDInput = false;
+        private bool isRawInput;
 
-        public bool SmoothHDInput { get; set; }
+        public bool SmoothRawInput { get; set; }
 
         public bool AddPosition(Vector2 position)
         {
-            if (!SmoothHDInput)
+            if (!SmoothRawInput)
             {
-                if (isHDInput)
+                if (isRawInput)
                 {
                     lastRelevantPosition = position;
                     lastActualPosition = position;
@@ -34,10 +34,10 @@ namespace osu.Framework.Input
 
                 // HD if it has fractions
                 if (position.X - (float) Math.Truncate(position.X) != 0)
-                    isHDInput = true;
+                    isRawInput = true;
             }
 
-            if (lastRelevantPosition == null)
+            if (lastRelevantPosition == null || lastActualPosition == null)
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
