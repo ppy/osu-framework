@@ -79,6 +79,8 @@ namespace osu.Framework.Input
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
+        public List<Drawable> HoveredDrawables => hoveredDrawables;
+
         public InputManager()
         {
             RelativeSizeAxes = Axes.Both;
