@@ -280,6 +280,7 @@
     <Compile Include="Input\KeyboardState.cs" />
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
+    <Compile Include="Input\InputSmoother.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
