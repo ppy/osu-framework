@@ -51,45 +51,42 @@ namespace osu.Framework.Threading
         /// <returns>true if any tasks were run.</returns>
         public int Update()
         {
-            //purge any waiting timed tasks to the main schedulerQueue.
+            long currentTime = timer.ElapsedMilliseconds;
+
             lock (timedTasks)
             {
-                long currentTime = timer.ElapsedMilliseconds;
-                ScheduledDelegate sd;
-
-                while (timedTasks.Count > 0 && (sd = timedTasks[0]).WaitTime <= currentTime)
+                if (timedTasks.Count > 0)
                 {
-                    timedTasks.RemoveAt(0);
-                    if (sd.Cancelled) continue;
-
-                    schedulerQueue.Enqueue(sd.RunTask);
-
-                    if (sd.RepeatInterval > 0)
+                    foreach (var sd in timedTasks.FindAll(t => t.ExecutionTime <= currentTime))
                     {
-                        if (timedTasks.Count < 1000)
-                            sd.WaitTime += sd.RepeatInterval;
-                        // This should never ever happen... but if it does, let's not overflow on queued tasks.
-                        else
+                        timedTasks.Remove(sd);
+
+                        if (sd.Cancelled) break;
+
+                        schedulerQueue.Enqueue(sd.RunTask);
+
+                        if (sd.RepeatInterval >= 0)
                         {
-                            Debug.Print("Timed tasks are overflowing. Can not keep up with periodic tasks.");
-                            sd.WaitTime = timer.ElapsedMilliseconds + sd.RepeatInterval;
+                            if (timedTasks.Count > 1000)
+                                throw new OverflowException("Too many timed tasks are in the queue!");
+
+                            sd.ExecutionTime += sd.RepeatInterval;
+                            timedTasks.AddInPlace(sd);
                         }
-
-                        timedTasks.AddInPlace(sd);
                     }
                 }
+            }
 
-                for (int i = 0; i < perUpdateTasks.Count; i++)
+            for (int i = 0; i < perUpdateTasks.Count; i++)
+            {
+                ScheduledDelegate task = perUpdateTasks[i];
+                if (task.Cancelled)
                 {
-                    ScheduledDelegate task = perUpdateTasks[i];
-                    if (task.Cancelled)
-                    {
-                        perUpdateTasks.RemoveAt(i--);
-                        continue;
-                    }
-
-                    schedulerQueue.Enqueue(task.RunTask);
+                    perUpdateTasks.RemoveAt(i--);
+                    continue;
                 }
+
+                schedulerQueue.Enqueue(task.RunTask);
             }
 
             int countRun = 0;
@@ -121,7 +118,7 @@ namespace osu.Framework.Threading
         /// <param name="task">The work to be done.</param>
         /// <param name="forceScheduled">If set to false, the task will be executed immediately if we are on the main thread.</param>
         /// <returns>Whether we could run without scheduling</returns>
-        public virtual bool Add(Action task, bool forceScheduled = true)
+        public bool Add(Action task, bool forceScheduled = true)
         {
             if (!forceScheduled && IsMainThread)
             {
@@ -135,7 +132,7 @@ namespace osu.Framework.Threading
             return false;
         }
 
-        public virtual bool Add(ScheduledDelegate task)
+        public bool Add(ScheduledDelegate task)
         {
             lock (timedTasks)
             {
@@ -197,9 +194,9 @@ namespace osu.Framework.Threading
 
     public class ScheduledDelegate : IComparable<ScheduledDelegate>
     {
-        public ScheduledDelegate(Action task, double waitTime, double repeatInterval = -1)
+        public ScheduledDelegate(Action task, double executionTime, double repeatInterval = -1)
         {
-            WaitTime = waitTime;
+            ExecutionTime = executionTime;
             RepeatInterval = repeatInterval;
             this.task = task;
         }
@@ -241,18 +238,18 @@ namespace osu.Framework.Threading
         }
 
         /// <summary>
-        /// Time before execution. Zero value will run instantly.
+        /// The earliest ElapsedTime value at which we can be executed.
         /// </summary>
-        public double WaitTime;
+        public double ExecutionTime;
 
         /// <summary>
-        /// Time between repeats of this task. -1 means no repeats.
+        /// Time in milliseconds between repeats of this task. -1 means no repeats.
         /// </summary>
         public double RepeatInterval;
 
         public int CompareTo(ScheduledDelegate other)
         {
-            return WaitTime == other.WaitTime ? -1 : WaitTime.CompareTo(other.WaitTime);
+            return ExecutionTime == other.ExecutionTime ? -1 : ExecutionTime.CompareTo(other.ExecutionTime);
         }
     }
 

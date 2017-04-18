@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : Container
+    public class InputManager : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -156,7 +156,7 @@ namespace osu.Framework.Input
             {
                 foreach (var d in mouseInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        d.TriggerMouseMove(CurrentState);
+                        if (d.TriggerMouseMove(CurrentState)) break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;

@@ -73,7 +73,16 @@ namespace osu.Framework.Configuration
             if (s is T)
                 Value = (T)s;
             else if (typeof(T).IsEnum && s is string)
-                Value = (T)Enum.Parse(typeof(T), (string)s);
+            {
+                try
+                {
+                    Value = (T)Enum.Parse(typeof(T), (string)s);
+                }
+                catch (ArgumentException)
+                {
+                    return false;
+                }
+            }
             else
                 return false;
 

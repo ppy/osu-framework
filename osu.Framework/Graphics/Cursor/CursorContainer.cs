@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Cursor
     {
         protected Drawable ActiveCursor;
 
-        protected override bool BlockPassThroughInput => false;
+        protected override bool BlockPassThroughMouse => false;
 
         //OverlayContainer tried to be smart about this, but we don't want none of that.
         public override bool HandleInput => IsPresent;
