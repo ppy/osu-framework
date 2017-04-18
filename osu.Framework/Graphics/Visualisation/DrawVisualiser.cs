@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Visualisation
             };
         }
 
-        protected override bool BlockPassThroughInput => false;
+        protected override bool BlockPassThroughMouse => false;
 
         protected override void PopIn()
         {
