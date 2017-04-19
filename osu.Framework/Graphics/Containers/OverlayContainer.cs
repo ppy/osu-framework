@@ -20,7 +20,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Whether we should block any mouse input from interacting with things behind us.
         /// </summary>
-        protected virtual bool BlockPassThroughInput => true;
+        protected virtual bool BlockPassThroughMouse => true;
+
+        /// <summary>
+        /// Whether we should block any keyboard input from interacting with things behind us.
+        /// </summary>
+        protected virtual bool BlockPassThroughKeyboard => false;
 
         protected override void LoadComplete()
         {
@@ -71,11 +76,11 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool HandleInput => State == Visibility.Visible;
 
-        protected override bool OnHover(InputState state) => BlockPassThroughInput;
+        protected override bool OnHover(InputState state) => BlockPassThroughMouse;
 
-        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughInput;
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args) => BlockPassThroughMouse;
 
-        protected override bool OnClick(InputState state) => BlockPassThroughInput;
+        protected override bool OnClick(InputState state) => BlockPassThroughMouse;
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
@@ -87,10 +92,10 @@ namespace osu.Framework.Graphics.Containers
                     return true;
             }
 
-            return BlockPassThroughInput;
+            return BlockPassThroughKeyboard;
         }
 
-        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughInput;
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args) => BlockPassThroughKeyboard;
     }
 
     public enum Visibility

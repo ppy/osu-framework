@@ -56,7 +56,15 @@ namespace osu.Framework.Configuration
             string str = s as string;
             if (str == null) return false;
 
-            Value = double.Parse(str, NumberFormatInfo.InvariantInfo);
+            try
+            {
+                Value = double.Parse(str, NumberFormatInfo.InvariantInfo);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+
             return true;
         }
     }
