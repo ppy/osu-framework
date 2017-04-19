@@ -42,7 +42,7 @@ namespace osu.Framework.Timing
 
         public double Rate => SourceClock.Rate;
 
-        public virtual bool IsRunning => SourceClock.IsRunning;
+        public virtual bool IsRunning => sourceIsRunning;
 
         public virtual double Drift => CurrentTime - SourceClock.CurrentTime;
 

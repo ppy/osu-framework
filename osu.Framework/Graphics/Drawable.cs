@@ -31,12 +31,12 @@ namespace osu.Framework.Graphics
     /// <summary>
     /// Drawables are the basic building blocks of a scene graph in this framework.
     /// Anything that is visible or that the user interacts with has to be a Drawable.
-    /// 
+    ///
     /// For example:
     ///  - Boxes
     ///  - Sprites
     ///  - Collections of Drawables
-    /// 
+    ///
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
@@ -729,9 +729,39 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// The method to use to fill this drawable's parent space.
+        /// </summary>
+        public FillMode FillMode { get; set; }
+
+        /// <summary>
         /// Relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
-        protected virtual Vector2 DrawScale => Scale;
+        protected virtual Vector2 DrawScale
+        {
+            get
+            {
+                if (FillMode == FillMode.None)
+                    return Scale;
+
+                Vector2 modifier = Vector2.One;
+                Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
+
+                switch (FillMode)
+                {
+                    case FillMode.Fill:
+                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
+                        break;
+                    case FillMode.Fit:
+                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
+                        break;
+                    case FillMode.Stretch:
+                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
+                        break;
+                }
+
+                return Scale * modifier;
+            }
+        }
 
         private Vector2 shear = Vector2.Zero;
 
@@ -1641,9 +1671,12 @@ namespace osu.Framework.Graphics
         {
             if (screenSpaceState == null) return null;
 
-            var state = screenSpaceState.Clone();
-            state.Mouse = new LocalMouseState(screenSpaceState.Mouse, this);
-            return state;
+            return new InputState
+            {
+                Keyboard = screenSpaceState.Keyboard,
+                Mouse = new LocalMouseState(screenSpaceState.Mouse, this),
+                Last = screenSpaceState.Last
+            };
         }
 
         /// <summary>
@@ -1691,9 +1724,6 @@ namespace osu.Framework.Graphics
                 this.us = us;
             }
 
-            public bool BackButton => NativeState.BackButton;
-            public bool ForwardButton => NativeState.ForwardButton;
-
             public Vector2 Delta => Position - LastPosition;
 
             public Vector2 Position => us.Parent?.ToLocalSpace(NativeState.Position) ?? NativeState.Position;
@@ -1702,13 +1732,17 @@ namespace osu.Framework.Graphics
 
             public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
-            public bool LeftButton => NativeState.LeftButton;
-            public bool MiddleButton => NativeState.MiddleButton;
-            public bool RightButton => NativeState.RightButton;
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;
 
             public bool IsPressed(MouseButton button) => NativeState.IsPressed(button);
+
+            public void SetPressed(MouseButton button, bool pressed) => NativeState.SetPressed(button, pressed);
+
+            public IMouseState Clone()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion
@@ -1834,9 +1868,11 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
 
-        public void TransformTo<TValue>(TValue startValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
+        public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
             Type type = transform.GetType();
+
+            double startTime = TransformStartTime;
 
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
@@ -1846,15 +1882,7 @@ namespace osu.Framework.Graphics
             //    if (t.GetType() == type)
             //        t.Apply(this);
 
-            double startTime = TransformStartTime;
-
-            var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
-            if (last != null)
-            {
-                //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
-                last.UpdateTime(new FrameTimeInfo { Current = startTime });
-                startValue = last.CurrentValue;
-            }
+            TValue startValue = currentValue();
 
             if (transformDelay == 0)
             {
@@ -1862,6 +1890,16 @@ namespace osu.Framework.Graphics
 
                 if (startValue.Equals(newValue))
                     return;
+            }
+            else
+            {
+                var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
+                if (last != null)
+                {
+                    //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
+                    last.UpdateTime(new FrameTimeInfo { Current = startTime });
+                    startValue = last.CurrentValue;
+                }
             }
 
             transform.StartTime = startTime;
@@ -1923,12 +1961,12 @@ namespace osu.Framework.Graphics
 
         public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Alpha, newAlpha, duration, easing, new TransformAlpha());
+            TransformTo(() => Alpha, newAlpha, duration, easing, new TransformAlpha());
         }
 
         public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Rotation, newRotation, duration, easing, new TransformRotation());
+            TransformTo(() => Rotation, newRotation, duration, easing, new TransformRotation());
         }
 
         public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1946,37 +1984,37 @@ namespace osu.Framework.Graphics
 
         public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position.X, destination, duration, easing, new TransformPositionX());
+            TransformTo(() => Position.X, destination, duration, easing, new TransformPositionX());
         }
 
         public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position.Y, destination, duration, easing, new TransformPositionY());
+            TransformTo(() => Position.Y, destination, duration, easing, new TransformPositionY());
         }
 
         public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Scale, new Vector2(newScale), duration, easing, new TransformScale());
+            TransformTo(() => Scale, new Vector2(newScale), duration, easing, new TransformScale());
         }
 
         public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Scale, newScale, duration, easing, new TransformScale());
+            TransformTo(() => Scale, newScale, duration, easing, new TransformScale());
         }
 
         public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Size, new Vector2(newSize), duration, easing, new TransformSize());
+            TransformTo(() => Size, new Vector2(newSize), duration, easing, new TransformSize());
         }
 
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Size, newSize, duration, easing, new TransformSize());
+            TransformTo(() => Size, newSize, duration, easing, new TransformSize());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Position, newPosition, duration, easing, new TransformPosition());
+            TransformTo(() => Position, newPosition, duration, easing, new TransformPosition());
         }
 
         public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -1986,7 +2024,7 @@ namespace osu.Framework.Graphics
 
         public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Colour, newColour, duration, easing, new TransformColour());
+            TransformTo(() => Colour, newColour, duration, easing, new TransformColour());
         }
 
         public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
@@ -2123,5 +2161,25 @@ namespace osu.Framework.Graphics
         Loading,
         Loaded,
         Alive
+    }
+
+    public enum FillMode
+    {
+        /// <summary>
+        /// This drawable shouldn't automatically fill its parent space.
+        /// </summary>
+        None,
+        /// <summary>
+        /// This drawable should be scaled to fill its parent space while maintaining aspect ratio.
+        /// </summary>
+        Fill,
+        /// <summary>
+        /// This drawable should be scaled to fit inside the dimensions of its parent space while maintaining aspect ratio.
+        /// </summary>
+        Fit,
+        /// <summary>
+        /// This drawable should stretch to fill its parent space.
+        /// </summary>
+        Stretch
     }
 }

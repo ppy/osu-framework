@@ -17,6 +17,8 @@ namespace osu.Framework.Input
         /// </summary>
         bool SuperPressed { get; }
 
-        IEnumerable<Key> Keys { get; }
+        IEnumerable<Key> Keys { get; set; }
+
+        IKeyboardState Clone();
     }
 }

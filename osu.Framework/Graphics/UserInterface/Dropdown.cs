@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
     /// A drop-down menu to select from a group of values.
     /// </summary>
     /// <typeparam name="T">Type of value to select.</typeparam>
-    public abstract class Dropdown<T> : FillFlowContainer
+    public abstract class Dropdown<T> : FillFlowContainer, IHasCurrentValue<T>
     {
         protected internal DropdownHeader Header;
         protected internal Menu DropdownMenu;
@@ -79,7 +79,7 @@ namespace osu.Framework.Graphics.UserInterface
             item.Action = () =>
             {
                 selectedItem = item;
-                SelectedValue.Value = item.Value;
+                Current.Value = item.Value;
                 DropdownMenu.State = MenuState.Closed;
             };
             itemMap[item.Value] = item;
@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         // TODO: RemoveDropdownItem?
 
-        public readonly Bindable<T> SelectedValue = new Bindable<T>();
+        public Bindable<T> Current { get; } = new Bindable<T>();
 
         private DropdownMenuItem<T> selectedItem;
 
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 selectedItem = value;
                 if (value != null)
-                    SelectedValue.Value = value.Value;
+                    Current.Value = value.Value;
             }
         }
 
@@ -115,7 +115,7 @@ namespace osu.Framework.Graphics.UserInterface
             };
 
             Header.Action = DropdownMenu.Toggle;
-            SelectedValue.ValueChanged += selectionChanged;
+            Current.ValueChanged += selectionChanged;
         }
 
         protected override void LoadComplete()
@@ -127,13 +127,20 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void selectionChanged(T newSelection = default(T))
         {
+            foreach (var i in MenuItems)
+                i.IsSelected = false;
+
             // refresh if SelectedItem and SelectedValue mismatched
             // null is not a valid value for Dictionary, so neither here
             if ((SelectedItem == null || !EqualityComparer<T>.Default.Equals(SelectedItem.Value, newSelection))
                 && newSelection != null)
                 itemMap.TryGetValue(newSelection, out selectedItem);
 
-            Header.Label = SelectedItem?.Text;
+            if (SelectedItem != null)
+            {
+                Header.Label = SelectedItem.Text;
+                SelectedItem.IsSelected = true;
+            }
         }
 
         /// <summary>

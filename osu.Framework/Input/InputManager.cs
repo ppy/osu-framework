@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : Container
+    public class InputManager : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -110,13 +110,13 @@ namespace osu.Framework.Input
 
         protected override void Update()
         {
-            List<InputState> pendingStates = GetPendingStates();
+            var pendingStates = createDistinctInputStates(GetPendingStates()).ToArray();
 
             unfocusIfNoLongerValid(CurrentState);
 
             //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
-            if (pendingStates.Count == 0)
-                pendingStates.Add(CurrentState);
+            if (pendingStates.Length == 0)
+                pendingStates = new[] { CurrentState };
 
             foreach (InputState s in pendingStates)
             {
@@ -156,7 +156,7 @@ namespace osu.Framework.Input
             {
                 foreach (var d in mouseInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        d.TriggerMouseMove(CurrentState);
+                        if (d.TriggerMouseMove(CurrentState)) break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;
@@ -165,6 +165,83 @@ namespace osu.Framework.Input
                 focusTopMostRequestingDrawable(CurrentState);
 
             base.Update();
+        }
+
+        /// <summary>
+        /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
+        /// main loop in<see cref="updateInputQueues(InputState)"/> after each and every button or key change. This allows 
+        /// correct behaviour in a case where the input queues change based on triggered by a button or key.
+        /// </summary>
+        /// <param name="states">A list of <see cref="InputState"/>s</param>
+        /// <returns>Processed states such that at most one button change occurs between any two consecutive states.</returns>
+        private IEnumerable<InputState> createDistinctInputStates(List<InputState> states)
+        {
+            InputState last = CurrentState;
+
+            foreach (var i in states)
+            {
+                //first we want to create a copy of ourselves without any button changes
+                //we do this by updating our buttons to the state of the last frame.
+                var iWithoutButtons = i.Clone();
+
+                var iHasMouse = iWithoutButtons.Mouse != null;
+                var iHasKeyboard = iWithoutButtons.Keyboard != null;
+
+                if (iHasMouse)
+                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                        iWithoutButtons.Mouse.SetPressed(b, last.Mouse?.IsPressed(b) ?? false);
+
+                if (iHasKeyboard)
+                    iWithoutButtons.Keyboard.Keys = last.Keyboard?.Keys ?? new Key[] { };
+
+                //we start by adding this state to the processed list...
+                yield return iWithoutButtons;
+                last = iWithoutButtons;
+
+                //and then iterate over each button/key change, adding intermediate states along the way.
+                if (iHasMouse)
+                {
+                    for (MouseButton b = 0; b < MouseButton.LastButton; b++)
+                    {
+                        if (i.Mouse.IsPressed(b) != (last.Mouse?.IsPressed(b) ?? false))
+                        {
+                            var intermediateState = last.Clone();
+                            if (intermediateState.Mouse == null) intermediateState.Mouse = new MouseState();
+
+                            //add our single local change
+                            intermediateState.Mouse.SetPressed(b, i.Mouse.IsPressed(b));
+
+                            last = intermediateState;
+                            yield return intermediateState;
+                        }
+                    }
+                }
+
+                if (iHasKeyboard)
+                {
+                    foreach (var releasedKey in last.Keyboard?.Keys.Except(i.Keyboard.Keys) ?? new Key[] { })
+                    {
+                        var intermediateState = last.Clone();
+                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+
+                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Where(d => d != releasedKey);
+
+                        last = intermediateState;
+                        yield return intermediateState;
+                    }
+
+                    foreach (var pressedKey in i.Keyboard.Keys.Except(last.Keyboard?.Keys ?? new Key[] { }))
+                    {
+                        var intermediateState = last.Clone();
+                        if (intermediateState.Keyboard == null) intermediateState.Keyboard = new KeyboardState();
+
+                        intermediateState.Keyboard.Keys = intermediateState.Keyboard.Keys.Union(new[] { pressedKey });
+
+                        last = intermediateState;
+                        yield return intermediateState;
+                    }
+                }
+            }
         }
 
         protected virtual List<InputState> GetPendingStates()
@@ -328,16 +405,17 @@ namespace osu.Framework.Input
                     handleMouseDrag(state);
             }
 
-            foreach (MouseButton b in last.PressedButtons)
+            for (MouseButton b = 0; b < MouseButton.LastButton; b++)
             {
-                if (!mouse.PressedButtons.Contains(b))
-                    handleMouseUp(state, b);
-            }
+                var lastPressed = last.IsPressed(b);
 
-            foreach (MouseButton b in mouse.PressedButtons)
-            {
-                if (!last.PressedButtons.Contains(b))
-                    handleMouseDown(state, b);
+                if (lastPressed != mouse.IsPressed(b))
+                {
+                    if (lastPressed)
+                        handleMouseUp(state, b);
+                    else
+                        handleMouseDown(state, b);
+                }
             }
 
             if (mouse.WheelDelta != 0)
@@ -351,7 +429,7 @@ namespace osu.Framework.Input
                     mouse.PositionMouseDown = state.Mouse.Position;
                     LastActionTime = Time.Current;
 
-                    if (mouse.LeftButton)
+                    if (mouse.IsPressed(MouseButton.Left))
                     {
                         isValidClick = true;
 

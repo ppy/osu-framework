@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Containers
 
         public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(Spacing, newSpacing, duration, easing, new TransformSpacing());
+            TransformTo(() => Spacing, newSpacing, duration, easing, new TransformSpacing());
         }
 
         public class TransformSpacing : TransformVector

@@ -65,11 +65,11 @@ namespace osu.Framework.Graphics
         /// Applies a transform to this drawable object.
         /// </summary>
         /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>
-        /// <param name="startValue">The value to transform from.</param>
+        /// <param name="currentValue">A function to get the current value to transform from.</param>
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
-        void TransformTo<TValue>(TValue startValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>;
+        void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>;
     }
 }

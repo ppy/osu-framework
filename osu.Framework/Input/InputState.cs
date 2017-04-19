@@ -13,8 +13,8 @@ namespace osu.Framework.Input
 
         public InputState Clone() => new InputState
         {
-            Keyboard = Keyboard,
-            Mouse = Mouse,
+            Keyboard = Keyboard?.Clone(),
+            Mouse = Mouse?.Clone(),
             Last = Last
         };
     }

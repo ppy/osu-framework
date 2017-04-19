@@ -25,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -49,13 +50,11 @@
       <HintPath>$(SolutionDir)\packages\ManagedBass.Fx.1.0.2\lib\portable-net45+MonoAndroid+uap\ManagedBass.Fx.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1340\lib\net45\OpenTK.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1341\lib\net45\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
@@ -118,6 +117,7 @@
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
+    <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />

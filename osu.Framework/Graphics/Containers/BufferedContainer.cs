@@ -122,16 +122,27 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
 
-        // We need 2 frame buffers such that we can accumulate post-processing effects in a
-        // ping-pong fashion going back and forth (reading from one buffer, writing into the other).
+        /// <summary>
+        /// We need 2 frame buffers such that we can accumulate post-processing effects in a
+        /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
+        /// </summary>
         private readonly FrameBuffer[] frameBuffers = new FrameBuffer[2];
 
-        // In order to signal the draw thread to re-draw the buffered container we version it.
-        // Our own version (update) keeps track of which version we are on, whereas the
-        // drawVersion keeps track of the version the draw thread is on.
-        // When forcing a redraw we increment updateVersion, pass it into each new drawnode
-        // and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
+        /// <summary>
+        /// In order to signal the draw thread to re-draw the buffered container we version it.
+        /// Our own version (update) keeps track of which version we are on, whereas the
+        /// drawVersion keeps track of the version the draw thread is on.
+        /// When forcing a redraw we increment updateVersion, pass it into each new drawnode
+        /// and the draw thread will realize its drawVersion is lagging behind, thus redrawing.
+        /// </summary>
         private long updateVersion;
+
+        /// <summary>
+        /// We also want to keep track of updates to our children, as we can bypass these updates
+        /// when our output is in a cached state.
+        /// </summary>
+        private long childrenUpdateVersion;
+
         private readonly AtomicCounter drawVersion = new AtomicCounter();
 
         private readonly QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(1, 3);
@@ -208,6 +219,14 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+            childrenUpdateVersion = updateVersion;
+        }
+
+        protected override bool RequiresChildrenUpdate => base.RequiresChildrenUpdate && childrenUpdateVersion != updateVersion;
+
         public override DrawInfo DrawInfo
         {
             get
@@ -241,7 +260,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
+            TransformTo(() => BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
         }
 
         protected class TransformBlurSigma : TransformVector
