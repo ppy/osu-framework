@@ -20,6 +20,11 @@ namespace osu.Framework.Lists
             Comparer = comparer;
         }
 
+        public new void AddRange(IEnumerable<T> collection)
+        {
+            foreach (var i in collection) Add(i);
+        }
+
         public new int Add(T value)
         {
             if (value == null)
