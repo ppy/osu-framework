@@ -10,6 +10,11 @@ namespace osu.Framework.Lists
     {
         public IComparer<T> Comparer { get; }
 
+        public SortedList(Func<T,T,int> comparer)
+        {
+            Comparer = new ComparisonComparer<T>(comparer);
+        }
+
         public SortedList(IComparer<T> comparer)
         {
             Comparer = comparer;
@@ -51,6 +56,25 @@ namespace osu.Framework.Lists
             }
 
             return index;
+        }
+
+        private class ComparisonComparer<TComparison> : IComparer<TComparison>
+        {
+            private readonly Comparison<TComparison> comparison;
+
+            public ComparisonComparer(Func<TComparison, TComparison, int> compare)
+            {
+                if (compare == null)
+                {
+                    throw new ArgumentNullException(nameof(compare));
+                }
+                comparison = new Comparison<TComparison>(compare);
+            }
+
+            public int Compare(TComparison x, TComparison y)
+            {
+                return comparison(x, y);
+            }
         }
     }
 }
