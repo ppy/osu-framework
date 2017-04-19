@@ -443,7 +443,7 @@ namespace osu.Framework.Graphics.UserInterface
         protected bool HandlePendingText(InputState state)
         {
             string str = textInput?.GetPendingText();
-            if (string.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str) || ReadOnly)
                 return false;
 
             if (state.Keyboard.ShiftPressed)
@@ -465,6 +465,8 @@ namespace osu.Framework.Graphics.UserInterface
                 return false;
 
             if (HandlePendingText(state)) return true;
+
+            if (ReadOnly) return true;
 
             switch (args.Key)
             {
