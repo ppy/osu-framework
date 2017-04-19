@@ -538,7 +538,6 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     }
                 case Key.Enter:
-                    selectionStart = selectionEnd = 0;
                     TriggerFocusLost(state);
                     return true;
                 case Key.Delete:
