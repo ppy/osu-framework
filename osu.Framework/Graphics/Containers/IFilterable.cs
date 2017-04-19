@@ -20,7 +20,7 @@ namespace osu.Framework.Graphics.Containers
     public interface IFilterableChildren : IFilterable
     {
         /// <summary>
-        /// List of children that 
+        /// List of children that should be filtered
         /// </summary>
         IEnumerable<IFilterable> FilterableChildren { get; }
     }

@@ -22,11 +22,12 @@ namespace osu.Framework.VisualTests.Tests
         public override void Reset()
         {
             base.Reset();
+            TextBox textBox;
+
             Children = new Drawable[] {
-                new TextBox
+                textBox = new TextBox
                 {
                     Size = new Vector2(300, 40),
-                    OnChange = (textBox, newText) => search.SearchTerm = textBox.Text
                 },
                 search = new SearchContainer
                 {
@@ -96,6 +97,8 @@ namespace osu.Framework.VisualTests.Tests
                 "321",
                 "?!"
             }.ForEach(term => AddStep("Search term: " + term, () => search.SearchTerm = term));
+
+            textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
         }
 
         private class HeaderContainer : Container, IFilterableChildren
