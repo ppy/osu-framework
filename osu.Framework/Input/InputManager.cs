@@ -79,7 +79,7 @@ namespace osu.Framework.Input
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
-        public List<Drawable> HoveredDrawables => hoveredDrawables;
+        public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
         public InputManager()
         {
@@ -171,7 +171,7 @@ namespace osu.Framework.Input
 
         /// <summary>
         /// In order to provide a reliable event system to drawables, we want to ensure that we reprocess input queues (via the
-        /// main loop in<see cref="updateInputQueues(InputState)"/> after each and every button or key change. This allows 
+        /// main loop in<see cref="updateInputQueues(InputState)"/> after each and every button or key change. This allows
         /// correct behaviour in a case where the input queues change based on triggered by a button or key.
         /// </summary>
         /// <param name="states">A list of <see cref="InputState"/>s</param>
