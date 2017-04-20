@@ -25,8 +25,8 @@ namespace osu.Framework.Configuration
             Set(FrameworkConfig.WidthFullscreen, 9999, 320, 9999);
             Set(FrameworkConfig.HeightFullscreen, 9999, 240, 9999);
             Set(FrameworkConfig.Letterboxing, true);
-            Set(FrameworkConfig.LetterboxPositionX, 0, -100, 100);
-            Set(FrameworkConfig.LetterboxPositionY, 0, -100, 100);
+            Set(FrameworkConfig.LetterboxPositionX, 0.0, -1, 1);
+            Set(FrameworkConfig.LetterboxPositionY, 0.0, -1, 1);
             Set(FrameworkConfig.FrameSync, FrameSync.Limit120);
             Set(FrameworkConfig.WindowMode, WindowMode.Windowed);
 #pragma warning restore CS0612 // Type or member is obsolete
