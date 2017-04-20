@@ -48,7 +48,7 @@ namespace osu.Framework.Input
 
         protected GameHost Host;
 
-        public Drawable FocusedDrawable;
+        internal Drawable FocusedDrawable;
 
         private readonly List<InputHandler> inputHandlers = new List<InputHandler>();
 
