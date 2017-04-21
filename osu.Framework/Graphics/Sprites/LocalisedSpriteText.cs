@@ -16,10 +16,12 @@ namespace osu.Framework.Graphics.Sprites
                 if (bindable != null)
                     bindable.ValueChanged -= bindableChanged;
                 if (value != null)
+                {
                     value.ValueChanged += bindableChanged;
+                    value.TriggerChange();
+                }
 
                 bindable = value;
-                value.TriggerChange();
             }
         }
 

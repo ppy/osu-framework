@@ -28,8 +28,8 @@ namespace osu.Framework.Localisation
             locale.TriggerChange();
         }
 
-        private List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
-        private List<WeakReference<LocalisedString>> localisedBindings = new List<WeakReference<LocalisedString>>();
+        private readonly List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
+        private readonly List<WeakReference<LocalisedString>> localisedBindings = new List<WeakReference<LocalisedString>>();
 
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
         protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
@@ -72,11 +72,9 @@ namespace osu.Framework.Localisation
 
         private void checkLocale(string newValue)
         {
-            CultureInfo culture;
-            if (newValue == null) //means use current locale
-                culture = CultureInfo.CurrentCulture;
-            else
-                culture = new CultureInfo(newValue);
+            var culture = string.IsNullOrEmpty(newValue) ?
+                CultureInfo.CurrentCulture :
+                new CultureInfo(newValue);
 
             var locales = SupportedLocales.ToList();
             string validLocale = null;
@@ -99,7 +97,7 @@ namespace osu.Framework.Localisation
             }
         }
 
-        protected virtual void ChangeLocale(string locale) { }
+        protected virtual void ChangeLocale(string locale) => Logging.Logger.Log($"locale changed to {locale}");
 
         private void updateLocalisedString(string culture)
         {
