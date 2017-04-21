@@ -28,8 +28,10 @@ namespace osu.Framework.Localization
         }
 
         private List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
+        private List<WeakReference<LocalisedString>> localisedBindings = new List<WeakReference<LocalisedString>>();
 
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
+        protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
         {
@@ -41,6 +43,19 @@ namespace osu.Framework.Localization
 
             return bindable;
         }
+
+        public LocalisedString GetLocalisedString(string key)
+        {
+            var bindable = new LocalisedString(key)
+            {
+                Value = GetLocalised(key)
+            };
+            AddWeakReference(bindable);
+
+            return bindable;
+        }
+
+        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.DefaultThreadCurrentCulture.DisplayName}";
 
         private void updateUnicodeStrings(bool newValue)
         {
@@ -63,7 +78,7 @@ namespace osu.Framework.Localization
                 culture = new CultureInfo(newValue);
 
             var locales = SupportedLocales.ToList();
-            string validLocale=null;
+            string validLocale = null;
             for (var c = culture; !c.IsNeutralCulture; c = c.Parent)
                 if (locales.Contains(c.Name))
                 {
@@ -76,7 +91,25 @@ namespace osu.Framework.Localization
             if (validLocale != newValue)
                 locale.Value = validLocale;
             else
+            {
                 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(validLocale);
+                ChangeLocale(validLocale);
+                updateLocalisedString(validLocale);
+            }
+        }
+
+        protected virtual void ChangeLocale(string locale) { }
+
+        private void updateLocalisedString(string culture)
+        {
+            foreach (var w in localisedBindings.ToArray())
+            {
+                LocalisedString b;
+                if (w.TryGetTarget(out b))
+                    b.Value = GetLocalised(b.Key);
+                else
+                    localisedBindings.Remove(w);
+            }
         }
 
         public class UnicodeBindableString : Bindable<string>
@@ -94,6 +127,15 @@ namespace osu.Framework.Localization
             {
                 get { return Value == Unicode; }
                 set { Value = value ? Unicode : NonUnicode; }
+            }
+        }
+
+        public class LocalisedString : Bindable<string>
+        {
+            public readonly string Key;
+            public LocalisedString(string key)
+            {
+                Key = key;
             }
         }
     }
