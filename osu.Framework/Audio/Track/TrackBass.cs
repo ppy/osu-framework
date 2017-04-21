@@ -206,8 +206,6 @@ namespace osu.Framework.Audio.Track
 
         private int bassFreq => (int)MathHelper.Clamp(Math.Abs(initialFrequency * FrequencyCalculated), 100, 100000);
 
-        public override double Rate => bassFreq / initialFrequency * Tempo * direction;
-
         private volatile int bitrate;
 
         public override int? Bitrate => bitrate;

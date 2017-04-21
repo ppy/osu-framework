@@ -28,5 +28,10 @@ namespace osu.Framework.Timing
         /// </summary>
         /// <returns>Whether a seek was possible.</returns>
         bool Seek(double position);
+
+        /// <summary>
+        /// The rate this clock is running at, relative to real-time.
+        /// </summary>
+        new double Rate { get; set; }
     }
 }
