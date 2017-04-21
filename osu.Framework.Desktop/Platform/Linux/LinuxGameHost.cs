@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using osu.Framework.Desktop.Input.Handlers.Keyboard;
 using osu.Framework.Desktop.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Platform;
 
 namespace osu.Framework.Desktop.Platform.Linux
 {
@@ -29,6 +30,11 @@ namespace osu.Framework.Desktop.Platform.Linux
         public override IEnumerable<InputHandler> GetInputHandlers()
         {
             return new InputHandler[] { new OpenTKMouseHandler(), keyboardHandler };
+        }
+
+        public override Clipboard GetClipboard()
+        {
+            return new LinuxClipboard();
         }
     }
 }
