@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Audio.Track
 {
-    public class TrackBass : Track, IBassAudio
+    public class TrackBass : Track, IBassAudio, IHasPitchAdjust
     {
         private AsyncBufferStream dataStream;
 
@@ -292,6 +292,12 @@ namespace osu.Framework.Audio.Track
                 }
                 return false;
             }
+        }
+
+        public double PitchAdjust
+        {
+            get { return Frequency.Value; }
+            set { Frequency.Value = value; }
         }
     }
 }
