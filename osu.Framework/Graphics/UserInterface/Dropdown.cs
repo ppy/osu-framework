@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.UserInterface
                 foreach (var entry in value)
                     AddDropdownItem(entry.Key, entry.Value);
 
-                if (!itemMap.Keys.Contains(Current.Value))
+                if (Current.Value == null || !itemMap.Keys.Contains(Current.Value))
                     Current.Value = itemMap.Keys.FirstOrDefault();
                 else
                     Current.TriggerChange();
