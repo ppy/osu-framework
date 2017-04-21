@@ -127,6 +127,11 @@ namespace osu.Framework.Localisation
             {
                 Unicode = unicode;
                 NonUnicode = nonUnicode;
+
+                if (Unicode == null)
+                    Unicode = NonUnicode;
+                if (NonUnicode == null)
+                    NonUnicode = Unicode;
             }
 
             public bool PreferUnicode
