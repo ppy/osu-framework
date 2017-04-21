@@ -15,7 +15,8 @@ namespace osu.Framework.Localisation
         private Bindable<bool> preferUnicode;
         private Bindable<string> locale;
 
-        public virtual string[] SupportedLocales => new[] { "en" };
+        public virtual IEnumerable<string> SupportedLocales => new[] { "en" };
+        public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).DisplayName);
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
