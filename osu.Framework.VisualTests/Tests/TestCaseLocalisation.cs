@@ -19,12 +19,14 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Localisation engine";
 
+        private TestLocalisationEngine engine; //keep a reference to avoid GC of the engine
+
         public override void Reset()
         {
             base.Reset();
 
             var config = new FakeFrameworkConfigManager();
-            var engine = new TestLocalisationEngine(config);
+            engine = new TestLocalisationEngine(config);
 
             Add(new FillFlowContainer<SpriteText>
             {
@@ -34,7 +36,7 @@ namespace osu.Framework.VisualTests.Tests
                 Spacing = new Vector2(0, 10),
                 Padding = new MarginPadding(10),
                 AutoSizeAxes = Axes.Both,
-                Children = new SpriteText[]
+                Children = new[]
                 {
                     new SpriteText
                     {

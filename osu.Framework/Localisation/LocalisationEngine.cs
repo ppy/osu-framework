@@ -15,7 +15,7 @@ namespace osu.Framework.Localisation
         private readonly Bindable<string> locale;
 
         public virtual IEnumerable<string> SupportedLocales => new[] { "en" };
-        public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).DisplayName);
+        public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).NativeName);
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
@@ -54,7 +54,7 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.DisplayName}";
+        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.NativeName}";
 
         private void updateUnicodeStrings(bool newValue)
         {
@@ -81,7 +81,7 @@ namespace osu.Framework.Localisation
                     CultureInfo.CurrentCulture :
                     new CultureInfo(newValue);
 
-                for (var c = culture; !c.IsNeutralCulture; c = c.Parent)
+                for (var c = culture; !c.Equals(CultureInfo.InvariantCulture); c = c.Parent)
                     if (locales.Contains(c.Name))
                     {
                         validLocale = c.Name;
@@ -96,15 +96,17 @@ namespace osu.Framework.Localisation
                 locale.Value = validLocale;
             else
             {
-                CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(validLocale);
+                var culture = new CultureInfo(validLocale);
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
-                updateLocalisedString(validLocale);
+                updateLocalisedString();
             }
         }
 
         protected virtual void ChangeLocale(string locale) => Logging.Logger.Log($"locale changed to {locale}");
 
-        private void updateLocalisedString(string culture)
+        private void updateLocalisedString()
         {
             foreach (var w in localisedBindings.ToArray())
             {
