@@ -55,6 +55,7 @@
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
+    <Compile Include="Tests\TestCaseLocalisation.cs" />
     <Compile Include="Tests\TestCaseSizing.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
     <Compile Include="Tests\TestCaseDropdownBox.cs" />
