@@ -6,19 +6,38 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Configuration
 {
+    public class BindableDisabledException : Exception { }
+
     public class Bindable<T> : IBindable
     {
         private T value;
 
         public T Default;
 
-        public bool Disabled;
+        private bool disabled;
+
+        public bool Disabled
+        {
+            get { return disabled; }
+            set
+            {
+                if (disabled == value) return;
+
+                disabled = value;
+
+                TriggerDisabledChange();
+            }
+        }
 
         public delegate void BindableValueChanged<in TValue>(TValue newValue);
+
+        public delegate void BindableDisabledChanged(bool isDisabled);
 
         public virtual bool IsDefault => Equals(value, Default);
 
         public event BindableValueChanged<T> ValueChanged;
+
+        public event BindableDisabledChanged DisabledChanged;
 
         public virtual T Value
         {
@@ -28,14 +47,11 @@ namespace osu.Framework.Configuration
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
                 if (Disabled)
-                {
-                    TriggerChange();
-                    return;
-                }
+                    throw new BindableDisabledException();
 
                 this.value = value;
 
-                TriggerChange();
+                TriggerValueChange();
             }
         }
 
@@ -61,6 +77,7 @@ namespace osu.Framework.Configuration
         public virtual void BindTo(Bindable<T> them)
         {
             Value = them.Value;
+            Disabled = them.Disabled;
 
             AddWeakReference(them.WeakReference);
             them.AddWeakReference(WeakReference);
@@ -91,6 +108,12 @@ namespace osu.Framework.Configuration
 
         public void TriggerChange()
         {
+            TriggerValueChange();
+            TriggerDisabledChange();
+        }
+
+        protected void TriggerValueChange()
+        {
             ValueChanged?.Invoke(value);
 
             foreach (var w in bindings.ToArray())
@@ -103,9 +126,24 @@ namespace osu.Framework.Configuration
             }
         }
 
+        protected void TriggerDisabledChange()
+        {
+            DisabledChanged?.Invoke(disabled);
+
+            foreach (var w in bindings.ToArray())
+            {
+                Bindable<T> b;
+                if (w.TryGetTarget(out b))
+                    b.Disabled = disabled;
+                else
+                    bindings.Remove(w);
+            }
+        }
+
         public void UnbindAll()
         {
             ValueChanged = null;
+            DisabledChanged = null;
         }
 
         public string Description { get; set; }
@@ -118,6 +156,7 @@ namespace osu.Framework.Configuration
         internal void Reset()
         {
             Value = Default;
+            Disabled = false;
         }
 
         /// <summary>
