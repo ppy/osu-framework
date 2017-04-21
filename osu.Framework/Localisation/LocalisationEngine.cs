@@ -1,25 +1,23 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Allocation;
-using osu.Framework.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Localisation
 {
     public class LocalisationEngine
     {
-        private Bindable<bool> preferUnicode;
-        private Bindable<string> locale;
+        private readonly Bindable<bool> preferUnicode;
+        private readonly Bindable<string> locale;
 
         public virtual IEnumerable<string> SupportedLocales => new[] { "en" };
         public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).DisplayName);
 
-        [BackgroundDependencyLoader]
-        private void load(FrameworkConfigManager config)
+        public LocalisationEngine(FrameworkConfigManager config)
         {
             preferUnicode = config.GetBindable<bool>(FrameworkConfig.ShowUnicode);
             preferUnicode.ValueChanged += updateUnicodeStrings;
@@ -56,7 +54,7 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.DefaultThreadCurrentCulture.DisplayName}";
+        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.DisplayName}";
 
         private void updateUnicodeStrings(bool newValue)
         {
