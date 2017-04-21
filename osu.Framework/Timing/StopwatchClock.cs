@@ -46,7 +46,7 @@ namespace osu.Framework.Timing
             }
         }
 
-        public void ResetRate() => Rate = 1;
+        public void ResetSpeedAdjustments() => Rate = 1;
 
         public bool Seek(double position)
         {

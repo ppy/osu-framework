@@ -37,6 +37,6 @@ namespace osu.Framework.Timing
         /// <summary>
         /// Reset the rate to a stable value.
         /// </summary>
-        void ResetRate();
+        void ResetSpeedAdjustments();
     }
 }

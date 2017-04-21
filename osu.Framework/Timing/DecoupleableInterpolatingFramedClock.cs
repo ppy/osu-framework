@@ -39,7 +39,7 @@ namespace osu.Framework.Timing
             set { adjustableSource.Rate = value; }
         }
 
-        public void ResetRate() => Rate = 1;
+        public void ResetSpeedAdjustments() => Rate = 1;
 
         public DecoupleableInterpolatingFramedClock()
         {
