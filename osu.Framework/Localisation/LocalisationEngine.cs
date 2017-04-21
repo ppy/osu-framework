@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace osu.Framework.Localization
+namespace osu.Framework.Localisation
 {
     public class LocalisationEngine
     {
