@@ -115,8 +115,6 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void bindableValueChanged(T newValue) => UpdateValue(NormalizedValue);
-
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
