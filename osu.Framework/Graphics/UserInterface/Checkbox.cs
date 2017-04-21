@@ -13,7 +13,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            Current.Value = !Current;
+            if (!Current.Disabled)
+                Current.Value = !Current;
+
             base.OnClick(state);
             return true;
         }

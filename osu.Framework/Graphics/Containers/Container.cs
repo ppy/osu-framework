@@ -8,7 +8,6 @@ using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -716,7 +715,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Determines how thick of a border to draw around the inside of the masked region.
         /// Only has an effect when <see cref="Masking"/> is true.
-        /// The border only is drawn on top of children of type <see cref="Sprite"/>.
+        /// The border only is drawn on top of children using a sprite shader.
         /// </summary>
         /// <remarks>
         /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
