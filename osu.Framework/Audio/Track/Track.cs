@@ -32,10 +32,16 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual void Reset()
         {
-            Frequency.Value = 1;
+            ResetRate();
 
             Stop();
             Seek(0);
+        }
+
+        public virtual void ResetRate()
+        {
+            Frequency.Value = 1;
+            Tempo.Value = 1;
         }
 
         /// <summary>

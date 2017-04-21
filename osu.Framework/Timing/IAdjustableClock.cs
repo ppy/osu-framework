@@ -33,5 +33,10 @@ namespace osu.Framework.Timing
         /// The rate this clock is running at, relative to real-time.
         /// </summary>
         new double Rate { get; set; }
+
+        /// <summary>
+        /// Reset the rate to a stable value.
+        /// </summary>
+        void ResetRate();
     }
 }

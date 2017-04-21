@@ -39,6 +39,8 @@ namespace osu.Framework.Timing
             set { adjustableSource.Rate = value; }
         }
 
+        public void ResetRate() => Rate = 1;
+
         public DecoupleableInterpolatingFramedClock()
         {
             decoupledClock = new FramedClock(decoupledStopwatch = new StopwatchClock());
