@@ -195,6 +195,7 @@
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Localization\LocaleEngine.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
