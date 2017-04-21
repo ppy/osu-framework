@@ -78,12 +78,8 @@ namespace osu.Framework.Graphics.UserInterface
             var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
-                try
-                {
+                if (!Current.Disabled)
                     Current.Value = item.Value;
-                }
-                catch (BindableDisabledException)
-                { }
 
                 DropdownMenu.State = MenuState.Closed;
             };

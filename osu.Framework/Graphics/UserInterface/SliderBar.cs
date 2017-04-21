@@ -118,12 +118,9 @@ namespace osu.Framework.Graphics.UserInterface
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
-            try
-            {
+
+            if (!CurrentNumber.Disabled)
                 CurrentNumber.SetProportional(xPosition / UsableWidth);
-            }
-            catch (BindableDisabledException)
-            { }
 
             OnUserChange();
         }
