@@ -13,7 +13,13 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnClick(InputState state)
         {
-            Current.Value = !Current;
+            try
+            {
+                Current.Value = !Current;
+            }
+            catch (BindableDisabledException)
+            { }
+
             base.OnClick(state);
             return true;
         }

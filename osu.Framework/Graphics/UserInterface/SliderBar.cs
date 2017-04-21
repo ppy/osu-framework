@@ -62,13 +62,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected abstract void UpdateValue(float value);
 
-        protected override void Dispose(bool isDisposing)
-        {
-            if (Current != null)
-                Current.ValueChanged -= bindableValueChanged;
-            base.Dispose(isDisposing);
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -127,7 +120,13 @@ namespace osu.Framework.Graphics.UserInterface
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
-            CurrentNumber.SetProportional(xPosition / UsableWidth);
+            try
+            {
+                CurrentNumber.SetProportional(xPosition / UsableWidth);
+            }
+            catch (BindableDisabledException)
+            { }
+
             OnUserChange();
         }
 

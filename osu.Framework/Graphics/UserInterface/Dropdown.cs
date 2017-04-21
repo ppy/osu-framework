@@ -59,10 +59,7 @@ namespace osu.Framework.Graphics.UserInterface
                 foreach (var entry in value)
                     AddDropdownItem(entry.Key, entry.Value);
 
-                selectionChanged();
-
-                if (SelectedItem == null)
-                    SelectedItem = MenuItems.FirstOrDefault();
+                Current.TriggerChange();
             }
         }
 
@@ -78,8 +75,13 @@ namespace osu.Framework.Graphics.UserInterface
             var item = CreateMenuItem(text, value);
             item.Action = () =>
             {
-                selectedItem = item;
-                Current.Value = item.Value;
+                try
+                {
+                    Current.Value = item.Value;
+                }
+                catch (BindableDisabledException)
+                { }
+
                 DropdownMenu.State = MenuState.Closed;
             };
             itemMap[item.Value] = item;
