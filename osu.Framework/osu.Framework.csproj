@@ -83,6 +83,7 @@
   <ItemGroup>
     <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
+    <Compile Include="Audio\IHasPitchAdjust.cs" />
     <Compile Include="Audio\Sample\Sample.cs" />
     <Compile Include="Audio\Sample\SampleBass.cs" />
     <Compile Include="Caching\Cached.cs" />
