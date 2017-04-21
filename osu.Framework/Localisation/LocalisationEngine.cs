@@ -72,21 +72,28 @@ namespace osu.Framework.Localisation
 
         private void checkLocale(string newValue)
         {
-            var culture = string.IsNullOrEmpty(newValue) ?
-                CultureInfo.CurrentCulture :
-                new CultureInfo(newValue);
-
             var locales = SupportedLocales.ToList();
             string validLocale = null;
-            for (var c = culture; !c.IsNeutralCulture; c = c.Parent)
-                if (locales.Contains(c.Name))
-                {
-                    validLocale = c.Name;
-                    break;
-                }
 
-            if (validLocale == null)
-                validLocale = locales[0];
+            if (locales.Contains(newValue))
+                validLocale = newValue;
+            else
+            {
+                var culture = string.IsNullOrEmpty(newValue) ?
+                    CultureInfo.CurrentCulture :
+                    new CultureInfo(newValue);
+
+                for (var c = culture; !c.IsNeutralCulture; c = c.Parent)
+                    if (locales.Contains(c.Name))
+                    {
+                        validLocale = c.Name;
+                        break;
+                    }
+
+                if (validLocale == null)
+                    validLocale = locales[0];
+            }
+
             if (validLocale != newValue)
                 locale.Value = validLocale;
             else
