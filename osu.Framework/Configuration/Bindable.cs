@@ -6,8 +6,6 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Configuration
 {
-    public class BindableDisabledException : Exception { }
-
     public class Bindable<T> : IBindable
     {
         private T value;
@@ -47,7 +45,7 @@ namespace osu.Framework.Configuration
                 if (EqualityComparer<T>.Default.Equals(this.value, value)) return;
 
                 if (Disabled)
-                    throw new BindableDisabledException();
+                    throw new InvalidOperationException($"Can not set value to \"{value.ToString()}\" as bindable is disabled.");
 
                 this.value = value;
 
