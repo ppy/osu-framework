@@ -25,14 +25,14 @@ namespace osu.Framework.Localization
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
         {
-            var bindable = new UnicodeBindableString(getUnicodePreference(unicode, nonUnicode));
-
+            var bindable = new UnicodeBindableString(unicode, nonUnicode)
+            {
+                PreferUnicode = preferUnicode.Value
+            };
             AddWeakReference(bindable);
 
             return bindable;
         }
-
-        private string getUnicodePreference(string unicode, string nonUnicode) => preferUnicode ? unicode : nonUnicode;
 
         private void updateUnicodeStrings(bool newValue)
         {
@@ -40,7 +40,7 @@ namespace osu.Framework.Localization
             {
                 UnicodeBindableString b;
                 if (w.TryGetTarget(out b))
-                    b.Value = getUnicodePreference(b.Unicode, b.NonUnicode);
+                    b.PreferUnicode = newValue;
                 else
                     unicodeBindings.Remove(w);
             }
@@ -48,12 +48,19 @@ namespace osu.Framework.Localization
 
         public class UnicodeBindableString : Bindable<string>
         {
-            public string Unicode;
-            public string NonUnicode;
+            public readonly string Unicode;
+            public readonly string NonUnicode;
 
-            public UnicodeBindableString(string s) : base(s)
+            public UnicodeBindableString(string unicode, string nonUnicode) : base(nonUnicode)
             {
+                Unicode = unicode;
+                NonUnicode = nonUnicode;
+            }
 
+            public bool PreferUnicode
+            {
+                get { return Value == Unicode; }
+                set { Value = value ? Unicode : NonUnicode; }
             }
         }
     }
