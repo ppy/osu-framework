@@ -928,7 +928,9 @@ namespace osu.Framework.VisualTests.Tests
 
     internal class InfofulBoxAutoSize : Container
     {
-        protected override Container<Drawable> Content { get; }
+        protected override Container<Drawable> Content => content;
+
+        private readonly Container<Drawable> content;
 
         public InfofulBoxAutoSize()
         {
@@ -943,7 +945,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Depth = float.MaxValue,
                 },
-                Content = new Container
+                content = new Container
                 {
                     AutoSizeAxes = Axes.Both,
                 }
