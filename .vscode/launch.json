@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch VisualTests",
+            "windows": {
+                "type": "clr"
+            },
+            "type": "mono",
+            "request": "launch",
+            "program": "${workspaceRoot}/osu.Framework.VisualTests/bin/Debug/osu.Framework.VisualTests.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Attach",
+            "windows": {
+                "type": "clr",
+                "request": "attach",
+                "processName": "osu.Framework.VisualTests"
+            },
+            "type": "mono",
+            "request": "attach",
+            "address": "localhost",
+            "port": 55555
+        }
+    ]
+}
