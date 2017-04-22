@@ -928,10 +928,7 @@ namespace osu.Framework.VisualTests.Tests
 
     internal class InfofulBoxAutoSize : Container
     {
-        protected override Container<Drawable> Content
-        {
-            get { return content; }
-        }
+        protected override Container<Drawable> Content => content;
 
         private Container<Drawable> content;
 
