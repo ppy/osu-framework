@@ -12,6 +12,8 @@ namespace osu.Framework.Graphics.Containers
         Vector2 ChildSize { get; }
         Vector2 ChildOffset { get; }
 
+        float CornerRadius { get; }
+
         void InvalidateFromChild(Invalidation invalidation);
 
         void Clear(bool dispose = true);

@@ -206,6 +206,8 @@
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
+    <Compile Include="Physics\RigidBody.cs" />
+    <Compile Include="Physics\RigidBodySimulation.cs" />
     <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
