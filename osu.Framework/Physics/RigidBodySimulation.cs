@@ -44,7 +44,7 @@ namespace osu.Framework.Physics
             return body;
         }
 
-        private List<Drawable> toSimulate = new List<Drawable>();
+        private readonly List<Drawable> toSimulate = new List<Drawable>();
 
         /// <summary>
         /// Advances the simulation by a time step.

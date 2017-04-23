@@ -19,17 +19,17 @@ namespace osu.Framework.Physics.RigidBodies
         /// <summary>
         /// The <see cref="Drawable"/> this rigid body is associated with.
         /// </summary>
-        public Drawable Drawable;
+        private readonly Drawable drawable;
 
         public DrawableBody(Drawable d, RigidBodySimulation sim) : base(sim)
         {
-            Drawable = d;
+            drawable = d;
         }
 
         protected override float ComputeI()
         {
-            Matrix3 mat = Drawable.DrawInfo.Matrix * Drawable.Parent.DrawInfo.MatrixInverse;
-            Vector2 size = Drawable.DrawSize;
+            Matrix3 mat = drawable.DrawInfo.Matrix * drawable.Parent.DrawInfo.MatrixInverse;
+            Vector2 size = drawable.DrawSize;
 
             // Inertial moment for a linearly transformed rectangle with a given size around its center.
             return (
@@ -43,10 +43,10 @@ namespace osu.Framework.Physics.RigidBodies
             Vertices.Clear();
             Normals.Clear();
 
-            float cornerRadius = (Drawable as IContainer)?.CornerRadius ?? 0;
+            float cornerRadius = (drawable as IContainer)?.CornerRadius ?? 0;
 
             // Sides
-            RectangleF rect = Drawable.DrawRectangle;
+            RectangleF rect = drawable.DrawRectangle;
             Vector2[] corners = { rect.TopLeft, rect.TopRight, rect.BottomRight, rect.BottomLeft };
             const int amount_side_steps = 2;
 
@@ -97,7 +97,7 @@ namespace osu.Framework.Physics.RigidBodies
             }
 
             // To simulation space
-            Matrix3 mat = Drawable.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Matrix3 mat = drawable.DrawInfo.Matrix * ScreenToSimulationSpace;
             Matrix3 normMat = mat.Inverted();
             normMat.Transpose();
 
@@ -114,9 +114,9 @@ namespace osu.Framework.Physics.RigidBodies
 
         public override void ReadState()
         {
-            Matrix3 mat = Drawable.Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
-            Centre = Drawable.BoundingBox.Centre * mat;
-            Rotation = MathHelper.DegreesToRadians(Drawable.Rotation); // TODO: Fix rotations
+            Matrix3 mat = drawable.Parent.DrawInfo.Matrix * ScreenToSimulationSpace;
+            Centre = drawable.BoundingBox.Centre * mat;
+            Rotation = MathHelper.DegreesToRadians(drawable.Rotation); // TODO: Fix rotations
 
             base.ReadState();
         }
@@ -125,13 +125,13 @@ namespace osu.Framework.Physics.RigidBodies
         {
             base.ApplyState();
 
-            Matrix3 mat = SimulationToScreenSpace * Drawable.Parent.DrawInfo.MatrixInverse;
-            Drawable.Position = Centre * mat + (Drawable.Position - Drawable.BoundingBox.Centre);
-            Drawable.Rotation = MathHelper.RadiansToDegrees(Rotation); // TODO: Fix rotations
+            Matrix3 mat = SimulationToScreenSpace * drawable.Parent.DrawInfo.MatrixInverse;
+            drawable.Position = Centre * mat + (drawable.Position - drawable.BoundingBox.Centre);
+            drawable.Rotation = MathHelper.RadiansToDegrees(Rotation); // TODO: Fix rotations
         }
 
-        public override Rectangle ScreenSpaceAABB => Drawable.ScreenSpaceDrawQuad.AABB;
+        public override Rectangle ScreenSpaceAABB => drawable.ScreenSpaceDrawQuad.AABB;
 
-        public override bool Contains(Vector2 screenSpacePos) => Drawable.Contains(screenSpacePos);
+        public override bool Contains(Vector2 screenSpacePos) => drawable.Contains(screenSpacePos);
     }
 }
