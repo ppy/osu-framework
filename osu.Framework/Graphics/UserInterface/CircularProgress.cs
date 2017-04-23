@@ -6,14 +6,25 @@ using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-
+    /// <summary>
+    /// A circular progress circle.
+    /// </summary>
     public class CircularProgress : Container, IHasCurrentValue<double>
     {
-        private List<Triangle> triangles = new List<Triangle>();
+        /// <summary>
+        /// Stores 8 triangles that we use to build up 8 different sectors.
+        /// </summary>
+        private Triangle[] triangles = new Triangle[8];
+
+        /// <summary>
+        /// The container that masks the triangles such that they look like sectors.
+        /// We also Scale this to the right size,
+        /// that way all out triangles can have a fixed size of 0.5.
+        /// </summary>
         private Container trianglesContainer;
 
-        private float clockRadius = 0.5f;
-        private float clockWidth = 1.0f;
+        private float radius = 0.5f;
+        private float diameter = 1.0f;
 
         public Bindable<double> Current { get; } = new Bindable<double>();
 
@@ -23,16 +34,17 @@ namespace osu.Framework.Graphics.UserInterface
 
             for (int i = 0; i < 8; i++)
             {
-                triangles.Add(new Triangle
+                triangles[i] = new Triangle
                 {
                     Origin = Anchor.BottomRight,
                     Anchor = Anchor.Centre,
 
-                    Width = clockWidth,
-                    Height = clockRadius,
+                    Width = diameter,
+                    Height = 0,
+                    Alpha = 0,
 
                     Rotation = (45 * i) + 90,
-                });
+                };
             }
 
             Children = new Drawable[] {
@@ -43,9 +55,9 @@ namespace osu.Framework.Graphics.UserInterface
 
                     Masking = true,
 
-                    Width = clockWidth,
-                    Height = clockWidth,
-                    CornerRadius = clockRadius,
+                    Width = diameter,
+                    Height = diameter,
+                    CornerRadius = radius,
 
                     Children = triangles,
                 },
@@ -58,21 +70,28 @@ namespace osu.Framework.Graphics.UserInterface
             trianglesContainer.Scale = DrawSize;
         }
 
-        internal void updateTriangles(double T)
+        /// <summary>
+        /// Adjusts the height of each triangle such that the angle formed corresponds to the Current value.
+        /// </summary>
+        /// <param name="newValue">A double between 0.0 and 1.0 corresponding to empty to filled respectively.</param>
+        internal void updateTriangles(double newValue)
         {
-            int num_maxed = (int)Math.Floor(T * 8);
+            // Number of sectors that are "maxed out"
+            // Also the index of the sector that needs to be calculated.
+            int num_maxed = (int)Math.Floor(newValue * 8);
             for (int i = 0; i < num_maxed && i < 8; i++)
             {
-                triangles[i].Height = clockRadius;
+                triangles[i].Height = radius;
                 triangles[i].Alpha = 1;
             }
             if (0 <= num_maxed && num_maxed < 8)
             {
-                double T_here = T * 8 - num_maxed;
-                triangles[num_maxed].Height = (float)Math.Tan(T_here * Math.PI / 4) * clockRadius;
+                // T_here is the progress of this specific sector.
+                double T_here = newValue * 8 - num_maxed;
+                triangles[num_maxed].Height = (float)Math.Tan(T_here * Math.PI / 4) * radius;
                 triangles[num_maxed].Alpha = 1;
             }
-            for (int i = num_maxed + 1; i < 8; i++)
+            for (int i = Math.Max(0, num_maxed + 1); i < 8; i++)
             {
                 triangles[i].Height = 0;
                 triangles[i].Alpha = 0;
