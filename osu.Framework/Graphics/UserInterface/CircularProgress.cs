@@ -76,24 +76,24 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adjusts the height of each triangle such that the angle formed corresponds to the Current value.
         /// </summary>
         /// <param name="newValue">A double between 0.0 and 1.0 corresponding to empty to filled respectively.</param>
-        internal void updateTriangles(double newValue)
+        private void updateTriangles(double newValue)
         {
             // Number of sectors that are "maxed out"
             // Also the index of the sector that needs to be calculated.
-            int num_maxed = (int)Math.Floor(newValue * 8);
-            for (int i = 0; i < num_maxed && i < 8; i++)
+            int numMaxed = (int)Math.Floor(newValue * 8);
+            for (int i = 0; i < numMaxed && i < 8; i++)
             {
                 triangles[i].Height = radius;
                 triangles[i].Alpha = 1;
             }
-            if (0 <= num_maxed && num_maxed < 8)
+            if (0 <= numMaxed && numMaxed < 8)
             {
                 // T_here is the progress of this specific sector.
-                double T_here = newValue * 8 - num_maxed;
-                triangles[num_maxed].Height = (float)Math.Tan(T_here * Math.PI / 4) * radius;
-                triangles[num_maxed].Alpha = 1;
+                double valueHere = newValue * 8 - numMaxed;
+                triangles[numMaxed].Height = (float)Math.Tan(valueHere * Math.PI / 4) * radius;
+                triangles[numMaxed].Alpha = 1;
             }
-            for (int i = Math.Max(0, num_maxed + 1); i < 8; i++)
+            for (int i = Math.Max(0, numMaxed + 1); i < 8; i++)
             {
                 triangles[i].Height = 0;
                 triangles[i].Alpha = 0;
