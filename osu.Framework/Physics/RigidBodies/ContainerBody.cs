@@ -7,14 +7,14 @@ using OpenTK;
 namespace osu.Framework.Physics.RigidBodies
 {
     /// <summary>
-    /// Links a <see cref="RigidBody"/> with a <see cref="Container"/> such that their state
+    /// Links a <see cref="RigidBody"/> with a container such that their state
     /// is interconnected.
     /// </summary>
-    class ContainerBody : DrawableBody
+    public class ContainerBody : DrawableBody
     {
         public ContainerBody(Drawable d, RigidBodySimulation sim) : base(d, sim)
         {
-            m = float.MaxValue;
+            Mass = float.MaxValue;
         }
 
         protected override void UpdateVertices()
@@ -38,8 +38,8 @@ namespace osu.Framework.Physics.RigidBodies
         {
             base.ApplyState();
 
-            p = Vector2.Zero;
-            L = 0;
+            Momentum = Vector2.Zero;
+            AngularMomentum = 0;
         }
     }
 }

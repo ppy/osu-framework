@@ -50,9 +50,9 @@ namespace osu.Framework.VisualTests.Tests
             return false;
         }
 
-        private void generateN(int N, Func<Drawable> generate)
+        private void generateN(int n, Func<Drawable> generate)
         {
-            for (int i = 0; i < N; i++)
+            for (int i = 0; i < n; i++)
             {
                 Drawable d = generate();
 
@@ -70,25 +70,20 @@ namespace osu.Framework.VisualTests.Tests
         {
             testContainer.Clear();
 
-            Container box;
-
             switch (testType)
             {
                 case 0:
                     Random random = new Random(1337);
 
                     // Boxes
-                    generateN(10, delegate
+                    generateN(10, () => new InfofulBox
                     {
-                        return new InfofulBox
-                        {
-                            Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
-                            Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
-                            Rotation = (float)random.NextDouble() * 360,
-                            Colour = new Color4(253, 253, 253, 255),
-                            Origin = Anchor.Centre,
-                            Anchor = Anchor.TopLeft,
-                        };
+                        Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
+                        Size = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 200,
+                        Rotation = (float)random.NextDouble() * 360,
+                        Colour = new Color4(253, 253, 253, 255),
+                        Origin = Anchor.Centre,
+                        Anchor = Anchor.TopLeft,
                     });
 
                     // Circles

@@ -11,9 +11,9 @@ namespace osu.Framework.Physics
     /// <summary>
     /// Contains physical state and methods necessary for rigid body simulation.
     /// </summary>
-    abstract class RigidBody
+    public abstract class RigidBody
     {
-        private RigidBodySimulation simulation;
+        private readonly RigidBodySimulation simulation;
 
         /// <summary>
         /// Controls how elastic the material is. A value of 1 means perfect elasticity
@@ -27,64 +27,40 @@ namespace osu.Framework.Physics
         /// </summary>
         public float FrictionCoefficient = 0f;
 
-        /// <summary>
-        /// Centre of mass.
-        /// </summary>
-        public Vector2 c;
+        public Vector2 Centre;
 
-        /// <summary>
-        /// Rotation.
-        /// </summary>
-        public float r;
+        public float Rotation;
 
-        /// <summary>
-        /// Mass.
-        /// </summary>
-        public float m;
+        public float Mass;
 
-        /// <summary>
-        /// Velocity.
-        /// </summary>
-        public Vector2 v
+        public Vector2 Velocity
         {
-            get { return p / m; }
-            set { p = value * m; }
+            get { return Momentum / Mass; }
+            set { Momentum = value * Mass; }
         }
 
-        /// <summary>
-        /// Momentum.
-        /// </summary>
-        public Vector2 p;
+        public Vector2 Momentum;
 
-        /// <summary>
-        /// Angular velocity.
-        /// </summary>
-        public float w
+        public float AngularVelocity
         {
-            get { return L / I; }
-            set { L = value * I; }
+            get { return AngularMomentum / MomentOfInertia; }
+            set { AngularMomentum = value * MomentOfInertia; }
         }
 
-        /// <summary>
-        /// Angular momentum.
-        /// </summary>
-        public float L;
+        public float AngularMomentum;
 
-        /// <summary>
-        /// Moment of inertia.
-        /// </summary>
-        public float I { get; private set; }
+        public float MomentOfInertia { get; private set; }
 
         /// <summary>
         /// Total velocity at a given location. Includes angular velocity.
         /// </summary>
         public Vector2 VelocityAt(Vector2 pos)
         {
-            Vector2 diff = pos - c;
+            Vector2 diff = pos - Centre;
 
             // Add orthogonal direction to rotation, scaled by distance from centre
             // to the velocity of our centre of mass.
-            return v + diff.PerpendicularLeft * w;
+            return Velocity + diff.PerpendicularLeft * AngularVelocity;
         }
 
         /// <summary>
@@ -98,14 +74,14 @@ namespace osu.Framework.Physics
         /// </summary>
         protected List<Vector2> Normals = new List<Vector2>();
 
-        public RigidBody(RigidBodySimulation sim)
+        protected RigidBody(RigidBodySimulation sim)
         {
             simulation = sim;
-            m = 1f; // Arbitrarily 1 kg for now
+            Mass = 1f; // Arbitrarily 1 kg for now
 
             // Initially no moments
-            p = Vector2.Zero;
-            L = 0;
+            Momentum = Vector2.Zero;
+            AngularMomentum = 0;
         }
 
         protected Matrix3 ScreenToSimulationSpace => simulation.ScreenToSimulationSpace;
@@ -133,16 +109,16 @@ namespace osu.Framework.Physics
         public virtual void ApplyImpulse(Vector2 impulse, Vector2 pos)
         {
             // Offset to our centre of mass. Required to obtain torque
-            Vector2 diff = pos - c;
+            Vector2 diff = pos - Centre;
 
-            p += impulse;
+            Momentum += impulse;
 
             // Cross product between impulse and offset to centre.
             // If they are orthogonal, then the effect on angular momentum is maximized.
             // Intuitively, think of hitting something head-on vs hitting it on the far edge.
             // The first case will not introduce any rotational movement, whereas the latter
             // will.
-            L += diff.X * impulse.Y - diff.Y * impulse.X;
+            AngularMomentum += diff.X * impulse.Y - diff.Y * impulse.X;
         }
 
         /// <summary>
@@ -151,9 +127,9 @@ namespace osu.Framework.Physics
         /// </summary>
         private float impulseDenominator(Vector2 pos, Vector2 normal)
         {
-            Vector2 diff = pos - c;
+            Vector2 diff = pos - Centre;
             float perpDot = Vector2.Dot(normal, diff.PerpendicularRight);
-            return 1.0f / m + perpDot * perpDot / I;
+            return 1.0f / Mass + perpDot * perpDot / MomentOfInertia;
         }
 
         /// <summary>
@@ -162,14 +138,12 @@ namespace osu.Framework.Physics
         /// </summary>
         private Vector2 computeImpulse(RigidBody other, Vector2 pos, Vector2 normal)
         {
-            const float EPSILON = 0.001f;
-
             Vector2 vrel = VelocityAt(pos) - other.VelocityAt(pos);
             float vrelOrtho = -Vector2.Dot(vrel, normal);
 
             // We don't want to consider collisions where objects move away from each other.
             // (Or with negligible velocity. Let repulsive forces handle these.)
-            if (vrelOrtho > -EPSILON)
+            if (vrelOrtho > -0.001f)
                 return Vector2.Zero;
 
             float impulseMagnitude = -(1.0f + Restitution) * vrelOrtho;
@@ -183,7 +157,7 @@ namespace osu.Framework.Physics
             Vector2 vrelPlanar = vrel + vrelOrtho * normal;
             float vrelPlanarLength = vrelPlanar.Length;
             if (vrelPlanarLength > 0)
-                impulse -= vrelPlanar * Math.Min(impulseMagnitude * 0.05f * FrictionCoefficient * other.FrictionCoefficient / vrelPlanarLength, m);
+                impulse -= vrelPlanar * Math.Min(impulseMagnitude * 0.05f * FrictionCoefficient * other.FrictionCoefficient / vrelPlanarLength, Mass);
 
             return impulse;
         }
@@ -224,29 +198,29 @@ namespace osu.Framework.Physics
         /// </summary>
         public void Integrate(Vector2 force, float torque, float dt)
         {
-            Vector2 vPrev = v;
-            float wPrev = w;
-            
+            Vector2 vPrev = Velocity;
+            float wPrev = AngularVelocity;
+
             // Update momenta
-            p += dt * force;
-            L += dt * torque;
+            Momentum += dt * force;
+            AngularMomentum += dt * torque;
 
             // Update position and rotation given _previous_ velocities. This is a symplectic integration technique, which conserves energy.
-            c += dt * vPrev;
-            r += dt * wPrev;
+            Centre += dt * vPrev;
+            Rotation += dt * wPrev;
         }
 
         /// <summary>
-        /// Reads the positional and rotational state of this rigid body from its <see cref="Drawable"/>.
+        /// Reads the positional and rotational state of this rigid body from its source.
         /// </summary>
         public virtual void ReadState()
         {
-            I = ComputeI();
+            MomentOfInertia = ComputeI();
             UpdateVertices();
         }
 
         /// <summary>
-        /// Applies the positional and rotational state of this rigid body to its <see cref="Drawable"/>.
+        /// Applies the positional and rotational state of this rigid body to its source.
         /// </summary>
         public virtual void ApplyState()
         {

@@ -18,8 +18,8 @@ namespace osu.Framework.Physics
     /// </summary>
     public class RigidBodySimulation
     {
-        private IContainerEnumerable<Drawable> container;
-        private Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
+        private readonly IContainerEnumerable<Drawable> container;
+        private readonly Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
 
         public RigidBodySimulation(IContainerEnumerable<Drawable> container)
         {
@@ -28,7 +28,7 @@ namespace osu.Framework.Physics
             foreach (Drawable d in container.InternalChildren)
             {
                 RigidBody body = getRigidBody(d);
-                body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.c + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
+                body.ApplyImpulse(new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100, body.Centre + new Vector2(RNG.NextSingle() - 0.5f, RNG.NextSingle() - 0.5f) * 100);
             }
         }
 
@@ -75,7 +75,7 @@ namespace osu.Framework.Physics
                 {
                     if (other == d)
                         continue;
-                    
+
                     if (d != container && body.CheckAndHandleCollisionWith(getRigidBody(other)))
                         d.Colour = Color4.Red;
                 }
@@ -86,7 +86,7 @@ namespace osu.Framework.Physics
             foreach (Drawable d in toSimulate)
             {
                 RigidBody body = getRigidBody(d);
-                body.Integrate(new Vector2(0, 9.81f * body.m), 0, dt);
+                body.Integrate(new Vector2(0, 9.81f * body.Mass), 0, dt);
                 body.ApplyState();
             }
         }
