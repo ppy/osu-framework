@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.MathUtils;
 using System.Collections.Generic;
+using osu.Framework.Physics.RigidBodies;
 
 namespace osu.Framework.Physics
 {
@@ -38,10 +39,12 @@ namespace osu.Framework.Physics
         {
             RigidBody body;
             if (!states.TryGetValue(d, out body))
-                states[d] = body = new RigidBody(d);
+                states[d] = body = d == container ? new ContainerBody(d, this) : new DrawableBody(d, this);
 
             return body;
         }
+
+        private List<Drawable> toSimulate = new List<Drawable>();
 
         /// <summary>
         /// Advances the simulation by a time step.
@@ -49,37 +52,47 @@ namespace osu.Framework.Physics
         /// <param name="dt">The time step to advance the simulation by.</param>
         public void Update(float dt)
         {
-            // Read the new state from each drawable in question
+            toSimulate.Clear();
+
             foreach (Drawable d in container.InternalChildren)
+                toSimulate.Add(d);
+            toSimulate.Add((Drawable)container);
+
+            // Read the new state from each drawable in question
+            foreach (Drawable d in toSimulate)
             {
                 RigidBody body = getRigidBody(d);
                 body.ReadState();
             }
 
             // Handle collisions between each pair of bodies.
-            foreach (Drawable d in container.InternalChildren)
+            foreach (Drawable d in toSimulate)
             {
                 d.Colour = Color4.White;
                 RigidBody body = getRigidBody(d);
 
-                foreach (Drawable other in container.InternalChildren)
+                foreach (Drawable other in toSimulate)
                 {
                     if (other == d)
                         continue;
                     
-                    if (body.CheckAndHandleCollisionWith(getRigidBody(other)))
-                        body.Drawable.Colour = Color4.Red;
+                    if (d != container && body.CheckAndHandleCollisionWith(getRigidBody(other)))
+                        d.Colour = Color4.Red;
                 }
             }
 
             // Advance the simulation by the given time step for each body and
             // apply the state to each drawable in question.
-            foreach (Drawable d in container.InternalChildren)
+            foreach (Drawable d in toSimulate)
             {
                 RigidBody body = getRigidBody(d);
                 body.Integrate(new Vector2(0, 9.81f * body.m), 0, dt);
                 body.ApplyState();
             }
         }
+
+        internal Matrix3 ScreenToSimulationSpace => container.DrawInfo.MatrixInverse;
+
+        internal Matrix3 SimulationToScreenSpace => container.DrawInfo.Matrix;
     }
 }
