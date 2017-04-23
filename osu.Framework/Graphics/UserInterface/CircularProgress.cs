@@ -16,17 +16,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Stores 8 triangles that we use to build up 8 different sectors.
         /// </summary>
-        private Triangle[] triangles = new Triangle[8];
+        private readonly Triangle[] triangles = new Triangle[8];
 
         /// <summary>
         /// The container that masks the triangles such that they look like sectors.
         /// We also Scale this to the right size,
         /// that way all out triangles can have a fixed size of 0.5.
         /// </summary>
-        private Container trianglesContainer;
+        private readonly Container trianglesContainer;
 
-        private float radius = 0.5f;
-        private float diameter = 1.0f;
+        private const float radius = 0.5f;
+        private const float diameter = 1.0f;
 
         public Bindable<double> Current { get; } = new Bindable<double>();
 
@@ -45,7 +45,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Height = 0,
                     Alpha = 0,
 
-                    Rotation = (45 * i) + 90,
+                    Rotation = 45 * i + 90,
                 };
             }
 
