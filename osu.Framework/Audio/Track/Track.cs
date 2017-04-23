@@ -32,10 +32,16 @@ namespace osu.Framework.Audio.Track
         /// </summary>
         public virtual void Reset()
         {
-            Frequency.Value = 1;
+            ResetSpeedAdjustments();
 
             Stop();
             Seek(0);
+        }
+
+        public virtual void ResetSpeedAdjustments()
+        {
+            Frequency.Value = 1;
+            Tempo.Value = 1;
         }
 
         /// <summary>
@@ -74,7 +80,11 @@ namespace osu.Framework.Audio.Track
         /// <summary>
         /// Overall playback rate (1 is 100%, -1 is reversed at 100%).
         /// </summary>
-        public virtual double Rate => Frequency * Tempo;
+        public virtual double Rate
+        {
+            get { return Frequency * Tempo; }
+            set { Tempo.Value = value; }
+        }
 
         public bool IsReversed => Rate < 0;
 

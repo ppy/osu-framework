@@ -40,7 +40,11 @@ namespace osu.Framework.Timing
 
         private bool sourceIsRunning;
 
-        public double Rate => SourceClock.Rate;
+        public virtual double Rate
+        {
+            get { return SourceClock.Rate; }
+            set { throw new NotImplementedException(); }
+        }
 
         public virtual bool IsRunning => sourceIsRunning;
 

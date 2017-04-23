@@ -29,22 +29,22 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float KeyboardStep;
 
-        private readonly BindableNumber<T> current;
+        protected readonly BindableNumber<T> CurrentNumber;
 
-        public Bindable<T> Current => current;
+        public Bindable<T> Current => CurrentNumber;
 
         protected SliderBar()
         {
             if (typeof(T) == typeof(int))
-                current = new BindableInt() as BindableNumber<T>;
+                CurrentNumber = new BindableInt() as BindableNumber<T>;
             else if (typeof(T) == typeof(long))
-                current = new BindableLong() as BindableNumber<T>;
+                CurrentNumber = new BindableLong() as BindableNumber<T>;
             else if (typeof(T) == typeof(double))
-                current = new BindableDouble() as BindableNumber<T>;
+                CurrentNumber = new BindableDouble() as BindableNumber<T>;
 
-            if (current == null) throw new NotImplementedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
+            if (CurrentNumber == null) throw new NotImplementedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
 
-            current.ValueChanged += v => UpdateValue(NormalizedValue);
+            CurrentNumber.ValueChanged += v => UpdateValue(NormalizedValue);
         }
 
         protected float NormalizedValue
@@ -53,21 +53,14 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (Current == null)
                     return 0;
-                var min = Convert.ToSingle(current.MinValue);
-                var max = Convert.ToSingle(current.MaxValue);
-                var val = Convert.ToSingle(current.Value);
+                var min = Convert.ToSingle(CurrentNumber.MinValue);
+                var max = Convert.ToSingle(CurrentNumber.MaxValue);
+                var val = Convert.ToSingle(CurrentNumber.Value);
                 return (val - min) / (max - min);
             }
         }
 
         protected abstract void UpdateValue(float value);
-
-        protected override void Dispose(bool isDisposing)
-        {
-            if (Current != null)
-                Current.ValueChanged -= bindableValueChanged;
-            base.Dispose(isDisposing);
-        }
 
         protected override void LoadComplete()
         {
@@ -104,17 +97,17 @@ namespace osu.Framework.Graphics.UserInterface
             if (!Hovering)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(current.MaxValue) - Convert.ToSingle(current.MinValue)) / 20;
-            if (current.IsInteger) step = (float)Math.Ceiling(step);
+            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
+            if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
 
             switch (args.Key)
             {
                 case Key.Right:
-                    current.Add(step);
+                    CurrentNumber.Add(step);
                     OnUserChange();
                     return true;
                 case Key.Left:
-                    current.Add(-step);
+                    CurrentNumber.Add(-step);
                     OnUserChange();
                     return true;
                 default:
@@ -122,12 +115,13 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private void bindableValueChanged(T newValue) => UpdateValue(NormalizedValue);
-
         private void handleMouseInput(InputState state)
         {
             var xPosition = ToLocalSpace(state.Mouse.NativeState.Position).X - RangePadding;
-            current.SetProportional(xPosition / UsableWidth);
+
+            if (!CurrentNumber.Disabled)
+                CurrentNumber.SetProportional(xPosition / UsableWidth);
+
             OnUserChange();
         }
 
