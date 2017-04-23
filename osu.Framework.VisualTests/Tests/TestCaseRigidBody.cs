@@ -13,7 +13,7 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseRigidBody : TestCase
     {
-        public override string Description => @"Various scenarios which potentially challenge size calculations.";
+        public override string Description => @"Rigid body simulation scenarios.";
 
         private Container testContainer;
         private RigidBodySimulation sim;
@@ -117,7 +117,7 @@ namespace osu.Framework.VisualTests.Tests
                             Position = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 1000,
                             Size = size,
                             Rotation = (float)random.NextDouble() * 360,
-                            Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()),
+                            Shear = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2 - new Vector2(1),
                             CornerRadius = (float)random.NextDouble() * Math.Min(size.X, size.Y) / 2,
                             Colour = new Color4(253, 253, 253, 255),
                             Origin = Anchor.Centre,
