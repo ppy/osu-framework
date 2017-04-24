@@ -23,13 +23,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Triangle[] triangles = new Triangle[num_triangles];
 
-        /// <summary>
-        /// The container that masks the triangles such that they look like sectors.
-        /// We also Scale this to the right size,
-        /// that way all out triangles can have a fixed size of 0.5.
-        /// </summary>
-        private readonly Container trianglesContainer;
-
         public Bindable<double> Current { get; } = new Bindable<double>();
 
         public CircularProgress()
@@ -43,7 +36,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Origin = Anchor.BottomRight,
                     Anchor = Anchor.Centre,
 
-                    Width = 1,
+                    RelativeSizeAxes = Axes.Both,
                     Height = 0,
                     Alpha = 0,
 
@@ -52,25 +45,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             Children = new Drawable[] {
-                trianglesContainer = new CircularContainer
+                new CircularContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
 
                     Masking = true,
 
-                    Width = 1,
-                    Height = 1,
+                    RelativeSizeAxes = Axes.Both,
 
                     Children = triangles,
                 },
             };
-        }
-
-        protected override void UpdateAfterChildren()
-        {
-            base.UpdateAfterChildren();
-            trianglesContainer.Scale = DrawSize;
         }
 
         /// <summary>
