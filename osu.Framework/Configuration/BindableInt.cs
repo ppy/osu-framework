@@ -44,7 +44,9 @@ namespace osu.Framework.Configuration
 
             try
             {
-                Value = int.Parse(str, NumberFormatInfo.InvariantInfo);
+                var parsed = int.Parse(str, NumberFormatInfo.InvariantInfo);
+                if (parsed >= MinValue && parsed <= MaxValue)
+                    throw new ArgumentException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
             }
             catch (ArgumentException)
             {
