@@ -114,6 +114,7 @@
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\Sprites\LocalisedSpriteText.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
@@ -196,6 +197,7 @@
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Localisation\LocalisationEngine.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
@@ -206,6 +208,10 @@
     <Compile Include="Configuration\IBindable.cs" />
     <Compile Include="Configuration\IParseable.cs" />
     <Compile Include="Audio\AudioManager.cs" />
+    <Compile Include="Physics\RigidBodies\ContainerBody.cs" />
+    <Compile Include="Physics\RigidBodies\DrawableBody.cs" />
+    <Compile Include="Physics\RigidBody.cs" />
+    <Compile Include="Physics\RigidBodySimulation.cs" />
     <Compile Include="Screens\Screen.cs" />
     <Compile Include="Graphics\Sprites\Sprite.cs" />
     <Compile Include="Graphics\Sprites\SpriteText.cs" />
