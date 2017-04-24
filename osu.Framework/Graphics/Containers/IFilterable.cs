@@ -8,9 +8,10 @@ namespace osu.Framework.Graphics.Containers
     public interface IFilterable
     {
         /// <summary>
-        /// Array of keywords that it can be filtered with
+        /// Array of terms that it can be filtered with
         /// </summary>
-        string[] Keywords { get; }
+        string[] Terms { get; }
+
         /// <summary>
         /// Current filtered state, changes whenever it's getting filtered
         /// </summary>

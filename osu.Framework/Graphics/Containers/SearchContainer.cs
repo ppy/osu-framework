@@ -25,32 +25,34 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 searchTerm = value;
-                match(this);
+                match(this, new string[0]);
             }
         }
 
         public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
-        public string[] Keywords => null;
+        public string[] Terms => null;
         public bool FilteredByParent { get; set; }
 
 
-        private bool match(IFilterable searchable, List<string> parentKeywords = null)
+        private bool match(IFilterable searchable, IEnumerable<string> terms)
         {
-            var searchContainer = searchable as IFilterableChildren;
+            var childTerms = new List<string>(terms);
+            childTerms.AddRange(searchable.Terms ?? new string[0]);
 
-            var keywords = new List<string>(searchable.Keywords ?? new string[0]);
-            keywords.AddRange(parentKeywords ?? new string[0].ToList());
+            var searchContainer = searchable as IFilterableChildren;
 
             if (searchContainer != null)
             {
                 bool matching = false;
-                foreach(IFilterable searchableChildren in searchContainer.FilterableChildren)
-                    matching = match(searchableChildren, keywords) || matching;
+
+                foreach (IFilterable searchableChildren in searchContainer.FilterableChildren)
+                    matching = match(searchableChildren, childTerms) || matching;
+
                 return searchContainer.FilteredByParent = matching;
             }
             else
             {
-                return searchable.FilteredByParent = keywords.Any(keyword => keyword.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
+                return searchable.FilteredByParent = childTerms.Any(term => term.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
             }
         }
     }

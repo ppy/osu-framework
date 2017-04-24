@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tests the SearchContainer";
 
-        private SearchContainer search;
+        private SearchContainer<HeaderContainer> search;
 
         public override void Reset()
         {
@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Size = new Vector2(300, 40),
                 },
-                search = new SearchContainer
+                search = new SearchContainer<HeaderContainer>
                 {
                     AutoSizeAxes = Axes.Both,
                     Margin = new MarginPadding { Top = 40 },
@@ -88,22 +88,27 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
-            new List<string>
+            new Dictionary<string, int>
             {
-                "test",
-                "sUbSeCtIoN 2",
-                "€",
-                "èê",
-                "321",
-                "?!"
-            }.ForEach(term => AddStep("Search term: " + term, () => search.SearchTerm = term));
+                { "test" , 2 },
+                { "sUbSeCtIoN 1" , 5 },
+                { "€" , 1 },
+                { "èê" , 1 },
+                { "321" , 0 },
+                { "header" , 7 }
+            }.ToList().ForEach(term => {
+                AddStep("Search term: " + term.Key, () => search.SearchTerm = term.Key);
+                AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
+            });
 
             textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
         }
 
+
+
         private class HeaderContainer : Container, IFilterableChildren
         {
-            public string[] Keywords => header.Keywords;
+            public string[] Terms => header.Terms;
             public bool FilteredByParent
             {
                 set
@@ -138,16 +143,16 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SearchableText : SpriteText, IFilterable
         {
-            public string[] Keywords => new[] { Text };
+            public string[] Terms => new[] { Text };
 
             public bool FilteredByParent
             {
                 set
                 {
                     if (value)
-                        FadeIn();
+                        Show();
                     else
-                        FadeOut();
+                        Hide();
                 }
             }
         }
