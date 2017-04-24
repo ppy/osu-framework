@@ -29,6 +29,8 @@ namespace osu.Framework.Configuration
             Set(FrameworkConfig.LetterboxPositionY, 0.0, -1.0, 1.0);
             Set(FrameworkConfig.FrameSync, FrameSync.Limit120);
             Set(FrameworkConfig.WindowMode, WindowMode.Windowed);
+            Set(FrameworkConfig.ShowUnicode, false);
+            Set(FrameworkConfig.Locale, "");
 #pragma warning restore CS0612 // Type or member is obsolete
         }
 
@@ -60,5 +62,8 @@ namespace osu.Framework.Configuration
         LetterboxPositionX,
         LetterboxPositionY,
         FrameSync,
+
+        ShowUnicode,
+        Locale,
     }
 }
