@@ -16,12 +16,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The number of triangles used.
         /// </summary>
-        private const int numTriangles = 8;
+        private const int num_triangles = 8;
 
         /// <summary>
         /// Stores 8 triangles that we use to build up 8 different sectors.
         /// </summary>
-        private readonly Triangle[] triangles = new Triangle[numTriangles];
+        private readonly Triangle[] triangles = new Triangle[num_triangles];
 
         /// <summary>
         /// The container that masks the triangles such that they look like sectors.
@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             Current.ValueChanged += updateTriangles;
 
-            for (int i = 0; i < numTriangles; i++)
+            for (int i = 0; i < num_triangles; i++)
             {
                 triangles[i] = new Triangle
                 {
@@ -81,20 +81,20 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // Number of sectors that are "maxed out"
             // Also the index of the sector that needs to be calculated.
-            int numMaxed = (int)Math.Floor(newValue * numTriangles);
-            for (int i = 0; i < numMaxed && i < numTriangles; i++)
+            int numMaxed = (int)Math.Floor(newValue * num_triangles);
+            for (int i = 0; i < numMaxed && i < num_triangles; i++)
             {
                 triangles[i].Height = 0.5f;
                 triangles[i].Alpha = 1;
             }
-            if (0 <= numMaxed && numMaxed < numTriangles)
+            if (0 <= numMaxed && numMaxed < num_triangles)
             {
                 // valueHere is the progress of this specific sector.
-                double valueHere = newValue * numTriangles - numMaxed;
+                double valueHere = newValue * num_triangles - numMaxed;
                 triangles[numMaxed].Height = (float)Math.Tan(valueHere * Math.PI / 4) * 0.5f;
                 triangles[numMaxed].Alpha = 1;
             }
-            for (int i = Math.Max(0, numMaxed + 1); i < numTriangles; i++)
+            for (int i = Math.Max(0, numMaxed + 1); i < num_triangles; i++)
             {
                 triangles[i].Height = 0;
                 triangles[i].Alpha = 0;
