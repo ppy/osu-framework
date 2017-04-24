@@ -14,9 +14,14 @@ namespace osu.Framework.Graphics.UserInterface
     public class CircularProgress : Container, IHasCurrentValue<double>
     {
         /// <summary>
+        /// The number of triangles used.
+        /// </summary>
+        private const int numTriangles = 8;
+
+        /// <summary>
         /// Stores 8 triangles that we use to build up 8 different sectors.
         /// </summary>
-        private readonly Triangle[] triangles = new Triangle[8];
+        private readonly Triangle[] triangles = new Triangle[numTriangles];
 
         /// <summary>
         /// The container that masks the triangles such that they look like sectors.
@@ -25,23 +30,20 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         private readonly Container trianglesContainer;
 
-        private const float radius = 0.5f;
-        private const float diameter = 1.0f;
-
         public Bindable<double> Current { get; } = new Bindable<double>();
 
         public CircularProgress()
         {
             Current.ValueChanged += updateTriangles;
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < numTriangles; i++)
             {
                 triangles[i] = new Triangle
                 {
                     Origin = Anchor.BottomRight,
                     Anchor = Anchor.Centre,
 
-                    Width = diameter,
+                    Width = 1,
                     Height = 0,
                     Alpha = 0,
 
@@ -50,16 +52,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
 
             Children = new Drawable[] {
-                trianglesContainer = new Container
+                trianglesContainer = new CircularContainer
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
 
                     Masking = true,
 
-                    Width = diameter,
-                    Height = diameter,
-                    CornerRadius = radius,
+                    Width = 1,
+                    Height = 1,
 
                     Children = triangles,
                 },
@@ -80,20 +81,20 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // Number of sectors that are "maxed out"
             // Also the index of the sector that needs to be calculated.
-            int numMaxed = (int)Math.Floor(newValue * 8);
-            for (int i = 0; i < numMaxed && i < 8; i++)
+            int numMaxed = (int)Math.Floor(newValue * numTriangles);
+            for (int i = 0; i < numMaxed && i < numTriangles; i++)
             {
-                triangles[i].Height = radius;
+                triangles[i].Height = 0.5f;
                 triangles[i].Alpha = 1;
             }
-            if (0 <= numMaxed && numMaxed < 8)
+            if (0 <= numMaxed && numMaxed < numTriangles)
             {
-                // T_here is the progress of this specific sector.
-                double valueHere = newValue * 8 - numMaxed;
-                triangles[numMaxed].Height = (float)Math.Tan(valueHere * Math.PI / 4) * radius;
+                // valueHere is the progress of this specific sector.
+                double valueHere = newValue * numTriangles - numMaxed;
+                triangles[numMaxed].Height = (float)Math.Tan(valueHere * Math.PI / 4) * 0.5f;
                 triangles[numMaxed].Alpha = 1;
             }
-            for (int i = Math.Max(0, numMaxed + 1); i < 8; i++)
+            for (int i = Math.Max(0, numMaxed + 1); i < numTriangles; i++)
             {
                 triangles[i].Height = 0;
                 triangles[i].Alpha = 0;
