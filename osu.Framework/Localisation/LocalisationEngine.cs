@@ -21,6 +21,7 @@ namespace osu.Framework.Localisation
         {
             preferUnicode = config.GetBindable<bool>(FrameworkConfig.ShowUnicode);
             preferUnicode.ValueChanged += updateUnicodeStrings;
+
             locale = config.GetBindable<string>(FrameworkConfig.Locale);
             locale.ValueChanged += checkLocale;
             locale.TriggerChange();
@@ -118,6 +119,10 @@ namespace osu.Framework.Localisation
             }
         }
 
+        /// <summary>
+        /// A Bindable string which takes a unicode and non-unicode (usually romanised) version of the contained text
+        /// and provides automatic switching behaviour should the user change their preference.
+        /// </summary>
         public class UnicodeBindableString : Bindable<string>
         {
             public readonly string Unicode;
@@ -141,6 +146,9 @@ namespace osu.Framework.Localisation
             }
         }
 
+        /// <summary>
+        /// A Bindable string which stays up-to-date with the current locale choice for the specified key.
+        /// </summary>
         public class LocalisedString : Bindable<string>
         {
             public readonly string Key;
