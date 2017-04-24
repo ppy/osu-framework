@@ -82,6 +82,7 @@
     <Compile Include="Platform\Linux\LinuxStorage.cs" />
     <Compile Include="Platform\HeadlessGameHost.cs" />
     <Compile Include="Platform\TcpIpcProvider.cs" />
+    <Compile Include="Platform\Linux\LinuxClipboard.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework\osu.Framework.csproj">
