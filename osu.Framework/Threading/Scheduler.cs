@@ -82,17 +82,13 @@ namespace osu.Framework.Threading
                         }
                     }
 
-                    foreach (var taskToRemove in tasksToRemove)
-                    {
-                        timedTasks.Remove(taskToRemove);
-                    }
+                    foreach (var t in tasksToRemove)
+                        timedTasks.Remove(t);
 
                     tasksToRemove.Clear();
 
-                    foreach (var taskToSchedule in tasksToSchedule)
-                    {
-                        timedTasks.AddInPlace(taskToSchedule);
-                    }
+                    foreach (var t in tasksToSchedule)
+                        timedTasks.AddInPlace(t);
 
                     tasksToSchedule.Clear();
                 }
