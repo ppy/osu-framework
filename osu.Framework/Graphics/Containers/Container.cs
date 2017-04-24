@@ -8,7 +8,6 @@ using System.Diagnostics;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Extensions.IEnumerableExtensions;
@@ -716,7 +715,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Determines how thick of a border to draw around the inside of the masked region.
         /// Only has an effect when <see cref="Masking"/> is true.
-        /// The border only is drawn on top of children of type <see cref="Sprite"/>.
+        /// The border only is drawn on top of children using a sprite shader.
         /// </summary>
         /// <remarks>
         /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
@@ -874,11 +873,28 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private float autoSizeDuration;
+
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
         /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
         /// </summary>
-        public float AutoSizeDuration { get; set; }
+        public float AutoSizeDuration
+        {
+            get { return autoSizeDuration; }
+            set
+            {
+                if (autoSizeDuration == value) return;
+
+                autoSizeDuration = value;
+
+                // if we have an existing transform, we want to update its duration.
+                // not doing this could potentially cause incorrect final autosize dimensions.
+                var existing = Transforms.Find(t => t is TransformAutoSize);
+                if (existing != null)
+                    existing.EndTime = existing.StartTime + autoSizeDuration;
+            }
+        }
 
         /// <summary>
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>

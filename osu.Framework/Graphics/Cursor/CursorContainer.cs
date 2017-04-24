@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Cursor
 {
     public class CursorContainer : OverlayContainer, IRequireHighFrequencyMousePosition
     {
-        protected Drawable ActiveCursor;
+        public Drawable ActiveCursor { get; protected set; }
 
         protected override bool BlockPassThroughMouse => false;
 

@@ -45,6 +45,10 @@ namespace osu.Framework.Threading
         /// </summary>
         protected virtual bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
 
+
+        private readonly List<ScheduledDelegate> tasksToSchedule = new List<ScheduledDelegate>();
+        private readonly List<ScheduledDelegate> tasksToRemove = new List<ScheduledDelegate>();
+
         /// <summary>
         /// Run any pending work tasks.
         /// </summary>
@@ -57,23 +61,36 @@ namespace osu.Framework.Threading
             {
                 if (timedTasks.Count > 0)
                 {
-                    foreach (var sd in timedTasks.FindAll(t => t.ExecutionTime <= currentTime))
+                    foreach (var sd in timedTasks)
                     {
-                        timedTasks.Remove(sd);
-
-                        if (sd.Cancelled) break;
-
-                        schedulerQueue.Enqueue(sd.RunTask);
-
-                        if (sd.RepeatInterval >= 0)
+                        if (sd.ExecutionTime <= currentTime)
                         {
-                            if (timedTasks.Count > 1000)
-                                throw new OverflowException("Too many timed tasks are in the queue!");
+                            tasksToRemove.Add(sd);
 
-                            sd.ExecutionTime += sd.RepeatInterval;
-                            timedTasks.AddInPlace(sd);
+                            if (sd.Cancelled) break;
+
+                            schedulerQueue.Enqueue(sd.RunTask);
+
+                            if (sd.RepeatInterval >= 0)
+                            {
+                                if (timedTasks.Count > 1000)
+                                    throw new OverflowException("Too many timed tasks are in the queue!");
+
+                                sd.ExecutionTime += sd.RepeatInterval;
+                                tasksToSchedule.Add(sd);
+                            }
                         }
                     }
+
+                    foreach (var t in tasksToRemove)
+                        timedTasks.Remove(t);
+
+                    tasksToRemove.Clear();
+
+                    foreach (var t in tasksToSchedule)
+                        timedTasks.AddInPlace(t);
+
+                    tasksToSchedule.Clear();
                 }
             }
 

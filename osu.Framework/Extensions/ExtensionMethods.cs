@@ -69,6 +69,18 @@ namespace osu.Framework.Extensions
             return index;
         }
 
+        /// <summary>
+        /// Try to get a value from the <paramref name="dictionary"/>. Returns a default(TValue) if the key does not exist.
+        /// </summary>
+        /// <param name="dictionary">The dictionary.</param>
+        /// <param name="lookup">The lookup key.</param>
+        /// <returns></returns>
+        public static TValue GetOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey lookup)
+        {
+            TValue outVal;
+            return dictionary.TryGetValue(lookup, out outVal) ? outVal : default(TValue);
+        }
+
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
             return index >= 0 && index < list.Count;

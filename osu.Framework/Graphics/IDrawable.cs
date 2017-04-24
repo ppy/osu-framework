@@ -62,6 +62,11 @@ namespace osu.Framework.Graphics
         BlendingMode BlendingMode { get; }
 
         /// <summary>
+        /// Whether this Drawable is currently hovered over.
+        /// </summary>
+        bool Hovering { get; }
+
+        /// <summary>
         /// Applies a transform to this drawable object.
         /// </summary>
         /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>

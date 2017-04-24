@@ -7,7 +7,7 @@ namespace osu.Framework.Timing
     /// Adds the ability to keep the clock running even when the underlying source has stopped or cannot handle the current time range.
     /// This is handled by performing seeks on the underlying source and checking whether they were successful or not.
     /// On failure to seek, we take over with an internal clock until control can be returned to the actual source.
-    /// 
+    ///
     /// This clock type removes the requirement of having a source set.
     /// </summary>
     public class DecoupleableInterpolatingFramedClock : InterpolatingFramedClock, IAdjustableClock
@@ -32,6 +32,14 @@ namespace osu.Framework.Timing
         public override bool IsRunning => useDecoupledClock ? decoupledClock.IsRunning : base.IsRunning;
 
         public override double ElapsedFrameTime => useDecoupledClock ? decoupledClock.ElapsedFrameTime : base.ElapsedFrameTime;
+
+        public override double Rate
+        {
+            get { return adjustableSource.Rate; }
+            set { adjustableSource.Rate = value; }
+        }
+
+        public void ResetSpeedAdjustments() => Rate = 1;
 
         public DecoupleableInterpolatingFramedClock()
         {
