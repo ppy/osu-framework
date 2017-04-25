@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
         // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
         // grouping of vertices into primitives.
-        public LinearBatch<TexturedVertex3D> HalfCircleBatch = new LinearBatch<TexturedVertex3D>(CircularProgressDrawNode.MAXRES * 100 * 3, 10, PrimitiveType.Triangles);
+        public LinearBatch<TexturedVertex2D> HalfCircleBatch = new LinearBatch<TexturedVertex2D>(CircularProgressDrawNode.MAXRES * 100 * 3, 10, PrimitiveType.Triangles);
     }
 
     public class CircularProgressDrawNode : DrawNode
@@ -64,17 +64,17 @@ namespace osu.Framework.Graphics.UserInterface
             for (int i = 1; i <= amountPoints; i++)
             {
                 // Center point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = new Vector3(screenOrigin.X, screenOrigin.Y, 1),
+                    Position = new Vector2(screenOrigin.X, screenOrigin.Y),
                     TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
                     Colour = originColour
                 });
 
                 // First outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = new Vector3(current.X, current.Y, 0),
+                    Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(0, 0),
                     Colour = currentColour
                 });
@@ -85,9 +85,9 @@ namespace osu.Framework.Graphics.UserInterface
                 current *= DrawInfo.Matrix;
 
                 // Second outer point
-                Shared.HalfCircleBatch.Add(new TexturedVertex3D
+                Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
-                    Position = new Vector3(current.X, current.Y, 0),
+                    Position = new Vector2(current.X, current.Y),
                     TexturePosition = new Vector2(0, 0),
                     Colour = currentColour
                 });
@@ -106,8 +106,6 @@ namespace osu.Framework.Graphics.UserInterface
             if (Texture == null || Texture.IsDisposed)
                 return;
 
-            GLWrapper.SetDepthTest(true);
-
             Shader shader = needsRoundedShader ? RoundedTextureShader : TextureShader;
 
             shader.Bind();
@@ -118,8 +116,6 @@ namespace osu.Framework.Graphics.UserInterface
             updateVertexBuffer();
 
             shader.Unbind();
-
-            GLWrapper.SetDepthTest(false);
         }
     }
 }
