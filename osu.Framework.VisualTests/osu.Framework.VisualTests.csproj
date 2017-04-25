@@ -73,6 +73,7 @@
     <Compile Include="Tests\TestCaseNestedHover.cs" />
     <Compile Include="Tests\TestCaseTriangles.cs" />
     <Compile Include="VisualTestGame.cs" />
+    <Compile Include="Tests\TestCaseCircularProgress.cs" />
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
     </None>
