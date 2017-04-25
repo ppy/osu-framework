@@ -23,6 +23,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
 using OpenTK.Graphics;
+using osu.Framework.Localisation;
 
 namespace osu.Framework.Platform
 {
@@ -35,6 +36,8 @@ namespace osu.Framework.Platform
         private FrameworkDebugConfigManager debugConfig;
 
         private FrameworkConfigManager config;
+
+        public LocalisationEngine Localisation { get; private set; }
 
         private void setActive(bool isActive)
         {
@@ -402,6 +405,7 @@ namespace osu.Framework.Platform
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
+            Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
             activeGCMode.ValueChanged += delegate { setLatencyMode(); };

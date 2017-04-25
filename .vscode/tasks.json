@@ -14,6 +14,13 @@
                 "/property:GenerateFullPaths=true",
                 "/property:DebugType=portable"
             ],
+            "windows": {
+                "args": [
+                    "/property:GenerateFullPaths=true",
+                    "/property:DebugType=portable",
+                    "/m" //parallel compiling support. doesn't work well with mono atm
+                ]
+            },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile",
             "isBuildCommand": true
@@ -29,6 +36,14 @@
                 "/property:DebugType=portable",
                 "/target:Clean,Build"
             ],
+            "windows": {
+                "args": [
+                    "/property:GenerateFullPaths=true",
+                    "/property:DebugType=portable",
+                    "/target:Clean,Build",
+                    "/m" //parallel compiling support. doesn't work well with mono atm
+                ]
+            },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile",
             "isBuildCommand": true

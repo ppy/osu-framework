@@ -83,25 +83,14 @@ namespace osu.Framework.Configuration
 
         protected void AddWeakReference(WeakReference<Bindable<T>> weakReference) => bindings.Add(weakReference);
 
-        public virtual bool Parse(object s)
+        public virtual void Parse(object s)
         {
             if (s is T)
                 Value = (T)s;
             else if (typeof(T).IsEnum && s is string)
-            {
-                try
-                {
-                    Value = (T)Enum.Parse(typeof(T), (string)s);
-                }
-                catch (ArgumentException)
-                {
-                    return false;
-                }
-            }
+                Value = (T)Enum.Parse(typeof(T), (string)s);
             else
-                return false;
-
-            return true;
+                throw new ArgumentException($@"Could not parse provided {s.GetType()} ({s}) to {typeof(T)}.");
         }
 
         public void TriggerChange()
