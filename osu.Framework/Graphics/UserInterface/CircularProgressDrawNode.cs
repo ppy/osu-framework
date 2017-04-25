@@ -1,14 +1,12 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 using System;
-using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
 using OpenTK.Graphics;
 
@@ -49,14 +47,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void addSector(Vector2 origin, float angle)
         {
-            const float startAngle = 0;
+            const float start_angle = 0;
             const float step = MathHelper.Pi / MAXRES;
 
             float dir = Math.Sign(angle);
 
             int amountPoints = (int)Math.Ceiling(Math.Abs(angle) / step);
 
-            Vector2 current = origin + pointOnCircle(startAngle) * Radius;
+            Vector2 current = origin + pointOnCircle(start_angle) * Radius;
             Color4 currentColour = colourAt(current);
             current *= DrawInfo.Matrix;
 
@@ -82,7 +80,7 @@ namespace osu.Framework.Graphics.UserInterface
                 });
 
                 float angularOffset = dir * Math.Min(i * step, dir * angle);
-                current = origin + pointOnCircle(startAngle + angularOffset) * Radius;
+                current = origin + pointOnCircle(start_angle + angularOffset) * Radius;
                 currentColour = colourAt(current);
                 current *= DrawInfo.Matrix;
 
