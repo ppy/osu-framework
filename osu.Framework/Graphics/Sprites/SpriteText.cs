@@ -146,7 +146,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private void bindableSourceChanged(string newValue)
         {
-            Text = newValue;
+            if (text == newValue) return;
+
+            text = newValue ?? string.Empty;
+            internalSize.Invalidate();
         }
         #endregion
 
@@ -157,6 +160,9 @@ namespace osu.Framework.Graphics.Sprites
             get { return text; }
             set
             {
+                if (current != null)
+                    throw new InvalidOperationException($@"property {nameof(Text)} cannot be set manually if {nameof(Current)} set");
+
                 if (text == value)
                     return;
 
