@@ -1,89 +1,86 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Textures;
+using OpenTK;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    /// <summary>
-    /// A circular progress circle.
-    /// </summary>
-    public class CircularProgress : Container, IHasCurrentValue<double>
+    public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
-        /// <summary>
-        /// The number of triangles used.
-        /// </summary>
-        private const int num_triangles = 8;
-
-        /// <summary>
-        /// Stores 8 triangles that we use to build up 8 different sectors.
-        /// </summary>
-        private readonly Triangle[] triangles = new Triangle[num_triangles];
-
         public Bindable<double> Current { get; } = new Bindable<double>();
 
         public CircularProgress()
         {
-            Current.ValueChanged += updateTriangles;
-
-            for (int i = 0; i < num_triangles; i++)
-            {
-                triangles[i] = new Triangle
-                {
-                    Origin = Anchor.BottomRight,
-                    Anchor = Anchor.Centre,
-
-                    RelativeSizeAxes = Axes.Both,
-                    Height = 0,
-                    Alpha = 0,
-
-                    Rotation = 45 * i + 90,
-                };
-            }
-
-            Children = new Drawable[] {
-                new CircularContainer
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-
-                    Masking = true,
-
-                    RelativeSizeAxes = Axes.Both,
-
-                    Children = triangles,
-                },
-            };
+            Current.ValueChanged += (newValue) => Invalidate(Invalidation.DrawNode);
         }
 
-        /// <summary>
-        /// Adjusts the height of each triangle such that the angle formed corresponds to the Current value.
-        /// </summary>
-        /// <param name="newValue">A double between 0.0 and 1.0 corresponding to empty to filled respectively.</param>
-        private void updateTriangles(double newValue)
+        private Shader roundedTextureShader;
+        private Shader textureShader;
+
+        private readonly CircularProgressDrawNodeSharedData pathDrawNodeSharedData = new CircularProgressDrawNodeSharedData();
+
+        public bool CanDisposeTexture { get; protected set; }
+
+        #region Disposal
+
+        protected override void Dispose(bool isDisposing)
         {
-            // Number of sectors that are "maxed out"
-            // Also the index of the sector that needs to be calculated.
-            int numMaxed = (int)Math.Floor(newValue * num_triangles);
-            for (int i = 0; i < numMaxed && i < num_triangles; i++)
+            if (CanDisposeTexture)
             {
-                triangles[i].Height = 0.5f;
-                triangles[i].Alpha = 1;
+                texture?.Dispose();
+                texture = null;
             }
-            if (0 <= numMaxed && numMaxed < num_triangles)
+
+            base.Dispose(isDisposing);
+        }
+
+        #endregion
+
+        protected override DrawNode CreateDrawNode() => new CircularProgressDrawNode();
+
+        protected override void ApplyDrawNode(DrawNode node)
+        {
+            CircularProgressDrawNode n = (CircularProgressDrawNode)node;
+
+            n.Texture = Texture;
+            n.TextureShader = textureShader;
+            n.RoundedTextureShader = roundedTextureShader;
+            n.DrawSize = DrawSize;
+
+            n.Shared = pathDrawNodeSharedData;
+
+            n.Angle = (float)Current.Value * MathHelper.TwoPi;
+
+            base.ApplyDrawNode(node);
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(ShaderManager shaders)
+        {
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.TextureRounded);
+            textureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.Texture);
+        }
+
+        private Texture texture = Texture.WhitePixel;
+
+        public Texture Texture
+        {
+            get { return texture; }
+            set
             {
-                // valueHere is the progress of this specific sector.
-                double valueHere = newValue * num_triangles - numMaxed;
-                triangles[numMaxed].Height = (float)Math.Tan(valueHere * Math.PI / 4) * 0.5f;
-                triangles[numMaxed].Alpha = 1;
-            }
-            for (int i = Math.Max(0, numMaxed + 1); i < num_triangles; i++)
-            {
-                triangles[i].Height = 0;
-                triangles[i].Alpha = 0;
+                if (value == texture)
+                    return;
+
+                if (texture != null && CanDisposeTexture)
+                    texture.Dispose();
+
+                texture = value;
+                Invalidate(Invalidation.DrawNode);
             }
         }
     }

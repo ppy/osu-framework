@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock1;
         private CircularProgress clock2;
         private CircularProgress clock3;
-        private CircularProgress2 clock4;
+        private CircularProgress clock4;
 
         public override void Reset()
         {
@@ -79,7 +79,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     Scale = new Vector2(-0.6f, 1),
                 },
-                clock4 = new CircularProgress2
+                clock4 = new CircularProgress
                 {
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
