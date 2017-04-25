@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace osu.Framework.Desktop.Platform.Linux
 {
-    public class LinuxClipboard : osu.Framework.Platform.Clipboard
+    public class LinuxClipboard : Framework.Platform.Clipboard
     {
         public override string GetText()
         {
