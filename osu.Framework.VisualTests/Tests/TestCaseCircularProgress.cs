@@ -18,6 +18,7 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock1;
         private CircularProgress clock2;
         private CircularProgress clock3;
+        private CircularProgress2 clock4;
 
         public override void Reset()
         {
@@ -78,6 +79,17 @@ namespace osu.Framework.VisualTests.Tests
 
                     Scale = new Vector2(-0.6f, 1),
                 },
+                clock4 = new CircularProgress2
+                {
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(420, 20),
+
+                    Width = 100,
+                    Height = 100,
+
+                    //Scale = new Vector2(-0.6f, 1),
+                },
             };
 
             //AddStep("Right to left", () => graph.Direction = BarDirection.RightToLeft);
@@ -89,6 +101,7 @@ namespace osu.Framework.VisualTests.Tests
             clock1.Current.Value = Time.Current % 500 / 500;
             clock2.Current.Value = Time.Current % 730 / 730;
             clock3.Current.Value = Time.Current % 800 / 800;
+            clock4.Current.Value = Time.Current % 860 / 430 - 1;
         }
     }
 }

@@ -311,6 +311,8 @@
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgress2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
