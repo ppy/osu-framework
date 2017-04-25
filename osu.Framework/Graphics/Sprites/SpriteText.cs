@@ -125,18 +125,18 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        #region IHasCurrentValue
         private Bindable<string> current;
+
         public Bindable<string> Current
         {
             get { return current; }
             set
             {
                 if (current != null)
-                    current.ValueChanged -= bindableSourceChanged;
+                    current.ValueChanged -= setText;
                 if (value != null)
                 {
-                    value.ValueChanged += bindableSourceChanged;
+                    value.ValueChanged += setText;
                     value.TriggerChange();
                 }
 
@@ -144,14 +144,14 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private void bindableSourceChanged(string newValue)
+        private void setText(string newText)
         {
-            if (text == newValue) return;
+            if (text == newText)
+                return;
 
-            text = newValue ?? string.Empty;
+            text = newText ?? string.Empty;
             internalSize.Invalidate();
         }
-        #endregion
 
         private string text = string.Empty;
 
@@ -163,11 +163,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (current != null)
                     throw new InvalidOperationException($@"property {nameof(Text)} cannot be set manually if {nameof(Current)} set");
 
-                if (text == value)
-                    return;
-
-                text = value ?? string.Empty;
-                internalSize.Invalidate();
+                setText(value);
             }
         }
 
