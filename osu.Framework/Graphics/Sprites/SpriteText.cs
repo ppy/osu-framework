@@ -11,10 +11,12 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteText : FillFlowContainer
+    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
@@ -122,6 +124,31 @@ namespace osu.Framework.Graphics.Sprites
                     if (!char.IsWhiteSpace(c)) CreateCharacterDrawable(c);
             }
         }
+
+        #region IHasCurrentValue
+        private Bindable<string> current;
+        public Bindable<string> Current
+        {
+            get { return current; }
+            set
+            {
+                if (current != null)
+                    current.ValueChanged -= bindableSourceChanged;
+                if (value != null)
+                {
+                    value.ValueChanged += bindableSourceChanged;
+                    value.TriggerChange();
+                }
+
+                current = value;
+            }
+        }
+
+        private void bindableSourceChanged(string newValue)
+        {
+            Text = newValue;
+        }
+        #endregion
 
         private string text = string.Empty;
 
