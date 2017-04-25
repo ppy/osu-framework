@@ -22,7 +22,7 @@ namespace osu.Framework.Configuration
             if (str == null)
                 throw new InvalidCastException($@"Input type {s.GetType()} could not be cast to a string for parsing");
 
-            Value = str == @"1" || str.Equals(@"true", System.StringComparison.OrdinalIgnoreCase);
+            Value = str == @"1" || str.Equals(@"true", StringComparison.OrdinalIgnoreCase);
         }
 
         public void Toggle() => Value = !Value;
