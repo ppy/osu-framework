@@ -36,23 +36,15 @@ namespace osu.Framework.Configuration
             base.BindTo(them);
         }
 
-        public override bool Parse(object s)
+        public override void Parse(object s)
         {
             string str = s as string;
-            if (str == null) return false;
+            if (str == null)
+                throw new InvalidCastException($@"Input type {s.GetType()} could not be cast to a string for parsing");
 
-            try
-            {
-                var parsed = long.Parse(str, NumberFormatInfo.InvariantInfo);
-                if (parsed >= MinValue && parsed <= MaxValue)
-                    throw new ArgumentException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            return true;
+            var parsed = long.Parse(str, NumberFormatInfo.InvariantInfo);
+            if (parsed >= MinValue && parsed <= MaxValue)
+                throw new ArgumentException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
         }
 
         public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);

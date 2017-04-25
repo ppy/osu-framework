@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
@@ -175,7 +176,16 @@ namespace osu.Framework.Configuration
                         IBindable b;
 
                         if (configStore.TryGetValue(lookup, out b))
-                            b.Parse(val);
+                        {
+                            try
+                            {
+                                b.Parse(val);
+                            }
+                            catch (Exception e)
+                            {
+                                Logger.Log($@"Unable to parse config key {lookup}: {e}", LoggingTarget.Runtime, LogLevel.Important);
+                            }
+                        }
                         else if (AddMissingEntries)
                             Set(lookup, val);
                     }
