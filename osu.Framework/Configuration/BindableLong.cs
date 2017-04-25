@@ -43,8 +43,10 @@ namespace osu.Framework.Configuration
                 throw new InvalidCastException($@"Input type {s.GetType()} could not be cast to a string for parsing");
 
             var parsed = long.Parse(str, NumberFormatInfo.InvariantInfo);
-            if (parsed >= MinValue && parsed <= MaxValue)
+            if (parsed < MinValue || parsed > MaxValue)
                 throw new ArgumentException($"Parsed number ({parsed}) is outside the valid range ({MinValue} - {MaxValue})");
+
+            Value = parsed;
         }
 
         public override string ToString() => Value.ToString(NumberFormatInfo.InvariantInfo);
