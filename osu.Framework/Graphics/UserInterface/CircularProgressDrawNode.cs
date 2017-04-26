@@ -9,6 +9,7 @@ using OpenTK;
 using System;
 using osu.Framework.Graphics.Batches;
 using OpenTK.Graphics;
+using osu.Framework.Extensions.MatrixExtensions;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -24,7 +25,6 @@ namespace osu.Framework.Graphics.UserInterface
     {
         public const int MAXRES = 24;
         public float Angle;
-        private static Vector2 origin = new Vector2(0.5f, 0.5f);
 
         public Vector2 DrawSize;
         public Texture Texture;
@@ -42,6 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
             ? DrawInfo.Colour.Colour.Linear
             : DrawInfo.Colour.Interpolate(localPos).Linear;
 
+        private readonly static Vector2 origin = new Vector2(0.5f, 0.5f);
         private void updateVertexBuffer()
         {
             const float start_angle = 0;
@@ -51,13 +52,14 @@ namespace osu.Framework.Graphics.UserInterface
 
             int amountPoints = (int)Math.Ceiling(Math.Abs(Angle) / step);
 
-            Matrix3 transformationMatrix = Matrix3.CreateScale(DrawSize.X, DrawSize.Y, 1.0f) * DrawInfo.Matrix;
+            Matrix3 transformationMatrix = DrawInfo.Matrix;
+            MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
             Color4 currentColour = colourAt(current);
             current *= transformationMatrix;
 
-            Vector2 screenOrigin = origin * DrawSize * DrawInfo.Matrix;
+            Vector2 screenOrigin = origin * transformationMatrix;
             Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
