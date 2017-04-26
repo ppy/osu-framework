@@ -11,10 +11,12 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
+using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Graphics.Sprites
 {
-    public class SpriteText : FillFlowContainer
+    public class SpriteText : FillFlowContainer, IHasCurrentValue<string>
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
 
@@ -123,6 +125,34 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
+        private Bindable<string> current;
+
+        public Bindable<string> Current
+        {
+            get { return current; }
+            set
+            {
+                if (current != null)
+                    current.ValueChanged -= setText;
+                if (value != null)
+                {
+                    value.ValueChanged += setText;
+                    value.TriggerChange();
+                }
+
+                current = value;
+            }
+        }
+
+        private void setText(string newText)
+        {
+            if (text == newText)
+                return;
+
+            text = newText ?? string.Empty;
+            internalSize.Invalidate();
+        }
+
         private string text = string.Empty;
 
         public string Text
@@ -130,11 +160,10 @@ namespace osu.Framework.Graphics.Sprites
             get { return text; }
             set
             {
-                if (text == value)
-                    return;
+                if (current != null)
+                    throw new InvalidOperationException($@"property {nameof(Text)} cannot be set manually if {nameof(Current)} set");
 
-                text = value ?? string.Empty;
-                internalSize.Invalidate();
+                setText(value);
             }
         }
 
