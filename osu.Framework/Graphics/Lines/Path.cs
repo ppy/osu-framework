@@ -138,8 +138,7 @@ namespace osu.Framework.Graphics.Lines
                 Vector2 offset = new Vector2(minX, minY);
                 for (int i = 0; i < positions.Count - 1; ++i)
                 {
-                    Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
-                    n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
+                    n.Segments.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
                 }
             }
 

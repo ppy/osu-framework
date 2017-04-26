@@ -5,6 +5,6 @@ namespace osu.Framework.Configuration
 {
     public interface IParseable
     {
-        bool Parse(object s);
+        void Parse(object s);
     }
 }

@@ -46,8 +46,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void logger_NewEntry(LogEntry entry)
         {
+#if !DEBUG
             if (entry.Level <= LogLevel.Verbose)
                 return;
+#endif
 
             Schedule(() =>
             {

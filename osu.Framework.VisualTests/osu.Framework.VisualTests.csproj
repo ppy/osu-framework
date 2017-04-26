@@ -62,6 +62,7 @@
     <Compile Include="Tests\TestCaseDropdownBox.cs" />
     <Compile Include="Tests\TestCaseScreen.cs" />
     <Compile Include="Tests\TestCaseBufferedContainer.cs" />
+    <Compile Include="Tests\TestCaseLocalisation.cs" />
     <Compile Include="Tests\TestCaseMasking.cs" />
     <Compile Include="Tests\TestCaseOnlineTextures.cs" />
     <Compile Include="Tests\TestCasePadding.cs" />
