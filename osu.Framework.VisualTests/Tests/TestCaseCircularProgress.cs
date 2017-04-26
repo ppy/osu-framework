@@ -7,6 +7,9 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -23,6 +26,21 @@ namespace osu.Framework.VisualTests.Tests
         public override void Reset()
         {
             base.Reset();
+
+            // A test texture to apply to the clocks
+            const int width = 20;
+            Texture gradientTexture = new Texture(width, 1, true);
+            byte[] data = new byte[width * 4];
+            for (int i = 0; i < width; ++i)
+            {
+                float brightness = (float)i / (width - 1);
+                int index = i * 4;
+                data[index + 0] = (byte)(brightness * 255);
+                data[index + 1] = (byte)(brightness * 255);
+                data[index + 2] = (byte)(brightness * 255);
+                data[index + 3] = 255;
+            }
+            gradientTexture.SetData(new TextureUpload(data));
 
             Children = new Drawable[]
             {
@@ -64,6 +82,7 @@ namespace osu.Framework.VisualTests.Tests
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(20, 20),
+                    Texture = gradientTexture,
 
                     Width = 100,
                     Height = 100,
@@ -73,6 +92,8 @@ namespace osu.Framework.VisualTests.Tests
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(220, 20),
+                    Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
 
                     Width = 100,
                     Height = 100,
@@ -84,6 +105,8 @@ namespace osu.Framework.VisualTests.Tests
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(420, 20),
+                    //Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
 
                     Width = 100,
                     Height = 100,
@@ -91,8 +114,6 @@ namespace osu.Framework.VisualTests.Tests
                     //Scale = new Vector2(-0.6f, 1),
                 },
             };
-
-            //AddStep("Right to left", () => graph.Direction = BarDirection.RightToLeft);
         }
 
         protected override void Update()
