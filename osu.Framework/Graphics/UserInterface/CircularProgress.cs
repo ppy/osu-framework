@@ -11,6 +11,20 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
+        public bool usePolarColourGradient;
+        public bool UsePolarColourGradient
+        {
+            get
+            {
+                return usePolarColourGradient;
+            }
+            set
+            {
+                usePolarColourGradient = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
         public Bindable<double> Current { get; } = new Bindable<double>();
 
         public CircularProgress()
@@ -50,6 +64,7 @@ namespace osu.Framework.Graphics.UserInterface
             n.TextureShader = textureShader;
             n.RoundedTextureShader = roundedTextureShader;
             n.DrawSize = DrawSize;
+            n.UsePolarColourGradient = UsePolarColourGradient;
 
             n.Shared = pathDrawNodeSharedData;
 

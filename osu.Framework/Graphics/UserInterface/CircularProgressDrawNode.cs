@@ -28,6 +28,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Vector2 DrawSize;
         public Texture Texture;
+        public bool UsePolarColourGradient { get; set; } = false;
 
         public Shader TextureShader;
         public Shader RoundedTextureShader;
@@ -37,10 +38,18 @@ namespace osu.Framework.Graphics.UserInterface
         private bool needsRoundedShader => GLWrapper.IsMaskingActive;
 
         private Vector2 pointOnCircle(float angle) => new Vector2((float)Math.Sin(angle), -(float)Math.Cos(angle));
+        private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
 
-        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
+        private Color4 linearColourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
             ? DrawInfo.Colour.Colour.Linear
             : DrawInfo.Colour.Interpolate(localPos).Linear;
+        private Color4 colourAt(Vector2 pos, float angle, float radius) => UsePolarColourGradient
+            ? linearColourAt(new Vector2(angleToUnitInterval(angle), radius))
+            : linearColourAt(pos);
+            //: (UsePolarColourGradient
+            //   //? DrawInfo.Colour.Interpolate(new Vector2(localPos.X, 0) * Matrix2.CreateRotation(localPos.Y)).Linear
+            //   ? DrawInfo.Colour.Interpolate(new Vector2((float)Math.Atan2(-(localPos - origin).X, (localPos - origin).Y) / MathHelper.TwoPi + 0.5f, (localPos - origin).Length)).Linear
+            //   : DrawInfo.Colour.Interpolate(localPos).Linear);
 
         private readonly static Vector2 origin = new Vector2(0.5f, 0.5f);
         private void updateVertexBuffer()
@@ -56,15 +65,19 @@ namespace osu.Framework.Graphics.UserInterface
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
-            Color4 currentColour = colourAt(current);
+            Color4 currentColour = dir > 0 ? colourAt(current, start_angle, 1) : colourAt(current, MathHelper.TwoPi, 1);
             current *= transformationMatrix;
 
             Vector2 screenOrigin = origin * transformationMatrix;
-            Color4 originColour = colourAt(origin);
+            Color4 originColour;// = colourAt(origin, start_angle, 0);
 
             for (int i = 1; i <= amountPoints; i++)
             {
+                // Clamps the angle so we don't overshoot.
+                float angularOffset = dir * Math.Min(i * step, dir * Angle);
+
                 // Center point
+                originColour = colourAt(origin, start_angle + angularOffset, 0);
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(screenOrigin.X, screenOrigin.Y),
@@ -80,9 +93,8 @@ namespace osu.Framework.Graphics.UserInterface
                     Colour = currentColour
                 });
 
-                float angularOffset = dir * Math.Min(i * step, dir * Angle);
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
-                currentColour = colourAt(current);
+                currentColour = colourAt(current, start_angle + angularOffset, 1);
                 current *= transformationMatrix;
 
                 // Second outer point

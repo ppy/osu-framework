@@ -22,6 +22,8 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock2;
         private CircularProgress clock3;
         private CircularProgress clock4;
+        private CircularProgress clock5;
+        private CircularProgress clock6;
 
         public override void Reset()
         {
@@ -113,6 +115,34 @@ namespace osu.Framework.VisualTests.Tests
 
                     //Scale = new Vector2(-0.6f, 1),
                 },
+                clock5 = new CircularProgress
+                {
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(540, 20),
+                    //Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    UsePolarColourGradient = true,
+
+                    Width = 100,
+                    Height = 100,
+
+                    //Scale = new Vector2(-0.6f, 1),
+                },
+                clock6 = new CircularProgress
+                {
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(660, 20),
+                    //Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    UsePolarColourGradient = true,
+
+                    Width = 100,
+                    Height = 100,
+
+                    //Scale = new Vector2(-0.6f, 1),
+                },
             };
         }
 
@@ -123,6 +153,8 @@ namespace osu.Framework.VisualTests.Tests
             clock2.Current.Value = Time.Current % 730 / 730;
             clock3.Current.Value = Time.Current % 800 / 800;
             clock4.Current.Value = Time.Current % 860 / 430 - 1;
+            clock5.Current.Value = Time.Current % 3000 / 1500 - 1;
+            clock6.Current.Value = Time.Current % 5000 / 2500 - 1;
         }
     }
 }
