@@ -17,7 +17,7 @@ namespace osu.Framework.Timing
         /// </summary>
         public bool IsCoupled = true;
 
-        private bool useDecoupledClock => SourceClock == null || !IsCoupled && !SourceClock.IsRunning;
+        private bool useDecoupledClock => FramedSourceClock == null || !IsCoupled && !FramedSourceClock.IsRunning;
 
         private readonly FramedClock decoupledClock;
         private readonly StopwatchClock decoupledStopwatch;
@@ -25,7 +25,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.
         /// </summary>
-        private IAdjustableClock adjustableSource => SourceClock?.Source as IAdjustableClock;
+        private IAdjustableClock adjustableSource => SourceClock as IAdjustableClock;
 
         public override double CurrentTime => useDecoupledClock ? decoupledClock.CurrentTime : base.CurrentTime;
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Timing
 
         public override double Rate
         {
-            get { return adjustableSource.Rate; }
+            get { return SourceClock.Rate; }
             set { adjustableSource.Rate = value; }
         }
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Timing
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
             decoupledClock.ProcessFrame();
 
-            bool sourceRunning = SourceClock?.IsRunning ?? false;
+            bool sourceRunning = FramedSourceClock?.IsRunning ?? false;
 
             if (IsCoupled || sourceRunning)
             {
