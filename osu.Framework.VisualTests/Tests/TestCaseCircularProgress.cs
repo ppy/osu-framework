@@ -24,6 +24,7 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock4;
         private CircularProgress clock5;
         private CircularProgress clock6;
+        private CircularProgress clock7;
 
         public override void Reset()
         {
@@ -46,102 +47,87 @@ namespace osu.Framework.VisualTests.Tests
 
             Children = new Drawable[]
             {
-                new Container
+                clock1 = new CircularProgress
                 {
-                    Depth = 3,
-
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-
-                    Width = 320,
-                    Height = 320,
-                    CornerRadius = 8,
-
-                    Masking = true,
-
-                    Children = new Drawable[]
-                    {
-                        new Box
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = new Color4(100, 100, 100, 255),
-                        },
-                        clock1 = new CircularProgress
-                        {
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-
-                            Width = 300,
-                            Height = 300,
-                            Colour = new Color4(128, 255, 128, 255),
-                        },
-                    },
-                },
-                clock2 = new CircularProgress
-                {
+                    Width = 100,
+                    Height = 100,
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(20, 20),
-                    Texture = gradientTexture,
 
+                    Colour = new Color4(128, 255, 128, 255),
+
+                },
+                clock2 = new CircularProgress
+                {
                     Width = 100,
                     Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(20, 140),
+
+                    Texture = gradientTexture,
                 },
                 clock3 = new CircularProgress
                 {
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(220, 20),
-                    Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-
                     Width = 100,
                     Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(140, 140),
 
-                    Scale = new Vector2(-0.6f, 1),
+                    Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
                 },
                 clock4 = new CircularProgress
                 {
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(420, 20),
-                    //Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-
                     Width = 100,
                     Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(260, 140),
 
-                    //Scale = new Vector2(-0.6f, 1),
+                    //Texture = gradientTexture,
+                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
                 },
                 clock5 = new CircularProgress
                 {
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(540, 20),
-                    //Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-                    UsePolarColourGradient = true,
-
                     Width = 100,
                     Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(20, 260),
 
-                    //Scale = new Vector2(-0.6f, 1),
+                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    UsePolarColourGradient = true,
                 },
                 clock6 = new CircularProgress
                 {
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(660, 20),
-                    //Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-                    UsePolarColourGradient = true,
-
                     Width = 100,
                     Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(140, 260),
 
-                    //Scale = new Vector2(-0.6f, 1),
+                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    UsePolarColourGradient = true,
+                },
+                clock7 = new CircularProgress
+                {
+                    Width = 100,
+                    Height = 100,
+                    Anchor = Anchor.TopLeft,
+                    Origin = Anchor.TopLeft,
+                    Position = new Vector2(260, 260),
+
+                    ColourInfo = new ColourInfo
+                    {
+                        TopLeft = new Color4(255, 255, 255, 255),
+                        TopRight = new Color4(255, 128, 128, 255),
+                        BottomLeft = new Color4(128, 255, 128, 255),
+                        BottomRight = new Color4(128, 128, 255, 255),
+                    },
+                    UsePolarColourGradient = true,
                 },
             };
         }
@@ -155,6 +141,7 @@ namespace osu.Framework.VisualTests.Tests
             clock4.Current.Value = Time.Current % 860 / 430 - 1;
             clock5.Current.Value = Time.Current % 3000 / 1500 - 1;
             clock6.Current.Value = Time.Current % 5000 / 2500 - 1;
+            clock7.Current.Value = Time.Current % 6666 / 3333 - 1;
         }
     }
 }
