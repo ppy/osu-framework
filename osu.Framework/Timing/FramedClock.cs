@@ -14,14 +14,9 @@ namespace osu.Framework.Timing
     {
         public IClock Source { get; }
 
-        public FramedClock()
-            : this(new StopwatchClock(true))
+        public FramedClock(IClock source = null)
         {
-        }
-
-        public FramedClock(IClock source)
-        {
-            Source = source;
+            Source = source ?? new StopwatchClock(true);
         }
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
@@ -50,6 +45,8 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
+            (Source as IFrameBasedClock)?.ProcessFrame();
+
             if (timeUntilNextCalculation <= 0)
             {
                 timeUntilNextCalculation += fps_calculation_interval;
