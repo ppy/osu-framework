@@ -14,14 +14,9 @@ namespace osu.Framework.Timing
     {
         public IClock Source { get; }
 
-        public FramedClock()
-            : this(new StopwatchClock(true))
+        public FramedClock(IClock source = null)
         {
-        }
-
-        public FramedClock(IClock source)
-        {
-            Source = source;
+            Source = source ?? new StopwatchClock(true);
         }
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };

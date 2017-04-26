@@ -25,10 +25,14 @@ namespace osu.Framework.Timing
 
         public double FramesPerSecond { get; } = 0;
 
-        public void ChangeSource(IClock source)
+        public virtual void ChangeSource(IClock source)
         {
-            SourceClock = source;
-            FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
+            if (source != null)
+            {
+                SourceClock = source;
+                FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
+            }
+
             LastInterpolatedTime = 0;
             CurrentInterpolatedTime = 0;
         }

@@ -35,7 +35,7 @@ namespace osu.Framework.Timing
 
         public override double Rate
         {
-            get { return SourceClock.Rate; }
+            get { return SourceClock?.Rate ?? 1; }
             set { adjustableSource.Rate = value; }
         }
 
@@ -53,7 +53,7 @@ namespace osu.Framework.Timing
             decoupledStopwatch.Rate = adjustableSource?.Rate ?? 1;
             decoupledClock.ProcessFrame();
 
-            bool sourceRunning = FramedSourceClock?.IsRunning ?? false;
+            bool sourceRunning = SourceClock?.IsRunning ?? false;
 
             if (IsCoupled || sourceRunning)
             {
@@ -69,10 +69,20 @@ namespace osu.Framework.Timing
                 if (decoupledClock.IsRunning)
                 {
                     //if we're running but our source isn't, we should try a seek to see if it's capable to switch to it for the current value.
-                    if (adjustableSource?.Seek(CurrentTime) == true)
-                        Start();
+                    Start();
                 }
             }
+        }
+
+        public override void ChangeSource(IClock source)
+        {
+            if (source == null) return;
+
+            // transfer our value to the source clock.
+            (source as IAdjustableClock)?.Seek(CurrentTime);
+
+            SourceClock = source;
+            FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
         }
 
         public void Reset()
@@ -85,10 +95,13 @@ namespace osu.Framework.Timing
 
         public void Start()
         {
-            if (IsCoupled || adjustableSource?.Seek(CurrentTime) == true)
-                //only start the source clock if our time values match.
-                //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
-                adjustableSource?.Start();
+            if (adjustableSource?.IsRunning == false)
+            {
+                if (IsCoupled || adjustableSource?.Seek(CurrentTime) == true)
+                    //only start the source clock if our time values match.
+                    //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
+                    adjustableSource?.Start();
+            }
             decoupledStopwatch.Start();
         }
 
