@@ -339,7 +339,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
-        internal sealed override bool UpdateSubTree()
+        public override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
