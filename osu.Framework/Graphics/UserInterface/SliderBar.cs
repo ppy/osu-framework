@@ -29,6 +29,11 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public float KeyboardStep;
 
+        /// <summary>
+        /// A custom multiplier which amplifies the step amount for a key press when holding 'alt'
+        /// </summary>
+        public float StepMultiplier;
+
         protected readonly BindableNumber<T> CurrentNumber;
 
         public Bindable<T> Current => CurrentNumber;
@@ -94,11 +99,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (!Hovering)
+            if (!Hovering || CurrentNumber.Disabled)
                 return false;
 
-            var step = KeyboardStep != 0 ? KeyboardStep : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
-            if (CurrentNumber.IsInteger) step = (float)Math.Ceiling(step);
+            float step;
+            if (KeyboardStep != 0)
+                step = KeyboardStep;
+            else if (CurrentNumber.IsInteger)
+                step = 1;
+            else
+                step = 0.01f;
+
+            if (state.Keyboard.AltPressed)
+                step *= StepMultiplier != 0 ? StepMultiplier : 10;
 
             switch (args.Key)
             {
