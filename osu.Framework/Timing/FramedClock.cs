@@ -50,6 +50,8 @@ namespace osu.Framework.Timing
 
         public virtual void ProcessFrame()
         {
+            (Source as IFrameBasedClock)?.ProcessFrame();
+
             if (timeUntilNextCalculation <= 0)
             {
                 timeUntilNextCalculation += fps_calculation_interval;
