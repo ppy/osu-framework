@@ -28,10 +28,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Vector2 DrawSize;
         public Texture Texture;
-        // If true, the circle will be coloured such that its angle/radius is mapped to the cartesian points on the colour gradient square.
-        // In other words, you can define a certain angle to have a certain colour if you use GradientHorizontal,
-        // or a certain distance from the centre to have a certain colour if you use GradientVertical (visually looking like a circular gradient).
-        public bool UsePolarColourGradient { get; set; }
 
         public Shader TextureShader;
         public Shader RoundedTextureShader;
@@ -44,13 +40,9 @@ namespace osu.Framework.Graphics.UserInterface
         private float angleToUnitInterval(float angle) => angle / MathHelper.TwoPi + (angle >= 0 ? 0 : 1);
 
         // Gets colour at the localPos position in the unit square of our Colour gradient box.
-        private Color4 linearColourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
+        private Color4 colourAt(Vector2 localPos) => DrawInfo.Colour.HasSingleColour
             ? DrawInfo.Colour.Colour.Linear
             : DrawInfo.Colour.Interpolate(localPos).Linear;
-        // Decide whether to use cartesian or polar coordinates to render our colours.
-        private Color4 colourAt(Vector2 pos, float angle, float radius) => UsePolarColourGradient
-            ? linearColourAt(new Vector2(angleToUnitInterval(angle), radius))
-            : linearColourAt(pos);
 
         private static readonly Vector2 origin = new Vector2(0.5f, 0.5f);
         private void updateVertexBuffer()
@@ -66,26 +58,27 @@ namespace osu.Framework.Graphics.UserInterface
             MatrixExtensions.ScaleFromLeft(ref transformationMatrix, DrawSize);
 
             Vector2 current = origin + pointOnCircle(start_angle) * 0.5f;
-            // Without this conditional, negative angles will have a discontinuity here,
-            // where it tries to map using the positive end of the colour gradient rather than the positive,
-            // as we start counting the angle downwards from 0, rather than from "-0".
-            Color4 currentColour = dir > 0 ? colourAt(current, start_angle, 1) : colourAt(current, MathHelper.TwoPi, 1);
+            Color4 currentColour = colourAt(current);
             current *= transformationMatrix;
 
             Vector2 screenOrigin = origin * transformationMatrix;
+            Color4 originColour = colourAt(origin);
 
             for (int i = 1; i <= amountPoints; i++)
             {
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = dir * Math.Min(i * step, dir * Angle);
+                float normalisedAngle = amountPoints > 1
+                    ? (1 - 1 / Texture.Width) * ((float)(i - 1) / (amountPoints - 1) * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
+                    : 0;
+                //float normalisedAngle = 0;
 
                 // Center point
-                Color4 originColour = colourAt(origin, start_angle + angularOffset, 0);
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(screenOrigin.X, screenOrigin.Y),
-                    TexturePosition = new Vector2(1 - 1 / Texture.Width, 0),
+                    TexturePosition = new Vector2(normalisedAngle, 0),
                     Colour = originColour
                 });
 
@@ -93,20 +86,20 @@ namespace osu.Framework.Graphics.UserInterface
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(0, 0),
+                    TexturePosition = new Vector2(normalisedAngle, 1 - 1 / Texture.Height),
                     Colour = currentColour
                 });
 
                 // Update `current`
                 current = origin + pointOnCircle(start_angle + angularOffset) * 0.5f;
-                currentColour = colourAt(current, start_angle + angularOffset, 1);
+                currentColour = colourAt(current);
                 current *= transformationMatrix;
 
                 // Second outer point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(0, 0),
+                    TexturePosition = new Vector2(normalisedAngle, 1 - 1 / Texture.Height),
                     Colour = currentColour
                 });
             }

@@ -23,27 +23,38 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock3;
         private CircularProgress clock4;
         private CircularProgress clock5;
-        private CircularProgress clock6;
-        private CircularProgress clock7;
 
         public override void Reset()
         {
             base.Reset();
 
-            // A test texture to apply to the clocks
             const int width = 20;
-            Texture gradientTexture = new Texture(width, 1, true);
             byte[] data = new byte[width * 4];
+
+            Texture gradientTextureHorizontal = new Texture(width, 1, true);
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
                 int index = i * 4;
-                data[index + 0] = (byte)(brightness * 255);
-                data[index + 1] = (byte)(brightness * 255);
-                data[index + 2] = (byte)(brightness * 255);
+                data[index + 0] = (byte)(128 + (1 - brightness) * 127);
+                data[index + 1] = (byte)(128 + brightness * 127);
+                data[index + 2] = (byte)(128);
                 data[index + 3] = 255;
             }
-            gradientTexture.SetData(new TextureUpload(data));
+            gradientTextureHorizontal.SetData(new TextureUpload(data));
+
+            Texture gradientTextureVertical = new Texture(1, width, true);
+            for (int i = 0; i<width; ++i)
+            {
+                float brightness = (float)i / (width - 1);
+                int index = i * 4;
+                data[index + 0] = (byte)(128 + (1 - brightness) * 127);
+                data[index + 1] = (byte)(128 + brightness * 127);
+                data[index + 2] = (byte)(128);
+                data[index + 3] = 255;
+            }
+            gradientTextureVertical.SetData(new TextureUpload(data));
+
 
             Children = new Drawable[]
             {
@@ -66,7 +77,7 @@ namespace osu.Framework.VisualTests.Tests
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(20, 140),
 
-                    Texture = gradientTexture,
+                    Texture = gradientTextureVertical,
                 },
                 clock3 = new CircularProgress
                 {
@@ -76,8 +87,7 @@ namespace osu.Framework.VisualTests.Tests
                     Origin = Anchor.TopLeft,
                     Position = new Vector2(140, 140),
 
-                    Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    Texture = gradientTextureHorizontal,
                 },
                 clock4 = new CircularProgress
                 {
@@ -85,10 +95,9 @@ namespace osu.Framework.VisualTests.Tests
                     Height = 100,
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Position = new Vector2(260, 140),
+                    Position = new Vector2(20, 260),
 
-                    //Texture = gradientTexture,
-                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
                 },
                 clock5 = new CircularProgress
                 {
@@ -96,38 +105,9 @@ namespace osu.Framework.VisualTests.Tests
                     Height = 100,
                     Anchor = Anchor.TopLeft,
                     Origin = Anchor.TopLeft,
-                    Position = new Vector2(20, 260),
-
-                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-                    UsePolarColourGradient = true,
-                },
-                clock6 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
                     Position = new Vector2(140, 260),
 
-                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-                    UsePolarColourGradient = true,
-                },
-                clock7 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(260, 260),
-
-                    ColourInfo = new ColourInfo
-                    {
-                        TopLeft = new Color4(255, 255, 255, 255),
-                        TopRight = new Color4(255, 128, 128, 255),
-                        BottomLeft = new Color4(128, 255, 128, 255),
-                        BottomRight = new Color4(128, 128, 255, 255),
-                    },
-                    UsePolarColourGradient = true,
+                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
                 },
             };
         }
@@ -136,12 +116,10 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Update();
             clock1.Current.Value = Time.Current % 500 / 500;
-            clock2.Current.Value = Time.Current % 730 / 730;
-            clock3.Current.Value = Time.Current % 800 / 800;
+            clock2.Current.Value = Time.Current % 730 / 365 - 1;
+            clock3.Current.Value = Time.Current % 800 / 400 - 1;
             clock4.Current.Value = Time.Current % 860 / 430 - 1;
-            clock5.Current.Value = Time.Current % 3000 / 1500 - 1;
-            clock6.Current.Value = Time.Current % 5000 / 2500 - 1;
-            clock7.Current.Value = Time.Current % 6666 / 3333 - 1;
+            clock5.Current.Value = Time.Current % 1332 / 666 - 1;
         }
     }
 }
