@@ -44,21 +44,21 @@ namespace osu.Framework.VisualTests.Tests
                         TextSize = 48,
                         Colour = Color4.White
                     },
-                    new LocalisedSpriteText
+                    new SpriteText
                     {
-                        Bindable = engine.GetLocalisedString("localisable"),
+                        Current = engine.GetLocalisedString("localisable"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
-                    new LocalisedSpriteText
+                    new SpriteText
                     {
-                        Bindable = engine.GetUnicodePreference("Unicode on", "Unicode off"),
+                        Current = engine.GetUnicodePreference("Unicode on", "Unicode off"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
-                    new LocalisedSpriteText
+                    new SpriteText
                     {
-                        Bindable = engine.GetUnicodePreference(null, "I miss unicode"),
+                        Current = engine.GetUnicodePreference(null, "I miss unicode"),
                         TextSize = 48,
                         Colour = Color4.White
                     },
