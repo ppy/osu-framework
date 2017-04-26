@@ -36,7 +36,7 @@ namespace osu.Framework.VisualTests.Tests
                 int index = i * 4;
                 data[index + 0] = (byte)(128 + (1 - brightness) * 127);
                 data[index + 1] = (byte)(128 + brightness * 127);
-                data[index + 2] = (byte)(128);
+                data[index + 2] = 128;
                 data[index + 3] = 255;
             }
             gradientTextureHorizontal.SetData(new TextureUpload(data));
@@ -48,7 +48,7 @@ namespace osu.Framework.VisualTests.Tests
                 int index = i * 4;
                 data[index + 0] = (byte)(128 + (1 - brightness) * 127);
                 data[index + 1] = (byte)(128 + brightness * 127);
-                data[index + 2] = (byte)(128);
+                data[index + 2] = 128;
                 data[index + 3] = 255;
             }
             gradientTextureVertical.SetData(new TextureUpload(data));
