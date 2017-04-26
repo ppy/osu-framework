@@ -38,7 +38,7 @@ namespace osu.Framework.VisualTests.Tests
                         new HeaderContainer
                         {
                             AutoSizeAxes = Axes.Both,
-                            Children = new []
+                            Children = new[]
                             {
                                 new HeaderContainer("Subsection 1")
                                 {
@@ -70,7 +70,7 @@ namespace osu.Framework.VisualTests.Tests
                                 new HeaderContainer("Subsection 2")
                                 {
                                     AutoSizeAxes = Axes.Both,
-                                    Children = new []
+                                    Children = new[]
                                     {
                                         new SearchableText
                                         {
@@ -90,12 +90,12 @@ namespace osu.Framework.VisualTests.Tests
 
             new Dictionary<string, int>
             {
-                { "test" , 2 },
-                { "sUbSeCtIoN 1" , 5 },
-                { "€" , 1 },
-                { "èê" , 1 },
-                { "321" , 0 },
-                { "header" , 7 }
+                { "test", 2 },
+                { "sUbSeCtIoN 1", 5 },
+                { "€", 1 },
+                { "èê", 1 },
+                { "321", 0 },
+                { "header", 7 }
             }.ToList().ForEach(term => {
                 AddStep("Search term: " + term.Key, () => search.SearchTerm = term.Key);
                 AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
@@ -103,8 +103,6 @@ namespace osu.Framework.VisualTests.Tests
 
             textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
         }
-
-
 
         private class HeaderContainer : Container, IFilterableChildren
         {

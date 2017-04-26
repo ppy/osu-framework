@@ -8,7 +8,8 @@ using System.Linq;
 namespace osu.Framework.Graphics.Containers
 {
     public class SearchContainer : SearchContainer<Drawable>
-    { }
+    {
+    }
 
     public class SearchContainer<T> : Container<T>, IFilterableChildren where T : Drawable
     {
@@ -32,7 +33,6 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
         public string[] Terms => null;
         public bool FilteredByParent { get; set; }
-
 
         private bool match(IFilterable searchable, IEnumerable<string> terms)
         {
