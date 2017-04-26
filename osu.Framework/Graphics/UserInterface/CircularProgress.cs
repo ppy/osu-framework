@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class CircularProgress : Drawable, IHasCurrentValue<double>
     {
-        public bool usePolarColourGradient;
+        private bool usePolarColourGradient;
         public bool UsePolarColourGradient
         {
             get
