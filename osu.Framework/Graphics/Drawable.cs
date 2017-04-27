@@ -1806,15 +1806,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence"> to be used in a using() statement.</returns>
+        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
         public TransformSequence BeginDelayedSequence(double delay, bool recursive = false) => new TransformSequence(this, delay, recursive);
 
         /// <summary>
         /// /// Start a sequence of transforms from an absolute time value.
         /// </summary>
-        /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
+        /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence"> to be used in a using() statement.</returns>
+        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
         public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
             if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");

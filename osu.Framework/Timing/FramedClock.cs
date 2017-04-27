@@ -17,7 +17,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// Construct a new FramedClock with an optional source clock.
         /// </summary>
-        /// <param name="source">A source clock which will be used as the backing time source. If null, a StopwatchClock will be created. When provided, the CurrentTime of <see cref="source"> will be transferred instantly.</param>
+        /// <param name="source">A source clock which will be used as the backing time source. If null, a StopwatchClock will be created. When provided, the CurrentTime of <see cref="source" /> will be transferred instantly.</param>
         public FramedClock(IClock source = null)
         {
             if (source != null)
