@@ -8,15 +8,25 @@ namespace osu.Framework.Timing
 {
     /// <summary>
     /// Takes a clock source and separates time reading on a per-frame level.
-    /// The CurrentTime value will only update when ProcessFrame is run.
+    /// The CurrentTime value will only change on initial construction and whenever ProcessFrame is run.
     /// </summary>
     public class FramedClock : IFrameBasedClock
     {
         public IClock Source { get; }
 
+        /// <summary>
+        /// Construct a new FramedClock with an optional source clock.
+        /// </summary>
+        /// <param name="source">A source clock which will be used as the backing time source. If null, a StopwatchClock will be created. When provided, the CurrentTime of <see cref="source"> will be transferred instantly.</param>
         public FramedClock(IClock source = null)
         {
-            Source = source ?? new StopwatchClock(true);
+            if (source != null)
+            {
+                CurrentTime = LastFrameTime = source.CurrentTime;
+                Source = source;
+            }
+            else
+                Source = new StopwatchClock(true);
         }
 
         public FrameTimeInfo TimeInfo => new FrameTimeInfo { Elapsed = ElapsedFrameTime, Current = CurrentTime };
