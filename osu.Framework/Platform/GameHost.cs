@@ -325,7 +325,7 @@ namespace osu.Framework.Platform
 
                     Window.ExitRequested += OnExitRequested;
                     Window.Exited += OnExited;
-                    
+
                     EventHandler<EventArgs> setActiveHandler = delegate { setActive(Window.Focused); };
                     Window.Load += setActiveHandler;
                     Window.FocusedChanged += setActiveHandler;
