@@ -1818,7 +1818,7 @@ namespace osu.Framework.Graphics
         public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
             if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
-            return new TransformSequence(this,(Clock?.CurrentTime ?? 0) + startOffset, recursive);
+            return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
         }
 
         public void Loop(float delay = 0)
