@@ -1886,7 +1886,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
         /// </summary>
-        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
+        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + transformDelay;
 
         public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
