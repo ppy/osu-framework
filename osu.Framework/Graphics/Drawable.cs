@@ -1801,6 +1801,26 @@ namespace osu.Framework.Graphics
             return this;
         }
 
+        /// <summary>
+        /// Start a sequence of transforms with a (cumulative) relative delay applied.
+        /// </summary>
+        /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
+        /// <param name="recursive">Whether this should be applied to all children.</param>
+        /// <returns>A <see cref="TransformSequence"> to be used in a using() statement.</returns>
+        public TransformSequence BeginDelayedSequence(double delay, bool recursive = false) => new TransformSequence(this, delay, recursive);
+
+        /// <summary>
+        /// /// Start a sequence of transforms from an absolute time value.
+        /// </summary>
+        /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
+        /// <param name="recursive">Whether this should be applied to all children.</param>
+        /// <returns>A <see cref="TransformSequence"> to be used in a using() statement.</returns>
+        public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
+        {
+            if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
+            return new TransformSequence(this,(Clock?.CurrentTime ?? 0) + startOffset, recursive);
+        }
+
         public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
@@ -2181,5 +2201,48 @@ namespace osu.Framework.Graphics
         /// This drawable should stretch to fill its parent space.
         /// </summary>
         Stretch
+    }
+
+    /// <summary>
+    /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
+    /// </summary>
+    public class TransformSequence : IDisposable
+    {
+        private readonly Drawable us;
+        private readonly bool recursive;
+        private readonly double adjust;
+
+        public TransformSequence(Drawable us, double adjust, bool recursive = false)
+        {
+            this.recursive = recursive;
+            this.us = us;
+            this.adjust = adjust;
+
+            us.Delay(adjust, recursive);
+        }
+
+        #region IDisposable Support
+        private bool disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                us.Delay(-adjust, recursive);
+                disposed = true;
+            }
+        }
+
+        ~TransformSequence()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
