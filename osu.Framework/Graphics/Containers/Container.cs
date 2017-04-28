@@ -192,27 +192,27 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        /// <returns>True if the child was found and removed, false otherwise.</returns>
-        public bool Remove(T drawable)
+        public void Remove(T drawable)
         {
             if (drawable == null)
-                return false;
+                throw new ArgumentNullException("drawable");
 
             if (Content != this)
-                return Content.Remove(drawable);
+            {
+                Content.Remove(drawable);
+                return;
+            }
 
-            bool result = internalChildren.Remove(drawable);
-            if (!result) return false;
+            if (!internalChildren.Remove(drawable))
+                throw new InvalidOperationException($@"Attempted to remove a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
 
-            if (drawable.Parent != this)
-                throw new InvalidOperationException($@"Attemnpt to remove a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            // The string construction is quite expensive, so we are using Debug.Assert here.
+            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
 
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry);
-
-            return true;
         }
 
         /// <summary>
