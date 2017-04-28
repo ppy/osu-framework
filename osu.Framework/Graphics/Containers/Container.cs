@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Containers
         public void Remove(T drawable)
         {
             if (drawable == null)
-                throw new ArgumentNullException("drawable");
+                throw new ArgumentNullException(nameof(drawable));
 
             if (Content != this)
             {
