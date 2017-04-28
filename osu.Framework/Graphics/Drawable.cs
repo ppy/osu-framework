@@ -2076,6 +2076,49 @@ namespace osu.Framework.Graphics
 
             return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
         }
+
+        /// <summary>
+        /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
+        /// </summary>
+        public class TransformSequence : IDisposable
+        {
+            private readonly Drawable us;
+            private readonly bool recursive;
+            private readonly double adjust;
+
+            public TransformSequence(Drawable us, double adjust, bool recursive = false)
+            {
+                this.recursive = recursive;
+                this.us = us;
+                this.adjust = adjust;
+
+                us.Delay(adjust, recursive);
+            }
+
+            #region IDisposable Support
+            private bool disposed;
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposed)
+                {
+                    us.Delay(-adjust, recursive);
+                    disposed = true;
+                }
+            }
+
+            ~TransformSequence()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            #endregion
+        }
     }
 
     /// <summary>
@@ -2202,48 +2245,5 @@ namespace osu.Framework.Graphics
         /// This drawable should stretch to fill its parent space.
         /// </summary>
         Stretch
-    }
-
-    /// <summary>
-    /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
-    /// </summary>
-    public class TransformSequence : IDisposable
-    {
-        private readonly Drawable us;
-        private readonly bool recursive;
-        private readonly double adjust;
-
-        public TransformSequence(Drawable us, double adjust, bool recursive = false)
-        {
-            this.recursive = recursive;
-            this.us = us;
-            this.adjust = adjust;
-
-            us.Delay(adjust, recursive);
-        }
-
-        #region IDisposable Support
-        private bool disposed;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposed)
-            {
-                us.Delay(-adjust, recursive);
-                disposed = true;
-            }
-        }
-
-        ~TransformSequence()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 }
