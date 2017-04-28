@@ -204,7 +204,9 @@ namespace osu.Framework.Graphics.Containers
             bool result = internalChildren.Remove(drawable);
             if (!result) return false;
 
-            Trace.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            if (drawable.Parent != this)
+                throw new InvalidOperationException($@"Attemnpt to remove a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
