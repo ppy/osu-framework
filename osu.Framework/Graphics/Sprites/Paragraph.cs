@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using System;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -94,7 +93,7 @@ namespace osu.Framework.Graphics.Sprites
 
         public void AddText(string text, Action<SpriteText> onCreate)
         {
-            var sprites = spritesFromText(text, (t) => new SpriteText
+            var sprites = spritesFromText(text, t => new SpriteText
             {
                 Text = t,
                 TextSize = TextSize,
@@ -112,7 +111,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private void recreateText()
         {
-            Children = spritesFromText(Text, (t) => new SpriteText
+            Children = spritesFromText(Text, t => new SpriteText
             {
                 Text = t,
                 TextSize = TextSize,
