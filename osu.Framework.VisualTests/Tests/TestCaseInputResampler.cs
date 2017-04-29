@@ -15,7 +15,7 @@ using System;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseInputReducer : TestCase
+    internal class TestCaseInputResampler : TestCase
     {
         public override string Description => @"Live optimizing paths to relevant nodes.";
 
@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(true, new InputReducer(), gradientTexture, Color4.Green, arc1Text),
+                                    new ArcPath(true, new InputResampler(), gradientTexture, Color4.Green, arc1Text),
                                 }
                             },
                             new Container
@@ -77,7 +77,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(false, new InputReducer(), gradientTexture, Color4.Blue, arc2Text),
+                                    new ArcPath(false, new InputResampler(), gradientTexture, Color4.Blue, arc2Text),
                                 }
                             },
                             new Container
@@ -92,9 +92,9 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(true, new InputReducer
+                                    new ArcPath(true, new InputResampler
                                         {
-                                            SmoothRawInput = true
+                                            ResampleRawInput = true
                                         }, gradientTexture, Color4.Red, arc3Text),
                                 }
                             },
@@ -116,9 +116,9 @@ namespace osu.Framework.VisualTests.Tests
                                         RelativeSizeAxes = Axes.Both,
                                         Texture = gradientTexture,
                                         Colour = Color4.White,
-                                        InputReducer = new InputReducer()
+                                        InputResampler = new InputResampler()
                                         {
-                                            SmoothRawInput = true
+                                            ResampleRawInput = true
                                         },
                                     },
                                 }
@@ -131,7 +131,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SmoothedPath : Path
         {
-            public InputReducer InputReducer { get; set; } = new InputReducer();
+            public InputResampler InputResampler { get; set; } = new InputResampler();
 
             protected int NumVertices { get; set; }
 
@@ -141,7 +141,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 NumRaw++;
                 bool foundOne = false;
-                foreach (Vector2 relevant in InputReducer.AddPosition(pos))
+                foreach (Vector2 relevant in InputResampler.AddPosition(pos))
                 {
                     AddVertex(relevant);
                     NumVertices++;
@@ -153,9 +153,9 @@ namespace osu.Framework.VisualTests.Tests
 
         private class ArcPath : SmoothedPath
         {
-            public ArcPath(bool raw, InputReducer inputReducer, Texture texture, Color4 colour, SpriteText output)
+            public ArcPath(bool raw, InputResampler inputResampler, Texture texture, Color4 colour, SpriteText output)
             {
-                InputReducer = inputReducer;
+                InputResampler = inputResampler;
                 const int target_raw = 1024;
                 RelativeSizeAxes = Axes.Both;
                 Texture = texture;

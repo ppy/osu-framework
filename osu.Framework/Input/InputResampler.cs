@@ -12,7 +12,7 @@ namespace osu.Framework.Input
     /// If the input is a raw/HD input this won't omit any input nodes.
     /// Set SmoothRawInput to true to keep behaviour for HD inputs.
     /// </summary>
-    public class InputReducer
+    public class InputResampler
     {
         private Vector2? lastRelevantPosition;
 
@@ -25,16 +25,17 @@ namespace osu.Framework.Input
         /// as normal input. If false, AddPosition will always just return the position argument
         /// passed to the function without modification.
         /// </summary>
-        public bool SmoothRawInput { get; set; }
+        public bool ResampleRawInput { get; set; }
 
         /// <summary>
         /// Function that takes in a <paramref name="position"/> and returns a list of positions
-        /// that can be used by the caller to make the input path smoother.
-        /// The current implementation always returns only none or exactly one vector.
+        /// that can be used by the caller to make the input path smoother or reduce it.
+        /// The current implementation always returns only none or exactly one vector which
+        /// reduces the input to the corner nodes.
         /// </summary>
         public IEnumerable<Vector2> AddPosition(Vector2 position)
         {
-            if (!SmoothRawInput)
+            if (!ResampleRawInput)
             {
                 if (isRawInput)
                 {
