@@ -17,7 +17,7 @@ namespace osu.Framework.Timing
         /// </summary>
         public bool IsCoupled = true;
 
-        private bool useDecoupledClock => SourceClock == null || !IsCoupled && !SourceClock.IsRunning;
+        private bool useDecoupledClock => FramedSourceClock == null || !IsCoupled && !FramedSourceClock.IsRunning;
 
         private readonly FramedClock decoupledClock;
         private readonly StopwatchClock decoupledStopwatch;
@@ -25,7 +25,7 @@ namespace osu.Framework.Timing
         /// <summary>
         /// We need to be able to pass on adjustments to the source if it supports them.
         /// </summary>
-        private IAdjustableClock adjustableSource => SourceClock?.Source as IAdjustableClock;
+        private IAdjustableClock adjustableSource => SourceClock as IAdjustableClock;
 
         public override double CurrentTime => useDecoupledClock ? decoupledClock.CurrentTime : base.CurrentTime;
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Timing
 
         public override double Rate
         {
-            get { return adjustableSource.Rate; }
+            get { return SourceClock?.Rate ?? 1; }
             set { adjustableSource.Rate = value; }
         }
 
@@ -69,10 +69,20 @@ namespace osu.Framework.Timing
                 if (decoupledClock.IsRunning)
                 {
                     //if we're running but our source isn't, we should try a seek to see if it's capable to switch to it for the current value.
-                    if (adjustableSource?.Seek(CurrentTime) == true)
-                        Start();
+                    Start();
                 }
             }
+        }
+
+        public override void ChangeSource(IClock source)
+        {
+            if (source == null) return;
+
+            // transfer our value to the source clock.
+            (source as IAdjustableClock)?.Seek(CurrentTime);
+
+            SourceClock = source;
+            FramedSourceClock = SourceClock as IFrameBasedClock ?? new FramedClock(SourceClock);
         }
 
         public void Reset()
@@ -85,10 +95,13 @@ namespace osu.Framework.Timing
 
         public void Start()
         {
-            if (IsCoupled || adjustableSource?.Seek(CurrentTime) == true)
-                //only start the source clock if our time values match.
-                //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
-                adjustableSource?.Start();
+            if (adjustableSource?.IsRunning == false)
+            {
+                if (IsCoupled || adjustableSource?.Seek(CurrentTime) == true)
+                    //only start the source clock if our time values match.
+                    //this handles the case where we seeked to an unsupported value and the source clock is out of sync.
+                    adjustableSource?.Start();
+            }
             decoupledStopwatch.Start();
         }
 

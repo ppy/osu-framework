@@ -192,25 +192,27 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        /// <returns>True if the child was found and removed, false otherwise.</returns>
-        public bool Remove(T drawable)
+        public void Remove(T drawable)
         {
             if (drawable == null)
-                return false;
+                throw new ArgumentNullException(nameof(drawable));
 
             if (Content != this)
-                return Content.Remove(drawable);
+            {
+                Content.Remove(drawable);
+                return;
+            }
 
-            bool result = internalChildren.Remove(drawable);
-            if (!result) return false;
+            if (!internalChildren.Remove(drawable))
+                throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
-            Trace.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            // The string construction is quite expensive, so we are using Debug.Assert here.
+            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.Geometry);
-
-            return true;
         }
 
         /// <summary>
@@ -339,7 +341,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
-        internal sealed override bool UpdateSubTree()
+        public override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 

@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Lines
                 if (positions == value) return;
 
                 positions = value;
-                recomputeBounts();
+                recomputeBounds();
 
                 Invalidate(Invalidation.Geometry);
             }
@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Lines
             minX = minY = maxX = maxY = 0;
         }
 
-        private void recomputeBounts()
+        private void recomputeBounds()
         {
             resetBounds();
             foreach (Vector2 pos in positions)
@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Lines
                 if (pathWidth == value) return;
 
                 pathWidth = value;
-                recomputeBounts();
+                recomputeBounds();
 
                 Invalidate(Invalidation.Geometry);
             }
@@ -138,8 +138,7 @@ namespace osu.Framework.Graphics.Lines
                 Vector2 offset = new Vector2(minX, minY);
                 for (int i = 0; i < positions.Count - 1; ++i)
                 {
-                    Line line = new Line(positions[i] - offset, positions[i + 1] - offset);
-                    n.Segments.Add(new Line(line.StartPoint, line.EndPoint));
+                    n.Segments.Add(new Line(positions[i] - offset, positions[i + 1] - offset));
                 }
             }
 

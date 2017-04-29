@@ -157,12 +157,15 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            base.Start();
+            isRunning = true;
 
+            base.Start();
             PendingActions.Enqueue(() =>
             {
-                Bass.ChannelPlay(activeStream);
-                isPlayed = true;
+                if (Bass.ChannelPlay(activeStream))
+                    isPlayed = true;
+                else
+                    isRunning = false;
             });
         }
 

@@ -332,7 +332,7 @@ namespace osu.Framework.Graphics
         /// Called once every frame.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
-        internal virtual bool UpdateSubTree()
+        public virtual bool UpdateSubTree()
         {
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
@@ -1801,6 +1801,27 @@ namespace osu.Framework.Graphics
             return this;
         }
 
+        /// <summary>
+        /// Start a sequence of transforms with a (cumulative) relative delay applied.
+        /// </summary>
+        /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
+        /// <param name="recursive">Whether this should be applied to all children.</param>
+        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
+        public TransformSequence BeginDelayedSequence(double delay, bool recursive = false) => new TransformSequence(this, delay, recursive);
+
+        /// <summary>
+        /// Start a sequence of transforms from an absolute time value.
+        /// </summary>
+        /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
+        /// <param name="recursive">Whether this should be applied to all children.</param>
+        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
+        /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
+        public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
+        {
+            if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
+            return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
+        }
+
         public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
@@ -1866,7 +1887,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
         /// </summary>
-        protected double TransformStartTime => Clock != null ? Time.Current + transformDelay : 0;
+        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + transformDelay;
 
         public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
@@ -2054,6 +2075,49 @@ namespace osu.Framework.Graphics
                 shortClass = $@"{Name} ({shortClass})";
 
             return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+        }
+
+        /// <summary>
+        /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
+        /// </summary>
+        public class TransformSequence : IDisposable
+        {
+            private readonly Drawable us;
+            private readonly bool recursive;
+            private readonly double adjust;
+
+            public TransformSequence(Drawable us, double adjust, bool recursive = false)
+            {
+                this.recursive = recursive;
+                this.us = us;
+                this.adjust = adjust;
+
+                us.Delay(adjust, recursive);
+            }
+
+            #region IDisposable Support
+            private bool disposed;
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposed)
+                {
+                    us.Delay(-adjust, recursive);
+                    disposed = true;
+                }
+            }
+
+            ~TransformSequence()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+            #endregion
         }
     }
 

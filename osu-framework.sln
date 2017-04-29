@@ -70,4 +70,33 @@ Global
 		{46C1D3D0-EA66-4488-A186-621A36B9F0D5} = {46CA05F7-5AC2-4A96-B065-FB6CB4E4D204}
 		{007B2356-AB6F-4BD9-96D5-116FC2DCE69A} = {02639B6E-A6E6-41BA-AF02-475E5C2DCB0A}
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.EolMarker = Windows
+		$1.inheritsSet = VisualStudio
+		$1.inheritsScope = text/plain
+		$1.scope = text/x-csharp
+		$0.CSharpFormattingPolicy = $2
+		$2.IndentSwitchSection = True
+		$2.NewLinesForBracesInProperties = True
+		$2.NewLinesForBracesInAccessors = True
+		$2.NewLinesForBracesInAnonymousMethods = True
+		$2.NewLinesForBracesInControlBlocks = True
+		$2.NewLinesForBracesInAnonymousTypes = True
+		$2.NewLinesForBracesInObjectCollectionArrayInitializers = True
+		$2.NewLinesForBracesInLambdaExpressionBody = True
+		$2.NewLineForElse = True
+		$2.NewLineForCatch = True
+		$2.NewLineForFinally = True
+		$2.NewLineForMembersInObjectInit = True
+		$2.NewLineForMembersInAnonymousTypes = True
+		$2.NewLineForClausesInQuery = True
+		$2.SpacingAfterMethodDeclarationName = False
+		$2.SpaceAfterMethodCallName = False
+		$2.SpaceBeforeOpenSquareBracket = False
+		$2.inheritsSet = Mono
+		$2.inheritsScope = text/x-csharp
+		$2.scope = text/x-csharp
+	EndGlobalSection
 EndGlobal
