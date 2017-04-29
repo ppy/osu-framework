@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using osu.Framework.Graphics.Primitives;
 using System;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -82,13 +83,13 @@ namespace osu.Framework.Graphics.Sprites
         private float lastWidth;
         protected override void UpdateAfterChildren()
         {
-            base.UpdateAfterChildren();
+        	base.UpdateAfterChildren();
 
-            //partially broken, not properly aligned for most when only running once a resize
-            // todo: fix this ^
-            if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
-            realignText();
-            lastWidth = DrawWidth;
+        	//partially broken, not properly aligned for most when only running once a resize
+        	// todo: fix this ^
+        	if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
+        	realignText();
+        	lastWidth = DrawWidth;
         }
 
         public void AddText(string text, Action<SpriteText> onCreate)
@@ -146,9 +147,9 @@ namespace osu.Framework.Graphics.Sprites
         private void realignText()
         {
             List<Drawable> children = Children.ToList();
+
             for (int i = 0; i < children.Count; i++)
             {
-                Console.WriteLine($"{(children[i] as SpriteText)?.Text}: {children[i].Position.X}");
                 children[i].Margin = new MarginPadding
                 {
                     Left = children[i].Position.X > 0 || children[i] is Container ? 0 : children.ElementAtOrDefault(i - 1) is Container ? HeaderIndent : BodyIndent,
