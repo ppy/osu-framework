@@ -69,16 +69,18 @@ namespace osu.Framework.Graphics.UserInterface
                 // Clamps the angle so we don't overshoot.
                 // dir is used so negative angles result in negative angularOffset.
                 float angularOffset = dir * Math.Min(i * step, dir * Angle);
-                float normalisedAngle = amountPoints > 1
-                    ? (1 - 1 / Texture.Width) * ((float)(i - 1) / (amountPoints - 1) * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
+                float normalisedStartAngle = amountPoints > 1
+                    ? (1 - 1 / Texture.Width) * ((float)(i - 1) / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
                     : 0;
-                //float normalisedAngle = 0;
+                float normalisedEndAngle = amountPoints > 1
+                    ? (1 - 1 / Texture.Width) * ((float)i / amountPoints * Angle / MathHelper.TwoPi + (dir > 0 ? 0 : 1))
+                    : 0;
 
                 // Center point
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(screenOrigin.X, screenOrigin.Y),
-                    TexturePosition = new Vector2(normalisedAngle, 0),
+                    TexturePosition = new Vector2((normalisedStartAngle + normalisedEndAngle) / 2, 0),
                     Colour = originColour
                 });
 
@@ -86,7 +88,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(normalisedAngle, 1 - 1 / Texture.Height),
+                    TexturePosition = new Vector2(normalisedStartAngle, 1 - 1 / Texture.Height),
                     Colour = currentColour
                 });
 
@@ -99,7 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Shared.HalfCircleBatch.Add(new TexturedVertex2D
                 {
                     Position = new Vector2(current.X, current.Y),
-                    TexturePosition = new Vector2(normalisedAngle, 1 - 1 / Texture.Height),
+                    TexturePosition = new Vector2(normalisedEndAngle, 1 - 1 / Texture.Height),
                     Colour = currentColour
                 });
             }

@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            const int width = 20;
+            const int width = 128;
             byte[] data = new byte[width * 4];
 
             gradientTextureHorizontal = new Texture(width, 1, true);
