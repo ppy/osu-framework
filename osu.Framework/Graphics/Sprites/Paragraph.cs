@@ -48,7 +48,7 @@ namespace osu.Framework.Graphics.Sprites
                 if (textSize == value) return;
                 textSize = value;
 
-				recreateText();
+                recreateText();
             }
         }
 
