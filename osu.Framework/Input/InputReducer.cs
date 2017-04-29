@@ -40,7 +40,7 @@ namespace osu.Framework.Input
                 {
                     lastRelevantPosition = position;
                     lastActualPosition = position;
-                    return new Vector2[] { position };
+                    return new[] { position };
                 }
 
                 // HD if it has fractions
@@ -52,7 +52,7 @@ namespace osu.Framework.Input
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
-                return new Vector2[] { position };
+                return new[] { position };
             }
 
             Vector2 diff = position - lastRelevantPosition.Value;
@@ -69,7 +69,7 @@ namespace osu.Framework.Input
 
             lastRelevantPosition = position;
 
-            return new Vector2[] { position };
+            return new[] { position };
         }
     }
 }

@@ -133,11 +133,11 @@ namespace osu.Framework.VisualTests.Tests
         {
             public InputReducer InputReducer { get; set; } = new InputReducer();
 
-            public int NumVertices { get; set; }
+            protected int NumVertices { get; set; }
 
-            public int NumRaw { get; set; }
+            protected int NumRaw { get; set; }
 
-            public bool AddSmoothedVertex(Vector2 pos)
+            protected bool AddSmoothedVertex(Vector2 pos)
             {
                 NumRaw++;
                 bool foundOne = false;
@@ -153,18 +153,18 @@ namespace osu.Framework.VisualTests.Tests
 
         private class ArcPath : SmoothedPath
         {
-            public ArcPath(bool raw, InputReducer InputReducer, Texture texture, Color4 colour, SpriteText output)
+            public ArcPath(bool raw, InputReducer inputReducer, Texture texture, Color4 colour, SpriteText output)
             {
-                this.InputReducer = InputReducer;
-                int targetRaw = 1024;
+                InputReducer = inputReducer;
+                const int target_raw = 1024;
                 RelativeSizeAxes = Axes.Both;
                 Texture = texture;
                 Colour = colour;
 
-                for (int i = 0; i < targetRaw; i++)
+                for (int i = 0; i < target_raw; i++)
                 {
-                    float x = (float) (Math.Sin((i / (double) targetRaw) * (Math.PI * 0.5)) * 200) + 50.5f;
-                    float y = (float) (Math.Cos((i / (double) targetRaw) * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float x = (float) (Math.Sin((i / (double) target_raw) * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float y = (float) (Math.Cos((i / (double) target_raw) * (Math.PI * 0.5)) * 200) + 50.5f;
                     if (!raw)
                     {
                         x = (int) x;
