@@ -122,10 +122,10 @@ namespace osu.Framework.Input
 
             foreach (InputState s in pendingStates)
             {
-                bool hasKeyboard = s.Keyboard != null;
-                bool hasMouse = s.Mouse != null;
+                bool hasNewKeyboard = s.Keyboard != null;
+                bool hasNewMouse = s.Mouse != null;
 
-                if (!hasKeyboard && !hasMouse) continue;
+                if (!hasNewKeyboard && !hasNewMouse) continue;
 
                 var last = CurrentState;
 
@@ -143,14 +143,14 @@ namespace osu.Framework.Input
                 //move above?
                 updateInputQueues(CurrentState);
 
-                if (hasMouse)
+                if (hasNewMouse)
                 {
                     (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
                     updateHoverEvents(CurrentState);
                     updateMouseEvents(CurrentState);
                 }
 
-                if (hasKeyboard)
+                if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
                     updateKeyboardEvents(CurrentState);
             }
 
