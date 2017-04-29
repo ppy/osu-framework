@@ -15,9 +15,9 @@ using System;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseInputSmoother : TestCase
+    internal class TestCaseInputReducer : TestCase
     {
-        public override string Description => @"Live optimizing paths.";
+        public override string Description => @"Live optimizing paths to relevant nodes.";
 
         public override void Reset()
         {
@@ -62,7 +62,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(true, new InputSmoother(), gradientTexture, Color4.Green, arc1Text),
+                                    new ArcPath(true, new InputReducer(), gradientTexture, Color4.Green, arc1Text),
                                 }
                             },
                             new Container
@@ -77,7 +77,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(false, new InputSmoother(), gradientTexture, Color4.Blue, arc2Text),
+                                    new ArcPath(false, new InputReducer(), gradientTexture, Color4.Blue, arc2Text),
                                 }
                             },
                             new Container
@@ -92,7 +92,7 @@ namespace osu.Framework.VisualTests.Tests
                                         TextSize = 20,
                                         Colour = Color4.White,
                                     },
-                                    new ArcPath(true, new InputSmoother
+                                    new ArcPath(true, new InputReducer
                                         {
                                             SmoothRawInput = true
                                         }, gradientTexture, Color4.Red, arc3Text),
@@ -116,7 +116,7 @@ namespace osu.Framework.VisualTests.Tests
                                         RelativeSizeAxes = Axes.Both,
                                         Texture = gradientTexture,
                                         Colour = Color4.White,
-                                        InputSmoother = new InputSmoother()
+                                        InputReducer = new InputReducer()
                                         {
                                             SmoothRawInput = true
                                         },
@@ -131,39 +131,40 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SmoothedPath : Path
         {
-            public InputSmoother InputSmoother = new InputSmoother();
+            public InputReducer InputReducer { get; set; } = new InputReducer();
 
-            public int NumVertices;
+            public int NumVertices { get; set; }
 
-            public int NumRaw;
+            public int NumRaw { get; set; }
 
             public bool AddSmoothedVertex(Vector2 pos)
             {
                 NumRaw++;
-                if (InputSmoother.AddPosition(pos))
+                bool foundOne = false;
+                foreach (Vector2 relevant in InputReducer.AddPosition(pos))
                 {
-                    AddVertex(pos);
+                    AddVertex(relevant);
                     NumVertices++;
-                    return true;
+                    foundOne = true;
                 }
-                return false;
+                return foundOne;
             }
         }
 
         private class ArcPath : SmoothedPath
         {
-            public ArcPath(bool raw, InputSmoother inputSmoother, Texture texture, Color4 colour, SpriteText output)
+            public ArcPath(bool raw, InputReducer InputReducer, Texture texture, Color4 colour, SpriteText output)
             {
-                InputSmoother = inputSmoother;
-                int targetRaw = 256;
+                this.InputReducer = InputReducer;
+                int targetRaw = 1024;
                 RelativeSizeAxes = Axes.Both;
                 Texture = texture;
                 Colour = colour;
 
                 for (int i = 0; i < targetRaw; i++)
                 {
-                    float x = (float) Math.Sin(i / (double) targetRaw * Math.PI * 0.5) * 200 + 50.5f;
-                    float y = (float) Math.Cos(i / (double) targetRaw * Math.PI * 0.5) * 200 + 50.5f;
+                    float x = (float) Math.Sin((i / (double) targetRaw) * Math.PI * 0.5) * 200 + 50.5f;
+                    float y = (float) Math.Cos((i / (double) targetRaw) * Math.PI * 0.5) * 200 + 50.5f;
                     if (!raw)
                     {
                         x = (int) x;

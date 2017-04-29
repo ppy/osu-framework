@@ -2,16 +2,17 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Generic;
 using OpenTK;
 
 namespace osu.Framework.Input
 {
     /// <summary>
-    /// Smooths cursor input to relevant nodes and corners that noticably affect the cursor path.
-    /// If the input is a raw/HD input this will return true for every corner.
+    /// Reduces cursor input to relevant nodes and corners that noticably affect the cursor path.
+    /// If the input is a raw/HD input this won't omit any input nodes.
     /// Set SmoothRawInput to true to keep behaviour for HD inputs.
     /// </summary>
-    public class InputSmoother
+    public class InputReducer
     {
         private Vector2? lastRelevantPosition;
 
@@ -19,9 +20,19 @@ namespace osu.Framework.Input
 
         private bool isRawInput;
 
+        /// <summary>
+        /// true if AddPosition should treat raw input (input with a decimal fraction) the same
+        /// as normal input. If false, AddPosition will always just return the position argument
+        /// passed to the function without modification.
+        /// </summary>
         public bool SmoothRawInput { get; set; }
 
-        public bool AddPosition(Vector2 position)
+        /// <summary>
+        /// Function that takes in a <paramref name="position"/> and returns a list of positions
+        /// that can be used by the caller to make the input path smoother.
+        /// The current implementation always returns only none or exactly one vector.
+        /// </summary>
+        public IEnumerable<Vector2> AddPosition(Vector2 position)
         {
             if (!SmoothRawInput)
             {
@@ -29,11 +40,11 @@ namespace osu.Framework.Input
                 {
                     lastRelevantPosition = position;
                     lastActualPosition = position;
-                    return true;
+                    return new Vector2[] { position };
                 }
 
                 // HD if it has fractions
-                if (position.X - (float) Math.Truncate(position.X) != 0)
+                if (position.X - (float)Math.Truncate(position.X) != 0)
                     isRawInput = true;
             }
 
@@ -41,7 +52,7 @@ namespace osu.Framework.Input
             {
                 lastRelevantPosition = position;
                 lastActualPosition = position;
-                return true;
+                return new Vector2[] { position };
             }
 
             Vector2 diff = position - lastRelevantPosition.Value;
@@ -52,12 +63,13 @@ namespace osu.Framework.Input
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion
-            if (distance < 10 && Vector2.Dot(direction, realDiff.Normalized()) > 0.7)
-                return false;
+            // but never update when its less than 2 pixels
+            if (distance < 10 && Vector2.Dot(direction, realDiff.Normalized()) > 0.7 || distance < 2)
+                return new Vector2[0];
 
             lastRelevantPosition = position;
 
-            return true;
+            return new Vector2[] { position };
         }
     }
 }
