@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Containers
         void Add(T drawable);
         void Add(IEnumerable<T> collection);
 
-        bool Remove(T drawable);
+        void Remove(T drawable);
         void Remove(IEnumerable<T> range);
     }
 }
