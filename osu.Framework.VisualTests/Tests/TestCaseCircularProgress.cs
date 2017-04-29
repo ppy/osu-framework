@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.UserInterface;
@@ -16,11 +15,15 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Circular progress bar";
 
-        private CircularProgress clock1;
-        private CircularProgress clock2;
-        private CircularProgress clock3;
-        private CircularProgress clock4;
-        private CircularProgress clock5;
+        private CircularProgress clock;
+
+        private int rotateMode;
+        private double period = 4000;
+        private double transitionPeriod = 2000;
+
+        private Texture gradientTextureHorizontal;
+        private Texture gradientTextureVertical;
+        private Texture gradientTextureBoth;
 
         public override void Reset()
         {
@@ -29,7 +32,7 @@ namespace osu.Framework.VisualTests.Tests
             const int width = 20;
             byte[] data = new byte[width * 4];
 
-            Texture gradientTextureHorizontal = new Texture(width, 1, true);
+            gradientTextureHorizontal = new Texture(width, 1, true);
             for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
@@ -41,8 +44,8 @@ namespace osu.Framework.VisualTests.Tests
             }
             gradientTextureHorizontal.SetData(new TextureUpload(data));
 
-            Texture gradientTextureVertical = new Texture(1, width, true);
-            for (int i = 0; i<width; ++i)
+            gradientTextureVertical = new Texture(1, width, true);
+            for (int i = 0; i < width; ++i)
             {
                 float brightness = (float)i / (width - 1);
                 int index = i * 4;
@@ -53,71 +56,134 @@ namespace osu.Framework.VisualTests.Tests
             }
             gradientTextureVertical.SetData(new TextureUpload(data));
 
+            byte[] data2 = new byte[width * width * 4];
+            gradientTextureBoth = new Texture(width, width, true);
+            for (int i = 0; i < width; ++i)
+            {
+                for (int j = 0; j < width; ++j)
+                {
+                    float brightness = (float)i / (width - 1);
+                    float brightness2 = (float)j / (width - 1);
+                    int index = i * 4 * width + j * 4;
+                    data2[index + 0] = (byte)(128 + (1 + brightness - brightness2) / 2 * 127);
+                    data2[index + 1] = (byte)(128 + (1 + brightness2 - brightness) / 2 * 127);
+                    data2[index + 2] = (byte)(128 + (brightness + brightness2) / 2 * 127);
+                    data2[index + 3] = 255;
+                }
+            }
+            gradientTextureBoth.SetData(new TextureUpload(data2));
+
 
             Children = new Drawable[]
             {
-                clock1 = new CircularProgress
+                clock = new CircularProgress
                 {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(20, 20),
-
-                    Colour = new Color4(128, 255, 128, 255),
-
-                },
-                clock2 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(20, 140),
-
-                    Texture = gradientTextureVertical,
-                },
-                clock3 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(140, 140),
-
-                    Texture = gradientTextureHorizontal,
-                },
-                clock4 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(20, 260),
-
-                    ColourInfo = ColourInfo.GradientVertical(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
-                },
-                clock5 = new CircularProgress
-                {
-                    Width = 100,
-                    Height = 100,
-                    Anchor = Anchor.TopLeft,
-                    Origin = Anchor.TopLeft,
-                    Position = new Vector2(140, 260),
-
-                    ColourInfo = ColourInfo.GradientHorizontal(new Color4(128, 255, 128, 255), new Color4(255, 128, 128, 255)),
+                    Width = 0.8f,
+                    Height = 0.8f,
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
                 },
             };
+
+            AddStep("Forward", delegate { rotateMode = 1; });
+            AddStep("Backward", delegate { rotateMode = 2; });
+            AddStep("Transition Focus", delegate { rotateMode = 3; });
+            AddStep("Transition Focus 2", delegate { rotateMode = 4; });
+            AddStep("Forward/Backward", delegate { rotateMode = 0; });
+
+            AddStep("Horizontal Gradient Texture", delegate { setTexture(1); });
+            AddStep("Vertical Gradient Texture", delegate { setTexture(2); });
+            AddStep("2D Graident Texture", delegate { setTexture(3); });
+            AddStep("White Texture", delegate { setTexture(0); });
+
+            AddStep("Red Colour", delegate { setColour(1); });
+            AddStep("Horzontal Gradient Colour", delegate { setColour(2); });
+            AddStep("Vertical Gradient Colour", delegate { setColour(3); });
+            AddStep("2D Gradient Colour", delegate { setColour(4); });
+            AddStep("White Colour", delegate { setColour(0); });
         }
 
         protected override void Update()
         {
             base.Update();
-            clock1.Current.Value = Time.Current % 500 / 500;
-            clock2.Current.Value = Time.Current % 730 / 365 - 1;
-            clock3.Current.Value = Time.Current % 800 / 400 - 1;
-            clock4.Current.Value = Time.Current % 860 / 430 - 1;
-            clock5.Current.Value = Time.Current % 1332 / 666 - 1;
+            switch (rotateMode)
+            {
+                case 0:
+                    clock.Current.Value = Time.Current % (period * 2) / period - 1;
+                    break;
+                case 1:
+                    clock.Current.Value = Time.Current % period / period;
+                    break;
+                case 2:
+                    clock.Current.Value = Time.Current % period / period - 1;
+                    break;
+                case 3:
+                    clock.Current.Value = Time.Current % transitionPeriod / transitionPeriod / 5 - 0.1f;
+                    break;
+                case 4:
+                    clock.Current.Value = (Time.Current % transitionPeriod / transitionPeriod / 5 - 0.1f + 2) % 2 - 1;
+                    break;
+            }
+        }
+
+        private void setTexture(int textureMode)
+        {
+            switch (textureMode)
+            {
+                case 0:
+                    clock.Texture = Texture.WhitePixel;
+                    break;
+                case 1:
+                    clock.Texture = gradientTextureHorizontal;
+                    break;
+                case 2:
+                    clock.Texture = gradientTextureVertical;
+                    break;
+                case 3:
+                    clock.Texture = gradientTextureBoth;
+                    break;
+            }
+        }
+
+        private void setColour(int colourMode)
+        {
+            switch (colourMode)
+            {
+                case 0:
+                    clock.Colour = new Color4(255, 255, 255, 255);
+                    break;
+                case 1:
+                    clock.Colour = new Color4(255, 128, 128, 255);
+                    break;
+                case 2:
+                    clock.ColourInfo = new ColourInfo
+                    {
+                        TopLeft = new Color4(255, 128, 128, 255),
+                        TopRight = new Color4(128, 255, 128, 255),
+                        BottomLeft = new Color4(255, 128, 128, 255),
+                        BottomRight = new Color4(128, 255, 128, 255),
+                    };
+                    break;
+                case 3:
+                    clock.ColourInfo = new ColourInfo
+                    {
+                        TopLeft = new Color4(255, 128, 128, 255),
+                        TopRight = new Color4(255, 128, 128, 255),
+                        BottomLeft = new Color4(128, 255, 128, 255),
+                        BottomRight = new Color4(128, 255, 128, 255),
+                    };
+                    break;
+                case 4:
+                    clock.ColourInfo = new ColourInfo
+                    {
+                        TopLeft = new Color4(255, 128, 128, 255),
+                        TopRight = new Color4(128, 255, 128, 255),
+                        BottomLeft = new Color4(128, 128, 255, 255),
+                        BottomRight = new Color4(255, 255, 255, 255),
+                    };
+                    break;
+            }
         }
     }
 }
