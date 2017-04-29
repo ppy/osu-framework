@@ -61,14 +61,14 @@ namespace osu.Framework.Input
             Vector2 direction = diff / distance;
 
             Vector2 realDiff = position - lastActualPosition.Value;
-            float actuallyMoved = realDiff.Length;
-            if (actuallyMoved < 1)
+            float realMovementDistance = realDiff.Length;
+            if (realMovementDistance < 1)
                 return new Vector2[0];
             lastActualPosition = position;
 
             // don't update when it moved less than 10 pixels from the last position in a straight fashion
             // but never update when its less than 2 pixels
-            if ((distance < 10 && Vector2.Dot(direction, realDiff / actuallyMoved) > 0.7) || distance < 2)
+            if ((distance < 10 && Vector2.Dot(direction, realDiff / realMovementDistance) > 0.7) || distance < 2)
                 return new Vector2[0];
 
             lastRelevantPosition = position;
