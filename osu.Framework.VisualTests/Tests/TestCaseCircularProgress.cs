@@ -19,7 +19,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private int rotateMode;
         private const double period = 4000;
-        private const double transitionPeriod = 2000;
+        private const double transition_period = 2000;
 
         private Texture gradientTextureHorizontal;
         private Texture gradientTextureVertical;
@@ -119,10 +119,10 @@ namespace osu.Framework.VisualTests.Tests
                     clock.Current.Value = Time.Current % period / period - 1;
                     break;
                 case 3:
-                    clock.Current.Value = Time.Current % transitionPeriod / transitionPeriod / 5 - 0.1f;
+                    clock.Current.Value = Time.Current % transition_period / transition_period / 5 - 0.1f;
                     break;
                 case 4:
-                    clock.Current.Value = (Time.Current % transitionPeriod / transitionPeriod / 5 - 0.1f + 2) % 2 - 1;
+                    clock.Current.Value = (Time.Current % transition_period / transition_period / 5 - 0.1f + 2) % 2 - 1;
                     break;
             }
         }
