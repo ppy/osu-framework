@@ -122,26 +122,26 @@ namespace osu.Framework.Graphics.Sprites
 
         private IEnumerable<Drawable> spritesFromText(string text, Func<string, SpriteText> create)
         {
-        	List<Drawable> sprites = new List<Drawable>();
-        	foreach (string l in Regex.Split(text, @"[\n]"))
-        	{
-        		//newlines
-        		sprites.Add(new Container
-        		{
-        			RelativeSizeAxes = Axes.X,
-        			Height = sprites.LastOrDefault() is Container ? TextSize : 0f,
-        		});
+            List<Drawable> sprites = new List<Drawable>();
+            foreach (string l in Regex.Split(text, @"[\n]"))
+            {
+                //newlines
+                sprites.Add(new Container
+                {
+                    RelativeSizeAxes = Axes.X,
+                    Height = sprites.LastOrDefault() is Container ? TextSize : 0f,
+                });
 
-        		foreach (string w in Regex.Split(l, @"(?<=[ .,;-])")) //split at wrapping chars
-        		{
-        			if (w != @"")
-        			{
-        				sprites.Add(create.Invoke(w));
-        			}
-        		}
-        	}
+                foreach (string w in Regex.Split(l, @"(?<=[ .,;-])")) //split at wrapping chars
+                {
+                if (w != @"")
+                    {
+                        sprites.Add(create.Invoke(w));
+                    }
+                }
+            }
 
-        	return sprites;
+            return sprites;
         }
 
         private void realignText()
