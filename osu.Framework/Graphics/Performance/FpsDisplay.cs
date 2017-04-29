@@ -63,8 +63,10 @@ namespace osu.Framework.Graphics.Performance
                     ResizeTo(counter.DrawSize, 200, EasingTypes.InOutSine);
                 else
                 {
-                    Delay(1500);
-                    ResizeTo(counter.DrawSize, 500, EasingTypes.InOutSine);
+                    using (BeginDelayedSequence(1500))
+                    {
+                        ResizeTo(counter.DrawSize, 500, EasingTypes.InOutSine);
+                    }
                 }
 
                 aimWidth = counter.DrawWidth;

@@ -48,8 +48,10 @@ namespace osu.Framework.Graphics.Visualisation
                 switch (state)
                 {
                     case TreeContainerStatus.Offscreen:
-                        Delay(500, true);
-                        FadeTo(0.7f, 300);
+                        using (BeginDelayedSequence(500, true))
+                        {
+                            FadeTo(0.7f, 300);
+                        }
                         break;
                     case TreeContainerStatus.Onscreen:
                         FadeIn(300);
