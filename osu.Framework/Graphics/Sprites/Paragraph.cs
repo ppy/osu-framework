@@ -83,13 +83,13 @@ namespace osu.Framework.Graphics.Sprites
         private float lastWidth;
         protected override void UpdateAfterChildren()
         {
-        	base.UpdateAfterChildren();
+            base.UpdateAfterChildren();
 
-        	//partially broken, not properly aligned for most when only running once a resize
-        	// todo: fix this ^
-        	if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
-        	realignText();
-        	lastWidth = DrawWidth;
+            //partially broken, not properly aligned for most when only running once a resize
+            // todo: fix this ^
+            if (lastWidth == DrawWidth || BodyIndent <= 0 && HeaderIndent <= 0) return;
+            realignText();
+            lastWidth = DrawWidth;
         }
 
         public void AddText(string text, Action<SpriteText> onCreate)
