@@ -18,8 +18,8 @@ namespace osu.Framework.VisualTests.Tests
         private CircularProgress clock;
 
         private int rotateMode;
-        private double period = 4000;
-        private double transitionPeriod = 2000;
+        private const double period = 4000;
+        private const double transitionPeriod = 2000;
 
         private Texture gradientTextureHorizontal;
         private Texture gradientTextureVertical;
