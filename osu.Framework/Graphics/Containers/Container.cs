@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             if (!internalChildren.Remove(drawable))
-                throw new InvalidOperationException($@"Attempted to remove a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+                throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
             // The string construction is quite expensive, so we are using Debug.Assert here.
             Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
