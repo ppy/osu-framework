@@ -118,14 +118,12 @@ namespace osu.Framework.Input
 
             //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
             if (pendingStates.Length == 0)
-                pendingStates = new[] { CurrentState };
+                pendingStates = new[] { new InputState() };
 
             foreach (InputState s in pendingStates)
             {
-                bool hasKeyboard = s.Keyboard != null;
-                bool hasMouse = s.Mouse != null;
-
-                if (!hasKeyboard && !hasMouse) continue;
+                bool hasNewKeyboard = s.Keyboard != null;
+                bool hasNewMouse = s.Mouse != null;
 
                 var last = CurrentState;
 
@@ -143,14 +141,14 @@ namespace osu.Framework.Input
                 //move above?
                 updateInputQueues(CurrentState);
 
-                if (hasMouse)
+                if (hasNewMouse)
                 {
                     (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
                     updateHoverEvents(CurrentState);
                     updateMouseEvents(CurrentState);
                 }
 
-                if (hasKeyboard)
+                if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
                     updateKeyboardEvents(CurrentState);
             }
 
