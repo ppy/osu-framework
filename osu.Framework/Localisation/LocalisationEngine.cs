@@ -165,5 +165,37 @@ namespace osu.Framework.Localisation
                 Key = key;
             }
         }
+
+        /// <summary>
+        /// A bindable string constructed from <see cref="string.Format(string, object[])"/>.
+        /// </summary>
+        public class FormattableString : Bindable<string>
+        {
+            private string format;
+            private readonly object[] objects;
+            protected virtual string Format => format;
+            public void Update() => Value = string.Format(Format, objects);
+
+            public FormattableString(string format, object[] objects)
+            {
+                this.format = format;
+                this.objects = objects;
+            }
+        }
+
+        /// <summary>
+        /// A bindable string constructed from <see cref="string.Format(string, object[])"/>, and <see cref="VaraintFormattableString.Format"/> changable.
+        /// </summary>
+        public class VaraintFormattableString : FormattableString
+        {
+            private readonly Bindable<string> formatSource;
+            protected override string Format => formatSource.Value;
+
+            public VaraintFormattableString(Bindable<string> formatSource, object[] objects)
+                : base(null, objects)
+            {
+                this.formatSource = formatSource;
+            }
+        }
     }
 }
