@@ -68,6 +68,12 @@ namespace osu.Framework.VisualTests.Tests
                         TextSize = 48,
                         Colour = Color4.White
                     },
+                    new SpriteText
+                    {
+                        Current = engine.Format("{0}", DateTime.Now),
+                        TextSize = 48,
+                        Colour = Color4.White
+                    },
                 }
             });
 
