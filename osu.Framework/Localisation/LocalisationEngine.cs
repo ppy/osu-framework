@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -13,9 +14,10 @@ namespace osu.Framework.Localisation
     {
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
+        private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
 
-        public virtual IEnumerable<string> SupportedLocales => new[] { "en" };
-        public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).NativeName);
+        public virtual IEnumerable<string> SupportedLocales => storages.Keys;
+        public IEnumerable<KeyValuePair<string, string>> SupportedLanguageNames => SupportedLocales.Select(x => new KeyValuePair<string, string>(x, new CultureInfo(x).NativeName));
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
@@ -32,6 +34,8 @@ namespace osu.Framework.Localisation
 
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
         protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
+
+        public void AddLanguage(string language, IResourceStore<string> storage) => storages.Add(language, storage);
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
         {
