@@ -1,6 +1,8 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK.Graphics;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -35,6 +37,28 @@ namespace osu.Framework.VisualTests.Tests
                 }
             };
 
+            Container paragraphContainer;
+            Paragraph paragraph;
+            flow.Add(paragraphContainer = new Container
+            {
+                Width = 350,
+                AutoSizeAxes = Axes.Y,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.White.Opacity(0.25f),
+                    },
+                    paragraph = new Paragraph
+                    {
+                        HeaderIndent = 5,
+                        BodyIndent = 10,
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                    }
+                }
+            });
             flow.Add(new SpriteText
             {
                 Text = @"the quick red fox jumps over the lazy brown dog"
@@ -58,6 +82,16 @@ namespace osu.Framework.VisualTests.Tests
 
                 flow.Add(text);
             }
+
+            paragraph.AddText(@"the considerably swift vermilion reynard bounds above the slothful mahogany hound.", t => t.Colour = Color4.Yellow);
+            paragraph.AddText("\n\n\n\n\n\nTHE CONSIDERABLY SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
+            paragraph.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
+            paragraph.AddText("\n\nI'm a paragraph, newlines are cool", t => t.Colour = Color4.Beige);
+
+            AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 200f; });
+            AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 500f; });
+            AddStep(@"header inset", () => { paragraph.HeaderIndent += 2; });
+            AddStep(@"body inset", () => { paragraph.BodyIndent += 4; });
         }
     }
 }
