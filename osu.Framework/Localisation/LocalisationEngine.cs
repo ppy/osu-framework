@@ -27,7 +27,6 @@ namespace osu.Framework.Localisation
 
             locale = config.GetBindable<string>(FrameworkConfig.Locale);
             locale.ValueChanged += checkLocale;
-            locale.TriggerChange();
         }
 
         private readonly List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
@@ -39,6 +38,7 @@ namespace osu.Framework.Localisation
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
             storages.Add(language, storage);
+            locale.TriggerChange();
             if (current == null)
                 current = storage;
         }
@@ -99,8 +99,7 @@ namespace osu.Framework.Localisation
                         break;
                     }
 
-                if (validLocale == null)
-                    validLocale = locales[0];
+                validLocale = locales[0];
             }
 
             if (validLocale != newValue)
