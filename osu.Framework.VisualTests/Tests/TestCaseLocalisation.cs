@@ -93,7 +93,10 @@ namespace osu.Framework.VisualTests.Tests
         private class FakeStorage : IResourceStore<string>
         {
             public string Get(string name) => $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
-            public Stream GetStream(string name) => throw new NotSupportedException();
+            public Stream GetStream(string name)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }
