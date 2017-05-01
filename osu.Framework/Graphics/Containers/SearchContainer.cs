@@ -11,12 +11,12 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    public class SearchContainer<T> : Container<T>, IFilterableChildren where T : Drawable
+    public class SearchContainer<T> : Container<T> where T : Drawable
     {
         private string searchTerm;
 
         /// <summary>
-        /// A string that should match the children
+        /// A string that should match the <see cref="IFilterable"/> children
         /// </summary>
         public string SearchTerm
         {
@@ -27,18 +27,14 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 searchTerm = value;
-                match(this, new string[0]);
+                Children.OfType<IFilterable>().ToList().ForEach(child => match(child, new string[0]));
             }
         }
-
-        public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
-        public string[] FilterTerms => null;
-        public bool MatchingCurrentFilter { get; set; }
 
         private bool match(IFilterable filterable, IEnumerable<string> terms)
         {
             var childTerms = new List<string>(terms);
-            childTerms.AddRange(filterable.FilterTerms ?? new string[0]);
+            childTerms.AddRange(filterable.FilterTerms);
 
             var hasFilterableChildren = filterable as IHasFilterableChildren;
 
@@ -47,8 +43,8 @@ namespace osu.Framework.Graphics.Containers
                 //We need to check the children and should any child match this matches aswell
                 bool matching = false;
 
-                    matching = match(searchableChildren, childTerms) || matching;
                 foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
+                    matching |= match(searchableChildren, childTerms);
 
                 return hasFilterableChildren.MatchingCurrentFilter = matching;
             }

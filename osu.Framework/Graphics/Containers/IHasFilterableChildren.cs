@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
-    interface IHasFilterableChildren : IFilterable
+    public interface IHasFilterableChildren : IFilterable
     {
         /// <summary>
         /// List of children that can be filtered
