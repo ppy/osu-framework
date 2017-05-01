@@ -31,9 +31,11 @@ namespace osu.Framework.Localisation
 
         private readonly List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
         private readonly List<WeakReference<LocalisedString>> localisedBindings = new List<WeakReference<LocalisedString>>();
+        private readonly List<WeakReference<FormattableString>> formattableBindings = new List<WeakReference<FormattableString>>();
 
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
         protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
+        protected void AddWeakReference(FormattableString formattableBinding) => formattableBindings.Add(new WeakReference<FormattableString>(formattableBinding));
 
         public void AddLanguage(string language, IResourceStore<string> storage)
         {
@@ -58,6 +60,22 @@ namespace osu.Framework.Localisation
             {
                 Value = GetLocalised(key)
             };
+            AddWeakReference(bindable);
+
+            return bindable;
+        }
+
+        public FormattableString Format(string format, params object[] objects)
+        {
+            var bindable = new FormattableString(format, objects);
+            AddWeakReference(bindable);
+
+            return bindable;
+        }
+
+        public VaraintFormattableString FormatVariant(string formatKey, params object[] objects)
+        {
+            var bindable = new VaraintFormattableString(GetLocalisedString(formatKey), objects);
             AddWeakReference(bindable);
 
             return bindable;
@@ -110,6 +128,7 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
                 updateLocalisedString();
+                updateFormattableString();
             }
         }
 
@@ -124,6 +143,18 @@ namespace osu.Framework.Localisation
                     b.Value = GetLocalised(b.Key);
                 else
                     localisedBindings.Remove(w);
+            }
+        }
+
+        private void updateFormattableString()
+        {
+            foreach (var w in formattableBindings.ToArray())
+            {
+                FormattableString b;
+                if (w.TryGetTarget(out b))
+                    b.Update();
+                else
+                    formattableBindings.Remove(w);
             }
         }
 
@@ -180,6 +211,7 @@ namespace osu.Framework.Localisation
             {
                 this.format = format;
                 this.objects = objects;
+                Update();
             }
         }
 
