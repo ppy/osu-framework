@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// A custom step value for each key press which actuates a change on this control.
         /// </summary>
-        public float KeyboardStep;
+        public float KeyboardStep = 1;
 
         /// <summary>
         /// A custom multiplier which amplifies the step amount for a key press when holding 'alt'
@@ -45,7 +45,10 @@ namespace osu.Framework.Graphics.UserInterface
             else if (typeof(T) == typeof(long))
                 CurrentNumber = new BindableLong() as BindableNumber<T>;
             else if (typeof(T) == typeof(double))
+            {
                 CurrentNumber = new BindableDouble() as BindableNumber<T>;
+                KeyboardStep = 0.01f;
+            }
 
             if (CurrentNumber == null) throw new NotImplementedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
 
@@ -102,16 +105,10 @@ namespace osu.Framework.Graphics.UserInterface
             if (!Hovering || CurrentNumber.Disabled)
                 return false;
 
-            float step;
-            if (KeyboardStep != 0)
-                step = KeyboardStep;
-            else if (CurrentNumber.IsInteger)
-                step = 1;
-            else
-                step = 0.01f;
+            float step = KeyboardStep;
 
             if (state.Keyboard.AltPressed)
-                step *= StepMultiplier != 0 ? StepMultiplier : 10;
+                step = StepMultiplier != 0 ? step * StepMultiplier : (Convert.ToSingle(CurrentNumber.MaxValue) - Convert.ToSingle(CurrentNumber.MinValue)) / 20;
 
             switch (args.Key)
             {
