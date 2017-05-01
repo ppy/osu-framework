@@ -104,10 +104,10 @@ namespace osu.Framework.VisualTests.Tests
             textBox.Current.ValueChanged += newValue => search.SearchTerm = newValue;
         }
 
-        private class HeaderContainer : Container, IFilterableChildren
+        private class HeaderContainer : Container, IHasFilterableChildren
         {
-            public string[] Terms => header.Terms;
-            public bool FilteredByParent
+            public string[] FilterTerms => header.FilterTerms;
+            public bool MatchingCurrentFilter
             {
                 set
                 {
@@ -141,9 +141,9 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SearchableText : SpriteText, IFilterable
         {
-            public string[] Terms => new[] { Text };
+            public string[] FilterTerms => new[] { Text };
 
-            public bool FilteredByParent
+            public bool MatchingCurrentFilter
             {
                 set
                 {

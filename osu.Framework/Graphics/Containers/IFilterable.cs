@@ -1,28 +1,18 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
-
 namespace osu.Framework.Graphics.Containers
 {
     public interface IFilterable
     {
         /// <summary>
-        /// Array of terms that it can be filtered with
+        /// An array of relevant terms which match the current object in a filtered scenario.
         /// </summary>
-        string[] Terms { get; }
+        string[] FilterTerms { get; }
 
         /// <summary>
-        /// Current filtered state, changes whenever it's getting filtered
+        /// Whether the current object is matching (ie. visible) given the current filter criteria of a parent.
         /// </summary>
-        bool FilteredByParent { set; }
-    }
-
-    public interface IFilterableChildren : IFilterable
-    {
-        /// <summary>
-        /// List of children that should be filtered
-        /// </summary>
-        IEnumerable<IFilterable> FilterableChildren { get; }
+        bool MatchingCurrentFilter { set; }
     }
 }
