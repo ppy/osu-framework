@@ -15,6 +15,7 @@ namespace osu.Framework.Localisation
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
         private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
+        private IResourceStore<string> current;
 
         public virtual IEnumerable<string> SupportedLocales => storages.Keys;
         public IEnumerable<KeyValuePair<string, string>> SupportedLanguageNames => SupportedLocales.Select(x => new KeyValuePair<string, string>(x, new CultureInfo(x).NativeName));
@@ -35,7 +36,12 @@ namespace osu.Framework.Localisation
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
         protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
 
-        public void AddLanguage(string language, IResourceStore<string> storage) => storages.Add(language, storage);
+        public void AddLanguage(string language, IResourceStore<string> storage)
+        {
+            storages.Add(language, storage);
+            if (current == null)
+                current = storage;
+        }
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
         {
@@ -59,7 +65,7 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.NativeName}";
+        protected virtual string GetLocalised(string key) => current.Get(key);
 
         private void updateUnicodeStrings(bool newValue)
         {
@@ -109,7 +115,7 @@ namespace osu.Framework.Localisation
             }
         }
 
-        protected virtual void ChangeLocale(string locale) => Logging.Logger.Log($"locale changed to {locale}");
+        protected virtual void ChangeLocale(string locale) => current = storages[locale];
 
         private void updateLocalisedString()
         {
