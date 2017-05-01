@@ -39,8 +39,6 @@ namespace osu.Framework.Localisation
         {
             storages.Add(language, storage);
             locale.TriggerChange();
-            if (current == null)
-                current = storage;
         }
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
@@ -99,7 +97,8 @@ namespace osu.Framework.Localisation
                         break;
                     }
 
-                validLocale = locales[0];
+                if (validLocale == null)
+                    validLocale = locales[0];
             }
 
             if (validLocale != newValue)
