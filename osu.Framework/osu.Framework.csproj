@@ -196,7 +196,11 @@
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Localisation\FormattableString.cs" />
     <Compile Include="Localisation\LocalisationEngine.cs" />
+    <Compile Include="Localisation\LocalisedString.cs" />
+    <Compile Include="Localisation\UnicodeBindableString.cs" />
+    <Compile Include="Localisation\VaraintFormattableString.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
