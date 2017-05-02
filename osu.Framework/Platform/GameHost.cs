@@ -375,16 +375,7 @@ namespace osu.Framework.Platform
             switch (e.Key)
             {
                 case Key.F7:
-                    if (UpdateThread.ActiveHz == maximumUpdateHz)
-                    {
-                        UpdateThread.ActiveHz = double.MaxValue;
-                        DrawThread.ActiveHz = double.MaxValue;
-                    }
-                    else
-                    {
-                        UpdateThread.ActiveHz = maximumUpdateHz;
-                        DrawThread.ActiveHz = maximumDrawHz;
-                    }
+                    frameSyncMode.Value = (FrameSync)(((int)frameSyncMode.Value + 1) % ((int)FrameSync.Unlimited + 1));
                     break;
             }
         }
