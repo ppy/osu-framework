@@ -778,7 +778,7 @@ namespace osu.Framework.Graphics.UserInterface
 
         private void bindInput()
         {
-            textInput.Activate(this);
+            textInput?.Activate(this);
         }
 
         private void onImeResult()

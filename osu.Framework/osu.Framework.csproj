@@ -113,6 +113,9 @@
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
+    <Compile Include="Graphics\Containers\IFilterable.cs" />
+    <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
+    <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
@@ -194,6 +197,7 @@
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
+    <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Localisation\FormattableString.cs" />
@@ -291,6 +295,7 @@
     <Compile Include="Input\KeyboardState.cs" />
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
+    <Compile Include="Input\InputResampler.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
@@ -313,6 +318,9 @@
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
+    <Compile Include="Graphics\Sprites\Paragraph.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
