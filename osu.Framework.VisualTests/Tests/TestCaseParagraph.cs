@@ -11,7 +11,7 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseParagraph : TestCase
     {
-        public override string Description => @"Test all sizes of text rendering";
+        public override string Description => @"Test word-wrapping and paragraphs";
 
         public override void Reset()
         {
