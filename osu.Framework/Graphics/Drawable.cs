@@ -25,6 +25,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using KeyboardState = osu.Framework.Input.KeyboardState;
 using MouseState = osu.Framework.Input.MouseState;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics
 {
@@ -118,17 +119,17 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="clock">The clock of our future parent.</param>
+        /// <param name="target">The target of the Drawable may eventually be loaded into.</param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, IFrameBasedClock clock, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(game, clock)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(game, target)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -138,7 +139,9 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
-        internal void Load(Game game, IFrameBasedClock clock)
+        protected virtual DependencyContainer GetDependencies(Game game) => game.Dependencies;
+
+        internal void Load(Game game, Drawable target)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -158,10 +161,10 @@ namespace osu.Framework.Graphics
                         break;
                 }
 
-                UpdateClock(clock);
+                UpdateClock(target.Clock);
 
                 double t1 = perf.CurrentTime;
-                game.Dependencies.Initialize(this);
+                target.GetDependencies(game).Initialize(this);
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);

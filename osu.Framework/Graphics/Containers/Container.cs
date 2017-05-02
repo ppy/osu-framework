@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Game game;
 
-        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, Clock, onLoaded);
+        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, this, onLoaded);
 
         [BackgroundDependencyLoader(true)]
         private void load(Game game, ShaderManager shaders)
@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void loadChild(T child)
         {
-            child.Load(game, Clock);
+            child.Load(game, this);
             child.Parent = this;
         }
 
