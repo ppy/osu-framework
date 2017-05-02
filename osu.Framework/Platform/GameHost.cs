@@ -43,15 +43,13 @@ namespace osu.Framework.Platform
         {
             threads.ForEach(t => t.IsActive = isActive);
 
-            setLatencyMode();
+            activeGCMode.TriggerChange();
 
             if (isActive)
                 Activated?.Invoke();
             else
                 Deactivated?.Invoke();
         }
-
-        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? activeGCMode : GCLatencyMode.Interactive;
 
         public bool IsActive => InputThread.IsActive;
 
@@ -163,9 +161,6 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
-            MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
-            MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
-
             var path = System.IO.Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
@@ -243,8 +238,7 @@ namespace osu.Framework.Platform
             Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
-            if (Window != null)
-                Window.VSync = VSyncMode.Off;
+            setVSyncMode();
         }
 
         private long lastDrawFrameId;
@@ -312,6 +306,8 @@ namespace osu.Framework.Platform
 
             DrawThread.WaitUntilInitialized();
             bootstrapSceneGraph(game);
+
+            frameSyncMode.TriggerChange();
 
             try
             {
@@ -397,6 +393,8 @@ namespace osu.Framework.Platform
 
         private Bindable<GCLatencyMode> activeGCMode;
 
+        private Bindable<FrameSync> frameSyncMode;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
@@ -404,7 +402,52 @@ namespace osu.Framework.Platform
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
             activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
-            activeGCMode.ValueChanged += delegate { setLatencyMode(); };
+            activeGCMode.ValueChanged += newMode =>
+            {
+                GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
+            };
+
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkConfig.FrameSync);
+            frameSyncMode.ValueChanged += newMode =>
+            {
+
+                float refreshRate = DisplayDevice.Default.RefreshRate;
+
+                float drawLimiter = refreshRate;
+                float updateLimiter = drawLimiter * 2;
+
+                setVSyncMode();
+
+                switch (newMode)
+                {
+                    case FrameSync.VSync:
+                        drawLimiter = int.MaxValue;
+                        break;
+                    case FrameSync.Limit2x:
+                        drawLimiter *= 2;
+                        updateLimiter *= 2;
+                        break;
+                    case FrameSync.Limit4x:
+                        drawLimiter *= 4;
+                        updateLimiter *= 4;
+                        break;
+                    case FrameSync.Limit8x:
+                        drawLimiter *= 8;
+                        updateLimiter *= 8;
+                        break;
+                    case FrameSync.Unlimited:
+                        drawLimiter = updateLimiter = int.MaxValue;
+                        break;
+                }
+
+                if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
+                if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
+            };
+        }
+
+        private void setVSyncMode()
+        {
+            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
         public abstract IEnumerable<InputHandler> GetInputHandlers();
