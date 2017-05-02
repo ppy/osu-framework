@@ -15,7 +15,7 @@ namespace osu.Framework.Localisation
         protected virtual string Format => format;
         public void Update() => Value = string.Format(Format, objects);
 
-        public FormattableString(string format, object[] objects)
+        public FormattableString(string format, params object[] objects)
         {
             this.format = format;
             this.objects = objects;

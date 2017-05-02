@@ -13,7 +13,7 @@ namespace osu.Framework.Localisation
         private readonly Bindable<string> formatSource;
         protected override string Format => formatSource.Value;
 
-        public VaraintFormattableString(Bindable<string> formatSource, object[] objects)
+        public VaraintFormattableString(Bindable<string> formatSource, params object[] objects)
             : base(null, objects)
         {
             this.formatSource = formatSource;
