@@ -163,8 +163,8 @@ namespace osu.Framework.VisualTests.Tests
 
                 for (int i = 0; i < target_raw; i++)
                 {
-                    float x = (float) (Math.Sin((i / (double) target_raw) * (Math.PI * 0.5)) * 200) + 50.5f;
-                    float y = (float) (Math.Cos((i / (double) target_raw) * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float x = (float) (Math.Sin(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float y = (float) (Math.Cos(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
                     if (!raw)
                     {
                         x = (int) x;
