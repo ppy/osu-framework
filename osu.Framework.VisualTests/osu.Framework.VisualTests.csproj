@@ -78,6 +78,7 @@
       <Link>osu-framework.licenseheader</Link>
     </None>
     <None Include="packages.config" />
+    <Compile Include="Tests\TestCaseCircularProgress.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\osu.Framework.Desktop\osu.Framework.Desktop.csproj">
