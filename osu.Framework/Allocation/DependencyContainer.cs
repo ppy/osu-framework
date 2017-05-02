@@ -19,6 +19,10 @@ namespace osu.Framework.Allocation
 
         private readonly DependencyContainer parentContainer;
 
+        /// <summary>
+        /// Create a new DependencyContainer instance.
+        /// </summary>
+        /// <param name="parent">An optional parent container which we should use as a fallback for cache lookups.</param>
         public DependencyContainer(DependencyContainer parent = null)
         {
             parentContainer = parent;
@@ -155,6 +159,8 @@ namespace osu.Framework.Allocation
         public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
+
+            // TODO: consider using parentContainer for activator lookups as a potential performance improvement.
 
             lock (activators)
                 if (autoRegister && !activators.ContainsKey(type))
