@@ -126,11 +126,10 @@ namespace osu.Framework.Allocation
         private object get(Type type)
         {
             object ret;
-
             if (cache.TryGetValue(type, out ret))
                 return ret;
-            else
-                return parentContainer?.get(type);
+
+            return parentContainer?.get(type);
 
             //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
             //need to revisit this when/if it is required.
