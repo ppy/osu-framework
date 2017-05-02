@@ -139,6 +139,12 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
+        /// <summary>
+        /// Create a local dependency container which will be used by ourselves and all our nested children.
+        /// If not overridden, the load-time parent's dependency tree will be used.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="DependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <returns>A new dependency container to be stored against this Drawable.</returns>
         protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
 
         private DependencyContainer dependencies;
