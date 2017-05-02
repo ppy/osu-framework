@@ -25,6 +25,7 @@ using OpenTK.Graphics;
 using OpenTK.Input;
 using KeyboardState = osu.Framework.Input.KeyboardState;
 using MouseState = osu.Framework.Input.MouseState;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics
 {
@@ -118,17 +119,17 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="clock">The clock of our future parent.</param>
+        /// <param name="target">The target of the Drawable may eventually be loaded into.</param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, IFrameBasedClock clock, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(game, clock)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -138,7 +139,22 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
-        internal void Load(Game game, IFrameBasedClock clock)
+        /// <summary>
+        /// Create a local dependency container which will be used by ourselves and all our nested children.
+        /// If not overridden, the load-time parent's dependency tree will be used.
+        /// </summary>
+        /// <param name="parent">The parent <see cref="DependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
+        /// <returns>A new dependency container to be stored against this Drawable.</returns>
+        protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
+
+        protected DependencyContainer Dependencies { get; private set; }
+
+        /// <summary>
+        /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
+        /// </summary>
+        /// <param name="clock">The clock we should use by default.</param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(DependencyContainer)"/></param>
+        internal void Load(IFrameBasedClock clock, DependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -161,7 +177,12 @@ namespace osu.Framework.Graphics
                 UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
-                game.Dependencies.Initialize(this);
+
+                // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+                Dependencies = CreateLocalDependencies(dependencies);
+
+                Dependencies.Initialize(this);
+
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);

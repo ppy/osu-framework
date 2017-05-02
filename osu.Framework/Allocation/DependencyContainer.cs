@@ -17,8 +17,15 @@ namespace osu.Framework.Allocation
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
-        public DependencyContainer()
+        private readonly DependencyContainer parentContainer;
+
+        /// <summary>
+        /// Create a new DependencyContainer instance.
+        /// </summary>
+        /// <param name="parent">An optional parent container which we should use as a fallback for cache lookups.</param>
+        public DependencyContainer(DependencyContainer parent = null)
         {
+            parentContainer = parent;
             Cache(this);
         }
 
@@ -118,8 +125,10 @@ namespace osu.Framework.Allocation
 
         private object get(Type type)
         {
-            if (cache.ContainsKey(type))
-                return cache[type];
+            object ret;
+
+            if (cache.TryGetValue(type, out ret) || parentContainer?.cache.TryGetValue(type, out ret) == true)
+                return ret;
 
             //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
             //need to revisit this when/if it is required.
@@ -150,6 +159,8 @@ namespace osu.Framework.Allocation
         public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
+
+            // TODO: consider using parentContainer for activator lookups as a potential performance improvement.
 
             lock (activators)
                 if (autoRegister && !activators.ContainsKey(type))

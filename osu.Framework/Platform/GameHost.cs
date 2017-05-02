@@ -353,18 +353,14 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager
-            {
-                Clock = UpdateThread.Clock,
-                Children = new[] { game },
-            };
+            var root = new UserInputManager { Children = new[] { game } };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);
 
             game.SetHost(this);
 
-            root.Load(game, game.Clock);
+            root.Load(UpdateThread.Clock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
