@@ -68,6 +68,7 @@
     <Compile Include="Tests\TestCaseOnlineTextures.cs" />
     <Compile Include="Tests\TestCasePadding.cs" />
     <Compile Include="Tests\TestCaseSliderbar.cs" />
+    <Compile Include="Tests\TestCaseParagraph.cs" />
     <Compile Include="Tests\TestCaseSpriteText.cs" />
     <Compile Include="Tests\TestCaseTabControl.cs" />
     <Compile Include="Tests\TestCaseTextBox.cs" />
