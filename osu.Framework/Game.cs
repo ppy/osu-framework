@@ -53,8 +53,6 @@ namespace osu.Framework
 
         protected override Container<Drawable> Content => content;
 
-        public DependencyContainer Dependencies => Host.Dependencies;
-
         protected Game()
         {
             AlwaysReceiveInput = true;
