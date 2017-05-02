@@ -139,7 +139,9 @@ namespace osu.Framework.Graphics
 
         private static readonly StopwatchClock perf = new StopwatchClock(true);
 
-        protected virtual DependencyContainer GetDependencies(Game game) => game.Dependencies;
+        protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
+
+        private DependencyContainer dependencies;
 
         internal void Load(Game game, Drawable target)
         {
@@ -164,7 +166,15 @@ namespace osu.Framework.Graphics
                 UpdateClock(target.Clock);
 
                 double t1 = perf.CurrentTime;
-                target.GetDependencies(game).Initialize(this);
+
+                // get our dependencies from our parent
+                dependencies = target.dependencies ?? game.Dependencies;
+
+                // allow local overriding of our inherited dependency container
+                dependencies = CreateLocalDependencies(dependencies);
+
+                dependencies.Initialize(this);
+
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
                     Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
