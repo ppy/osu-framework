@@ -438,6 +438,8 @@ namespace osu.Framework.Platform
 
         private void setVSyncMode()
         {
+            if (Window == null) return;
+
             DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
