@@ -129,7 +129,7 @@ namespace osu.Framework.Graphics
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(game, target)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
@@ -147,9 +147,14 @@ namespace osu.Framework.Graphics
         /// <returns>A new dependency container to be stored against this Drawable.</returns>
         protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
 
-        private DependencyContainer dependencies;
+        protected DependencyContainer Dependencies;
 
-        internal void Load(Game game, Drawable target)
+        /// <summary>
+        /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
+        /// </summary>
+        /// <param name="clock">The clock we should use by default.</param>
+        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(DependencyContainer)"/></param>
+        internal void Load(IFrameBasedClock clock, DependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -169,17 +174,14 @@ namespace osu.Framework.Graphics
                         break;
                 }
 
-                UpdateClock(target.Clock);
+                UpdateClock(clock);
 
                 double t1 = perf.CurrentTime;
 
-                // get our dependencies from our parent
-                dependencies = target.dependencies ?? game.Dependencies;
+                // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+                Dependencies = CreateLocalDependencies(dependencies);
 
-                // allow local overriding of our inherited dependency container
-                dependencies = CreateLocalDependencies(dependencies);
-
-                dependencies.Initialize(this);
+                Dependencies.Initialize(this);
 
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)

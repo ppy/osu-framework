@@ -84,7 +84,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void loadChild(T child)
         {
-            child.Load(game, this);
+            child.Load(Clock, Dependencies);
             child.Parent = this;
         }
 
