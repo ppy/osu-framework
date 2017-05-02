@@ -11,7 +11,6 @@ namespace osu.Framework.Configuration
 
         protected override void InitialiseDefaults()
         {
-#pragma warning disable CS0612 // Type or member is obsolete
             Set(FrameworkConfig.ShowLogOverlay, true);
 
             Set(FrameworkConfig.Width, 1366, 640);
@@ -27,11 +26,10 @@ namespace osu.Framework.Configuration
             Set(FrameworkConfig.Letterboxing, true);
             Set(FrameworkConfig.LetterboxPositionX, 0.0, -1.0, 1.0);
             Set(FrameworkConfig.LetterboxPositionY, 0.0, -1.0, 1.0);
-            Set(FrameworkConfig.FrameSync, FrameSync.Limit120);
+            Set(FrameworkConfig.FrameSync, FrameSync.Limit2x);
             Set(FrameworkConfig.WindowMode, WindowMode.Windowed);
             Set(FrameworkConfig.ShowUnicode, false);
             Set(FrameworkConfig.Locale, "");
-#pragma warning restore CS0612 // Type or member is obsolete
         }
 
         public FrameworkConfigManager(Storage storage)
