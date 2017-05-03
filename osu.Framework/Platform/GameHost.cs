@@ -383,7 +383,10 @@ namespace osu.Framework.Platform
             switch (e.Key)
             {
                 case Key.F7:
-                    frameSyncMode.Value = (FrameSync)(((int)frameSyncMode.Value + 1) % ((int)FrameSync.Unlimited + 1));
+                    var nextMode = frameSyncMode.Value + 1;
+                    if (nextMode > FrameSync.Unlimited)
+                        nextMode = FrameSync.VSync;
+                    frameSyncMode.Value = nextMode;
                     break;
             }
         }
