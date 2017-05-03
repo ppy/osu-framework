@@ -185,6 +185,12 @@ namespace osu.Framework
             }
         }
 
+        protected FrameStatisticsMode FrameStatisticsMode
+        {
+            get { return performanceContainer.State; }
+            set { performanceContainer.State = value; }
+        }
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (state.Keyboard.ControlPressed)
@@ -192,16 +198,16 @@ namespace osu.Framework
                 switch (args.Key)
                 {
                     case Key.F11:
-                        switch (performanceContainer.State)
+                        switch (FrameStatisticsMode)
                         {
                             case FrameStatisticsMode.None:
-                                performanceContainer.State = FrameStatisticsMode.Minimal;
+                                FrameStatisticsMode = FrameStatisticsMode.Minimal;
                                 break;
                             case FrameStatisticsMode.Minimal:
-                                performanceContainer.State = FrameStatisticsMode.Full;
+                                FrameStatisticsMode = FrameStatisticsMode.Full;
                                 break;
                             case FrameStatisticsMode.Full:
-                                performanceContainer.State = FrameStatisticsMode.None;
+                                FrameStatisticsMode = FrameStatisticsMode.None;
                                 break;
                         }
                         return true;
