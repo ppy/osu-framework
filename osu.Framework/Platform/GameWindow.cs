@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Logging;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Platform
@@ -16,7 +17,7 @@ namespace osu.Framework.Platform
         internal Version GLSLVersion;
 
         protected GameWindow(int width, int height)
-            : base(width, height)
+            : base(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3))
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
