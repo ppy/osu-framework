@@ -65,8 +65,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             Children = new Drawable[]
                             {
-                                //TODO: re-enable post merge of https://github.com/ppy/osu-framework/pull/605
-                                //new Avatar(i) { RelativeSizeAxes = Axes.Both }
+                                new Avatar(i) { RelativeSizeAxes = Axes.Both }
                             }
                         }),
                         new SpriteText { Text = i.ToString() },
