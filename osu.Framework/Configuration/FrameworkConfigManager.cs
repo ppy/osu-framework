@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Input;
 using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
@@ -16,6 +17,7 @@ namespace osu.Framework.Configuration
 
             Set(FrameworkConfig.Width, 1366, 640);
             Set(FrameworkConfig.Height, 768, 480);
+            Set(FrameworkConfig.ConfineMouseMode, ConfineMouseMode.Fullscreen);
             Set(FrameworkConfig.WindowedPositionX, 0.5, -0.1, 1.1);
             Set(FrameworkConfig.WindowedPositionY, 0.5, -0.1, 1.1);
             Set(FrameworkConfig.AudioDevice, string.Empty);
@@ -58,6 +60,7 @@ namespace osu.Framework.Configuration
         WidthFullscreen,
 
         WindowMode,
+        ConfineMouseMode,
         Letterboxing,
         LetterboxPositionX,
         LetterboxPositionY,
