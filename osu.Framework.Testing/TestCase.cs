@@ -107,23 +107,28 @@ namespace osu.Framework.Testing
         {
             loadableStep?.TriggerClick();
 
-            string text = $"{(int)Time.Current}: ".PadLeft(7);
+            string text = ".";
 
-            if (actionIndex < 0)
-                text += $"{GetType().ReadableName()}";
-            else
+            if (actionRepetition == 0)
             {
-                if (actionRepetition == 0)
-                    text += $"  Step #{actionIndex + 1}";
-                text = text.PadRight(20) + $"{loadableStep?.ToString() ?? string.Empty}";
+                text = $"{(int)Time.Current}: ".PadLeft(7);
+
+                if (actionIndex < 0)
+                    text += $"{GetType().ReadableName()}";
+                else
+                {
+                    text += $"step {actionIndex + 1}";
+                    text = text.PadRight(16) + $"{loadableStep?.ToString() ?? string.Empty}";
+                }
             }
 
-            Console.WriteLine(text);
+            Console.Write(text);
 
             actionRepetition++;
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
             }
