@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Performance
         public void CreateDisplays()
         {
             foreach (GameThread t in Threads)
-                Add(new FrameStatisticsDisplay(t, atlas));
+                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
         }
 
         public PerformanceOverlay()
