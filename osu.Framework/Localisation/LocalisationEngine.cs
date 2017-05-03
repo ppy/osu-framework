@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using osu.Framework.Configuration;
+using osu.Framework.IO.Stores;
 
 namespace osu.Framework.Localisation
 {
@@ -13,9 +14,11 @@ namespace osu.Framework.Localisation
     {
         private readonly Bindable<bool> preferUnicode;
         private readonly Bindable<string> locale;
+        private readonly Dictionary<string, IResourceStore<string>> storages = new Dictionary<string, IResourceStore<string>>();
+        private IResourceStore<string> current;
 
-        public virtual IEnumerable<string> SupportedLocales => new[] { "en" };
-        public IEnumerable<string> SupportedLanguageNames => SupportedLocales.Select(x => new CultureInfo(x).NativeName);
+        public virtual IEnumerable<string> SupportedLocales => storages.Keys;
+        public IEnumerable<KeyValuePair<string, string>> SupportedLanguageNames => SupportedLocales.Select(x => new KeyValuePair<string, string>(x, new CultureInfo(x).NativeName));
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
@@ -24,14 +27,21 @@ namespace osu.Framework.Localisation
 
             locale = config.GetBindable<string>(FrameworkConfig.Locale);
             locale.ValueChanged += checkLocale;
-            locale.TriggerChange();
         }
 
         private readonly List<WeakReference<UnicodeBindableString>> unicodeBindings = new List<WeakReference<UnicodeBindableString>>();
         private readonly List<WeakReference<LocalisedString>> localisedBindings = new List<WeakReference<LocalisedString>>();
+        private readonly List<WeakReference<FormattableString>> formattableBindings = new List<WeakReference<FormattableString>>();
 
         protected void AddWeakReference(UnicodeBindableString unicodeBindable) => unicodeBindings.Add(new WeakReference<UnicodeBindableString>(unicodeBindable));
         protected void AddWeakReference(LocalisedString localisedBindable) => localisedBindings.Add(new WeakReference<LocalisedString>(localisedBindable));
+        protected void AddWeakReference(FormattableString formattableBinding) => formattableBindings.Add(new WeakReference<FormattableString>(formattableBinding));
+
+        public void AddLanguage(string language, IResourceStore<string> storage)
+        {
+            storages.Add(language, storage);
+            locale.TriggerChange();
+        }
 
         public UnicodeBindableString GetUnicodePreference(string unicode, string nonUnicode)
         {
@@ -55,7 +65,23 @@ namespace osu.Framework.Localisation
             return bindable;
         }
 
-        protected virtual string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.NativeName}";
+        public FormattableString Format(string format, params object[] objects)
+        {
+            var bindable = new FormattableString(format, objects);
+            AddWeakReference(bindable);
+
+            return bindable;
+        }
+
+        public VaraintFormattableString FormatVariant(string formatKey, params object[] objects)
+        {
+            var bindable = new VaraintFormattableString(GetLocalisedString(formatKey), objects);
+            AddWeakReference(bindable);
+
+            return bindable;
+        }
+
+        protected virtual string GetLocalised(string key) => current.Get(key);
 
         private void updateUnicodeStrings(bool newValue)
         {
@@ -102,10 +128,11 @@ namespace osu.Framework.Localisation
                 CultureInfo.DefaultThreadCurrentUICulture = culture;
                 ChangeLocale(validLocale);
                 updateLocalisedString();
+                updateFormattableString();
             }
         }
 
-        protected virtual void ChangeLocale(string locale) => Logging.Logger.Log($"locale changed to {locale}");
+        protected virtual void ChangeLocale(string locale) => current = storages[locale];
 
         private void updateLocalisedString()
         {
@@ -119,42 +146,15 @@ namespace osu.Framework.Localisation
             }
         }
 
-        /// <summary>
-        /// A Bindable string which takes a unicode and non-unicode (usually romanised) version of the contained text
-        /// and provides automatic switching behaviour should the user change their preference.
-        /// </summary>
-        public class UnicodeBindableString : Bindable<string>
+        private void updateFormattableString()
         {
-            public readonly string Unicode;
-            public readonly string NonUnicode;
-
-            public UnicodeBindableString(string unicode, string nonUnicode) : base(nonUnicode)
+            foreach (var w in formattableBindings.ToArray())
             {
-                Unicode = unicode;
-                NonUnicode = nonUnicode;
-
-                if (Unicode == null)
-                    Unicode = NonUnicode;
-                if (NonUnicode == null)
-                    NonUnicode = Unicode;
-            }
-
-            public bool PreferUnicode
-            {
-                get { return Value == Unicode; }
-                set { Value = value ? Unicode : NonUnicode; }
-            }
-        }
-
-        /// <summary>
-        /// A Bindable string which stays up-to-date with the current locale choice for the specified key.
-        /// </summary>
-        public class LocalisedString : Bindable<string>
-        {
-            public readonly string Key;
-            public LocalisedString(string key)
-            {
-                Key = key;
+                FormattableString b;
+                if (w.TryGetTarget(out b))
+                    b.Update();
+                else
+                    formattableBindings.Remove(w);
             }
         }
     }
