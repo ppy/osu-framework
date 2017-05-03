@@ -275,7 +275,11 @@ namespace osu.Framework.Platform
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
             {
                 Window.SwapBuffers();
-                GL.Finish();
+
+                if (Window.VSync == VSyncMode.On)
+                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                    // we will likely want to give the user control over this in the future as an advanced setting.
+                    GL.Finish();
             }
         }
 
