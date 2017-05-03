@@ -25,7 +25,7 @@ namespace osu.Framework.VisualTests
         {
             base.SetHost(host);
 
-            host.Window.CursorState = CursorState.Hidden;
+            host.Window.CursorState |= CursorState.Hidden;
         }
     }
 }
