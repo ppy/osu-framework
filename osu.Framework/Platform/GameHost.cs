@@ -413,6 +413,7 @@ namespace osu.Framework.Platform
                 {
                     case FrameSync.VSync:
                         drawLimiter = int.MaxValue;
+                        updateLimiter *= 2;
                         break;
                     case FrameSync.Limit2x:
                         drawLimiter *= 2;
