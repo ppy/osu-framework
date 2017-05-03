@@ -24,6 +24,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using OpenTK.Input;
 using OpenTK.Graphics;
 using osu.Framework.Localisation;
+using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Platform
 {
@@ -272,7 +273,10 @@ namespace osu.Framework.Platform
             GLWrapper.FlushCurrentBatch();
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            {
                 Window.SwapBuffers();
+                GL.Finish();
+            }
         }
 
         private volatile bool exitInitiated;
