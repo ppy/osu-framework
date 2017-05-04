@@ -119,9 +119,9 @@ namespace osu.Framework.Graphics
         // To avoid contention with these threads when loading drawables in the background, let's only dedicate 1/4 of available
         // logical processors to async tasks. Note that we can't easily find a physical core count (with cross-platform support)
         // so this is in favour of lower values than may be viable.
-        private readonly static int max_concurrency = Math.Max(1, Environment.ProcessorCount / 4);
+        private static readonly int max_concurrency = Math.Max(1, Environment.ProcessorCount / 4);
 
-        private readonly static SemaphoreSlim concurrent_load_semaphore = new SemaphoreSlim(max_concurrency, max_concurrency);
+        private static readonly SemaphoreSlim concurrent_load_semaphore = new SemaphoreSlim(max_concurrency, max_concurrency);
 
         /// <summary>
         /// Loads this Drawable asynchronously.
