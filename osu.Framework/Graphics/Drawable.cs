@@ -115,6 +115,14 @@ namespace osu.Framework.Graphics
         private Task loadTask;
         private readonly object loadLock = new object();
 
+        // We run four threads for critical game functionality, two of which are demanding processes (update and draw).
+        // To avoid contention with these threads when loading drawables in the background, let's only dedicate 1/4 of available
+        // logical processors to async tasks. Note that we can't easily find a physical core count (with cross-platform support)
+        // so this is in favour of lower values than may be viable.
+        private readonly static int max_concurrency = Math.Max(1, Environment.ProcessorCount / 4);
+
+        private readonly static SemaphoreSlim concurrent_load_semaphore = new SemaphoreSlim(max_concurrency, max_concurrency);
+
         /// <summary>
         /// Loads this Drawable asynchronously.
         /// </summary>
@@ -129,8 +137,13 @@ namespace osu.Framework.Graphics
 
             loadState = LoadState.Loading;
 
-            return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
+            return loadTask = Task.Run(() =>
             {
+                concurrent_load_semaphore.Wait();
+                Load(target.Clock, target.Dependencies);
+            }).ContinueWith(task => game.Schedule(() =>
+            {
+                concurrent_load_semaphore.Release();
                 task.ThrowIfFaulted();
                 onLoaded?.Invoke(this);
                 loadTask = null;
