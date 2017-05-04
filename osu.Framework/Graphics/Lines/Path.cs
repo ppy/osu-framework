@@ -148,8 +148,8 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.TextureRounded);
-            textureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.Texture);
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;

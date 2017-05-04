@@ -69,76 +69,53 @@ namespace osu.Framework.Graphics.Shaders
 
         public Shader Load(string vertex, string fragment, bool continuousCompilation = false)
         {
-            string name = $@"{vertex}/{fragment}";
+            string name = vertex + '/' + fragment;
 
-            if (shaderCache.ContainsKey(name))
-                return shaderCache[name];
+            Shader shader;
 
-            List<ShaderPart> parts = new List<ShaderPart>
+            if (!shaderCache.TryGetValue(name, out shader))
             {
-                createShaderPart(vertex, ShaderType.VertexShader),
-                createShaderPart(fragment, ShaderType.FragmentShader)
-            };
+                List<ShaderPart> parts = new List<ShaderPart>
+                {
+                    createShaderPart(vertex, ShaderType.VertexShader),
+                    createShaderPart(fragment, ShaderType.FragmentShader)
+                };
 
-            Shader shader = new Shader(name, parts);
+                shader = new Shader(name, parts);
 
-            if (!shader.Loaded)
-            {
-                StringBuilder logContents = new StringBuilder();
-                logContents.AppendLine($@"Loading shader {name}:");
-                logContents.Append(shader.Log);
-                logContents.AppendLine(@"Parts:");
-                foreach (ShaderPart p in parts)
-                    logContents.Append(p.Log);
-                Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
+                if (!shader.Loaded)
+                {
+                    StringBuilder logContents = new StringBuilder();
+                    logContents.AppendLine($@"Loading shader {name}:");
+                    logContents.Append(shader.Log);
+                    logContents.AppendLine(@"Parts:");
+                    foreach (ShaderPart p in parts)
+                        logContents.Append(p.Log);
+                    Logger.Log(logContents.ToString(), LoggingTarget.Runtime, LogLevel.Debug);
+                }
+
+                shaderCache[name] = shader;
             }
 
-            //#if DEBUG
-            //            if (continuousCompilation)
-            //            {
-            //                Game.Scheduler.AddDelayed(delegate
-            //                {
-            //                    parts.Clear();
-            //                    parts.Add(createShaderPart(vertex, ShaderType.VertexShader, true));
-            //                    parts.Add(createShaderPart(fragment, ShaderType.FragmentShader, true));
-            //                    shader.Compile(parts);
-
-            //                    StringBuilder cLogContents = new StringBuilder();
-            //                    cLogContents.AppendLine($@"Continuously loading shader {name}:");
-            //                    cLogContents.Append(shader.Log);
-            //                    cLogContents.AppendLine(@"Parts:");
-            //                    foreach (ShaderPart p in parts)
-            //                        cLogContents.Append(p.Log);
-
-            //                }, 1000, true);
-            //            }
-            //#endif
-
-            shaderCache[name] = shader;
             return shader;
         }
-
-        public Shader Load<T, U>(T vertexShader, U fragmentShader, bool continuousCompilation = false)
-        {
-            return Load(vertexShader.ToString(), fragmentShader.ToString(), continuousCompilation);
-        }
     }
 
-    public enum VertexShaderDescriptor
+    public static class VertexShaderDescriptor
     {
-        Texture2D,
-        Texture3D,
-        Position,
-        Colour,
+        public const string TEXTURE_2 = "Texture2D";
+        public const string TEXTURE_3 = "Texture3D";
+        public const string POSITION = "Position";
+        public const string COLOUR = "Colour";
     }
 
-    public enum FragmentShaderDescriptor
+    public static class FragmentShaderDescriptor
     {
-        Texture,
-        TextureRounded,
-        Colour,
-        ColourRounded,
-        Glow,
-        Blur,
+        public const string TEXTURE = "Texture";
+        public const string TEXTURE_ROUNDED = "TextureRounded";
+        public const string COLOUR = "Colour";
+        public const string COLOUR_ROUNDED = "ColourRounded";
+        public const string GLOW = "Glow";
+        public const string BLUR = "Blur";
     }
 }
