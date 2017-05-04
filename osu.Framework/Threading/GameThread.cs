@@ -11,7 +11,7 @@ namespace osu.Framework.Threading
     public class GameThread
     {
         internal const double DEFAULT_ACTIVE_HZ = 1000;
-        internal const double DEFAULT_INACTIVE_HZ = 30;
+        internal const double DEFAULT_INACTIVE_HZ = 60;
 
         public PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
