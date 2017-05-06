@@ -297,6 +297,13 @@ namespace osu.Framework.Audio.Track
             }
         }
 
+        public float[] GetChannelData()
+        {
+            var data = new float[256];
+            Bass.ChannelGetData(activeStream, data, (int)DataFlags.FFT512);
+            return data;
+        }
+
         public double PitchAdjust
         {
             get { return Frequency.Value; }
