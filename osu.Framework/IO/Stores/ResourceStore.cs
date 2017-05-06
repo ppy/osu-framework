@@ -88,9 +88,9 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    object result = store.Get(f);
+                    T result = store.Get(f);
                     if (result != null)
-                        return (T)result;
+                        return result;
                 }
             }
 
