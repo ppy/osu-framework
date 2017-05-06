@@ -167,7 +167,7 @@ namespace osu.Framework.Allocation
             ObjectActivator activator;
 
             if (!activators.TryGetValue(type, out activator))
-                throw new Exception("DI Initialisation failed badly.");
+                throw new InvalidOperationException("DI Initialisation failed badly.");
 
             activator(this, instance);
         }

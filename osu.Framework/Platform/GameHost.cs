@@ -72,7 +72,7 @@ namespace osu.Framework.Platform
 
         public virtual Task SendMessageAsync(IpcMessage message)
         {
-            throw new NotImplementedException("This platform does not implement IPC.");
+            throw new NotSupportedException("This platform does not implement IPC.");
         }
 
         public virtual Clipboard GetClipboard() => null;
