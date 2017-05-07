@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Containers
             this.game = game;
 
             if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.TextureRounded);
+                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             // From now on, since we ourself are loaded now,
             // we actually permit children to be loaded if our
