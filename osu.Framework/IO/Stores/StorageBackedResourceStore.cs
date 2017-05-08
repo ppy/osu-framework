@@ -21,10 +21,10 @@ namespace osu.Framework.IO.Stores
         public byte[] Get(string name)
         {
             using (Stream stream = storage.GetStream(name))
-            using (var ms = new MemoryStream())
             {
-                stream.CopyTo(ms);
-                return ms.ToArray();
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                return buffer;
             }
         }
 
