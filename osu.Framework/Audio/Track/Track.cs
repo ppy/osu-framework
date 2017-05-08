@@ -99,5 +99,7 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
         }
+
+        public abstract float[] FrequencyAmplitudes { get; protected set; }
     }
 }

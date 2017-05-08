@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
@@ -45,6 +46,14 @@ namespace osu.Framework.Audio.Track
         public override bool IsRunning => clock.IsRunning;
 
         public override double CurrentTime => seekOffset + clock.CurrentTime;
+
+        private float[] frequencyAmplitudes = new float[256];
+
+        public override float[] FrequencyAmplitudes
+        {
+            get { return frequencyAmplitudes; }
+            protected set { frequencyAmplitudes = value; }
+        }
 
         public override void Update()
         {
