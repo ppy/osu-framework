@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
@@ -17,17 +18,17 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            CoordinateSpaceContainer c;
-            Add(c = new CoordinateSpaceContainer
+            TestContainer c;
+            Add(c = new TestContainer
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Both,
                 Size = new Vector2(0.8f),
-                CoordinateSpace = new Vector2(50),
+                RelativeCoordinateSpace = new Vector2(50),
                 Children = new Drawable[]
                 {
-                    new Container
+                    new AlwaysRelativeContainer
                     {
                         RelativeSizeAxes = Axes.Both,
                         Masking = true,
@@ -59,13 +60,17 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         }
                     },
-                    // Static diagonal
+                    // Diagonal
                     new DescriptiveBox { Position = new Vector2(0) },
                     new DescriptiveBox { Position = new Vector2(25) },
                     new DescriptiveBox { Position = new Vector2(50) },
                     new DescriptiveBox { Position = new Vector2(75) },
                     new DescriptiveBox { Position = new Vector2(100) },
-                    // Static centre crosshair
+                    // Centre crosshair
+                    new DescriptiveBox
+                    {
+                        Anchor = Anchor.Centre
+                    },
                     new DescriptiveBox
                     {
                         Anchor = Anchor.Centre,
@@ -85,44 +90,54 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         Anchor = Anchor.Centre,
                         Position = new Vector2(0, -10)
-                    },
-                    // Static relative
-                    new DescriptiveBox
-                    {
-                        RelativePositionAxes = Axes.Both,
-                        Anchor = Anchor.BottomLeft,
-                    },
-                    new DescriptiveBox
-                    {
-                        RelativePositionAxes = Axes.Both,
-                        Anchor = Anchor.BottomLeft,
-                        Position = new Vector2(0.125f, -0.125f)
-                    },
-                    new DescriptiveBox
-                    {
-                        RelativePositionAxes = Axes.Both,
-                        Anchor = Anchor.BottomLeft,
-                        Position = new Vector2(0.25f, -0.25f)
-                    },
-                    new DescriptiveBox
-                    {
-                        RelativePositionAxes = Axes.Both,
-                        Anchor = Anchor.BottomLeft,
-                        Position = new Vector2(0.375f, -0.375f)
-                    },
-                    new DescriptiveBox
-                    {
-                        Anchor = Anchor.Centre,
                     }
                 }
             });
 
-            AddStep("25 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(25), 200));
-            AddStep("50 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(50), 200));
-            AddStep("75 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(75), 200));
-            AddStep("100 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(100), 200));
-            AddStep("150 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(150), 200));
-            AddStep("200 coordinate space", () => c.TransformCoordinateSpaceTo(new Vector2(200), 200));
+            AddStep("25 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(25), 200));
+            AddStep("50 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(50), 200));
+            AddStep("75 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(75), 200));
+            AddStep("100 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(100), 200));
+            AddStep("150 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(150), 200));
+            AddStep("200 coordinate space", () => c.TransformRelativeCoordinateSpaceTo(new Vector2(200), 200));
+        }
+
+        private class TestContainer : Container
+        {
+            public override void Add(Drawable drawable)
+            {
+                base.Add(drawable);
+            }
+
+            public void TransformRelativeCoordinateSpaceTo(Vector2 newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
+            {
+                TransformTo(() => RelativeCoordinateSpace, newCoordinateSpace, duration, easing, new TransformRelativeCoordinateSpace());
+            }
+
+            private class TransformRelativeCoordinateSpace : TransformVector
+            {
+                public override void Apply(Drawable d)
+                {
+                    base.Apply(d);
+
+                    var c = d as TestContainer;
+                    c.RelativeCoordinateSpace = CurrentValue;
+                }
+            }
+        }
+
+        private class AlwaysRelativeContainer : Container
+        {
+            public AlwaysRelativeContainer()
+            {
+                RelativeSizeAxes = Axes.Both;
+                RelativePositionAxes = Axes.Both;
+            }
+
+            protected override void Update()
+            {
+                Size = Parent.RelativeCoordinateSpace;
+            }
         }
 
         private class DescriptiveBox : Container
@@ -132,6 +147,7 @@ namespace osu.Framework.VisualTests.Tests
             public DescriptiveBox()
             {
                 Origin = Anchor.Centre;
+                RelativePositionAxes = Axes.Both;
 
                 Size = new Vector2(32);
 

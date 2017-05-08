@@ -837,10 +837,19 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
-        /// <summary>
-        /// The positional coordinate space revealed to <see cref="InternalChildren"/>.
-        /// </summary>
-        public virtual Vector2 ChildPositionSpace => DrawSize;
+        private Vector2 relativeCoordinateSpace = Vector2.One;
+        public Vector2 RelativeCoordinateSpace
+        {
+            get { return relativeCoordinateSpace; }
+            set
+            {
+                if (relativeCoordinateSpace == value)
+                    return;
+                relativeCoordinateSpace = value;
+
+                Invalidate(Invalidation.All, shallPropagate: true);
+            }
+        }
 
         public override Axes RelativeSizeAxes
         {
