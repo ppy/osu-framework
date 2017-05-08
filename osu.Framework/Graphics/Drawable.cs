@@ -499,7 +499,29 @@ namespace osu.Framework.Graphics
         /// Absolute positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/>
         /// in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
+        public Vector2 DrawPosition
+        {
+            get
+            {
+                Vector2 pos = applyRelativeAxes(RelativePositionAxes, Position);
+
+                if (Parent == null || RelativePositionAxes == Axes.Both)
+                    return pos;
+
+                // Our parent's position space
+                Vector2 childPositionSpace = Parent.ChildPositionSpace;
+
+                Vector2 modifier = Vector2.One;
+
+                // We only want to modify the position on non-relative axes
+                if ((RelativePositionAxes & Axes.X) == 0 && childPositionSpace.X > 0)
+                    modifier.X = Parent.DrawSize.X / childPositionSpace.X;
+                if ((RelativePositionAxes & Axes.Y) == 0 && childPositionSpace.Y > 0)
+                    modifier.Y = Parent.DrawSize.Y / childPositionSpace.Y;
+
+                return pos * modifier;
+            }
+        }
 
         private Vector2 size
         {

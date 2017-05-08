@@ -826,7 +826,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The size of the positional coordinate space revealed to <see cref="InternalChildren"/>.
+        /// The size of the coordinate space revealed to <see cref="InternalChildren"/>.
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
         public Vector2 ChildSize => DrawSize - new Vector2(Padding.TotalHorizontal, Padding.TotalVertical);
@@ -836,6 +836,11 @@ namespace osu.Framework.Graphics.Containers
         /// Captures the effect of e.g. <see cref="Padding"/>.
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
+
+        /// <summary>
+        /// The positional coordinate space revealed to <see cref="InternalChildren"/>.
+        /// </summary>
+        public virtual Vector2 ChildPositionSpace => DrawSize;
 
         public override Axes RelativeSizeAxes
         {
