@@ -111,13 +111,13 @@ namespace osu.Framework.Configuration
         protected void TriggerValueChange()
         {
             ValueChanged?.Invoke(value);
-            bindings.ForEachAlive(b => b.Value = value);
+            bindings?.ForEachAlive(b => b.Value = value);
         }
 
         protected void TriggerDisabledChange()
         {
             DisabledChanged?.Invoke(disabled);
-            bindings.ForEachAlive(b => b.Disabled = disabled);
+            bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
         public void UnbindAll()
