@@ -64,7 +64,7 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
-        private WeakList<Bindable<T>> bindings = new WeakList<Bindable<T>>();
+        private WeakList<Bindable<T>> bindings;
 
         private WeakReference<Bindable<T>> weakReference;
         //be lazy and reuse because WeakReference is kind of "heavy"
@@ -84,7 +84,13 @@ namespace osu.Framework.Configuration
             them.AddWeakReference(WeakReference);
         }
 
-        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference) => bindings.Add(weakReference);
+        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
+        {
+            if (bindings == null)
+                bindings = new WeakList<Bindable<T>>();
+
+            bindings.Add(weakReference);
+        }
 
         public virtual void Parse(object s)
         {
