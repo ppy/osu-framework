@@ -32,7 +32,7 @@ namespace osu.Framework.Allocation
         private MethodInfo getLoaderMethod(Type type)
         {
             return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).SingleOrDefault(
-                mi => mi.CustomAttributes.Any(attr => attr.AttributeType == typeof(BackgroundDependencyLoader)));
+                mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null);
         }
 
         private void register(Type type, bool lazy)
@@ -41,16 +41,15 @@ namespace osu.Framework.Allocation
                 throw new InvalidOperationException($@"Type {type.FullName} can not be registered twice");
 
             var initialize = getLoaderMethod(type);
-            var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
+            var constructor = type.GetConstructor(new Type[] { });
 
             var initializerMethods = new List<MethodInfo>();
-            Type parent = type.BaseType;
-            while (parent != typeof(object))
+
+            for (Type parent = type.BaseType; parent != typeof(object); parent = parent?.BaseType)
             {
                 var init = getLoaderMethod(parent);
                 if (init != null)
                     initializerMethods.Insert(0, init);
-                parent = parent?.BaseType;
             }
             if (initialize != null)
                 initializerMethods.Add(initialize);
@@ -168,7 +167,7 @@ namespace osu.Framework.Allocation
             ObjectActivator activator;
 
             if (!activators.TryGetValue(type, out activator))
-                throw new Exception("DI Initialisation failed badly.");
+                throw new InvalidOperationException("DI Initialisation failed badly.");
 
             activator(this, instance);
         }
