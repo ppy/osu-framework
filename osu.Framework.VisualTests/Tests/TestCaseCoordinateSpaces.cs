@@ -16,105 +16,102 @@ namespace osu.Framework.VisualTests.Tests
 {
     public class TestCaseCoordinateSpaces : TestCase
     {
-        private const int coordinate_space_step = 25;
-        private const int coordinate_space_grid_tests = 8;
+        private const float coordinate_space_step = 25;
+        private const float coordinate_space_max = 200;
         private const double scroll_time = 2000;
 
         public override void Reset()
         {
             base.Reset();
 
-            for (int i = 1; i <= coordinate_space_grid_tests; i++)
+            for (float c = coordinate_space_step; c <= coordinate_space_max; c += coordinate_space_step)
             {
-                int tempI = i;
-                AddStep($"{coordinate_space_step * tempI} coordinate space", () => loadGridTest(tempI));
+                float tempC = c;
+                AddStep($"{tempC} coordinate space", () => loadGridTest(tempC));
             }
 
             AddStep("Scrolling test", loadScrollingTest);
             AddWaitStep((int)Math.Ceiling(scroll_time / TimePerAction) + 2);
         }
 
-        private void loadGridTest(int caseNumber)
+        private void loadGridTest(float coordinateSpace)
         {
             Clear();
 
-            if (caseNumber <= coordinate_space_grid_tests)
+            Add(new Container
             {
-                Add(new Container
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.8f),
+                RelativeCoordinateSpace = new Vector2(coordinateSpace),
+                Children = new Drawable[]
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    RelativeSizeAxes = Axes.Both,
-                    Size = new Vector2(0.8f),
-                    RelativeCoordinateSpace = new Vector2(coordinate_space_step * caseNumber),
-                    Children = new Drawable[]
+                    new CoordinateRelativeContainer
                     {
-                        new CoordinateRelativeContainer
+                        RelativeSizeAxes = Axes.Both,
+                        Masking = true,
+                        BorderColour = Color4.Green,
+                        BorderThickness = 5,
+                        Children = new[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Masking = true,
-                            BorderColour = Color4.Green,
-                            BorderThickness = 5,
-                            Children = new[]
+                            new Box
                             {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Alpha = 0,
-                                    AlwaysPresent = true
-                                },
-                                new Box
-                                {
-                                    Anchor = Anchor.TopCentre,
-                                    Origin = Anchor.TopCentre,
-                                    RelativeSizeAxes = Axes.Y,
-                                    Width = 5,
-                                    Colour = Color4.Green
-                                },
-                                new Box
-                                {
-                                    Anchor = Anchor.CentreLeft,
-                                    Origin = Anchor.CentreLeft,
-                                    RelativeSizeAxes = Axes.X,
-                                    Height = 5,
-                                    Colour = Color4.Green
-                                }
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                AlwaysPresent = true
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.TopCentre,
+                                Origin = Anchor.TopCentre,
+                                RelativeSizeAxes = Axes.Y,
+                                Width = 5,
+                                Colour = Color4.Green
+                            },
+                            new Box
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                RelativeSizeAxes = Axes.X,
+                                Height = 5,
+                                Colour = Color4.Green
                             }
-                        },
-                        // Diagonal
-                        new DescriptiveBox { Position = new Vector2(0) },
-                        new DescriptiveBox { Position = new Vector2(25) },
-                        new DescriptiveBox { Position = new Vector2(50) },
-                        new DescriptiveBox { Position = new Vector2(75) },
-                        new DescriptiveBox { Position = new Vector2(100) },
-                        // Centre crosshair
-                        new DescriptiveBox
-                        {
-                            Anchor = Anchor.Centre
-                        },
-                        new DescriptiveBox
-                        {
-                            Anchor = Anchor.Centre,
-                            Position = new Vector2(10, 0)
-                        },
-                        new DescriptiveBox
-                        {
-                            Anchor = Anchor.Centre,
-                            Position = new Vector2(-10, 0)
-                        },
-                        new DescriptiveBox
-                        {
-                            Anchor = Anchor.Centre,
-                            Position = new Vector2(0, 10)
-                        },
-                        new DescriptiveBox
-                        {
-                            Anchor = Anchor.Centre,
-                            Position = new Vector2(0, -10)
                         }
+                    },
+                    // Diagonal
+                    new Marker { Position = new Vector2(0) },
+                    new Marker { Position = new Vector2(25) },
+                    new Marker { Position = new Vector2(50) },
+                    new Marker { Position = new Vector2(75) },
+                    new Marker { Position = new Vector2(100) },
+                    // Centre crosshair
+                    new Marker
+                    {
+                        Anchor = Anchor.Centre
+                    },
+                    new Marker
+                    {
+                        Anchor = Anchor.Centre,
+                        Position = new Vector2(10, 0)
+                    },
+                    new Marker
+                    {
+                        Anchor = Anchor.Centre,
+                        Position = new Vector2(-10, 0)
+                    },
+                    new Marker
+                    {
+                        Anchor = Anchor.Centre,
+                        Position = new Vector2(0, 10)
+                    },
+                    new Marker
+                    {
+                        Anchor = Anchor.Centre,
+                        Position = new Vector2(0, -10)
                     }
-                });
-            }
+                }
+            });
         }
 
         private void loadScrollingTest()
@@ -130,6 +127,8 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Y,
                 Size = new Vector2(100, 0.8f),
+                // Nothing special by subtracting the duration here - scrollingBox is BottomCentre origin with Height = duration
+                // and it should be outside of the container at Y = scroll_time for the purpose of demonstrating this test
                 RelativeCoordinateSpace = new Vector2(1, (float)scroll_time - duration),
                 Masking = true,
                 Clock = new FramedClock(),
@@ -155,12 +154,15 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = Anchor.BottomCentre,
                         RelativePositionAxes = Axes.Y,
                         RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(1, duration)
+                        Height = duration
                     }
                 }
             });
         }
 
+        /// <summary>
+        /// A box that scrolls using the current time as its Y-position.
+        /// </summary>
         private class TimeScrollingBox : Box
         {
             protected override void Update()
@@ -169,6 +171,9 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
+        /// <summary>
+        /// A container which is always relatively sized to its parents' RelativeCoordinateSpace.
+        /// </summary>
         private class CoordinateRelativeContainer : Container
         {
             public CoordinateRelativeContainer()
@@ -183,11 +188,14 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class DescriptiveBox : Container
+        /// <summary>
+        /// A drawable which marks a point in a space with a description of its position.
+        /// </summary>
+        private class Marker : Container
         {
             private SpriteText descriptionText;
 
-            public DescriptiveBox()
+            public Marker()
             {
                 Origin = Anchor.Centre;
                 RelativePositionAxes = Axes.Both;
