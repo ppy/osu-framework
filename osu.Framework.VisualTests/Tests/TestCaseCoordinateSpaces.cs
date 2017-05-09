@@ -36,7 +36,8 @@ namespace osu.Framework.VisualTests.Tests
         {
             Clear();
 
-            Add(new Container
+            Container c;
+            Add(c = new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -77,12 +78,6 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         }
                     },
-                    // Diagonal
-                    new Marker { Position = new Vector2(0) },
-                    new Marker { Position = new Vector2(25) },
-                    new Marker { Position = new Vector2(50) },
-                    new Marker { Position = new Vector2(75) },
-                    new Marker { Position = new Vector2(100) },
                     // Centre crosshair
                     new Marker
                     {
@@ -110,6 +105,33 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             });
+
+            for (float i = coordinate_space_max / 2; i >= 0; i -= coordinate_space_step)
+            {
+                c.Add(new Marker
+                {
+                    Anchor = Anchor.TopLeft,
+                    Position = new Vector2(i)
+                });
+
+                c.Add(new Marker
+                {
+                    Anchor = Anchor.TopRight,
+                    Position = new Vector2(-i, i)
+                });
+
+                c.Add(new Marker
+                {
+                    Anchor = Anchor.BottomLeft,
+                    Position = new Vector2(i, -i)
+                });
+
+                c.Add(new Marker
+                {
+                    Anchor = Anchor.BottomRight,
+                    Position = new Vector2(-i, -i)
+                });
+            }
         }
 
         private void loadScrollingTest()
