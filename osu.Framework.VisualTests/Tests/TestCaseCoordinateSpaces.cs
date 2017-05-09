@@ -40,8 +40,7 @@ namespace osu.Framework.VisualTests.Tests
 
             if (caseNumber <= coordinate_space_grid_tests)
             {
-                TestContainer c;
-                Add(c = new TestContainer
+                Add(new Container
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
@@ -125,7 +124,7 @@ namespace osu.Framework.VisualTests.Tests
             Clear();
 
             Box scrollingBox;
-            Add(new TestContainer
+            Add(new Container
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -167,14 +166,6 @@ namespace osu.Framework.VisualTests.Tests
             protected override void Update()
             {
                 Y = (float)Clock.CurrentTime;
-            }
-        }
-
-        private class TestContainer : Container
-        {
-            public override void Add(Drawable drawable)
-            {
-                base.Add(drawable);
             }
         }
 
