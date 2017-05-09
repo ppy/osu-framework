@@ -854,7 +854,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 relativeCoordinateSpace = value;
 
-                Invalidate(Invalidation.Position, shallPropagate: true);
+                Invalidate(Invalidation.Position);
             }
         }
 
@@ -1116,7 +1116,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                var c = d as Container;
+                var c = (Container<T>)d;
                 c.RelativeCoordinateSpace = CurrentValue;
             }
         }

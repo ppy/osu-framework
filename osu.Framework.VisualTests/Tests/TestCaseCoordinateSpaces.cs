@@ -2,13 +2,11 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Testing;
 using osu.Framework.Timing;
 
@@ -120,7 +118,6 @@ namespace osu.Framework.VisualTests.Tests
 
             Clear();
 
-            Box scrollingBox;
             Add(new Container
             {
                 Anchor = Anchor.Centre,
@@ -148,8 +145,9 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         }
                     },
-                    scrollingBox = new TimeScrollingBox
+                    new TimeScrollingBox
                     {
+                        Name = "Scrolling box",
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.BottomCentre,
                         RelativePositionAxes = Axes.Y,
@@ -193,7 +191,7 @@ namespace osu.Framework.VisualTests.Tests
         /// </summary>
         private class Marker : Container
         {
-            private SpriteText descriptionText;
+            private readonly SpriteText descriptionText;
 
             public Marker()
             {
