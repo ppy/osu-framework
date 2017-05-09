@@ -33,8 +33,8 @@ namespace osu.Framework.Graphics.Transforms
     {
         public int Compare(ITransform x, ITransform y)
         {
-            if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-            if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+            if (x == null) throw new ArgumentNullException(nameof(x));
+            if (y == null) throw new ArgumentNullException(nameof(y));
 
             int compare = x.StartTime.CompareTo(y.StartTime);
             if (compare != 0) return compare;

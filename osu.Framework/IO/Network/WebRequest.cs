@@ -284,12 +284,10 @@ namespace osu.Framework.IO.Network
             {
                 try
                 {
-                    using (MemoryStream ms = new MemoryStream((int)ResponseStream.Length))
-                    {
-                        ResponseStream.Seek(0, SeekOrigin.Begin);
-                        ResponseStream.CopyTo(ms);
-                        return ms.ToArray();
-                    }
+                    byte[] data = new byte[ResponseStream.Length];
+                    ResponseStream.Seek(0, SeekOrigin.Begin);
+                    ResponseStream.Read(data, 0, data.Length);
+                    return data;
                 }
                 catch
                 {

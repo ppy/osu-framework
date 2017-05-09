@@ -252,8 +252,8 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
-                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
@@ -265,8 +265,8 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
-                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
@@ -1770,7 +1770,7 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
         }
 
