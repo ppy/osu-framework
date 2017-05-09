@@ -838,6 +838,13 @@ namespace osu.Framework.Graphics.Containers
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
         private Vector2 relativeCoordinateSpace = Vector2.One;
+        /// <summary>
+        /// The coordinate space revealed to relatively-sized or positioned children such that changing this to
+        /// values (x_1, y_1) will require a child to have a relative size of (x_1, y_1) to fill the container.
+        /// <para>
+        /// Note that relative size children will have a (1, 1) size by default.
+        /// </para>
+        /// </summary>
         public Vector2 RelativeCoordinateSpace
         {
             get { return relativeCoordinateSpace; }
@@ -849,6 +856,17 @@ namespace osu.Framework.Graphics.Containers
 
                 Invalidate(Invalidation.Position, shallPropagate: true);
             }
+        }
+
+        /// <summary>
+        /// Tweens the RelativeCoordinateSpace of this container.
+        /// </summary>
+        /// <param name="newCoordinateSpace">The coordinate space to tween to.</param>
+        /// <param name="duration">The tween duration.</param>
+        /// <param name="easing">The tween easing.</param>
+        public void TransformRelativeCoordinateSpaceTo(Vector2 newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => RelativeCoordinateSpace, newCoordinateSpace, duration, easing, new TransformRelativeCoordinateSpace());
         }
 
         public override Axes RelativeSizeAxes
@@ -1091,5 +1109,16 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
+
+        private class TransformRelativeCoordinateSpace : TransformVector
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+
+                var c = d as Container;
+                c.RelativeCoordinateSpace = CurrentValue;
+            }
+        }
     }
 }

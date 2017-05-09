@@ -176,22 +176,6 @@ namespace osu.Framework.VisualTests.Tests
             {
                 base.Add(drawable);
             }
-
-            public void TransformRelativeCoordinateSpaceTo(Vector2 newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
-            {
-                TransformTo(() => RelativeCoordinateSpace, newCoordinateSpace, duration, easing, new TransformRelativeCoordinateSpace());
-            }
-
-            private class TransformRelativeCoordinateSpace : TransformVector
-            {
-                public override void Apply(Drawable d)
-                {
-                    base.Apply(d);
-
-                    var c = d as TestContainer;
-                    c.RelativeCoordinateSpace = CurrentValue;
-                }
-            }
         }
 
         private class CoordinateRelativeContainer : Container
