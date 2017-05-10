@@ -33,6 +33,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public Bindable<T> Current => CurrentNumber;
 
+        protected bool PlaySound;
+
         protected SliderBar()
         {
             if (typeof(T) == typeof(int))
@@ -65,7 +67,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             base.LoadComplete();
+            PlaySound = false;
             UpdateValue(NormalizedValue);
+            PlaySound = true;
         }
 
         protected override bool OnClick(InputState state)
