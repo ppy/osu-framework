@@ -854,7 +854,8 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 relativeCoordinateSpace = value;
 
-                Invalidate(Invalidation.Position);
+                foreach (T c in internalChildren)
+                    c.Invalidate(Invalidation.Geometry);
             }
         }
 
