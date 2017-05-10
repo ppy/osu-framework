@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    public class SearchContainer<T> : Container<T> where T : Drawable
+    public class SearchContainer<T> : FillFlowContainer<T> where T : Drawable
     {
         private string searchTerm;
 
