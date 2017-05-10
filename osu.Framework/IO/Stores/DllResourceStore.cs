@@ -24,11 +24,9 @@ namespace osu.Framework.IO.Stores
                 if (input == null)
                     return null;
 
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    input.CopyTo(ms);
-                    return ms.ToArray();
-                }
+                byte[] buffer = new byte[input.Length];
+                input.Read(buffer, 0, buffer.Length);
+                return buffer;
             }
         }
 

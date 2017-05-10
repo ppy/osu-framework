@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Framework.Lists;
 
 namespace osu.Framework.Configuration
 {
@@ -63,9 +64,11 @@ namespace osu.Framework.Configuration
             return value.Value;
         }
 
-        private List<WeakReference<Bindable<T>>> bindings = new List<WeakReference<Bindable<T>>>();
+        private WeakList<Bindable<T>> bindings;
 
-        public WeakReference<Bindable<T>> WeakReference => new WeakReference<Bindable<T>>(this);
+        private WeakReference<Bindable<T>> weakReference;
+        //be lazy and reuse because WeakReference is kind of "heavy"
+        public WeakReference<Bindable<T>> WeakReference => weakReference ?? (weakReference = new WeakReference<Bindable<T>>(this));
 
         /// <summary>
         /// Binds outselves to another bindable such that they receive bi-directional updates.
@@ -81,7 +84,13 @@ namespace osu.Framework.Configuration
             them.AddWeakReference(WeakReference);
         }
 
-        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference) => bindings.Add(weakReference);
+        protected void AddWeakReference(WeakReference<Bindable<T>> weakReference)
+        {
+            if (bindings == null)
+                bindings = new WeakList<Bindable<T>>();
+
+            bindings.Add(weakReference);
+        }
 
         public virtual void Parse(object s)
         {
@@ -102,29 +111,13 @@ namespace osu.Framework.Configuration
         protected void TriggerValueChange()
         {
             ValueChanged?.Invoke(value);
-
-            foreach (var w in bindings.ToArray())
-            {
-                Bindable<T> b;
-                if (w.TryGetTarget(out b))
-                    b.Value = value;
-                else
-                    bindings.Remove(w);
-            }
+            bindings?.ForEachAlive(b => b.Value = value);
         }
 
         protected void TriggerDisabledChange()
         {
             DisabledChanged?.Invoke(disabled);
-
-            foreach (var w in bindings.ToArray())
-            {
-                Bindable<T> b;
-                if (w.TryGetTarget(out b))
-                    b.Disabled = disabled;
-                else
-                    bindings.Remove(w);
-            }
+            bindings?.ForEachAlive(b => b.Disabled = disabled);
         }
 
         public void UnbindAll()
@@ -156,7 +149,7 @@ namespace osu.Framework.Configuration
         {
             var copy = (Bindable<T>)MemberwiseClone();
 
-            copy.bindings = new List<WeakReference<Bindable<T>>>();
+            copy.bindings = new WeakList<Bindable<T>>();
             copy.BindTo(this);
 
             return copy;

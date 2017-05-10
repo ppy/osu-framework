@@ -30,11 +30,6 @@ namespace osu.Framework.Graphics.Primitives
                 throw new InvalidOperationException($"{nameof(MarginPadding)} may not have negative values, but values are {this}.");
         }
 
-        public int CompareTo(object obj)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool Equals(MarginPadding other)
         {
             return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;

@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
         private Vector2 blurSigma = Vector2.Zero;
 
         /// <summary>
-        /// Controls the amount of blurring in two orthogonal directions (X and Y if 
+        /// Controls the amount of blurring in two orthogonal directions (X and Y if
         /// <see cref="BlurRotation"/> is zero).
         /// Blur is parametrized by a gaussian image filter. This property controls
         /// the standard deviation (sigma) of the gaussian kernel.
@@ -168,7 +168,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             if (blurShader == null)
-                blurShader = shaders?.Load(VertexShaderDescriptor.Texture2D, FragmentShaderDescriptor.Blur);
+                blurShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.BLUR);
         }
 
         protected override DrawNode CreateDrawNode() => new BufferedContainerDrawNode();
