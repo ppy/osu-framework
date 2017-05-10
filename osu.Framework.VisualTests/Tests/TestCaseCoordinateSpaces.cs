@@ -46,9 +46,10 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeCoordinateSpace = new Vector2(coordinateSpace),
                 Children = new Drawable[]
                 {
-                    new CoordinateRelativeContainer
+                    new Container
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(coordinateSpace),
                         Masking = true,
                         BorderColour = Color4.Green,
                         BorderThickness = 5,
@@ -138,6 +139,11 @@ namespace osu.Framework.VisualTests.Tests
         {
             const float duration = (float)scroll_time / 4;
 
+            // The amount of time which the area that the box scrolls through spans.
+            // Nothing special is done by subtracting the duration here - scrollingBox is BottomCentre origin with Height = duration
+            // and it should be outside of the container at Y = scroll_time for the purpose of demonstrating this test
+            const float time_span = (float)scroll_time - duration;
+
             Clear();
 
             Add(new Container
@@ -146,17 +152,16 @@ namespace osu.Framework.VisualTests.Tests
                 Origin = Anchor.Centre,
                 RelativeSizeAxes = Axes.Y,
                 Size = new Vector2(100, 0.8f),
-                // Nothing special by subtracting the duration here - scrollingBox is BottomCentre origin with Height = duration
-                // and it should be outside of the container at Y = scroll_time for the purpose of demonstrating this test
-                RelativeCoordinateSpace = new Vector2(1, (float)scroll_time - duration),
+                RelativeCoordinateSpace = new Vector2(1, time_span),
                 Masking = true,
                 Clock = new FramedClock(),
                 Children = new Drawable[]
                 {
-                    new CoordinateRelativeContainer
+                    new Container
                     {
                         Name = "Background",
                         RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(1, time_span),
                         Children = new[]
                         {
                             new Box
@@ -188,23 +193,6 @@ namespace osu.Framework.VisualTests.Tests
             protected override void Update()
             {
                 Y = (float)Clock.CurrentTime;
-            }
-        }
-
-        /// <summary>
-        /// A container which is always relatively sized to its parents' RelativeCoordinateSpace.
-        /// </summary>
-        private class CoordinateRelativeContainer : Container
-        {
-            public CoordinateRelativeContainer()
-            {
-                RelativeSizeAxes = Axes.Both;
-                RelativePositionAxes = Axes.Both;
-            }
-
-            protected override void Update()
-            {
-                Size = Parent.RelativeToAbsoluteFactor;
             }
         }
 
