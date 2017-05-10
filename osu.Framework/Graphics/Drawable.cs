@@ -699,15 +699,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
         /// </summary>
-        private Vector2 relativeToAbsoluteFactor
-        {
-            get
-            {
-                if (Parent == null)
-                    return Vector2.One;
-                return Vector2.Divide(Parent.ChildSize, Parent.RelativeCoordinateSpace);
-            }
-        }
+        private Vector2 relativeToAbsoluteFactor => Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 

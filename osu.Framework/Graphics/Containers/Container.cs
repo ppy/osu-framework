@@ -860,6 +860,11 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Conversion factor from relative to absolute coordinates in our space.
+        /// </summary>
+        public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeCoordinateSpace);
+
+        /// <summary>
         /// Tweens the RelativeCoordinateSpace of this container.
         /// </summary>
         /// <param name="newCoordinateSpace">The coordinate space to tween to.</param>

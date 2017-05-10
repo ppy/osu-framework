@@ -204,7 +204,7 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void Update()
             {
-                Size = Parent.RelativeCoordinateSpace;
+                Size = Parent.RelativeToAbsoluteFactor;
             }
         }
 
