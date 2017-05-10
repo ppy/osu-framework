@@ -54,6 +54,7 @@
     <Compile Include="Tests\TestCaseCheckboxes.cs" />
     <Compile Include="Tests\TestCaseCircularProgress.cs" />
     <Compile Include="Tests\TestCaseColourGradient.cs" />
+    <Compile Include="Tests\TestCaseCoordinateSpaces.cs" />
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
@@ -98,7 +99,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
