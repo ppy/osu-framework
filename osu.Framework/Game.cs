@@ -66,6 +66,10 @@ namespace osu.Framework
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
                 },
+                new GlobalHotkeys
+                {
+                    Handler = globalKeyDown
+                }
             });
         }
 
@@ -191,7 +195,7 @@ namespace osu.Framework
             set { performanceContainer.State = value; }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        private bool globalKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (state.Keyboard.ControlPressed)
             {
@@ -226,7 +230,7 @@ namespace osu.Framework
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         public void Exit()
