@@ -225,6 +225,10 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public Action<U, bool> TabVisibilityChanged;
 
+            protected override IComparer<Drawable> DepthComparer => new ReverseCreationOrderDepthComparer();
+
+            protected override IEnumerable<U> FlowingChildren => base.FlowingChildren.Reverse();
+
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
                 foreach (var child in Children)

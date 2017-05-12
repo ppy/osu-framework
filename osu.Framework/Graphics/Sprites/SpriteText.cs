@@ -186,6 +186,7 @@ namespace osu.Framework.Graphics.Sprites
 
         private string lastText;
         private float lastShadowAlpha;
+        private string lastFont;
 
         private void refreshLayout()
         {
@@ -208,9 +209,10 @@ namespace osu.Framework.Graphics.Sprites
 
                 //we can't keep existing drawabled if our shadow has changed, as the shadow is applied in the add-loop.
                 //this could potentially be optimised if necessary.
-                allowKeepingExistingDrawables &= shadowAlpha == lastShadowAlpha;
+                allowKeepingExistingDrawables &= shadowAlpha == lastShadowAlpha && font == lastFont;
 
                 lastShadowAlpha = shadowAlpha;
+                lastFont = font;
 
                 if (allowKeepingExistingDrawables)
                 {
