@@ -750,7 +750,7 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-            if (state.Keyboard.Keys.Contains(Key.Enter))
+            if (!Current.Disabled && state.Keyboard.Keys.Contains(Key.Enter))
             {
                 Background.Colour = BackgroundUnfocused;
                 Background.ClearTransforms();
