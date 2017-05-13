@@ -16,22 +16,22 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 BottomRight;
 
         /// <summary>
-        /// The axis formed by the BottomLeft and TopLeft vertices.
+        /// The axis formed by the <see cref="BottomLeft"/> and <see cref="TopLeft"/> vertices.
         /// </summary>
         public Axis LeftAxis;
 
         /// <summary>
-        /// The axis formed by the TopRight and BottomRight vertices;
-        /// </summary>
-        public Axis RightAxis;
-
-        /// <summary>
-        /// The ais formed by the TopLeft and TopRight vertices;
+        /// The ais formed by the <see cref="TopLeft"/> and <see cref="TopRight"/> vertices;
         /// </summary>
         public Axis TopAxis;
 
         /// <summary>
-        /// The axis formed by the BottomLeft and BottomRight vertices.
+        /// The axis formed by the <see cref="TopRight"/> and <see cref="BottomRight"/> vertices;
+        /// </summary>
+        public Axis RightAxis;
+
+        /// <summary>
+        /// The axis formed by the <see cref="BottomLeft"/> and <see cref="BottomRight"/> vertices.
         /// </summary>
         public Axis BottomAxis;
 
@@ -46,8 +46,8 @@ namespace osu.Framework.Graphics.Primitives
             BottomRight = bottomRight;
 
             LeftAxis = new Axis(bottomLeft, topLeft);
-            RightAxis = new Axis(bottomRight, topRight);
             TopAxis = new Axis(topLeft, topRight);
+            RightAxis = new Axis(bottomRight, topRight);
             BottomAxis = new Axis(bottomLeft, bottomRight);
 
             VertexCount = 4;
