@@ -7,50 +7,49 @@ namespace osu.Framework.Graphics.Primitives
 {
     public interface IPolygon
     {
-        /// <summary>
-        /// The vertices for this polygon.
-        /// </summary>
-        Vector2[] Vertices { get; }
+        int VertexCount { get; }
+        int AxisCount { get; }
 
-        /// <summary>
-        /// The vertices for this polygon that are used to compute the axes of the polygon.
-        /// <para>
-        /// Optimisation: Edges that would form duplicate normals as other edges
-        /// in the polygon do not need their vertices added to this array.
-        /// </para>
-        /// </summary>
-        Vector2[] AxisVertices { get; }
+        Vector2 GetVertex(int index);
+        Axis GetAxis(int index);
     }
 
-    public static class PolygonExtensions
+    public struct Axis
     {
-        /// <summary>
-        /// Computes the axes for each edge in a polygon.
-        /// </summary>
-        /// <param name="polygon">The polygon to return the axes of.</param>
-        /// <param name="normalize">Whether the normals should be normalized. Allows computation of the exact intersection point.</param>
-        /// <returns>The axes of the polygon.</returns>
-        public static Vector2[] GetAxes(this IPolygon polygon, bool normalize = false)
+        public readonly Vector2 Edge;
+        public readonly Vector2 Normal;
+
+        public Axis(Vector2 firstPoint, Vector2 secondPoint)
         {
-            Vector2[] axes = new Vector2[polygon.AxisVertices.Length];
+            Edge = secondPoint - firstPoint;
+            Normal = new Vector2(-Edge.Y, Edge.X);
+        }
 
-            for (int i = 0; i < polygon.AxisVertices.Length; i++)
-            {
-                // Construct an edge between two sequential points
-                Vector2 v1 = polygon.AxisVertices[i];
-                Vector2 v2 = polygon.AxisVertices[i == polygon.AxisVertices.Length - 1 ? 0 : i + 1];
-                Vector2 edge = v2 - v1;
+        public static bool operator ==(Axis left, Axis right)
+        {
+            return left.Edge == right.Edge;
+        }
 
-                // Find the normal to the edge
-                Vector2 normal = new Vector2(-edge.Y, edge.X);
+        public static bool operator !=(Axis left, Axis right)
+        {
+            return left.Edge != right.Edge;
+        }
 
-                if (normalize)
-                    normal = Vector2.Normalize(normal);
+        public bool Equals(Axis other)
+        {
+            return Edge.Equals(other.Edge);
+        }
 
-                axes[i] = normal;
-            }
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            return obj is Axis && Equals((Axis)obj);
+        }
 
-            return axes;
+        public override int GetHashCode()
+        {
+            return Edge.GetHashCode();
         }
     }
 }

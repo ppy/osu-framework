@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Drawing;
-using osu.Framework.Extensions.RectangleExtensions;
 using OpenTK;
 
 namespace osu.Framework.Graphics.Primitives
@@ -11,55 +9,52 @@ namespace osu.Framework.Graphics.Primitives
     {
     }
 
-    /// <summary>
-    /// Todo: Support segment containment and circles.
-    /// Todo: Might be overkill, but possibly support convex decomposition? 
-    /// </summary>
     public static class ConvexPolygonExtensions
     {
-        /// <summary>
-        /// Determines whether two convex polygons intersect.
-        /// </summary>
-        /// <param name="first">The first polygon.</param>
-        /// <param name="second">The second polygon.</param>
-        /// <returns>Whether the two polygons intersect.</returns>
         public static bool Intersects(this IConvexPolygon first, IConvexPolygon second)
         {
-            Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
-            Vector2[][] bothVertices = { first.Vertices, second.Vertices };
-
-            return intersects(bothAxes, bothVertices);
-        }
-
-        /// <summary>
-        /// Determines whether two convex polygons intersect.
-        /// </summary>
-        /// <param name="first">The first polygon.</param>
-        /// <param name="second">The second polygon.</param>
-        /// <returns>Whether the two polygons intersect.</returns>
-        public static bool Intersects(this IConvexPolygon first, Rectangle second)
-        {
-            Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
-            Vector2[][] bothVertices = { first.Vertices, second.GetVertices() };
-
-            return intersects(bothAxes, bothVertices);
-        }
-
-        private static bool intersects(Vector2[][] bothAxes, Vector2[][] bothVertices)
-        {
-            foreach (Vector2[] axes in bothAxes)
+            // Check along the first polygon's axes
+            for (int a = 0; a < first.AxisCount; a++)
             {
-                foreach (Vector2 axis in axes)
-                {
-                    ProjectionRange firstRange = new ProjectionRange(axis, bothVertices[0]);
-                    ProjectionRange secondRange = new ProjectionRange(axis, bothVertices[1]);
+                Vector2 axis = first.GetAxis(a).Normal;
 
-                    if (!firstRange.Overlaps(secondRange))
-                        return false;
-                }
+                float minFirst, maxFirst, minSecond, maxSecond;
+                projectionRange(axis, first, out minFirst, out maxFirst);
+                projectionRange(axis, second, out minSecond, out maxSecond);
+
+                if (minFirst > maxSecond || maxFirst < minSecond)
+                    return false;
+            }
+
+            // Check along the second polygon's axes
+            for (int a = 0; a < second.AxisCount; a++)
+            {
+                Vector2 axis = second.GetAxis(a).Normal;
+
+                float minFirst, maxFirst, minSecond, maxSecond;
+                projectionRange(axis, first, out minFirst, out maxFirst);
+                projectionRange(axis, second, out minSecond, out maxSecond);
+
+                if (minFirst > maxSecond || maxFirst < minSecond)
+                    return false;
             }
 
             return true;
+        }
+
+        private static void projectionRange(Vector2 axis, IConvexPolygon polygon, out float min, out float max)
+        {
+            min = float.MaxValue;
+            max = float.MinValue;
+
+            for (int v = 0; v < polygon.VertexCount; v++)
+            {
+                float val = Vector2.Dot(axis, polygon.GetVertex(v));
+                if (val < min)
+                    min = val;
+                if (val > max)
+                    max = val;
+            }
         }
     }
 }

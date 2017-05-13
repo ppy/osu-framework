@@ -251,7 +251,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IConvexPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Line.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\ProjectionRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Quad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\RectangleF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Triangle.cs" />
