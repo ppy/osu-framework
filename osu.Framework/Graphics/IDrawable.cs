@@ -41,7 +41,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         IFrameBasedClock Clock { get; }
 
-        IConvexPolygon ScreenSpaceBoundingBox { get; }
+        /// <summary>
+        /// The polygon that bounds this drawable in screen space.
+        /// </summary>
+        IConvexPolygon ScreenSpacePolygon { get; }
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.

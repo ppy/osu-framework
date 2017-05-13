@@ -1269,7 +1269,7 @@ namespace osu.Framework.Graphics
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
 
-        public IConvexPolygon ScreenSpaceBoundingBox => ScreenSpaceDrawQuad;
+        public IConvexPolygon ScreenSpacePolygon => ScreenSpaceDrawQuad;
 
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
