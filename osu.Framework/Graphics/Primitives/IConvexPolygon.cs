@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Primitives
                 projectionRange(ref axis, ref first, out minFirst, out maxFirst);
                 projectionRange(ref axis, ref second, out minSecond, out maxSecond);
 
-                occludes &= minFirst < minSecond && maxFirst > maxSecond;
+                occludes &= minFirst <= minSecond && maxFirst >= maxSecond;
             }
 
             return occludes;

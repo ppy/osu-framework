@@ -35,7 +35,7 @@ namespace osu.Framework.VisualTests.Tests
         private void loadTest(int testCase)
         {
             staticContainer.Clear();
-            staticContainer.Add(new Box { RelativeSizeAxes = Axes.Both });
+            staticContainer.Add(new OccludingBox { RelativeSizeAxes = Axes.Both });
 
             switch (testCase)
             {
@@ -126,18 +126,12 @@ namespace osu.Framework.VisualTests.Tests
             public TestBox()
             {
                 Size = new Vector2(20);
+                Colour = Color4.Green;
             }
+        }
 
-            protected override void Update()
-            {
-                base.Update();
-
-                var parent = Parent as Container;
-                if (parent == null)
-                    return;
-
-                Colour = parent.ScreenSpaceDrawQuad.Occludes(ScreenSpaceDrawQuad) ? Color4.Red : Color4.Green;
-            }
+        private class OccludingBox : Box, IOccluder
+        {
         }
     }
 }
