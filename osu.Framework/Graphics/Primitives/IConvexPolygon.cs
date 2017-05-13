@@ -59,6 +59,41 @@ namespace osu.Framework.Graphics.Primitives
             return first.Intersects(ref second);
         }
 
+        /// <summary>
+        /// Checks if this convex polygon occludes another convex polygon.
+        /// </summary>
+        /// <param name="first">Ourselves.</param>
+        /// <param name="second">The convex polygon to check. This polygon is not modified.</param>
+        /// <returns>Whether this polygon occludes <see cref="second"/>.</returns>
+        public static bool Occludes(this IConvexPolygon first, ref IConvexPolygon second)
+        {
+            bool occludes = true;
+
+            for (int a = 0; a < first.AxisCount; a++)
+            {
+                Vector2 axis = first.GetAxis(a).Normal;
+
+                float minFirst, maxFirst, minSecond, maxSecond;
+                projectionRange(ref axis, ref first, out minFirst, out maxFirst);
+                projectionRange(ref axis, ref second, out minSecond, out maxSecond);
+
+                occludes &= minFirst < minSecond && maxFirst > maxSecond;
+            }
+
+            return occludes;
+        }
+
+        /// <summary>
+        /// Checks if this convex polygon occludes another convex polygon.
+        /// </summary>
+        /// <param name="first">Ourselves.</param>
+        /// <param name="second">The convex polygon to check.</param>
+        /// <returns>Whether this polygon occludes <see cref="second"/>.</returns>
+        public static bool Occludes(this IConvexPolygon first, IConvexPolygon second)
+        {
+            return Occludes(first, ref second);
+        }
+
         private static void projectionRange(ref Vector2 axis, ref IConvexPolygon polygon, out float min, out float max)
         {
             min = float.MaxValue;
