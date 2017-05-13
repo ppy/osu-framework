@@ -3,7 +3,6 @@
 
 using System;
 using System.Drawing;
-using osu.Framework.Extensions.PolygonExtensions;
 using OpenTK;
 using osu.Framework.MathUtils;
 

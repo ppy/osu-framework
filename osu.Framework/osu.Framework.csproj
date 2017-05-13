@@ -95,8 +95,6 @@
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
-    <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
-    <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
     <Compile Include="Allocation\ObjectStack.cs" />
     <Compile Include="Allocation\ObjectUsage.cs" />
