@@ -15,21 +15,52 @@ namespace osu.Framework.Graphics.Primitives
         public Vector2 BottomLeft;
         public Vector2 BottomRight;
 
+        /// <summary>
+        /// The axis formed by the BottomLeft and TopLeft vertices.
+        /// </summary>
+        public Axis LeftAxis;
+
+        /// <summary>
+        /// The axis formed by the TopRight and BottomRight vertices;
+        /// </summary>
+        public Axis RightAxis;
+
+        /// <summary>
+        /// The ais formed by the TopLeft and TopRight vertices;
+        /// </summary>
+        public Axis TopAxis;
+
+        /// <summary>
+        /// The axis formed by the BottomLeft and BottomRight vertices.
+        /// </summary>
+        public Axis BottomAxis;
+
+        public int VertexCount { get; }
+        public int AxisCount { get; }
+
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
         {
             TopLeft = topLeft;
             TopRight = topRight;
             BottomLeft = bottomLeft;
             BottomRight = bottomRight;
+
+            LeftAxis = new Axis(bottomLeft, topLeft);
+            RightAxis = new Axis(bottomRight, topRight);
+            TopAxis = new Axis(topLeft, topRight);
+            BottomAxis = new Axis(bottomLeft, bottomRight);
+
+            VertexCount = 4;
+
+            if (LeftAxis == RightAxis && TopAxis == BottomAxis)
+                AxisCount = 2;
+            else
+                AxisCount = 4;
         }
 
         public Quad(float x, float y, float width, float height)
-            : this()
+            : this(new Vector2(x, y), new Vector2(x + width, y), new Vector2(x, y + height), new Vector2(x + width, y + height))
         {
-            TopLeft = new Vector2(x, y);
-            TopRight = new Vector2(x + width, y);
-            BottomLeft = new Vector2(x, y + height);
-            BottomRight = new Vector2(x + width, y + height);
         }
 
         public static implicit operator Quad(Rectangle r) => FromRectangle(r);
@@ -111,9 +142,6 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public Vector2[] Vertices => new[] { TopLeft, TopRight, BottomRight, BottomLeft };
-        public Vector2[] AxisVertices => Vertices;
-
         public bool Contains(Vector2 pos)
         {
             return
@@ -143,14 +171,41 @@ namespace osu.Framework.Graphics.Primitives
             }
         }
 
-        public bool Intersects(IConvexPolygon other)
+        public Vector2 GetVertex(int index)
         {
-            return (this as IConvexPolygon).Intersects(other);
+            switch (index)
+            {
+                case 0:
+                    return TopLeft;
+                case 1:
+                    return TopRight;
+                case 2:
+                    return BottomLeft;
+                case 3:
+                    return BottomRight;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
         }
 
-        public bool Intersects(Rectangle other)
+        public Axis GetAxis(int index)
         {
-            return (this as IConvexPolygon).Intersects(other);
+            if (index >= AxisCount)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            switch (index)
+            {
+                case 0:
+                    return LeftAxis;
+                case 1:
+                    return TopAxis;
+                case 2:
+                    return RightAxis;
+                case 3:
+                    return BottomAxis;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
         }
 
         public bool Equals(Quad other)
