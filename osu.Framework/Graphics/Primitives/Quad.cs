@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Primitives
         public Axis LeftAxis;
 
         /// <summary>
-        /// The ais formed by the <see cref="TopLeft"/> and <see cref="TopRight"/> vertices;
+        /// The axis formed by the <see cref="TopLeft"/> and <see cref="TopRight"/> vertices;
         /// </summary>
         public Axis TopAxis;
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public Axis BottomAxis;
 
-        public int VertexCount { get; }
+        public int VertexCount => 4;
         public int AxisCount { get; }
 
         public Quad(Vector2 topLeft, Vector2 topRight, Vector2 bottomLeft, Vector2 bottomRight)
@@ -49,8 +49,6 @@ namespace osu.Framework.Graphics.Primitives
             TopAxis = new Axis(topLeft, topRight);
             RightAxis = new Axis(bottomRight, topRight);
             BottomAxis = new Axis(bottomLeft, bottomRight);
-
-            VertexCount = 4;
 
             if (LeftAxis == RightAxis && TopAxis == BottomAxis)
                 AxisCount = 2;

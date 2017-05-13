@@ -5,6 +5,9 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// A type of <see cref="IDrawable"/> that can occlude drawables drawn under it.
+    /// </summary>
     public interface IHasOccluder : IDrawable
     {
         /// <summary>

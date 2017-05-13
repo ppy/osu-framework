@@ -1271,7 +1271,6 @@ namespace osu.Framework.Graphics
 
         public IConvexPolygon ScreenSpacePolygon => ScreenSpaceDrawQuad;
 
-
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         /// <summary>

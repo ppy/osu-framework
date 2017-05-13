@@ -360,7 +360,6 @@ namespace osu.Framework.Graphics.Containers
 
             UpdateAfterChildren();
 
-
             updateChildrenSizeDependencies();
             return true;
         }

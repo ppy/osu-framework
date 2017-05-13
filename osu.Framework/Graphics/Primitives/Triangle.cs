@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         public Axis Axis20;
 
-        public int VertexCount { get; }
-        public int AxisCount { get; }
+        public int VertexCount => 3;
+        public int AxisCount => 3;
 
         public Triangle(Vector2 p0, Vector2 p1, Vector2 p2)
         {
@@ -39,8 +39,6 @@ namespace osu.Framework.Graphics.Primitives
             Axis01 = new Axis(P0, P1);
             Axis12 = new Axis(P1, P2);
             Axis20 = new Axis(P2, P0);
-
-            VertexCount = AxisCount = 3;
         }
 
         /// <summary>
