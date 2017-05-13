@@ -11,7 +11,13 @@ namespace osu.Framework.Graphics.Primitives
 
     public static class ConvexPolygonExtensions
     {
-        public static bool Intersects(this IConvexPolygon first, IConvexPolygon second)
+        /// <summary>
+        /// Checks if this convex polygon intersects with another convex polygon.
+        /// </summary>
+        /// <param name="first">Ourselves.</param>
+        /// <param name="second">The convex polygon to check. This polygon is not modified.</param>
+        /// <returns>Whether this polygon intersects with <paramref name="second"/>.</returns>
+        public static bool Intersects(this IConvexPolygon first, ref IConvexPolygon second)
         {
             // Check along the first polygon's axes
             for (int a = 0; a < first.AxisCount; a++)
@@ -19,8 +25,8 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2 axis = first.GetAxis(a).Normal;
 
                 float minFirst, maxFirst, minSecond, maxSecond;
-                projectionRange(axis, first, out minFirst, out maxFirst);
-                projectionRange(axis, second, out minSecond, out maxSecond);
+                projectionRange(ref axis, ref first, out minFirst, out maxFirst);
+                projectionRange(ref axis, ref second, out minSecond, out maxSecond);
 
                 if (minFirst > maxSecond || maxFirst < minSecond)
                     return false;
@@ -32,8 +38,8 @@ namespace osu.Framework.Graphics.Primitives
                 Vector2 axis = second.GetAxis(a).Normal;
 
                 float minFirst, maxFirst, minSecond, maxSecond;
-                projectionRange(axis, first, out minFirst, out maxFirst);
-                projectionRange(axis, second, out minSecond, out maxSecond);
+                projectionRange(ref axis, ref first, out minFirst, out maxFirst);
+                projectionRange(ref axis, ref second, out minSecond, out maxSecond);
 
                 if (minFirst > maxSecond || maxFirst < minSecond)
                     return false;
@@ -42,7 +48,18 @@ namespace osu.Framework.Graphics.Primitives
             return true;
         }
 
-        private static void projectionRange(Vector2 axis, IConvexPolygon polygon, out float min, out float max)
+        /// <summary>
+        /// Checks if this convex polygon intersects with another convex polygon.
+        /// </summary>
+        /// <param name="first">Ourselves.</param>
+        /// <param name="second">The convex polygon to check.</param>
+        /// <returns>Whether this polygon intersects with <paramref name="second"/>.</returns>
+        public static bool Intersects(this IConvexPolygon first, IConvexPolygon second)
+        {
+            return first.Intersects(ref second);
+        }
+
+        private static void projectionRange(ref Vector2 axis, ref IConvexPolygon polygon, out float min, out float max)
         {
             min = float.MaxValue;
             max = float.MinValue;
