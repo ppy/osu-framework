@@ -36,6 +36,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.DrawCalls:
                 case StatisticsCounterType.VerticesDraw:
                 case StatisticsCounterType.VerticesUpl:
+                case StatisticsCounterType.Occluded:
                 case StatisticsCounterType.KiloPixels:
                     return target.Threads[3].Monitor;
 
@@ -109,6 +110,7 @@ namespace osu.Framework.Statistics
         Refreshes,
         DrawNodeCtor,
         DrawNodeAppl,
+        Occluded,
         ScheduleInvk,
 
         VBufOverflow,

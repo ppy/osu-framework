@@ -1414,7 +1414,7 @@ namespace osu.Framework.Graphics
         /// Generates the DrawNode for ourselves.
         /// </summary>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
-        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds, List<IOccluder> parentOccluders = null)
         {
             DrawNode node = drawNodes[treeIndex];
             if (node == null)
