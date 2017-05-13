@@ -478,6 +478,8 @@ namespace osu.Framework.Graphics.Containers
         {
             List<T> current = parentContainer.internalChildren.AliveItems;
 
+            var maskingPolyon = Quad.FromRectangle(maskingBounds);
+
             // Keep track of the occluders relevant for ourselves
             var localOccluders = new List<IHasOccluder>(parentOccluders);
 
@@ -495,7 +497,7 @@ namespace osu.Framework.Graphics.Containers
                 bool isRedundant = false;
                 foreach (IHasOccluder parentOccluder in parentOccluders)
                 {
-                    if (parentOccluder.Occludes(occluder))
+                    if (parentOccluder.Occludes(occluder, maskingPolyon))
                     {
                         isRedundant = true;
                         break;
@@ -539,7 +541,7 @@ namespace osu.Framework.Graphics.Containers
                     if (occluder == drawable)
                         continue;
 
-                    if (occluder.Occludes(drawable))
+                    if (occluder.Occludes(drawable, maskingPolyon))
                     {
                         isOccluded = true;
                         break;

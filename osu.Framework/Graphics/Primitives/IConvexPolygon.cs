@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using System;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -64,8 +65,9 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="first">Ourselves.</param>
         /// <param name="second">The convex polygon to check. This polygon is not modified.</param>
+        /// <param name="maskingPolygon">The polygon that defines the masking bounds. This is used to limit the size of <paramref name="second"/> for occlusion testing.</param>
         /// <returns>Whether this polygon occludes <see cref="second"/>.</returns>
-        public static bool Occludes(this IConvexPolygon first, ref IConvexPolygon second)
+        public static bool Occludes(this IConvexPolygon first, ref IConvexPolygon second, ref IConvexPolygon maskingPolygon)
         {
             bool occludes = true;
 
@@ -73,11 +75,15 @@ namespace osu.Framework.Graphics.Primitives
             {
                 Vector2 axis = first.GetAxis(a).Normal;
 
-                float minFirst, maxFirst, minSecond, maxSecond;
+                float minFirst, maxFirst, minSecond, maxSecond, minMask, maxMask;
                 projectionRange(ref axis, ref first, out minFirst, out maxFirst);
                 projectionRange(ref axis, ref second, out minSecond, out maxSecond);
+                projectionRange(ref axis, ref maskingPolygon, out minMask, out maxMask);
 
-                occludes &= minFirst < minSecond && maxFirst > maxSecond;
+                minSecond = Math.Max(minMask, minSecond);
+                maxSecond = Math.Min(maxMask, maxSecond);
+
+                occludes &= minFirst <= minSecond && maxFirst >= maxSecond;
             }
 
             return occludes;
@@ -88,10 +94,23 @@ namespace osu.Framework.Graphics.Primitives
         /// </summary>
         /// <param name="first">Ourselves.</param>
         /// <param name="second">The convex polygon to check.</param>
+        /// <param name="maskingPolygon">The polygon that defines the masking bounds. This is used to limit the size of <paramref name="second"/> for occlusion testing.</param>
         /// <returns>Whether this polygon occludes <see cref="second"/>.</returns>
-        public static bool Occludes(this IConvexPolygon first, IConvexPolygon second)
+        public static bool Occludes(this IConvexPolygon first, IConvexPolygon second, IConvexPolygon maskingPolygon)
         {
-            return Occludes(first, ref second);
+            return Occludes(first, ref second, ref maskingPolygon);
+        }
+
+        /// <summary>
+        /// Checks if this convex polygon occludes another convex polygon.
+        /// </summary>
+        /// <param name="first">Ourselves.</param>
+        /// <param name="second">The convex polygon to check.</param>
+        /// <param name="maskingPolygon">The polygon that defines the masking bounds. This is used to limit the size of <paramref name="second"/> for occlusion testing.</param>
+        /// <returns>Whether this polygon occludes <see cref="second"/>.</returns>
+        public static bool Occludes(this IConvexPolygon first, IConvexPolygon second, ref IConvexPolygon maskingPolygon)
+        {
+            return Occludes(first, ref second, ref maskingPolygon);
         }
 
         private static void projectionRange(ref Vector2 axis, ref IConvexPolygon polygon, out float min, out float max)

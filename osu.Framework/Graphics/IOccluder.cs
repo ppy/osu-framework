@@ -24,12 +24,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="us">The <see cref="IHasOccluder"/>.</param>
         /// <param name="drawable">The drawable to check.</param>
+        /// <param name="maskingPolygon">The polygon that defines the masking bounds. This is used to limit the size of <paramref name="drawable"/> for occlusion testing.</param>
         /// <returns>Whether the <see cref="IHasOccluder.Occluder"/> occludes <paramref name="drawable"/>.</returns>
-        public static bool Occludes(this IHasOccluder us, IDrawable drawable)
+        public static bool Occludes(this IHasOccluder us, IDrawable drawable, IConvexPolygon maskingPolygon)
         {
             IDrawable occluder = us.Occluder;
 
-            return occluder != null && occluder.ScreenSpacePolygon.Occludes(drawable.ScreenSpacePolygon);
+            return occluder != null && occluder.ScreenSpacePolygon.Occludes(drawable.ScreenSpacePolygon, ref maskingPolygon);
         }
     }
 }
