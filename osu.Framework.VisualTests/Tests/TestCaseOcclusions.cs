@@ -130,8 +130,9 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
-        private class OccludingBox : Box, IOccluder
+        private class OccludingBox : Box, IHasOccluder
         {
+            public IDrawable Occluder => this;
         }
     }
 }

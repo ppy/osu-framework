@@ -474,16 +474,16 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds, List<IOccluder> parentOccluders)
+        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds, List<IHasOccluder> parentOccluders)
         {
             List<T> current = parentContainer.internalChildren.AliveItems;
 
-            var ourOccluders = new List<IOccluder>(parentOccluders);
+            var ourOccluders = new List<IHasOccluder>(parentOccluders);
 
             // Add our occluders
             for (int i = 0; i < current.Count; i++)
             {
-                var occluder = current[i] as IOccluder;
+                var occluder = current[i] as IHasOccluder;
                 if (occluder == null)
                     continue;
 
@@ -492,7 +492,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // Check if our occluder is redundant (it's occluded by one of our parent's occluders)
                 bool isRedundant = false;
-                foreach (IOccluder parentOccluder in parentOccluders)
+                foreach (IHasOccluder parentOccluder in parentOccluders)
                 {
                     if (!parentOccluder.Occludes(occluder))
                         continue;
@@ -533,7 +533,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 bool isOccluded = false;
-                foreach (IOccluder occluder in ourOccluders)
+                foreach (IHasOccluder occluder in ourOccluders)
                 {
                     if (occluder == drawable)
                         continue;
@@ -564,8 +564,8 @@ namespace osu.Framework.Graphics.Containers
 
                     if (!container.IsMaskedAway)
                     {
-                        var localOccluders = new List<IOccluder>(ourOccluders);
-                        localOccluders.Remove(drawable as IOccluder);
+                        var localOccluders = new List<IHasOccluder>(ourOccluders);
+                        localOccluders.Remove(drawable as IHasOccluder);
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds, localOccluders);
                     }
 
@@ -589,14 +589,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds, List<IOccluder> parentOccluders = null)
+        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds, List<IHasOccluder> parentOccluders = null)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
             if (parentOccluders == null)
-                parentOccluders = new List<IOccluder>();
+                parentOccluders = new List<IHasOccluder>();
 
             ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds, parentOccluders) as ContainerDrawNode;
             if (cNode == null)

@@ -5,15 +5,18 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics
 {
-    public interface IOccluder : IDrawable
+    public interface IHasOccluder : IDrawable
     {
+        IDrawable Occluder { get; }
     }
 
-    public static class OccluderExtensions
+    public static class HasOccluderExtensions
     {
-        public static bool Occludes(this IOccluder occluder, IDrawable drawable)
+        public static bool Occludes(this IHasOccluder us, IDrawable drawable)
         {
-            return occluder.ScreenSpaceBoundingBox.Occludes(drawable.ScreenSpaceBoundingBox);
+            IDrawable occluder = us.Occluder;
+            return occluder.DrawInfo.Colour.AverageColour.Linear.A == 1
+                   && occluder.ScreenSpaceBoundingBox.Occludes(drawable.ScreenSpaceBoundingBox);
         }
     }
 }
