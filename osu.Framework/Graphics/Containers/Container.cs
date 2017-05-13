@@ -474,14 +474,17 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
+        /// <param name="parentOccluders">The occluders that may be occluding <paramref name="parentContainer"/>.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds, List<IHasOccluder> parentOccluders)
         {
             List<T> current = parentContainer.internalChildren.AliveItems;
 
-            var ourOccluders = new List<IHasOccluder>(parentOccluders);
+            // Keep track of the occluders relevant for ourselves
+            var localOccluders = new List<IHasOccluder>(parentOccluders);
 
-            // Add our occluders
-            for (int i = 0; i < current.Count; i++)
+            // Add our occluders in the REVERSE order, because we iterate over the normal order below
+            // and we need the ability to quickly remove occluders that are no longer relevant
+            for (int i = current.Count - 1; i >= 0; i--)
             {
                 var occluder = current[i] as IHasOccluder;
                 if (occluder == null)
@@ -490,23 +493,20 @@ namespace osu.Framework.Graphics.Containers
                 if (!occluder.IsPresent)
                     continue;
 
-                // Check if our occluder is redundant (it's occluded by one of our parent's occluders)
                 bool isRedundant = false;
                 foreach (IHasOccluder parentOccluder in parentOccluders)
                 {
-                    if (!parentOccluder.Occludes(occluder))
-                        continue;
-
-                    isRedundant = true;
-                    break;
+                    if (parentOccluder.Occludes(occluder))
+                    {
+                        isRedundant = true;
+                        break;
+                    }
                 }
 
-                // If our occluder is occluded by one of our parent's occluders, it's redundant and won't have
-                // any effect down the hierarchy 
                 if (isRedundant)
                     continue;
 
-                ourOccluders.Add(occluder);
+                localOccluders.Add(occluder);
             }
 
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -514,9 +514,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 Drawable drawable = current[i];
 
-                if (drawable.Name == "testing 12 12 123")
+                if (localOccluders.Count > 0)
                 {
-                    
+                    var drawableOccluder = drawable as IHasOccluder;
+                    if (drawableOccluder != null)
+                        localOccluders.RemoveAt(localOccluders.Count - 1);
                 }
 
                 // If we are proxied somewhere, then we want to be drawn at the proxy's location
@@ -533,7 +535,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
 
                 bool isOccluded = false;
-                foreach (IHasOccluder occluder in ourOccluders)
+                foreach (IHasOccluder occluder in localOccluders)
                 {
                     if (occluder == drawable)
                         continue;
@@ -563,11 +565,7 @@ namespace osu.Framework.Graphics.Containers
                                              !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
-                    {
-                        var localOccluders = new List<IHasOccluder>(ourOccluders);
-                        localOccluders.Remove(drawable as IHasOccluder);
                         addFromContainer(treeIndex, ref j, container, target, maskingBounds, localOccluders);
-                    }
 
                     continue;
                 }
@@ -576,7 +574,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawable.IsMaskedAway)
                     continue;
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds, ourOccluders);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds, localOccluders);
                 if (next == null)
                     continue;
 

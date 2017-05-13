@@ -16,17 +16,17 @@ namespace osu.Framework.Graphics
     public static class HasOccluderExtensions
     {
         /// <summary>
-        /// Whether an <see cref="IHasOccluder"/> occludes a drawable. This will be true if the <see cref="IHasOccluder"/>
-        /// has Alpha = 1 and <paramref name="drawable"/> is completely contained within the <see cref="IHasOccluder"/>.
+        /// Whether an <see cref="IHasOccluder"/> occludes a drawable. This will be true if the <see cref="IHasOccluder.Occluder"/>
+        /// is completely contained within the <see cref="IHasOccluder.Occluder"/> polygon.
         /// </summary>
         /// <param name="us">The <see cref="IHasOccluder"/>.</param>
         /// <param name="drawable">The drawable to check.</param>
-        /// <returns>Whether the <see cref="IHasOccluder"/> occludes <paramref name="drawable"/>.</returns>
+        /// <returns>Whether the <see cref="IHasOccluder.Occluder"/> occludes <paramref name="drawable"/>.</returns>
         public static bool Occludes(this IHasOccluder us, IDrawable drawable)
         {
             IDrawable occluder = us.Occluder;
-            return occluder.DrawInfo.Colour.AverageColour.Linear.A == 1
-                   && occluder.ScreenSpacePolygon.Occludes(drawable.ScreenSpacePolygon);
+
+            return occluder != null && occluder.ScreenSpacePolygon.Occludes(drawable.ScreenSpacePolygon);
         }
     }
 }
