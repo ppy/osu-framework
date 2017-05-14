@@ -58,7 +58,7 @@ namespace osu.Framework.Allocation
             {
                 var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoader>().PermitNulls;
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
-                                            .Select(t => (Func<object>)(() =>
+                                            .Select(t => new Func<object>(() =>
                                             {
                                                 var val = get(t);
                                                 if (val == null && !permitNull)
