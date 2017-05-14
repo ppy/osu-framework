@@ -124,16 +124,14 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private Cached<string> fullPathBacking = new Cached<string>();
+        private Lazy<string> fullPathBacking = new Lazy<string>(() =>
+        {
+            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            UriBuilder uri = new UriBuilder(codeBase);
+            return Uri.UnescapeDataString(uri.Path);
+        });
 
-        public string FullPath => fullPathBacking.EnsureValid()
-            ? fullPathBacking.Value
-            : fullPathBacking.Refresh(() =>
-            {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                return Uri.UnescapeDataString(uri.Path);
-            });
+        public string FullPath => fullPathBacking.Value;
 
         protected string Name { get; }
 
