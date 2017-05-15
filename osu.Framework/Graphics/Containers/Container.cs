@@ -390,7 +390,7 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                if (!EdgeEffectVisible)
+                if (!edgeEffectVisible)
                     return ScreenSpaceDrawQuad;
 
                 return screenSpaceEdgeEffectQuadBacking.EnsureValid()
@@ -422,6 +422,7 @@ namespace osu.Framework.Graphics.Containers
                 return !alreadyInvalidated;
 
             if (!shallPropagate) return true;
+
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
@@ -477,7 +478,7 @@ namespace osu.Framework.Graphics.Containers
                 AlphaExponent = 1,
             };
 
-            n.EdgeEffectInfo = !EdgeEffectVisible
+            n.EdgeEffectInfo = !edgeEffectVisible
                 ? (EdgeEffectInfo?)null
                 : new EdgeEffectInfo
                 {
@@ -817,7 +818,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Whether the edge effect produces a visible affect.
         /// </summary>
-        public bool EdgeEffectVisible => Masking && EdgeEffect.Type != EdgeEffectType.None && EdgeEffect.Radius > 0 && EdgeEffect.Colour.Linear.A > 0;
+        private bool edgeEffectVisible => Masking && EdgeEffect.Type != EdgeEffectType.None && EdgeEffect.Radius > 0 && EdgeEffect.Colour.Linear.A > 0;
 
         #endregion
 
