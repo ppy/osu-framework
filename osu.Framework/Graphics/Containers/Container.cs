@@ -439,7 +439,7 @@ namespace osu.Framework.Graphics.Containers
                 c.Invalidate(childInvalidation, this);
             }
 
-            return !alreadyInvalidated;
+            return true;
         }
 
         #endregion
