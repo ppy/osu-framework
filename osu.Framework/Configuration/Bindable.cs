@@ -66,9 +66,7 @@ namespace osu.Framework.Configuration
 
         private WeakList<Bindable<T>> bindings;
 
-        private WeakReference<Bindable<T>> weakReference;
-        //be lazy and reuse because WeakReference is kind of "heavy"
-        public WeakReference<Bindable<T>> WeakReference => weakReference ?? (weakReference = new WeakReference<Bindable<T>>(this));
+        public WeakReference<Bindable<T>> WeakReference => new WeakReference<Bindable<T>>(this);
 
         /// <summary>
         /// Binds outselves to another bindable such that they receive bi-directional updates.
