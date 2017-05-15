@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.OpenGL;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Batches;
 using OpenTK;
@@ -93,16 +92,9 @@ namespace osu.Framework.Graphics.Containers
         public MaskingInfo? MaskingInfo;
 
         /// <summary>
-        /// The screen-space version of <see cref="OpenGL.MaskingInfo.MaskingRect"/>.
-        /// Used as cache of screen-space masking quads computed in previous frames.
-        /// Assign null to reset.
+        /// Information about how the edge effect should be drawn.
         /// </summary>
-        public Quad? ScreenSpaceMaskingQuad;
-
-        /// <summary>
-        /// Information about how the edge effect should be rendered.
-        /// </summary>
-        public EdgeEffect EdgeEffect;
+        public EdgeEffectInfo? EdgeEffectInfo;
 
         /// <summary>
         /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
@@ -117,34 +109,30 @@ namespace osu.Framework.Graphics.Containers
 
         private void drawEdgeEffect()
         {
-            if (MaskingInfo == null || EdgeEffect.Type == EdgeEffectType.None || EdgeEffect.Radius <= 0.0f || EdgeEffect.Colour.Linear.A <= 0.0f)
+            if (EdgeEffectInfo == null)
                 return;
 
-            RectangleF effectRect = MaskingInfo.Value.MaskingRect.Inflate(EdgeEffect.Radius).Offset(EdgeEffect.Offset);
-            if (!ScreenSpaceMaskingQuad.HasValue)
-                ScreenSpaceMaskingQuad = Quad.FromRectangle(effectRect) * DrawInfo.Matrix;
-
             MaskingInfo edgeEffectMaskingInfo = MaskingInfo.Value;
-            edgeEffectMaskingInfo.MaskingRect = effectRect;
-            edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
-            edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
+            edgeEffectMaskingInfo.MaskingRect = EdgeEffectInfo.Value.MaskingRect;
+            edgeEffectMaskingInfo.ScreenSpaceAABB = EdgeEffectInfo.Value.ScreenSpaceDrawQuad.AABB;
+            edgeEffectMaskingInfo.CornerRadius += EdgeEffectInfo.Value.Effect.Radius + EdgeEffectInfo.Value.Effect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
-            edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
+            edgeEffectMaskingInfo.BlendRange = EdgeEffectInfo.Value.Effect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
-            GLWrapper.SetBlend(new BlendingInfo(EdgeEffect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
+            GLWrapper.SetBlend(new BlendingInfo(EdgeEffectInfo.Value.Effect.Type == EdgeEffectType.Glow ? BlendingMode.Additive : BlendingMode.Mixture));
 
             Shader.Bind();
 
-            ColourInfo colour = ColourInfo.SingleColour(EdgeEffect.Colour);
+            ColourInfo colour = ColourInfo.SingleColour(EdgeEffectInfo.Value.Effect.Colour);
             colour.TopLeft.MultiplyAlpha(DrawInfo.Colour.TopLeft.Linear.A);
             colour.BottomLeft.MultiplyAlpha(DrawInfo.Colour.BottomLeft.Linear.A);
             colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
             colour.BottomRight.MultiplyAlpha(DrawInfo.Colour.BottomRight.Linear.A);
 
-            Texture.WhitePixel.DrawQuad(ScreenSpaceMaskingQuad.Value, colour);
+            Texture.WhitePixel.DrawQuad(EdgeEffectInfo.Value.ScreenSpaceDrawQuad, colour);
 
             Shader.Unbind();
 

@@ -1269,7 +1269,6 @@ namespace osu.Framework.Graphics
             ? screenSpaceDrawQuadBacking.Value
             : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
 
-
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
 
         /// <summary>
