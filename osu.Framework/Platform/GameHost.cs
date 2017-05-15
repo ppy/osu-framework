@@ -227,7 +227,7 @@ namespace osu.Framework.Platform
 
             if (Window?.WindowState != WindowState.Minimized)
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
-                    new Vector2(config.Get<int>(FrameworkConfig.Width), config.Get<int>(FrameworkConfig.Height));
+                    new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
@@ -409,7 +409,7 @@ namespace osu.Framework.Platform
                 GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
             };
 
-            frameSyncMode = config.GetBindable<FrameSync>(FrameworkConfig.FrameSync);
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>
             {
 
