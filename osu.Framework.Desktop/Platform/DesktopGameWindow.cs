@@ -40,21 +40,21 @@ namespace osu.Framework.Desktop.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.BindWith(FrameworkConfig.WidthFullscreen, widthFullscreen);
-            config.BindWith(FrameworkConfig.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkSetting.WidthFullscreen, widthFullscreen);
+            config.BindWith(FrameworkSetting.HeightFullscreen, heightFullscreen);
 
-            config.BindWith(FrameworkConfig.Width, width);
-            config.BindWith(FrameworkConfig.Height, height);
+            config.BindWith(FrameworkSetting.Width, width);
+            config.BindWith(FrameworkSetting.Height, height);
 
-            config.BindWith(FrameworkConfig.WindowedPositionX, windowPositionX);
-            config.BindWith(FrameworkConfig.WindowedPositionY, windowPositionY);
+            config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
+            config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
-            config.BindWith(FrameworkConfig.ConfineMouseMode, confineMouseMode);
+            config.BindWith(FrameworkSetting.ConfineMouseMode, confineMouseMode);
 
             confineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
             confineMouseMode.TriggerChange();
 
-            config.BindWith(FrameworkConfig.WindowMode, windowMode);
+            config.BindWith(FrameworkSetting.WindowMode, windowMode);
 
             windowMode.ValueChanged += windowMode_ValueChanged;
             windowMode.TriggerChange();
