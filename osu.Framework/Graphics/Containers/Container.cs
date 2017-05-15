@@ -816,9 +816,6 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Whether the edge effect produces a visible affect.
-        /// <para>
-        /// Todo: We may not want the radius check, as the edge effect colorizes the internals. This is kept as is for legacy reasons.
-        /// </para>
         /// </summary>
         public bool EdgeEffectVisible => Masking && EdgeEffect.Type != EdgeEffectType.None && EdgeEffect.Radius > 0 && EdgeEffect.Colour.Linear.A > 0;
 
