@@ -381,12 +381,12 @@ namespace osu.Framework.Graphics.Containers
         /// Computes the screen space quad which the edge effect occupies.
         /// </summary>
         /// <returns></returns>
-        protected virtual Quad ComputeScreenSpaceEdgeEffectQuad() => ToScreenSpace(EdgeEffectRectangle);
+        protected Quad ComputeScreenSpaceEdgeEffectQuad() => ToScreenSpace(EdgeEffectRectangle);
 
         /// <summary>
         /// The screen space quad which the edge effect occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceEdgeEffectQuad
+        public Quad ScreenSpaceEdgeEffectQuad
         {
             get
             {
