@@ -109,7 +109,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void drawEdgeEffect()
         {
-            if (EdgeEffectInfo == null)
+            if (MaskingInfo == null || EdgeEffectInfo == null)
                 return;
 
             MaskingInfo edgeEffectMaskingInfo = MaskingInfo.Value;
