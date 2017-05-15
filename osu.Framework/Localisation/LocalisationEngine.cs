@@ -22,10 +22,10 @@ namespace osu.Framework.Localisation
 
         public LocalisationEngine(FrameworkConfigManager config)
         {
-            preferUnicode = config.GetBindable<bool>(FrameworkConfig.ShowUnicode);
+            preferUnicode = config.GetBindable<bool>(FrameworkSetting.ShowUnicode);
             preferUnicode.ValueChanged += newValue => unicodeBindings.ForEachAlive(b => b.PreferUnicode = newValue);
 
-            locale = config.GetBindable<string>(FrameworkConfig.Locale);
+            locale = config.GetBindable<string>(FrameworkSetting.Locale);
             locale.ValueChanged += checkLocale;
         }
 
