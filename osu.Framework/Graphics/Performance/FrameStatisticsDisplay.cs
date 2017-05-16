@@ -15,7 +15,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
-using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
 using osu.Framework.Threading;
 

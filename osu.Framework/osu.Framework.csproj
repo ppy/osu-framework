@@ -169,7 +169,7 @@
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameStatisticsDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
-    <Compile Include="Graphics\Primitives\MarginPadding.cs" />
+    <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transforms\ITransform.cs" />
     <Compile Include="Graphics\Transforms\TransformAlpha.cs" />

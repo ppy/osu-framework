@@ -8,7 +8,6 @@ using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface

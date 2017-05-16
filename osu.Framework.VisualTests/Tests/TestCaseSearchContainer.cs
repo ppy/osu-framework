@@ -7,7 +7,6 @@ using osu.Framework.Testing;
 using System.Linq;
 using System.Collections.Generic;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics;
 using OpenTK;
 
