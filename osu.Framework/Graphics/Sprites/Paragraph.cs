@@ -4,7 +4,6 @@
 using osu.Framework.Graphics.Containers;
 using System.Text.RegularExpressions;
 using System.Linq;
-using osu.Framework.Graphics.Primitives;
 using System;
 using osu.Framework.Caching;
 

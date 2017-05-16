@@ -9,7 +9,6 @@ using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
