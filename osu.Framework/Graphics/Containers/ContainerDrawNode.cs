@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Parametrizes the appearance of an edge effect.
     /// </summary>
-    public struct EdgeEffect
+    public struct EdgeEffect : IEquatable<EdgeEffect>
     {
         /// <summary>
         /// Colour of the edge effect.
@@ -55,6 +55,13 @@ namespace osu.Framework.Graphics.Containers
         /// from the <see cref="Container"/> border the edge effect becomes fully invisible.
         /// </summary>
         public float Radius;
+
+        public bool Equals(EdgeEffect other) =>
+            Colour.Equals(other.Colour) &&
+            Offset == other.Offset &&
+            Type == other.Type &&
+            Roundness == other.Roundness &&
+            Radius == other.Radius;
     }
 
     /// <summary>

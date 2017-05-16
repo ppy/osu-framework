@@ -656,9 +656,9 @@ namespace osu.Framework.Graphics.OpenGL
         public bool Equals(MaskingInfo other)
         {
             return
-                ScreenSpaceAABB.Equals(other.ScreenSpaceAABB) &&
-                MaskingRect.Equals(other.MaskingRect) &&
-                ToMaskingSpace.Equals(other.ToMaskingSpace) &&
+                ScreenSpaceAABB == other.ScreenSpaceAABB &&
+                MaskingRect == other.MaskingRect &&
+                ToMaskingSpace == other.ToMaskingSpace &&
                 CornerRadius == other.CornerRadius &&
                 BorderThickness == other.BorderThickness &&
                 BorderColour.Equals(other.BorderColour) &&
