@@ -2054,6 +2054,16 @@ namespace osu.Framework.Graphics
             TransformTo(() => Size, newSize, duration, easing, new TransformSize());
         }
 
+        public void ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => Width, newWidth, duration, easing, new TransformWidth());
+        }
+
+        public void ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => Height, newHeight, duration, easing, new TransformHeight());
+        }
+
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(() => Position, newPosition, duration, easing, new TransformPosition());

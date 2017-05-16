@@ -11,4 +11,22 @@ namespace osu.Framework.Graphics.Transforms
             d.Size = CurrentValue;
         }
     }
+
+    public class TransformWidth : TransformFloat
+    {
+        public override void Apply(Drawable d)
+        {
+            base.Apply(d);
+            d.Width = CurrentValue;
+        }
+    }
+
+    public class TransformHeight : TransformFloat
+    {
+        public override void Apply(Drawable d)
+        {
+            base.Apply(d);
+            d.Height = CurrentValue;
+        }
+    }
 }
