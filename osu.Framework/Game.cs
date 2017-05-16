@@ -100,6 +100,8 @@ namespace osu.Framework
         {
             Host = host;
             host.Exiting += OnExiting;
+            host.Activated += () => IsActive = true;
+            host.Deactivated += () => IsActive = false;
         }
 
         [BackgroundDependencyLoader]
