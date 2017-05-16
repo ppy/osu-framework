@@ -141,12 +141,13 @@ namespace osu.Framework.Input
                 //move above?
                 updateInputQueues(CurrentState);
 
+                (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
+
+                //hover could change even when the mouse state has not.
+                updateHoverEvents(CurrentState);
+
                 if (hasNewMouse)
-                {
-                    (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
-                    updateHoverEvents(CurrentState);
                     updateMouseEvents(CurrentState);
-                }
 
                 if (hasNewKeyboard || CurrentState.Keyboard.Keys.Any())
                     updateKeyboardEvents(CurrentState);
