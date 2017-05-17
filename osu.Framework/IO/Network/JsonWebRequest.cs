@@ -20,10 +20,24 @@ namespace osu.Framework.IO.Network
 
         private void finished(WebRequest request, Exception e)
         {
+            try
+            {
+                deserialisedResponse = JsonConvert.DeserializeObject<T>(ResponseString);
+            }
+            catch (Exception se)
+            {
+                if (e == null)
+                    e = se;
+                else
+                    e = new AggregateException(e, se);
+            }
+
             Finished?.Invoke(this, e);
         }
 
-        public T ResponseObject => JsonConvert.DeserializeObject<T>(ResponseString);
+        private T deserialisedResponse;
+
+        public T ResponseObject => deserialisedResponse;
 
         /// <summary>
         /// Request has finished with success or failure. Check exception == null for success.
