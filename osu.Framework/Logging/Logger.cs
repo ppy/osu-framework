@@ -170,6 +170,10 @@ namespace osu.Framework.Logging
 
             NewEntry?.Invoke(entry);
 
+            if (Target == LoggingTarget.Information)
+                // don't want to log this to a file
+                return;
+
             background_scheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
@@ -262,6 +266,7 @@ namespace osu.Framework.Logging
 
     public enum LoggingTarget
     {
+        Information,
         Runtime,
         Network,
         Tournament,
