@@ -19,6 +19,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Bindable<bool> enabled;
 
+        public override bool HandleInput => false;
+
         public LogOverlay()
         {
             //todo: use Input as font
