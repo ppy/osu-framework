@@ -8,6 +8,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Input;
+using osu.Framework.Timing;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -15,7 +18,17 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
+        protected override bool HideOnEscape => false;
+
+        protected override bool BlockPassThroughMouse => false;
+
         private Bindable<bool> enabled;
+
+        private StopwatchClock clock;
+
+        private readonly Box box;
+
+        private const float background_alpha = 0.6f;
 
         public LogOverlay()
         {
@@ -33,17 +46,36 @@ namespace osu.Framework.Graphics.Visualisation
 
             Children = new Drawable[]
             {
+                box = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = Color4.Black,
+                    Alpha = background_alpha,
+                },
                 flow = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                 }
             };
-
-            Logger.NewEntry += logger_NewEntry;
         }
 
-        private void logger_NewEntry(LogEntry entry)
+        protected override void LoadComplete()
+        {
+            // custom clock is used to adjust log display speed (to freeze log display with a key).
+            Clock = new FramedClock(clock = new StopwatchClock(true));
+
+            base.LoadComplete();
+
+            addEntry(new LogEntry
+            {
+                Level = LogLevel.Important,
+                Message = "The debug log overlay is currently being displayed. You can toggle with Ctrl+F10 at any point.",
+                Target = LoggingTarget.Information,
+            });
+        }
+
+        private void addEntry(LogEntry entry)
         {
 #if !DEBUG
             if (entry.Level <= LogLevel.Verbose)
@@ -52,70 +84,88 @@ namespace osu.Framework.Graphics.Visualisation
 
             Schedule(() =>
             {
+                const int display_length = 4000;
+
                 var drawEntry = new DrawableLogEntry(entry);
 
                 flow.Add(drawEntry);
 
-                drawEntry.Position = new Vector2(-drawEntry.DrawWidth, 0);
-
-                drawEntry.FadeInFromZero(200);
-                using (drawEntry.Delay(200))
-                {
-                    drawEntry.FadeOut(entry.Message.Length * 100, EasingTypes.InQuint);
-                    drawEntry.Expire();
-                }
+                drawEntry.FadeInFromZero(800, EasingTypes.OutQuint);
+                using (drawEntry.BeginDelayedSequence(display_length))
+                    drawEntry.FadeOut(800, EasingTypes.InQuint);
+                drawEntry.Expire();
             });
+        }
+
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (!args.Repeat)
+                setHoldState(args.Key == Key.ControlLeft || args.Key == Key.ControlRight);
+
+            return base.OnKeyDown(state, args);
+        }
+
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            if (!state.Keyboard.ControlPressed)
+                setHoldState(false);
+            return base.OnKeyUp(state, args);
+        }
+
+        private void setHoldState(bool controlPressed)
+        {
+            box.Alpha = controlPressed ? 1 : background_alpha;
+            clock.Rate = controlPressed ? 0 : 1;
         }
 
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
             enabled = config.GetBindable<bool>(FrameworkSetting.ShowLogOverlay);
-            State = enabled.Value ? Visibility.Visible : Visibility.Hidden;
+            enabled.ValueChanged += val => State = val ? Visibility.Visible : Visibility.Hidden;
+            enabled.TriggerChange();
         }
 
         protected override void PopIn()
         {
+            Logger.NewEntry += addEntry;
             enabled.Value = true;
-            FadeIn(500);
+            FadeIn(100);
         }
 
         protected override void PopOut()
         {
+            Logger.NewEntry -= addEntry;
+            setHoldState(false);
             enabled.Value = false;
-            FadeOut(500);
+            FadeOut(100);
         }
     }
 
     internal class DrawableLogEntry : Container
     {
-        private const float target_box_width = 90;
+        private const float target_box_width = 65;
+
+        private const float font_size = 14;
+
+        public override bool HandleInput => false;
 
         public DrawableLogEntry(LogEntry entry)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            Margin = new MarginPadding(1);
-
             Color4 col = getColourForEntry(entry);
-
-            CornerRadius = 5;
-            Masking = true;
 
             Children = new Drawable[]
             {
-                new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.Black,
-                    Alpha = 0.6f,
-                },
                 new Container
                 {
                     //log target coloured box
                     Margin = new MarginPadding(3),
-                    Size = new Vector2(target_box_width, 20),
+                    Size = new Vector2(target_box_width, font_size),
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     CornerRadius = 5,
                     Masking = true,
                     Children = new Drawable[]
@@ -129,7 +179,10 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
+                            Shadow = true,
+                            ShadowColour = Color4.Black,
                             Margin = new MarginPadding { Left = 5, Right = 5 },
+                            TextSize = font_size,
                             Text = entry.Target.ToString(),
                         }
                     }
@@ -138,6 +191,8 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     AutoSizeAxes = Axes.Y,
                     RelativeSizeAxes = Axes.X,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     Padding = new MarginPadding { Left = target_box_width + 10 },
                     Children = new Drawable[]
                     {
@@ -145,6 +200,7 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             AutoSizeAxes = Axes.Y,
                             RelativeSizeAxes = Axes.X,
+                            TextSize = font_size,
                             Text = entry.Message
                         }
                     }
@@ -166,6 +222,8 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.HotPink;
                 case LoggingTarget.Debug:
                     return Color4.DarkBlue;
+                case LoggingTarget.Information:
+                    return Color4.CadetBlue;
                 default:
                     return Color4.Cyan;
             }

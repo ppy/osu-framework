@@ -170,6 +170,10 @@ namespace osu.Framework.Logging
 
             NewEntry?.Invoke(entry);
 
+            if (Target == LoggingTarget.Information)
+                // don't want to log this to a file
+                return;
+
             background_scheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
@@ -194,10 +198,11 @@ namespace osu.Framework.Logging
         /// <param name="lastLogSuffix">If specified, creates a copy of the last log file with specified suffix.</param>
         public void Clear(string lastLogSuffix = null)
         {
-            if (Filename == null) return;
-
             background_scheduler.Add(delegate
             {
+                ensureLogDirectoryExists();
+                if (Filename == null) return;
+
                 if (!string.IsNullOrEmpty(lastLogSuffix))
                     FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
                 else
@@ -262,6 +267,7 @@ namespace osu.Framework.Logging
 
     public enum LoggingTarget
     {
+        Information,
         Runtime,
         Network,
         Tournament,
