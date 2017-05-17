@@ -46,7 +46,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             Children = new Drawable[]
             {
-                box = new Box {
+                box = new Box
+                {
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.Black,
                     Alpha = background_alpha,
