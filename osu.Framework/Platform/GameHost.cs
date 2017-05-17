@@ -8,23 +8,22 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Localisation;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
-using OpenTK;
-using System.Threading.Tasks;
-using osu.Framework.Caching;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using OpenTK.Input;
-using OpenTK.Graphics;
-using osu.Framework.Localisation;
-using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Platform
 {
@@ -124,7 +123,7 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private Lazy<string> fullPathBacking = new Lazy<string>(() =>
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
         {
             string codeBase = Assembly.GetExecutingAssembly().CodeBase;
             UriBuilder uri = new UriBuilder(codeBase);
