@@ -43,7 +43,19 @@ namespace osu.Framework.Graphics.Visualisation
                     AutoSizeAxes = Axes.Y,
                 }
             };
+        }
 
+        protected override void LoadComplete()
+        {
+
+            base.LoadComplete();
+
+            addEntry(new LogEntry
+            {
+                Level = LogLevel.Important,
+                Message = "The debug log overlay is currently being displayed. You can toggle with Ctrl+F10 at any point.",
+                Target = LoggingTarget.Information,
+            });
         }
 
         private void addEntry(LogEntry entry)
@@ -172,6 +184,8 @@ namespace osu.Framework.Graphics.Visualisation
                     return Color4.HotPink;
                 case LoggingTarget.Debug:
                     return Color4.DarkBlue;
+                case LoggingTarget.Information:
+                    return Color4.CadetBlue;
                 default:
                     return Color4.Cyan;
             }
