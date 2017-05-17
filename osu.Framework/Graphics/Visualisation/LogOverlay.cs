@@ -44,10 +44,9 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             };
 
-            Logger.NewEntry += logger_NewEntry;
         }
 
-        private void logger_NewEntry(LogEntry entry)
+        private void addEntry(LogEntry entry)
         {
 #if !DEBUG
             if (entry.Level <= LogLevel.Verbose)
@@ -80,12 +79,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void PopIn()
         {
+            Logger.NewEntry += addEntry;
             enabled.Value = true;
             FadeIn(500);
         }
 
         protected override void PopOut()
         {
+            Logger.NewEntry -= addEntry;
             enabled.Value = false;
             FadeOut(500);
         }
