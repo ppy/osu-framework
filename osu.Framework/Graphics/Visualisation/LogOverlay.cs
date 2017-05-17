@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool HideOnEscape => false;
 
+        protected override bool BlockPassThroughMouse => false;
+
         private Bindable<bool> enabled;
 
         private StopwatchClock clock;
@@ -27,8 +29,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Box box;
 
         private const float background_alpha = 0.6f;
-
-        public override bool HandleInput => false;
 
         public LogOverlay()
         {
