@@ -8,6 +8,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
+using osu.Framework.Input;
+using osu.Framework.Timing;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -18,6 +21,8 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool HideOnEscape => false;
 
         private Bindable<bool> enabled;
+
+        private StopwatchClock clock;
 
         private readonly Box box;
 
@@ -56,6 +61,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override void LoadComplete()
         {
+            // custom clock is used to adjust log display speed (to freeze log display with a key).
+            Clock = new FramedClock(clock = new StopwatchClock(true));
 
             base.LoadComplete();
 
@@ -89,6 +96,27 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
+        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        {
+            if (!args.Repeat)
+                setHoldState(args.Key == Key.ControlLeft || args.Key == Key.ControlRight);
+
+            return base.OnKeyDown(state, args);
+        }
+
+        protected override bool OnKeyUp(InputState state, KeyUpEventArgs args)
+        {
+            if (!state.Keyboard.ControlPressed)
+                setHoldState(false);
+            return base.OnKeyUp(state, args);
+        }
+
+        private void setHoldState(bool controlPressed)
+        {
+            box.Alpha = controlPressed ? 1 : background_alpha;
+            clock.Rate = controlPressed ? 0 : 1;
+        }
+
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
@@ -107,6 +135,7 @@ namespace osu.Framework.Graphics.Visualisation
         protected override void PopOut()
         {
             Logger.NewEntry -= addEntry;
+            setHoldState(false);
             enabled.Value = false;
             FadeOut(100);
         }
