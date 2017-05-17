@@ -15,6 +15,8 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
+        protected override bool HideOnEscape => false;
+
         private Bindable<bool> enabled;
 
         public LogOverlay()
