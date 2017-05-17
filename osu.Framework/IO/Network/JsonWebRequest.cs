@@ -26,10 +26,7 @@ namespace osu.Framework.IO.Network
             }
             catch (Exception se)
             {
-                if (e == null)
-                    e = se;
-                else
-                    e = new AggregateException(e, se);
+                e = e == null ? se : new AggregateException(e, se);
             }
 
             Finished?.Invoke(this, e);
