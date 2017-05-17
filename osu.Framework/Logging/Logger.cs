@@ -194,10 +194,11 @@ namespace osu.Framework.Logging
         /// <param name="lastLogSuffix">If specified, creates a copy of the last log file with specified suffix.</param>
         public void Clear(string lastLogSuffix = null)
         {
-            if (Filename == null) return;
-
             background_scheduler.Add(delegate
             {
+                ensureLogDirectoryExists();
+                if (Filename == null) return;
+
                 if (!string.IsNullOrEmpty(lastLogSuffix))
                     FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
                 else
