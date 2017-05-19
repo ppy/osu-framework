@@ -37,6 +37,8 @@ namespace osu.Framework.Testing
 
         public virtual void Reset()
         {
+            Clock.ProcessFrame();
+
             if (content == null)
             {
                 InternalChildren = new Drawable[]
