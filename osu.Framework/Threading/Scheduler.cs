@@ -67,7 +67,7 @@ namespace osu.Framework.Threading
                         {
                             tasksToRemove.Add(sd);
 
-                            if (sd.Cancelled) break;
+                            if (sd.Cancelled) continue;
 
                             schedulerQueue.Enqueue(sd.RunTask);
 
