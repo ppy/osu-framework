@@ -88,6 +88,13 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
+
+        /// <summary>
+        /// Peak amplitude of each channel on a 20 ms buffer where 32767 is full volume and 0 is silent.
+        /// First element is left channels and Second element is right channels
+        /// </summary>
+        public virtual short[] ChannelPeakAmplitudes { get; protected set; }
+
         public override void Update()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
