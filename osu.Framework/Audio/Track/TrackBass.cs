@@ -107,7 +107,7 @@ namespace osu.Framework.Audio.Track
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
 
             //When a channel is at maximum amplitude Bass returns short.MinValue...
-            ChannelPeakAmplitudes = new short[] { (short)(Bass.ChannelGetLevelLeft(activeStream) - 1), (short)(Bass.ChannelGetLevelRight(activeStream) - 1) };
+            ChannelPeakAmplitudes = new[] { (short)(Bass.ChannelGetLevelLeft(activeStream) - 1), (short)(Bass.ChannelGetLevelRight(activeStream) - 1) };
         }
 
         public override void Reset()
@@ -322,7 +322,8 @@ namespace osu.Framework.Audio.Track
 
             protected set
             {
-                channelPeakAmplitudes = value;
+                lock (channelPeakAmplitudes)
+                    channelPeakAmplitudes = value;
             }
         }
     }
