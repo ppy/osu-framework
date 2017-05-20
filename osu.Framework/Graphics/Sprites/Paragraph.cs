@@ -80,7 +80,7 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Add new text to this paragraph.
         /// </summary>
-        /// <returns>The <see cref="SpriteText" /> created from the given text.</returns>
+        /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
         public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters));
