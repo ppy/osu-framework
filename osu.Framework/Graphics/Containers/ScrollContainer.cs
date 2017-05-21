@@ -387,6 +387,8 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(size, duration, easing);
             }
 
+            protected override bool OnClick(InputState state) => true;
+
             protected override bool OnHover(InputState state)
             {
                 FadeColour(hover_colour, 100);
@@ -408,6 +410,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlight_colour, 100);
+
+                dragOffset = Position[scrollDim];
+                Dragged?.Invoke(dragOffset);
                 return true;
             }
 
