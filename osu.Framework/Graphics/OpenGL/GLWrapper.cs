@@ -667,7 +667,8 @@ namespace osu.Framework.Graphics.OpenGL
                 BorderThickness == other.BorderThickness &&
                 BorderColour.Equals(other.BorderColour) &&
                 BlendRange == other.BlendRange &&
-                AlphaExponent == other.AlphaExponent;
+                AlphaExponent == other.AlphaExponent &&
+                Hollow == other.Hollow;
         }
     }
 }
