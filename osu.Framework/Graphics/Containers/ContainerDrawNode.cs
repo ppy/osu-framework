@@ -56,6 +56,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public float Radius;
 
+        /// <summary>
+        /// Whether the inside of the EdgeEffect rectangle should be empty.
+        /// </summary>
+        public bool Hollow;
+
         public bool Equals(EdgeEffect other) =>
             Colour.Equals(other.Colour) &&
             Offset == other.Offset &&
@@ -138,6 +143,7 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.BorderThickness = 0;
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
