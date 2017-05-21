@@ -63,7 +63,7 @@ void main(void)
 	float dist = distanceFromRoundedRect();
 
     // Discard inner pixels
-    if (g_DiscardInner && dist <= g_CornerRadius - g_MaskingBlendRange)
+    if (g_DiscardInner && dist <= g_CornerRadius - g_MaskingBlendRange - 1)    // -1 for getting rid of some ugly inner-edges
     {
         gl_FragColor = vec4(0.0);
         return;
