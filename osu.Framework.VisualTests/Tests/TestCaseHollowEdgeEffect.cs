@@ -18,30 +18,183 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(new Container()
+            Children = new Drawable[]
             {
-                Size = new Vector2(200f, 100f),
-                Position = new Vector2(100f),
-
-                Masking = true,
-                EdgeEffect = new EdgeEffect()
+                new FillFlowContainer
                 {
-                    Type = EdgeEffectType.Glow,
-                    Colour = Color4.Khaki,
-                    Radius = 100f,
-                    Hollow = true
-                },
-                CornerRadius = 60f,
-
-                Children = new Drawable[]
-                {
-                    new Box()
+                    RelativeSizeAxes = Axes.Both,
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Aqua
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Radius 100f | Corner 50f" },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Container()
+                                        {
+                                            Size = new Vector2(200f, 100f),
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+
+                                            Masking = true,
+                                            EdgeEffect = new EdgeEffect()
+                                            {
+                                                Type = EdgeEffectType.Glow,
+                                                Colour = Color4.Khaki,
+                                                Radius = 100f,
+                                                Hollow = true
+                                            },
+                                            CornerRadius = 50f,
+
+                                            Children = new Drawable[]
+                                            {
+                                                new Box()
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Colour = Color4.Aqua
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Radius 100f | Corner 0f" },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Container()
+                                        {
+                                            Size = new Vector2(100f),
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+
+                                            Masking = true,
+                                            EdgeEffect = new EdgeEffect()
+                                            {
+                                                Type = EdgeEffectType.Glow,
+                                                Colour = Color4.Khaki,
+                                                Radius = 100f,
+                                                Hollow = true
+                                            },
+                                            CornerRadius = 0f,
+
+                                            Children = new Drawable[]
+                                            {
+                                                new Box()
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Colour = Color4.Aqua
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Radius 100f | Corner 50f" },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Container()
+                                        {
+                                            Size = new Vector2(100f),
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+
+                                            Masking = true,
+                                            EdgeEffect = new EdgeEffect()
+                                            {
+                                                Type = EdgeEffectType.Glow,
+                                                Colour = Color4.Khaki,
+                                                Radius = 100f,
+                                                Hollow = true
+                                            },
+                                            CornerRadius = 50f,
+
+                                            Children = new Drawable[]
+                                            {
+                                                new Box()
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    Colour = Color4.Aqua
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Children = new Drawable[]
+                            {
+                                new SpriteText { Text = @"Radius 100f | Corner 0f | No fill" },
+                                new Container
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Size = new Vector2(0.5f),
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Children = new Drawable[]
+                                    {
+                                        new Container()
+                                        {
+                                            Size = new Vector2(100f),
+                                            Anchor = Anchor.Centre,
+                                            Origin = Anchor.Centre,
+
+                                            Masking = true,
+                                            EdgeEffect = new EdgeEffect()
+                                            {
+                                                Type = EdgeEffectType.Glow,
+                                                Colour = Color4.Khaki,
+                                                Radius = 100f,
+                                                Hollow = true
+                                            },
+                                            CornerRadius = 0,
+                                        }
+                                    }
+                                }
+                            }
+                        },
                     }
                 }
-            });
+            };
         }
     }
 }
