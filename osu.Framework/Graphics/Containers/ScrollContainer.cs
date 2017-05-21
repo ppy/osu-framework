@@ -387,6 +387,8 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(size, duration, easing);
             }
 
+            protected override bool OnClick(InputState state) => true;
+
             protected override bool OnHover(InputState state)
             {
                 FadeColour(hover_colour, 100);
