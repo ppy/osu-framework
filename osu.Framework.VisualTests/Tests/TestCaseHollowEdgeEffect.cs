@@ -1,7 +1,9 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using OpenTK;
 using OpenTK.Graphics;
@@ -27,8 +29,17 @@ namespace osu.Framework.VisualTests.Tests
                     Type = EdgeEffectType.Glow,
                     Colour = Color4.Khaki,
                     Radius = 100f,
-                    Roundness = 60f,
                     Hollow = true
+                },
+                CornerRadius = 60f,
+
+                Children = new Drawable[]
+                {
+                    new Box()
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Aqua
+                    }
                 }
             });
         }
