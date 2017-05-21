@@ -106,7 +106,7 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
 
-            checkForLoop();
+            CheckForLoop();
         }
 
         public override void Reset()
