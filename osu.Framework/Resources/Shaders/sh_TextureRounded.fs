@@ -65,9 +65,9 @@ void main(void)
     // Discard inner pixels
     if (g_DiscardInner && dist <= g_CornerRadius - g_MaskingBlendRange)
     {
-	    gl_FragColor = vec4(0.0);
-	    return;
-	}
+        gl_FragColor = vec4(0.0);
+        return;
+    }
 
     dist /= g_MaskingBlendRange;
 
