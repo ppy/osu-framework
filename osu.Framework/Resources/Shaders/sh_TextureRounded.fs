@@ -20,6 +20,8 @@ uniform float g_MaskingBlendRange;
 
 uniform float g_AlphaExponent;
 
+uniform bool g_DiscardInner;
+
 float distanceFromRoundedRect()
 {
 	// Compute offset distance from masking rect in masking space.
@@ -58,7 +60,16 @@ float distanceFromDrawingRect()
 
 void main(void)
 {
-	float dist = distanceFromRoundedRect() / g_MaskingBlendRange;
+	float dist = distanceFromRoundedRect();
+
+	// Discard inner pixels
+	if (g_DiscardInner && dist <= g_CornerRadius - g_MaskingBlendRange - 1.0)    // -1 for getting rid of some ugly inner-edges
+	{
+		gl_FragColor = vec4(0.0);
+		return;
+	}
+
+	dist /= g_MaskingBlendRange;
 
 	// This correction is needed to avoid fading of the alpha value for radii below 1px.
 	float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
