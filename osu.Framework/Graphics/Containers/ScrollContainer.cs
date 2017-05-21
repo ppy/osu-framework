@@ -410,6 +410,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlight_colour, 100);
+
+                dragOffset = Position[scrollDim];
+                Dragged?.Invoke(dragOffset);
                 return true;
             }
 
