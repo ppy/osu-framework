@@ -416,6 +416,8 @@ namespace osu.Framework.Graphics.OpenGL
             Shader.SetGlobalProperty(@"g_MaskingBlendRange", maskingInfo.BlendRange);
             Shader.SetGlobalProperty(@"g_AlphaExponent", maskingInfo.AlphaExponent);
 
+            Shader.SetGlobalProperty(@"g_DiscardInner", maskingInfo.Hollow);
+
             Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
             actualRect.Y += Viewport.Y;
@@ -652,6 +654,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         public float BlendRange;
         public float AlphaExponent;
+
+        public bool Hollow;
 
         public bool Equals(MaskingInfo other)
         {
