@@ -102,9 +102,11 @@ namespace osu.Framework.Audio.Track
 
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
+            double currentTimeLocal = Math.Min(Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000, Length);
             Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
+
+            checkForLoop();
         }
 
         public override void Reset()

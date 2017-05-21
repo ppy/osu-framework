@@ -75,6 +75,16 @@ namespace osu.Framework.Audio.Track
                 throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
         }
 
+        protected void checkForLoop()
+        {
+
+            if (Looping && !IsRunning && (float)Length == (float)CurrentTime)
+            {
+                Reset();
+                Start();
+            }
+        }
+
         public abstract bool IsRunning { get; }
 
         /// <summary>
@@ -93,11 +103,6 @@ namespace osu.Framework.Audio.Track
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
             base.Update();
-            if (Looping && !IsRunning && Length == CurrentTime)
-            {
-                Reset();
-                Start();
-            }
         }
     }
 }
