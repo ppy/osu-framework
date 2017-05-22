@@ -90,7 +90,8 @@ namespace osu.Framework.Audio.Track
 
         /// <summary>
         /// Peak amplitude of each channel on a 20 ms buffer where 1 is full volume and 0 is silent.
-        /// The LeftChannel will include all left channels and the RightChannel will include all right channels
+        /// The LeftChannel will include all left channels and the RightChannel will include all right channels.
+        /// These values are as recent as possible, getting to the point tha they might be out of sync.
         /// </summary>
         public virtual TrackAmplitudes PeakAmplitudes => new TrackAmplitudes();
 
