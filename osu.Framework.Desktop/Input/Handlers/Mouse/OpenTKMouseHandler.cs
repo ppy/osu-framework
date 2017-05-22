@@ -25,6 +25,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             {
                 if (host.Window.WindowState == WindowState.Minimized)
                     return;
+                if (!host.Window.Visible)
+                    return;
 
                 var state = OpenTK.Input.Mouse.GetCursorState();
 
@@ -36,9 +38,16 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 Point point = host.Window.PointToClient(new Point(state.X, state.Y));
 
                 Vector2 pos = new Vector2(point.X, point.Y);
-
-                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
-
+                
+                if (host.Window.Focused) {
+                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
+                }
+                else 
+                {
+                    // Get only position from event to redraw mouse in window
+                    OpenTK.Input.MouseState dummy = new OpenTK.Input.MouseState();
+                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(dummy, pos, host.IsActive) });   
+                }
                 FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
             }, 0, 0));
 
