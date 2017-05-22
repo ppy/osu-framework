@@ -72,8 +72,8 @@ namespace osu.Framework.Input.Handlers
     {
         public int Compare(InputHandler h1, InputHandler h2)
         {
-            if (h1 == null) throw new NullReferenceException($@"{nameof(h1)} cannot be null");
-            if (h2 == null) throw new NullReferenceException($@"{nameof(h2)} cannot be null");
+            if (h1 == null) throw new ArgumentNullException(nameof(h1));
+            if (h2 == null) throw new ArgumentNullException(nameof(h2));
 
             return h2.Priority.CompareTo(h1.Priority);
         }

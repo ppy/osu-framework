@@ -9,7 +9,6 @@ using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
@@ -77,10 +76,10 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            AddStep("English", () => config.Set(FrameworkConfig.Locale, "en"));
-            AddStep("Japanese", () => config.Set(FrameworkConfig.Locale, "ja"));
-            AddStep("Simplified Chinese", () => config.Set(FrameworkConfig.Locale, "zh-CHS"));
-            AddToggleStep("ShowUnicode", b => config.Set(FrameworkConfig.ShowUnicode, b));
+            AddStep("English", () => config.Set(FrameworkSetting.Locale, "en"));
+            AddStep("Japanese", () => config.Set(FrameworkSetting.Locale, "ja"));
+            AddStep("Simplified Chinese", () => config.Set(FrameworkSetting.Locale, "zh-CHS"));
+            AddToggleStep("ShowUnicode", b => config.Set(FrameworkSetting.ShowUnicode, b));
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
@@ -91,8 +90,8 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void InitialiseDefaults()
             {
-                Set(FrameworkConfig.Locale, "");
-                Set(FrameworkConfig.ShowUnicode, false);
+                Set(FrameworkSetting.Locale, "");
+                Set(FrameworkSetting.ShowUnicode, false);
             }
         }
 

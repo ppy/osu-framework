@@ -125,6 +125,7 @@
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
+    <Compile Include="Input\GlobalHotkeys.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
@@ -168,7 +169,7 @@
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameStatisticsDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
-    <Compile Include="Graphics\Primitives\MarginPadding.cs" />
+    <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transforms\ITransform.cs" />
     <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
@@ -200,6 +201,7 @@
     <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Lists\WeakList.cs" />
     <Compile Include="Localisation\FormattableString.cs" />
     <Compile Include="Localisation\LocalisationEngine.cs" />
     <Compile Include="Localisation\LocalisedString.cs" />

@@ -11,6 +11,7 @@ namespace osu.Framework.Graphics.Containers
     {
         Vector2 ChildSize { get; }
         Vector2 ChildOffset { get; }
+        Vector2 RelativeToAbsoluteFactor { get; }
 
         float CornerRadius { get; }
 

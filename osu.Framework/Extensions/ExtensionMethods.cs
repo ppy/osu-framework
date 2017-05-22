@@ -37,7 +37,7 @@ namespace osu.Framework.Extensions
 
             int val = list.FindIndex(startIndex, list.Count - startIndex - 1, match);
 
-            return list.ValueAtOrDefault(val);
+            return list.ElementAtOrDefault(val);
         }
 
         /// <summary>
@@ -84,18 +84,6 @@ namespace osu.Framework.Extensions
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
             return index >= 0 && index < list.Count;
-        }
-
-        /// <summary>
-        /// Validates whether index is valid, before returning the value at the given index.
-        /// </summary>
-        /// <typeparam name="T">Probably should limit to nullable types.</typeparam>
-        /// <param name="list">The list to take values</param>
-        /// <param name="index">The index to request values from</param>
-        /// <returns>Value at index, else the default value</returns>
-        public static T ValueAtOrDefault<T>(this List<T> list, int index)
-        {
-            return list.IsValidIndex(index) ? list[index] : default(T);
         }
 
         /// <summary>

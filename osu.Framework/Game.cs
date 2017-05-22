@@ -15,7 +15,6 @@ using osu.Framework.Platform;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Statistics;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
@@ -65,7 +64,12 @@ namespace osu.Framework
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
+                    AlwaysReceiveInput = true,
                 },
+                new GlobalHotkeys
+                {
+                    Handler = globalKeyDown
+                }
             });
         }
 
@@ -97,6 +101,8 @@ namespace osu.Framework
         {
             Host = host;
             host.Exiting += OnExiting;
+            host.Activated += () => IsActive = true;
+            host.Deactivated += () => IsActive = false;
         }
 
         [BackgroundDependencyLoader]
@@ -120,10 +126,10 @@ namespace osu.Framework
             Host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkConfig.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkConfig.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkConfig.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkConfig.VolumeMusic, Audio.VolumeTrack);
+            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
+            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
+            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
+            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
@@ -191,7 +197,7 @@ namespace osu.Framework
             set { performanceContainer.State = value; }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        private bool globalKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (state.Keyboard.ControlPressed)
             {
@@ -226,7 +232,7 @@ namespace osu.Framework
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         public void Exit()

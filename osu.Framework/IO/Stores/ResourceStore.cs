@@ -88,9 +88,9 @@ namespace osu.Framework.IO.Stores
             {
                 foreach (string f in filenames)
                 {
-                    object result = store.Get(f);
+                    T result = store.Get(f);
                     if (result != null)
-                        return (T)result;
+                        return result;
                 }
             }
 
@@ -147,7 +147,7 @@ namespace osu.Framework.IO.Stores
 
             // Check if there's already a reload action bound
             if (actionList.ContainsKey(name))
-                throw new ReloadAlreadyBoundException(name);
+                throw new InvalidOperationException($"A reload delegate is already bound to the resource '{name}'.");
 
             actionList[name] = onReload;
         }
@@ -161,14 +161,6 @@ namespace osu.Framework.IO.Stores
 
             if (!searchExtensions.Contains(extension))
                 searchExtensions.Add(extension);
-        }
-    }
-
-    public sealed class ReloadAlreadyBoundException : Exception
-    {
-        public ReloadAlreadyBoundException(string resourceName)
-            : base($"A reload delegate is already bound to the resource '{resourceName}'.")
-        {
         }
     }
 }

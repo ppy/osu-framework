@@ -252,8 +252,8 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
-                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
@@ -265,8 +265,8 @@ namespace osu.Framework.Graphics
         {
             public int Compare(Drawable x, Drawable y)
             {
-                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
                 if (i != 0) return i;
@@ -478,7 +478,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = RelativeToAbsoluteFactor;
+                Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativePositionAxes & Axes.X))
                     X = conversion.X == 0 ? 0 : X / conversion.X;
                 else if ((relativePositionAxes & Axes.X) > (value & Axes.X))
@@ -583,7 +583,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = RelativeToAbsoluteFactor;
+                Vector2 conversion = relativeToAbsoluteFactor;
                 if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
                     Width = conversion.X == 0 ? 0 : Width / conversion.X;
                 else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
@@ -687,7 +687,7 @@ namespace osu.Framework.Graphics
         {
             if (relativeAxes != Axes.None)
             {
-                Vector2 conversion = RelativeToAbsoluteFactor;
+                Vector2 conversion = relativeToAbsoluteFactor;
                 if ((relativeAxes & Axes.X) > 0)
                     v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
@@ -699,7 +699,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
         /// </summary>
-        public Vector2 RelativeToAbsoluteFactor => Parent?.ChildSize ?? Vector2.One;
+        private Vector2 relativeToAbsoluteFactor => Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
 
         private Axes bypassAutoSizeAxes;
 
@@ -765,7 +765,7 @@ namespace osu.Framework.Graphics
                     return Scale;
 
                 Vector2 modifier = Vector2.One;
-                Vector2 relativeToAbsolute = RelativeToAbsoluteFactor;
+                Vector2 relativeToAbsolute = relativeToAbsoluteFactor;
 
                 switch (FillMode)
                 {
@@ -1762,7 +1762,7 @@ namespace osu.Framework.Graphics
 
             public IMouseState Clone()
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException();
             }
         }
 
@@ -2052,6 +2052,16 @@ namespace osu.Framework.Graphics
         public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(() => Size, newSize, duration, easing, new TransformSize());
+        }
+
+        public void ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => Width, newWidth, duration, easing, new TransformWidth());
+        }
+
+        public void ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => Height, newHeight, duration, easing, new TransformHeight());
         }
 
         public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)

@@ -289,6 +289,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private bool removeCharacterOrSelection(bool sound = true)
         {
+            if (Current.Disabled)
+                return false;
+
             if (text.Length == 0) return false;
             if (selectionLength == 0 && selectionLeft == 0) return false;
 
@@ -365,6 +368,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         private Drawable addCharacter(char c)
         {
+            if (Current.Disabled)
+                return null;
+
             if (char.IsControl(c)) return null;
 
             if (selectionLength > 0)
@@ -411,6 +417,9 @@ namespace osu.Framework.Graphics.UserInterface
             get { return text; }
             set
             {
+                if (Current.Disabled)
+                    return;
+
                 if (value == text)
                     return;
 
@@ -467,6 +476,9 @@ namespace osu.Framework.Graphics.UserInterface
             if (HandlePendingText(state)) return true;
 
             if (ReadOnly) return true;
+
+            if (state.Keyboard.AltPressed)
+                return false;
 
             switch (args.Key)
             {
@@ -738,7 +750,7 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-            if (state.Keyboard.Keys.Contains(Key.Enter))
+            if (!Current.Disabled && state.Keyboard.Keys.Contains(Key.Enter))
             {
                 Background.Colour = BackgroundUnfocused;
                 Background.ClearTransforms();

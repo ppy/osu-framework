@@ -155,7 +155,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the inequality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the inequality operator. </param>
         /// <filterpriority>3</filterpriority>
-        public static bool operator !=(RectangleF left, RectangleF right) => !left.Equals(right);
+        public static bool operator !=(RectangleF left, RectangleF right) => !(left == right);
 
         public static RectangleF operator *(RectangleF left, float right) => new RectangleF(left.X * right, left.Y * right, left.Width * right, left.Height * right);
 

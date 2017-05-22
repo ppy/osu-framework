@@ -19,8 +19,8 @@ namespace osu.Framework.Graphics.Visualisation
         {
             public int Compare(VisualisedDrawable x, VisualisedDrawable y)
             {
-                if (x == null) throw new NullReferenceException($@"{nameof(x)} cannot be null");
-                if (y == null) throw new NullReferenceException($@"{nameof(y)} cannot be null");
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
 
                 return x.nestingDepth.CompareTo(y.nestingDepth);
             }
