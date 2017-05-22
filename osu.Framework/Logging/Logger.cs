@@ -64,10 +64,14 @@ namespace osu.Framework.Logging
             return message;
         }
 
-        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime)
+        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false)
         {
             Log($@"ERROR: {description}", target, LogLevel.Error);
             Log(e.ToString(), target, LogLevel.Error);
+
+            if (recursive)
+                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
+                    Log(inner.ToString(), target, LogLevel.Error);
         }
 
         /// <summary>
@@ -88,7 +92,7 @@ namespace osu.Framework.Logging
         }
 
         /// <summary>
-        /// Logs a message to the given log target and also displays a print statement. 
+        /// Logs a message to the given log target and also displays a print statement.
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
