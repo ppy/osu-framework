@@ -311,6 +311,6 @@ namespace osu.Framework.Audio.Track
 
         private TrackAmplitudes peakAmplitudes;
 
-        public override TrackAmplitudes PeakAmplitudes { get { return peakAmplitudes; } }
+        public override TrackAmplitudes PeakAmplitudes => peakAmplitudes;
     }
 }

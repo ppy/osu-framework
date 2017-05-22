@@ -92,7 +92,7 @@ namespace osu.Framework.Audio.Track
         /// Peak amplitude of each channel on a 20 ms buffer where 1 is full volume and 0 is silent.
         /// The LeftChannel will include all left channels and the RightChannel will include all right channels
         /// </summary>
-        public virtual TrackAmplitudes PeakAmplitudes { get; }
+        public virtual TrackAmplitudes PeakAmplitudes => new TrackAmplitudes();
 
         public override void Update()
         {
