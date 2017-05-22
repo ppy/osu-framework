@@ -40,6 +40,8 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        protected override bool ShouldLoop => Looping && !IsRunning && (float) Length == CurrentTime;
+
         public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
@@ -95,18 +97,17 @@ namespace osu.Framework.Audio.Track
 
         public override void Update()
         {
-            base.Update();
-
             if (IsDisposed)
                 return;
 
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Math.Min(Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000, Length);
-            Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
 
-            CheckForLoop();
+            base.Update();
+
+            Trace.Assert(Bass.LastError == Errors.OK);
         }
 
         public override void Reset()
