@@ -105,6 +105,12 @@ namespace osu.Framework.Audio.Track
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
             Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
+
+            //As reported in https://github.com/ManagedBass/ManagedBass/issues/32, ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
+            float tempLevel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
+            currentAmplitudes.LeftChannel = tempLevel == -1 ? 1 : tempLevel;
+            tempLevel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
+            currentAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
         }
 
         public override void Reset()
@@ -302,5 +308,9 @@ namespace osu.Framework.Audio.Track
             get { return Frequency.Value; }
             set { Frequency.Value = value; }
         }
+
+        private TrackAmplitudes currentAmplitudes;
+
+        public override TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
     }
 }
