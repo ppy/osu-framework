@@ -106,8 +106,11 @@ namespace osu.Framework.Audio.Track
             Trace.Assert(Bass.LastError == Errors.OK);
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
 
-            //When a channel is at maximum amplitude Bass returns short.MinValue...
-            ChannelPeakAmplitudes = new[] { (short)(Bass.ChannelGetLevelLeft(activeStream) - 1), (short)(Bass.ChannelGetLevelRight(activeStream) - 1) };
+            //Right now ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
+            float tempLevel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
+            peakAmplitudes.LeftChannel = tempLevel == -1 ? 1 : tempLevel;
+            tempLevel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
+            peakAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
         }
 
         public override void Reset()
@@ -306,25 +309,8 @@ namespace osu.Framework.Audio.Track
             set { Frequency.Value = value; }
         }
 
-        private short[] channelPeakAmplitudes;
+        private TrackAmplitudes peakAmplitudes;
 
-        public override short[] ChannelPeakAmplitudes
-        {
-            get
-            {
-                lock (channelPeakAmplitudes)
-                {
-                    short[] a = new short[2];
-                    channelPeakAmplitudes.CopyTo(a, 0);
-                    return a;
-                }
-            }
-
-            protected set
-            {
-                lock (channelPeakAmplitudes)
-                    channelPeakAmplitudes = value;
-            }
-        }
+        public override TrackAmplitudes PeakAmplitudes { get { return peakAmplitudes; } }
     }
 }

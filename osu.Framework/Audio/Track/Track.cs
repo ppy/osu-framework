@@ -88,12 +88,11 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
-
         /// <summary>
-        /// Peak amplitude of each channel on a 20 ms buffer where 32767 is full volume and 0 is silent.
-        /// First element is left channels and Second element is right channels
+        /// Peak amplitude of each channel on a 20 ms buffer where 1 is full volume and 0 is silent.
+        /// The LeftChannel will include all left channels and the RightChannel will include all right channels
         /// </summary>
-        public virtual short[] ChannelPeakAmplitudes { get; protected set; }
+        public virtual TrackAmplitudes PeakAmplitudes { get; }
 
         public override void Update()
         {
@@ -106,5 +105,11 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
         }
+    }
+
+    public struct TrackAmplitudes
+    {
+        public float LeftChannel;
+        public float RightChannel;
     }
 }
