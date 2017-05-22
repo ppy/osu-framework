@@ -176,7 +176,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// Adds an arbitrary <see cref="TabItem{T}"/> to the control
         /// </summary>
         /// <param name="tab">The tab to add</param>
-        /// <param name="addToDropdown">Whether the tab shoul be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
         protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
             tab.PinnedChanged += resortTab;
