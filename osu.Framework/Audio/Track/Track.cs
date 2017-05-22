@@ -88,6 +88,13 @@ namespace osu.Framework.Audio.Track
 
         public bool IsReversed => Rate < 0;
 
+        /// <summary>
+        /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
+        /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
+        /// The most recent values are returned. Synchronisation between channels should not be expected.
+        /// </summary>
+        public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
+
         public override void Update()
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
@@ -98,6 +105,12 @@ namespace osu.Framework.Audio.Track
                 Reset();
                 Start();
             }
+        }
+
+        public struct TrackAmplitudes
+        {
+            public float LeftChannel;
+            public float RightChannel;
         }
     }
 }
