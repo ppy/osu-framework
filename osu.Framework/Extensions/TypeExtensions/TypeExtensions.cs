@@ -28,18 +28,7 @@ namespace osu.Framework.Extensions.TypeExtensions
             {
                 var typeArgs = t.GetGenericArguments().Except(usedTypes);
                 if (typeArgs.Any())
-                {
-                    result += "<";
-                    bool first = true;
-                    foreach (var genType in typeArgs)
-                    {
-                        if (!first)
-                            result += ", ";
-                        first = false;
-                        result += readableName(genType, usedTypes);
-                    }
-                    result += ">";
-                }
+                    result += "<" + string.Join(",", typeArgs.Select(genType => readableName(genType, usedTypes))) + ">";
             }
 
             return result;

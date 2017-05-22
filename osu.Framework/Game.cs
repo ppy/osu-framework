@@ -64,6 +64,7 @@ namespace osu.Framework
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
+                    AlwaysReceiveInput = true,
                 },
                 new GlobalHotkeys
                 {

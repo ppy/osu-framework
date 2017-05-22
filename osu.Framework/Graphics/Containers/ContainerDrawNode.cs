@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Parametrizes the appearance of an edge effect.
     /// </summary>
-    public struct EdgeEffect
+    public struct EdgeEffect : IEquatable<EdgeEffect>
     {
         /// <summary>
         /// Colour of the edge effect.
@@ -55,6 +55,18 @@ namespace osu.Framework.Graphics.Containers
         /// from the <see cref="Container"/> border the edge effect becomes fully invisible.
         /// </summary>
         public float Radius;
+
+        /// <summary>
+        /// Whether the inside of the EdgeEffect rectangle should be empty.
+        /// </summary>
+        public bool Hollow;
+
+        public bool Equals(EdgeEffect other) =>
+            Colour.Equals(other.Colour) &&
+            Offset == other.Offset &&
+            Type == other.Type &&
+            Roundness == other.Roundness &&
+            Radius == other.Radius;
     }
 
     /// <summary>
@@ -131,6 +143,7 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.BorderThickness = 0;
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 

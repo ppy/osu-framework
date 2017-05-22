@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System;
 using osu.Framework.Caching;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Sprites
 {
@@ -79,9 +80,10 @@ namespace osu.Framework.Graphics.Sprites
         /// <summary>
         /// Add new text to this paragraph.
         /// </summary>
+        /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public void AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters));
+        public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters));
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
@@ -92,9 +94,10 @@ namespace osu.Framework.Graphics.Sprites
             return spriteText;
         }
 
-        private void addLine(TextLine line)
+        private IEnumerable<SpriteText> addLine(TextLine line)
         {
             bool first = true;
+            var sprites = new List<SpriteText>();
 
             foreach (string l in line.Text.Split('\n'))
             {
@@ -115,11 +118,14 @@ namespace osu.Framework.Graphics.Sprites
 
                     var textSprite = createSpriteTextWithLine(line);
                     textSprite.Text = word;
+                    sprites.Add(textSprite);
                     Add(textSprite);
                 }
 
                 first = false;
             }
+
+            return sprites;
         }
 
         private Cached layout = new Cached();

@@ -477,42 +477,6 @@ namespace osu.Framework.Graphics.UserInterface
 
             if (ReadOnly) return true;
 
-            if (state.Keyboard.ControlPressed)
-            {
-                //handling of function keys
-                switch (args.Key)
-                {
-                    case Key.A:
-                        selectionStart = 0;
-                        selectionEnd = text.Length;
-                        cursorAndLayout.Invalidate();
-                        return true;
-                    case Key.C:
-                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                        clipboard?.SetText(SelectedText);
-                        return true;
-                    case Key.X:
-                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
-
-                        clipboard?.SetText(SelectedText);
-                        removeCharacterOrSelection();
-                        return true;
-                    case Key.V:
-
-                        //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
-                        string pending = textInput?.GetPendingText();
-
-                        if (string.IsNullOrEmpty(pending))
-                            pending = clipboard?.GetText();
-
-                        insertString(pending);
-                        return true;
-                }
-
-                return false;
-            }
-
             if (state.Keyboard.AltPressed)
                 return false;
 
@@ -627,6 +591,42 @@ namespace osu.Framework.Graphics.UserInterface
 
                     removeCharacterOrSelection();
                     return true;
+            }
+
+            if (state.Keyboard.ControlPressed)
+            {
+                //handling of function keys
+                switch (args.Key)
+                {
+                    case Key.A:
+                        selectionStart = 0;
+                        selectionEnd = text.Length;
+                        cursorAndLayout.Invalidate();
+                        return true;
+                    case Key.C:
+                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+
+                        clipboard?.SetText(SelectedText);
+                        return true;
+                    case Key.X:
+                        if (string.IsNullOrEmpty(SelectedText) || !AllowClipboardExport) return true;
+
+                        clipboard?.SetText(SelectedText);
+                        removeCharacterOrSelection();
+                        return true;
+                    case Key.V:
+
+                        //the text may get pasted into the hidden textbox, so we don't need any direct clipboard interaction here.
+                        string pending = textInput?.GetPendingText();
+
+                        if (string.IsNullOrEmpty(pending))
+                            pending = clipboard?.GetText();
+
+                        insertString(pending);
+                        return true;
+                }
+
+                return false;
             }
 
             return true;
