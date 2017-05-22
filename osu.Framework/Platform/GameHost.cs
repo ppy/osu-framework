@@ -170,6 +170,8 @@ namespace osu.Framework.Platform
         {
             var exception = (Exception)e.ExceptionObject;
 
+            Logger.Error(exception, @"fatal error:", recursive: true);
+
             var exInfo = ExceptionDispatchInfo.Capture(exception);
 
             if (ExceptionThrown?.Invoke(exception) != true)
