@@ -101,13 +101,13 @@ namespace osu.Framework.Audio.Track
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
-            base.Update();
-
-            if (!IsDisposed && Looping && HasCompleted)
+            if (Looping && HasCompleted)
             {
                 Reset();
                 Start();
             }
+
+            base.Update();            
         }
 
         public struct TrackAmplitudes
