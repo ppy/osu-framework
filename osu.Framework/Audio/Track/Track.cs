@@ -107,7 +107,7 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
 
-            base.Update();            
+            base.Update();
         }
 
         public struct TrackAmplitudes
