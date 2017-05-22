@@ -311,6 +311,6 @@ namespace osu.Framework.Audio.Track
 
         private TrackAmplitudes currentAmplitudes;
 
-        public override TrackAmplitudes CurrentAmplitudes => CurrentAmplitudes;
+        public override TrackAmplitudes CurrentAmplitudes => currentAmplitudes;
     }
 }
