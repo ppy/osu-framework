@@ -106,7 +106,7 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
         }
-        
+
         public struct TrackAmplitudes
         {
             public float LeftChannel;
