@@ -37,7 +37,12 @@ namespace osu.Framework.Logging
         public static string UserIdentifier = Environment.UserName;
 
         /// <summary>
-        /// An identifier used in log file headers to figure where the log file came from.
+        /// An identifier for game used in log file headers to figure where the log file came from.
+        /// </summary>
+        public static string GameIdentifier = @"game";
+
+        /// <summary>
+        /// An identifier for version used in log file headers to figure where the log file came from.
         /// </summary>
         public static string VersionIdentifier = @"unknown";
 
@@ -220,7 +225,7 @@ namespace osu.Framework.Logging
         {
             Add(@"----------------------------------------------------------");
             Add($@"{Target} Log for {UserIdentifier}");
-            Add($@"osu! version {VersionIdentifier}");
+            Add($@"{GameIdentifier} version {VersionIdentifier}");
             Add($@"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores");
             Add(@"----------------------------------------------------------");
         }

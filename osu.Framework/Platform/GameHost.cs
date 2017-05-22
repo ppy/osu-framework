@@ -22,6 +22,7 @@ using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 
@@ -144,6 +145,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(this);
             Name = gameName;
+            Logger.GameIdentifier = gameName;
 
             threads = new List<GameThread>
             {
