@@ -79,7 +79,7 @@ namespace osu.Framework.Audio.Track
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not stop disposed tracks.");
         }
-        
+
         public abstract bool IsRunning { get; }
 
         /// <summary>
