@@ -40,8 +40,6 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        protected override bool ShouldLoop => Looping && !IsRunning && (float) Length == CurrentTime;
-
         public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
@@ -97,12 +95,9 @@ namespace osu.Framework.Audio.Track
 
         public override void Update()
         {
-            if (IsDisposed)
-                return;
-
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
-            double currentTimeLocal = Math.Min(Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000, Length);
+            double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
             currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
 
             //As reported in https://github.com/ManagedBass/ManagedBass/issues/32, ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
@@ -112,8 +107,6 @@ namespace osu.Framework.Audio.Track
             currentAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
 
             base.Update();
-
-            Trace.Assert(Bass.LastError == Errors.OK);
         }
 
         public override void Reset()
@@ -227,7 +220,7 @@ namespace osu.Framework.Audio.Track
 
         public override int? Bitrate => bitrate;
 
-        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
+        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= (float)Length;
 
         private class DataStreamFileProcedures
         {

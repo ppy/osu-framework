@@ -18,11 +18,6 @@ namespace osu.Framework.Audio.Track
         public bool Looping { get; set; }
 
         /// <summary>
-        /// Specifies whether the track should loop. If this is true, while Update() is called, the track restarts.
-        /// </summary>
-        protected virtual bool ShouldLoop => Looping && !IsRunning && Length == CurrentTime;
-
-        /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
         /// </summary>
         public readonly BindableDouble Tempo = new BindableDouble(1);
@@ -106,7 +101,7 @@ namespace osu.Framework.Audio.Track
 
             base.Update();
 
-            if (ShouldLoop)
+            if (!IsDisposed && Looping && HasCompleted)
             {
                 Reset();
                 Start();
