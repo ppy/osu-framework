@@ -89,11 +89,11 @@ namespace osu.Framework.Audio.Track
         public bool IsReversed => Rate < 0;
 
         /// <summary>
-        /// Peak amplitude of each channel on a 20 ms buffer where 1 is full volume and 0 is silent.
-        /// The LeftChannel will include all left channels and the RightChannel will include all right channels.
-        /// These values are as recent as possible, getting to the point tha they might be out of sync.
+        /// Current amplitude of stereo channels where 1 is full volume and 0 is silent.
+        /// LeftChannel and RightChannel represent the maximum current amplitude of all of the left and right channels respectively.
+        /// The most recent values are returned. Synchronisation between channels should not be expected.
         /// </summary>
-        public virtual TrackAmplitudes PeakAmplitudes => new TrackAmplitudes();
+        public virtual TrackAmplitudes CurrentAmplitudes => new TrackAmplitudes();
 
         public override void Update()
         {
