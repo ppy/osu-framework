@@ -17,6 +17,8 @@ namespace osu.Framework.Audio.Track
 
         public bool Looping { get; set; }
 
+        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
+
         /// <summary>
         /// The speed of track playback. Does not affect pitch, but will reduce playback quality due to skipped frames.
         /// </summary>
