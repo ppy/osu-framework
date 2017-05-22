@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.UserInterface
             else if (typeof(T) == typeof(double))
             {
                 CurrentNumber = new BindableDouble() as BindableNumber<T>;
-                KeyboardStep = 0.01f;
+                KeyboardStep = 0.1f;
             }
 
             if (CurrentNumber == null) throw new NotImplementedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
