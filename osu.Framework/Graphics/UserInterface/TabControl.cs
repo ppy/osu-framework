@@ -167,15 +167,25 @@ namespace osu.Framework.Graphics.UserInterface
                 return null;
 
             var tab = CreateTabItem(value);
+            AddTabItem(tab, addToDropdown);
+
+            return tab;
+        }
+
+        /// <summary>
+        /// Adds an arbitrary <see cref="TabItem{T}"/> to the control
+        /// </summary>
+        /// <param name="tab">The tab to add</param>
+        /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
+        protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
+        {
             tab.PinnedChanged += resortTab;
             tab.SelectAction += selectTab;
 
-            tabMap[value] = tab;
+            tabMap[tab.Value] = tab;
             if (addToDropdown)
-                Dropdown?.AddDropdownItem((value as Enum)?.GetDescription() ?? value.ToString(), value);
+                Dropdown?.AddDropdownItem((tab.Value as Enum)?.GetDescription() ?? tab.Value.ToString(), tab.Value);
             TabContainer.Add(tab);
-
-            return tab;
         }
 
         /// <summary>
