@@ -98,7 +98,7 @@ namespace osu.Framework.Audio.Track
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            currentTime = currentTimeLocal == Length && !isPlayed ? 0 : (float)currentTimeLocal;
+            System.Threading.Volatile.Write(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
 
             //As reported in https://github.com/ManagedBass/ManagedBass/issues/32, ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
             float tempLevel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
@@ -192,7 +192,7 @@ namespace osu.Framework.Audio.Track
             return conservativeClamped == seek;
         }
 
-        private volatile float currentTime;
+        private double currentTime;
 
         public override double CurrentTime => currentTime;
 
@@ -219,8 +219,6 @@ namespace osu.Framework.Audio.Track
         private volatile int bitrate;
 
         public override int? Bitrate => bitrate;
-
-        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= (float)Length;
 
         private class DataStreamFileProcedures
         {
