@@ -603,7 +603,17 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
+            Flush(false, typeof(TransformEdgeEffectColour));
             TransformTo(() => EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+        }
+
+        /// <summary>
+        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// </summary>
+        public void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            Flush(false, typeof(TransformEdgeEffectAlpha));
+            TransformTo(() => EdgeEffect.Colour, newColour, duration, easing, new TransformEdgeEffectColour());
         }
 
         #endregion
