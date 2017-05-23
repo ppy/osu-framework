@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using ManagedBass;
 using ManagedBass.Fx;
 using OpenTK;
@@ -98,7 +99,7 @@ namespace osu.Framework.Audio.Track
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
-            System.Threading.Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
+            Interlocked.Exchange(ref currentTime, currentTimeLocal == Length && !isPlayed ? 0 : currentTimeLocal);
 
             //As reported in https://github.com/ManagedBass/ManagedBass/issues/32, ManagedBass returns -32768 when it should return 32768, the following lines prevent having invalid values
             float tempLevel = Bass.ChannelGetLevelLeft(activeStream) / 32768f;
