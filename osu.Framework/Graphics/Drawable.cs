@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -647,7 +647,7 @@ namespace osu.Framework.Graphics
         /// Absolute size of this Drawable's layout rectangle in the <see cref="Parent"/>'s
         /// coordinate system; i.e. <see cref="DrawSize"/> with the addition of <see cref="Margin"/>.
         /// </summary>
-        public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
+        public Vector2 LayoutSize => DrawSize + new Vector2(margin.Horizontal, margin.Vertical);
 
         /// <summary>
         /// Absolutely sized rectangle for drawing in the <see cref="Parent"/>'s coordinate system.

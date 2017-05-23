@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
@@ -252,8 +252,8 @@ namespace osu.Framework.Graphics.Primitives
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
             X - amount.Left,
             Y - amount.Top,
-            Width + amount.TotalHorizontal,
-            Height + amount.TotalVertical);
+            Width + amount.Horizontal,
+            Height + amount.Vertical);
 
         public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
 

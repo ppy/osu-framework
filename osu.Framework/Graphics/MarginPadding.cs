@@ -13,11 +13,19 @@ namespace osu.Framework.Graphics
         public float Bottom;
         public float Right;
 
-        public float TotalHorizontal => Left + Right;
+        public float Horizontal
+        {
+            get { return Left + Right; }
+            set { Left = Right = value; }
+        }
 
-        public float TotalVertical => Top + Bottom;
+        public float Vertical
+        {
+            get { return Top + Bottom; }
+            set { Top = Bottom = value; }
+        }
 
-        public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
+        public Vector2 Total => new Vector2(Horizontal, Vertical);
 
         public MarginPadding(float allSides)
         {
