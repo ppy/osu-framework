@@ -252,8 +252,8 @@ namespace osu.Framework.Graphics.Primitives
         public RectangleF Inflate(MarginPadding amount) => new RectangleF(
             X - amount.Left,
             Y - amount.Top,
-            Width + amount.Horizontal,
-            Height + amount.Vertical);
+            Width + amount.TotalHorizontal,
+            Height + amount.TotalVertical);
 
         public RectangleF Shrink(float amount) => Shrink(new Vector2(amount, amount));
 

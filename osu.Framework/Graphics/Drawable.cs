@@ -647,7 +647,7 @@ namespace osu.Framework.Graphics
         /// Absolute size of this Drawable's layout rectangle in the <see cref="Parent"/>'s
         /// coordinate system; i.e. <see cref="DrawSize"/> with the addition of <see cref="Margin"/>.
         /// </summary>
-        public Vector2 LayoutSize => DrawSize + new Vector2(margin.Horizontal, margin.Vertical);
+        public Vector2 LayoutSize => DrawSize + new Vector2(margin.TotalHorizontal, margin.TotalVertical);
 
         /// <summary>
         /// Absolutely sized rectangle for drawing in the <see cref="Parent"/>'s coordinate system.
