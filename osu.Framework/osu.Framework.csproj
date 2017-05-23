@@ -227,6 +227,7 @@
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
     <Compile Include="Audio\Sample\SampleChannel.cs" />
+    <Compile Include="Audio\Track\TrackAmplitudes.cs" />
     <Compile Include="Audio\Track\Track.cs" />
     <Compile Include="Audio\Track\TrackBass.cs" />
     <Compile Include="Audio\Track\TrackVirtual.cs" />
