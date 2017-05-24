@@ -619,8 +619,6 @@ namespace osu.Framework.Input
 
         public void DrawableTriggerDragEnd(Drawable drawable)
         {
-            if (draggingDrawable != drawable)
-                throw new Exception("draggingDrawable should be drawable here");
             draggingDrawable = null;
             isDragging = false;
             triggeredDragEnd = true;
