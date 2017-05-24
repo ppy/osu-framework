@@ -626,15 +626,15 @@ namespace osu.Framework.Input
 
         private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
 
-        public InputHandler GetHandler(Type handlerType)
-        {
-            return inputHandlers.Find(h => h.GetType() == handlerType);
-        }
-
         public void DrawableTriggerHoverEnd(Drawable drawable)
         {
             if (!triggeredHoveredEndDrawables.Contains(drawable))
                 triggeredHoveredEndDrawables.Add(drawable);
+        }
+
+        public InputHandler GetHandler(Type handlerType)
+        {
+            return inputHandlers.Find(h => h.GetType() == handlerType);
         }
 
         protected bool AddHandler(InputHandler handler)
