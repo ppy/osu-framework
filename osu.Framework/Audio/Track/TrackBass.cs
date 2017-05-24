@@ -100,6 +100,8 @@ namespace osu.Framework.Audio.Track
             if (IsDisposed)
                 return;
 
+            FrequencyAmplitudes = FastFourierTransform();
+
             isRunning = Bass.ChannelIsActive(activeStream) == PlaybackState.Playing;
 
             double currentTimeLocal = Bass.ChannelBytes2Seconds(activeStream, Bass.ChannelGetPosition(activeStream)) * 1000;
@@ -301,6 +303,33 @@ namespace osu.Framework.Audio.Track
                 }
                 return false;
             }
+        }
+
+        private float[] frequencyAmplitudes = new float[256];
+
+        public override float[] FrequencyAmplitudes
+        {
+            get
+            {
+                float[] data = new float[256];
+                frequencyAmplitudes.CopyTo(data, 0);
+                return frequencyAmplitudes;
+            }
+            protected set
+            {
+                frequencyAmplitudes = value;
+            }
+        }
+
+        /// <summary>
+        /// Performs a 512 sample FFT on the <see cref="activeStream"/>
+        /// </summary>
+        /// <returns>A 256 lenght float array containing bins after combining channels</returns>
+        public float[] FastFourierTransform()
+        {
+            var data = new float[256];
+            Bass.ChannelGetData(activeStream, data, (int)DataFlags.FFT512);
+            return data;
         }
 
         public double PitchAdjust

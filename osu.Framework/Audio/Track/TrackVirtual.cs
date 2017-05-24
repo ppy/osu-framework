@@ -46,6 +46,14 @@ namespace osu.Framework.Audio.Track
 
         public override double CurrentTime => seekOffset + clock.CurrentTime;
 
+        private float[] frequencyAmplitudes = new float[256];
+
+        public override float[] FrequencyAmplitudes
+        {
+            get { return frequencyAmplitudes; }
+            protected set { frequencyAmplitudes = value; }
+        }
+
         public override void Update()
         {
             if (Length > 0 && CurrentTime >= Length)
