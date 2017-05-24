@@ -75,6 +75,11 @@ namespace osu.Framework.Input
         /// </summary>
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
+        /// <summary>
+        /// The sequential list in which all drawables are stored that triggered a hover end.
+        /// </summary>
+        private readonly List<Drawable> triggeredHoveredEndDrawables = new List<Drawable>();
+
         private Drawable draggingDrawable;
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
@@ -293,8 +298,10 @@ namespace osu.Framework.Input
             List<Drawable> newlyUnhoveredDrawables = lastHoveredDrawables.Except(mouseInputQueue).ToList();
             foreach (Drawable d in newlyUnhoveredDrawables)
             {
-                d.Hovering = false;
-                d.TriggerHoverLost(state);
+                if (!triggeredHoveredEndDrawables.Contains(d))
+                    d.TriggerHoverLost(state, true);
+                else
+                    triggeredHoveredEndDrawables.Remove(d);
             }
 
             // Don't care about what's now explicitly unhovered
@@ -304,8 +311,12 @@ namespace osu.Framework.Input
             // that may continue being hovered. We need to construct hoveredDrawables for the current frame
             foreach (Drawable d in mouseInputQueue)
             {
-                hoveredDrawables.Add(d);
                 lastHoveredDrawables.Remove(d);
+                hoveredDrawables.Add(d);
+
+                // Continue if d triggered a hover end
+                if (triggeredHoveredEndDrawables.Contains(d))
+                    continue;
 
                 // Don't need to re-hover those that are already hovered
                 if (d.Hovering)
@@ -332,8 +343,10 @@ namespace osu.Framework.Input
             // but should no longer be hovered as a result of a drawable handling hover this frame
             foreach (Drawable d in lastHoveredDrawables)
             {
-                d.Hovering = false;
-                d.TriggerHoverLost(state);
+                if (!triggeredHoveredEndDrawables.Contains(d))
+                    d.TriggerHoverLost(state, true);
+                else
+                    triggeredHoveredEndDrawables.Remove(d);
             }
         }
 
@@ -616,6 +629,12 @@ namespace osu.Framework.Input
         public InputHandler GetHandler(Type handlerType)
         {
             return inputHandlers.Find(h => h.GetType() == handlerType);
+        }
+
+        public void DrawableTriggerHoverEnd(Drawable drawable)
+        {
+            if (!triggeredHoveredEndDrawables.Contains(drawable))
+                triggeredHoveredEndDrawables.Add(drawable);
         }
 
         protected bool AddHandler(InputHandler handler)
