@@ -81,6 +81,8 @@ namespace osu.Framework.Input
 
         public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
+        private bool triggeredDragEnd = false;
+
         public InputManager()
         {
             RelativeSizeAxes = Axes.Both;
@@ -447,10 +449,11 @@ namespace osu.Framework.Input
                     }
                 }
 
-                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!triggeredDragEnd && !isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
-                    handleMouseDragStart(state);
+                    if(handleMouseDragStart(state))
+                        draggingDrawable.Dragging = true;
                 }
             }
             else if (last.HasAnyButtonPressed)
@@ -461,6 +464,7 @@ namespace osu.Framework.Input
                 mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
                 isValidClick = false;
+                triggeredDragEnd = false;
 
                 if (isDragging)
                 {
@@ -532,7 +536,7 @@ namespace osu.Framework.Input
             if (draggingDrawable == null)
                 return false;
 
-            bool result = draggingDrawable.TriggerDragEnd(state);
+            bool result = draggingDrawable.TriggerDragEnd(state, true);
             draggingDrawable = null;
 
             return result;
@@ -612,6 +616,15 @@ namespace osu.Framework.Input
         }
 
         private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
+
+        public void DrawableTriggerDragEnd(Drawable drawable)
+        {
+            if (draggingDrawable != drawable)
+                throw new Exception("draggingDrawable should be drawable here");
+            draggingDrawable = null;
+            isDragging = false;
+            triggeredDragEnd = true;
+        }
 
         public InputHandler GetHandler(Type handlerType)
         {
