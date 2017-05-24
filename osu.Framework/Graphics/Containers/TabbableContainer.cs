@@ -12,7 +12,14 @@ namespace osu.Framework.Graphics.Containers
     {
     }
 
-    public class TabbableContainer<T> : Container<T>
+    /// <summary>
+    /// This interface is used for recogonizing <see cref="TabbableContainer{T}"/> of any type without reflection.
+    /// </summary>
+    internal interface ITabbableContainer
+    {
+    }
+
+    public class TabbableContainer<T> : Container<T>, ITabbableContainer
         where T : Drawable
     {
         /// <summary>
@@ -31,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Drawable nextTabStop(Container<Drawable> target, bool reverse)
         {
-            Stack<Container<Drawable>> stack = new Stack<Container<Drawable>>();
+            Stack<IContainerEnumerable<Drawable>> stack = new Stack<IContainerEnumerable<Drawable>>();
             stack.Push(target); // Extra push for circular tabbing
             stack.Push(target);
 
@@ -39,20 +46,18 @@ namespace osu.Framework.Graphics.Containers
             while (stack.Count > 0)
             {
                 var container = stack.Pop();
-                if (container == null)
-                    continue;
 
                 if (!started)
                     started = ReferenceEquals(container, this);
-                else if (container is TabbableContainer)
-                    return container;
+                else if (container is ITabbableContainer)
+                    return container as Drawable;
 
-                var filtered = container.Children.OfType<Container<Drawable>>().ToList();
+                var filtered = container.Children.OfType<IContainerEnumerable<Drawable>>().ToList();
                 int bound = reverse ? filtered.Count : 0;
                 if (!started)
                 {
                     // Find self, to know starting point
-                    int index = filtered.IndexOf(this as TabbableContainer);
+                    int index = filtered.IndexOf(this);
                     if (index != -1)
                         bound = reverse ? index + 1 : index;
                 }

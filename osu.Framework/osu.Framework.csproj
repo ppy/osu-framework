@@ -155,6 +155,7 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
     <Compile Include="Audio\Sample\SampleChannel.cs" />
+    <Compile Include="Audio\Track\TrackAmplitudes.cs" />
     <Compile Include="Audio\Track\Track.cs" />
     <Compile Include="Audio\Track\TrackBass.cs" />
     <Compile Include="Audio\Track\TrackVirtual.cs" />

@@ -107,11 +107,5 @@ namespace osu.Framework.Audio.Track
 
             base.Update();
         }
-
-        public struct TrackAmplitudes
-        {
-            public float LeftChannel;
-            public float RightChannel;
-        }
     }
 }
