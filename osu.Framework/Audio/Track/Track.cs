@@ -99,12 +99,13 @@ namespace osu.Framework.Audio.Track
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
-            base.Update();
-            if (Looping && !IsRunning && Length == CurrentTime)
+            if (Looping && HasCompleted)
             {
                 Reset();
                 Start();
             }
+
+            base.Update();
         }
     }
 }

@@ -14,8 +14,16 @@ namespace osu.Framework.Graphics
         public float Right;
 
         public float TotalHorizontal => Left + Right;
+        public float Horizontal
+        {
+            set { Left = Right = value; }
+        }
 
         public float TotalVertical => Top + Bottom;
+        public float Vertical
+        {
+            set { Top = Bottom = value; }
+        }
 
         public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
 
