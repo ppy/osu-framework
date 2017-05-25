@@ -1530,8 +1530,6 @@ namespace osu.Framework.Graphics
             if (!Hovering)
                 return;
 
-            Hovering = false;
-
             if (screenSpaceState == null)
                 screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
 

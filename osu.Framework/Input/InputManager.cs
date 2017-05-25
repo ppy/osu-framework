@@ -629,7 +629,10 @@ namespace osu.Framework.Input
         public void DrawableTriggerHoverEnd(Drawable drawable)
         {
             if (!triggeredHoveredEndDrawables.Contains(drawable))
+            {
+                drawable.Hovering = false;
                 triggeredHoveredEndDrawables.Add(drawable);
+            }
         }
 
         public InputHandler GetHandler(Type handlerType)
