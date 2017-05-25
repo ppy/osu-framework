@@ -81,7 +81,7 @@ namespace osu.Framework.Input
 
         public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
-        private bool triggeredDragEnd = false;
+        private bool triggeredDragEnd;
 
         public InputManager()
         {
