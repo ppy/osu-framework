@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        public static implicit operator ColourInfo(SRGBColour colour) => ColourInfo.SingleColour(colour);
+        public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
     }
 }
