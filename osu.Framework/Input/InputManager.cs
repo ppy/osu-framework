@@ -76,6 +76,25 @@ namespace osu.Framework.Input
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
+
+        public Drawable DraggingDrawable
+        {
+            get { return draggingDrawable; }
+            internal set
+            {
+                if (draggingDrawable == value)
+                    return;
+
+                if (draggingDrawable != null)
+                    draggingDrawable.Dragging = false;
+
+                draggingDrawable = value;
+
+                if (draggingDrawable != null)
+                    draggingDrawable.Dragging = true;
+            }
+        }
+
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
@@ -108,14 +127,7 @@ namespace osu.Framework.Input
 
         internal void ChangeDrag(Drawable drawable)
         {
-            if (draggingDrawable == drawable) return;
-
-            if(draggingDrawable != null)
-                draggingDrawable.Dragging = false;
-
-            draggingDrawable = drawable;
-            if (drawable != null)
-                draggingDrawable.Dragging = true;
+            DraggingDrawable = drawable;
 
             //Keep locally dragging to avoid a new drag until the mouse keys are released
             isDragging = true;
@@ -465,13 +477,12 @@ namespace osu.Framework.Input
                 if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
-                    if (handleMouseDragStart(state))
-                        draggingDrawable.Dragging = true;
+                    handleMouseDragStart(state);
                 }
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (draggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
+                if (isValidClick && (DraggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
@@ -481,7 +492,7 @@ namespace osu.Framework.Input
                 if (isDragging)
                 {
                     isDragging = false;
-                    if (draggingDrawable?.Dragging != false)
+                    if (DraggingDrawable?.Dragging != false)
                         handleMouseDragEnd(state);
                 }
             }
@@ -535,23 +546,22 @@ namespace osu.Framework.Input
         private bool handleMouseDrag(InputState state)
         {
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return draggingDrawable?.TriggerDrag(state) ?? false;
+            return DraggingDrawable?.TriggerDrag(state) ?? false;
         }
 
         private bool handleMouseDragStart(InputState state)
         {
-            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state, true));
-            return draggingDrawable != null;
+            DraggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state, true));
+            return DraggingDrawable != null;
         }
 
         private bool handleMouseDragEnd(InputState state)
         {
-            if (draggingDrawable == null)
+            if (DraggingDrawable == null)
                 return false;
 
-            bool result = draggingDrawable.TriggerDragEnd(state, true);
-            draggingDrawable.Dragging = false;
-            draggingDrawable = null;
+            bool result = DraggingDrawable.TriggerDragEnd(state, true);
+            DraggingDrawable = null;
 
             return result;
         }
