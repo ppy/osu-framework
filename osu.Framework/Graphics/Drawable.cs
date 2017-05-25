@@ -1542,7 +1542,23 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnDoubleClick(InputState state) => false;
 
-        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Starts to drag this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="checkCanDrag">Whether we should check this Drawable's OnDragStart returns true before actually starting a drag.</param>
+        public bool TriggerDragStart(InputState screenSpaceState = null, bool checkCanDrag = false)
+        {
+            if (Dragging)
+                return true;
+            
+            if (checkCanDrag & !OnDragStart(createCloneInParentSpace(screenSpaceState)))
+                return false;
+
+            ourInputManager?.ChangeDrag(this);
+
+            return true;
+        }
 
         protected virtual bool OnDragStart(InputState state) => false;
 
@@ -1560,12 +1576,10 @@ namespace osu.Framework.Graphics
             if (!Dragging)
                 return false;
 
-            Dragging = false;
-
             if (screenSpaceState == null)
                 screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
 
-            if (!isCallback) ourInputManager.DrawableTriggerDragEnd(this);
+            if (!isCallback) ourInputManager.ChangeDrag(null);
             return OnDragEnd(createCloneInParentSpace(screenSpaceState));
         }
 

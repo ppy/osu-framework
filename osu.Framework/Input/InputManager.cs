@@ -81,8 +81,6 @@ namespace osu.Framework.Input
 
         public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
-        private bool triggeredDragEnd;
-
         public InputManager()
         {
             RelativeSizeAxes = Axes.Both;
@@ -106,6 +104,24 @@ namespace osu.Framework.Input
             FocusedDrawable?.TriggerFocusLost(null, true);
             FocusedDrawable = focus;
             FocusedDrawable?.TriggerFocus(CurrentState, true);
+        }
+
+        internal void ChangeDrag(Drawable drawable)
+        {
+            if (draggingDrawable == drawable) return;
+
+            if(draggingDrawable != null)
+                draggingDrawable.Dragging = false;
+
+            draggingDrawable = drawable;
+            if (drawable != null)
+            {
+                draggingDrawable.Dragging = true;
+                draggingDrawable.TriggerDragStart(CurrentState, true);
+            }
+
+            /// Keep locally dragging to avoid a new drag until the mouse keys are released
+            isDragging = true;
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
@@ -449,10 +465,10 @@ namespace osu.Framework.Input
                     }
                 }
 
-                if (!triggeredDragEnd && !isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
+                if (!isDragging && Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) > drag_start_distance)
                 {
                     isDragging = true;
-                    if(handleMouseDragStart(state))
+                    if (handleMouseDragStart(state))
                         draggingDrawable.Dragging = true;
                 }
             }
@@ -464,12 +480,12 @@ namespace osu.Framework.Input
                 mouseDownInputQueue = null;
                 mouse.PositionMouseDown = null;
                 isValidClick = false;
-                triggeredDragEnd = false;
 
                 if (isDragging)
                 {
                     isDragging = false;
-                    handleMouseDragEnd(state);
+                    if (draggingDrawable?.Dragging != false)
+                        handleMouseDragEnd(state);
                 }
             }
         }
@@ -527,7 +543,7 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragStart(InputState state)
         {
-            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state));
+            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state, true));
             return draggingDrawable != null;
         }
 
@@ -537,6 +553,7 @@ namespace osu.Framework.Input
                 return false;
 
             bool result = draggingDrawable.TriggerDragEnd(state, true);
+            draggingDrawable.Dragging = false;
             draggingDrawable = null;
 
             return result;
@@ -616,13 +633,6 @@ namespace osu.Framework.Input
         }
 
         private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
-
-        public void DrawableTriggerDragEnd(Drawable drawable)
-        {
-            draggingDrawable = null;
-            isDragging = false;
-            triggeredDragEnd = true;
-        }
 
         public InputHandler GetHandler(Type handlerType)
         {
