@@ -40,7 +40,7 @@ namespace osu.Framework.Audio.Track
         private volatile bool isLoaded;
 
         public override bool IsLoaded => isLoaded;
-        
+
         public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
