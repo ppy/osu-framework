@@ -120,7 +120,7 @@ namespace osu.Framework.Input
                 draggingDrawable.TriggerDragStart(CurrentState, true);
             }
 
-            /// Keep locally dragging to avoid a new drag until the mouse keys are released
+            //Keep locally dragging to avoid a new drag until the mouse keys are released
             isDragging = true;
         }
 
