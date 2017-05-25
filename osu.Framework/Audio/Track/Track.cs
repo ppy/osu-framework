@@ -56,9 +56,9 @@ namespace osu.Framework.Audio.Track
 
         public virtual int? Bitrate => null;
 
-        protected Action pendingSeekAction;
+        protected Action PendingSeekAction;
 
-        public virtual bool IsSeeking => pendingSeekAction != null;
+        public virtual bool IsSeeking => PendingSeekAction != null;
 
         /// <summary>
         /// Seek to a new position.
@@ -109,10 +109,10 @@ namespace osu.Framework.Audio.Track
                 Start();
             }
 
-            if (pendingSeekAction != null)
+            if (PendingSeekAction != null)
             {
-                pendingSeekAction();
-                pendingSeekAction = null;
+                PendingSeekAction();
+                PendingSeekAction = null;
             }
 
             base.Update();
