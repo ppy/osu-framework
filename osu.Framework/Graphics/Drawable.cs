@@ -1567,7 +1567,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnDrag(InputState state) => false;
 
         /// <summary>
-        /// Undrag this drawable.
+        /// Ends to drag this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
         /// <param name="isCallback">Used to avoid cyclid recursion.</param>
