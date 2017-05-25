@@ -1551,7 +1551,7 @@ namespace osu.Framework.Graphics
         {
             if (Dragging)
                 return true;
-            
+
             if (checkCanDrag & !OnDragStart(createCloneInParentSpace(screenSpaceState)))
                 return false;
 
