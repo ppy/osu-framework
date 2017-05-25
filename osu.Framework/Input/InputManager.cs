@@ -115,10 +115,7 @@ namespace osu.Framework.Input
 
             draggingDrawable = drawable;
             if (drawable != null)
-            {
                 draggingDrawable.Dragging = true;
-                draggingDrawable.TriggerDragStart(CurrentState, true);
-            }
 
             //Keep locally dragging to avoid a new drag until the mouse keys are released
             isDragging = true;
