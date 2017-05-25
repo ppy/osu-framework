@@ -1524,7 +1524,7 @@ namespace osu.Framework.Graphics
         /// Unhover this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="isCallback">Used to avoid cyclid recursion.</param>
+        /// <param name="isCallback">Used to avoid cyclic recursion.</param>
         public void TriggerHoverLost(InputState screenSpaceState = null, bool isCallback = false)
         {
             if (!Hovering)
@@ -1614,7 +1614,7 @@ namespace osu.Framework.Graphics
         /// Unfocuses this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="isCallback">Used to avoid cyclid recursion.</param>
+        /// <param name="isCallback">Used to avoid cyclic recursion.</param>
         public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
         {
             if (!HasFocus)
