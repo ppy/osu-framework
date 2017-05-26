@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
-            if (args.Key != Key.Tab)
+            if (TabbableContentContainer == null || args.Key != Key.Tab)
                 return false;
 
             nextTabStop(TabbableContentContainer, state.Keyboard.ShiftPressed)?.TriggerFocus();
