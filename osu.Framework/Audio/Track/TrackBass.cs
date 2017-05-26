@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Track
 
         public TrackBass(Stream data, bool quick = false)
         {
-            PendingActions.Enqueue(() =>
+            PendingActions.Enqueue(new ExtendedAction(() =>
             {
                 Preview = quick;
 
@@ -83,7 +83,7 @@ namespace osu.Framework.Audio.Track
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                 isLoaded = true;
-            });
+            }));
 
             InvalidateState();
         }
@@ -141,13 +141,13 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            PendingActions.Enqueue(() =>
+            PendingActions.Enqueue(new ExtendedAction(() =>
             {
                 if (IsRunning)
                     Bass.ChannelPause(activeStream);
 
                 isPlayed = false;
-            });
+            }));
         }
 
         private int direction;
@@ -163,13 +163,13 @@ namespace osu.Framework.Audio.Track
             isRunning = true;
 
             base.Start();
-            PendingActions.Enqueue(() =>
+            PendingActions.Enqueue(new ExtendedAction(() =>
             {
                 if (Bass.ChannelPlay(activeStream))
                     isPlayed = true;
                 else
                     isRunning = false;
-            });
+            }));
         }
 
         public override bool Seek(double seek)
@@ -179,7 +179,7 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingSeekAction = () =>
+            PendingActions.Enqueue(lastSeekAction = new ExtendedAction(() =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Track
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
-            };
+            }, true));
 
             return conservativeClamped == seek;
         }

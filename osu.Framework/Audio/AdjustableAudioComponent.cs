@@ -59,7 +59,7 @@ namespace osu.Framework.Audio
 
         internal void InvalidateState(double newValue = 0)
         {
-            PendingActions.Enqueue(OnStateChanged);
+            PendingActions.Enqueue(new ExtendedAction(OnStateChanged));
         }
 
         internal virtual void OnStateChanged()

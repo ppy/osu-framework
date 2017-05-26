@@ -13,7 +13,9 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
         /// </summary>
-        protected ConcurrentQueue<Action> PendingActions = new ConcurrentQueue<Action>();
+        protected ConcurrentQueue<ExtendedAction> PendingActions = new ConcurrentQueue<ExtendedAction>();
+
+        protected ExtendedAction lastSeekAction;
 
         ~AudioComponent()
         {
@@ -32,9 +34,14 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            Action action;
-            while (!IsDisposed && PendingActions.TryDequeue(out action))
-                action();
+            ExtendedAction extendedAction;
+            while (!IsDisposed && PendingActions.TryDequeue(out extendedAction))
+            {
+                if (extendedAction.IsSeekAction && extendedAction != lastSeekAction)
+                    continue;
+
+                extendedAction.Action();
+            }
         }
 
         public virtual bool HasCompleted => IsDisposed;
@@ -53,9 +60,22 @@ namespace osu.Framework.Audio
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            PendingActions.Enqueue(() => Dispose(true));
+            PendingActions.Enqueue(new ExtendedAction(() => Dispose(true)));
         }
 
         #endregion
+
+        public class ExtendedAction
+        {
+            public Action Action;
+
+            public bool IsSeekAction;
+
+            public ExtendedAction(Action Action, bool isSeekAction = false)
+            {
+                this.Action = Action;
+                IsSeekAction = isSeekAction;
+            }
+        }
     }
 }

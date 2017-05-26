@@ -22,16 +22,16 @@ namespace osu.Framework.Audio
 
         public void AddItemToList(T item)
         {
-            PendingActions.Enqueue(delegate
+            PendingActions.Enqueue(new ExtendedAction(delegate
             {
                 if (Items.Contains(item)) return;
                 Items.Add(item);
-            });
+            }));
         }
 
         public void RegisterItem(T item)
         {
-            PendingActions.Enqueue(() => item.AddAdjustmentDependency(this));
+            PendingActions.Enqueue(new ExtendedAction(() => item.AddAdjustmentDependency(this)));
         }
 
         internal override void OnStateChanged()
