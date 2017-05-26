@@ -36,15 +36,16 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            Delegate actionItem;
-            while (!IsDisposed && PendingActions.TryDequeue(out actionItem))
+            Delegate queueItem;
+            while (!IsDisposed && PendingActions.TryDequeue(out queueItem))
             {
-                if (actionItem is Action)
-                    ((Action)actionItem)();
-                else if (actionItem is SeekAction)
+                var actionItem = queueItem as Action;
+                if (actionItem != null)
+                    actionItem();
+                else
                 {
-                    SeekAction seekActionItem = (SeekAction)actionItem;
-                    if (seekActionItem == LastSeekAction)
+                    var seekActionItem = queueItem as SeekAction;
+                    if (seekActionItem != null && seekActionItem == LastSeekAction)
                         seekActionItem();
                 }
             }

@@ -179,7 +179,7 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.Enqueue(LastSeekAction = new SeekAction(() =>
+            PendingActions.Enqueue(LastSeekAction = () =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Track
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
-            }));
+            });
 
             return conservativeClamped == seek;
         }
