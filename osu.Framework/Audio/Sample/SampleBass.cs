@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using ManagedBass;
-using System;
 using System.Collections.Concurrent;
 
 namespace osu.Framework.Audio.Sample

@@ -179,7 +179,7 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.Enqueue(lastSeekAction = new ExtendedAction(() =>
+            PendingActions.Enqueue(LastSeekAction = new ExtendedAction(() =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 

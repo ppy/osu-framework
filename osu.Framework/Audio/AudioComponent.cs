@@ -15,7 +15,7 @@ namespace osu.Framework.Audio
         /// </summary>
         protected ConcurrentQueue<ExtendedAction> PendingActions = new ConcurrentQueue<ExtendedAction>();
 
-        protected ExtendedAction lastSeekAction;
+        protected ExtendedAction LastSeekAction;
 
         ~AudioComponent()
         {
@@ -34,13 +34,11 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            ExtendedAction extendedAction;
-            while (!IsDisposed && PendingActions.TryDequeue(out extendedAction))
+            ExtendedAction actionItem;
+            while (!IsDisposed && PendingActions.TryDequeue(out actionItem))
             {
-                if (extendedAction.IsSeekAction && extendedAction != lastSeekAction)
-                    continue;
-
-                extendedAction.Action();
+                if (!actionItem.IsSeekAction || actionItem == LastSeekAction)
+                    actionItem.Action();
             }
         }
 
@@ -71,9 +69,9 @@ namespace osu.Framework.Audio
 
             public bool IsSeekAction;
 
-            public ExtendedAction(Action Action, bool isSeekAction = false)
+            public ExtendedAction(Action action, bool isSeekAction = false)
             {
-                this.Action = Action;
+                Action = action;
                 IsSeekAction = isSeekAction;
             }
         }
