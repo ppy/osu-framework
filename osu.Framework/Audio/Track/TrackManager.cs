@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Track
                 exclusiveTrack = track;
             }
 
-            PendingActions.Enqueue(new ExtendedAction(() =>
+            PendingActions.Enqueue(new Action(() =>
             {
                 foreach (var item in Items)
                     if (!item.HasCompleted)

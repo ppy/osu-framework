@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,7 +23,7 @@ namespace osu.Framework.Audio
 
         public void AddItemToList(T item)
         {
-            PendingActions.Enqueue(new ExtendedAction(delegate
+            PendingActions.Enqueue(new Action(delegate
             {
                 if (Items.Contains(item)) return;
                 Items.Add(item);
@@ -31,7 +32,7 @@ namespace osu.Framework.Audio
 
         public void RegisterItem(T item)
         {
-            PendingActions.Enqueue(new ExtendedAction(() => item.AddAdjustmentDependency(this)));
+            PendingActions.Enqueue(new Action(() => item.AddAdjustmentDependency(this)));
         }
 
         internal override void OnStateChanged()

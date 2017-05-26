@@ -13,9 +13,11 @@ namespace osu.Framework.Audio
         /// <summary>
         /// Audio operations will be run on a separate dedicated thread, so we need to schedule any audio API calls using this queue.
         /// </summary>
-        protected ConcurrentQueue<ExtendedAction> PendingActions = new ConcurrentQueue<ExtendedAction>();
+        protected ConcurrentQueue<Delegate> PendingActions = new ConcurrentQueue<Delegate>();
 
-        protected ExtendedAction LastSeekAction;
+        protected SeekAction LastSeekAction;
+
+        protected delegate void SeekAction();
 
         ~AudioComponent()
         {
@@ -34,18 +36,24 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            ExtendedAction actionItem;
+            Delegate actionItem;
             while (!IsDisposed && PendingActions.TryDequeue(out actionItem))
             {
-                if (!actionItem.IsSeekAction || actionItem == LastSeekAction)
-                    actionItem.Action();
+                if (actionItem is Action)
+                    ((Action)actionItem)();
+                else if (actionItem is SeekAction)
+                {
+                    SeekAction seekActionItem = (SeekAction)actionItem;
+                    if (seekActionItem == LastSeekAction)
+                        seekActionItem();
+                }
             }
         }
 
         public virtual bool HasCompleted => IsDisposed;
 
         public virtual bool IsLoaded => true;
-
+        
         #region IDisposable Support
 
         protected volatile bool IsDisposed; // To detect redundant calls
@@ -58,22 +66,9 @@ namespace osu.Framework.Audio
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            PendingActions.Enqueue(new ExtendedAction(() => Dispose(true)));
+            PendingActions.Enqueue(new Action(() => Dispose(true)));
         }
 
         #endregion
-
-        public class ExtendedAction
-        {
-            public Action Action;
-
-            public bool IsSeekAction;
-
-            public ExtendedAction(Action action, bool isSeekAction = false)
-            {
-                Action = action;
-                IsSeekAction = isSeekAction;
-            }
-        }
     }
 }
