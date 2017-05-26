@@ -53,7 +53,7 @@ namespace osu.Framework.Audio
         public virtual bool HasCompleted => IsDisposed;
 
         public virtual bool IsLoaded => true;
-        
+
         #region IDisposable Support
 
         protected volatile bool IsDisposed; // To detect redundant calls
