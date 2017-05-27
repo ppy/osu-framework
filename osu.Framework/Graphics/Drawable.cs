@@ -1520,7 +1520,22 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnHover(InputState state) => false;
 
-        public void TriggerHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Unhover this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="isCallback">Used to avoid cyclic recursion.</param>
+        public void TriggerHoverLost(InputState screenSpaceState = null, bool isCallback = false)
+        {
+            if (!Hovering)
+                return;
+
+            if (screenSpaceState == null)
+                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
+
+            if (!isCallback) ourInputManager.DrawableTriggerHoverEnd(this);
+            OnHoverLost(createCloneInParentSpace(screenSpaceState));
+        }
 
         protected virtual void OnHoverLost(InputState state)
         {
@@ -1599,7 +1614,7 @@ namespace osu.Framework.Graphics
         /// Unfocuses this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
+        /// <param name="isCallback">Used to avoid cyclic recursion.</param>
         public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
         {
             if (!HasFocus)
