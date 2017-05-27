@@ -250,7 +250,7 @@ namespace osu.Framework.Graphics
 
         public class CreationOrderDepthComparer : IComparer<Drawable>
         {
-            public int Compare(Drawable x, Drawable y)
+            public virtual int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
@@ -263,7 +263,7 @@ namespace osu.Framework.Graphics
 
         public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
         {
-            public int Compare(Drawable x, Drawable y)
+            public virtual int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
