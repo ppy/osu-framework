@@ -1542,7 +1542,23 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnDoubleClick(InputState state) => false;
 
-        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Starts to drag this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="checkCanDrag">Whether we should check this Drawable's OnDragStart returns true before actually starting a drag.</param>
+        public bool TriggerDragStart(InputState screenSpaceState = null, bool checkCanDrag = false)
+        {
+            if (Dragging)
+                return true;
+
+            if (checkCanDrag & !OnDragStart(createCloneInParentSpace(screenSpaceState)))
+                return false;
+
+            ourInputManager?.ChangeDrag(this);
+
+            return true;
+        }
 
         protected virtual bool OnDragStart(InputState state) => false;
 
@@ -1550,7 +1566,22 @@ namespace osu.Framework.Graphics
 
         protected virtual bool OnDrag(InputState state) => false;
 
-        public bool TriggerDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Ends to drag this drawable.
+        /// </summary>
+        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="isCallback">Used to avoid cyclid recursion.</param>
+        public bool TriggerDragEnd(InputState screenSpaceState = null, bool isCallback = false)
+        {
+            if (!Dragging)
+                return false;
+
+            if (screenSpaceState == null)
+                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
+
+            if (!isCallback) ourInputManager.ChangeDrag(null);
+            return OnDragEnd(createCloneInParentSpace(screenSpaceState));
+        }
 
         protected virtual bool OnDragEnd(InputState state) => false;
 
@@ -1647,6 +1678,11 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable is currently hovered over.
         /// </summary>
         public bool Hovering { get; internal set; }
+
+        /// <summary>
+        /// Whether this Drawable is currently dragged.
+        /// </summary>
+        public bool Dragging { get; internal set; }
 
         /// <summary>
         /// Receive input even if the cursor is not contained within our <see cref="Drawable.DrawRectangle"/>.
