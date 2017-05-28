@@ -1541,7 +1541,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnClick(InputState state) => false;
 
         /// <summary>
-        /// Triggers <see cref="OnMouseDown(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
         public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
