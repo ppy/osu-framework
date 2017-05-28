@@ -106,22 +106,30 @@ namespace osu.Framework.Input
         /// Usually you'd want to call TriggerFocus on the drawable directly instead.
         /// </summary>
         /// <param name="focus">The drawable to become focused.</param>
-        internal void ChangeFocus(Drawable focus)
+        public void ChangeFocus(Drawable focus)
         {
             if (focus == FocusedDrawable) return;
 
             if (FocusedDrawable != null)
             {
-                FocusedDrawable.TriggerFocusLost(null, true);
                 FocusedDrawable.HasFocus = false;
+                FocusedDrawable.TriggerOnFocusLost(CurrentState);
             }
 
-            FocusedDrawable = focus;
+            FocusedDrawable = null;
 
-            if (FocusedDrawable != null)
+            if (focus?.IsPresent == true)
             {
+                // pre-emptively set the focused drawable before we do a focus check.
+                // this allows for correct behaviour if a subsequent ChangeFocus call occurs as a result of TriggerOnFocus below.
+                FocusedDrawable = focus;
                 FocusedDrawable.HasFocus = true;
-                FocusedDrawable.TriggerFocus(CurrentState);
+
+                if (!focus.TriggerOnFocus(CurrentState))
+                {
+                    focus.HasFocus = false;
+                    if (FocusedDrawable == focus) FocusedDrawable = null;
+                }
             }
         }
 
@@ -521,11 +529,16 @@ namespace osu.Framework.Input
 
         private bool handleMouseClick(InputState state)
         {
+            var intersectingQueue = mouseInputQueue.Intersect(mouseDownInputQueue);
+
+            var newFocus = intersectingQueue.FirstOrDefault(t => !t.HasFocus && t.TriggerOnFocus(state));
+            ChangeFocus(newFocus);
+
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state) | t.TriggerFocus(state)))
+            if (intersectingQueue.Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state)))
                 return true;
 
-            FocusedDrawable?.TriggerFocusLost();
+            ChangeFocus(newFocus);
             return false;
         }
 
@@ -574,7 +587,7 @@ namespace osu.Framework.Input
             {
                 if (args.Key == Key.Escape)
                 {
-                    FocusedDrawable.TriggerFocusLost(state);
+                    ChangeFocus(null);
                     return true;
                 }
                 if (FocusedDrawable.TriggerOnKeyDown(state, args))
@@ -625,12 +638,11 @@ namespace osu.Framework.Input
             if (stillValid)
                 return false;
 
-            FocusedDrawable.TriggerFocusLost(state);
-            FocusedDrawable = null;
+            ChangeFocus(null);
             return true;
         }
 
-        private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state);
+        private void focusTopMostRequestingDrawable(InputState state) => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus));
 
         public InputHandler GetHandler(Type handlerType)
         {

@@ -1511,11 +1511,6 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
-        /// <summary>
-        /// Find the first parent InputManager which this drawable is contained by.
-        /// </summary>
-        private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
-
         public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnHover(InputState state) => false;
@@ -1583,43 +1578,18 @@ namespace osu.Framework.Graphics
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
-        /// Focuses this drawable.
+        /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public bool TriggerFocus(InputState screenSpaceState = null)
-        {
-            if (HasFocus)
-                return true;
-
-            if (!IsPresent)
-                return false;
-
-            if (!OnFocus(createCloneInParentSpace(screenSpaceState)))
-                return false;
-
-            ourInputManager?.ChangeFocus(this);
-
-            return true;
-        }
+        public bool TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnFocus(InputState state) => false;
 
         /// <summary>
-        /// Unfocuses this drawable.
+        /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
-        public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
-        {
-            if (!HasFocus)
-                return;
-
-            if (screenSpaceState == null)
-                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
-
-            if (!isCallback) ourInputManager.ChangeFocus(null);
-            OnFocusLost(createCloneInParentSpace(screenSpaceState));
-        }
+        public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
         protected virtual void OnFocusLost(InputState state)
         {

@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        private InputManager inputManager;
+        protected InputManager InputManager;
 
         public override bool RequestingFocus => State == Visibility.Visible;
 
@@ -29,17 +29,18 @@ namespace osu.Framework.Graphics.Containers
         [BackgroundDependencyLoader]
         private void load(UserInputManager inputManager)
         {
-            this.inputManager = inputManager;
+            InputManager = inputManager;
         }
 
         protected override void PopIn()
         {
-            Schedule(inputManager.TriggerFocusContention);
+            Schedule(InputManager.TriggerFocusContention);
         }
 
         protected override void PopOut()
         {
-            TriggerFocusLost();
+            if (HasFocus)
+                InputManager.ChangeFocus(null);
         }
     }
 }
