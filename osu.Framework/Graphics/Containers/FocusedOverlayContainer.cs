@@ -34,7 +34,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void PopIn()
         {
-            Schedule(InputManager.TriggerFocusContention);
+            Schedule(() => InputManager.TriggerFocusContention());
         }
 
         protected override void PopOut()
