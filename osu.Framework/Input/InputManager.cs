@@ -110,13 +110,16 @@ namespace osu.Framework.Input
         {
             if (focus == FocusedDrawable) return;
 
-            if (FocusedDrawable != null)
+            var previousFocus = FocusedDrawable;
+            FocusedDrawable = null;
+
+            if (previousFocus != null)
             {
-                FocusedDrawable.HasFocus = false;
-                FocusedDrawable.TriggerOnFocusLost(CurrentState);
+                previousFocus.HasFocus = false;
+                previousFocus.TriggerOnFocusLost(CurrentState);
             }
 
-            FocusedDrawable = null;
+            if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
 
             if (focus?.IsPresent == true)
             {
