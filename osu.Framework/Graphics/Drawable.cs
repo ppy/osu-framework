@@ -1525,35 +1525,59 @@ namespace osu.Framework.Graphics
         protected virtual void OnHoverLost(InputState state)
         {
         }
-
+        
+        /// <summary>
+        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnClick(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnMouseDown(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDoubleClick(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragStart(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDrag(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragEnd(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnWheel(InputState state) => false;
@@ -1616,14 +1640,23 @@ namespace osu.Framework.Graphics
         {
         }
 
+        /// <summary>
+        /// Triggers <see cref="OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnMouseMove(InputState state) => false;
