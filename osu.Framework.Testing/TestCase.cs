@@ -106,7 +106,7 @@ namespace osu.Framework.Testing
 
         private void runNextStep(Action onCompletion)
         {
-            loadableStep?.TriggerClick();
+            loadableStep?.TriggerOnClick();
 
             string text = ".";
 
