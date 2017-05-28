@@ -6,6 +6,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -53,6 +54,14 @@ namespace osu.Framework.Graphics.UserInterface
             AnimateClose();
         }
 
+        private InputManager inputManager;
+
+        [BackgroundDependencyLoader]
+        private void load(UserInputManager inputManager)
+        {
+            this.inputManager = inputManager;
+        }
+
         private MenuState state;
 
         public MenuState State
@@ -66,13 +75,14 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     case MenuState.Closed:
                         AnimateClose();
-                        TriggerFocusLost();
+                        if (HasFocus)
+                            inputManager.ChangeFocus(null);
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
 
                         //schedule required as we may not be present currently.
-                        Schedule(() => TriggerFocus());
+                        Schedule(() => inputManager.ChangeFocus(this));
                         break;
                 }
 
