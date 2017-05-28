@@ -157,7 +157,7 @@ namespace osu.Framework.Input
             {
                 foreach (var d in mouseInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerMouseMove(CurrentState)) break;
+                        if (d.TriggerOnMouseMove(CurrentState)) break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;
@@ -294,7 +294,7 @@ namespace osu.Framework.Input
             foreach (Drawable d in newlyUnhoveredDrawables)
             {
                 d.Hovering = false;
-                d.TriggerHoverLost(state);
+                d.TriggerOnHoverLost(state);
             }
 
             // Don't care about what's now explicitly unhovered
@@ -321,7 +321,7 @@ namespace osu.Framework.Input
                 }
 
                 d.Hovering = true;
-                if (d.TriggerHover(state))
+                if (d.TriggerOnHover(state))
                 {
                     hoverHandledDrawable = d;
                     break;
@@ -333,7 +333,7 @@ namespace osu.Framework.Input
             foreach (Drawable d in lastHoveredDrawables)
             {
                 d.Hovering = false;
-                d.TriggerHoverLost(state);
+                d.TriggerOnHoverLost(state);
             }
         }
 
@@ -479,7 +479,7 @@ namespace osu.Framework.Input
 
             mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
 
-            return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args)) != null;
+            return mouseInputQueue.Find(target => target.TriggerOnMouseDown(state, args)) != null;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -492,18 +492,18 @@ namespace osu.Framework.Input
             };
 
             //extra check for IsAlive because we are using an outdated queue.
-            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerMouseUp(state, args));
+            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerOnMouseUp(state, args));
         }
 
         private bool handleMouseMove(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerMouseMove(state));
+            return mouseInputQueue.Any(target => target.TriggerOnMouseMove(state));
         }
 
         private bool handleMouseClick(InputState state)
         {
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerClick(state) | t.TriggerFocus(state, true)))
+            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state) | t.TriggerFocus(state, true)))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();
@@ -512,18 +512,18 @@ namespace osu.Framework.Input
 
         private bool handleMouseDoubleClick(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerDoubleClick(state));
+            return mouseInputQueue.Any(target => target.TriggerOnDoubleClick(state));
         }
 
         private bool handleMouseDrag(InputState state)
         {
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return draggingDrawable?.TriggerDrag(state) ?? false;
+            return draggingDrawable?.TriggerOnDrag(state) ?? false;
         }
 
         private bool handleMouseDragStart(InputState state)
         {
-            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state));
+            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
             return draggingDrawable != null;
         }
 
@@ -532,7 +532,7 @@ namespace osu.Framework.Input
             if (draggingDrawable == null)
                 return false;
 
-            bool result = draggingDrawable.TriggerDragEnd(state);
+            bool result = draggingDrawable.TriggerOnDragEnd(state);
             draggingDrawable = null;
 
             return result;
@@ -540,7 +540,7 @@ namespace osu.Framework.Input
 
         private bool handleWheel(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerWheel(state));
+            return mouseInputQueue.Any(target => target.TriggerOnWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
@@ -558,11 +558,11 @@ namespace osu.Framework.Input
                     FocusedDrawable.TriggerFocusLost(state);
                     return true;
                 }
-                if (FocusedDrawable.TriggerKeyDown(state, args))
+                if (FocusedDrawable.TriggerOnKeyDown(state, args))
                     return true;
             }
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyDown(state, args));
+            return keyboardInputQueue.Any(target => target.TriggerOnKeyDown(state, args));
         }
 
         private bool handleKeyUp(InputState state, Key key)
@@ -572,10 +572,10 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (!unfocusIfNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
+            if (!unfocusIfNoLongerValid(state) && (FocusedDrawable?.TriggerOnKeyUp(state, args) ?? false))
                 return true;
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
+            return keyboardInputQueue.Any(target => target.TriggerOnKeyUp(state, args));
         }
 
         /// <summary>

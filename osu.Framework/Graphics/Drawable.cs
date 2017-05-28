@@ -1516,45 +1516,45 @@ namespace osu.Framework.Graphics
         /// </summary>
         private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
 
-        public bool TriggerHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnHover(InputState state) => false;
 
-        public void TriggerHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
+        public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
         protected virtual void OnHoverLost(InputState state)
         {
         }
 
-        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
-        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
-        public bool TriggerClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnClick(InputState state) => false;
 
-        public bool TriggerDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDoubleClick(InputState state) => false;
 
-        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragStart(InputState state) => false;
 
-        public bool TriggerDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDrag(InputState state) => false;
 
-        public bool TriggerDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragEnd(InputState state) => false;
 
-        public bool TriggerWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnWheel(InputState state) => false;
 
@@ -1616,15 +1616,15 @@ namespace osu.Framework.Graphics
         {
         }
 
-        public bool TriggerKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
-        public bool TriggerKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
+        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
-        public bool TriggerMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnMouseMove(InputState state) => false;
 
@@ -1695,7 +1695,7 @@ namespace osu.Framework.Graphics
             return new InputState
             {
                 Keyboard = screenSpaceState.Keyboard,
-                Mouse = new LocalMouseState(screenSpaceState.Mouse, this),
+                Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this),
                 Last = screenSpaceState.Last
             };
         }
