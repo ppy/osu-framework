@@ -145,7 +145,10 @@ namespace osu.Framework.Graphics
         /// <returns>A new dependency container to be stored against this Drawable.</returns>
         protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
 
-        protected DependencyContainer Dependencies { get; private set; }
+        /// <summary>
+        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
+        /// </summary>
+        internal DependencyContainer Dependencies { get; private set; }
 
         /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
