@@ -23,8 +23,6 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using KeyboardState = osu.Framework.Input.KeyboardState;
-using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics
