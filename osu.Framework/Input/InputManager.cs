@@ -118,7 +118,7 @@ namespace osu.Framework.Input
         /// <param name="focus">The drawable to become focused.</param>
         /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
         /// <returns>True iff the given drawable is now focused.</returns>
-        public bool ChangeFocus(Drawable focus, InputState state)
+        protected bool ChangeFocus(Drawable focus, InputState state)
         {
             if (focus == FocusedDrawable) return FocusedDrawable != null;
 
