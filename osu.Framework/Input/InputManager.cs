@@ -106,9 +106,17 @@ namespace osu.Framework.Input
         /// Usually you'd want to call TriggerFocus on the drawable directly instead.
         /// </summary>
         /// <param name="focus">The drawable to become focused.</param>
-        public void ChangeFocus(Drawable focus)
+        public bool ChangeFocus(Drawable focus) => ChangeFocus(focus, CurrentState);
+
+        /// <summary>
+        /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
+        /// Usually you'd want to call TriggerFocus on the drawable directly instead.
+        /// </summary>
+        /// <param name="focus">The drawable to become focused.</param>
+        /// <param name="state">The <see cref="InputState"/> assiciated with the focusing event.</param>
+        public bool ChangeFocus(Drawable focus, InputState state)
         {
-            if (focus == FocusedDrawable) return;
+            if (focus == FocusedDrawable) return FocusedDrawable != null;
 
             var previousFocus = FocusedDrawable;
             FocusedDrawable = null;
@@ -134,6 +142,8 @@ namespace osu.Framework.Input
                     if (FocusedDrawable == focus) FocusedDrawable = null;
                 }
             }
+
+            return FocusedDrawable != null;
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
@@ -534,8 +544,7 @@ namespace osu.Framework.Input
         {
             var intersectingQueue = mouseInputQueue.Intersect(mouseDownInputQueue);
 
-            var newFocus = intersectingQueue.FirstOrDefault(t => !t.HasFocus && t.TriggerOnFocus(state));
-            ChangeFocus(newFocus);
+            var newFocus = intersectingQueue.FirstOrDefault(t => !t.HasFocus && ChangeFocus(t, state));
 
             //extra check for IsAlive because we are using an outdated queue.
             if (intersectingQueue.Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state)))
