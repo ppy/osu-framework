@@ -102,18 +102,23 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
-        /// Usually you'd want to call TriggerFocus on the drawable directly instead.
+        /// Changes the currently-focused drawable. First unfocuses the currently-focused drawable,
+        /// then attempts to focus the given drawable if it is not null. If the given drawable is
+        /// already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="focus">The drawable to become focused.</param>
+        /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
+        /// <returns>True iff the given drawable is now focused.</returns>
         public bool ChangeFocus(Drawable focus) => ChangeFocus(focus, CurrentState);
 
         /// <summary>
-        /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
-        /// Usually you'd want to call TriggerFocus on the drawable directly instead.
+        /// Changes the currently-focused drawable. First unfocuses the currently-focused drawable,
+        /// then attempts to focus the given drawable if it is not null. If the given drawable is
+        /// already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="focus">The drawable to become focused.</param>
-        /// <param name="state">The <see cref="InputState"/> assiciated with the focusing event.</param>
+        /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
+        /// <returns>True iff the given drawable is now focused.</returns>
         public bool ChangeFocus(Drawable focus, InputState state)
         {
             if (focus == FocusedDrawable) return FocusedDrawable != null;
