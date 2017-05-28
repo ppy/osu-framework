@@ -43,7 +43,6 @@ namespace osu.Framework.Graphics.Containers
         private readonly Container content;
         private readonly ScrollBar scrollDragger;
 
-
         private bool scrollDraggerOverlapsContent = true;
 
         public bool ScrollDraggerOverlapsContent
@@ -55,7 +54,6 @@ namespace osu.Framework.Graphics.Containers
                 updatePadding();
             }
         }
-
 
         /// <summary>
         /// Vertical size of available content (content.Size)
@@ -111,6 +109,11 @@ namespace osu.Framework.Graphics.Containers
 
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
         private float clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
+
+        /// <summary>
+        /// If true, our zeroed scroll position will be the end of content rather than the start.
+        /// </summary>
+        public bool AnchorToBottom;
 
         protected override Container<Drawable> Content => content;
 
@@ -229,7 +232,7 @@ namespace osu.Framework.Graphics.Containers
             if (target != clamp(target))
                 childDelta /= 2;
 
-            offset(-childDelta[scrollDim], false);
+            offset((AnchorToBottom ? 1 : -1) * childDelta[scrollDim], false);
             return true;
         }
 
@@ -254,18 +257,18 @@ namespace osu.Framework.Graphics.Containers
             // velocity w.r.t. time. Then rearrange to solve for distance given velocity.
             double distance = velocity / (1 - Math.Exp(-DistanceDecayDrag));
 
-            offset((float)distance, true, DistanceDecayDrag);
+            offset((float)distance * (AnchorToBottom ? -1 : 1), true, DistanceDecayDrag);
 
             return true;
         }
 
         protected override bool OnWheel(InputState state)
         {
-            offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
+            offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta * (AnchorToBottom ? -1 : 1), true, DistanceDecayWheel);
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size[scrollDim]), false);
+        private void onScrollbarMovement(float value) => scrollTo(scrollableExtent - clamp(value / scrollDragger.Size[scrollDim]), false);
 
         public void OffsetScrollPosition(float offset)
         {
@@ -345,8 +348,10 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            scrollDragger?.MoveTo(scrollDir, Current * scrollDragger.Size[scrollDim]);
-            content.MoveTo(scrollDir, -Current);
+            float scrollCurrent = AnchorToBottom ? scrollableExtent - Current : Current;
+
+            scrollDragger?.MoveTo(scrollDir, scrollCurrent * scrollDragger.Size[scrollDim]);
+            content.MoveTo(scrollDir, -scrollCurrent);
         }
 
         private class ScrollBar : Container
