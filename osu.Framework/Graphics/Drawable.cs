@@ -158,8 +158,9 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool, bool)"/>.
         /// </summary>
-        internal DependencyContainer Dependencies { get; private set; }
+        protected DependencyContainer Dependencies { get; private set; }
 
         /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
