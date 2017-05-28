@@ -1602,20 +1602,6 @@ namespace osu.Framework.Graphics
             return true;
         }
 
-        /// <summary>
-        /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
-        /// Useful in combination with <see cref="RequestingFocus"/>
-        /// Make sure you are already Present (ie. you've run Update at least once after becoming visible). Schedule recommended.
-        /// </summary>
-        protected void TriggerFocusContention()
-        {
-            if (!IsPresent)
-                throw new InvalidOperationException("Can not obtain focus without being present.");
-
-            if (ourInputManager.FocusedDrawable != this)
-                ourInputManager.ChangeFocus(null);
-        }
-
         protected virtual bool OnFocus(InputState state) => false;
 
         /// <summary>

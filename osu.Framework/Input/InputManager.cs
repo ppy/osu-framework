@@ -93,6 +93,15 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
+        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestingFocus"/>.
+        /// </summary>
+        public void TriggerFocusContention()
+        {
+            if (FocusedDrawable != this)
+                ChangeFocus(null);
+        }
+
+        /// <summary>
         /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
         /// Usually you'd want to call TriggerFocus on the drawable directly instead.
         /// </summary>
