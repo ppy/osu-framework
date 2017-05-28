@@ -1586,8 +1586,7 @@ namespace osu.Framework.Graphics
         /// Focuses this drawable.
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="checkCanFocus">Whether we should check this Drawable's OnFocus returns true before actually providing focus.</param>
-        public bool TriggerFocus(InputState screenSpaceState = null, bool checkCanFocus = false)
+        public bool TriggerFocus(InputState screenSpaceState = null)
         {
             if (HasFocus)
                 return true;
@@ -1595,7 +1594,7 @@ namespace osu.Framework.Graphics
             if (!IsPresent)
                 return false;
 
-            if (checkCanFocus & !OnFocus(createCloneInParentSpace(screenSpaceState)))
+            if (!OnFocus(createCloneInParentSpace(screenSpaceState)))
                 return false;
 
             ourInputManager?.ChangeFocus(this);
@@ -1667,9 +1666,9 @@ namespace osu.Framework.Graphics
         public virtual bool HandleInput => false;
 
         /// <summary>
-        /// Check whether we have active focus. Walks up the drawable tree; use sparingly.
+        /// Check whether we have active focus.
         /// </summary>
-        public bool HasFocus => ourInputManager?.FocusedDrawable == this;
+        public bool HasFocus { get; internal set; }
 
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.

@@ -101,9 +101,19 @@ namespace osu.Framework.Input
         {
             if (focus == FocusedDrawable) return;
 
-            FocusedDrawable?.TriggerFocusLost(null, true);
+            if (FocusedDrawable != null)
+            {
+                FocusedDrawable.TriggerFocusLost(null, true);
+                FocusedDrawable.HasFocus = false;
+            }
+
             FocusedDrawable = focus;
-            FocusedDrawable?.TriggerFocus(CurrentState, true);
+
+            if (FocusedDrawable != null)
+            {
+                FocusedDrawable.HasFocus = true;
+                FocusedDrawable.TriggerFocus(CurrentState);
+            }
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
@@ -503,7 +513,7 @@ namespace osu.Framework.Input
         private bool handleMouseClick(InputState state)
         {
             //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state) | t.TriggerFocus(state, true)))
+            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state) | t.TriggerFocus(state)))
                 return true;
 
             FocusedDrawable?.TriggerFocusLost();
@@ -611,7 +621,7 @@ namespace osu.Framework.Input
             return true;
         }
 
-        private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
+        private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state);
 
         public InputHandler GetHandler(Type handlerType)
         {
