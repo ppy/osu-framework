@@ -1518,7 +1518,7 @@ namespace osu.Framework.Graphics
         protected virtual void OnHoverLost(InputState state)
         {
         }
-        
+
         /// <summary>
         /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
