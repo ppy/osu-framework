@@ -99,18 +99,13 @@ namespace osu.Framework.Audio.Track
         {
             FrameStatistics.Increment(StatisticsCounterType.Tracks);
 
-            base.Update();
-            if (Looping && !IsRunning && Length == CurrentTime)
+            if (Looping && HasCompleted)
             {
                 Reset();
                 Start();
             }
-        }
 
-        public struct TrackAmplitudes
-        {
-            public float LeftChannel;
-            public float RightChannel;
+            base.Update();
         }
     }
 }

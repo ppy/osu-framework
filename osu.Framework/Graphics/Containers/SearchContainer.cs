@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Extensions.IEnumerableExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -27,31 +28,28 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 searchTerm = value;
-                Children.OfType<IFilterable>().ToList().ForEach(child => match(child, new string[0]));
+                var terms = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                Children.OfType<IFilterable>().ForEach(child => match(child, terms));
             }
         }
 
-        private bool match(IFilterable filterable, IEnumerable<string> terms)
+        private static bool match(IFilterable filterable, IEnumerable<string> terms)
         {
-            var childTerms = new List<string>(terms);
-            childTerms.AddRange(filterable.FilterTerms);
+            //Words matched by parent is not needed to match children
+            var childTerms = terms.Where(term =>
+                !filterable.FilterTerms.Any(filterTerm =>
+                    filterTerm.IndexOf(term, StringComparison.InvariantCultureIgnoreCase) >= 0)).ToArray();
 
             var hasFilterableChildren = filterable as IHasFilterableChildren;
 
-            if (hasFilterableChildren != null)
-            {
-                //We need to check the children and should any child match this matches aswell
-                bool matching = false;
+            bool matching = childTerms.Length == 0;
 
+            //We need to check the children and should any child match this matches aswell
+            if (hasFilterableChildren != null)
                 foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
                     matching |= match(searchableChildren, childTerms);
 
-                return hasFilterableChildren.MatchingCurrentFilter = matching;
-            }
-            else
-            {
-                return filterable.MatchingCurrentFilter = childTerms.Any(term => term.IndexOf(SearchTerm, StringComparison.InvariantCultureIgnoreCase) >= 0);
-            }
+            return filterable.MatchingCurrentFilter = matching;
         }
     }
 }
