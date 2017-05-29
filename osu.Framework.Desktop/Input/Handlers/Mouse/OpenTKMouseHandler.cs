@@ -37,7 +37,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 Vector2 pos = new Vector2(point.X, point.Y);
 
                 // While not focused, let's silently ignore everything but position.
-                if (host.Window.Focused) state = new OpenTK.Input.MouseState();
+                if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
 
                 PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
 
