@@ -107,7 +107,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Whether this Drawable is fully loaded.
-        /// Override to false for delaying the load further (e.g. using IsAlive).
+        /// Override to false for delaying the load further (e.g. using <see cref="IsAlive"/>).
         /// </summary>
         public virtual bool IsLoaded => loadState >= LoadState.Loaded;
 
@@ -153,7 +153,7 @@ namespace osu.Framework.Graphics
         /// If not overridden, the load-time parent's dependency tree will be used.
         /// </summary>
         /// <param name="parent">The parent <see cref="DependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
-        /// <returns>A new dependency container to be stored against this Drawable.</returns>
+        /// <returns>A new dependency container to be stored for this Drawable.</returns>
         protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
 
         /// <summary>
@@ -1534,7 +1534,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state at which the Drawable becomes hovered.</param>
         /// <returns>True if this Drawable would like to handle the hover. If so, then
-        /// no further Drawabled down the scene graph will receive hovering events. If
+        /// no further Drawables down the scene graph will receive hovering events. If
         /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
         /// received once hover is lost.</returns>
         protected virtual bool OnHover(InputState state) => false;
@@ -2365,7 +2365,7 @@ namespace osu.Framework.Graphics
     }
 
     /// <summary>
-    /// Possible states of s <see cref="Drawable"/> within the loading pipeline.
+    /// Possible states of a <see cref="Drawable"/> within the loading pipeline.
     /// </summary>
     public enum LoadState
     {
@@ -2381,7 +2381,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loading is complete, but has not yet been finalized on the update thread
         /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
-        /// always runs on the update thread and require <see cref="Drawable.IsLoaded"/>).
+        /// always runs on the update thread and requires <see cref="Drawable.IsLoaded"/>).
         /// </summary>
         Loaded,
         /// <summary>
