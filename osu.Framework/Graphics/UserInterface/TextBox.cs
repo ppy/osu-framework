@@ -42,6 +42,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private AudioManager audio;
 
+        private InputManager inputManager;
+
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
@@ -107,9 +109,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host, AudioManager audio)
+        private void load(GameHost host, AudioManager audio, UserInputManager inputManager)
         {
             this.audio = audio;
+            this.inputManager = inputManager;
 
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
@@ -550,7 +553,7 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     }
                 case Key.Enter:
-                    TriggerFocusLost(state);
+                    if (HasFocus) inputManager.ChangeFocus(null);
                     return true;
                 case Key.Delete:
                     if (selectionLength == 0)
@@ -665,7 +668,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(state.Mouse.Position);
                 if (selectionLength > 0)
-                    TriggerFocus();
+                    inputManager.ChangeFocus(this);
 
                 cursorAndLayout.Invalidate();
             }

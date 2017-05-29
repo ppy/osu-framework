@@ -224,12 +224,16 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
 
+            float scrollOffset = -childDelta[scrollDim];
+            float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
+
+            Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.
-            if (target != clamp(target))
-                childDelta /= 2;
+            scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            offset(-childDelta[scrollDim], false);
+            offset(scrollOffset, false);
             return true;
         }
 
