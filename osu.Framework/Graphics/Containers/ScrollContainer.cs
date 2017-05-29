@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using OpenTK;
@@ -225,12 +224,16 @@ namespace osu.Framework.Graphics.Containers
 
             Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
 
+            float scrollOffset = -childDelta[scrollDim];
+            float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
+
+            Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+
             // If we are dragging past the extent of the scrollable area, half the offset
             // such that the user can feel it.
-            if (target != clamp(target))
-                childDelta /= 2;
+            scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            offset(-childDelta[scrollDim], false);
+            offset(scrollOffset, false);
             return true;
         }
 
@@ -388,6 +391,8 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(size, duration, easing);
             }
 
+            protected override bool OnClick(InputState state) => true;
+
             protected override bool OnHover(InputState state)
             {
                 FadeColour(hover_colour, 100);
@@ -409,6 +414,9 @@ namespace osu.Framework.Graphics.Containers
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
                 box.FadeColour(highlight_colour, 100);
+
+                dragOffset = Position[scrollDim];
+                Dragged?.Invoke(dragOffset);
                 return true;
             }
 

@@ -10,7 +10,6 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
@@ -30,7 +29,7 @@ namespace osu.Framework.Testing
 
         public readonly List<TestCase> Tests = new List<TestCase>();
 
-        private ConfigManager<TestBrowserOption> config;
+        private ConfigManager<TestBrowserSetting> config;
 
         private DynamicClassCompiler<TestCase> backgroundCompiler;
 
@@ -159,7 +158,7 @@ namespace osu.Framework.Testing
             base.LoadComplete();
 
             if (CurrentTest == null)
-                LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserOption.LastTest)));
+                LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserSetting.LastTest)));
         }
 
         protected override bool OnExiting(Screen next)
@@ -177,7 +176,7 @@ namespace osu.Framework.Testing
             if (testCase == null && Tests.Count > 0)
                 testCase = Tests[0];
 
-            config.Set(TestBrowserOption.LastTest, testCase?.Name);
+            config.Set(TestBrowserSetting.LastTest, testCase?.Name);
 
             if (CurrentTest != null)
             {

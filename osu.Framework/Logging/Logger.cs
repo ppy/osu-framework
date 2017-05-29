@@ -37,7 +37,12 @@ namespace osu.Framework.Logging
         public static string UserIdentifier = Environment.UserName;
 
         /// <summary>
-        /// An identifier used in log file headers to figure where the log file came from.
+        /// An identifier for game used in log file headers to figure where the log file came from.
+        /// </summary>
+        public static string GameIdentifier = @"game";
+
+        /// <summary>
+        /// An identifier for version used in log file headers to figure where the log file came from.
         /// </summary>
         public static string VersionIdentifier = @"unknown";
 
@@ -64,10 +69,14 @@ namespace osu.Framework.Logging
             return message;
         }
 
-        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime)
+        public static void Error(Exception e, string description, LoggingTarget target = LoggingTarget.Runtime, bool recursive = false)
         {
             Log($@"ERROR: {description}", target, LogLevel.Error);
             Log(e.ToString(), target, LogLevel.Error);
+
+            if (recursive)
+                for (Exception inner = e.InnerException; inner != null; inner = inner.InnerException)
+                    Log(inner.ToString(), target, LogLevel.Error);
         }
 
         /// <summary>
@@ -88,7 +97,7 @@ namespace osu.Framework.Logging
         }
 
         /// <summary>
-        /// Logs a message to the given log target and also displays a print statement. 
+        /// Logs a message to the given log target and also displays a print statement.
         /// </summary>
         /// <param name="message">The message to log. Can include newline (\n) characters to split into multiple lines.</param>
         /// <param name="target">The logging target (file).</param>
@@ -170,6 +179,10 @@ namespace osu.Framework.Logging
 
             NewEntry?.Invoke(entry);
 
+            if (Target == LoggingTarget.Information)
+                // don't want to log this to a file
+                return;
+
             background_scheduler.Add(delegate
             {
                 ensureLogDirectoryExists();
@@ -194,10 +207,11 @@ namespace osu.Framework.Logging
         /// <param name="lastLogSuffix">If specified, creates a copy of the last log file with specified suffix.</param>
         public void Clear(string lastLogSuffix = null)
         {
-            if (Filename == null) return;
-
             background_scheduler.Add(delegate
             {
+                ensureLogDirectoryExists();
+                if (Filename == null) return;
+
                 if (!string.IsNullOrEmpty(lastLogSuffix))
                     FileSafety.FileMove(Filename, Filename.Replace(@".log", $@"_{lastLogSuffix}.log"));
                 else
@@ -211,7 +225,7 @@ namespace osu.Framework.Logging
         {
             Add(@"----------------------------------------------------------");
             Add($@"{Target} Log for {UserIdentifier}");
-            Add($@"osu! version {VersionIdentifier}");
+            Add($@"{GameIdentifier} version {VersionIdentifier}");
             Add($@"Running on {Environment.OSVersion}, {Environment.ProcessorCount} cores");
             Add(@"----------------------------------------------------------");
         }
@@ -262,6 +276,7 @@ namespace osu.Framework.Logging
 
     public enum LoggingTarget
     {
+        Information,
         Runtime,
         Network,
         Tournament,

@@ -6,32 +6,32 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Configuration
 {
-    public class FrameworkConfigManager : ConfigManager<FrameworkConfig>
+    public class FrameworkConfigManager : ConfigManager<FrameworkSetting>
     {
         protected override string Filename => @"framework.ini";
 
         protected override void InitialiseDefaults()
         {
-            Set(FrameworkConfig.ShowLogOverlay, true);
+            Set(FrameworkSetting.ShowLogOverlay, true);
 
-            Set(FrameworkConfig.Width, 1366, 640);
-            Set(FrameworkConfig.Height, 768, 480);
-            Set(FrameworkConfig.ConfineMouseMode, ConfineMouseMode.Fullscreen);
-            Set(FrameworkConfig.WindowedPositionX, 0.5, -0.1, 1.1);
-            Set(FrameworkConfig.WindowedPositionY, 0.5, -0.1, 1.1);
-            Set(FrameworkConfig.AudioDevice, string.Empty);
-            Set(FrameworkConfig.VolumeUniversal, 1.0, 0.0, 1.0);
-            Set(FrameworkConfig.VolumeMusic, 1.0, 0.0, 1.0);
-            Set(FrameworkConfig.VolumeEffect, 1.0, 0.0, 1.0);
-            Set(FrameworkConfig.WidthFullscreen, 9999, 320, 9999);
-            Set(FrameworkConfig.HeightFullscreen, 9999, 240, 9999);
-            Set(FrameworkConfig.Letterboxing, true);
-            Set(FrameworkConfig.LetterboxPositionX, 0.0, -1.0, 1.0);
-            Set(FrameworkConfig.LetterboxPositionY, 0.0, -1.0, 1.0);
-            Set(FrameworkConfig.FrameSync, FrameSync.Limit2x);
-            Set(FrameworkConfig.WindowMode, WindowMode.Windowed);
-            Set(FrameworkConfig.ShowUnicode, false);
-            Set(FrameworkConfig.Locale, "");
+            Set(FrameworkSetting.Width, 1366, 640);
+            Set(FrameworkSetting.Height, 768, 480);
+            Set(FrameworkSetting.ConfineMouseMode, ConfineMouseMode.Fullscreen);
+            Set(FrameworkSetting.WindowedPositionX, 0.5, -0.1, 1.1);
+            Set(FrameworkSetting.WindowedPositionY, 0.5, -0.1, 1.1);
+            Set(FrameworkSetting.AudioDevice, string.Empty);
+            Set(FrameworkSetting.VolumeUniversal, 1.0, 0.0, 1.0);
+            Set(FrameworkSetting.VolumeMusic, 1.0, 0.0, 1.0);
+            Set(FrameworkSetting.VolumeEffect, 1.0, 0.0, 1.0);
+            Set(FrameworkSetting.WidthFullscreen, 9999, 320, 9999);
+            Set(FrameworkSetting.HeightFullscreen, 9999, 240, 9999);
+            Set(FrameworkSetting.Letterboxing, true);
+            Set(FrameworkSetting.LetterboxPositionX, 0.0, -1.0, 1.0);
+            Set(FrameworkSetting.LetterboxPositionY, 0.0, -1.0, 1.0);
+            Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
+            Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
+            Set(FrameworkSetting.ShowUnicode, false);
+            Set(FrameworkSetting.Locale, "");
         }
 
         public FrameworkConfigManager(Storage storage)
@@ -40,7 +40,7 @@ namespace osu.Framework.Configuration
         }
     }
 
-    public enum FrameworkConfig
+    public enum FrameworkSetting
     {
         ShowLogOverlay,
 

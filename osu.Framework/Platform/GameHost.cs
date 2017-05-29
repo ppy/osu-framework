@@ -8,23 +8,23 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
-using OpenTK;
-using System.Threading.Tasks;
-using osu.Framework.Caching;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using OpenTK.Input;
-using OpenTK.Graphics;
-using osu.Framework.Localisation;
-using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Platform
 {
@@ -124,16 +124,14 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private Cached<string> fullPathBacking = new Cached<string>();
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
+        {
+            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            UriBuilder uri = new UriBuilder(codeBase);
+            return Uri.UnescapeDataString(uri.Path);
+        });
 
-        public string FullPath => fullPathBacking.EnsureValid()
-            ? fullPathBacking.Value
-            : fullPathBacking.Refresh(() =>
-            {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                return Uri.UnescapeDataString(uri.Path);
-            });
+        public string FullPath => fullPathBacking.Value;
 
         protected string Name { get; }
 
@@ -147,6 +145,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(this);
             Name = gameName;
+            Logger.GameIdentifier = gameName;
 
             threads = new List<GameThread>
             {
@@ -170,6 +169,8 @@ namespace osu.Framework.Platform
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
             var exception = (Exception)e.ExceptionObject;
+
+            Logger.Error(exception, @"fatal error:", recursive: true);
 
             var exInfo = ExceptionDispatchInfo.Capture(exception);
 
@@ -227,7 +228,7 @@ namespace osu.Framework.Platform
 
             if (Window?.WindowState != WindowState.Minimized)
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
-                    new Vector2(config.Get<int>(FrameworkConfig.Width), config.Get<int>(FrameworkConfig.Height));
+                    new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
@@ -403,13 +404,13 @@ namespace osu.Framework.Platform
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
-            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
+            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
             activeGCMode.ValueChanged += newMode =>
             {
                 GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
             };
 
-            frameSyncMode = config.GetBindable<FrameSync>(FrameworkConfig.FrameSync);
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
             frameSyncMode.ValueChanged += newMode =>
             {
 

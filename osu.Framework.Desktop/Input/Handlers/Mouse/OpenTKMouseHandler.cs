@@ -23,7 +23,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         {
             host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
-                if (host.Window.WindowState == WindowState.Minimized)
+                if (!host.Window.Visible)
                     return;
 
                 var state = OpenTK.Input.Mouse.GetCursorState();
@@ -34,8 +34,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 lastState = state;
 
                 Point point = host.Window.PointToClient(new Point(state.X, state.Y));
-
                 Vector2 pos = new Vector2(point.X, point.Y);
+
+                // While not focused, let's silently ignore everything but position.
+                if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
 
                 PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
 
