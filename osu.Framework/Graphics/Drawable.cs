@@ -1525,7 +1525,7 @@ namespace osu.Framework.Graphics
         #region Interaction / Input
 
         /// <summary>
-        /// Triggers <see cref="OnHover(InputState state)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
         public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
@@ -1540,7 +1540,7 @@ namespace osu.Framework.Graphics
         protected virtual bool OnHover(InputState state) => false;
 
         /// <summary>
-        /// Triggers <see cref="OnHoverLost(InputState state)"/> with a local version of the given <see cref="InputState"/>.
+        /// Triggers <see cref="OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
         public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
@@ -1561,6 +1561,7 @@ namespace osu.Framework.Graphics
         /// Triggered whenever a mouse button is pressed on top of this Drawable.
         /// </summary>
         /// <param name="state">The state after the press.</param>
+        /// <param name="args">Specific arguments for mouse down event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
@@ -1574,6 +1575,7 @@ namespace osu.Framework.Graphics
         /// Triggered whenever a mouse button is released on top of this Drawable.
         /// </summary>
         /// <param name="state">The state after the release.</param>
+        /// <param name="args">Specific arguments for mouse up event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
@@ -1700,6 +1702,7 @@ namespace osu.Framework.Graphics
         /// Triggered whenever a key was pressed.
         /// </summary>
         /// <param name="state">The state after the key was pressed.</param>
+        /// <param name="args">Specific arguments for key down event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
@@ -1713,6 +1716,7 @@ namespace osu.Framework.Graphics
         /// Triggered whenever a key was released.
         /// </summary>
         /// <param name="state">The state after the key was released.</param>
+        /// <param name="args">Specific arguments for key up event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
         /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
