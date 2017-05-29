@@ -37,14 +37,16 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                 Vector2 pos = new Vector2(point.X, point.Y);
 
-                if (host.Window.Focused) {
+                if (host.Window.Focused)
+                {
                     PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
                 }
                 else
                 {
-                    // Get only position from event to redraw mouse in window
-                    OpenTK.Input.MouseState dummy = new OpenTK.Input.MouseState();
-                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(dummy, pos, host.IsActive) });
+                    // While not focused, let's silently ignore everything but position.
+                    PendingStates.Enqueue(
+                        new InputState { Mouse = new TkMouseState(new OpenTK.Input.MouseState(), pos, host.IsActive) }
+                    );
                 }
 
                 FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
