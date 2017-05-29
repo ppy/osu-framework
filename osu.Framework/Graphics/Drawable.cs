@@ -64,6 +64,9 @@ namespace osu.Framework.Graphics
 
         private bool isDisposed;
 
+        /// <summary>
+        /// Disposes this drawable.
+        /// </summary>
         protected virtual void Dispose(bool isDisposing)
         {
         }
@@ -103,11 +106,16 @@ namespace osu.Framework.Graphics
         #region Loading
 
         /// <summary>
-        /// Override to add delayed load abilities (ie. using IsAlive)
+        /// Whether this Drawable is fully loaded.
+        /// Override to false for delaying the load further (e.g. using <see cref="IsAlive"/>).
         /// </summary>
         public virtual bool IsLoaded => loadState >= LoadState.Loaded;
 
         private volatile LoadState loadState;
+
+        /// <summary>
+        /// Describes the current state of this Drawable within the loading pipeline.
+        /// </summary>
         public LoadState LoadState => loadState;
 
         private Task loadTask;
@@ -117,7 +125,10 @@ namespace osu.Framework.Graphics
         /// Loads this Drawable asynchronously.
         /// </summary>
         /// <param name="game">The game to load this Drawable on.</param>
-        /// <param name="target">The target of the Drawable may eventually be loaded into.</param>
+        /// <param name="target">
+        /// The target this Drawable may eventually be loaded into.
+        /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
+        /// </param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
         internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
@@ -142,9 +153,13 @@ namespace osu.Framework.Graphics
         /// If not overridden, the load-time parent's dependency tree will be used.
         /// </summary>
         /// <param name="parent">The parent <see cref="DependencyContainer"/> which should be passed through if we want fallback lookups to work.</param>
-        /// <returns>A new dependency container to be stored against this Drawable.</returns>
+        /// <returns>A new dependency container to be stored for this Drawable.</returns>
         protected virtual DependencyContainer CreateLocalDependencies(DependencyContainer parent) => parent;
 
+        /// <summary>
+        /// Contains all dependencies that can be injected into this Drawable using <see cref="BackgroundDependencyLoader"/>.
+        /// Add or override dependencies by calling <see cref="DependencyContainer.Cache{T}(T, bool, bool)"/>.
+        /// </summary>
         protected DependencyContainer Dependencies { get; private set; }
 
         /// <summary>
@@ -1233,7 +1248,7 @@ namespace osu.Framework.Graphics
         private ProxyDrawable proxy;
 
         /// <summary>
-        /// Creates a proxy drawable which can be inserted elsewhere in the draw hierarchy.
+        /// Creates a proxy drawable which can be inserted elsewhere in the scene graph.
         /// Will cause the original instance to not render itself.
         /// Creating multiple proxies is not supported and will result in an
         /// <see cref="InvalidOperationException"/>.
@@ -1509,12 +1524,30 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
+        /// <summary>
+        /// Triggers <see cref="OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered once when this Drawable becomes hovered.
+        /// </summary>
+        /// <param name="state">The state at which the Drawable becomes hovered.</param>
+        /// <returns>True if this Drawable would like to handle the hover. If so, then
+        /// no further Drawables down the scene graph will receive hovering events. If
+        /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
+        /// received once hover is lost.</returns>
         protected virtual bool OnHover(InputState state) => false;
 
+        /// <summary>
+        /// Triggers <see cref="OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
         public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever this drawable is no longer hovered.
+        /// </summary>
+        /// <param name="state">The state at which hover is lost.</param>
         protected virtual void OnHoverLost(InputState state)
         {
         }
@@ -1524,6 +1557,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a mouse button is pressed on top of this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the press.</param>
+        /// <param name="args">Specific arguments for mouse down event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
         /// <summary>
@@ -1531,6 +1571,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a mouse button is released on top of this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the release.</param>
+        /// <param name="args">Specific arguments for mouse up event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         /// <summary>
@@ -1538,6 +1585,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever a mouse click occurs on top of this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the click.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnClick(InputState state) => false;
 
         /// <summary>
@@ -1545,6 +1598,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever a mouse double click occurs on top of this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the double click.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnDoubleClick(InputState state) => false;
 
         /// <summary>
@@ -1552,6 +1611,15 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever this Drawable is initially dragged by a held mouse click
+        /// and subsequent movement.
+        /// </summary>
+        /// <param name="state">The state after the mouse was moved.</param>
+        /// <returns>True if this Drawable accepts being dragged. If so, then future
+        /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
+        /// events will be reveiced. Otherwise, the event is propagated down the scene
+        /// graph to the next eligible Drawable.</returns>
         protected virtual bool OnDragStart(InputState state) => false;
 
         /// <summary>
@@ -1559,6 +1627,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever the mouse is moved while dragging.
+        /// Only is received if a drag was previously initiated by returning true
+        /// from <see cref="OnDragStart(InputState)"/>.
+        /// </summary>
+        /// <param name="state">The state after the mouse was moved.</param>
+        /// <returns>Currently unused.</returns>
         protected virtual bool OnDrag(InputState state) => false;
 
         /// <summary>
@@ -1566,6 +1641,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever a drag ended. Only is received if a drag was previously
+        /// initiated by returning true from <see cref="OnDragStart(InputState)"/>.
+        /// </summary>
+        /// <param name="state">The state after the drag ended.</param>
+        /// <returns>Currently unused.</returns>
         protected virtual bool OnDragEnd(InputState state) => false;
 
         /// <summary>
@@ -1573,6 +1654,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever the mouse wheel was turned over this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the wheel was turned.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
@@ -1581,6 +1668,15 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpaceState">The input state.</param>
         public bool TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever this Drawable can gain focus.
+        /// Focused Drawables receive keyboard input before all other Drawables,
+        /// and thus handle it first.
+        /// </summary>
+        /// <param name="state">The state after focus when focus can be gained.</param>
+        /// <returns>True if this Drawable accepts focus. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable and
+        /// this Drawable does not gain focus.</returns>
         protected virtual bool OnFocus(InputState state) => false;
 
         /// <summary>
@@ -1589,6 +1685,10 @@ namespace osu.Framework.Graphics
         /// <param name="screenSpaceState">The input state.</param>
         public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever this Drawable lost focus.
+        /// </summary>
+        /// <param name="state">The state after focus was lost.</param>
         protected virtual void OnFocusLost(InputState state)
         {
         }
@@ -1598,6 +1698,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a key was pressed.
+        /// </summary>
+        /// <param name="state">The state after the key was pressed.</param>
+        /// <param name="args">Specific arguments for key down event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
         /// <summary>
@@ -1605,6 +1712,13 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
 
+        /// <summary>
+        /// Triggered whenever a key was released.
+        /// </summary>
+        /// <param name="state">The state after the key was released.</param>
+        /// <param name="args">Specific arguments for key up event.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
         /// <summary>
@@ -1612,6 +1726,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
 
+        /// <summary>
+        /// Triggered whenever the mouse moved over this Drawable.
+        /// </summary>
+        /// <param name="state">The state after the mouse moved.</param>
+        /// <returns>True if this Drawable handled the event. If false, then the event
+        /// is propagated down the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
         /// <summary>
@@ -2230,17 +2350,47 @@ namespace osu.Framework.Graphics
 
     public enum BlendingMode
     {
+        /// <summary>
+        /// Inherits from parent.
+        /// </summary>
         Inherit = 0,
+        /// <summary>
+        /// Mixes with existing colour by a factor of the colour's alpha.
+        /// </summary>
         Mixture,
+        /// <summary>
+        /// Purely additive (by a factor of the colour's alpha) blending.
+        /// </summary>
         Additive,
+        /// <summary>
+        /// No alpha blending whatsoever.
+        /// </summary>
         None,
     }
 
+    /// <summary>
+    /// Possible states of a <see cref="Drawable"/> within the loading pipeline.
+    /// </summary>
     public enum LoadState
     {
+        /// <summary>
+        /// Not loaded, and no load has been initiated yet.
+        /// </summary>
         NotLoaded,
+        /// <summary>
+        /// Currently loading (possibly and usually on a background
+        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action{Drawable})"/>).
+        /// </summary>
         Loading,
+        /// <summary>
+        /// Loading is complete, but has not yet been finalized on the update thread
+        /// (<see cref="Drawable.LoadComplete"/> has not been called yet, which
+        /// always runs on the update thread and requires <see cref="Drawable.IsLoaded"/>).
+        /// </summary>
         Loaded,
+        /// <summary>
+        /// Loading is fully completed and the Drawable is now part of the scene graph.
+        /// </summary>
         Alive
     }
 
