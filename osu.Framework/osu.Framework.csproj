@@ -115,6 +115,7 @@
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
+    <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />

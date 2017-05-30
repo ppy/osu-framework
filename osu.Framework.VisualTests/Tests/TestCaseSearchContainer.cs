@@ -106,7 +106,7 @@ namespace osu.Framework.VisualTests.Tests
         private class HeaderContainer : Container, IHasFilterableChildren
         {
             public string[] FilterTerms => header.FilterTerms;
-            public bool MatchingCurrentFilter
+            public bool MatchingFilter
             {
                 set
                 {
@@ -142,7 +142,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             public string[] FilterTerms => new[] { Text };
 
-            public bool MatchingCurrentFilter
+            public bool MatchingFilter
             {
                 set
                 {

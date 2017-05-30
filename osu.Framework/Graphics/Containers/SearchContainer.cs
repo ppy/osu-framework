@@ -49,7 +49,7 @@ namespace osu.Framework.Graphics.Containers
                 foreach (IFilterable searchableChildren in hasFilterableChildren.FilterableChildren)
                     matching |= match(searchableChildren, childTerms);
 
-            return filterable.MatchingCurrentFilter = matching;
+            return filterable.MatchingFilter = matching;
         }
     }
 }
