@@ -169,14 +169,14 @@ namespace osu.Framework.Graphics.Containers
                 if (scrollDir == Direction.Vertical)
                 {
                     content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
-                        ? new MarginPadding { Left = scrollDragger.Width }
-                        : new MarginPadding { Right = scrollDragger.Width };
+                        ? new MarginPadding { Left = scrollDragger.Width + scrollDragger.Margin.Left }
+                        : new MarginPadding { Right = scrollDragger.Width + scrollDragger.Margin.Left };
                 }
                 else
                 {
                     content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
-                        ? new MarginPadding { Top = scrollDragger.Height }
-                        : new MarginPadding { Bottom = scrollDragger.Height };
+                        ? new MarginPadding { Top = scrollDragger.Height + scrollDragger.Margin.Top }
+                        : new MarginPadding { Bottom = scrollDragger.Height + scrollDragger.Margin.Top };
                 }
             }
         }
@@ -372,6 +372,17 @@ namespace osu.Framework.Graphics.Containers
                 RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
                 Colour = default_colour;
                 CornerRadius = 5;
+
+                const float margin = 3;
+
+                Margin = new MarginPadding
+                {
+                    Left = scrollDir == Direction.Vertical ? margin : 0,
+                    Right = scrollDir == Direction.Vertical ? margin : 0,
+                    Top = scrollDir == Direction.Horizontal ? margin : 0,
+                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
+                };
+
                 Masking = true;
 
                 Children = new Drawable[]
