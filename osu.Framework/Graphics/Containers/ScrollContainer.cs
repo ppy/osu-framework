@@ -358,7 +358,7 @@ namespace osu.Framework.Graphics.Containers
             public Action<float> Dragged;
 
             private static readonly Color4 hover_colour = Color4.White;
-            private static readonly Color4 default_colour = Color4.LightGray;
+            private static readonly Color4 default_colour = Color4.Gray;
             private static readonly Color4 highlight_colour = Color4.GreenYellow;
             private readonly Box box;
 
@@ -371,6 +371,9 @@ namespace osu.Framework.Graphics.Containers
                 scrollDim = (int)scrollDir;
                 RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
                 Colour = default_colour;
+
+                BlendingMode = BlendingMode.Additive;
+
                 CornerRadius = 5;
 
                 const float margin = 3;
