@@ -152,6 +152,8 @@ namespace osu.Framework.Graphics.Containers
         {
             var newAvailableContent = content.DrawSize[scrollDim];
 
+            // ensure we only update scrollbar when something has changed, to avoid transform helpers resetting their transform every frame.
+            // also avoids creating many needless Transforms every update frame.
             if (newAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
             {
                 availableContent = newAvailableContent;
@@ -177,13 +179,13 @@ namespace osu.Framework.Graphics.Containers
                 {
                     content.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Left = scrollbar.Width + scrollbar.Margin.Left }
-                        : new MarginPadding { Right = scrollbar.Width + scrollbar.Margin.Left };
+                        : new MarginPadding { Right = scrollbar.Width + scrollbar.Margin.Right };
                 }
                 else
                 {
                     content.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Top = scrollbar.Height + scrollbar.Margin.Top }
-                        : new MarginPadding { Bottom = scrollbar.Height + scrollbar.Margin.Top };
+                        : new MarginPadding { Bottom = scrollbar.Height + scrollbar.Margin.Bottom };
                 }
             }
         }
