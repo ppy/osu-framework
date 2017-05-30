@@ -102,52 +102,55 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Changes the currently-focused drawable. First unfocuses the currently-focused drawable,
-        /// then attempts to focus the given drawable if it is not null. If the given drawable is
-        /// already focused, nothing happens and no events are fired.
+        /// Changes the currently-focused drawable. First attempts to focus the given target
+        /// if it is not null, then unfocused the previous target (if any) if focus has changed.
+        /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
-        /// <param name="focus">The drawable to become focused.</param>
+        /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <returns>True iff the given drawable is now focused.</returns>
-        public bool ChangeFocus(Drawable focus) => ChangeFocus(focus, CurrentState);
+        public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
-        /// Changes the currently-focused drawable. First unfocuses the currently-focused drawable,
-        /// then attempts to focus the given drawable if it is not null. If the given drawable is
-        /// already focused, nothing happens and no events are fired.
+        /// Changes the currently-focused drawable. First attempts to focus the given target
+        /// if it is not null, then unfocused the previous target (if any) if focus has changed.
+        /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
-        /// <param name="focus">The drawable to become focused.</param>
+        /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
         /// <returns>True iff the given drawable is now focused.</returns>
-        protected bool ChangeFocus(Drawable focus, InputState state)
+        protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
         {
-            if (focus == FocusedDrawable) return FocusedDrawable != null;
+            if (potentialFocusTarget == FocusedDrawable)
+                return true;
 
             var previousFocus = FocusedDrawable;
             FocusedDrawable = null;
 
-            if (previousFocus != null)
-            {
-                previousFocus.HasFocus = false;
-                previousFocus.TriggerOnFocusLost(CurrentState);
-            }
-
             if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
 
-            if (focus?.IsPresent == true)
+            if (potentialFocusTarget?.IsPresent == true)
             {
                 // pre-emptively set the focused drawable before we do a focus check.
                 // this allows for correct behaviour if a subsequent ChangeFocus call occurs as a result of TriggerOnFocus below.
-                FocusedDrawable = focus;
+                FocusedDrawable = potentialFocusTarget;
                 FocusedDrawable.HasFocus = true;
 
-                if (!focus.TriggerOnFocus(CurrentState))
+                if (!potentialFocusTarget.TriggerOnFocus(CurrentState))
                 {
-                    focus.HasFocus = false;
-                    if (FocusedDrawable == focus) FocusedDrawable = null;
+                    // focus failed, so let's reset the changes we made.
+                    potentialFocusTarget.HasFocus = false;
+                    if (FocusedDrawable == potentialFocusTarget)
+                        FocusedDrawable = previousFocus;
                 }
             }
 
-            return FocusedDrawable != null;
+            if (FocusedDrawable != previousFocus && previousFocus != null)
+            {
+                previousFocus.HasFocus = false;
+                previousFocus.TriggerOnFocusLost(state);
+            }
+
+            return FocusedDrawable == potentialFocusTarget;
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
@@ -548,13 +551,26 @@ namespace osu.Framework.Input
         {
             var intersectingQueue = mouseInputQueue.Intersect(mouseDownInputQueue);
 
-            var newFocus = intersectingQueue.FirstOrDefault(t => !t.HasFocus && ChangeFocus(t, state));
+            // initial focus pass, switching focus to the first drawable which handles OnFocus.
+            var newFocus = intersectingQueue.FirstOrDefault(t => ChangeFocus(t, state));
 
-            //extra check for IsAlive because we are using an outdated queue.
-            if (intersectingQueue.Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state)))
+            // click pass, triggering a click on the first drawable which handles OnClick.
+            // an extra IsHovered check is performed because we are using an outdated queue.
+            var clickHandled = intersectingQueue.FirstOrDefault(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state));
+
+            if (clickHandled != null)
+            {
+                // give whatever was clicked a chance to steal focus if it wants to.
+                ChangeFocus(clickHandled, state);
                 return true;
+            }
 
-            ChangeFocus(newFocus);
+            // we only want to remove focus if no clicks were handled anywhere.
+            // ie. if any drawable handled OnClick, we don't clear focus from what had it (if anything).
+            // note that focus may have *changed* in the initial focus pass above.
+            if (newFocus == null)
+                ChangeFocus(null, state);
+
             return false;
         }
 
