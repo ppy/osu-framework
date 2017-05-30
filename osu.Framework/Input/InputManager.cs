@@ -102,24 +102,24 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> if in a valid state to receive focus,
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
         /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
         /// <see cref="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
-        /// <returns>True iff the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
+        /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
         public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
-        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> if in a valid state to receive focus,
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
         /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
         /// <see cref="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
         /// <param name="state">The current state of input.</param>
-        /// <returns>True iff the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
+        /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
         protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
         {
             if (potentialFocusTarget == FocusedDrawable)
