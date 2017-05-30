@@ -16,42 +16,42 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
         /// </summary>
-        public Anchor ScrollDraggerAnchor
+        public Anchor ScrollbarAnchor
         {
-            get { return scrollDragger.Anchor; }
+            get { return scrollbar.Anchor; }
 
             set
             {
-                scrollDragger.Anchor = value;
-                scrollDragger.Origin = value;
+                scrollbar.Anchor = value;
+                scrollbar.Origin = value;
                 updatePadding();
             }
         }
 
-        private bool scrollDraggerVisible = true;
+        private bool scrollbarVisible = true;
 
-        public bool ScrollDraggerVisible
+        public bool ScrollbarVisible
         {
-            get { return scrollDraggerVisible; }
+            get { return scrollbarVisible; }
             set
             {
-                scrollDraggerVisible = value;
-                updateScrollDragger();
+                scrollbarVisible = value;
+                updateScrollbar();
             }
         }
 
         private readonly Container content;
-        private readonly ScrollBar scrollDragger;
+        private readonly Scrollbar scrollbar;
 
 
-        private bool scrollDraggerOverlapsContent = true;
+        private bool scrollbarOverlapsContent = true;
 
-        public bool ScrollDraggerOverlapsContent
+        public bool ScrollbarOverlapsContent
         {
-            get { return scrollDraggerOverlapsContent; }
+            get { return scrollbarOverlapsContent; }
             set
             {
-                scrollDraggerOverlapsContent = value;
+                scrollbarOverlapsContent = value;
                 updatePadding();
             }
         }
@@ -140,10 +140,10 @@ namespace osu.Framework.Graphics.Containers
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
                 },
-                scrollDragger = new ScrollBar(scrollDir) { Dragged = onScrollbarMovement }
+                scrollbar = new Scrollbar(scrollDir) { Dragged = onScrollbarMovement }
             });
 
-            ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
+            ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
         private float lastUpdateDisplayableContent;
@@ -156,34 +156,34 @@ namespace osu.Framework.Graphics.Containers
             {
                 availableContent = newAvailableContent;
                 lastUpdateDisplayableContent = displayableContent;
-                updateScrollDragger();
+                updateScrollbar();
             }
         }
 
-        private void updateScrollDragger()
+        private void updateScrollbar()
         {
-            scrollDragger.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, EasingTypes.OutQuint);
-            scrollDragger.FadeTo(ScrollDraggerVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
+            scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, EasingTypes.OutQuint);
+            scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
 
         private void updatePadding()
         {
-            if (scrollDraggerOverlapsContent || availableContent <= displayableContent)
+            if (scrollbarOverlapsContent || availableContent <= displayableContent)
                 content.Padding = new MarginPadding();
             else
             {
                 if (scrollDir == Direction.Vertical)
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
-                        ? new MarginPadding { Left = scrollDragger.Width + scrollDragger.Margin.Left }
-                        : new MarginPadding { Right = scrollDragger.Width + scrollDragger.Margin.Left };
+                    content.Padding = ScrollbarAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Left = scrollbar.Width + scrollbar.Margin.Left }
+                        : new MarginPadding { Right = scrollbar.Width + scrollbar.Margin.Left };
                 }
                 else
                 {
-                    content.Padding = ScrollDraggerAnchor == Anchor.TopLeft
-                        ? new MarginPadding { Top = scrollDragger.Height + scrollDragger.Margin.Top }
-                        : new MarginPadding { Bottom = scrollDragger.Height + scrollDragger.Margin.Top };
+                    content.Padding = ScrollbarAnchor == Anchor.TopLeft
+                        ? new MarginPadding { Top = scrollbar.Height + scrollbar.Margin.Top }
+                        : new MarginPadding { Bottom = scrollbar.Height + scrollbar.Margin.Top };
                 }
             }
         }
@@ -276,7 +276,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollDragger.Size[scrollDim]), false);
+        private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
         public void OffsetScrollPosition(float offset)
         {
@@ -356,11 +356,11 @@ namespace osu.Framework.Graphics.Containers
             updateSize();
             updatePosition();
 
-            scrollDragger?.MoveTo(scrollDir, Current * scrollDragger.Size[scrollDim]);
+            scrollbar?.MoveTo(scrollDir, Current * scrollbar.Size[scrollDim]);
             content.MoveTo(scrollDir, -Current);
         }
 
-        private class ScrollBar : Container
+        private class Scrollbar : Container
         {
             public Action<float> Dragged;
 
@@ -373,7 +373,7 @@ namespace osu.Framework.Graphics.Containers
 
             private readonly int scrollDim;
 
-            public ScrollBar(Direction scrollDir)
+            public Scrollbar(Direction scrollDir)
             {
                 scrollDim = (int)scrollDir;
                 RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;

@@ -64,7 +64,7 @@ namespace osu.Framework.Testing
                         new ScrollContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            ScrollDraggerOverlapsContent = false,
+                            ScrollbarOverlapsContent = false,
                             Children = new[]
                             {
                                 leftFlowContainer = new FillFlowContainer<TestCaseButton>
