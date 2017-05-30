@@ -177,13 +177,13 @@ namespace osu.Framework.Graphics.Containers
                 {
                     content.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Left = scrollbar.Width + scrollbar.Margin.Left }
-                        : new MarginPadding { Right = scrollbar.Width + scrollbar.Margin.Left };
+                        : new MarginPadding { Right = scrollbar.Width + scrollbar.Margin.Right };
                 }
                 else
                 {
                     content.Padding = ScrollbarAnchor == Anchor.TopLeft
                         ? new MarginPadding { Top = scrollbar.Height + scrollbar.Margin.Top }
-                        : new MarginPadding { Bottom = scrollbar.Height + scrollbar.Margin.Top };
+                        : new MarginPadding { Bottom = scrollbar.Height + scrollbar.Margin.Bottom };
                 }
             }
         }
