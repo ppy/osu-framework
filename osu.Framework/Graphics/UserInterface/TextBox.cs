@@ -771,17 +771,18 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        protected override bool OnFocus(InputState state)
-        {
-            if (ReadOnly) return false;
+        public override bool AcceptsFocus => true;
 
+        protected override bool OnClick(InputState state) => !ReadOnly;
+
+        protected override void OnFocus(InputState state)
+        {
             bindInput();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         #region Native TextBox handling (winform specific)

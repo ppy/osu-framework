@@ -1666,18 +1666,17 @@ namespace osu.Framework.Graphics
         /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        public bool TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
+        public void TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever this Drawable can gain focus.
+        /// Triggered whenever this Drawable gains focus.
         /// Focused Drawables receive keyboard input before all other Drawables,
         /// and thus handle it first.
         /// </summary>
         /// <param name="state">The state after focus when focus can be gained.</param>
-        /// <returns>True if this Drawable accepts focus. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable and
-        /// this Drawable does not gain focus.</returns>
-        protected virtual bool OnFocus(InputState state) => false;
+        protected virtual void OnFocus(InputState state)
+        {
+        }
 
         /// <summary>
         /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
@@ -1747,7 +1746,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
-        public virtual bool RequestingFocus => false;
+        public virtual bool RequestsFocus => false;
+
+        /// <summary>
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// </summary>
+        public virtual bool AcceptsFocus => false;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.

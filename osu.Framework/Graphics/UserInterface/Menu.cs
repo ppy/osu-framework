@@ -121,7 +121,9 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void AnimateClose() => Hide();
 
-        protected override bool OnFocus(InputState state) => true;
+        public override bool AcceptsFocus => true;
+
+        protected override bool OnClick(InputState state) => true;
 
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
     }

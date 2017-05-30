@@ -15,9 +15,9 @@ namespace osu.Framework.Graphics.Containers
     {
         protected InputManager InputManager;
 
-        public override bool RequestingFocus => State == Visibility.Visible;
+        public override bool RequestsFocus => State == Visibility.Visible;
 
-        protected override bool OnFocus(InputState state) => true;
+        public override bool AcceptsFocus => true;
 
         protected override void OnFocusLost(InputState state)
         {
