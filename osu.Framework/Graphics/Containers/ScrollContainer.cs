@@ -152,7 +152,8 @@ namespace osu.Framework.Graphics.Containers
         {
             var newAvailableContent = content.DrawSize[scrollDim];
 
-            // ensure we only update scrollbar when something has changed, to avoid transform helpers getting much slower than we want them.
+            // ensure we only update scrollbar when something has changed, to avoid transform helpers resetting their transform every frame.
+            // also avoids creating many needless Transforms every update frame.
             if (newAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
             {
                 availableContent = newAvailableContent;
