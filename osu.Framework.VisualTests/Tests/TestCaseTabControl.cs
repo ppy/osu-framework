@@ -121,7 +121,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 DropdownMenu.MaxHeight = int.MaxValue;
                 DropdownMenu.CornerRadius = 4;
-                DropdownMenu.ScrollContainer.ScrollDraggerVisible = false;
+                DropdownMenu.ScrollContainer.ScrollbarVisible = false;
 
                 DropdownMenu.Anchor = Anchor.TopRight;
                 DropdownMenu.Origin = Anchor.TopRight;
