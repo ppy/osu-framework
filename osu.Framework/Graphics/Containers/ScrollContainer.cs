@@ -146,11 +146,18 @@ namespace osu.Framework.Graphics.Containers
             ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
+        private float lastUpdateDisplayableContent;
+
         private void updateSize()
         {
-            //todo: can limit this to when displayableContent or availableContent changed.
-            availableContent = content.DrawSize[scrollDim];
-            updateScrollDragger();
+            var newAvailableContent = content.DrawSize[scrollDim];
+
+            if (newAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
+            {
+                availableContent = newAvailableContent;
+                lastUpdateDisplayableContent = displayableContent;
+                updateScrollDragger();
+            }
         }
 
         private void updateScrollDragger()
