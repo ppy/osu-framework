@@ -553,13 +553,17 @@ namespace osu.Framework.Input
 
             // initial focus pass, switching focus to the first drawable which handles OnFocus.
             var newFocus = intersectingQueue.FirstOrDefault(t => ChangeFocus(t, state));
-            
+
             // click pass, triggering a click on the first drawable which handles OnClick.
             // an extra IsHovered check is performed because we are using an outdated queue.
             var clickHandled = intersectingQueue.FirstOrDefault(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (clickHandled != null)
+            {
+                // give whatever was clicked a chance to steal focus if it wants to.
+                ChangeFocus(clickHandled, state);
                 return true;
+            }
 
             // we only want to remove focus if no clicks were handled anywhere.
             // ie. if any drawable handled OnClick, we don't clear focus from what had it (if anything).
