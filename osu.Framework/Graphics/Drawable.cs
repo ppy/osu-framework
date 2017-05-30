@@ -1746,12 +1746,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
-        public virtual bool RequestingFocus => false;
+        public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, <see cref="OnFocus"/> events will be received by this drawable. Note that <see cref="OnClick(InputState)"/> must return true for focus events to fire.
+        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
         /// </summary>
-        public virtual bool AcceptingFocus => false;
+        public virtual bool AcceptsFocus => false;
 
         /// <summary>
         /// Whether this Drawable is currently hovered over.

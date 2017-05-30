@@ -93,7 +93,7 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestingFocus"/>.
+        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
         public void TriggerFocusContention()
         {
@@ -102,30 +102,30 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Changes the currently-focused drawable. First attempts to focus the given target
-        /// if it is not null, then unfocused the previous target (if any) if focus has changed.
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> if in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
+        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
-        /// <returns>True iff the given drawable is now focused.</returns>
+        /// <returns>True iff the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
         public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
 
         /// <summary>
-        /// Changes the currently-focused drawable. First attempts to focus the given target
-        /// if it is not null, then unfocused the previous target (if any) if focus has changed.
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> if in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
+        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
         /// If the given drawable is already focused, nothing happens and no events are fired.
         /// </summary>
         /// <param name="potentialFocusTarget">The drawable to become focused.</param>
-        /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
-        /// <returns>True iff the given drawable is now focused.</returns>
+        /// <param name="state">The current state of input.</param>
+        /// <returns>True iff the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
         protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
         {
             if (potentialFocusTarget == FocusedDrawable)
                 return true;
 
-            bool focusCanChange = potentialFocusTarget == null || potentialFocusTarget.IsPresent && potentialFocusTarget.AcceptingFocus;
-
-            if (!focusCanChange)
+            if (potentialFocusTarget != null && (!potentialFocusTarget.IsPresent || !potentialFocusTarget.AcceptsFocus))
                 return false;
 
             var previousFocus = FocusedDrawable;
@@ -551,37 +551,29 @@ namespace osu.Framework.Input
 
             Drawable focusTarget = null;
 
-            // click pass, triggering a click on the first drawable which handles OnClick.
-            // an extra IsHovered check is performed because we are using an outdated queue.
+            // click pass, triggering an OnClick on all drawables up to the first which returns true.
+            // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
             var clickedDrawable = intersectingQueue.FirstOrDefault(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (clickedDrawable != null)
             {
-                if (ChangeFocus(clickedDrawable, state))
-                    focusTarget = clickedDrawable;
-                else
+                focusTarget = clickedDrawable;
+
+                if (!focusTarget.AcceptsFocus)
                 {
                     // search upwards from the clicked drawable until we find something to handle focus.
-                    Drawable search = clickedDrawable;
-
                     Drawable previousFocused = FocusedDrawable;
 
-                    do
-                    {
-                        if (search.AcceptingFocus)
-                        {
-                            focusTarget = search;
-                            break;
-                        }
-                    } while ((search = search.Parent as Drawable) != null);
+                    while (focusTarget?.AcceptsFocus == false)
+                        focusTarget = focusTarget.Parent as Drawable;
 
                     if (focusTarget != null && previousFocused != null)
                     {
-                        // search upwards from previousFocused to check whether focusTarget is a common parent.
-
-                        search = previousFocused;
-                        while ((search = search.Parent as Drawable) != null)
-                            if (search == focusTarget) break;
+                        // we found a focusable target above us.
+                        // now search upwards from previousFocused to check whether focusTarget is a common parent.
+                        Drawable search = previousFocused;
+                        while (search != null && search != focusTarget)
+                            search = search.Parent as Drawable;
 
                         if (focusTarget == search)
                             // we have a common parent, so let's keep focus on the previously focused target.
@@ -694,7 +686,7 @@ namespace osu.Framework.Input
             return true;
         }
 
-        private void focusTopMostRequestingDrawable() => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus));
+        private void focusTopMostRequestingDrawable() => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestsFocus));
 
         public InputHandler GetHandler(Type handlerType)
         {

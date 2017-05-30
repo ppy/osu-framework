@@ -771,7 +771,7 @@ namespace osu.Framework.Graphics.UserInterface
             cursorAndLayout.Invalidate();
         }
 
-        public override bool AcceptingFocus => true;
+        public override bool AcceptsFocus => true;
 
         protected override bool OnClick(InputState state) => !ReadOnly;
 
