@@ -373,7 +373,31 @@ namespace osu.Framework.Graphics.Containers
 
         #endregion
 
-        #region Invalidation
+        #region Caching & invalidation
+
+        private Cached<Quad> screenSpaceEdgeEffectQuadBacking = new Cached<Quad>();
+
+        /// <summary>
+        /// Computes the screen space quad which the edge effect occupies.
+        /// </summary>
+        /// <returns></returns>
+        protected Quad ComputeScreenSpaceEdgeEffectQuad() => ToScreenSpace(EdgeEffectRectangle);
+
+        /// <summary>
+        /// The screen space quad which the edge effect occupies.
+        /// </summary>
+        public Quad ScreenSpaceEdgeEffectQuad
+        {
+            get
+            {
+                if (!edgeEffectVisible)
+                    return ScreenSpaceDrawQuad;
+
+                return screenSpaceEdgeEffectQuadBacking.EnsureValid()
+                    ? screenSpaceEdgeEffectQuadBacking.Value
+                    : screenSpaceEdgeEffectQuadBacking.Refresh(ComputeScreenSpaceEdgeEffectQuad);
+            }
+        }
 
         /// <summary>
         /// Informs this container that a child has been invalidated.
@@ -389,8 +413,13 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
+            bool alreadyInvalidated = true;
+
+            if ((invalidation & (Invalidation.Geometry | Invalidation.DrawNode)) > 0)
+                alreadyInvalidated &= !screenSpaceEdgeEffectQuadBacking.Invalidate();
+
             if (!base.Invalidate(invalidation, source, shallPropagate))
-                return false;
+                return !alreadyInvalidated;
 
             if (!shallPropagate) return true;
 
@@ -435,25 +464,30 @@ namespace osu.Framework.Graphics.Containers
             n.MaskingInfo = !Masking
                 ? (MaskingInfo?)null
                 : new MaskingInfo
+            {
+                ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
+                MaskingRect = DrawRectangle,
+                ToMaskingSpace = DrawInfo.MatrixInverse,
+                CornerRadius = CornerRadius,
+                BorderThickness = BorderThickness,
+                BorderColour = BorderColour,
+                // We are setting the linear blend range to the approximate size of a _pixel_ here.
+                // This results in the optimal trade-off between crispness and smoothness of the
+                // edges of the masked region according to sampling theory.
+                BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
+                AlphaExponent = 1,
+            };
+
+            n.EdgeEffectInfo = !edgeEffectVisible
+                ? (EdgeEffectInfo?)null
+                : new EdgeEffectInfo
                 {
-                    ScreenSpaceAABB = ScreenSpaceDrawQuad.AABB,
-                    MaskingRect = DrawRectangle,
-                    ToMaskingSpace = DrawInfo.MatrixInverse,
-                    CornerRadius = CornerRadius,
-                    BorderThickness = BorderThickness,
-                    BorderColour = BorderColour,
-                    // We are setting the linear blend range to the approximate size of a _pixel_ here.
-                    // This results in the optimal trade-off between crispness and smoothness of the
-                    // edges of the masked region according to sampling theory.
-                    BlendRange = MaskingSmoothness * (scale.X + scale.Y) / 2,
-                    AlphaExponent = 1,
+                    Effect = EdgeEffect,
+                    MaskingRect = EdgeEffectRectangle,
+                    ScreenSpaceDrawQuad = ScreenSpaceEdgeEffectQuad
                 };
 
-            n.EdgeEffect = EdgeEffect;
-
-            n.ScreenSpaceMaskingQuad = null;
             n.Shared = containerDrawNodeSharedData;
-
             n.Shader = shader;
 
             base.ApplyDrawNode(node);
@@ -785,6 +819,16 @@ namespace osu.Framework.Graphics.Containers
                 Invalidate(Invalidation.DrawNode);
             }
         }
+
+        /// <summary>
+        /// The rectangle which the edge effect occupies.
+        /// </summary>
+        public RectangleF EdgeEffectRectangle => DrawRectangle.Inflate(EdgeEffect.Radius).Offset(EdgeEffect.Offset);
+
+        /// <summary>
+        /// Whether the edge effect produces a visible affect.
+        /// </summary>
+        private bool edgeEffectVisible => Masking && EdgeEffect.Type != EdgeEffectType.None && EdgeEffect.Radius > 0 && EdgeEffect.Colour.Linear.A > 0;
 
         #endregion
 
@@ -1135,6 +1179,20 @@ namespace osu.Framework.Graphics.Containers
                 var c = (Container<T>)d;
                 c.RelativeCoordinateSpace = CurrentValue;
             }
+        }
+    }
+
+    public struct EdgeEffectInfo : IEquatable<EdgeEffectInfo>
+    {
+        public EdgeEffect Effect;
+        public RectangleF MaskingRect;
+        public Quad ScreenSpaceDrawQuad;
+
+        public bool Equals(EdgeEffectInfo other)
+        {
+            return Effect.Equals(other.Effect)
+                   && MaskingRect.Equals(other.MaskingRect)
+                   && ScreenSpaceDrawQuad.Equals(other.ScreenSpaceDrawQuad);
         }
     }
 }
