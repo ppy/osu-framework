@@ -35,37 +35,30 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 if (!host.Window.Visible)
                     return;
 
-                var state = mouseInWindow ? OpenTK.Input.Mouse.GetState() : lastScrenState;
+                var state = OpenTK.Input.Mouse.GetState();
 
                 if (state.Equals(lastState))
                     return;
 
                 lastState = state;
 
-                Vector2 pos;
+                Point point = new Point(state.X, state.Y);
+
+                if (requireRawTare)
+                {
+                    rawOffset = new Size(lastScrenState.X - point.X, lastScrenState.Y - point.Y);
+                    requireRawTare = false;
+                }
+
+                point += rawOffset;
+
+                var pos = new Vector2(point.X, point.Y);
 
                 if (mouseInWindow)
                 {
-                    Point point = new Point(state.X, state.Y);
-
-                    if (requireRawTare)
-                    {
-                        rawOffset = new Size(lastScrenState.X - point.X, lastScrenState.Y - point.Y);
-                        requireRawTare = false;
-                    }
-
-                    point += rawOffset;
-
-                    pos = new Vector2(point.X, point.Y);
-
                     // update the windows cursor to match our raw cursor position
                     var screenPoint = host.Window.PointToScreen(point);
                     OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
-
-                }
-                else
-                {
-                    pos = new Vector2(lastScrenState.X, lastScrenState.Y);
                 }
 
                 // While not focused, let's silently ignore everything but position.
