@@ -11,8 +11,6 @@ namespace osu.Framework.Desktop.Platform.Linux
 {
     public class LinuxGameHost : DesktopGameHost
     {
-        private readonly OpenTKKeyboardHandler keyboardHandler = new OpenTKKeyboardHandler();
-
         internal LinuxGameHost(string gameName, bool bindIPC = false)
             : base(gameName, bindIPC)
         {
@@ -25,11 +23,6 @@ namespace osu.Framework.Desktop.Platform.Linux
                     OnDeactivated();
             };
             Dependencies.Cache(Storage = new LinuxStorage(gameName));
-        }
-
-        public override IEnumerable<InputHandler> GetInputHandlers()
-        {
-            return new InputHandler[] { new OpenTKMouseHandler(), keyboardHandler };
         }
 
         public override Clipboard GetClipboard()
