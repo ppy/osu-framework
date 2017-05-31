@@ -5,46 +5,50 @@ using System.Drawing;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Input;
 using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.Statistics;
+using MouseEventArgs = OpenTK.Input.MouseEventArgs;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     internal class OpenTKMouseHandler : InputHandler
     {
-        private ScheduledDelegate scheduled;
-
         private OpenTK.Input.MouseState lastState;
+        private GameHost host;
 
         public override bool Initialize(GameHost host)
         {
-            host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
-            {
-                if (!host.Window.Visible)
-                    return;
-
-                var state = OpenTK.Input.Mouse.GetCursorState();
-
-                if (state.Equals(lastState))
-                    return;
-
-                lastState = state;
-
-                Point point = host.Window.PointToClient(new Point(state.X, state.Y));
-                Vector2 pos = new Vector2(point.X, point.Y);
-
-                // While not focused, let's silently ignore everything but position.
-                if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
-
-                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
-
-                FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-            }, 0, 0));
-
+            this.host = host;
+            host.Window.MouseMove += (s, e) => handleMouseEvent(e);
+            host.Window.MouseDown += (s, e) => handleMouseEvent(e);
+            host.Window.MouseUp += (s, e) => handleMouseEvent(e);
+            host.Window.MouseWheel += (s, e) => handleMouseEvent(e);
             return true;
+        }
+
+        private void handleMouseEvent(MouseEventArgs e)
+        {
+            if (!host.Window.Visible)
+                return;
+
+            var state = e.Mouse;
+
+            if (state.Equals(lastState))
+                return;
+
+            lastState = state;
+
+            Point point = e.Position;
+            Vector2 pos = new Vector2(point.X, point.Y);
+
+            // While not focused, let's silently ignore everything but position.
+            if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
+
+            PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
+
+            FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
         /// <summary>
@@ -56,12 +60,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            scheduled.Cancel();
-        }
 
         private class TkMouseState : MouseState
         {
@@ -94,3 +92,4 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         }
     }
 }
+
