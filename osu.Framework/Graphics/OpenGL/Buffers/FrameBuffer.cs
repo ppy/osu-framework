@@ -88,10 +88,14 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     return;
                 size = value;
 
+                GC.RemoveMemoryPressure(Texture.Width * Texture.Height * 4);
+
                 Texture.Width = (int)Math.Ceiling(size.X);
                 Texture.Height = (int)Math.Ceiling(size.Y);
                 Texture.SetData(new TextureUpload(new byte[0]));
                 Texture.Upload();
+
+                GC.AddMemoryPressure(Texture.Width * Texture.Height * 4);
             }
         }
 
@@ -126,6 +130,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 r.Size = Size;
                 r.Bind(frameBuffer);
             }
+
+            if (Texture != null)
+                GC.AddMemoryPressure(Texture.Width * Texture.Height * 4);
         }
 
         /// <summary>
@@ -141,6 +148,9 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 r.Unbind();
 
             lastFramebuffer = -1;
+
+            if (Texture != null)
+                GC.RemoveMemoryPressure(Texture.Width * Texture.Height * 4);
         }
     }
 }
