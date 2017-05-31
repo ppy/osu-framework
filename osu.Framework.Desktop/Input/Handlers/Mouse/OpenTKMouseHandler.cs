@@ -21,10 +21,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         public override bool Initialize(GameHost host)
         {
             this.host = host;
+
             host.Window.MouseMove += (s, e) => handleMouseEvent(e);
             host.Window.MouseDown += (s, e) => handleMouseEvent(e);
             host.Window.MouseUp += (s, e) => handleMouseEvent(e);
             host.Window.MouseWheel += (s, e) => handleMouseEvent(e);
+
             return true;
         }
 
@@ -35,19 +37,11 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
             var state = e.Mouse;
 
-            if (state.Equals(lastState))
-                return;
+            if (state.Equals(lastState)) return;
 
             lastState = state;
 
-            Point point = e.Position;
-            Vector2 pos = new Vector2(point.X, point.Y);
-
-            // While not focused, let's silently ignore everything but position.
-            if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
-
-            PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
-
+            PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, host.IsActive) });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
@@ -67,10 +61,11 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
             public override int WheelDelta => WasActive ? base.WheelDelta : 0;
 
-            public TkMouseState(OpenTK.Input.MouseState tkState, Vector2 position, bool active)
+            public TkMouseState(OpenTK.Input.MouseState tkState, bool active)
             {
                 WasActive = active;
 
+                // While not focused, let's silently ignore everything but position.
                 if (active && tkState.IsAnyButtonDown)
                 {
                     addIfPressed(tkState.LeftButton, MouseButton.Left);
@@ -81,7 +76,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 }
 
                 Wheel = tkState.Wheel;
-                Position = position;
+                Position = new Vector2(tkState.X, tkState.Y);
             }
 
             private void addIfPressed(ButtonState tkState, MouseButton button)
