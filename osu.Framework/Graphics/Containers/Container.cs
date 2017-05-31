@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -472,13 +473,54 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        /// <param name="parentOccluders">The occluders that may be occluding <paramref name="parentContainer"/>.</param>
+        private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds, List<IHasOccluder> parentOccluders)
         {
             List<T> current = parentContainer.internalChildren.AliveItems;
+
+            var maskingPolyon = Quad.FromRectangle(maskingBounds);
+
+            // Keep track of the occluders relevant for ourselves
+            var localOccluders = new List<IHasOccluder>(parentOccluders);
+
+            // Add our occluders in the REVERSE order, because we iterate over the normal order below
+            // and we need the ability to quickly remove occluders that are no longer relevant
+            for (int i = current.Count - 1; i >= 0; i--)
+            {
+                var occluder = current[i] as IHasOccluder;
+                if (occluder == null)
+                    continue;
+
+                if (!occluder.IsPresent)
+                    continue;
+
+                bool isRedundant = false;
+                foreach (IHasOccluder parentOccluder in parentOccluders)
+                {
+                    if (parentOccluder.Occludes(occluder, maskingPolyon))
+                    {
+                        isRedundant = true;
+                        break;
+                    }
+                }
+
+                if (isRedundant)
+                    continue;
+
+                localOccluders.Add(occluder);
+            }
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
                 Drawable drawable = current[i];
+
+                if (localOccluders.Count > 0)
+                {
+                    var drawableOccluder = drawable as IHasOccluder;
+                    if (drawableOccluder != null)
+                        localOccluders.RemoveAt(localOccluders.Count - 1);
+                }
 
                 // If we are proxied somewhere, then we want to be drawn at the proxy's location
                 // in the scene graph, rather than at our own location, thus no draw nodes for us.
@@ -493,6 +535,25 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsPresent)
                     continue;
 
+                bool isOccluded = false;
+                foreach (IHasOccluder occluder in localOccluders)
+                {
+                    if (occluder == drawable)
+                        continue;
+
+                    if (occluder.Occludes(drawable, maskingPolyon))
+                    {
+                        isOccluded = true;
+                        break;
+                    }
+                }
+
+                if (isOccluded)
+                {
+                    FrameStatistics.Increment(StatisticsCounterType.Occluded);
+                    continue;
+                }
+
                 // We are consciously missing out on potential flattening (due to lack of covariance)
                 // in order to be able to let this loop be over integers instead of using
                 // IContainerEnumerable<Drrawable>.AliveChildren which measures to be a _major_ slowdown.
@@ -505,7 +566,7 @@ namespace osu.Framework.Graphics.Containers
                                              !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!container.IsMaskedAway)
-                        addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+                        addFromContainer(treeIndex, ref j, container, target, maskingBounds, localOccluders);
 
                     continue;
                 }
@@ -514,7 +575,7 @@ namespace osu.Framework.Graphics.Containers
                 if (drawable.IsMaskedAway)
                     continue;
 
-                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds);
+                DrawNode next = drawable.GenerateDrawNodeSubtree(treeIndex, maskingBounds, localOccluders);
                 if (next == null)
                     continue;
 
@@ -527,13 +588,16 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
+        internal sealed override DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds, List<IHasOccluder> parentOccluders = null)
         {
             // No need for a draw node at all if there are no children and we are not glowing.
             if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
+            if (parentOccluders == null)
+                parentOccluders = new List<IHasOccluder>();
+
+            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds, parentOccluders) as ContainerDrawNode;
             if (cNode == null)
                 return null;
 
@@ -551,7 +615,7 @@ namespace osu.Framework.Graphics.Containers
             List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            addFromContainer(treeIndex, ref j, this, target, childBounds);
+            addFromContainer(treeIndex, ref j, this, target, childBounds, parentOccluders);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);

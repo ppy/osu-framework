@@ -60,6 +60,7 @@
     <Compile Include="Tests\TestCaseFlow.cs" />
     <Compile Include="Tests\TestCaseHollowEdgeEffect.cs" />
     <Compile Include="Tests\TestCaseInputResampler.cs" />
+    <Compile Include="Tests\TestCaseOcclusions.cs" />
     <Compile Include="Tests\TestCaseParagraph.cs" />
     <Compile Include="Tests\TestCaseRigidBody.cs" />
     <Compile Include="Tests\TestCaseSearchContainer.cs" />

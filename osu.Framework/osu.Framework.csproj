@@ -95,8 +95,6 @@
     <Compile Include="Configuration\FrameworkDebugConfig.cs" />
     <Compile Include="Configuration\WindowMode.cs" />
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
-    <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
-    <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
     <Compile Include="Allocation\ObjectStack.cs" />
     <Compile Include="Allocation\ObjectUsage.cs" />
@@ -118,6 +116,8 @@
     <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\IHasOccluder.cs" />
+    <Compile Include="Graphics\Primitives\Axis.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
@@ -256,7 +256,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IConvexPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Line.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\ProjectionRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Quad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\RectangleF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Triangle.cs" />

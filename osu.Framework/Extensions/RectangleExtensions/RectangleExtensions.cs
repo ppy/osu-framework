@@ -2,45 +2,21 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Drawing;
-using OpenTK;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Extensions.RectangleExtensions
 {
     public static class RectangleExtensions
     {
         /// <summary>
-        /// Computes the axes for each edge in a rectangle.
-        /// <para>A rectangle has equal normals for opposing edges, so only two axes will be returned.</para>
+        /// Checks if this rectangle intersects with a convex polygon.
         /// </summary>
-        /// <param name="rectangle">The rectangle to return the axes of.</param>
-        /// <param name="normalize">Whether the normals should be normalized. Allows computation of the exact intersection point.</param>
-        /// <returns>The axes of the rectangle.</returns>
-        public static Vector2[] GetAxes(this Rectangle rectangle, bool normalize = false)
+        /// <param name="rectangle">Ourselves.</param>
+        /// <param name="polygon">The convex polygon to check.</param>
+        /// <returns>Whether this polygon intersects with <paramref name="polygon"/>.</returns>
+        public static bool Intersects(this Rectangle rectangle, IConvexPolygon polygon)
         {
-            Vector2[] edges = { new Vector2(rectangle.Right - rectangle.Left, rectangle.Top), new Vector2(rectangle.Right, rectangle.Bottom - rectangle.Top) };
-
-            for (int i = 0; i < edges.Length; i++)
-            {
-                Vector2 normal = new Vector2(-edges[i].Y, edges[i].X);
-
-                if (normalize)
-                    normal = Vector2.Normalize(normal);
-
-                edges[i] = normal;
-            }
-
-            return edges;
-        }
-
-        public static Vector2[] GetVertices(this Rectangle rectangle)
-        {
-            return new[]
-            {
-                new Vector2(rectangle.Left, rectangle.Top),
-                new Vector2(rectangle.Right, rectangle.Top),
-                new Vector2(rectangle.Right, rectangle.Bottom),
-                new Vector2(rectangle.Left, rectangle.Bottom)
-            };
+            return polygon.Intersects(Quad.FromRectangle(rectangle));
         }
     }
 }

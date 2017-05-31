@@ -7,6 +7,7 @@ using osu.Framework.Timing;
 using OpenTK;
 using osu.Framework.Graphics.Transforms;
 using System;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics
 {
@@ -39,6 +40,11 @@ namespace osu.Framework.Graphics
         /// The clock of this drawable. Used for keeping track of time across frames.
         /// </summary>
         IFrameBasedClock Clock { get; }
+
+        /// <summary>
+        /// The polygon that bounds this drawable in screen space.
+        /// </summary>
+        IConvexPolygon ScreenSpacePolygon { get; }
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in another Drawable's space.
