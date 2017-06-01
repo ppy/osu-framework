@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
-using osu.Framework.Threading;
 using OpenTK.Input;
 using KeyboardState = osu.Framework.Input.KeyboardState;
 using osu.Framework.Statistics;
@@ -16,8 +15,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 {
     internal class OpenTKKeyboardHandler : InputHandler
     {
-        private ScheduledDelegate scheduled;
-
         public override bool IsActive => true;
 
         public override int Priority => 0;
@@ -26,27 +23,22 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
-            {
-                var state = host.IsActive ? OpenTK.Input.Keyboard.GetState() : new OpenTK.Input.KeyboardState();
-
-                if (state.Equals(lastState))
-                    return;
-
-                lastState = state;
-
-                PendingStates.Enqueue(new InputState { Keyboard = new TkKeyboardState(state) });
-
-                FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
-            }, 0, 0));
-
+            host.Window.KeyDown += handleState;
+            host.Window.KeyUp += handleState;
             return true;
         }
 
-        protected override void Dispose(bool disposing)
+        private void handleState(object sender, KeyboardKeyEventArgs e)
         {
-            base.Dispose(disposing);
-            scheduled.Cancel();
+            var state = e.Keyboard;
+
+            if (state.Equals(lastState))
+                return;
+
+            lastState = state;
+
+            PendingStates.Enqueue(new InputState { Keyboard = new TkKeyboardState(state) });
+            FrameStatistics.Increment(StatisticsCounterType.KeyEvents);
         }
 
         private class TkKeyboardState : KeyboardState
