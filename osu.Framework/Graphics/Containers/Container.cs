@@ -256,7 +256,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            foreach (T t in internalChildren)
+            foreach (Drawable t in internalChildren)
             {
                 if (disposeChildren)
                 {
@@ -331,7 +331,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
-            foreach (T child in InternalChildren)
+            foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
         }
 
@@ -355,7 +355,7 @@ namespace osu.Framework.Graphics.Containers
             // for children, as they should never affect our present status.
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
-            foreach (T child in internalChildren.AliveItems)
+            foreach (Drawable child in internalChildren.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
             UpdateAfterChildren();
@@ -641,7 +641,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
-            foreach (T d in internalChildren.AliveItems)
+            foreach (Drawable d in internalChildren.AliveItems)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -653,7 +653,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
-            foreach (T d in internalChildren.AliveItems)
+            foreach (Drawable d in internalChildren.AliveItems)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;
@@ -831,7 +831,7 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
                 padding.ThrowIfNegative();
 
-                foreach (T c in internalChildren)
+                foreach (Drawable c in internalChildren)
                     c.Invalidate(Invalidation.Geometry);
             }
         }
@@ -865,7 +865,7 @@ namespace osu.Framework.Graphics.Containers
                     return;
                 relativeCoordinateSpace = value;
 
-                foreach (T c in internalChildren)
+                foreach (Drawable c in internalChildren)
                     c.Invalidate(Invalidation.Geometry);
             }
         }
