@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -47,9 +48,9 @@ namespace osu.Framework.Graphics.Containers
         /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
         /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
         /// </summary>
-        public Container(LifetimeList<T> lifetimeList = null)
+        public Container(LifetimeList<Drawable> lifetimeList = null)
         {
-            internalChildren = lifetimeList ?? new LifetimeList<T>(DepthComparer);
+            internalChildren = lifetimeList ?? new LifetimeList<Drawable>(DepthComparer);
             internalChildren.Removed += obj =>
             {
                 if (obj.DisposeOnDeathRemoval) obj.Dispose();
@@ -82,7 +83,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Update(Clock.TimeInfo);
         }
 
-        private void loadChild(T child)
+        private void loadChild(Drawable child)
         {
             child.Load(Clock, Dependencies);
             child.Parent = this;
@@ -117,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get { return Content != this ? Content.Children : internalChildren; }
+            get { return Content != this ? Content.Children : internalChildren.OfType<T>(); }
 
             set
             {
@@ -126,12 +127,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly LifetimeList<T> internalChildren;
+        private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
         /// This container's own list of children.
         /// </summary>
-        public IEnumerable<T> InternalChildren
+        public IEnumerable<Drawable> InternalChildren
         {
             get { return internalChildren; }
 
@@ -142,7 +143,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected IEnumerable<T> AliveInternalChildren => internalChildren.AliveItems;
+        protected IEnumerable<Drawable> AliveInternalChildren => internalChildren.AliveItems;
 
         /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
@@ -223,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The amount of removed children.</returns>
         public int RemoveAll(Predicate<T> pred)
         {
-            List<T> toRemove = internalChildren.FindAll(pred);
+            List<T> toRemove = Children.Where(d => pred.Invoke(d)).ToList();
             foreach (T removable in toRemove)
                 Remove(removable);
 
@@ -278,7 +279,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected void AddInternal(T drawable)
+        protected void AddInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), "null Drawables may not be added to Containers.");
@@ -298,7 +299,7 @@ namespace osu.Framework.Graphics.Containers
         /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
         /// <see cref="AddInternal(T)"/> on each element of the range in order.
         /// </summary>
-        protected void AddInternal(IEnumerable<T> range)
+        protected void AddInternal(IEnumerable<Drawable> range)
         {
             foreach (T d in range)
                 AddInternal(d);
@@ -397,11 +398,11 @@ namespace osu.Framework.Graphics.Containers
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
-            List<T> current = internalChildren;
+            List<Drawable> current = internalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
-                T c = current[i];
+                Drawable c = current[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
@@ -474,7 +475,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<T> current = parentContainer.internalChildren.AliveItems;
+            List<Drawable> current = parentContainer.internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
