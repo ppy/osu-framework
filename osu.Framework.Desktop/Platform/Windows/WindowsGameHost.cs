@@ -36,8 +36,6 @@ namespace osu.Framework.Desktop.Platform.Windows
             Dependencies.Cache(Storage = new WindowsStorage(gameName));
         }
 
-        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { new OpenTKMouseHandler(), new OpenTKKeyboardHandler() };
-
         protected override void Dispose(bool isDisposing)
         {
             timePeriod?.Dispose();

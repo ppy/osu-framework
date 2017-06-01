@@ -19,25 +19,51 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private OpenTK.Input.MouseState lastState;
 
+        private Size rawOffset;
+        private OpenTK.Input.MouseState lastScrenState;
+        private bool requireRawTare;
+        private bool mouseInWindow;
+
         public override bool Initialize(GameHost host)
         {
+            host.Window.MouseEnter += window_MouseEnter;
+            host.Window.MouseLeave += window_MouseLeave;
+            host.Window.MouseMove += window_MouseMove;
+
             host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
             {
                 if (!host.Window.Visible)
                     return;
 
-                var state = OpenTK.Input.Mouse.GetCursorState();
+                var state = OpenTK.Input.Mouse.GetState();
 
                 if (state.Equals(lastState))
                     return;
 
                 lastState = state;
 
-                Point point = host.Window.PointToClient(new Point(state.X, state.Y));
-                Vector2 pos = new Vector2(point.X, point.Y);
+                Point point = new Point(state.X, state.Y);
+
+                if (requireRawTare)
+                {
+                    rawOffset = new Size(lastScrenState.X - point.X, lastScrenState.Y - point.Y);
+                    requireRawTare = false;
+                }
+
+                point += rawOffset;
+
+                var pos = new Vector2(point.X, point.Y);
+
+                if (mouseInWindow)
+                {
+                    // update the windows cursor to match our raw cursor position
+                    var screenPoint = host.Window.PointToScreen(point);
+                    OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+                }
 
                 // While not focused, let's silently ignore everything but position.
-                if (!host.Window.Focused) state = new OpenTK.Input.MouseState();
+                if (!host.Window.Focused)
+                    state = new OpenTK.Input.MouseState();
 
                 PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
 
@@ -45,6 +71,16 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             }, 0, 0));
 
             return true;
+        }
+
+        private void window_MouseLeave(object sender, System.EventArgs e) => mouseInWindow = false;
+
+        private void window_MouseMove(object sender, MouseMoveEventArgs e) => lastScrenState = e.Mouse;
+
+        private void window_MouseEnter(object sender, System.EventArgs e)
+        {
+            requireRawTare = true;
+            mouseInWindow = true;
         }
 
         /// <summary>
