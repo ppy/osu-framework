@@ -66,6 +66,7 @@
     <Compile Include="Input\Handlers\Keyboard\OpenTKKeyboardHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKRawMouseHandler.cs" />
     <Compile Include="Input\Handlers\Mouse\OpenTKMouseHandler.cs" />
+    <Compile Include="Input\Handlers\Mouse\OpenTKMouseState.cs" />
     <Compile Include="Platform\DesktopGameHost.cs" />
     <Compile Include="Platform\DesktopGameWindow.cs" />
     <Compile Include="Platform\Linux\LinuxGameHost.cs" />

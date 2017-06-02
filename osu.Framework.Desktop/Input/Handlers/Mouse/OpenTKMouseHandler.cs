@@ -5,11 +5,9 @@ using System.Drawing;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
-using OpenTK;
-using OpenTK.Input;
-using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
+using OpenTK;
 using MouseEventArgs = OpenTK.Input.MouseEventArgs;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
@@ -71,7 +69,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                     var state = OpenTK.Input.Mouse.GetCursorState();
                     var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                    handleState(state, mapped);
+                    handleState(state, new Vector2(mapped.X, mapped.Y));
                 }, 0, 1000.0 / 60));
             }
             else
@@ -99,13 +97,13 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             handleState(e.Mouse);
         }
 
-        private void handleState(OpenTK.Input.MouseState state, Point? mappedPosition = null)
+        private void handleState(OpenTK.Input.MouseState state, Vector2? mappedPosition = null)
         {
             if (state.Equals(lastState)) return;
 
             lastState = state;
 
-            PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, host.IsActive, mappedPosition) });
+            PendingStates.Enqueue(new InputState { Mouse = new OpenTKMouseState(state, host.IsActive, mappedPosition) });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
@@ -118,37 +116,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
-
-        private class TkMouseState : MouseState
-        {
-            public readonly bool WasActive;
-
-            public override int WheelDelta => WasActive ? base.WheelDelta : 0;
-
-            public TkMouseState(OpenTK.Input.MouseState tkState, bool active, Point? mappedPosition)
-            {
-                WasActive = active;
-
-                // While not focused, let's silently ignore everything but position.
-                if (active && tkState.IsAnyButtonDown)
-                {
-                    addIfPressed(tkState.LeftButton, MouseButton.Left);
-                    addIfPressed(tkState.MiddleButton, MouseButton.Middle);
-                    addIfPressed(tkState.RightButton, MouseButton.Right);
-                    addIfPressed(tkState.XButton1, MouseButton.Button1);
-                    addIfPressed(tkState.XButton2, MouseButton.Button2);
-                }
-
-                Wheel = tkState.Wheel;
-                Position = new Vector2(mappedPosition?.X ?? tkState.X, mappedPosition?.Y ?? tkState.Y);
-            }
-
-            private void addIfPressed(ButtonState tkState, MouseButton button)
-            {
-                if (tkState == ButtonState.Pressed)
-                    SetPressed(button, true);
-            }
-        }
     }
 }
 

@@ -8,8 +8,6 @@ using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
-using OpenTK.Input;
-using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
@@ -107,7 +105,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                     if (!host.Window.Focused)
                         state = new OpenTK.Input.MouseState();
 
-                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, currentPosition, host.IsActive) });
+                    PendingStates.Enqueue(new InputState { Mouse = new OpenTKMouseState(state, host.IsActive, currentPosition) });
 
                     FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
                 }, 0, 0));
@@ -140,36 +138,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         {
             base.Dispose(disposing);
             scheduled.Cancel();
-        }
-
-        private class TkMouseState : MouseState
-        {
-            public readonly bool WasActive;
-
-            public override int WheelDelta => WasActive ? base.WheelDelta : 0;
-
-            public TkMouseState(OpenTK.Input.MouseState tkState, Vector2 position, bool active)
-            {
-                WasActive = active;
-
-                if (active && tkState.IsAnyButtonDown)
-                {
-                    addIfPressed(tkState.LeftButton, MouseButton.Left);
-                    addIfPressed(tkState.MiddleButton, MouseButton.Middle);
-                    addIfPressed(tkState.RightButton, MouseButton.Right);
-                    addIfPressed(tkState.XButton1, MouseButton.Button1);
-                    addIfPressed(tkState.XButton2, MouseButton.Button2);
-                }
-
-                Wheel = tkState.Wheel;
-                Position = position;
-            }
-
-            private void addIfPressed(ButtonState tkState, MouseButton button)
-            {
-                if (tkState == ButtonState.Pressed)
-                    SetPressed(button, true);
-            }
         }
     }
 }
