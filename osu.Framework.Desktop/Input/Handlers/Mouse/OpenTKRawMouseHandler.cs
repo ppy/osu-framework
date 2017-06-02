@@ -65,12 +65,14 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                     if (!host.Window.Visible)
                         return;
 
-                    var state = mouseInWindow ? OpenTK.Input.Mouse.GetState() : OpenTK.Input.Mouse.GetCursorState();
+                    bool useRawInput = mouseInWindow && host.Window.Focused;
+
+                    var state = useRawInput ? OpenTK.Input.Mouse.GetState() : OpenTK.Input.Mouse.GetCursorState();
 
                     if (state.Equals(lastState))
                         return;
 
-                    if (mouseInWindow)
+                    if (useRawInput)
                     {
                         if (!rawOffset.IsValid)
                         {
