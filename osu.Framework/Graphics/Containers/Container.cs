@@ -313,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("Container may not be added to itself.");
 
             if (Content == this && !(drawable is T))
-                throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {this.GetType().ReadableName()} which does not redirect {nameof(Content)}.");
+                throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             if (drawable.IsLoaded)
                 drawable.Parent = this;
