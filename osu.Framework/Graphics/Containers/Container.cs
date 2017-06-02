@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get { return Content != this ? Content.Children : internalChildren.OfType<T>(); }
+            get { return Content != this ? Content.Children : internalChildren.Cast<T>(); }
 
             set
             {
@@ -299,8 +299,12 @@ namespace osu.Framework.Graphics.Containers
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), "null Drawables may not be added to Containers.");
+
             if (drawable == this)
                 throw new InvalidOperationException("Container may not be added to itself.");
+
+            if (Content == this && !(drawable is T))
+                throw new ArgumentException($"Only {typeof(T).Name} type drawables may be added to a container of type {this.GetType().Name} which does not redirect {nameof(Content)}.");
 
             if (drawable.IsLoaded)
                 drawable.Parent = this;
