@@ -118,8 +118,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public IEnumerable<T> Children
         {
-            get { return Content != this ? Content.Children : internalChildren.Cast<T>(); }
+            get
+            {
+                if (Content != this)
+                    return Content.Children;
 
+                if (typeof(T) == typeof(Drawable))
+                    return (IEnumerable<T>)internalChildren;
+
+                return internalChildren.Cast<T>();
+            }
             set
             {
                 Clear();
