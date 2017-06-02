@@ -3,6 +3,7 @@
 
 using System.Drawing;
 using osu.Framework.Caching;
+using osu.Framework.Configuration;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -12,7 +13,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
-    internal class OpenTKRawMouseHandler : InputHandler
+    internal class OpenTKRawMouseHandler : InputHandler, IHasSensitivity
     {
         private ScheduledDelegate scheduled;
 
@@ -25,7 +26,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private Cached rawOffset = new Cached();
 
-        public float Sensitivity = 1;
+        private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0, MaxValue = 10 };
+
+        public BindableDouble Sensitivity => sensitivity;
 
         public override bool Initialize(GameHost host)
         {
@@ -85,7 +88,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                         }
                         else
                         {
-                            currentPosition += new Vector2(state.X - lastState.X, state.Y - lastState.Y) * Sensitivity;
+                            currentPosition += new Vector2(state.X - lastState.X, state.Y - lastState.Y) * (float)sensitivity.Value;
 
                             // update the windows cursor to match our raw cursor position
                             var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));

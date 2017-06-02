@@ -32,6 +32,7 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
             Set(FrameworkSetting.ActiveInputHandlers, string.Empty);
+            Set(FrameworkSetting.CursorSensitivity, 1.0, 0, 10);
             Set(FrameworkSetting.Locale, string.Empty);
         }
 
@@ -67,6 +68,7 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
-        ActiveInputHandlers
+        ActiveInputHandlers,
+        CursorSensitivity
     }
 }

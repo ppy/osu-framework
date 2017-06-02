@@ -311,6 +311,8 @@ namespace osu.Framework.Platform
             }
 
             AvailableInputHandlers = CreateAvailableInputHandlers();
+            foreach (var handler in AvailableInputHandlers.OfType<IHasSensitivity>())
+                handler.Sensitivity.BindTo(cursorSensitivity);
 
             DrawThread.Start();
             UpdateThread.Start();
@@ -403,6 +405,8 @@ namespace osu.Framework.Platform
 
         private Bindable<string> enabledInputHandlers;
 
+        private Bindable<double> cursorSensitivity;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
@@ -480,6 +484,8 @@ namespace osu.Framework.Platform
                     }
                 }
             };
+
+            cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
         }
 
         private void setVSyncMode()
