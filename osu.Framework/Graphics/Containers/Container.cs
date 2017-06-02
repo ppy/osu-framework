@@ -908,7 +908,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public Axes AutoSizeAxes
+        public virtual Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
             set
