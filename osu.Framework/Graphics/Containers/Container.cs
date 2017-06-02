@@ -18,6 +18,7 @@ using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
 using System.Linq;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -312,7 +313,7 @@ namespace osu.Framework.Graphics.Containers
                 throw new InvalidOperationException("Container may not be added to itself.");
 
             if (Content == this && !(drawable is T))
-                throw new ArgumentException($"Only {typeof(T).Name} type drawables may be added to a container of type {this.GetType().Name} which does not redirect {nameof(Content)}.");
+                throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {this.GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             if (drawable.IsLoaded)
                 drawable.Parent = this;
