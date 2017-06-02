@@ -224,7 +224,7 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The amount of removed children.</returns>
         public int RemoveAll(Predicate<T> pred)
         {
-            List<T> toRemove = Children.Where(d => pred.Invoke(d)).ToList();
+            var toRemove = Children.Where(pred.Invoke).ToList();
             foreach (T removable in toRemove)
                 Remove(removable);
 
@@ -297,11 +297,11 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
-        /// <see cref="AddInternal(T)"/> on each element of the range in order.
+        /// <see cref="AddInternal(Drawable)"/> on each element of the range in order.
         /// </summary>
         protected void AddInternal(IEnumerable<Drawable> range)
         {
-            foreach (T d in range)
+            foreach (Drawable d in range)
                 AddInternal(d);
         }
 
@@ -1029,7 +1029,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (T c in AliveInternalChildren)
+                foreach (Drawable c in AliveInternalChildren)
                 {
                     if (!c.IsPresent)
                         continue;
