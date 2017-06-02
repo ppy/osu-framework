@@ -18,6 +18,9 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 
+        /// <summary>
+        /// Retrieve a list of all pending states since the last call to this method.
+        /// </summary>
         public virtual List<InputState> GetPendingStates()
         {
             lock (this)
@@ -42,6 +45,9 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         public abstract int Priority { get; }
 
+        /// <summary>
+        /// Whether this InputHandler should be collecting <see cref="InputState"/>s to return on the next <see cref="GetPendingStates"/> call
+        /// </summary>
         public virtual bool Enabled { get; set; } = true;
 
         public override string ToString() => GetType().Name;

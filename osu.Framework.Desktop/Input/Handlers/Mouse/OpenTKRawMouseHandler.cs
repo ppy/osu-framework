@@ -79,6 +79,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                     {
                         if (!rawOffset.IsValid)
                         {
+                            // when we return from being outside of the window, we want to set the new position of our game cursor
+                            // to where the OS cursor is, just once.
                             rawOffset.Refresh(() =>
                             {
                                 var cursorState = OpenTK.Input.Mouse.GetCursorState();
@@ -90,7 +92,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                         {
                             currentPosition += new Vector2(state.X - lastState.X, state.Y - lastState.Y) * (float)sensitivity.Value;
 
-                            // update the windows cursor to match our raw cursor position
+                            // update the windows cursor to match our raw cursor position.
+                            // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
                             var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
                             OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
                         }
@@ -102,7 +105,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                     }
 
                     lastState = state;
-
 
                     // While not focused, let's silently ignore everything but position.
                     if (!host.Window.Focused)

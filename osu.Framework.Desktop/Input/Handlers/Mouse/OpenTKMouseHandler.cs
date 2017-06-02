@@ -59,7 +59,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 host.Window.MouseUp += handleMouseEvent;
                 host.Window.MouseWheel += handleMouseEvent;
 
-
                 // polling is used to keep a valid mouse position when we aren't receiving events.
                 host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
                 {
