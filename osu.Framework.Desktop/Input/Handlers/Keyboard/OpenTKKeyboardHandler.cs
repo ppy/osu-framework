@@ -21,11 +21,45 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         private OpenTK.Input.KeyboardState lastState;
 
+        private GameHost host;
+
         public override bool Initialize(GameHost host)
         {
-            host.Window.KeyDown += handleState;
-            host.Window.KeyUp += handleState;
+            this.host = host;
+
+            updateBindings();
             return true;
+        }
+
+        public override bool Enabled
+        {
+            get
+            {
+                return base.Enabled;
+            }
+
+            set
+            {
+                base.Enabled = value;
+                updateBindings();
+            }
+        }
+
+        private void updateBindings()
+        {
+            if (Enabled)
+            {
+                host.Window.KeyDown += handleState;
+                host.Window.KeyUp += handleState;
+            }
+            else
+            {
+                if (host != null)
+                {
+                    host.Window.KeyDown -= handleState;
+                    host.Window.KeyUp -= handleState;
+                }
+            }
         }
 
         private void handleState(object sender, KeyboardKeyEventArgs e)

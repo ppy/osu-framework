@@ -42,16 +42,19 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         public abstract int Priority { get; }
 
+        public virtual bool Enabled { get; set; } = true;
+
         #region IDisposable Support
 
         protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
-            }
+            if (IsDisposed)
+                return;
+
+            Enabled = false;
+            IsDisposed = true;
         }
 
         ~InputHandler()

@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Drawing;
+using osu.Framework.Caching;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
 using osu.Framework.Platform;
@@ -18,68 +19,101 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         private ScheduledDelegate scheduled;
 
         private OpenTK.Input.MouseState lastState;
+        private OpenTK.Input.MouseState lastScreenState;
 
-        private Size rawOffset;
-        private OpenTK.Input.MouseState lastScrenState;
-        private bool requireRawTare;
         private bool mouseInWindow;
+        private GameHost host;
+
+        private Cached<Size> rawOffset = new Cached<Size>();
 
         public override bool Initialize(GameHost host)
         {
+            this.host = host;
+
             host.Window.MouseEnter += window_MouseEnter;
             host.Window.MouseLeave += window_MouseLeave;
-            host.Window.MouseMove += window_MouseMove;
 
-            host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
-            {
-                if (!host.Window.Visible)
-                    return;
-
-                var state = OpenTK.Input.Mouse.GetState();
-
-                if (state.Equals(lastState))
-                    return;
-
-                lastState = state;
-
-                Point point = new Point(state.X, state.Y);
-
-                if (requireRawTare)
-                {
-                    rawOffset = new Size(lastScrenState.X - point.X, lastScrenState.Y - point.Y);
-                    requireRawTare = false;
-                }
-
-                point += rawOffset;
-
-                var pos = new Vector2(point.X, point.Y);
-
-                if (mouseInWindow)
-                {
-                    // update the windows cursor to match our raw cursor position
-                    var screenPoint = host.Window.PointToScreen(point);
-                    OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
-                }
-
-                // While not focused, let's silently ignore everything but position.
-                if (!host.Window.Focused)
-                    state = new OpenTK.Input.MouseState();
-
-                PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
-
-                FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
-            }, 0, 0));
-
+            updateBindings();
             return true;
+        }
+
+        public override bool Enabled
+        {
+            get
+            {
+                return base.Enabled;
+            }
+
+            set
+            {
+                if (Enabled == value) return;
+
+                base.Enabled = value;
+                updateBindings();
+            }
+        }
+
+        private void updateBindings()
+        {
+            if (Enabled)
+            {
+                host.Window.MouseMove += window_MouseMove;
+
+                host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
+                {
+                    if (!host.Window.Visible)
+                        return;
+
+                    var state = OpenTK.Input.Mouse.GetState();
+
+                    if (state.Equals(lastState))
+                        return;
+
+                    lastState = state;
+
+                    Point point = new Point(state.X, state.Y);
+
+                    if (!rawOffset.EnsureValid())
+                    {
+                        var size = new Size(lastScreenState.X - point.X, lastScreenState.Y - point.Y);
+                        rawOffset.Refresh(() => size);
+                    }
+
+                    point += rawOffset;
+
+                    var pos = new Vector2(point.X, point.Y);
+
+                    if (mouseInWindow)
+                    {
+                        // update the windows cursor to match our raw cursor position
+                        var screenPoint = host.Window.PointToScreen(point);
+                        OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+                    }
+
+                    // While not focused, let's silently ignore everything but position.
+                    if (!host.Window.Focused)
+                        state = new OpenTK.Input.MouseState();
+
+                    PendingStates.Enqueue(new InputState { Mouse = new TkMouseState(state, pos, host.IsActive) });
+
+                    FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
+                }, 0, 0));
+            }
+            else
+            {
+                scheduled?.Cancel();
+                if (host != null)
+                    host.Window.MouseMove -= window_MouseMove;
+            }
         }
 
         private void window_MouseLeave(object sender, System.EventArgs e) => mouseInWindow = false;
 
-        private void window_MouseMove(object sender, MouseMoveEventArgs e) => lastScrenState = e.Mouse;
+        private void window_MouseMove(object sender, MouseMoveEventArgs e) => lastScreenState = e.Mouse;
 
         private void window_MouseEnter(object sender, System.EventArgs e)
         {
-            requireRawTare = true;
+            rawOffset.Invalidate();
             mouseInWindow = true;
         }
 

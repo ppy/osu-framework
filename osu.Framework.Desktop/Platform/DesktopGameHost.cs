@@ -98,7 +98,12 @@ namespace osu.Framework.Desktop.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { new OpenTKMouseHandler(), new OpenTKKeyboardHandler() };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[]
+        {
+            new OpenTKMouseHandler(),
+            new OpenTKKeyboardHandler(),
+            new OpenTKRawMouseHandler { Enabled = false },
+        };
 
         public override async Task SendMessageAsync(IpcMessage message)
         {

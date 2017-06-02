@@ -18,7 +18,7 @@ namespace osu.Framework.Input
         {
             if (Host != null)
             {
-                foreach (InputHandler h in Host.GetInputHandlers())
+                foreach (InputHandler h in Host.AvailableInputHandlers)
                     AddHandler(h);
             }
         }

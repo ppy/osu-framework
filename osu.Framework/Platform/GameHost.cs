@@ -310,6 +310,8 @@ namespace osu.Framework.Platform
                 Window.Title = $@"osu!framework (running ""{Name}"")";
             }
 
+            AvailableInputHandlers = CreateAvailableInputHandlers();
+
             DrawThread.Start();
             UpdateThread.Start();
 
@@ -456,7 +458,9 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
+
+        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 
