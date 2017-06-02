@@ -224,11 +224,27 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The amount of removed children.</returns>
         public int RemoveAll(Predicate<T> pred)
         {
-            var toRemove = Children.Where(pred.Invoke).ToList();
-            foreach (T removable in toRemove)
-                Remove(removable);
+            if (Content != this)
+                return Content.RemoveAll(pred);
 
-            return toRemove.Count;
+            int removedCount = 0;
+
+            for (int i = 0; i < internalChildren.Count; i++)
+            {
+                var tChild = internalChildren[i] as T;
+
+                if (tChild == null)
+                    continue;
+
+                if (pred.Invoke(tChild))
+                {
+                    Remove(tChild);
+                    removedCount++;
+                    i--;
+                }
+            }
+
+            return removedCount;
         }
 
         /// <summary>
