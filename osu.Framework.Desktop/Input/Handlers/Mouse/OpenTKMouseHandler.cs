@@ -52,6 +52,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private void updateBindings()
         {
+            if (host == null) return;
+
             if (Enabled)
             {
                 host.Window.MouseMove += handleMouseEvent;
@@ -76,13 +78,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             {
                 scheduled?.Cancel();
 
-                if (host != null)
-                {
-                    host.Window.MouseMove -= handleMouseEvent;
-                    host.Window.MouseDown -= handleMouseEvent;
-                    host.Window.MouseUp -= handleMouseEvent;
-                    host.Window.MouseWheel -= handleMouseEvent;
-                }
+                host.Window.MouseMove -= handleMouseEvent;
+                host.Window.MouseDown -= handleMouseEvent;
+                host.Window.MouseUp -= handleMouseEvent;
+                host.Window.MouseWheel -= handleMouseEvent;
             }
         }
 

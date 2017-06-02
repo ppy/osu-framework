@@ -47,6 +47,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         private void updateBindings()
         {
+            if (host == null) return;
+
             if (Enabled)
             {
                 host.Window.KeyDown += handleState;
@@ -54,11 +56,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
             }
             else
             {
-                if (host != null)
-                {
-                    host.Window.KeyDown -= handleState;
-                    host.Window.KeyUp -= handleState;
-                }
+                host.Window.KeyDown -= handleState;
+                host.Window.KeyUp -= handleState;
             }
         }
 

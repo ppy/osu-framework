@@ -319,6 +319,7 @@ namespace osu.Framework.Platform
             bootstrapSceneGraph(game);
 
             frameSyncMode.TriggerChange();
+            enabledInputHandlers.TriggerChange();
 
             try
             {
@@ -400,6 +401,8 @@ namespace osu.Framework.Platform
 
         private Bindable<FrameSync> frameSyncMode;
 
+        private Bindable<string> enabledInputHandlers;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
@@ -448,6 +451,34 @@ namespace osu.Framework.Platform
 
                 if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
+            };
+
+            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
+            enabledInputHandlers.ValueChanged += enabledString =>
+            {
+                var configHandlers = enabledString.Split(' ');
+                bool useDefaults = configHandlers.Length == 0;
+
+                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
+                foreach (string handler in configHandlers)
+                {
+                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
+                    {
+                        useDefaults = true;
+                        break;
+                    }
+                }
+
+                if (useDefaults)
+                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                else
+                {
+                    foreach (var handler in AvailableInputHandlers)
+                    {
+                        var handlerType = handler.ToString();
+                        handler.Enabled = configHandlers.Any(ch => ch == handlerType);
+                    }
+                }
             };
         }
 

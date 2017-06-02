@@ -58,6 +58,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private void updateBindings()
         {
+            if (host == null) return;
+
             if (Enabled)
             {
                 host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate

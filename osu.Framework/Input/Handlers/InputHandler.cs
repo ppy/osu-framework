@@ -44,6 +44,8 @@ namespace osu.Framework.Input.Handlers
 
         public virtual bool Enabled { get; set; } = true;
 
+        public override string ToString() => GetType().Name;
+
         #region IDisposable Support
 
         protected bool IsDisposed;

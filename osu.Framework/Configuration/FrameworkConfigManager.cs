@@ -31,7 +31,8 @@ namespace osu.Framework.Configuration
             Set(FrameworkSetting.FrameSync, FrameSync.Limit2x);
             Set(FrameworkSetting.WindowMode, WindowMode.Windowed);
             Set(FrameworkSetting.ShowUnicode, false);
-            Set(FrameworkSetting.Locale, "");
+            Set(FrameworkSetting.ActiveInputHandlers, string.Empty);
+            Set(FrameworkSetting.Locale, string.Empty);
         }
 
         public FrameworkConfigManager(Storage storage)
@@ -66,5 +67,6 @@ namespace osu.Framework.Configuration
 
         ShowUnicode,
         Locale,
+        ActiveInputHandlers
     }
 }
