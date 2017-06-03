@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             protected override IComparer<Drawable> DepthComparer => new ReverseCreationOrderDepthComparer();
 
-            protected override IEnumerable<U> FlowingChildren => base.FlowingChildren.Reverse();
+            protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
 
             protected override IEnumerable<Vector2> ComputeLayoutPositions()
             {
@@ -245,7 +245,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 var result = base.ComputeLayoutPositions().ToArray();
                 int i = 0;
-                foreach (var child in FlowingChildren)
+                foreach (var child in FlowingChildren.OfType<U>())
                 {
                     updateChildIfNeeded(child, result[i].Y == 0);
                     ++i;
