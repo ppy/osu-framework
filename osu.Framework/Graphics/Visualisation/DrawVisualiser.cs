@@ -8,12 +8,20 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using osu.Framework.Lists;
+using System;
+using System.Reflection;
+using System.Collections.Generic;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     public class DrawVisualiser : OverlayContainer
     {
-        private readonly TreeContainer treeContainer;
+        internal readonly TreeContainer treeContainer;
+        internal readonly PropertyDisplay propertyDisplay;
+
+        internal VisualisedDrawable highlighted;
+        private Box highlightMarker;
 
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
@@ -26,17 +34,26 @@ namespace osu.Framework.Graphics.Visualisation
             RelativeSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                overlay = new InfoOverlay(),
+                overlay = new InfoOverlay()
+                {
+                    Depth = float.MaxValue
+                },
+                propertyDisplay = new PropertyDisplay
+                {
+                    Depth = float.MinValue
+                },
                 treeContainer = new TreeContainer
                 {
-                    Depth = float.MinValue,
+                    Depth = 0f,                         // Below property display
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
                             Target = Target?.Parent;
-                    }
+                    },
+                    ToggleProperties = propertyDisplay.ToggleVisibility,
+                    
                 },
                 new CursorContainer()
             };
@@ -72,12 +89,15 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Target = null;
             targetSearching = true;
+
+            propertyDisplay.State = Visibility.Hidden;
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
         {
             if (d is DrawVisualiser) return null;
             if (d is CursorContainer) return null;
+            if (d is PropertyDisplay) return null;
 
             if (!d.IsPresent) return null;
 
@@ -131,7 +151,12 @@ namespace osu.Framework.Graphics.Visualisation
                 treeContainer.Add(targetDrawable);
 
                 runUpdate(); // run an initial update to immediately show the selected hierarchy.
+
+                // Update property viewer
+                setHighlight(targetDrawable);
             }
+
+            propertyDisplay.State = Visibility.Visible;
         }
 
         private IDrawable target;
@@ -152,6 +177,21 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualise(Target, targetDrawable);
         }
+        private void updatePropertyDisplay(IDrawable d)
+        {
+            propertyDisplay.Clear(true);
+
+            if (d == null)
+                return;
+
+            Type type = d.GetType();
+
+            propertyDisplay.Add(
+                ((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
+                .OrderBy(member => member.Name)
+                .Select(member => new PropertyItem(member, d)));
+        }
 
         private void updateHoveredDrawable()
         {
@@ -160,9 +200,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable createVisualisedDrawable(VisualisedDrawable parent, Drawable target)
         {
-            var vis = new VisualisedDrawable(parent, target, treeContainer)
+            var vis = new VisualisedDrawable(parent, target, this)
             {
-                RequestTarget = delegate { Target = target; }
+                RequestTarget = delegate { Target = target; },
+                HighlightTarget = setHighlight
             };
 
             vis.HoverGained = delegate
@@ -178,6 +219,25 @@ namespace osu.Framework.Graphics.Visualisation
             };
 
             return vis;
+        }
+        private void setHighlight(VisualisedDrawable newHighlight)
+        {
+            // Remove marker from previous highlight
+            if (highlightMarker != null && highlightMarker.Parent != null)
+                ((IContainerCollection<Drawable>)highlightMarker.Parent).Remove(highlightMarker);
+
+            highlightMarker = new Box()
+            {
+                RelativeSizeAxes = Axes.Both,
+                Alpha = 0.1f,
+                Colour = Color4.Khaki
+            };
+            newHighlight.Add(highlightMarker);
+
+            newHighlight.Expand();
+
+            highlighted = newHighlight;
+            updatePropertyDisplay(newHighlight.Target);
         }
 
         private void visualise(IDrawable d, VisualisedDrawable vis)

@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System.Collections.Generic;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -30,7 +31,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
-        private readonly Box textBg;
+        private readonly Box background;
         private readonly SpriteText text;
         private readonly Drawable previewBox;
         private readonly Drawable activityInvalidate;
@@ -40,19 +41,22 @@ namespace osu.Framework.Graphics.Visualisation
         public Action HoverGained;
         public Action HoverLost;
 
+        public Action<VisualisedDrawable> HighlightTarget;
         public Action RequestTarget;
 
         private const int line_height = 12;
 
         public FillFlowContainer<VisualisedDrawable> Flow;
 
+        private readonly DrawVisualiser viz;
         private readonly TreeContainer tree;
 
         private readonly int nestingDepth;
 
-        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
+        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, DrawVisualiser viz)
         {
-            this.tree = tree;
+            this.viz = viz;
+            tree = viz.treeContainer;
 
             nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
@@ -61,9 +65,18 @@ namespace osu.Framework.Graphics.Visualisation
 
             var sprite = Target as Sprite;
 
-            AutoSizeAxes = Axes.Both;
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
             Add(new[]
             {
+                background = new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    Alpha = 0f,
+                    Colour = Color4.White.Opacity(0.9f),        // Never make full opacity background
+                },
                 activityInvalidate = new Box
                 {
                     Colour = Color4.Yellow,
@@ -92,30 +105,16 @@ namespace osu.Framework.Graphics.Visualisation
                         Texture = sprite.Texture,
                         Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                     },
-                new Container
+                text = new SpriteText
                 {
-                    AutoSizeAxes = Axes.Both,
                     Position = new Vector2(24, -3),
-                    Children = new Drawable[]
-                    {
-                        textBg = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(1, 0.8f),
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Colour = Color4.Transparent,
-                        },
-                        text = new SpriteText
-                        {
-                            Scale = new Vector2(0.9f),
-                        },
-                    }
+                    Scale = new Vector2(0.9f),
                 },
                 Flow = new FillFlowContainer<VisualisedDrawable>
                 {
                     Direction = FillDirection.Vertical,
-                    AutoSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Position = new Vector2(10, 14)
                 },
             });
@@ -123,7 +122,8 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
 
-            updateSpecifics();
+            // Start collapsed
+            Collapse();
         }
 
         private void attachEvents()
@@ -159,21 +159,35 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             HoverGained?.Invoke();
-            textBg.Colour = Color4.PaleVioletRed.Opacity(0.7f);
-            return base.OnHover(state);
+            background.FadeTo(0.05f, 100);
+            return false;
         }
 
         protected override void OnHoverLost(InputState state)
         {
             HoverLost?.Invoke();
-            textBg.Colour = Color4.Transparent;
+            background.FadeOut(100);
             base.OnHoverLost(state);
+        }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            if (state.Mouse.IsPressed(MouseButton.Right))
+            {
+                HighlightTarget?.Invoke(this);
+                return true;
+            }
+
+            return base.OnMouseDown(state, args);
         }
 
         protected override bool OnClick(InputState state)
         {
-            Flow.Alpha = Flow.Alpha > 0 ? 0 : 1;
-            updateSpecifics();
+            if (Flow.IsPresent)
+                Collapse();
+
+            else Expand();
+            
             return true;
         }
 
@@ -181,6 +195,20 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RequestTarget?.Invoke();
             return true;
+        }
+
+        public void Expand()
+        {
+            Flow.Alpha = 1f;
+            updateSpecifics();
+        }
+        public void Collapse()
+        {
+            if (viz.highlighted == this)
+                return;
+
+            Flow.Alpha = 0f;
+            updateSpecifics();
         }
 
         private void onAutoSize()
@@ -219,7 +247,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             updateSpecifics();
 
-            text.Colour = !Flow.IsPresent ? Color4.LightBlue : Color4.White;
+            text.Colour = !Flow.IsPresent && ((Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0) > 0 ? Color4.LightBlue : Color4.White;
             base.Update();
         }
 

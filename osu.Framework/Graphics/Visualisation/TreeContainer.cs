@@ -26,6 +26,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
+        public Action ToggleProperties;
 
         protected override Container<Drawable> Content => scroll;
 
@@ -118,6 +119,14 @@ namespace osu.Framework.Graphics.Visualisation
                                             RelativeSizeAxes = Axes.Y,
                                             Text = @"Up one parent",
                                             Action = delegate { GoUpOneParent?.Invoke(); },
+                                        },
+                                        new Button
+                                        {
+                                            BackgroundColour = Color4.DarkGray,
+                                            Size = new Vector2(100, 1),
+                                            RelativeSizeAxes = Axes.Y,
+                                            Text = @"Properties",
+                                            Action = delegate { ToggleProperties?.Invoke(); },
                                         },
                                     },
                                 },
