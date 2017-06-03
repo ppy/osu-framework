@@ -50,7 +50,7 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
             });
 
-            AddToggleStep("Cursor-less tooltip", state => generateTest(state));
+            AddToggleStep("Cursor-less tooltip", generateTest);
             generateTest(false);
         }
 
