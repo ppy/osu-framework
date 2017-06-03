@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Containers
             base.InvalidateFromChild(invalidation);
         }
 
-        protected virtual IEnumerable<T> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
+        protected virtual IEnumerable<Drawable> FlowingChildren => AliveInternalChildren.Where(d => d.IsPresent);
 
         protected abstract IEnumerable<Vector2> ComputeLayoutPositions();
 
