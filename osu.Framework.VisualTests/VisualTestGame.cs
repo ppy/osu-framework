@@ -20,6 +20,7 @@ namespace osu.Framework.VisualTests
                 new TestBrowser(),
                 cursor = new CursorContainer(),
                 new TooltipContainer(cursor),
+                new CursorContextMenu(cursor),
             };
         }
 
