@@ -15,24 +15,43 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tooltip that shows when hovering a drawable";
 
-        public override void Reset()
+        private Container testContainer;
+
+        private void generateTest(bool cursorlessTooltip)
         {
-            base.Reset();
-            Add(new FillFlowContainer
+            testContainer.Clear();
+            testContainer.Add(new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 10),
-                Children = new Drawable[]{
-                    new TooltipSpriteText("this text has a tooltip!"),
-                    new TooltipSpriteText("this one too!"),
-                    new TooltipTextbox
-                    {
-                        Text = "with real time updates!",
-                        Size = new Vector2(400, 30),
-                    }
+                Children = new Drawable[]
+                {
+                        new TooltipSpriteText("this text has a tooltip!"),
+                        new TooltipSpriteText("this one too!"),
+                        new TooltipTextbox
+                        {
+                            Text = "with real time updates!",
+                            Size = new Vector2(400, 30),
+                        }
                 },
             });
+
+            if (cursorlessTooltip)
+                testContainer.Add(new TooltipContainer());
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            Add(testContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+
+            AddToggleStep("Cursor-less tooltip", state => generateTest(state));
+            generateTest(false);
         }
 
         private class TooltipSpriteText : Container, IHasTooltip
