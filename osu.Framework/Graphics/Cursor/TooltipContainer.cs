@@ -91,15 +91,12 @@ namespace osu.Framework.Graphics.Cursor
 
         public class Tooltip : OverlayContainer
         {
-            private readonly Box background;
             private readonly SpriteText text;
 
             public virtual string TooltipText
             {
                 set
                 {
-                    if (value == text.Text) return;
-
                     text.Text = value;
                 }
             }
@@ -115,7 +112,7 @@ namespace osu.Framework.Graphics.Cursor
 
                 Children = new Drawable[]
                 {
-                    background = new Box
+                    new Box
                     {
                         RelativeSizeAxes = Axes.Both,
                         Colour = Color4.Gray,
