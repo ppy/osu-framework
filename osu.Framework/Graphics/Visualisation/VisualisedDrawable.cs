@@ -69,14 +69,6 @@ namespace osu.Framework.Graphics.Visualisation
             AutoSizeAxes = Axes.Y;
             Add(new[]
             {
-                background = new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Alpha = 0f,
-                    Colour = Color4.White.Opacity(0.9f),        // Never make full opacity background
-                },
                 activityInvalidate = new Box
                 {
                     Colour = Color4.Yellow,
@@ -105,10 +97,25 @@ namespace osu.Framework.Graphics.Visualisation
                         Texture = sprite.Texture,
                         Scale = new Vector2(sprite.Texture.DisplayWidth / sprite.Texture.DisplayHeight, 1),
                     },
-                text = new SpriteText
+                new Container
                 {
+                    AutoSizeAxes = Axes.Both,
                     Position = new Vector2(24, -3),
-                    Scale = new Vector2(0.9f),
+                    Children = new Drawable[]
+                    {
+                        background = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(1, 0.8f),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Colour = Color4.Transparent,
+                        },
+                        text = new SpriteText
+                        {
+                            Scale = new Vector2(0.9f),
+                        },
+                    }
                 },
                 Flow = new FillFlowContainer<VisualisedDrawable>
                 {
@@ -121,9 +128,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
-
-            // Start collapsed
-            Collapse();
+            
+            updateSpecifics();
         }
 
         private void attachEvents()
@@ -159,14 +165,14 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             HoverGained?.Invoke();
-            background.FadeTo(0.05f, 100);
-            return false;
+            background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
+            return base.OnHover(state);
         }
 
         protected override void OnHoverLost(InputState state)
         {
             HoverLost?.Invoke();
-            background.FadeOut(100);
+            background.Colour = Color4.Transparent;
             base.OnHoverLost(state);
         }
 
