@@ -118,10 +118,15 @@
     <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\Cursor\CursorContextMenu.cs" />
+    <Compile Include="Graphics\Cursor\IHasContextMenu.cs" />
     <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
     <Compile Include="Graphics\Cursor\TooltipContainer.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
+    <Compile Include="Graphics\UserInterface\ContextMenuContainer.cs" />
+    <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
+    <Compile Include="Graphics\UserInterface\ContextMenuType.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
