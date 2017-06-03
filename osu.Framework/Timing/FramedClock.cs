@@ -83,5 +83,7 @@ namespace osu.Framework.Timing
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;
         }
+
+        public override string ToString() => $@"{GetType().Name} ({CurrentTime}ms, {FramesPerSecond} FPS)";
     }
 }

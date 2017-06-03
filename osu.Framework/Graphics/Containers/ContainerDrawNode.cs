@@ -67,6 +67,8 @@ namespace osu.Framework.Graphics.Containers
             Type == other.Type &&
             Roundness == other.Roundness &&
             Radius == other.Radius;
+
+        public override string ToString() => $@"{Radius} {Type}EdgeEffect";
     }
 
     /// <summary>

@@ -43,6 +43,8 @@ namespace osu.Framework.Graphics
             return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
         }
 
+        public override string ToString() => $@"({Top}, {Left}, {Bottom}, {Right})";
+
         public static MarginPadding operator -(MarginPadding mp)
         {
             return new MarginPadding

@@ -77,5 +77,7 @@ namespace osu.Framework.Graphics
         {
             return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
         }
+
+        public override string ToString() => $@"{GetType().Name.Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }
 }

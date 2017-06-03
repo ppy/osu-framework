@@ -371,5 +371,7 @@ namespace osu.Framework.Audio
             {
             }
         }
+
+        public override string ToString() => $@"AudioManager ({currentAudioDevice})";
     }
 }

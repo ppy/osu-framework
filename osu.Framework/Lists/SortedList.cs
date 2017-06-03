@@ -63,6 +63,8 @@ namespace osu.Framework.Lists
             return index;
         }
 
+        public override string ToString() => $@"{GetType().Name} ({Count} items)";
+
         private class ComparisonComparer<TComparison> : IComparer<TComparison>
         {
             private readonly Comparison<TComparison> comparison;

@@ -45,5 +45,6 @@ namespace osu.Framework.Graphics.Colour
         public void MultiplyAlpha(float alpha) => Linear.A *= alpha;
 
         public bool Equals(SRGBColour other) => Linear.Equals(other.Linear);
+        public override string ToString() => Linear.ToString();
     }
 }

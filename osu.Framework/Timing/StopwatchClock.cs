@@ -54,5 +54,7 @@ namespace osu.Framework.Timing
             seekOffset = position - CurrentTime;
             return true;
         }
+
+        public override string ToString() => $@"{GetType().Name} ({CurrentTime}ms)";
     }
 }

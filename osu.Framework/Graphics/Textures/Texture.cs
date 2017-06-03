@@ -202,6 +202,8 @@ namespace osu.Framework.Graphics.Textures
 
             TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
+
+        public override string ToString() => $@"{AssetName} ({Width}, {Height})";
     }
 
     public class TextureWhitePixel : Texture
