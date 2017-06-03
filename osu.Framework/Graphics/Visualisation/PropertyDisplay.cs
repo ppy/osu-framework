@@ -17,8 +17,8 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly FillFlowContainer flow;
 
-        private const float width = 400;
-        private const float height = 600;
+        private const float width = 600;
+        private const float height = 400;
 
         private readonly Box titleBar;
 
@@ -28,8 +28,8 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Masking = true;
             CornerRadius = 5;
-            Anchor = Origin = Anchor.TopRight;
-            Position = new Vector2(-100, 100);
+            Anchor = Origin = Anchor.BottomRight;
+            Position = new Vector2(-20);
             Size = new Vector2(width, height);
             AddInternal(new Drawable[]
             {
