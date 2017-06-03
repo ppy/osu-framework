@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
+using System;
 using System.Diagnostics;
 
 namespace osu.Framework.Timing
@@ -56,6 +57,6 @@ namespace osu.Framework.Timing
             return true;
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()} ({CurrentTime}ms)";
+        public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms)";
     }
 }

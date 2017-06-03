@@ -85,6 +85,6 @@ namespace osu.Framework.Timing
             CurrentTime = SourceTime;
         }
 
-        public override string ToString() => $@"{GetType().ReadableName()} ({CurrentTime}ms, {FramesPerSecond} FPS)";
+        public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms, {FramesPerSecond} FPS)";
     }
 }
