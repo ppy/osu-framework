@@ -8,17 +8,27 @@ namespace osu.Framework.Graphics.Primitives
     public interface IPolygon
     {
         /// <summary>
-        /// The vertices for this polygon.
+        /// The number of vertices in this polygon.
         /// </summary>
-        Vector2[] Vertices { get; }
+        int VertexCount { get; }
 
         /// <summary>
-        /// The vertices for this polygon that are used to compute the axes of the polygon.
-        /// <para>
-        /// Optimisation: Edges that would form duplicate normals as other edges
-        /// in the polygon do not need their vertices added to this array.
-        /// </para>
+        /// The number of axes formed by the vertices of this polygon.
         /// </summary>
-        Vector2[] AxisVertices { get; }
+        int AxisCount { get; }
+
+        /// <summary>
+        /// Retrieves one of this polygon's vertices.
+        /// </summary>
+        /// <param name="index">The index of the vertex to retrieve.</param>
+        /// <returns>The vertex.</returns>
+        Vector2 GetVertex(int index);
+
+        /// <summary>
+        /// Retrieves one of this polygon's axes.
+        /// </summary>
+        /// <param name="index">The index of the axis to retrieve.</param>
+        /// <returns>The axis.</returns>
+        Axis GetAxis(int index);
     }
 }

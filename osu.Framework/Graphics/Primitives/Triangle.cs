@@ -6,17 +6,39 @@ using System;
 
 namespace osu.Framework.Graphics.Primitives
 {
-    public struct Triangle
+    public struct Triangle : IConvexPolygon
     {
         public Vector2 P0;
         public Vector2 P1;
         public Vector2 P2;
+
+        /// <summary>
+        /// Axis formed between <see cref="P0"/> and <see cref="P1"/>.
+        /// </summary>
+        public Axis Axis01;
+
+        /// <summary>
+        /// Axis formed between <see cref="P1"/> and <see cref="P2"/>.
+        /// </summary>
+        public Axis Axis12;
+
+        /// <summary>
+        /// Axis formed between <see cref="P2"/> and <see cref="P0"/>.
+        /// </summary>
+        public Axis Axis20;
+
+        public int VertexCount => 3;
+        public int AxisCount => 3;
 
         public Triangle(Vector2 p0, Vector2 p1, Vector2 p2)
         {
             P0 = p0;
             P1 = p1;
             P2 = p2;
+
+            Axis01 = new Axis(P0, P1);
+            Axis12 = new Axis(P1, P2);
+            Axis20 = new Axis(P2, P0);
         }
 
         /// <summary>
@@ -41,6 +63,36 @@ namespace osu.Framework.Graphics.Primitives
                 return false;
 
             return true;
+        }
+
+        public Vector2 GetVertex(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return P0;
+                case 1:
+                    return P1;
+                case 2:
+                    return P2;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
+        }
+
+        public Axis GetAxis(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return Axis01;
+                case 1:
+                    return Axis12;
+                case 2:
+                    return Axis20;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(index));
+            }
         }
 
         public RectangleF AABBFloat
