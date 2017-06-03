@@ -8,18 +8,10 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ContextMenuItem : MenuItem
     {
-        private readonly SpriteText text;
-
         protected virtual Container CreateContentContainer() => new Container();
         private readonly Container contentContainer;
 
-        public new float DrawWidth
-        {
-            get
-            {
-                return contentContainer.DrawWidth;
-            }
-        }
+        public new float DrawWidth => contentContainer.DrawWidth;
 
         public ContextMenuItem(string title)
         {
@@ -32,7 +24,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Origin = Anchor.CentreLeft,
                     Children = new Drawable[]
                     {
-                        text = new SpriteText
+                        new SpriteText
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
