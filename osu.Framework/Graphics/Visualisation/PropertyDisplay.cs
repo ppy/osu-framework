@@ -31,8 +31,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Masking = true;
             CornerRadius = 5;
-            Anchor = Origin = Anchor.BottomRight;
-            Position = new Vector2(-20);
+            Anchor = Origin = Anchor.TopLeft;
             Size = new Vector2(width, height);
             AddInternal(new Drawable[]
             {

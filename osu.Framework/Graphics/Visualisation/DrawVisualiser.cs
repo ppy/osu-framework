@@ -12,6 +12,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using OpenTK.Graphics;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -50,7 +51,7 @@ namespace osu.Framework.Graphics.Visualisation
                     {
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
-                            Target = Target?.Parent;
+                            Target = (Drawable)Target?.Parent;
                     },
                     ToggleProperties = propertyDisplay.ToggleVisibility,
                 },
@@ -158,9 +159,9 @@ namespace osu.Framework.Graphics.Visualisation
             propertyDisplay.State = Visibility.Visible;
         }
 
-        private IDrawable target;
+        private Drawable target;
 
-        public IDrawable Target
+        public Drawable Target
         {
             get { return target; }
             set
@@ -176,7 +177,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualise(Target, targetDrawable);
         }
-        private void updatePropertyDisplay(IDrawable d)
+        private void updatePropertyDisplay(Drawable d)
         {
             propertyDisplay.Clear(true);
 
@@ -190,6 +191,8 @@ namespace osu.Framework.Graphics.Visualisation
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
                 .OrderBy(member => member.Name)
                 .Select(member => new PropertyItem(member, d)));
+
+            propertyDisplay.Position = d.ScreenSpaceDrawQuad.TopRight;
         }
 
         private void updateHoveredDrawable()
@@ -284,7 +287,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (targetSearching)
             {
-                Target = findTarget(state)?.Parent;
+                Target = (Drawable)findTarget(state)?.Parent;
 
                 if (Target != null)
                 {
