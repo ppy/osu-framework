@@ -128,15 +128,9 @@ namespace osu.Framework.Graphics.Cursor
                 };
             }
 
-            protected override void PopIn()
-            {
-                FadeIn();
-            }
+            protected override void PopIn() => FadeIn();
 
-            protected override void PopOut()
-            {
-                FadeOut();
-            }
+            protected override void PopOut() => FadeOut();
         }
     }
 }

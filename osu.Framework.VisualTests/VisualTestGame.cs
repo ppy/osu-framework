@@ -15,9 +15,6 @@ namespace osu.Framework.VisualTests
         private void load()
         {
             CursorContainer cursor;
-
-            AlwaysReceiveInput = true;
-
             Children = new Drawable[]
             {
                 new TestBrowser(),
