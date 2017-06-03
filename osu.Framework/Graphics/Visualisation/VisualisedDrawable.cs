@@ -187,7 +187,6 @@ namespace osu.Framework.Graphics.Visualisation
                 Collapse();
 
             else Expand();
-            
             return true;
         }
 

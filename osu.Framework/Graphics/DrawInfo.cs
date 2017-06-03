@@ -6,6 +6,7 @@ using osu.Framework.Extensions.MatrixExtensions;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics
 {
@@ -78,6 +79,6 @@ namespace osu.Framework.Graphics
             return Matrix.Equals(other.Matrix) && Colour.Equals(other.Colour) && Blending.Equals(other.Blending);
         }
 
-        public override string ToString() => $@"{GetType().Name.Replace(@"DrawInfo", string.Empty)} DrawInfo";
+        public override string ToString() => $@"{GetType().ReadableName().Replace(@"DrawInfo", string.Empty)} DrawInfo";
     }
 }

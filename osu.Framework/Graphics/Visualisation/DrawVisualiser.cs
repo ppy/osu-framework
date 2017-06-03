@@ -53,7 +53,6 @@ namespace osu.Framework.Graphics.Visualisation
                             Target = Target?.Parent;
                     },
                     ToggleProperties = propertyDisplay.ToggleVisibility,
-                    
                 },
                 new CursorContainer()
             };

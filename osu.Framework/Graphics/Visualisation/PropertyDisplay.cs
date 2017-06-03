@@ -1,4 +1,7 @@
-﻿using OpenTK;
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -94,7 +97,6 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly SpriteText valueText;
 
         private readonly Box box;
-        
         private readonly Func<string> getValue;     // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)

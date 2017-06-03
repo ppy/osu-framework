@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using System;
 
@@ -84,6 +85,6 @@ namespace osu.Framework.Timing
             CurrentTime = SourceTime;
         }
 
-        public override string ToString() => $@"{GetType().Name} ({CurrentTime}ms, {FramesPerSecond} FPS)";
+        public override string ToString() => $@"{GetType().ReadableName()} ({CurrentTime}ms, {FramesPerSecond} FPS)";
     }
 }
