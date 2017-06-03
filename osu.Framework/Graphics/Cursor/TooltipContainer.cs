@@ -4,6 +4,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Vector2Extensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -76,14 +77,21 @@ namespace osu.Framework.Graphics.Cursor
             return ToLocalSpace(screenSpaceTooltipPos);
         }
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
             if (tooltip.IsPresent)
             {
                 if (currentlyDisplayed != null)
                     tooltip.TooltipText = currentlyDisplayed.TooltipText;
 
-                tooltip.Position = computeTooltipPosition();
+                Vector2 pos = computeTooltipPosition();
+                pos.X = MathHelper.Clamp(pos.X, 0, DrawWidth - tooltip.DrawWidth);
+
+                if(pos.Y > DrawHeight - tooltip.DrawHeight)
+                {
+                    pos.Y = pos.Y - cursorContainer.ActiveCursor.DrawHeight - tooltip.DrawHeight;
+                }
+                tooltip.Position = pos;
             }
         }
 
