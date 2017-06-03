@@ -81,6 +81,13 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (!d.IsPresent) return null;
 
+            bool containsCursor = d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position);
+            // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
+            // forward input further to children (via d.Contains). If they do forward input to children, then there
+            // is a good chance they have children poking out of their bounds, which we need to catch.
+            if (!containsCursor && !d.Contains(state.Mouse.NativeState.Position))
+                return null;
+
             var dAsContainer = d as IContainerEnumerable<Drawable>;
 
             Drawable containedTarget = null;
@@ -107,7 +114,7 @@ namespace osu.Framework.Graphics.Visualisation
                 }
             }
 
-            return containedTarget ?? (d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position) ? d : null);
+            return containedTarget ?? (containsCursor ? d : null);
         }
 
         private VisualisedDrawable targetDrawable;
