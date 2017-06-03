@@ -192,7 +192,6 @@ namespace osu.Framework.Graphics.Visualisation
                 .OrderBy(member => member.Name)
                 .Select(member => new PropertyItem(member, d)));
 
-            propertyDisplay.Position = d.ScreenSpaceDrawQuad.TopRight;
         }
 
         private void updateHoveredDrawable()
@@ -231,7 +230,7 @@ namespace osu.Framework.Graphics.Visualisation
             highlightMarker = new Box()
             {
                 RelativeSizeAxes = Axes.Both,
-                Alpha = 0.1f,
+                Alpha = 0.4f,
                 Colour = Color4.Khaki
             };
             newHighlight.Add(highlightMarker);
