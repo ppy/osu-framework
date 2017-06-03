@@ -10,6 +10,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly SpriteText text;
 
+        protected virtual Container CreateContentContainer() => new Container();
         private readonly Container contentContainer;
 
         public new float DrawWidth
