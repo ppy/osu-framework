@@ -1799,7 +1799,7 @@ namespace osu.Framework.Graphics
         protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can receive, taking into account all optimizations and masking.
+        /// Whether this Drawable can receive input, taking into account all optimizations and masking.
         /// </summary>
         public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
 
@@ -1808,7 +1808,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
