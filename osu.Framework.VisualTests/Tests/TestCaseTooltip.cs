@@ -27,18 +27,33 @@ namespace osu.Framework.VisualTests.Tests
                 Spacing = new Vector2(0, 10),
                 Children = new Drawable[]
                 {
-                        new TooltipSpriteText("this text has a tooltip!"),
-                        new TooltipSpriteText("this one too!"),
-                        new TooltipTextbox
+                    new TooltipSpriteText("this text has a tooltip!"),
+                    new TooltipSpriteText("this one too!"),
+                    new TooltipTextbox
+                    {
+                        Text = "with real time updates!",
+                        Size = new Vector2(400, 30),
+                    },
+                    new Container()
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            Text = "with real time updates!",
-                            Size = new Vector2(400, 30),
+                            new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
+                            new TooltipContainer(),
                         }
+                    },
                 },
             });
 
-            if (cursorlessTooltip)
-                testContainer.Add(new TooltipContainer());
+            CursorContainer cursor = null;
+            if (!cursorlessTooltip)
+            {
+                cursor = new RectangleCursorContainer();
+                testContainer.Add(cursor);
+            }
+
+            testContainer.Add(new TooltipContainer(cursor));
         }
 
         public override void Reset()
@@ -76,6 +91,19 @@ namespace osu.Framework.VisualTests.Tests
         private class TooltipTextbox : TextBox, IHasTooltip
         {
             public string TooltipText => Text;
+        }
+
+        private class RectangleCursorContainer : CursorContainer
+        {
+            protected override Drawable CreateCursor() => new RectangleCursor();
+
+            private class RectangleCursor : Box
+            {
+                public RectangleCursor()
+                {
+                    Size = new Vector2(20, 40);
+                }
+            }
         }
     }
 }
