@@ -8,8 +8,8 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ContextMenuItem : MenuItem
     {
-        private readonly Container textContainer;
-        protected virtual Container CreateTextContainer(string title) => new Container
+        private readonly Container contentContainer;
+        protected virtual Container CreateContentContainer(string title) => new Container
         {
             AutoSizeAxes = Axes.Both,
             Anchor = Anchor.CentreLeft,
@@ -26,11 +26,11 @@ namespace osu.Framework.Graphics.UserInterface
             }
         };
 
-        public new float DrawWidth => textContainer.DrawWidth;
+        public new float DrawWidth => contentContainer.DrawWidth;
 
         public ContextMenuItem(string title)
         {
-            Add(textContainer = CreateTextContainer(title));
+            Add(contentContainer = CreateContentContainer(title));
         }
     }
 }
