@@ -1520,7 +1520,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
-        /// <param name="input">A vector in screen coordinates.</param>
+        /// <param name="screenSpacePos">A vector in screen coordinates.</param>
         /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
@@ -1530,7 +1530,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
         /// </summary>
-        /// <param name="input">A quad in screen coordinates.</param>
+        /// <param name="screenSpaceQuad">A quad in screen coordinates.</param>
         /// <returns>The quad in local coordinates.</returns>
         public Quad ToLocalSpace(Quad screenSpaceQuad)
         {
