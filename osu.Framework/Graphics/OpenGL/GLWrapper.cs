@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Rectangle = System.Drawing.Rectangle;
@@ -39,6 +40,8 @@ namespace osu.Framework.Graphics.OpenGL
 
         private static readonly Scheduler reset_scheduler = new Scheduler(null); //force no thread set until we are actually on the draw thread.
 
+        private static readonly ConcurrentQueue<TextureGL> texture_upload_queue = new ConcurrentQueue<TextureGL>();
+
         public static bool IsInitialized { get; private set; }
 
         private static GameHost host;
@@ -70,6 +73,10 @@ namespace osu.Framework.Graphics.OpenGL
             Trace.Assert(shader_stack.Count == 0);
 
             reset_scheduler.Update();
+
+            TextureGL tex;
+            if (texture_upload_queue.TryDequeue(out tex))
+                tex.Upload();
 
             lastBoundTexture = null;
 
@@ -126,11 +133,7 @@ namespace osu.Framework.Graphics.OpenGL
         /// Enqueues a texture to be uploaded in the next frame.
         /// </summary>
         /// <param name="texture">The texture to be uploaded.</param>
-        public static void EnqueueTextureUpload(TextureGL texture)
-        {
-            //todo: don't use scheduler
-            reset_scheduler.Add(() => texture.Upload());
-        }
+        public static void EnqueueTextureUpload(TextureGL texture) => texture_upload_queue.Enqueue(texture);
 
         private static readonly int[] last_bound_buffers = new int[2];
 
