@@ -14,7 +14,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
     internal class OpenTKMouseHandler : InputHandler
     {
-        private OpenTK.Input.MouseState lastState;
+        private OpenTK.Input.MouseState? lastState;
         private GameHost host;
 
         private bool mouseInWindow;
@@ -79,6 +79,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                 host.Window.MouseDown -= handleMouseEvent;
                 host.Window.MouseUp -= handleMouseEvent;
                 host.Window.MouseWheel -= handleMouseEvent;
+
+                lastState = null;
             }
         }
 

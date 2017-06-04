@@ -17,14 +17,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private ScheduledDelegate scheduled;
 
-        private OpenTK.Input.MouseState lastState;
+        private OpenTK.Input.MouseState? lastState;
 
         private Vector2 currentPosition;
 
         private bool mouseInWindow;
         private GameHost host;
-
-        private Cached rawOffset = new Cached();
 
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0, MaxValue = 10 };
 
@@ -77,20 +75,17 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                     if (useRawInput)
                     {
-                        if (!rawOffset.IsValid)
+                        if (!lastState.HasValue)
                         {
                             // when we return from being outside of the window, we want to set the new position of our game cursor
                             // to where the OS cursor is, just once.
-                            rawOffset.Refresh(() =>
-                            {
-                                var cursorState = OpenTK.Input.Mouse.GetCursorState();
-                                var screenPoint = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
-                                currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
-                            });
+                            var cursorState = OpenTK.Input.Mouse.GetCursorState();
+                            var screenPoint = host.Window.PointToClient(new Point(cursorState.X, cursorState.Y));
+                            currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                         }
                         else
                         {
-                            currentPosition += new Vector2(state.X - lastState.X, state.Y - lastState.Y) * (float)sensitivity.Value;
+                            currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
 
                             // update the windows cursor to match our raw cursor position.
                             // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
@@ -118,6 +113,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             else
             {
                 scheduled?.Cancel();
+                lastState = null;
             }
         }
 
@@ -125,7 +121,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private void window_MouseEnter(object sender, System.EventArgs e)
         {
-            rawOffset.Invalidate();
+            lastState = null;
             mouseInWindow = true;
         }
 
