@@ -94,60 +94,91 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly SpriteText nameText;
         private readonly SpriteText valueText;
+        private readonly Box changeMarker;
 
         private readonly Box box;
         private readonly Func<string> getValue;     // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)
         {
-            try
-            {
                 switch (info.MemberType)
                 {
                     case MemberTypes.Property:
-                        getValue = ((PropertyInfo)info).GetValue(d).ToString;
+                        getValue = () => ((PropertyInfo)info).GetValue(d)?.ToString();
                         break;
 
                     case MemberTypes.Field:
-                        getValue = ((FieldInfo)info).GetValue(d).ToString;
+                        getValue = () => ((FieldInfo)info).GetValue(d)?.ToString();
                         break;
                 }
-            }
-            catch
-            {
-                getValue = () => @"<Cannot evaluate>";
-            }
 
             RelativeSizeAxes = Axes.X;
             Height = 20f;
             AddInternal(new Drawable[]
             {
-                box = new Box()
+                new Container()
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = Color4.White,
-                    Alpha = 0f
+                    Padding = new MarginPadding()
+                    {
+                        Right = 6
+                    },
+                    Children = new Drawable[]
+                    {
+                        box = new Box()
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Color4.White,
+                            Alpha = 0f
+                        },
+                        nameText = new SpriteText()
+                        {
+                            Text = info.Name,
+                            TextSize = Height
+                        },
+                        valueText = new SpriteText()
+                        {
+                            Anchor = Anchor.TopRight,
+                            Origin = Anchor.TopRight,
+                            TextSize = Height
+                        },
+                    }
                 },
-                nameText = new SpriteText()
+                changeMarker = new Box()
                 {
-                    Text = info.Name,
-                    TextSize = Height
-                },
-                valueText = new SpriteText()
-                {
-                    Anchor = Anchor.TopRight,
-                    Origin = Anchor.TopRight,
-                    TextSize = Height
+                    Size = new Vector2(4, 18),
+                    Anchor = Anchor.CentreRight,
+                    Origin = Anchor.CentreRight,
+                    Colour = Color4.Red
                 }
             });
         }
+
+        private string lastValue;
 
         protected override void Update()
         {
             base.Update();
 
             // Update value
-            valueText.Text = getValue();
+            string value;
+            try
+            {
+                value = getValue();
+            }
+            catch
+            {
+                value = @"<Cannot evaluate>";
+            }
+
+            if (value != lastValue)
+            {
+                changeMarker.ClearTransforms();
+                changeMarker.Alpha = 0.8f;
+                changeMarker.FadeOut(200);
+            }
+
+            valueText.Text = lastValue = value;
         }
 
         protected override bool OnHover(InputState state)

@@ -32,6 +32,7 @@ namespace osu.Framework.Graphics.Visualisation
         public Drawable Target { get; }
 
         private readonly Box background;
+        internal readonly Box highlightBackground;
         private readonly SpriteText text;
         private readonly Drawable previewBox;
         private readonly Drawable activityInvalidate;
@@ -111,6 +112,15 @@ namespace osu.Framework.Graphics.Visualisation
                             Origin = Anchor.CentreLeft,
                             Colour = Color4.Transparent,
                         },
+                        highlightBackground = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(1, 0.8f),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Colour = Color4.Khaki.Opacity(0.4f),
+                            Alpha = 0
+                        },
                         text = new SpriteText
                         {
                             Scale = new Vector2(0.9f),
@@ -180,7 +190,10 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (state.Mouse.IsPressed(MouseButton.Right))
             {
-                HighlightTarget?.Invoke(this);
+                if (viz.highlighted == this)
+                    HighlightTarget?.Invoke(null);
+
+                else HighlightTarget?.Invoke(this);
                 return true;
             }
 

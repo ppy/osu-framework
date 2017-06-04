@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Visualisation
         internal readonly PropertyDisplay propertyDisplay;
 
         internal VisualisedDrawable highlighted;
-        private Box highlightMarker;
 
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
@@ -49,14 +48,55 @@ namespace osu.Framework.Graphics.Visualisation
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
+                        Drawable lastHighlight = highlighted?.Target;
+
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
                             Target = (Drawable)Target?.Parent;
+
+                        // Rehighlight the last highlight
+                        if (lastHighlight != null)
+                        {
+                            VisualisedDrawable visualised = findVisualised(lastHighlight, targetDrawable);
+                            if (visualised != null)
+                                setHighlight(visualised);
+                        }
                     },
-                    ToggleProperties = propertyDisplay.ToggleVisibility,
+                    ToggleProperties = delegate
+                    {
+                        propertyDisplay.ToggleVisibility();
+
+                        if (propertyDisplay.State == Visibility.Visible)
+                            setHighlight(targetDrawable);
+                    },
                 },
                 new CursorContainer()
             };
+
+            propertyDisplay.StateChanged += (display, visibility) =>
+            {
+                switch (visibility)
+                {
+                    case Visibility.Hidden:
+                        setHighlight(null);
+                        break;
+                }
+            };
+        }
+
+        private VisualisedDrawable findVisualised(Drawable d, VisualisedDrawable root)
+        {
+            foreach (VisualisedDrawable child in root.Flow.InternalChildren)
+            {
+                if (child.Target == d)
+                    return child;
+
+                VisualisedDrawable found = findVisualised(d, child);
+                if (found != null)
+                    return found;
+            }
+
+            return null;
         }
 
         protected override bool BlockPassThroughMouse => false;
@@ -87,10 +127,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void chooseTarget()
         {
+            setHighlight(null);
+
             Target = null;
             targetSearching = true;
-
-            propertyDisplay.State = Visibility.Hidden;
         }
 
         private Drawable findTargetIn(Drawable d, InputState state)
@@ -145,6 +185,8 @@ namespace osu.Framework.Graphics.Visualisation
         private void createRootVisualisedDrawable()
         {
             removeRootVisualisedDrawable();
+            setHighlight(null);
+
             if (target != null)
             {
                 targetDrawable = createVisualisedDrawable(null, target as Drawable);
@@ -155,8 +197,6 @@ namespace osu.Framework.Graphics.Visualisation
                 // Update property viewer
                 setHighlight(targetDrawable);
             }
-
-            propertyDisplay.State = Visibility.Visible;
         }
 
         private Drawable target;
@@ -182,8 +222,12 @@ namespace osu.Framework.Graphics.Visualisation
             propertyDisplay.Clear(true);
 
             if (d == null)
+            {
+                propertyDisplay.State = Visibility.Hidden;
                 return;
+            }
 
+            propertyDisplay.State = Visibility.Visible;
             Type type = d.GetType();
 
             propertyDisplay.Add(
@@ -223,22 +267,20 @@ namespace osu.Framework.Graphics.Visualisation
         }
         private void setHighlight(VisualisedDrawable newHighlight)
         {
-            // Remove marker from previous highlight
-            if (highlightMarker != null && highlightMarker.Parent != null)
-                ((IContainerCollection<Drawable>)highlightMarker.Parent).Remove(highlightMarker);
+            highlighted?.highlightBackground.FadeOut();
 
-            highlightMarker = new Box()
+            if (newHighlight == null)
             {
-                RelativeSizeAxes = Axes.Both,
-                Alpha = 0.4f,
-                Colour = Color4.Khaki
-            };
-            newHighlight.Add(highlightMarker);
+                updatePropertyDisplay(null);
+                highlighted = null;
+                return;
+            }
 
-            newHighlight.Expand();
-
-            highlighted = newHighlight;
             updatePropertyDisplay(newHighlight.Target);
+            highlighted = newHighlight;
+
+            newHighlight.highlightBackground.FadeIn();
+            newHighlight.Expand();
         }
 
         private void visualise(IDrawable d, VisualisedDrawable vis)
