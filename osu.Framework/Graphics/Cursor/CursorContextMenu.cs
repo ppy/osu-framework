@@ -43,7 +43,11 @@ namespace osu.Framework.Graphics.Cursor
                     menuTarget = inputManager.HoveredDrawables.OfType<IHasContextMenu>().FirstOrDefault();
 
                     if (menuTarget == null)
+                    {
+                        if (menu.State == MenuState.Opened)
+                            menu.Close();
                         return false;
+                    }
 
                     menu.Items = menuTarget.ContextMenuItems;
 
