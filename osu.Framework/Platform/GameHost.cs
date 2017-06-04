@@ -311,7 +311,7 @@ namespace osu.Framework.Platform
             }
 
             AvailableInputHandlers = CreateAvailableInputHandlers();
-            foreach (var handler in AvailableInputHandlers.OfType<IHasSensitivity>())
+            foreach (var handler in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
                 handler.Sensitivity.BindTo(cursorSensitivity);
 
             DrawThread.Start();

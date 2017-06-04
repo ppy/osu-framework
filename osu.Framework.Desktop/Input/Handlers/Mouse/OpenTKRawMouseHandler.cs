@@ -13,7 +13,7 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
-    internal class OpenTKRawMouseHandler : InputHandler, IHasSensitivity
+    internal class OpenTKRawMouseHandler : InputHandler, IHasCursorSensitivity
     {
         private ScheduledDelegate scheduled;
 
