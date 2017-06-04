@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -16,6 +17,19 @@ namespace osu.Framework.VisualTests.Tests
         public override string Description => "Tooltip that shows when hovering a drawable";
 
         private Container testContainer;
+
+        private TooltipBox makeBox(Anchor anchor)
+        {
+            return new TooltipBox
+            {
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.2f),
+                Anchor = anchor,
+                Origin = anchor,
+                Colour = Color4.Blue,
+                TooltipText = $"{anchor}",
+            };
+        }
 
         private void generateTest(bool cursorlessTooltip)
         {
@@ -45,6 +59,10 @@ namespace osu.Framework.VisualTests.Tests
                     },
                 },
             });
+            
+            testContainer.Add(makeBox(Anchor.BottomLeft));
+            testContainer.Add(makeBox(Anchor.TopRight));
+            testContainer.Add(makeBox(Anchor.BottomRight));
 
             CursorContainer cursor = null;
             if (!cursorlessTooltip)
@@ -91,6 +109,13 @@ namespace osu.Framework.VisualTests.Tests
         private class TooltipTextbox : TextBox, IHasTooltip
         {
             public string TooltipText => Text;
+        }
+
+        private class TooltipBox : Box, IHasTooltip
+        {
+            public string TooltipText { get; set; }
+
+            public override bool HandleInput => true;
         }
 
         private class RectangleCursorContainer : CursorContainer
