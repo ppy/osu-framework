@@ -1470,24 +1470,32 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a rectangle in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A rectangle in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the rectangle to.</param>
+        /// <returns>The rectangle in other's coordinates.</returns>
+        public Quad ToSpaceOfOtherDrawable(RectangleF input, IDrawable other)
+        {
+            if (other == this)
+                return input;
+
+            return Quad.FromRectangle(input) * (DrawInfo.Matrix * other.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input)
-        {
-            return ToSpaceOfOtherDrawable(input, Parent);
-        }
+        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input)
-        {
-            return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
-        }
+        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
@@ -1510,14 +1518,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Convert a position to the local coordinate system from either native or local to another drawable.
-        /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
+        /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
-        /// <param name="screenSpacePos">The input position.</param>
-        /// <returns>The output position.</returns>
+        /// <param name="input">A vector in screen coordinates.</param>
+        /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
             return screenSpacePos * DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
+        /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
+        /// </summary>
+        /// <param name="input">A quad in screen coordinates.</param>
+        /// <returns>The quad in local coordinates.</returns>
+        public Quad ToLocalSpace(Quad screenSpaceQuad)
+        {
+            return screenSpaceQuad * DrawInfo.MatrixInverse;
         }
 
         #endregion
