@@ -99,6 +99,18 @@ namespace osu.Framework.Graphics.Cursor
             return base.OnMouseMove(state);
         }
 
+        protected override void OnHoverLost(InputState state)
+        {
+            hideTooltip();
+            base.OnHoverLost(state);
+        }
+
+        private void hideTooltip()
+        {
+            tooltip.Hide();
+            currentlyDisplayed = null;
+        }
+
         private void updateTooltipState(InputState state)
         {
             // Nothing to do if we're still hovering a tooltipped drawable
@@ -107,10 +119,7 @@ namespace osu.Framework.Graphics.Cursor
 
             // Hide if we stopped hovering and do not have any button pressed.
             if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
-            {
-                tooltip.Hide();
-                currentlyDisplayed = null;
-            }
+                hideTooltip();
 
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
