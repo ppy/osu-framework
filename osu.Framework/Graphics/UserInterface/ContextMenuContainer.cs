@@ -48,11 +48,16 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 menuWidth.Refresh(() =>
                 {
-                    float width = 0;
+                    float textWidth = 0;
+                    float contentWidth = 0;
 
                     foreach (var item in Items)
-                        width = Math.Max(width, item.DrawWidth);
-                    return width;
+                    {
+                        textWidth = Math.Max(textWidth, item.TextDrawWidth);
+                        contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
+                    }
+
+                    return textWidth + contentWidth;
                 });
 
                 Width = menuWidth.Value;

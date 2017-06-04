@@ -11,7 +11,8 @@ namespace osu.Framework.Graphics.UserInterface
         private readonly Container textContainer;
         protected readonly FillFlowContainer ContentContainer;
 
-        public new float DrawWidth => textContainer.DrawWidth + ContentContainer.DrawWidth;
+        public float TextDrawWidth => textContainer.DrawWidth;
+        public float ContentDrawWidth => ContentContainer.DrawWidth;
 
         protected virtual Container CreateTextContainer(string title) => new Container
         {
