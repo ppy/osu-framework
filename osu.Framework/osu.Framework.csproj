@@ -110,6 +110,7 @@
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
+    <Compile Include="Extensions\Vector2Extensions\Vector2Extensions.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
