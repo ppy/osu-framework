@@ -69,7 +69,6 @@ namespace osu.Framework.Graphics.Cursor
             }
             else
             {
-                
                 Quad cursorQuad = cursorContainer.ActiveCursor.ToSpaceOfOtherDrawable(cursorContainer.ActiveCursor.DrawRectangle, this);
                 cursorCentre = cursorQuad.Centre;
                 // We only need to check 2 of the 4 vertices, because we only allow affine transformations

@@ -59,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
                     },
                 },
             });
-            
+
             testContainer.Add(makeBox(Anchor.BottomLeft));
             testContainer.Add(makeBox(Anchor.TopRight));
             testContainer.Add(makeBox(Anchor.BottomRight));
