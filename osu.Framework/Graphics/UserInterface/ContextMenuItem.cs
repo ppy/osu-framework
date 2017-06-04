@@ -9,7 +9,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class ContextMenuItem : MenuItem
     {
         private readonly Container textContainer;
-        private readonly Container contentContainer;
+        protected readonly FillFlowContainer ContentContainer;
+
+        public new float DrawWidth => textContainer.DrawWidth + ContentContainer.DrawWidth;
 
         protected virtual Container CreateTextContainer(string title) => new Container
         {
@@ -28,29 +30,16 @@ namespace osu.Framework.Graphics.UserInterface
             }
         };
 
-        protected virtual Container CreateContentContainer() => new Container
-        {
-            AutoSizeAxes = Axes.Both,
-            Anchor = Anchor.CentreRight,
-            Origin = Anchor.CentreRight,
-            Children = new Drawable[]
-            {
-                new SpriteText
-                {
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.CentreRight,
-                    TextSize = 17,
-                    Text = @"test",
-                }
-            }
-        };
-
-        public new float DrawWidth => textContainer.DrawWidth + contentContainer.DrawWidth;
-
         public ContextMenuItem(string title)
         {
             Add(textContainer = CreateTextContainer(title));
-            Add(contentContainer = CreateContentContainer());
+            Add(ContentContainer = new FillFlowContainer
+            {
+                Direction = FillDirection.Horizontal,
+                AutoSizeAxes = Axes.Both,
+                Anchor = Anchor.CentreRight,
+                Origin = Anchor.CentreRight,
+            });
         }
     }
 }
