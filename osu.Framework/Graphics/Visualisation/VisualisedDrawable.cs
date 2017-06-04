@@ -138,7 +138,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
-            
             updateSpecifics();
         }
 

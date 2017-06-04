@@ -90,7 +90,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
     }
 
-    internal class PropertyItem : ClickableContainer
+    internal class PropertyItem : Container
     {
         private readonly SpriteText nameText;
         private readonly SpriteText valueText;
