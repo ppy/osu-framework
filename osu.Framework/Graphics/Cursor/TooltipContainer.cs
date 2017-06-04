@@ -101,27 +101,36 @@ namespace osu.Framework.Graphics.Cursor
 
         private void updateTooltipState(InputState state)
         {
-            if (currentlyDisplayed?.Hovering != true)
+            // Nothing to do if we're still hovering a tooltipped drawable
+            if (currentlyDisplayed?.Hovering == true)
+                return;
+
+            // Hide if we stopped hovering and do not have any button pressed.
+            if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
             {
-                if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
-                {
-                    tooltip.Hide();
-                    currentlyDisplayed = null;
-                }
-
-                findTooltipTask?.Cancel();
-                findTooltipTask = Scheduler.AddDelayed(delegate
-                {
-                    var tooltipTarget = inputManager.HoveredDrawables.OfType<IHasTooltip>().FirstOrDefault();
-
-                    if (tooltipTarget == null) return;
-
-                    tooltip.TooltipText = tooltipTarget.TooltipText;
-                    tooltip.Show();
-
-                    currentlyDisplayed = tooltipTarget;
-                }, (1 - tooltip.Alpha) * AppearDelay);
+                tooltip.Hide();
+                currentlyDisplayed = null;
             }
+
+            findTooltipTask?.Cancel();
+            findTooltipTask = Scheduler.AddDelayed(delegate
+            {
+                var tooltipTarget = inputManager.HoveredDrawables
+                    // Skip hovered drawables above this tooltip container
+                    .SkipWhile(d => d != this)
+                    .Skip(1)
+                    // Only handle drawables above any potentially nested tooltip container
+                    .TakeWhile(d => !(d is TooltipContainer))
+                    .OfType<IHasTooltip>()
+                    .FirstOrDefault();
+
+                if (tooltipTarget == null) return;
+
+                tooltip.TooltipText = tooltipTarget.TooltipText;
+                tooltip.Show();
+
+                currentlyDisplayed = tooltipTarget;
+            }, (1 - tooltip.Alpha) * AppearDelay);
         }
 
         public class Tooltip : OverlayContainer
