@@ -88,7 +88,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// An easy way to set the full text of a paragraph in one go.
+        /// An easy way to set the full text of a text flow in one go.
         /// This will overwrite any existing text added using this method of <see cref="AddText(string, Action{SpriteText})"/>
         /// </summary>
         public string Text
@@ -116,7 +116,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add new text to this paragraph.
+        /// Add new text to this text flow.
         /// </summary>
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The text to add.</param>
