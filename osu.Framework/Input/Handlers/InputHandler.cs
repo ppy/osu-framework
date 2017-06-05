@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Input.Handlers
 {
@@ -48,7 +49,7 @@ namespace osu.Framework.Input.Handlers
         /// <summary>
         /// Whether this InputHandler should be collecting <see cref="InputState"/>s to return on the next <see cref="GetPendingStates"/> call
         /// </summary>
-        public virtual bool Enabled { get; set; } = true;
+        public readonly BindableBool Enabled = new BindableBool(true);
 
         public override string ToString() => GetType().Name;
 
@@ -61,7 +62,7 @@ namespace osu.Framework.Input.Handlers
             if (IsDisposed)
                 return;
 
-            Enabled = false;
+            Enabled.Value = false;
             IsDisposed = true;
         }
 

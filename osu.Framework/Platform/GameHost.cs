@@ -480,7 +480,7 @@ namespace osu.Framework.Platform
                     foreach (var handler in AvailableInputHandlers)
                     {
                         var handlerType = handler.ToString();
-                        handler.Enabled = configHandlers.Any(ch => ch == handlerType);
+                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
                     }
                 }
             };

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Platform;
@@ -98,12 +99,24 @@ namespace osu.Framework.Desktop.Platform
 
         public override ITextInputSource GetTextInput() => Window == null ? null : new GameWindowTextInput(Window);
 
-        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[]
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers()
         {
-            new OpenTKMouseHandler(),
-            new OpenTKKeyboardHandler(),
-            new OpenTKRawMouseHandler { Enabled = false },
-        };
+            var defaultEnabled = new InputHandler[]
+            {
+                new OpenTKMouseHandler(),
+                new OpenTKKeyboardHandler(),
+            };
+
+            var defaultDisabled = new InputHandler[]
+            {
+                new OpenTKRawMouseHandler(),
+            };
+
+            foreach (var h in defaultDisabled)
+                h.Enabled.Value = false;
+
+            return defaultEnabled.Concat(defaultDisabled);
+        }
 
         public override async Task SendMessageAsync(IpcMessage message)
         {

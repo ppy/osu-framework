@@ -28,66 +28,41 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             host.Window.MouseLeave += (s, e) => mouseInWindow = false;
             host.Window.MouseEnter += (s, e) => mouseInWindow = true;
 
-            updateBindings();
-            return true;
-        }
-
-        public override bool Enabled
-        {
-            get
+            Enabled.ValueChanged += enabled =>
             {
-                return base.Enabled;
-            }
-
-            set
-            {
-                if (Enabled == value) return;
-
-                base.Enabled = value;
-                updateBindings();
-            }
-        }
-
-        private void updateBindings()
-        {
-            if (host == null) return;
-
-            if (Enabled)
-            {
-                host.Window.MouseMove += handleMouseEvent;
-                host.Window.MouseDown += handleMouseEvent;
-                host.Window.MouseUp += handleMouseEvent;
-                host.Window.MouseWheel += handleMouseEvent;
-
-                // polling is used to keep a valid mouse position when we aren't receiving events.
-                host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
+                if (enabled)
                 {
-                    // we should be getting events if the mouse is inside the window.
-                    if (mouseInWindow || !host.Window.Visible) return;
+                    host.Window.MouseMove += handleMouseEvent;
+                    host.Window.MouseDown += handleMouseEvent;
+                    host.Window.MouseUp += handleMouseEvent;
+                    host.Window.MouseWheel += handleMouseEvent;
 
-                    var state = OpenTK.Input.Mouse.GetCursorState();
-                    var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
+                    // polling is used to keep a valid mouse position when we aren't receiving events.
+                    host.InputThread.Scheduler.Add(scheduled = new ScheduledDelegate(delegate
+                    {
+                        // we should be getting events if the mouse is inside the window.
+                        if (mouseInWindow || !host.Window.Visible) return;
 
-                    handleState(state, new Vector2(mapped.X, mapped.Y));
-                }, 0, 1000.0 / 60));
-            }
-            else
-            {
-                scheduled?.Cancel();
+                        var state = OpenTK.Input.Mouse.GetCursorState();
+                        var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                host.Window.MouseMove -= handleMouseEvent;
-                host.Window.MouseDown -= handleMouseEvent;
-                host.Window.MouseUp -= handleMouseEvent;
-                host.Window.MouseWheel -= handleMouseEvent;
+                        handleState(state, new Vector2(mapped.X, mapped.Y));
+                    }, 0, 1000.0 / 60));
+                }
+                else
+                {
+                    scheduled?.Cancel();
 
-                lastState = null;
-            }
-        }
+                    host.Window.MouseMove -= handleMouseEvent;
+                    host.Window.MouseDown -= handleMouseEvent;
+                    host.Window.MouseUp -= handleMouseEvent;
+                    host.Window.MouseWheel -= handleMouseEvent;
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            scheduled.Cancel();
+                    lastState = null;
+                }
+            };
+            Enabled.TriggerChange();
+            return true;
         }
 
         private void handleMouseEvent(object sender, MouseEventArgs e)
