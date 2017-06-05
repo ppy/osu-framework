@@ -149,7 +149,7 @@ namespace osu.Framework.Graphics.Sprites
         private Bindable<string> current;
 
         /// <summary>
-        /// Implements the <see cref="IHasCurrentValue{string}"/> interface.
+        /// Implements the <see cref="IHasCurrentValue{T}"/> interface.
         /// </summary>
         public Bindable<string> Current
         {
