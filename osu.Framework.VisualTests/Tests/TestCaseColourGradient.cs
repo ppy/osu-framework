@@ -58,7 +58,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
-            string[] labels = new string[]
+            string[] labels =
             {
                 "Colours",
                 "White to black (linear brightness gradient)",

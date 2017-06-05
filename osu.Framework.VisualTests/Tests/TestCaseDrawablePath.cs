@@ -47,7 +47,7 @@ namespace osu.Framework.VisualTests.Tests
             }
             gradientTexture.SetData(new TextureUpload(data));
 
-            Cell(0).Add(new Drawable[]
+            Cell(0).Add(new[]
             {
                 createLabel("Simple path"),
                 new Path
@@ -59,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
 
-            Cell(1).Add(new Drawable[]
+            Cell(1).Add(new[]
             {
                 createLabel("Curved path"),
                 new Path
@@ -78,7 +78,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
 
-            Cell(2).Add(new Drawable[]
+            Cell(2).Add(new[]
             {
                 createLabel("Self-overlapping path"),
                 new Path
@@ -97,7 +97,7 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
 
-            Cell(3).Add(new Drawable[]
+            Cell(3).Add(new[]
             {
                 createLabel("Draw something ;)"),
                 new UserDrawnPath

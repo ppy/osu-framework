@@ -38,7 +38,7 @@ namespace osu.Framework.VisualTests.Tests
             byte[] data = new byte[width * 4];
             for (int i = 0; i < width; ++i)
             {
-                float brightness = (float)i / (width - 1); ;
+                float brightness = (float)i / (width - 1);
                 int index = i * 4;
                 data[index + 0] = (byte)(brightness * 255);
                 data[index + 1] = (byte)(brightness * 255);
@@ -129,7 +129,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private class SmoothedPath : Path
         {
-            public SmoothedPath()
+            protected SmoothedPath()
             {
                 PathWidth = 2;
             }
@@ -175,12 +175,7 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     float x = (float) (Math.Sin(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
                     float y = (float) (Math.Cos(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
-                    Vector2 v;
-                    if (keepFraction)
-                        v = new Vector2(x, y);
-                    else
-                        v = new Vector2((int)x, (int)y);
-
+                    Vector2 v = keepFraction ? new Vector2(x, y) : new Vector2((int)x, (int)y);
                     if (raw)
                         AddRawVertex(v);
                     else

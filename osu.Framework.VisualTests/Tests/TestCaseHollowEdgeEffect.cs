@@ -58,14 +58,6 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
-            string[] labels = new string[]
-            {
-                "Colours",
-                "White to black (linear brightness gradient)",
-                "White to transparent white (sRGB brightness gradient)",
-                "White to transparent black (mixed brightness gradient)",
-            };
-
             for (int i = 0; i < Rows * Cols; ++i)
             {
                 Cell(i).Add(new Drawable[]

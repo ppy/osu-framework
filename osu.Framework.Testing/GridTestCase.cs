@@ -31,7 +31,7 @@ namespace osu.Framework.Testing
         /// </summary>
         /// <param name="rows">The amount of rows of the grid.</param>
         /// <param name="cols">The amount of columns of the grid.</param>
-        public GridTestCase(int rows, int cols)
+        protected GridTestCase(int rows, int cols)
         {
             Rows = rows;
             Cols = cols;
