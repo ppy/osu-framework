@@ -46,11 +46,19 @@ namespace osu.Framework.MathUtils
             return Math.Abs(value1 - value2) <= acceptableDifference;
         }
 
+        /// <summary>
+        /// Rounds the specified value to the number of digits.
+        /// Default number of digits is 7.
+        /// </summary>
         public static double Round(double value, int numOfDigits = 7)
         {
             return Math.Round(value, numOfDigits);
         }
 
+        /// <summary>
+        /// Rounds the specified value to the number of digits.
+        /// Default number of digits is 3.
+        /// </summary>
         public static float Round(float value, int numOfDigits = 3)
         {
             return (float)Math.Round(value, numOfDigits);
