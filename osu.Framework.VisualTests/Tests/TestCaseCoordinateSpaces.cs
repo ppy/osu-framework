@@ -1,16 +1,15 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
+
+using System.Globalization;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using osu.Framework.Timing;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -98,8 +97,8 @@ namespace osu.Framework.VisualTests.Tests
             {
                 base.Update();
 
-                Left.Text = $"X = {RelativeCoordinateSpace.Left.ToString()}";
-                Right.Text = $"X = {RelativeCoordinateSpace.Right.ToString()}";
+                Left.Text = $"X = {RelativeCoordinateSpace.Left.ToString(CultureInfo.InvariantCulture)}";
+                Right.Text = $"X = {RelativeCoordinateSpace.Right.ToString(CultureInfo.InvariantCulture)}";
             }
         }
 
@@ -107,7 +106,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             public new RectangleF RelativeCoordinateSpace
             {
-                get { return innerContainer.RelativeCoordinateSpace; }
+                protected get { return innerContainer.RelativeCoordinateSpace; }
                 set { innerContainer.RelativeCoordinateSpace = value; }
             }
 
@@ -116,7 +115,7 @@ namespace osu.Framework.VisualTests.Tests
             protected readonly SpriteText Left;
             protected readonly SpriteText Right;
 
-            public Visualiser()
+            protected Visualiser()
             {
                 Height = 50;
 
@@ -195,7 +194,7 @@ namespace osu.Framework.VisualTests.Tests
                             Origin = Anchor.TopCentre,
                             Y = 6,
                             BypassAutoSizeAxes = Axes.Both,
-                            Text = x.ToString()
+                            Text = x.ToString(CultureInfo.InvariantCulture)
                         }
                     }
                 });
