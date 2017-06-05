@@ -48,16 +48,12 @@ namespace osu.Framework.MathUtils
 
         public static double Round(double value, int numOfDigits = 7)
         {
-            double rounded = Math.Round(value, numOfDigits);
-
-            return rounded == value ? rounded : value;
+            return Math.Round(value, numOfDigits);
         }
 
         public static float Round(float value, int numOfDigits = 3)
         {
-            float rounded = (float)Math.Round(value, numOfDigits);
-
-            return rounded == value ? rounded : value;
+            return (float)Math.Round(value, numOfDigits)
         }
     }
 }
