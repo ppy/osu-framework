@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -9,7 +10,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseParagraph : TestCase
+    internal class TestCaseTextFlow : TestCase
     {
         public override string Description => @"Test word-wrapping and paragraphs";
 
@@ -38,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
             };
 
             FillFlowContainer paragraphContainer;
-            Paragraph paragraph;
+            TextFlowContainer paragraph;
             flow.Add(paragraphContainer = new FillFlowContainer
             {
                 AutoSizeAxes = Axes.Y,
@@ -47,7 +48,7 @@ namespace osu.Framework.VisualTests.Tests
                 Direction = FillDirection.Vertical,
                 Children = new Drawable[]
                 {
-                    paragraph = new Paragraph
+                    paragraph = new TextFlowContainer
                     {
                         FirstLineIndent = 5,
                         ContentIndent = 10,
@@ -65,7 +66,7 @@ namespace osu.Framework.VisualTests.Tests
             paragraph.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);
             paragraph.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
 
-            paragraphContainer.Add(new Paragraph
+            paragraphContainer.Add(new TextFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
@@ -79,6 +80,8 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
             AddStep(@"header inset", () => { paragraph.FirstLineIndent += 2; });
             AddStep(@"body inset", () => { paragraph.ContentIndent += 4; });
+            AddToggleStep(@"Zero paragraph spacing", state => paragraph.ParagraphSpacing = state ? 0 : 0.5f);
+            AddToggleStep(@"Non-zero line spacing", state => paragraph.LineSpacing = state ? 1 : 0);
         }
     }
 }

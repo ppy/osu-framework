@@ -12,8 +12,9 @@ namespace osu.Framework.Graphics.Sprites
 {
     /// <summary>
     /// A drawable text object that supports word-wrapping amongst other paragraph-specific formatting.
+    /// A new paragraph is initiated by a linebreak character (i.e. '\n') in text.
     /// </summary>
-    public class Paragraph : FillFlowContainer
+    public class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
 
@@ -44,6 +45,42 @@ namespace osu.Framework.Graphics.Sprites
             {
                 if (value == contentIndent) return;
                 contentIndent = value;
+
+                layout.Invalidate();
+            }
+        }
+
+        private float paragraphSpacing = 0.5f;
+
+        /// <summary>
+        /// Vertical space between paragraphs (i.e. text separated by '\n') in multiples of the text size.
+        /// The default value is 0.5.
+        /// </summary>
+        public float ParagraphSpacing
+        {
+            get { return paragraphSpacing; }
+            set
+            {
+                if (value == paragraphSpacing) return;
+                paragraphSpacing = value;
+
+                layout.Invalidate();
+            }
+        }
+
+        private float lineSpacing;
+
+        /// <summary>
+        /// Vertical space between lines both when a new paragraph begins and when line wrapping occurs.
+        /// Additive with <see cref="ParagraphSpacing"/> on new paragraph. Default value is 0.
+        /// </summary>
+        public float LineSpacing
+        {
+            get { return lineSpacing; }
+            set
+            {
+                if (value == lineSpacing) return;
+                lineSpacing = value;
 
                 layout.Invalidate();
             }
@@ -94,6 +131,11 @@ namespace osu.Framework.Graphics.Sprites
             return spriteText;
         }
 
+        public override void Add(Drawable drawable)
+        {
+            throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a paragraph.");
+        }
+
         private IEnumerable<SpriteText> addLine(TextLine line)
         {
             bool first = true;
@@ -106,9 +148,8 @@ namespace osu.Framework.Graphics.Sprites
                     var lastChild = Children.LastOrDefault();
                     if (lastChild != null)
                     {
-                        var height = (lastChild as SpriteText)?.TextSize ?? lastChild.Height;
-
-                        Add(new NewLineContainer { Height = height });
+                        var heightFactor = (lastChild as SpriteText)?.TextSize ?? (lastChild as NewLineContainer).HeightFactor;
+                        base.Add(new NewLineContainer { HeightFactor = heightFactor });
                     }
                 }
 
@@ -119,7 +160,7 @@ namespace osu.Framework.Graphics.Sprites
                     var textSprite = createSpriteTextWithLine(line);
                     textSprite.Text = word;
                     sprites.Add(textSprite);
-                    Add(textSprite);
+                    base.Add(textSprite);
                 }
 
                 first = false;
@@ -134,30 +175,38 @@ namespace osu.Framework.Graphics.Sprites
         {
             var children = Children.ToList();
 
-            bool newLineEncountered = false;
             bool first = true;
 
+            Drawable previousC = null;
+            float topMarginFactor = 0;
             foreach (var c in children)
             {
-                if (c is NewLineContainer)
-                    newLineEncountered = true;
+                NewLineContainer nlc = c as NewLineContainer;
+                if (nlc != null)
+                {
+                    nlc.Height = nlc.HeightFactor * paragraphSpacing - Spacing.Y;
+                }
                 else if (first)
                 {
                     c.Margin = new MarginPadding { Left = FirstLineIndent };
                     first = false;
                 }
-                else if (newLineEncountered || c.X == 0)
+                else if (previousC is NewLineContainer || c.X == 0)
                 {
-                    c.Margin = new MarginPadding { Left = ContentIndent };
-                    newLineEncountered = false;
+                    topMarginFactor = (previousC as SpriteText)?.TextSize ?? (previousC as NewLineContainer).HeightFactor;
+                    c.Margin = new MarginPadding { Left = ContentIndent, Top = topMarginFactor * LineSpacing };
                 }
                 else
-                    c.Margin = new MarginPadding();
+                    c.Margin = new MarginPadding { Top = topMarginFactor * LineSpacing };
+
+                previousC = c;
             }
         }
 
         private class NewLineContainer : Container
         {
+            public float HeightFactor;
+
             public NewLineContainer()
             {
                 RelativeSizeAxes = Axes.X;
