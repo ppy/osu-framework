@@ -1,14 +1,15 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics.Containers;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System;
 using osu.Framework.Caching;
 using System.Collections.Generic;
+using osu.Framework.Graphics.Sprites;
+using System.Diagnostics;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
     /// A drawable text object that supports word-wrapping amongst other paragraph-specific formatting.
@@ -136,6 +137,13 @@ namespace osu.Framework.Graphics.Sprites
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a paragraph.");
         }
 
+        private float getLineHeight(Drawable d)
+        {
+            float? lineHeight = (d as SpriteText)?.TextSize ?? (d as NewLineContainer)?.HeightFactor;
+            Trace.Assert(lineHeight != null, $"Height factor should never be null unless a child has an invalid type. Last child type={d.GetType()}.");
+            return lineHeight.Value;
+        }
+
         private IEnumerable<SpriteText> addLine(TextLine line)
         {
             bool first = true;
@@ -147,10 +155,7 @@ namespace osu.Framework.Graphics.Sprites
                 {
                     var lastChild = Children.LastOrDefault();
                     if (lastChild != null)
-                    {
-                        var heightFactor = (lastChild as SpriteText)?.TextSize ?? (lastChild as NewLineContainer).HeightFactor;
-                        base.Add(new NewLineContainer { HeightFactor = heightFactor });
-                    }
+                        base.Add(new NewLineContainer { HeightFactor = getLineHeight(lastChild) });
                 }
 
                 foreach (string word in Regex.Split(l, @"(?<=[ .,;-])"))
@@ -193,7 +198,7 @@ namespace osu.Framework.Graphics.Sprites
                 }
                 else if (previousC is NewLineContainer || c.X == 0)
                 {
-                    topMarginFactor = (previousC as SpriteText)?.TextSize ?? (previousC as NewLineContainer).HeightFactor;
+                    topMarginFactor = getLineHeight(previousC);
                     c.Margin = new MarginPadding { Left = ContentIndent, Top = topMarginFactor * LineSpacing };
                 }
                 else
