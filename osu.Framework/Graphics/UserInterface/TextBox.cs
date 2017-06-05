@@ -557,14 +557,15 @@ namespace osu.Framework.Graphics.UserInterface
                 case Key.Enter:
                     if (HasFocus)
                     {
-                        Background.Colour = BackgroundFocused;
+                        if (ReleaseFocusOnCommit)
+                            inputManager.ChangeFocus(null);
+
+                        Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
                         Background.ClearTransforms();
                         Background.FlashColour(BackgroundCommit, 400);
 
                         audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                         OnCommit?.Invoke(this, true);
-                        if (ReleaseFocusOnCommit)
-                            inputManager.ChangeFocus(null);
                     }
                     return true;
                 case Key.Delete:
@@ -764,6 +765,7 @@ namespace osu.Framework.Graphics.UserInterface
 
             Caret.ClearTransforms();
             Caret.FadeOut(200);
+
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
