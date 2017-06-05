@@ -11,6 +11,9 @@ using System;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// Draw node containing all necessary information to draw a <see cref="Sprite"/>.
+    /// </summary>
     public class SpriteDrawNode : DrawNode
     {
         public Texture Texture;
