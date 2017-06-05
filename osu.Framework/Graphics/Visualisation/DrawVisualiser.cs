@@ -64,6 +64,9 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     ToggleProperties = delegate
                     {
+                        if (targetDrawable == null)
+                            return;
+
                         propertyDisplay.ToggleVisibility();
 
                         if (propertyDisplay.State == Visibility.Visible)
@@ -128,6 +131,7 @@ namespace osu.Framework.Graphics.Visualisation
         private void chooseTarget()
         {
             setHighlight(null);
+            propertyDisplay.State = Visibility.Hidden;
 
             Target = null;
             targetSearching = true;
@@ -194,7 +198,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 runUpdate(); // run an initial update to immediately show the selected hierarchy.
 
-                // Update property viewer
+                // Set highlight and update
                 setHighlight(targetDrawable);
             }
         }
@@ -222,12 +226,8 @@ namespace osu.Framework.Graphics.Visualisation
             propertyDisplay.Clear(true);
 
             if (d == null)
-            {
-                propertyDisplay.State = Visibility.Hidden;
                 return;
-            }
-
-            propertyDisplay.State = Visibility.Visible;
+            
             Type type = d.GetType();
 
             propertyDisplay.Add(
@@ -279,8 +279,11 @@ namespace osu.Framework.Graphics.Visualisation
             updatePropertyDisplay(newHighlight.Target);
             highlighted = newHighlight;
 
-            newHighlight.highlightBackground.FadeIn();
-            newHighlight.Expand();
+            if (propertyDisplay.State == Visibility.Visible)
+            {
+                newHighlight.highlightBackground.FadeIn();
+                newHighlight.Expand();
+            }
         }
 
         private void visualise(IDrawable d, VisualisedDrawable vis)

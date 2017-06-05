@@ -33,6 +33,7 @@ namespace osu.Framework.Graphics.Visualisation
             CornerRadius = 5;
             Position = new Vector2(500, 100);
             Size = new Vector2(width, height);
+            Alpha = 0.7f;
             AddInternal(new Drawable[]
             {
                 new Box
@@ -84,9 +85,25 @@ namespace osu.Framework.Graphics.Visualisation
         {
             FadeTo(0.7f, 100);
         }
+
         protected override void PopOut()
         {
             FadeOut(100);
+        }
+
+        protected override bool OnHover(InputState state)
+        {
+            FadeIn(300);
+
+            return true;
+        }
+
+        protected override void OnHoverLost(InputState state)
+        {
+            using (BeginDelayedSequence(500, true))
+            {
+                FadeTo(0.7f, 300);
+            }
         }
     }
 
@@ -97,18 +114,18 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Box changeMarker;
 
         private readonly Box box;
-        private readonly Func<string> getValue;     // Use delegate for performance
+        private readonly Func<object> getValue;     // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)
         {
                 switch (info.MemberType)
                 {
                     case MemberTypes.Property:
-                        getValue = () => ((PropertyInfo)info).GetValue(d)?.ToString();
+                        getValue = () => ((PropertyInfo)info).GetValue(d);
                         break;
 
                     case MemberTypes.Field:
-                        getValue = () => ((FieldInfo)info).GetValue(d)?.ToString();
+                        getValue = () => ((FieldInfo)info).GetValue(d);
                         break;
                 }
 
@@ -154,38 +171,42 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
-        private string lastValue;
+        private object lastValue;
 
         protected override void Update()
         {
             base.Update();
 
             // Update value
-            string value;
+            object value;
             try
             {
                 value = getValue();
+
+                if (value == null)
+                    value = @"<null>";
             }
             catch
             {
                 value = @"<Cannot evaluate>";
             }
 
-            if (value != lastValue)
+            if (!value.Equals(lastValue))
             {
                 changeMarker.ClearTransforms();
                 changeMarker.Alpha = 0.8f;
                 changeMarker.FadeOut(200);
             }
 
-            valueText.Text = lastValue = value;
+            lastValue = value;
+            valueText.Text = value.ToString();
         }
 
         protected override bool OnHover(InputState state)
         {
             box.FadeTo(0.2f, 100);
 
-            return true;
+            return false;
         }
         protected override void OnHoverLost(InputState state)
         {

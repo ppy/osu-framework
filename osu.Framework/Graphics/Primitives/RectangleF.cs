@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using OpenTK;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Primitives
 {
@@ -354,9 +355,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
-        public override string ToString() => "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
-                                             ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
-                                             Height.ToString(CultureInfo.CurrentCulture) + "}";
+        public override string ToString() => "{X=" + Precision.AlmostRounded(X).ToString(CultureInfo.CurrentCulture) + ",Y=" + Precision.AlmostRounded(Y).ToString(CultureInfo.CurrentCulture) +
+                                             ",Width=" + Precision.AlmostRounded(Width).ToString(CultureInfo.CurrentCulture) + ",Height=" +
+                                             Precision.AlmostRounded(Height).ToString(CultureInfo.CurrentCulture) + "}";
 
         static RectangleF()
         {

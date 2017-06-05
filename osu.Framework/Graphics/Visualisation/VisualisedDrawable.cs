@@ -187,7 +187,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            if (state.Mouse.IsPressed(MouseButton.Right))
+            if (args.Button == MouseButton.Right)
             {
                 if (viz.highlighted == this)
                     HighlightTarget?.Invoke(null);
