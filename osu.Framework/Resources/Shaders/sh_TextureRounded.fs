@@ -67,7 +67,8 @@ void main(void)
 	if (g_DiscardInner)
 	{
 		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded
-		// corners of the glowing container itself. We can then derive the alpha factor for smooth inner glow from that.
+		// corners of the edge effect container itself. We can then derive the alpha factor for smooth inner edge
+		// effect from that.
 		float innerBlendFactor = (g_CornerRadius - g_MaskingBlendRange - dist) / v_BlendRange.x;
 		if (innerBlendFactor > 1.0)
 		{
