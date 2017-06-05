@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Add(Drawable drawable)
         {
-            throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a paragraph.");
+            throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
         private float getLineHeight(Drawable d)
