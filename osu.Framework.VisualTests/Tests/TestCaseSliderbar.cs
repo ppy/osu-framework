@@ -39,7 +39,7 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(25, 25),
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
-                KeyboardStep = 1
+                StepMultiplier = 50,
             };
 
             sliderBar.Current.BindTo(sliderBarValue);
@@ -54,7 +54,7 @@ namespace osu.Framework.VisualTests.Tests
                 Position = new Vector2(25, 45),
                 Color = Color4.White,
                 SelectionColor = Color4.Pink,
-                KeyboardStep = 1,
+                KeyboardStep = 0.1f,
             });
 
             sliderBar.Current.BindTo(sliderBarValue);
