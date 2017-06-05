@@ -45,5 +45,19 @@ namespace osu.Framework.MathUtils
         {
             return Math.Abs(value1 - value2) <= acceptableDifference;
         }
+
+        public static double AlmostRounded(double value, double acceptableDifference = DOUBLE_EPSILON)
+        {
+            double rounded = Math.Round(value);
+
+            return AlmostEquals(value, rounded, acceptableDifference) ? rounded : value;
+        }
+
+        public static float AlmostRounded(float value, float acceptableDifference = FLOAT_EPSILON)
+        {
+            float rounded = (float)Math.Round(value);
+
+            return AlmostEquals(value, rounded, acceptableDifference) ? rounded : value;
+        }
     }
 }
