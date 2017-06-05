@@ -235,7 +235,6 @@ namespace osu.Framework.Graphics.Visualisation
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
                 .OrderBy(member => member.Name)
                 .Select(member => new PropertyItem(member, d)));
-
         }
 
         private void updateHoveredDrawable()
