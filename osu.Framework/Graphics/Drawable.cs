@@ -512,7 +512,7 @@ namespace osu.Framework.Graphics
         /// Absolute positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/>
         /// in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
+        public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position - relativeOffset);
 
         private Vector2 size
         {
@@ -713,6 +713,28 @@ namespace osu.Framework.Graphics
         /// Conversion factor from relative to absolute coordinates in the <see cref="Parent"/>'s space.
         /// </summary>
         private Vector2 relativeToAbsoluteFactor => Parent?.RelativeToAbsoluteFactor ?? Vector2.One;
+
+        /// <summary>
+        /// The offset to be added to relative coordinates before they're converted to absolute coordinates.
+        /// </summary>
+        private Vector2 relativeOffset
+        {
+            get
+            {
+                if (Parent == null || RelativePositionAxes == Axes.None)
+                    return Vector2.Zero;
+
+                Vector2 offset = Parent.RelativeChildOffset;
+
+                if ((RelativePositionAxes & Axes.X) == 0)
+                    offset.X = 0;
+
+                if ((RelativePositionAxes & Axes.Y) == 0)
+                    offset.Y = 0;
+
+                return offset;
+            }
+        }
 
         private Axes bypassAutoSizeAxes;
 

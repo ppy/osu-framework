@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using System.Threading.Tasks;
 using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -877,15 +878,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
-        private Vector2 relativeCoordinateSpace = Vector2.One;
+        private RectangleF relativeCoordinateSpace = new RectangleF(0, 0, 1, 1);
         /// <summary>
-        /// The coordinate space revealed to relatively-sized or positioned children such that changing this to
-        /// values (x_1, y_1) will require a child to have a relative size of (x_1, y_1) to fill the container.
-        /// <para>
-        /// Note that relative size children will have a (1, 1) size by default.
-        /// </para>
+        /// The coordinate space revealed to relatively-positioned and/or relatively-sized children in this container.
         /// </summary>
-        public Vector2 RelativeCoordinateSpace
+        public RectangleF RelativeCoordinateSpace
         {
             get { return relativeCoordinateSpace; }
             set
@@ -902,7 +899,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Conversion factor from relative to absolute coordinates in our space.
         /// </summary>
-        public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeCoordinateSpace);
+        public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeCoordinateSpace.Size);
+
+        /// <summary>
+        /// The positional offset for relatively-positioned children inside this container.
+        /// </summary>
+        public Vector2 RelativeChildOffset => RelativeCoordinateSpace.Location;
 
         /// <summary>
         /// Tweens the RelativeCoordinateSpace of this container.
@@ -910,7 +912,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newCoordinateSpace">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        public void TransformRelativeCoordinateSpaceTo(Vector2 newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void TransformRelativeCoordinateSpaceTo(RectangleF newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(() => RelativeCoordinateSpace, newCoordinateSpace, duration, easing, new TransformRelativeCoordinateSpace());
         }
@@ -1156,8 +1158,20 @@ namespace osu.Framework.Graphics.Containers
 
         #endregion
 
-        private class TransformRelativeCoordinateSpace : TransformVector
+        private class TransformRelativeCoordinateSpace : Transform<RectangleF>
         {
+            public override RectangleF CurrentValue
+            {
+                get
+                {
+                    double time = Time?.Current ?? 0;
+                    if (time < StartTime) return StartValue;
+                    if (time >= EndTime) return EndValue;
+
+                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+                }
+            }
+
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
