@@ -55,6 +55,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
+        public bool ReleaseFocusOnCommit = true;
+
         private ITextInputSource textInput;
         private Clipboard clipboard;
 
@@ -561,6 +563,8 @@ namespace osu.Framework.Graphics.UserInterface
 
                         audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
                         OnCommit?.Invoke(this, true);
+                        if (ReleaseFocusOnCommit)
+                            inputManager.ChangeFocus(null);
                     }
                     return true;
                 case Key.Delete:
