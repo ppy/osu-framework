@@ -53,7 +53,7 @@ namespace osu.Framework.MathUtils
 
         public static float Round(float value, int numOfDigits = 3)
         {
-            return (float)Math.Round(value, numOfDigits)
+            return (float)Math.Round(value, numOfDigits);
         }
     }
 }
