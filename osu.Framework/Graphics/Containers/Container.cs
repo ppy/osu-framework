@@ -904,7 +904,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The positional offset for relatively-positioned children inside this container.
         /// </summary>
-        public Vector2 RelativeChildOffset => RelativeCoordinateSpace.Location;
+        public Vector2 RelativePositionOffset => RelativeCoordinateSpace.Location;
 
         /// <summary>
         /// Tweens the RelativeCoordinateSpace of this container.
