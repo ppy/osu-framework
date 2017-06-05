@@ -23,7 +23,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         private bool mouseInWindow;
         private GameHost host;
 
-        private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0, MaxValue = 10 };
+        private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         public BindableDouble Sensitivity => sensitivity;
 
