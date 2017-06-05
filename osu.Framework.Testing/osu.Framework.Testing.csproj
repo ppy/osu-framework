@@ -46,6 +46,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GridTestCase.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="Drawables\StepButtons\AssertButton.cs" />
     <Compile Include="Drawables\StepButtons\SingleStepButton.cs" />
