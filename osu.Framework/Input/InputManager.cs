@@ -322,6 +322,9 @@ namespace osu.Framework.Input
                 foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
+            // Keyboard and mouse queues were created in back-to-front order.
+            // We want input to first reach front-most drawables, so the queues
+            // need to be reversed.
             keyboardInputQueue.Reverse();
             mouseInputQueue.Reverse();
         }

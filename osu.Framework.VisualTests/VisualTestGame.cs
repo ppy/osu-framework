@@ -14,12 +14,10 @@ namespace osu.Framework.VisualTests
         [BackgroundDependencyLoader]
         private void load()
         {
-            CursorContainer cursor;
             Children = new Drawable[]
             {
                 new TestBrowser(),
-                cursor = new CursorContainer(),
-                new TooltipContainer(cursor),
+                new CursorContainer(),
             };
         }
 
