@@ -111,11 +111,5 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            scheduled.Cancel();
-        }
     }
 }
