@@ -31,6 +31,6 @@ namespace osu.Framework.Desktop.Platform
             //we can't draw.
         }
 
-        public override IEnumerable<InputHandler> GetInputHandlers() => new InputHandler[] { };
+        protected override IEnumerable<InputHandler> CreateAvailableInputHandlers() => new InputHandler[] { };
     }
 }
