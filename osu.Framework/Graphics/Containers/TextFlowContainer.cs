@@ -12,8 +12,7 @@ using System.Diagnostics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A drawable text object that supports word-wrapping amongst other paragraph-specific formatting.
-    /// A new paragraph is initiated by a linebreak character (i.e. '\n') in text.
+    /// A drawable text object that supports more advanced text formatting.
     /// </summary>
     public class TextFlowContainer : FillFlowContainer
     {
@@ -116,12 +115,20 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Add new text to this text flow.
+        /// Add new text to this text flow. The \n character will create a new paragraph, not just a line break. If you need \n to be a line break, use <see cref="AddParagraph(string, Action{SpriteText})"/> instead.
         /// </summary>
         /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
         /// <param name="text">The text to add.</param>
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new text.</param>
-        public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters));
+        public IEnumerable<SpriteText> AddText(string text, Action<SpriteText> creationParameters = null) => addLine(new TextLine(text, creationParameters), true);
+
+        /// <summary>
+        /// Add a new paragraph to this text flow. The \n character will create a line break. If you need \n to be a new paragraph, not just a line break, use <see cref="AddText(string, Action{SpriteText})"/> instead.
+        /// </summary>
+        /// <returns>A collection of the <see cref="SpriteText" /> objects for each word created from the given text.</returns>
+        /// <param name="paragraph">The paragraph to add.</param>
+        /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
+        public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addLine(new TextLine(paragraph, creationParameters), false);
 
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
@@ -144,10 +151,15 @@ namespace osu.Framework.Graphics.Containers
             return lineHeight.Value;
         }
 
-        private IEnumerable<SpriteText> addLine(TextLine line)
+        private IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
         {
             bool first = true;
             var sprites = new List<SpriteText>();
+
+            // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
+            // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
+            if(!newLineIsParagraph)
+                base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
 
             foreach (string l in line.Text.Split('\n'))
             {
@@ -155,7 +167,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var lastChild = Children.LastOrDefault();
                     if (lastChild != null)
-                        base.Add(new NewLineContainer { HeightFactor = getLineHeight(lastChild) });
+                        base.Add(new NewLineContainer { HeightFactor = getLineHeight(lastChild), IndicatesNewParagraph = newLineIsParagraph });
                 }
 
                 foreach (string word in Regex.Split(l, @"(?<=[ .,;-])"))
@@ -189,7 +201,7 @@ namespace osu.Framework.Graphics.Containers
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
-                    nlc.Height = nlc.HeightFactor * paragraphSpacing - Spacing.Y;
+                    nlc.Height = nlc.IndicatesNewParagraph ? nlc.HeightFactor * paragraphSpacing : 0;
                 }
                 else if (first)
                 {
@@ -211,6 +223,7 @@ namespace osu.Framework.Graphics.Containers
         private class NewLineContainer : Container
         {
             public float HeightFactor;
+            public bool IndicatesNewParagraph;
 
             public NewLineContainer()
             {

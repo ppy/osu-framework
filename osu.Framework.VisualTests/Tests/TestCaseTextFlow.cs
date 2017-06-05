@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
             };
 
             FillFlowContainer paragraphContainer;
-            TextFlowContainer paragraph;
+            TextFlowContainer textFlowContainer;
             flow.Add(paragraphContainer = new FillFlowContainer
             {
                 AutoSizeAxes = Axes.Y,
@@ -46,7 +46,7 @@ namespace osu.Framework.VisualTests.Tests
                 Direction = FillDirection.Vertical,
                 Children = new Drawable[]
                 {
-                    paragraph = new TextFlowContainer
+                    textFlowContainer = new TextFlowContainer
                     {
                         FirstLineIndent = 5,
                         ContentIndent = 10,
@@ -56,13 +56,14 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            paragraph.AddText("the considerably swift vermilion reynard bounds above the slothful mahogany hound.", t => t.Colour = Color4.Yellow);
-            paragraph.AddText("\nTHE ", t => t.Colour = Color4.Red);
-            paragraph.AddText("CONSIDERABLY", t => t.Colour = Color4.Pink);
-            paragraph.AddText(" SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
-            paragraph.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
-            paragraph.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);
-            paragraph.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
+            textFlowContainer.AddText("the considerably swift vermilion reynard bounds above the slothful mahogany hound.", t => t.Colour = Color4.Yellow);
+            textFlowContainer.AddText("\nTHE ", t => t.Colour = Color4.Red);
+            textFlowContainer.AddText("CONSIDERABLY", t => t.Colour = Color4.Pink);
+            textFlowContainer.AddText(" SWIFT VERMILION REYNARD BOUNDS ABOVE THE SLOTHFUL MAHOGANY HOUND!!", t => t.Colour = Color4.Red);
+            textFlowContainer.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
+            textFlowContainer.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);
+            textFlowContainer.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
+            textFlowContainer.AddParagraph("Make\nTextFlowContainer\ngreat\nagain!", t => t.Colour = Color4.Red);
 
             paragraphContainer.Add(new TextFlowContainer
             {
@@ -76,10 +77,10 @@ osu! is written in C# on the .NET Framework. On August 28, 2016, osu!'s source c
 
             AddStep(@"resize paragraph 1", () => { paragraphContainer.Width = 1f; });
             AddStep(@"resize paragraph 2", () => { paragraphContainer.Width = 0.6f; });
-            AddStep(@"header inset", () => { paragraph.FirstLineIndent += 2; });
-            AddStep(@"body inset", () => { paragraph.ContentIndent += 4; });
-            AddToggleStep(@"Zero paragraph spacing", state => paragraph.ParagraphSpacing = state ? 0 : 0.5f);
-            AddToggleStep(@"Non-zero line spacing", state => paragraph.LineSpacing = state ? 1 : 0);
+            AddStep(@"header inset", () => { textFlowContainer.FirstLineIndent += 2; });
+            AddStep(@"body inset", () => { textFlowContainer.ContentIndent += 4; });
+            AddToggleStep(@"Zero paragraph spacing", state => textFlowContainer.ParagraphSpacing = state ? 0 : 0.5f);
+            AddToggleStep(@"Non-zero line spacing", state => textFlowContainer.LineSpacing = state ? 1 : 0);
         }
     }
 }
