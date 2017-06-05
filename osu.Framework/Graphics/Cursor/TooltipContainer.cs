@@ -56,72 +56,121 @@ namespace osu.Framework.Graphics.Cursor
 
         private Vector2 computeTooltipPosition()
         {
-            if (cursorContainer == null)
-                return ToLocalSpace(inputManager.CurrentState.Mouse.Position) + new Vector2(10);
-
             // Update the position of the displayed tooltip.
             // Our goal is to find the bounding circle of the cursor in screen-space, and to
             // position the top-left corner of the tooltip at the circle's southeast position.
-            Quad screenSpaceCursorQuad = cursorContainer.ActiveCursor.ScreenSpaceDrawQuad;
-            Vector2 screenSpaceCursorCentre = screenSpaceCursorQuad.Centre;
-            // We only need to check 2 of the 4 vertices, because we only allow affine transformations
-            // and the quad is therefore symmetric around the centre.
-            float screenSpaceBoundingRadius = Math.Max(
-                (screenSpaceCursorQuad.TopLeft - screenSpaceCursorCentre).Length,
-                (screenSpaceCursorQuad.TopRight - screenSpaceCursorCentre).Length);
+            float boundingRadius;
+            Vector2 cursorCentre;
+
+            if (cursorContainer == null)
+            {
+                cursorCentre = ToLocalSpace(inputManager.CurrentState.Mouse.Position);
+                boundingRadius = 14f;
+            }
+            else
+            {
+                Quad cursorQuad = cursorContainer.ActiveCursor.ToSpaceOfOtherDrawable(cursorContainer.ActiveCursor.DrawRectangle, this);
+                cursorCentre = cursorQuad.Centre;
+                // We only need to check 2 of the 4 vertices, because we only allow affine transformations
+                // and the quad is therefore symmetric around the centre.
+                boundingRadius = Math.Max(
+                    (cursorQuad.TopLeft - cursorCentre).Length,
+                    (cursorQuad.TopRight - cursorCentre).Length);
+            }
 
             Vector2 southEast = new Vector2(1).Normalized();
-            Vector2 screenSpaceTooltipPos = screenSpaceCursorCentre + southEast * screenSpaceBoundingRadius;
+            Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
-            return ToLocalSpace(screenSpaceTooltipPos);
+            // Clamp position to tooltip container
+            tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - tooltip.DrawWidth - 5);
+            float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
+            float dY = (float)Math.Sqrt(boundingRadius * boundingRadius - dX * dX);
+
+            if (tooltipPos.Y > DrawHeight - tooltip.DrawHeight - 5)
+                tooltipPos.Y = cursorCentre.Y - dY - tooltip.DrawHeight;
+            else
+                tooltipPos.Y = cursorCentre.Y + dY;
+
+            return tooltipPos;
         }
 
-        protected override void Update()
+        private void updateTooltip()
         {
-            if (tooltip.IsPresent)
-            {
-                if (currentlyDisplayed != null)
-                    tooltip.TooltipText = currentlyDisplayed.TooltipText;
+            if (!tooltip.IsPresent)
+                return;
 
-                tooltip.Position = computeTooltipPosition();
-            }
+            if (currentlyDisplayed != null)
+                tooltip.TooltipText = currentlyDisplayed.TooltipText;
+
+            tooltip.Move(computeTooltipPosition());
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            if (!tooltip.IsPresent)
+                return;
+
+            if (currentlyDisplayed != null)
+                tooltip.TooltipText = currentlyDisplayed.TooltipText;
+
+            tooltip.Move(computeTooltipPosition());
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
         {
-            updateTooltipState(state);
+            updateTooltipVisibility(state);
             return base.OnMouseUp(state, args);
         }
 
         protected override bool OnMouseMove(InputState state)
         {
-            updateTooltipState(state);
+            updateTooltipVisibility(state);
             return base.OnMouseMove(state);
         }
 
-        private void updateTooltipState(InputState state)
+        protected override void OnHoverLost(InputState state)
         {
-            if (currentlyDisplayed?.Hovering != true)
+            if (!state.Mouse.HasMainButtonPressed)
+                hideTooltip();
+            base.OnHoverLost(state);
+        }
+
+        private void hideTooltip()
+        {
+            tooltip.Hide();
+            currentlyDisplayed = null;
+        }
+
+        private void updateTooltipVisibility(InputState state)
+        {
+            // Nothing to do if we're still hovering a tooltipped drawable
+            if (currentlyDisplayed?.Hovering == true)
+                return;
+
+            // Hide if we stopped hovering and do not have any button pressed.
+            if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
+                hideTooltip();
+
+            findTooltipTask?.Cancel();
+            findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
-                {
-                    tooltip.Hide();
-                    currentlyDisplayed = null;
-                }
+                var tooltipTarget = inputManager.HoveredDrawables
+                    // Skip hovered drawables above this tooltip container
+                    .SkipWhile(d => d != this)
+                    .Skip(1)
+                    // Only handle drawables above any potentially nested tooltip container
+                    .TakeWhile(d => !(d is TooltipContainer))
+                    .OfType<IHasTooltip>()
+                    .FirstOrDefault();
 
-                findTooltipTask?.Cancel();
-                findTooltipTask = Scheduler.AddDelayed(delegate
-                {
-                    var tooltipTarget = inputManager.HoveredDrawables.OfType<IHasTooltip>().FirstOrDefault();
+                if (tooltipTarget == null) return;
 
-                    if (tooltipTarget == null) return;
+                currentlyDisplayed = tooltipTarget;
+                tooltip.Show();
 
-                    tooltip.TooltipText = tooltipTarget.TooltipText;
-                    tooltip.Show();
-
-                    currentlyDisplayed = tooltipTarget;
-                }, (1 - tooltip.Alpha) * AppearDelay);
-            }
+            }, (1 - tooltip.Alpha) * AppearDelay);
         }
 
         public class Tooltip : OverlayContainer
@@ -172,6 +221,13 @@ namespace osu.Framework.Graphics.Cursor
             /// Called whenever the tooltip disappears. When overriding do not forget to fade out.
             /// </summary>
             protected override void PopOut() => FadeOut();
+
+            /// <summary>
+            /// Called whenever the position of the tooltip changes. Can be overridden to customize
+            /// easing.
+            /// </summary>
+            /// <param name="pos">The new position of the tooltip.</param>
+            public virtual void Move(Vector2 pos) => Position = pos;
         }
     }
 }
