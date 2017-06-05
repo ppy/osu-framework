@@ -241,7 +241,11 @@ namespace osu.Framework.VisualTests.Tests
                 return base.Invalidate(invalidation, source, shallPropagate);
             }
 
-            protected override bool OnDrag(InputState state) => true;
+            protected override bool OnDrag(InputState state)
+            {
+                Position += state.Mouse.Delta;
+                return true;
+            }
 
             protected override bool OnDragEnd(InputState state) => true;
 
