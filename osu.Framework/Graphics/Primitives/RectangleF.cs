@@ -355,9 +355,9 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
-        public override string ToString() => "{X=" + Precision.AlmostRounded(X).ToString(CultureInfo.CurrentCulture) + ",Y=" + Precision.AlmostRounded(Y).ToString(CultureInfo.CurrentCulture) +
-                                             ",Width=" + Precision.AlmostRounded(Width).ToString(CultureInfo.CurrentCulture) + ",Height=" +
-                                             Precision.AlmostRounded(Height).ToString(CultureInfo.CurrentCulture) + "}";
+        public override string ToString() => "{X=" + Precision.Round(X).ToString(CultureInfo.CurrentCulture) + ",Y=" + Precision.Round(Y).ToString(CultureInfo.CurrentCulture) +
+                                             ",Width=" + Precision.Round(Width).ToString(CultureInfo.CurrentCulture) + ",Height=" +
+                                             Precision.Round(Height).ToString(CultureInfo.CurrentCulture) + "}";
 
         static RectangleF()
         {
