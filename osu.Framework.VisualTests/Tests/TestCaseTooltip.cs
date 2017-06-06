@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -17,6 +18,19 @@ namespace osu.Framework.VisualTests.Tests
 
         private Container testContainer;
 
+        private TooltipBox makeBox(Anchor anchor)
+        {
+            return new TooltipBox
+            {
+                RelativeSizeAxes = Axes.Both,
+                Size = new Vector2(0.2f),
+                Anchor = anchor,
+                Origin = anchor,
+                Colour = Color4.Blue,
+                TooltipText = $"{anchor}",
+            };
+        }
+
         private void generateTest(bool cursorlessTooltip)
         {
             testContainer.Clear();
@@ -27,18 +41,37 @@ namespace osu.Framework.VisualTests.Tests
                 Spacing = new Vector2(0, 10),
                 Children = new Drawable[]
                 {
-                        new TooltipSpriteText("this text has a tooltip!"),
-                        new TooltipSpriteText("this one too!"),
-                        new TooltipTextbox
+                    new TooltipSpriteText("this text has a tooltip!"),
+                    new TooltipSpriteText("this one too!"),
+                    new TooltipTextbox
+                    {
+                        Text = "with real time updates!",
+                        Size = new Vector2(400, 30),
+                    },
+                    new Container()
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            Text = "with real time updates!",
-                            Size = new Vector2(400, 30),
+                            new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
+                            new TooltipContainer(),
                         }
+                    },
                 },
             });
 
-            if (cursorlessTooltip)
-                testContainer.Add(new TooltipContainer());
+            testContainer.Add(makeBox(Anchor.BottomLeft));
+            testContainer.Add(makeBox(Anchor.TopRight));
+            testContainer.Add(makeBox(Anchor.BottomRight));
+
+            CursorContainer cursor = null;
+            if (!cursorlessTooltip)
+            {
+                cursor = new RectangleCursorContainer();
+                testContainer.Add(cursor);
+            }
+
+            testContainer.Add(new TooltipContainer(cursor));
         }
 
         public override void Reset()
@@ -76,6 +109,26 @@ namespace osu.Framework.VisualTests.Tests
         private class TooltipTextbox : TextBox, IHasTooltip
         {
             public string TooltipText => Text;
+        }
+
+        private class TooltipBox : Box, IHasTooltip
+        {
+            public string TooltipText { get; set; }
+
+            public override bool HandleInput => true;
+        }
+
+        private class RectangleCursorContainer : CursorContainer
+        {
+            protected override Drawable CreateCursor() => new RectangleCursor();
+
+            private class RectangleCursor : Box
+            {
+                public RectangleCursor()
+                {
+                    Size = new Vector2(20, 40);
+                }
+            }
         }
     }
 }

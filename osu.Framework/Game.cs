@@ -155,7 +155,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, delegate(Drawable overlay)
+            }, delegate (Drawable overlay)
             {
                 performanceContainer.Threads.AddRange(Host.Threads.Reverse());
 

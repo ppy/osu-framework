@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using osu.Framework.Platform;
 using System.Collections.Generic;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Input.Handlers
 {
@@ -18,6 +19,9 @@ namespace osu.Framework.Input.Handlers
 
         protected ConcurrentQueue<InputState> PendingStates = new ConcurrentQueue<InputState>();
 
+        /// <summary>
+        /// Retrieve a list of all pending states since the last call to this method.
+        /// </summary>
         public virtual List<InputState> GetPendingStates()
         {
             lock (this)
@@ -42,16 +46,24 @@ namespace osu.Framework.Input.Handlers
         /// </summary>
         public abstract int Priority { get; }
 
+        /// <summary>
+        /// Whether this InputHandler should be collecting <see cref="InputState"/>s to return on the next <see cref="GetPendingStates"/> call
+        /// </summary>
+        public readonly BindableBool Enabled = new BindableBool(true);
+
+        public override string ToString() => GetType().Name;
+
         #region IDisposable Support
 
         protected bool IsDisposed;
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!IsDisposed)
-            {
-                IsDisposed = true;
-            }
+            if (IsDisposed)
+                return;
+
+            Enabled.Value = false;
+            IsDisposed = true;
         }
 
         ~InputHandler()
