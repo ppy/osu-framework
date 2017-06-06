@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests
             Children = new Drawable[]
             {
                 new TestBrowser(),
-		new CursorContainer(),
+                new CursorContainer(),
             };
         }
 

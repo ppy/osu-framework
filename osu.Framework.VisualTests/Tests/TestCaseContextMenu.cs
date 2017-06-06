@@ -20,43 +20,37 @@ namespace osu.Framework.VisualTests.Tests
         private const int start_time = 0;
         private const int duration = 1000;
 
-        private ContextMenuContainer container;
+        private ContextMenuBox movingBox;
+
+        private ContextMenuBox makeBox(Anchor anchor)
+        {
+            return new ContextMenuBox
+            {
+                Size = new Vector2(200),
+                Anchor = anchor,
+                Origin = anchor,
+                Children = new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.Blue,
+                    }
+                }
+            };
+        }
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(container = new ContextMenuContainer
-            {
-                Size = new Vector2(200),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Green,
-                    }
-                }
-            });
+            Add(makeBox(Anchor.TopLeft));
+            Add(makeBox(Anchor.TopRight));
+            Add(makeBox(Anchor.BottomLeft));
+            Add(makeBox(Anchor.BottomRight));
+            Add(movingBox = makeBox(Anchor.Centre));
 
-            Add(new AnotherContextMenuContainer
-            {
-                Size = new Vector2(200),
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                Children = new Drawable[]
-                {
-                    new Box
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Colour = Color4.Red,
-                    }
-                }
-            });
-
-            container.Transforms.Add(new TransformPosition
+            movingBox.Transforms.Add(new TransformPosition
             {
                 StartValue = Vector2.Zero,
                 EndValue = new Vector2(0, 100),
@@ -65,8 +59,7 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
-
-            container.Transforms.Add(new TransformPosition
+            movingBox.Transforms.Add(new TransformPosition
             {
                 StartValue = new Vector2(0, 100),
                 EndValue = new Vector2(100, 100),
@@ -75,8 +68,7 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
-
-            container.Transforms.Add(new TransformPosition
+            movingBox.Transforms.Add(new TransformPosition
             {
                 StartValue = new Vector2(100, 100),
                 EndValue = new Vector2(100, 0),
@@ -85,8 +77,7 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
-
-            container.Transforms.Add(new TransformPosition
+            movingBox.Transforms.Add(new TransformPosition
             {
                 StartValue = new Vector2(100, 0),
                 EndValue = Vector2.Zero,
@@ -95,24 +86,14 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
+
+            CursorContainer cursor = null;
+            Add(new CursorContextMenu(cursor));
         }
 
-        private class ContextMenuContainer : Container, IHasContextMenu
+        private class ContextMenuBox : Container, IHasContextMenu
         {
-            public ContextMenuItem[] ContextMenuItems => new[]
-            {
-                new ContextMenuItem(@"Some option"),
-                new ContextMenuItem(@"Some option"),
-                new ContextMenuItem(@"Some option"),
-                new ContextMenuItem(@"Some option"),
-                new ContextMenuItem(@"Some option"),
-                new ContextMenuItem(@"Some loooooooooooooooong option"),
-            };
-        }
-
-        private class AnotherContextMenuContainer : Container, IHasContextMenu
-        {
-            public ContextMenuItem[] ContextMenuItems => new[]
+            public ContextMenuItem[] ContextMenuItems => new []
             {
                 new ContextMenuItem(@"Change width") { Action = () => ResizeWidthTo(Width * 2, 100, EasingTypes.OutQuint) },
                 new ContextMenuItem(@"Change height") { Action = () => ResizeHeightTo(Height * 2, 100, EasingTypes.OutQuint) },
