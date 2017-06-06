@@ -512,7 +512,25 @@ namespace osu.Framework.Graphics
         /// Absolute positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/>
         /// in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawPosition => applyRelativeAxes(RelativePositionAxes, Position);
+        public Vector2 DrawPosition
+        {
+            get
+            {
+                Vector2 offset = Vector2.Zero;
+                if (Parent != null && RelativePositionAxes != Axes.None)
+                {
+                    offset = Parent.RelativeChildOffset;
+
+                    if ((RelativePositionAxes & Axes.X) == 0)
+                        offset.X = 0;
+
+                    if ((RelativePositionAxes & Axes.Y) == 0)
+                        offset.Y = 0;
+                }
+
+                return applyRelativeAxes(RelativePositionAxes, Position - offset);
+            }
+        }
 
         private Vector2 size
         {
