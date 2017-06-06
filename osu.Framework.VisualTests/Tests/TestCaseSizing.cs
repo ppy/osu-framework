@@ -911,7 +911,7 @@ namespace osu.Framework.VisualTests.Tests
                                         AutoSizeAxes = Axes.Both,
                                         Anchor = Anchor.Centre,
                                         Origin = Anchor.Centre,
-                                        Children = new Drawable[]
+                                        Children = new[]
                                         {
                                             // defines the size of autosize
                                             sizedBox = new Box
