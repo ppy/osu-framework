@@ -517,7 +517,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 offset = Vector2.Zero;
-                if (Parent != null || RelativePositionAxes != Axes.None)
+                if (Parent != null && RelativePositionAxes != Axes.None)
                 {
                     offset = Parent.RelativePositionOffset;
 
