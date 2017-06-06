@@ -13,8 +13,12 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseFillModes : TestCase
+    internal class TestCaseFillModes : GridTestCase
     {
+        public TestCaseFillModes() : base(2, 2)
+        {
+        }
+
         public override string Description => @"Test sprite display and fill modes";
 
         private Texture sampleTexture;
@@ -29,147 +33,48 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Children = new Drawable[]
+            FillMode[] fillModes =
             {
-                new FillFlowContainer
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Children = new Drawable[]
-                    {
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(0.5f),
-                            Masking = true,
-                            Children = new Drawable[]
-                            {
-                                new SpriteText { Text = @"FillMode.None" },
-                                new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(0.5f),
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Blue,
-                                        },
-                                        new Sprite
-                                        {
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Texture = sampleTexture
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(0.5f),
-                            Masking = true,
-                            Children = new Drawable[]
-                            {
-                                new SpriteText { Text = @"FillMode.Stretch" },
-                                new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(0.5f),
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Blue,
-                                        },
-                                        new Sprite
-                                        {
-                                            FillMode = FillMode.Stretch,
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Texture = sampleTexture
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(0.5f),
-                            Masking = true,
-                            Children = new Drawable[]
-                            {
-                                new SpriteText { Text = @"FillMode.Fill" },
-                                new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(0.5f),
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Blue,
-                                        },
-                                        new Sprite
-                                        {
-                                            FillMode = FillMode.Fill,
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Texture = sampleTexture
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        new Container
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Size = new Vector2(0.5f),
-                            Masking = true,
-                            Children = new Drawable[]
-                            {
-                                new SpriteText { Text = @"FillMode.Fit" },
-                                new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Size = new Vector2(0.5f),
-                                    Anchor = Anchor.Centre,
-                                    Origin = Anchor.Centre,
-                                    Masking = true,
-                                    Children = new Drawable[]
-                                    {
-                                        new Box
-                                        {
-                                            RelativeSizeAxes = Axes.Both,
-                                            Colour = Color4.Blue,
-                                        },
-                                        new Sprite
-                                        {
-                                            FillMode = FillMode.Fit,
-                                            Anchor = Anchor.Centre,
-                                            Origin = Anchor.Centre,
-                                            Texture = sampleTexture
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                    }
-                }
+                FillMode.None,
+                FillMode.Stretch,
+                FillMode.Fit,
+                FillMode.Fill,
             };
+
+            for (int i = 0; i < Rows * Cols; ++i)
+            {
+                Cell(i).Add(new Drawable[]
+                {
+                    new SpriteText
+                    {
+                        Text = $"{nameof(FillMode)}=FillMode.{fillModes[i]}",
+                        TextSize = 20,
+                    },
+                    new Container
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Size = new Vector2(0.5f),
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Blue,
+                            },
+                            new Sprite
+                            {
+                                FillMode = fillModes[i],
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Texture = sampleTexture
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         private class PaddedBox : Container
