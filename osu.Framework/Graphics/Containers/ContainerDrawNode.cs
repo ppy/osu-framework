@@ -141,6 +141,8 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
             edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
+            // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
+            // the edge effect along its radius using the same rounded-corners shader.
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
             edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
@@ -157,7 +159,13 @@ namespace osu.Framework.Graphics.Containers
             colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
             colour.BottomRight.MultiplyAlpha(DrawInfo.Colour.BottomRight.Linear.A);
 
-            Texture.WhitePixel.DrawQuad(ScreenSpaceMaskingQuad.Value, colour);
+            Texture.WhitePixel.DrawQuad(
+                ScreenSpaceMaskingQuad.Value,
+                colour, null, null, null,
+                // HACK HACK HACK. We re-use the unused vertex blend range to store the original
+                // masking blend range when rendering edge effects. This is needed for smooth inner edges
+                // with a hollow edge effect.
+                new Vector2(MaskingInfo.Value.BlendRange));
 
             Shader.Unbind();
 
