@@ -61,12 +61,23 @@ float distanceFromDrawingRect()
 void main(void)
 {
 	float dist = distanceFromRoundedRect();
+	float alphaFactor = 1.0;
 
 	// Discard inner pixels
-	if (g_DiscardInner && dist <= g_CornerRadius - g_MaskingBlendRange - 1.0)    // -1 for getting rid of some ugly inner-edges
+	if (g_DiscardInner)
 	{
-		gl_FragColor = vec4(0.0);
-		return;
+		// v_BlendRange is set from outside in a hacky way to tell us the g_MaskingBlendRange used for the rounded
+		// corners of the edge effect container itself. We can then derive the alpha factor for smooth inner edge
+		// effect from that.
+		float innerBlendFactor = (g_CornerRadius - g_MaskingBlendRange - dist) / v_BlendRange.x;
+		if (innerBlendFactor > 1.0)
+		{
+			gl_FragColor = vec4(0.0);
+			return;
+		}
+
+		// We exponentiate our factor to exactly counteract the later exponentiation by g_AlphaExponent for a smoother inner border.
+		alphaFactor *= pow(min(1.0 - innerBlendFactor, 1.0), 1.0 / g_AlphaExponent);
 	}
 
 	dist /= g_MaskingBlendRange;
@@ -74,7 +85,7 @@ void main(void)
 	// This correction is needed to avoid fading of the alpha value for radii below 1px.
 	float radiusCorrection = g_CornerRadius <= 0.0 ? g_MaskingBlendRange : max(0.0, g_MaskingBlendRange - g_CornerRadius);
 	float fadeStart = (g_CornerRadius + radiusCorrection) / g_MaskingBlendRange;
-	float alphaFactor = min(fadeStart - dist, 1.0);
+	alphaFactor *= min(fadeStart - dist, 1.0);
 
 	if (v_BlendRange.x > 0.0 || v_BlendRange.y > 0.0)
 		alphaFactor *= clamp(1.0 - distanceFromDrawingRect(), 0.0, 1.0);

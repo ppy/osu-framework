@@ -1,247 +1,210 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
+
+using System.Globalization;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
-using osu.Framework.Timing;
 
 namespace osu.Framework.VisualTests.Tests
 {
     public class TestCaseCoordinateSpaces : TestCase
     {
-        private const float coordinate_space_step = 25;
-        private const float coordinate_space_max = 200;
-        private const double scroll_time = 2000;
-
         public override void Reset()
         {
             base.Reset();
 
-            for (float c = coordinate_space_step; c <= coordinate_space_max; c += coordinate_space_step)
-            {
-                float tempC = c;
-                AddStep($"{tempC} coordinate space", () => loadGridTest(tempC));
-            }
-
-            AddStep("Scrolling test", loadScrollingTest);
-            AddWaitStep((int)Math.Ceiling(scroll_time / TimePerAction) + 2);
+            AddStep("0-1 space", () => loadCase(0));
+            AddStep("0-150 space", () => loadCase(1));
+            AddStep("50-200 space", () => loadCase(2));
+            AddStep("150-(-50) space", () => loadCase(3));
+            AddStep("0-300 space", () => loadCase(4));
+            AddStep("-250-250 space", () => loadCase(4));
         }
 
-        private void loadGridTest(float coordinateSpace)
+        private void loadCase(int i)
         {
             Clear();
 
-            Container c;
-            Add(c = new Container
+            HorizontalVisualiser h;
+            Add(h = new HorizontalVisualiser
             {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-                Size = new Vector2(0.8f),
-                RelativeCoordinateSpace = new Vector2(coordinateSpace),
-                Children = new Drawable[]
-                {
-                    new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(coordinateSpace),
-                        Masking = true,
-                        BorderColour = Color4.Green,
-                        BorderThickness = 5,
-                        Children = new[]
-                        {
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Alpha = 0,
-                                AlwaysPresent = true
-                            },
-                            new Box
-                            {
-                                Anchor = Anchor.TopCentre,
-                                Origin = Anchor.TopCentre,
-                                RelativeSizeAxes = Axes.Y,
-                                Width = 5,
-                                Colour = Color4.Green
-                            },
-                            new Box
-                            {
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                RelativeSizeAxes = Axes.X,
-                                Height = 5,
-                                Colour = Color4.Green
-                            }
-                        }
-                    },
-                    // Centre crosshair
-                    new Marker
-                    {
-                        Anchor = Anchor.Centre
-                    },
-                    new Marker
-                    {
-                        Anchor = Anchor.Centre,
-                        Position = new Vector2(10, 0)
-                    },
-                    new Marker
-                    {
-                        Anchor = Anchor.Centre,
-                        Position = new Vector2(-10, 0)
-                    },
-                    new Marker
-                    {
-                        Anchor = Anchor.Centre,
-                        Position = new Vector2(0, 10)
-                    },
-                    new Marker
-                    {
-                        Anchor = Anchor.Centre,
-                        Position = new Vector2(0, -10)
-                    }
-                }
+                Size = new Vector2(200, 50),
+                X = 150
             });
 
-            for (float i = coordinate_space_max / 2; i >= 0; i -= coordinate_space_step)
+            switch (i)
             {
-                c.Add(new Marker
-                {
-                    Anchor = Anchor.TopLeft,
-                    Position = new Vector2(i)
-                });
-
-                c.Add(new Marker
-                {
-                    Anchor = Anchor.TopRight,
-                    Position = new Vector2(-i, i)
-                });
-
-                c.Add(new Marker
-                {
-                    Anchor = Anchor.BottomLeft,
-                    Position = new Vector2(i, -i)
-                });
-
-                c.Add(new Marker
-                {
-                    Anchor = Anchor.BottomRight,
-                    Position = new Vector2(-i, -i)
-                });
+                case 0:
+                    h.CreateMarkerAt(-0.1f);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(0.1f);
+                    h.CreateMarkerAt(0.3f);
+                    h.CreateMarkerAt(0.7f);
+                    h.CreateMarkerAt(0.9f);
+                    h.CreateMarkerAt(1f);
+                    h.CreateMarkerAt(1.1f);
+                    break;
+                case 1:
+                    h.RelativeChildSize = new Vector2(150, 1);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(50);
+                    h.CreateMarkerAt(100);
+                    h.CreateMarkerAt(150);
+                    h.CreateMarkerAt(200);
+                    h.CreateMarkerAt(250);
+                    break;
+                case 2:
+                    h.RelativeChildOffset = new Vector2(50, 0);
+                    h.RelativeChildSize = new Vector2(150, 1);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(50);
+                    h.CreateMarkerAt(100);
+                    h.CreateMarkerAt(150);
+                    h.CreateMarkerAt(200);
+                    h.CreateMarkerAt(250);
+                    break;
+                case 3:
+                    h.RelativeChildOffset = new Vector2(150, 0);
+                    h.RelativeChildSize = new Vector2(-200, 1);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(50);
+                    h.CreateMarkerAt(100);
+                    h.CreateMarkerAt(150);
+                    h.CreateMarkerAt(200);
+                    h.CreateMarkerAt(250);
+                    break;
+                case 4:
+                    h.RelativeChildOffset = new Vector2(-250, 0);
+                    h.RelativeChildSize = new Vector2(500, 1);
+                    h.CreateMarkerAt(-300);
+                    h.CreateMarkerAt(-200);
+                    h.CreateMarkerAt(-100);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(100);
+                    h.CreateMarkerAt(200);
+                    h.CreateMarkerAt(300);
+                    break;
             }
         }
 
-        private void loadScrollingTest()
-        {
-            const float duration = (float)scroll_time / 4;
-
-            // The amount of time which the area that the box scrolls through spans.
-            // Nothing special is done by subtracting the duration here - scrollingBox is BottomCentre origin with Height = duration
-            // and it should be outside of the container at Y = scroll_time for the purpose of demonstrating this test
-            const float time_span = (float)scroll_time - duration;
-
-            Clear();
-
-            Add(new Container
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Y,
-                Size = new Vector2(100, 0.8f),
-                RelativeCoordinateSpace = new Vector2(1, time_span),
-                Masking = true,
-                Clock = new FramedClock(),
-                Children = new Drawable[]
-                {
-                    new Container
-                    {
-                        Name = "Background",
-                        RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(1, time_span),
-                        Children = new[]
-                        {
-                            new Box
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.White,
-                                Alpha = 0.1f
-                            }
-                        }
-                    },
-                    new TimeScrollingBox
-                    {
-                        Name = "Scrolling box",
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.BottomCentre,
-                        RelativePositionAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.Both,
-                        Height = duration
-                    }
-                }
-            });
-        }
-
-        /// <summary>
-        /// A box that scrolls using the current time as its Y-position.
-        /// </summary>
-        private class TimeScrollingBox : Box
+        private class HorizontalVisualiser : Visualiser
         {
             protected override void Update()
             {
-                Y = (float)Clock.CurrentTime;
+                base.Update();
+
+                Left.Text = $"X = {RelativeChildOffset.X.ToString(CultureInfo.InvariantCulture)}";
+                Right.Text = $"X = {(RelativeChildOffset.X + RelativeChildSize.X).ToString(CultureInfo.InvariantCulture)}";
             }
         }
 
-        /// <summary>
-        /// A drawable which marks a point in a space with a description of its position.
-        /// </summary>
-        private class Marker : Container
+        private abstract class Visualiser : Container
         {
-            private readonly SpriteText descriptionText;
-
-            public Marker()
+            public new Vector2 RelativeChildSize
             {
-                Origin = Anchor.Centre;
-                RelativePositionAxes = Axes.Both;
+                protected get { return innerContainer.RelativeChildSize; }
+                set { innerContainer.RelativeChildSize = value; }
+            }
 
-                Size = new Vector2(32);
+            public new Vector2 RelativeChildOffset
+            {
+                protected get { return innerContainer.RelativeChildOffset; }
+                set { innerContainer.RelativeChildOffset = value; }
+            }
 
-                Children = new Drawable[]
+            private readonly Container innerContainer;
+
+            protected readonly SpriteText Left;
+            protected readonly SpriteText Right;
+
+            protected Visualiser()
+            {
+                Height = 50;
+
+                InternalChildren = new Drawable[]
                 {
                     new Box
                     {
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.TopCentre,
+                        Name = "Left marker",
+                        Colour = Color4.Gray,
                         RelativeSizeAxes = Axes.Y,
-                        Width = 2,
-                        Colour = Color4.Red
+                    },
+                    Left = new SpriteText
+                    {
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.TopCentre,
+                        Y = 6
                     },
                     new Box
                     {
+                        Name = "Centre line",
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
-                        RelativeSizeAxes = Axes.X,
-                        Height = 2,
-                        Colour = Color4.Red
+                        Colour = Color4.Gray,
+                        RelativeSizeAxes = Axes.X
                     },
-                    descriptionText = new SpriteText
+                    innerContainer = new Container
                     {
-                        Anchor = Anchor.TopCentre,
+                        RelativeSizeAxes = Axes.Both
+                    },
+                    new Box
+                    {
+                        Name = "Right marker",
+                        Anchor = Anchor.TopRight,
+                        Origin = Anchor.TopRight,
+                        Colour = Color4.Gray,
+                        RelativeSizeAxes = Axes.Y
+                    },
+                    Right = new SpriteText
+                    {
+                        Anchor = Anchor.BottomRight,
                         Origin = Anchor.TopCentre,
-                        BypassAutoSizeAxes = Axes.Both,
-                        Y = -18,
-                        TextSize = 18
-                    }
+                        Y = 6
+                    },
                 };
             }
 
-            protected override void Update()
+            public void CreateMarkerAt(float x)
             {
-                descriptionText.Text = $"{Anchor.ToString()} @ {Position.ToString()} (rel: {RelativePositionAxes.ToString()})";
+                innerContainer.Add(new Container
+                {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.Centre,
+                    RelativePositionAxes = Axes.Both,
+                    AutoSizeAxes = Axes.Both,
+                    X = x,
+                    Colour = Color4.Yellow,
+                    Children = new Drawable[]
+                    {
+                        new Box
+                        {
+                            Name = "Centre marker horizontal",
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(8, 1)
+                        },
+                        new Box
+                        {
+                            Name = "Centre marker vertical",
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(1, 8)
+                        },
+                        new SpriteText
+                        {
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.TopCentre,
+                            Y = 6,
+                            BypassAutoSizeAxes = Axes.Both,
+                            Text = x.ToString(CultureInfo.InvariantCulture)
+                        }
+                    }
+                });
             }
         }
     }

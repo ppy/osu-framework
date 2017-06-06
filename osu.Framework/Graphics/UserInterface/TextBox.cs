@@ -55,6 +55,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public bool ReadOnly;
 
+        public bool ReleaseFocusOnCommit = true;
+
         private ITextInputSource textInput;
         private Clipboard clipboard;
 
@@ -553,7 +555,18 @@ namespace osu.Framework.Graphics.UserInterface
                         return true;
                     }
                 case Key.Enter:
-                    if (HasFocus) inputManager.ChangeFocus(null);
+                    if (HasFocus)
+                    {
+                        if (ReleaseFocusOnCommit)
+                            inputManager.ChangeFocus(null);
+
+                        Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+                        Background.ClearTransforms();
+                        Background.FlashColour(BackgroundCommit, 400);
+
+                        audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                        OnCommit?.Invoke(this, true);
+                    }
                     return true;
                 case Key.Delete:
                     if (selectionLength == 0)
@@ -753,20 +766,9 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-            if (!Current.Disabled && state.Keyboard.Keys.Contains(Key.Enter))
-            {
-                Background.Colour = BackgroundUnfocused;
-                Background.ClearTransforms();
-                Background.FlashColour(BackgroundCommit, 400);
 
-                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-                OnCommit?.Invoke(this, true);
-            }
-            else
-            {
-                Background.ClearTransforms();
-                Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
-            }
+            Background.ClearTransforms();
+            Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
 
             cursorAndLayout.Invalidate();
         }
