@@ -9,7 +9,8 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class ContextMenu : Container
+    public class ContextMenu<TItem> : Container
+        where TItem : ContextMenuItem
     {
         private readonly LocalMenu menu;
 
@@ -20,7 +21,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Open() => menu.State = MenuState.Opened;
         public void Close() => menu.State = MenuState.Closed;
 
-        public IEnumerable<ContextMenuItem> Items
+        public IEnumerable<TItem> Items
         {
             set
             {
@@ -73,7 +74,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.InvalidateFromChild(invalidation);
         }
 
-        private class LocalMenu : Menu<ContextMenuItem>
+        private class LocalMenu : Menu<TItem>
         {
             public int FadeDuration;
 
@@ -83,5 +84,9 @@ namespace osu.Framework.Graphics.UserInterface
                 ResizeTo(new Vector2(1, State == MenuState.Opened ? actualHeight : 0), FadeDuration, EasingTypes.OutQuint);
             }
         }
+    }
+
+    public class ContextMenu : ContextMenu<ContextMenuItem>
+    {
     }
 }
