@@ -158,7 +158,7 @@ namespace osu.Framework.Graphics.Containers
 
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
-            if(!newLineIsParagraph)
+            if (!newLineIsParagraph)
                 base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
 
             foreach (string l in line.Text.Split('\n'))
