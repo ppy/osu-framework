@@ -87,8 +87,7 @@ namespace osu.Framework.VisualTests.Tests
                 LoopDelay = duration * 3
             });
 
-            CursorContainer cursor = null;
-            Add(new ContextMenuContainer(cursor));
+            Add(new ContextMenuContainer(null));
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

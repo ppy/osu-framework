@@ -13,14 +13,7 @@ namespace osu.Framework.Graphics.UserInterface
     {
         private readonly LocalMenu menu;
 
-        private int fadeDuration;
-        protected int FadeDuration
-        {
-            set
-            {
-                menu.FadeDuration = fadeDuration = value;
-            }
-        }
+        protected int FadeDuration { set { menu.FadeDuration = value; } }
 
         public MenuState State => menu?.State ?? MenuState.Closed;
 
