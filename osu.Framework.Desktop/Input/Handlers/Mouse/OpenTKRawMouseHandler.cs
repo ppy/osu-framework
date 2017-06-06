@@ -9,6 +9,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
 using osu.Framework.Statistics;
+using MouseState = OpenTK.Input.MouseState;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
@@ -73,18 +74,21 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                         }
 
+                        IMouseState newState;
+
                         // While not focused, let's silently ignore everything but position.
-                        if (host.Window.Focused)
+                        if (host.IsActive)
                         {
                             lastState = state;
+                            newState = new OpenTKPollMouseState(state, host.IsActive, currentPosition);
                         }
                         else
                         {
                             lastState = null;
-                            state = new OpenTK.Input.MouseState();
+                            newState = new UnfocusedMouseState(new MouseState(), host.IsActive, currentPosition);
                         }
 
-                        PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
+                        PendingStates.Enqueue(new InputState { Mouse = newState });
 
                         FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
                     }, 0, 0));
@@ -116,5 +120,13 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
+
+        private class UnfocusedMouseState : OpenTKMouseState
+        {
+            public UnfocusedMouseState(MouseState tkState, bool active, Vector2? mappedPosition)
+                : base(tkState, active, mappedPosition)
+            {
+            }
+        }
     }
 }
