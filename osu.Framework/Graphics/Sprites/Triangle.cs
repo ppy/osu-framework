@@ -9,8 +9,14 @@ using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// Represents a sprite that is drawn in a triangle shape, instead of a rectangle shape.
+    /// </summary>
     public class Triangle : Sprite
     {
+        /// <summary>
+        /// Creates a new triangle with a white pixel as texture.
+        /// </summary>
         public Triangle()
         {
             Texture = Texture.WhitePixel;

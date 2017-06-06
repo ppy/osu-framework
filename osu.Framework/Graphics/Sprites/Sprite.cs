@@ -10,13 +10,22 @@ using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// A sprite that displays its texture.
+    /// </summary>
     public class Sprite : Drawable
     {
         private Shader textureShader;
         private Shader roundedTextureShader;
 
+        /// <summary>
+        /// True if the texture should be tiled. If you had a 16x16 texture and scaled the sprite to be 64x64 the texture would be repeated in a 4x4 grid along the size of the sprite.
+        /// </summary>
         public bool WrapTexture;
 
+        /// <summary>
+        /// Maximum value that can be set for <see cref="EdgeSmoothness"/> on either axis.
+        /// </summary>
         public const int MAX_EDGE_SMOOTHNESS = 2;
 
         /// <summary>
@@ -28,6 +37,9 @@ namespace osu.Framework.Graphics.Sprites
         /// </summary>
         public Vector2 EdgeSmoothness = Vector2.Zero;
 
+        /// <summary>
+        /// True if the <see cref="Texture"/> should be disposed when this sprite gets disposed.
+        /// </summary>
         public bool CanDisposeTexture { get; protected set; }
 
         #region Disposal
@@ -72,6 +84,10 @@ namespace osu.Framework.Graphics.Sprites
 
         private Texture texture;
 
+        /// <summary>
+        /// The texture that this sprite should draw. If <see cref="CanDisposeTexture"/> is true and the texture gets replaced, the old texture will be disposed.
+        /// If this sprite's <see cref="Drawable.Size"/> is <see cref="Vector2.Zero"/> (eg if it has not been set previously), the <see cref="Drawable.Size"/> of this sprite will be set to the size of the texture.
+        /// </summary>
         public Texture Texture
         {
             get { return texture; }
