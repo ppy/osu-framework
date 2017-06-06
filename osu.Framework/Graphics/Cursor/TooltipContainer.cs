@@ -94,17 +94,6 @@ namespace osu.Framework.Graphics.Cursor
             return tooltipPos;
         }
 
-        private void updateTooltip()
-        {
-            if (!tooltip.IsPresent)
-                return;
-
-            if (currentlyDisplayed != null)
-                tooltip.TooltipText = currentlyDisplayed.TooltipText;
-
-            tooltip.Move(computeTooltipPosition());
-        }
-
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
