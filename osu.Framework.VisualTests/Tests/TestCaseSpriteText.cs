@@ -28,7 +28,8 @@ namespace osu.Framework.VisualTests.Tests
                         flow = new FillFlowContainer
                         {
                             Anchor = Anchor.TopLeft,
-                            AutoSizeAxes = Axes.Both,
+                            AutoSizeAxes = Axes.Y,
+                            RelativeSizeAxes = Axes.X,
                             Direction = FillDirection.Vertical,
                         }
                     }
@@ -53,6 +54,9 @@ namespace osu.Framework.VisualTests.Tests
                 SpriteText text = new SpriteText
                 {
                     Text = $@"Font testy at size {i}",
+                    AllowMultiline = true,
+                    AutoSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.X,
                     TextSize = i
                 };
 
