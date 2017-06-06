@@ -12,7 +12,9 @@ namespace osu.Framework.Graphics.UserInterface
     public class ContextMenu<TItem> : Container
         where TItem : ContextMenuItem
     {
-        private readonly LocalMenu menu;
+        private readonly CustomMenu menu;
+
+        protected virtual CustomMenu CreateCustomMenu() => new CustomMenu();
 
         protected int FadeDuration { set { menu.FadeDuration = value; } }
 
@@ -40,7 +42,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             AlwaysReceiveInput = true;
             AutoSizeAxes = Axes.Y;
-            Add(menu = new LocalMenu());
+            Add(menu = CreateCustomMenu());
         }
 
         protected override void UpdateAfterChildren()
@@ -74,7 +76,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.InvalidateFromChild(invalidation);
         }
 
-        private class LocalMenu : Menu<TItem>
+        public class CustomMenu : Menu<TItem>
         {
             public int FadeDuration;
 
