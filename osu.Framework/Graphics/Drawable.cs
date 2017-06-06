@@ -1864,11 +1864,14 @@ namespace osu.Framework.Graphics
         {
             public IMouseState NativeState { get; }
 
+            public IMouseState LastState { get; set; }
+
             private readonly Drawable us;
 
             public LocalMouseState(IMouseState state, Drawable us)
             {
                 NativeState = state;
+                LastState = null;
                 this.us = us;
             }
 
@@ -1878,7 +1881,12 @@ namespace osu.Framework.Graphics
 
             public Vector2 LastPosition => us.Parent?.ToLocalSpace(NativeState.LastPosition) ?? NativeState.LastPosition;
 
-            public Vector2? PositionMouseDown => NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown;
+            public Vector2? PositionMouseDown
+            {
+                get { return NativeState.PositionMouseDown == null ? null : us.Parent?.ToLocalSpace(NativeState.PositionMouseDown.Value) ?? NativeState.PositionMouseDown; }
+                set { throw new NotImplementedException(); }
+            }
+
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;

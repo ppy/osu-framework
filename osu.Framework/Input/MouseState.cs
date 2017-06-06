@@ -16,7 +16,7 @@ namespace osu.Framework.Input
 
         public IMouseState NativeState => this;
 
-        public IMouseState LastState;
+        public IMouseState LastState { get; set; }
 
         public virtual int WheelDelta => (Wheel - LastState?.Wheel) ?? 0;
 
@@ -32,16 +32,7 @@ namespace osu.Framework.Input
 
         public Vector2 LastPosition => LastState?.Position ?? Position;
 
-        public Vector2? PositionMouseDown { get; internal set; }
-
-        public void SetLast(IMouseState last)
-        {
-            (last as MouseState)?.SetLast(null);
-
-            LastState = last;
-            if (last != null)
-                PositionMouseDown = last.PositionMouseDown;
-        }
+        public Vector2? PositionMouseDown { get; set; }
 
         public IMouseState Clone()
         {
