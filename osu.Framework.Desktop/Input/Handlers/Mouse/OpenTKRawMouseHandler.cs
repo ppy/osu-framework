@@ -73,13 +73,18 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             currentPosition = new Vector2(screenPoint.X, screenPoint.Y);
                         }
 
-                        lastState = state;
-
                         // While not focused, let's silently ignore everything but position.
-                        if (!host.Window.Focused)
+                        if (host.Window.Focused)
+                        {
+                            lastState = state;
+                        }
+                        else
+                        {
+                            lastState = null;
                             state = new OpenTK.Input.MouseState();
+                        }
 
-                        PendingStates.Enqueue(new InputState { Mouse = new OpenTKMouseState(state, host.IsActive, currentPosition) });
+                        PendingStates.Enqueue(new InputState { Mouse = new OpenTKPollMouseState(state, host.IsActive, currentPosition) });
 
                         FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
                     }, 0, 0));

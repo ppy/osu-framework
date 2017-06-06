@@ -186,7 +186,15 @@ namespace osu.Framework.Input
                 //move above?
                 updateInputQueues(CurrentState);
 
-                (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
+                // we only want to set a last state if both the new and old state are of the same type.
+                // this avoids giving the new state a false impression of being able to calculate delta values based on a last
+                // state potentially from a different input source.
+                if (last.Mouse != null && s.Mouse != null && last.Mouse.GetType() == s.Mouse.GetType())
+                {
+                    last.Mouse.LastState = null;
+                    s.Mouse.LastState = last.Mouse;
+                    s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
+                }
 
                 //hover could change even when the mouse state has not.
                 updateHoverEvents(CurrentState);
