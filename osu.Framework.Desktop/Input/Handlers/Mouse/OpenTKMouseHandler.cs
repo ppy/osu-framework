@@ -44,9 +44,14 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                         if (mouseInWindow || !host.Window.Visible) return;
 
                         var state = OpenTK.Input.Mouse.GetCursorState();
+
+                        if (state.Equals(lastState)) return;
+
+                        lastState = state;
+
                         var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                        handleState(state, new Vector2(mapped.X, mapped.Y));
+                        handleState(new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -70,16 +75,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             if (!mouseInWindow)
                 return;
 
-            handleState(e.Mouse);
+            handleState(new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
         }
 
-        private void handleState(OpenTK.Input.MouseState state, Vector2? mappedPosition = null)
+        private void handleState(MouseState state)
         {
-            if (state.Equals(lastState)) return;
-
-            lastState = state;
-
-            PendingStates.Enqueue(new InputState { Mouse = new OpenTKMouseState(state, host.IsActive, mappedPosition) });
+            PendingStates.Enqueue(new InputState { Mouse = state });
             FrameStatistics.Increment(StatisticsCounterType.MouseEvents);
         }
 
