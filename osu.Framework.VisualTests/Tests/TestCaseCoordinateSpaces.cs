@@ -41,7 +41,6 @@ namespace osu.Framework.VisualTests.Tests
             switch (i)
             {
                 case 0:
-                    h.RelativeCoordinateSpace = new RectangleF(0, 0, 1, 1);
                     h.CreateMarkerAt(-0.1f);
                     h.CreateMarkerAt(0);
                     h.CreateMarkerAt(0.1f);
@@ -52,7 +51,7 @@ namespace osu.Framework.VisualTests.Tests
                     h.CreateMarkerAt(1.1f);
                     break;
                 case 1:
-                    h.RelativeCoordinateSpace = new RectangleF(0, 0, 150, 1);
+                    h.RelativeChildSize = new Vector2(150, 1);
                     h.CreateMarkerAt(0);
                     h.CreateMarkerAt(50);
                     h.CreateMarkerAt(100);
@@ -61,7 +60,8 @@ namespace osu.Framework.VisualTests.Tests
                     h.CreateMarkerAt(250);
                     break;
                 case 2:
-                    h.RelativeCoordinateSpace = new RectangleF(50, 0, 150, 1);
+                    h.RelativeChildOffset = new Vector2(50, 0);
+                    h.RelativeChildSize = new Vector2(150, 1);
                     h.CreateMarkerAt(0);
                     h.CreateMarkerAt(50);
                     h.CreateMarkerAt(100);
@@ -70,7 +70,8 @@ namespace osu.Framework.VisualTests.Tests
                     h.CreateMarkerAt(250);
                     break;
                 case 3:
-                    h.RelativeCoordinateSpace = RectangleF.FromLTRB(150, 0, -50, 1);
+                    h.RelativeChildOffset = new Vector2(150, 0);
+                    h.RelativeChildSize = new Vector2(-200, 1);
                     h.CreateMarkerAt(0);
                     h.CreateMarkerAt(50);
                     h.CreateMarkerAt(100);
@@ -79,7 +80,8 @@ namespace osu.Framework.VisualTests.Tests
                     h.CreateMarkerAt(250);
                     break;
                 case 4:
-                    h.RelativeCoordinateSpace = RectangleF.FromLTRB(-250, 0, 250, 1);
+                    h.RelativeChildOffset = new Vector2(-250, 0);
+                    h.RelativeChildSize = new Vector2(500, 1);
                     h.CreateMarkerAt(-300);
                     h.CreateMarkerAt(-200);
                     h.CreateMarkerAt(-100);
@@ -97,17 +99,23 @@ namespace osu.Framework.VisualTests.Tests
             {
                 base.Update();
 
-                Left.Text = $"X = {RelativeCoordinateSpace.Left.ToString(CultureInfo.InvariantCulture)}";
-                Right.Text = $"X = {RelativeCoordinateSpace.Right.ToString(CultureInfo.InvariantCulture)}";
+                Left.Text = $"X = {RelativeChildOffset.X.ToString(CultureInfo.InvariantCulture)}";
+                Right.Text = $"X = {(RelativeChildOffset.X + RelativeChildSize.X).ToString(CultureInfo.InvariantCulture)}";
             }
         }
 
         private abstract class Visualiser : Container
         {
-            public new RectangleF RelativeCoordinateSpace
+            public new Vector2 RelativeChildSize
             {
-                protected get { return innerContainer.RelativeCoordinateSpace; }
-                set { innerContainer.RelativeCoordinateSpace = value; }
+                protected get { return innerContainer.RelativeChildSize; }
+                set { innerContainer.RelativeChildSize = value; }
+            }
+
+            public new Vector2 RelativeChildOffset
+            {
+                protected get { return innerContainer.RelativeChildOffset; }
+                set { innerContainer.RelativeChildOffset = value; }
             }
 
             private readonly Container innerContainer;
