@@ -327,7 +327,7 @@
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
-    <Compile Include="Graphics\Sprites\Paragraph.cs" />
+    <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
   </ItemGroup>
   <ItemGroup>

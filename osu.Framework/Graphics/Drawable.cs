@@ -1461,12 +1461,20 @@ namespace osu.Framework.Graphics
             return node;
         }
 
+        /// <summary>
+        /// Fills a given draw node with all information required to draw this drawable.
+        /// </summary>
+        /// <param name="node">The node to fill with information.</param>
         protected virtual void ApplyDrawNode(DrawNode node)
         {
             node.DrawInfo = DrawInfo;
             node.InvalidationID = invalidationID;
         }
 
+        /// <summary>
+        /// Creates a draw node capable of containing all information required to draw this drawable.
+        /// </summary>
+        /// <returns>The created draw node.</returns>
         protected virtual DrawNode CreateDrawNode() => new DrawNode();
 
         #endregion
