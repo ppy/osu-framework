@@ -17,7 +17,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
     {
         private ScheduledDelegate scheduled;
 
-        private OpenTK.Input.MouseState? lastState;
+        private MouseState? lastState;
 
         private Vector2 currentPosition;
 
