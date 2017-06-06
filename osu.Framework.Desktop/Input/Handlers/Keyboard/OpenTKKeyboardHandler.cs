@@ -23,8 +23,20 @@ namespace osu.Framework.Desktop.Input.Handlers.Keyboard
 
         public override bool Initialize(GameHost host)
         {
-            host.Window.KeyDown += handleState;
-            host.Window.KeyUp += handleState;
+            Enabled.ValueChanged += enabled =>
+            {
+                if (enabled)
+                {
+                    host.Window.KeyDown += handleState;
+                    host.Window.KeyUp += handleState;
+                }
+                else
+                {
+                    host.Window.KeyDown -= handleState;
+                    host.Window.KeyUp -= handleState;
+                }
+            };
+            Enabled.TriggerChange();
             return true;
         }
 

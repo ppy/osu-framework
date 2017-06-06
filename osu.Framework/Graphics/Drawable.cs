@@ -1470,24 +1470,32 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
+        /// Accepts a rectangle in local coordinates and converts it to coordinates in another Drawable's space.
+        /// </summary>
+        /// <param name="input">A rectangle in local coordinates.</param>
+        /// <param name="other">The drawable in which space we want to transform the rectangle to.</param>
+        /// <returns>The rectangle in other's coordinates.</returns>
+        public Quad ToSpaceOfOtherDrawable(RectangleF input, IDrawable other)
+        {
+            if (other == this)
+                return input;
+
+            return Quad.FromRectangle(input) * (DrawInfo.Matrix * other.DrawInfo.MatrixInverse);
+        }
+
+        /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in Parent's space.
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in Parent's coordinates.</returns>
-        public Vector2 ToParentSpace(Vector2 input)
-        {
-            return ToSpaceOfOtherDrawable(input, Parent);
-        }
+        public Vector2 ToParentSpace(Vector2 input) => ToSpaceOfOtherDrawable(input, Parent);
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in Parent's space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in Parent's coordinates.</returns>
-        public Quad ToParentSpace(RectangleF input)
-        {
-            return Quad.FromRectangle(input) * (DrawInfo.Matrix * Parent.DrawInfo.MatrixInverse);
-        }
+        public Quad ToParentSpace(RectangleF input) => ToSpaceOfOtherDrawable(input, Parent);
 
         /// <summary>
         /// Accepts a vector in local coordinates and converts it to coordinates in screen space.
@@ -1510,14 +1518,23 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Convert a position to the local coordinate system from either native or local to another drawable.
-        /// This is *not* the same space as the Position member variable (use Parent.GetLocalPosition() in this case).
+        /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
-        /// <param name="screenSpacePos">The input position.</param>
-        /// <returns>The output position.</returns>
+        /// <param name="screenSpacePos">A vector in screen coordinates.</param>
+        /// <returns>The vector in local coordinates.</returns>
         public Vector2 ToLocalSpace(Vector2 screenSpacePos)
         {
             return screenSpacePos * DrawInfo.MatrixInverse;
+        }
+
+        /// <summary>
+        /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
+        /// </summary>
+        /// <param name="screenSpaceQuad">A quad in screen coordinates.</param>
+        /// <returns>The quad in local coordinates.</returns>
+        public Quad ToLocalSpace(Quad screenSpaceQuad)
+        {
+            return screenSpaceQuad * DrawInfo.MatrixInverse;
         }
 
         #endregion
@@ -1534,7 +1551,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state at which the Drawable becomes hovered.</param>
         /// <returns>True if this Drawable would like to handle the hover. If so, then
-        /// no further Drawables down the scene graph will receive hovering events. If
+        /// no further Drawables up the scene graph will receive hovering events. If
         /// false, however, then <see cref="OnHoverLost(InputState)"/> will still be
         /// received once hover is lost.</returns>
         protected virtual bool OnHover(InputState state) => false;
@@ -1563,7 +1580,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the press.</param>
         /// <param name="args">Specific arguments for mouse down event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
         /// <summary>
@@ -1577,7 +1594,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the release.</param>
         /// <param name="args">Specific arguments for mouse up event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
         /// <summary>
@@ -1590,7 +1607,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state after the click.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnClick(InputState state) => false;
 
         /// <summary>
@@ -1603,7 +1620,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state after the double click.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnDoubleClick(InputState state) => false;
 
         /// <summary>
@@ -1618,7 +1635,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>True if this Drawable accepts being dragged. If so, then future
         /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be reveiced. Otherwise, the event is propagated down the scene
+        /// events will be reveiced. Otherwise, the event is propagated up the scene
         /// graph to the next eligible Drawable.</returns>
         protected virtual bool OnDragStart(InputState state) => false;
 
@@ -1659,7 +1676,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state after the wheel was turned.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
@@ -1703,7 +1720,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the key was pressed.</param>
         /// <param name="args">Specific arguments for key down event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
         /// <summary>
@@ -1717,7 +1734,7 @@ namespace osu.Framework.Graphics
         /// <param name="state">The state after the key was released.</param>
         /// <param name="args">Specific arguments for key up event.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
         /// <summary>
@@ -1730,7 +1747,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="state">The state after the mouse moved.</param>
         /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated down the scene graph to the next eligible Drawable.</returns>
+        /// is propagated up the scene graph to the next eligible Drawable.</returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
         /// <summary>
@@ -1782,7 +1799,7 @@ namespace osu.Framework.Graphics
         protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
-        /// Whether this Drawable can receive, taking into account all optimizations and masking.
+        /// Whether this Drawable can receive input, taking into account all optimizations and masking.
         /// </summary>
         public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
 
@@ -1791,7 +1808,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        public bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -1812,7 +1829,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// This method is responsible for building a queue of Drawables to receive keyboard input
-        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -1828,7 +1845,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// This method is responsible for building a queue of Drawables to receive mouse input
-        /// in-order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
