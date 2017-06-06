@@ -11,22 +11,22 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class CursorContextMenu : Container
+    public class ContextMenuContainer : Container
     {
         private readonly CursorContainer cursorContainer;
-        private readonly ContextMenuContainer menu;
+        private readonly ContextMenu menu;
 
         private UserInputManager inputManager;
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
 
-        protected virtual ContextMenuContainer CreateContextMenuContainer() => new ContextMenuContainer();
+        protected virtual ContextMenu CreateContextMenu() => new ContextMenu();
 
-        public CursorContextMenu(CursorContainer cursorContainer = null)
+        public ContextMenuContainer(CursorContainer cursorContainer = null)
         {
             this.cursorContainer = cursorContainer;
             RelativeSizeAxes = Axes.Both;
-            Add(menu = CreateContextMenuContainer());
+            Add(menu = CreateContextMenu());
         }
 
         [BackgroundDependencyLoader]

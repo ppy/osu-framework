@@ -88,7 +88,7 @@ namespace osu.Framework.VisualTests.Tests
             });
 
             CursorContainer cursor = null;
-            Add(new CursorContextMenu(cursor));
+            Add(new ContextMenuContainer(cursor));
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

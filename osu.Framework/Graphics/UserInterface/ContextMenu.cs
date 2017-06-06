@@ -9,20 +9,28 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.UserInterface
 {
-    public class ContextMenuContainer : Container
+    public class ContextMenu : Container
     {
-        private readonly ContextMenu contextMenu;
-        protected virtual ContextMenu CreateContextMenu() => new ContextMenu();
+        private readonly LocalMenu menu;
 
-        public MenuState State => contextMenu?.State ?? MenuState.Closed;
+        private int fadeDuration;
+        protected int FadeDuration
+        {
+            set
+            {
+                menu.FadeDuration = fadeDuration = value;
+            }
+        }
+
+        public MenuState State => menu?.State ?? MenuState.Closed;
 
         public IEnumerable<ContextMenuItem> Items
         {
             set
             {
-                if (contextMenu != null)
+                if (menu != null)
                 {
-                    contextMenu.ItemsContainer.Children = value;
+                    menu.ItemsContainer.Children = value;
 
                     foreach (var item in Items)
                         item.Action += Close;
@@ -30,15 +38,15 @@ namespace osu.Framework.Graphics.UserInterface
             }
             get
             {
-                return contextMenu.ItemsContainer.Children;
+                return menu.ItemsContainer.Children;
             }
         }
 
-        public ContextMenuContainer()
+        public ContextMenu()
         {
             AlwaysReceiveInput = true;
             AutoSizeAxes = Axes.Y;
-            Add(contextMenu = CreateContextMenu());
+            Add(menu = new LocalMenu());
         }
 
         protected override void UpdateAfterChildren()
@@ -74,27 +82,27 @@ namespace osu.Framework.Graphics.UserInterface
 
         public void Open()
         {
-            if (contextMenu == null)
+            if (menu == null)
                 return;
-            contextMenu.State = MenuState.Opened;
+            menu.State = MenuState.Opened;
         }
 
         public void Close()
         {
-            if (contextMenu == null)
+            if (menu == null)
                 return;
-            contextMenu.State = MenuState.Closed;
+            menu.State = MenuState.Closed;
         }
-    }
 
-    public class ContextMenu : Menu<ContextMenuItem>
-    {
-        protected int FadeDuration;
-
-        protected override void UpdateContentHeight()
+        private class LocalMenu : Menu<ContextMenuItem>
         {
-            var actualHeight = (RelativeSizeAxes & Axes.Y) > 0 ? 1 : ContentHeight;
-            ResizeTo(new Vector2(1, State == MenuState.Opened ? actualHeight : 0), FadeDuration, EasingTypes.OutQuint);
+            public int FadeDuration;
+
+            protected override void UpdateContentHeight()
+            {
+                var actualHeight = (RelativeSizeAxes & Axes.Y) > 0 ? 1 : ContentHeight;
+                ResizeTo(new Vector2(1, State == MenuState.Opened ? actualHeight : 0), FadeDuration, EasingTypes.OutQuint);
+            }
         }
     }
 }
