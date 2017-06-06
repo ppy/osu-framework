@@ -18,7 +18,7 @@ namespace osu.Framework.Input
 
         public IMouseState LastState { get; set; }
 
-        public virtual int WheelDelta => (Wheel - LastState?.Wheel) ?? 0;
+        public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
 
         public int Wheel { get; set; }
 
