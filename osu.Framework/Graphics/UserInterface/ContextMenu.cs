@@ -15,19 +15,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected int FadeDuration { set { menu.FadeDuration = value; } }
 
-        public MenuState State => menu?.State ?? MenuState.Closed;
+        public MenuState State => menu.State;
+
+        public void Open() => menu.State = MenuState.Opened;
+        public void Close() => menu.State = MenuState.Closed;
 
         public IEnumerable<ContextMenuItem> Items
         {
             set
             {
-                if (menu != null)
-                {
-                    menu.ItemsContainer.Children = value;
+                menu.ItemsContainer.Children = value;
 
-                    foreach (var item in Items)
-                        item.Action += Close;
-                }
+                foreach (var item in Items)
+                    item.Action += Close;
             }
             get
             {
@@ -71,20 +71,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             menuWidth.Invalidate();
             base.InvalidateFromChild(invalidation);
-        }
-
-        public void Open()
-        {
-            if (menu == null)
-                return;
-            menu.State = MenuState.Opened;
-        }
-
-        public void Close()
-        {
-            if (menu == null)
-                return;
-            menu.State = MenuState.Closed;
         }
 
         private class LocalMenu : Menu<ContextMenuItem>
