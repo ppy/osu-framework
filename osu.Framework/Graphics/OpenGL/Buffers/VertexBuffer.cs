@@ -8,28 +8,13 @@ using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
 {
-    public abstract class VertexBuffer<T> : IDisposable where T : struct, IEquatable<T>
+    public abstract class VertexBuffer<T> : IDisposable
+        where T : struct, IEquatable<T>, IVertex
     {
         public T[] Vertices;
 
         private readonly int vboId;
         private readonly BufferUsageHint usage;
-
-        /// <summary>
-        /// The stride of the vertex type T. We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
-        /// </summary>
-        private static readonly int stride = (int)(typeof(T).GetField("Stride", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) ?? 0);
-
-        /// <summary>
-        /// The static Bind method of vertex type T, used to bind the correct vertex attribute locations for use in shaders.
-        /// We use reflection since we don't want to abuse a dummy T instance combined with virtual dispatch.
-        /// </summary>
-        private static readonly Action bind_attributes =
-            (Action)Delegate.CreateDelegate(
-                typeof(Action),
-                null,
-                typeof(T).GetMethod("Bind", BindingFlags.Public | BindingFlags.Static)
-            );
 
         protected VertexBuffer(int amountVertices, BufferUsageHint usage)
         {
@@ -77,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     Vertices[i] = oldVertices[i];
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                bind_attributes();
+                VertexUtils.Bind<T>();
 
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Stride), IntPtr.Zero, usage);
         }
@@ -88,7 +73,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                bind_attributes();
+                VertexUtils.Bind<T>();
         }
 
         public virtual void Unbind()
@@ -107,9 +92,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
-        public static int Stride => stride;
-
-        public static int Stride1 => stride;
+        public static int Stride => VertexUtils.Stride<T>();
 
         public void Draw()
         {
