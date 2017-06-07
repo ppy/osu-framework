@@ -210,8 +210,8 @@ namespace osu.Framework.Graphics
         {
             if (loadState < LoadState.Loaded) return false;
 
-            mainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(mainThread);
+            MainThread = Thread.CurrentThread;
+            scheduler?.SetCurrentThread(MainThread);
 
             Invalidate();
             loadState = LoadState.Alive;
@@ -314,13 +314,13 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
-        internal Thread mainThread { get; private set; }
+        internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(mainThread));
+        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread));
 
         private LifetimeList<ITransform> transforms;
 
@@ -377,7 +377,7 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
-            transformDelay = 0;
+            TransformDelay = 0;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
             updateTransforms();
@@ -1931,7 +1931,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        internal double transformDelay { get; private set; }
+        internal double TransformDelay { get; private set; }
 
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
@@ -1943,11 +1943,11 @@ namespace osu.Framework.Graphics
         {
             if (duration == 0) return this;
 
-            transformDelay += duration;
+            TransformDelay += duration;
             return this;
         }
 
-        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, transformDelay);
+        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Flush specified transforms, using the last available values (ignoring current clock time).
@@ -1979,7 +1979,7 @@ namespace osu.Framework.Graphics
 
         public virtual Drawable DelayReset()
         {
-            Delay(-transformDelay);
+            Delay(-TransformDelay);
             return this;
         }
 
@@ -2000,14 +2000,14 @@ namespace osu.Framework.Graphics
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
-            if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
+            if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
             return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
         }
 
         public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
-                t.Loop(Math.Max(0, transformDelay + delay - t.Duration));
+                t.Loop(Math.Max(0, TransformDelay + delay - t.Duration));
         }
 
         /// <summary>
@@ -2069,7 +2069,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
         /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + transformDelay;
+        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
         public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
@@ -2087,7 +2087,7 @@ namespace osu.Framework.Graphics
 
             TValue startValue = currentValue();
 
-            if (transformDelay == 0)
+            if (TransformDelay == 0)
             {
                 Transforms.RemoveAll(t => t.GetType() == type);
 
@@ -2124,7 +2124,7 @@ namespace osu.Framework.Graphics
             }
 
             //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
-            bool canApplyInstant = transform.Duration == 0 && transformDelay == 0;
+            bool canApplyInstant = transform.Duration == 0 && TransformDelay == 0;
 
             //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
             if (canApplyInstant || transform.StartTime < Time.Current)

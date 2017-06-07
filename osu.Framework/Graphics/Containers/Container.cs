@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Containers
 
         protected override void LoadComplete()
         {
-            schedulerAfterChildren?.SetCurrentThread(mainThread);
+            schedulerAfterChildren?.SetCurrentThread(MainThread);
             base.LoadComplete();
         }
 
@@ -351,7 +351,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Scheduler schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(mainThread));
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread));
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -632,7 +632,7 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
-        public ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, transformDelay);
+        public ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
         public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
