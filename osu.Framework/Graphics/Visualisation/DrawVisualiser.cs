@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 treeContainer = new TreeContainer
                 {
-                    Depth = 0f,                         // Below property display
+                    Depth = 0f, // Below property display
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
@@ -234,7 +234,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (d == null)
                 return;
-            
+
             Type type = d.GetType();
 
             propertyDisplay.Add(

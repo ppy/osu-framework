@@ -114,20 +114,20 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly Box changeMarker;
 
         private readonly Box box;
-        private readonly Func<object> getValue;     // Use delegate for performance
+        private readonly Func<object> getValue; // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)
         {
-                switch (info.MemberType)
-                {
-                    case MemberTypes.Property:
-                        getValue = () => ((PropertyInfo)info).GetValue(d);
-                        break;
+            switch (info.MemberType)
+            {
+                case MemberTypes.Property:
+                    getValue = () => ((PropertyInfo)info).GetValue(d);
+                    break;
 
-                    case MemberTypes.Field:
-                        getValue = () => ((FieldInfo)info).GetValue(d);
-                        break;
-                }
+                case MemberTypes.Field:
+                    getValue = () => ((FieldInfo)info).GetValue(d);
+                    break;
+            }
 
             RelativeSizeAxes = Axes.X;
             Height = 20f;
