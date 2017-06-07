@@ -20,6 +20,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -91,11 +93,19 @@ namespace osu.Framework.Graphics.Containers
             child.Parent = this;
         }
 
+        protected override void LoadComplete()
+        {
+            schedulerAfterChildren?.SetCurrentThread(mainThread);
+            base.LoadComplete();
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
+            schedulerAfterChildren?.Dispose();
+            schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
         }
@@ -339,6 +349,10 @@ namespace osu.Framework.Graphics.Containers
 
         #region Updating (per-frame periodic)
 
+        private Scheduler schedulerAfterChildren;
+
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(mainThread));
+
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
         /// <see cref="IHasLifetime.IsAlive"/> property.
@@ -388,6 +402,11 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
+            if (schedulerAfterChildren != null)
+            {
+                int amountScheduledTasks = schedulerAfterChildren.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
@@ -612,6 +631,8 @@ namespace osu.Framework.Graphics.Containers
                 foreach (var c in internalChildren) c.Delay(duration, true);
             return this;
         }
+
+        public ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, transformDelay);
 
         public override void Flush(bool propagateChildren = false, Type flushType = null)
         {

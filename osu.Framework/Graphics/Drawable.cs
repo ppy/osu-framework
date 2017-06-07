@@ -314,7 +314,7 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
-        private Thread mainThread;
+        internal Thread mainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
@@ -1931,7 +1931,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        private double transformDelay;
+        internal double transformDelay { get; private set; }
 
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
