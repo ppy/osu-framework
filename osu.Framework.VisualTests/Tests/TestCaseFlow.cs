@@ -32,12 +32,13 @@ namespace osu.Framework.VisualTests.Tests
 
         private FillFlowContainer fillContainer;
         private ScheduledDelegate scheduledAdder;
-        private bool addChildren;
+        private bool doNotAddChildren;
 
         public override void Reset()
         {
             base.Reset();
 
+            doNotAddChildren = false;
             scheduledAdder?.Cancel();
 
             Add(new Container
@@ -292,7 +293,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            AddToggleStep("Stop adding children", state => { addChildren = state; });
+            AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
 
             scheduledAdder?.Cancel();
             scheduledAdder = Scheduler.AddDelayed(
@@ -301,12 +302,12 @@ namespace osu.Framework.VisualTests.Tests
                     if (fillContainer.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if (addChildren)
+                    if (doNotAddChildren)
                     {
                         fillContainer.Invalidate();
                     }
 
-                    if (fillContainer.Children.Count() < 1000 && !addChildren)
+                    if (fillContainer.Children.Count() < 1000 && !doNotAddChildren)
                     {
                         fillContainer.Add(new Container
                         {

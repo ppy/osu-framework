@@ -10,12 +10,14 @@ namespace osu.Framework.Input
     {
         IMouseState NativeState { get; }
 
+        IMouseState LastState { get; set; }
+
         Vector2 Delta { get; }
         Vector2 Position { get; }
 
         Vector2 LastPosition { get; }
 
-        Vector2? PositionMouseDown { get; }
+        Vector2? PositionMouseDown { get; set; }
 
         bool HasMainButtonPressed { get; }
 

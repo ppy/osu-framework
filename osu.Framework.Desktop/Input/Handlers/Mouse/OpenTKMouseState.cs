@@ -7,13 +7,13 @@ using MouseState = osu.Framework.Input.MouseState;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
 {
-    internal class OpenTKMouseState : MouseState
+    internal abstract class OpenTKMouseState : MouseState
     {
         public readonly bool WasActive;
 
         public override int WheelDelta => WasActive ? base.WheelDelta : 0;
 
-        public OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
+        protected OpenTKMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
         {
             WasActive = active;
 
