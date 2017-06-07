@@ -58,9 +58,9 @@ namespace osu.Framework.Graphics.Containers
 
 
         /// <summary>
-        /// Vertical size of available content (content.Size)
+        /// Vertical size of available content
         /// </summary>
-        private float availableContent = -1;
+        private float availableContent => content.DrawSize[scrollDim];
 
         private float displayableContent => ChildSize[scrollDim];
 
@@ -146,17 +146,16 @@ namespace osu.Framework.Graphics.Containers
             ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
-        private float lastUpdateDisplayableContent;
+        private float lastUpdateDisplayableContent = -1;
+        private float lastAvailableContent = -1;
 
         private void updateSize()
         {
-            var newAvailableContent = content.DrawSize[scrollDim];
-
             // ensure we only update scrollbar when something has changed, to avoid transform helpers resetting their transform every frame.
             // also avoids creating many needless Transforms every update frame.
-            if (newAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
+            if (lastAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
             {
-                availableContent = newAvailableContent;
+                lastAvailableContent = availableContent;
                 lastUpdateDisplayableContent = displayableContent;
                 updateScrollbar();
             }
