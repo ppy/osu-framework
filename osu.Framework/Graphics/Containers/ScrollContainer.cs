@@ -351,9 +351,9 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
-            base.Update();
+            base.UpdateAfterChildren();
 
             updateSize();
             updatePosition();
