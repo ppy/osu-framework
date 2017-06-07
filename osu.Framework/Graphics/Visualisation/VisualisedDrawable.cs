@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Visualisation
         public VisualisedDrawable(VisualisedDrawable parent, Drawable d, DrawVisualiser viz)
         {
             this.viz = viz;
-            tree = viz.treeContainer;
+            tree = viz.TreeContainer;
 
             nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
@@ -189,10 +189,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (args.Button == MouseButton.Right)
             {
-                if (viz.highlighted == this)
-                    HighlightTarget?.Invoke(null);
-
-                else HighlightTarget?.Invoke(this);
+                HighlightTarget?.Invoke(viz.Highlighted == this ? null : this);
                 return true;
             }
 
@@ -221,7 +218,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
         public void Collapse()
         {
-            if (viz.highlighted == this)
+            if (viz.Highlighted == this)
                 return;
 
             Flow.Alpha = 0f;

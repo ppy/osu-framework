@@ -11,17 +11,15 @@ using osu.Framework.Lists;
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using OpenTK.Graphics;
-using OpenTK;
 
 namespace osu.Framework.Graphics.Visualisation
 {
     public class DrawVisualiser : OverlayContainer
     {
-        internal readonly TreeContainer treeContainer;
-        internal readonly PropertyDisplay propertyDisplay;
+        internal readonly TreeContainer TreeContainer;
+        internal VisualisedDrawable Highlighted;
 
-        internal VisualisedDrawable highlighted;
+        private readonly PropertyDisplay propertyDisplay;
 
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
@@ -42,13 +40,13 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     Depth = float.MinValue
                 },
-                treeContainer = new TreeContainer
+                TreeContainer = new TreeContainer
                 {
                     Depth = 0f, // Below property display
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
-                        Drawable lastHighlight = highlighted?.Target;
+                        Drawable lastHighlight = Highlighted?.Target;
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
@@ -89,7 +87,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable findVisualised(Drawable d, VisualisedDrawable root)
         {
-            foreach (VisualisedDrawable child in root.Flow.InternalChildren)
+            foreach (VisualisedDrawable child in root.Flow.InternalChildren.OfType<VisualisedDrawable>())
             {
                 if (child.Target == d)
                     return child;
@@ -187,7 +185,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (targetDrawable != null)
             {
-                treeContainer.Remove(targetDrawable);
+                TreeContainer.Remove(targetDrawable);
                 targetDrawable.Dispose();
                 targetDrawable = null;
             }
@@ -200,8 +198,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (target != null)
             {
-                targetDrawable = createVisualisedDrawable(null, target as Drawable);
-                treeContainer.Add(targetDrawable);
+                targetDrawable = createVisualisedDrawable(null, target);
+                TreeContainer.Add(targetDrawable);
 
                 runUpdate(); // run an initial update to immediately show the selected hierarchy.
 
@@ -230,7 +228,7 @@ namespace osu.Framework.Graphics.Visualisation
         }
         private void updatePropertyDisplay(Drawable d)
         {
-            propertyDisplay.Clear(true);
+            propertyDisplay.Clear();
 
             if (d == null)
                 return;
@@ -273,17 +271,17 @@ namespace osu.Framework.Graphics.Visualisation
         }
         private void setHighlight(VisualisedDrawable newHighlight)
         {
-            highlighted?.highlightBackground.FadeOut();
+            Highlighted?.highlightBackground.FadeOut();
 
             if (newHighlight == null)
             {
                 updatePropertyDisplay(null);
-                highlighted = null;
+                Highlighted = null;
                 return;
             }
 
             updatePropertyDisplay(newHighlight.Target);
-            highlighted = newHighlight;
+            Highlighted = newHighlight;
 
             if (propertyDisplay.State == Visibility.Visible)
             {

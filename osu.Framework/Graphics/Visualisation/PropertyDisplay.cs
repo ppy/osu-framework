@@ -8,11 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -109,7 +105,6 @@ namespace osu.Framework.Graphics.Visualisation
 
     internal class PropertyItem : Container
     {
-        private readonly SpriteText nameText;
         private readonly SpriteText valueText;
         private readonly Box changeMarker;
 
@@ -148,7 +143,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Colour = Color4.White,
                             Alpha = 0f
                         },
-                        nameText = new SpriteText()
+                        new SpriteText()
                         {
                             Text = info.Name,
                             TextSize = Height
@@ -181,10 +176,7 @@ namespace osu.Framework.Graphics.Visualisation
             object value;
             try
             {
-                value = getValue();
-
-                if (value == null)
-                    value = @"<null>";
+                value = getValue() ?? "<null>";
             }
             catch
             {

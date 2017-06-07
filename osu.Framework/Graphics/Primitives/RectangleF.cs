@@ -7,7 +7,6 @@ using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using OpenTK;
-using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Primitives
 {
