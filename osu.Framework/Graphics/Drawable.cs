@@ -433,7 +433,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -451,7 +451,7 @@ namespace osu.Framework.Graphics
                 if (x == value) return;
                 x = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -466,7 +466,7 @@ namespace osu.Framework.Graphics
                 if (y == value) return;
                 y = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -555,7 +555,7 @@ namespace osu.Framework.Graphics
                 if (size == value) return;
                 size = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -573,7 +573,7 @@ namespace osu.Framework.Graphics
                 if (width == value) return;
                 width = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -588,7 +588,7 @@ namespace osu.Framework.Graphics
                 if (height == value) return;
                 height = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -670,7 +670,7 @@ namespace osu.Framework.Graphics
                 margin = value;
                 margin.ThrowIfNegative();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -749,7 +749,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.Geometry);
+                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -776,7 +776,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -830,7 +830,7 @@ namespace osu.Framework.Graphics
                 if (shear == value) return;
                 shear = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -848,7 +848,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -875,7 +875,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -958,7 +958,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1240,7 +1240,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(Invalidation.Geometry | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
 
                 if (parent != null)
                 {
@@ -1415,9 +1415,9 @@ namespace osu.Framework.Graphics
             bool alreadyInvalidated = true;
 
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
@@ -1431,6 +1431,19 @@ namespace osu.Framework.Graphics
             OnInvalidate?.Invoke(this);
 
             return !alreadyInvalidated;
+        }
+
+        public Invalidation InvalidationFromParentSize
+        {
+            get
+            {
+                Invalidation result = Invalidation.DrawInfo;
+                if (RelativeSizeAxes != Axes.None)
+                    result |= Invalidation.DrawSize;
+                if (RelativePositionAxes != Axes.None)
+                    result |= Invalidation.MiscGeometry;
+                return result;
+            }
         }
 
         #endregion
@@ -2319,16 +2332,41 @@ namespace osu.Framework.Graphics
     [Flags]
     public enum Invalidation
     {
-        // Individual types
-        Position = 1 << 0,
-        SizeInParentSpace = 1 << 1,
-        Colour = 1 << 2,
-        DrawNode = 1 << 3,
+        /// <summary>
+        /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
+        /// is assumed unless indicated by additional flags.
+        /// </summary>
+        DrawInfo = 1 << 0,
+        /// <summary>
+        /// <see cref="Drawable.DrawSize"/> has changed.
+        /// </summary>
+        DrawSize = 1 << 1,
+        /// <summary>
+        /// Captures all other geometry changes than <see cref="Drawable.DrawSize"/>, such as
+        /// <see cref="Drawable.Rotation"/>, <see cref="Drawable.Shear"/>, and <see cref="Drawable.DrawPosition"/>.
+        /// </summary>
+        MiscGeometry = 1 << 2,
+        /// <summary>
+        /// Our colour changed.
+        /// </summary>
+        Colour = 1 << 3,
+        /// <summary>
+        /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
+        /// </summary>
+        DrawNode = 1 << 4,
 
-        // Meta
+        /// <summary>
+        /// No invalidation.
+        /// </summary>
         None = 0,
-        Geometry = Position | SizeInParentSpace,
-        All = DrawNode | Geometry | Colour,
+        /// <summary>
+        /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
+        /// </summary>
+        RequiredParentSizeToFit = MiscGeometry | DrawSize,
+        /// <summary>
+        /// All possible things are affected.
+        /// </summary>
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
     }
 
     /// <summary>

@@ -233,7 +233,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -332,7 +332,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(drawable);
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace osu.Framework.Graphics.Containers
         {
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -455,8 +455,19 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
+                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                    childInvalidation |= Invalidation.DrawInfo;
+
+                // Other geometry things like rotation, shearing, etc don't affect child properties.
+                childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Relative positioning can however affect child geometry
+                if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
+                    childInvalidation |= Invalidation.MiscGeometry;
+
+                // No draw size changes if relative size axes does not propagate it downward.
                 if (c.RelativeSizeAxes == Axes.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    childInvalidation &= ~Invalidation.DrawSize;
 
                 c.Invalidate(childInvalidation, this);
             }
@@ -883,7 +894,7 @@ namespace osu.Framework.Graphics.Containers
                 padding.ThrowIfNegative();
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize);
             }
         }
 
@@ -914,7 +925,7 @@ namespace osu.Framework.Graphics.Containers
                 relativeChildSize = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize);
             }
         }
 
@@ -933,7 +944,7 @@ namespace osu.Framework.Graphics.Containers
                 relativeChildOffset = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize & ~Invalidation.DrawSize);
             }
         }
 
