@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
-        protected static int Stride = VertexUtils<T>.Stride;
+        protected static readonly int Stride = VertexUtils<T>.Stride;
 
         public void Draw()
         {
