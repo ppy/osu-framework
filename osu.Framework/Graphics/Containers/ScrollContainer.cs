@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float clamp_extension = 500;
+        public float ClampExtension = 500;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
@@ -327,7 +327,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
-                target = clamp(target, clamp_extension);
+                target = clamp(target, ClampExtension);
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
