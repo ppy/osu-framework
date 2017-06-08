@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
                 members = new List<VertexMemberAttribute>();
 
                 // Use reflection to retrieve the members attached with a VertexMemberAttribute
-                foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
+                foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
                 {
                     var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
 
