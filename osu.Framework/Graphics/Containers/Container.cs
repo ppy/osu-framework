@@ -632,7 +632,7 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
-        public ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
         public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
