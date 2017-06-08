@@ -3,34 +3,61 @@
 
 using System;
 using System.Diagnostics;
+using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.ES30;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
     public class TestCaseVertexBindBenchmark : TestCase
     {
-        /// <summary>
-        /// Number of times to repeat the binding between two <see cref="VertexBuffer{T}"/>s. This ends up resulting in <see cref="ITERATIONS"/> * 2 binds.
-        /// </summary>
-        public const int ITERATIONS = 2000;
-
         public override string Description => "Testing lots of VertexBuffer binds";
 
+        private ScrollContainer scroll;
         private FlowContainer<SpriteText> flow;
+
+        private BindableInt iterationsBindable;
+        private SpriteText iterationsText;
 
         public override void Reset()
         {
             base.Reset();
 
-            Add(new ScrollContainer
+            iterationsBindable = new BindableInt(2000)
+            {
+                MinValue = 50,
+                MaxValue = 20000,
+            };
+
+            SliderBar<int> iterations;
+            Add(iterations = new BasicSliderBar<int>
+            {
+                Size = new Vector2(200, 20),
+                SelectionColor = Color4.Pink,
+                KeyboardStep = 100
+            });
+
+            Add(iterationsText = new SpriteText
+            {
+                X = 210,
+                TextSize = 16
+            });
+
+            iterations.Current.BindTo(iterationsBindable);
+            iterations.Current.ValueChanged += v => Invalidate(Invalidation.DrawNode, shallPropagate: false);
+
+            Add(scroll = new ScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
+                Y = 25,
                 Children = new[]
                 {
                     flow = new FillFlowContainer<SpriteText>
@@ -50,6 +77,7 @@ namespace osu.Framework.VisualTests.Tests
 
             var testNode = (TestDrawNode)node;
             testNode.TestSharedData = sharedData;
+            testNode.Iterations = iterationsBindable.Value;
         }
 
         private int lastDrawIteration;
@@ -57,6 +85,8 @@ namespace osu.Framework.VisualTests.Tests
         protected override void Update()
         {
             base.Update();
+
+            iterationsText.Text = iterationsBindable.Value.ToString();
 
             if (sharedData.DrawIteration == lastDrawIteration)
                 return;
@@ -66,6 +96,8 @@ namespace osu.Framework.VisualTests.Tests
                 Text = $"Iteration: {sharedData.DrawIteration.ToString().PadRight(8)} | TotalTime: {Math.Round(sharedData.ElapsedTime, 3)}",
                 TextSize = 22
             });
+
+            scroll.ScrollToEnd();
 
             lastDrawIteration = sharedData.DrawIteration;
         }
@@ -83,6 +115,8 @@ namespace osu.Framework.VisualTests.Tests
         {
             public TestDrawNodeSharedData TestSharedData;
 
+            public int Iterations;
+
             public override void Draw(Action<TexturedVertex2D> vertexAction)
             {
                 if (TestSharedData.Batch1 == null)
@@ -92,7 +126,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 var stopwatch = Stopwatch.StartNew();
 
-                for (int i = 0; i < ITERATIONS; i++)
+                for (int i = 0; i < Iterations; i++)
                 {
                     TestSharedData.Batch1.Bind(false);
                     TestSharedData.Batch2.Bind(false);
