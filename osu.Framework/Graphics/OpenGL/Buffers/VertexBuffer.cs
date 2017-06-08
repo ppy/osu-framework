@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                     Vertices[i] = oldVertices[i];
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                VertexUtils.Bind<T>();
+                VertexUtils<T>.Bind();
 
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Stride), IntPtr.Zero, usage);
         }
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
                 throw new ObjectDisposedException(ToString(), "Can not bind disposed vertex buffers.");
 
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
-                VertexUtils.Bind<T>();
+                VertexUtils<T>.Bind();
         }
 
         public virtual void Unbind()
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
-        protected static int Stride = VertexUtils.Stride<T>();
+        protected static int Stride = VertexUtils<T>.Stride;
 
         public void Draw()
         {
