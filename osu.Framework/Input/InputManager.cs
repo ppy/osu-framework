@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : Container, IRequireHighFrequencyMousePosition
+    public abstract class InputManager : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -50,7 +50,7 @@ namespace osu.Framework.Input
 
         internal Drawable FocusedDrawable;
 
-        private readonly List<InputHandler> inputHandlers = new List<InputHandler>();
+        protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 
         private double lastClickTime;
 
@@ -81,7 +81,7 @@ namespace osu.Framework.Input
 
         public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
-        public InputManager()
+        protected InputManager()
         {
             RelativeSizeAxes = Axes.Both;
         }
@@ -302,9 +302,9 @@ namespace osu.Framework.Input
         {
             var pendingStates = new List<InputState>();
 
-            foreach (var h in inputHandlers)
+            foreach (var h in InputHandlers)
             {
-                if (h.IsActive)
+                if (h.IsActive && h.Enabled)
                     pendingStates.AddRange(h.GetPendingStates());
                 else
                     h.GetPendingStates();
@@ -698,45 +698,6 @@ namespace osu.Framework.Input
         }
 
         private void focusTopMostRequestingDrawable() => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestsFocus));
-
-        public InputHandler GetHandler(Type handlerType)
-        {
-            return inputHandlers.Find(h => h.GetType() == handlerType);
-        }
-
-        protected bool AddHandler(InputHandler handler)
-        {
-            try
-            {
-                if (handler.Initialize(Host))
-                {
-                    int index = inputHandlers.BinarySearch(handler, new InputHandlerComparer());
-                    if (index < 0)
-                    {
-                        index = ~index;
-                    }
-
-                    inputHandlers.Insert(index, handler);
-
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-
-            return false;
-        }
-
-        protected bool RemoveHandler(InputHandler handler) => inputHandlers.Remove(handler);
-
-        protected override void Dispose(bool isDisposing)
-        {
-            foreach (var h in inputHandlers)
-                h.Dispose();
-
-            base.Dispose(isDisposing);
-        }
     }
 
     public enum ConfineMouseMode
