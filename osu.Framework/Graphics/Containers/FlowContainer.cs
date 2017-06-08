@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
                 if (maximumSize == value) return;
 
                 maximumSize = value;
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+            if ((invalidation & Invalidation.DrawSize) > 0)
                 InvalidateLayout();
 
             return base.Invalidate(invalidation, source, shallPropagate);
@@ -86,7 +86,7 @@ namespace osu.Framework.Graphics.Containers
         {
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.SizeInParentSpace | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 InvalidateLayout();
 
             base.InvalidateFromChild(invalidation);
