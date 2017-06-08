@@ -31,6 +31,7 @@ namespace osu.Framework.Statistics
                 case StatisticsCounterType.ScheduleInvk:
                     return target.Threads[2].Monitor;
 
+                case StatisticsCounterType.VBufBinds:
                 case StatisticsCounterType.VBufOverflow:
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.DrawCalls:
@@ -111,6 +112,7 @@ namespace osu.Framework.Statistics
         DrawNodeAppl,
         ScheduleInvk,
 
+        VBufBinds,
         VBufOverflow,
         TextureBinds,
         DrawCalls,
