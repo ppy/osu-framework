@@ -7,7 +7,7 @@ using OpenTK;
 
 namespace osu.Framework.Input
 {
-    public class PassThroughInputManager : InputManager
+    public class PassThroughInputManager : CustomInputManager
     {
         /// <summary>
         /// If there's an InputManager above us, decide whether we should use their available state.
