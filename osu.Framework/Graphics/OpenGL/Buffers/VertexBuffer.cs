@@ -13,6 +13,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
     {
         public T[] Vertices;
 
+        protected static readonly int STRIDE = VertexUtils<T>.STRIDE;
+
         private readonly int vboId;
         private readonly BufferUsageHint usage;
 
@@ -64,7 +66,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             if (GLWrapper.BindBuffer(BufferTarget.ArrayBuffer, vboId))
                 VertexUtils<T>.Bind();
 
-            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * Stride), IntPtr.Zero, usage);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(Vertices.Length * STRIDE), IntPtr.Zero, usage);
         }
 
         public virtual void Bind(bool forRendering)
@@ -92,8 +94,6 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
         protected abstract PrimitiveType Type { get; }
 
-        protected static readonly int Stride = VertexUtils<T>.Stride;
-
         public void Draw()
         {
             DrawRange(0, Vertices.Length);
@@ -119,7 +119,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
             Bind(false);
 
             int amountVertices = endIndex - startIndex;
-            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * Stride), (IntPtr)(amountVertices * Stride), ref Vertices[startIndex]);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(startIndex * STRIDE), (IntPtr)(amountVertices * STRIDE), ref Vertices[startIndex]);
 
             Unbind();
 

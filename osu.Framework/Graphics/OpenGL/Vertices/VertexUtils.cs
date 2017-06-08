@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         /// <summary>
         /// The stride of the vertex of type <see cref="T"/>.
         /// </summary>
-        public static readonly int Stride = BlittableValueType.StrideOf(default(T));
+        public static readonly int STRIDE = BlittableValueType.StrideOf(default(T));
 
         private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         {
             enableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
-                GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, Stride, attributes[i].Offset);
+                GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, STRIDE, attributes[i].Offset);
         }
 
         private static void enableAttributes(int amount)
