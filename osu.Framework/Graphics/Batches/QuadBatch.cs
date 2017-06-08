@@ -4,7 +4,7 @@
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES30;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
 {

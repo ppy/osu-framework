@@ -8,6 +8,7 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Sprites
 {

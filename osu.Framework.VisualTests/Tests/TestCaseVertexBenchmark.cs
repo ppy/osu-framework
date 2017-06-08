@@ -1,16 +1,11 @@
 using System;
 using System.Diagnostics;
-using System.IO;
-using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -49,7 +44,7 @@ namespace osu.Framework.VisualTests.Tests
             testNode.TestSharedData = sharedData;
         }
 
-        int lastDrawIteration;
+        private int lastDrawIteration;
 
         protected override void Update()
         {
@@ -60,7 +55,7 @@ namespace osu.Framework.VisualTests.Tests
 
             flow.Add(new SpriteText
             {
-                Text = $"Iteration: {sharedData.DrawIteration.ToString().PadRight(8)} | TotalTime: {Math.Round(sharedData.ElapsedTime, 3).ToString()}",
+                Text = $"Iteration: {sharedData.DrawIteration.ToString().PadRight(8)} | TotalTime: {Math.Round(sharedData.ElapsedTime, 3)}",
                 TextSize = 22
             });
 

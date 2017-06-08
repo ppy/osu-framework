@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches
