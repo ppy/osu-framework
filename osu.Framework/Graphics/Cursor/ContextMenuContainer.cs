@@ -20,8 +20,17 @@ namespace osu.Framework.Graphics.Cursor
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
 
+        /// <summary>
+        /// Creates a new context menu. Can be overridden to supply custom subclass of <see cref="ContextMenu{TItem}"/>.
+        /// </summary>
         protected virtual ContextMenu<ContextMenuItem> CreateContextMenu() => new ContextMenu<ContextMenuItem>();
 
+        /// <summary>
+        /// Creates a context menu container where the context menu is positioned at the bottom-right of
+        /// the <see cref="CursorContainer.ActiveCursor"/> of the given <see cref="CursorContainer"/>.
+        /// </summary>
+        /// <param name="cursorContainer">The <see cref="CursorContainer"/> of which the <see cref="CursorContainer.ActiveCursor"/>
+        /// shall be used for positioning. If null is provided, then a small offset from the current mouse position is used.</param>
         public ContextMenuContainer(CursorContainer cursorContainer = null)
         {
             this.cursorContainer = cursorContainer;

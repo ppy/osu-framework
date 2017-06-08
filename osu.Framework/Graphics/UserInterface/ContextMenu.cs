@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using System;
@@ -12,17 +11,31 @@ namespace osu.Framework.Graphics.UserInterface
     public class ContextMenu<TItem> : Container
         where TItem : ContextMenuItem
     {
-        private readonly CustomMenu menu;
+        private readonly Menu<TItem> menu;
 
-        protected virtual CustomMenu CreateCustomMenu() => new CustomMenu();
+        /// <summary>
+        /// Creates a new menu. Can be overridden to customize.
+        /// </summary>
+        protected virtual Menu<TItem> CreateCustomMenu() => new Menu<TItem>();
 
-        protected int FadeDuration { set { menu.FadeDuration = value; } }
-
+        /// <summary>
+        /// Current state of menu.
+        /// </summary>
         public MenuState State => menu.State;
 
+        /// <summary>
+        /// Opens the menu.
+        /// </summary>
         public void Open() => menu.State = MenuState.Opened;
+
+        /// <summary>
+        /// Closes the menu.
+        /// </summary>
         public void Close() => menu.State = MenuState.Closed;
 
+        /// <summary>
+        /// Items which will be contained in menu.
+        /// </summary>
         public IEnumerable<TItem> Items
         {
             set
@@ -50,6 +63,7 @@ namespace osu.Framework.Graphics.UserInterface
             base.UpdateAfterChildren();
             if (!menuWidth.IsValid)
             {
+                // Sets the width of menu depends on the maximum size of text and content of each item.
                 menuWidth.Refresh(() =>
                 {
                     float textWidth = 0;
@@ -74,17 +88,6 @@ namespace osu.Framework.Graphics.UserInterface
         {
             menuWidth.Invalidate();
             base.InvalidateFromChild(invalidation);
-        }
-
-        public class CustomMenu : Menu<TItem>
-        {
-            public int FadeDuration;
-
-            protected override void UpdateContentHeight()
-            {
-                var actualHeight = (RelativeSizeAxes & Axes.Y) > 0 ? 1 : ContentHeight;
-                ResizeTo(new Vector2(1, State == MenuState.Opened ? actualHeight : 0), FadeDuration, EasingTypes.OutQuint);
-            }
         }
     }
 }
