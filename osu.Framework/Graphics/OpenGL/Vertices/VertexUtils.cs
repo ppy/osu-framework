@@ -23,30 +23,28 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
         /// </summary>
         public static readonly int Stride = BlittableValueType.StrideOf(default(T));
 
-        private static List<VertexMemberAttribute> attributes;
+        private static readonly List<VertexMemberAttribute> attributes = new List<VertexMemberAttribute>();
         private static int amountEnabledAttributes;
+
+        static VertexUtils()
+        {
+            // Use reflection to retrieve the members attached with a VertexMemberAttribute
+            foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
+            {
+                var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
+
+                // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
+                attrib.Offset = Marshal.OffsetOf(typeof(T), field.Name);
+
+                attributes.Add(attrib);
+            }
+        }
 
         /// <summary>
         /// Enables and binds the vertex attributes/pointers for the vertex of type <see cref="T"/>.
         /// </summary>
         public static void Bind()
         {
-            if (attributes == null)
-            {
-                attributes = new List<VertexMemberAttribute>();
-
-                // Use reflection to retrieve the members attached with a VertexMemberAttribute
-                foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
-                {
-                    var attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
-
-                    // Because this is an un-seen vertex, the attribute locations are unknown, but they're needed for marshalling
-                    attrib.Offset = Marshal.OffsetOf(typeof(T), field.Name);
-
-                    attributes.Add(attrib);
-                }
-            }
-
             enableAttributes(attributes.Count);
             for (int i = 0; i < attributes.Count; i++)
                 GL.VertexAttribPointer(i, attributes[i].Count, attributes[i].Type, attributes[i].Normalized, Stride, attributes[i].Offset);
