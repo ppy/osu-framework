@@ -16,11 +16,16 @@ namespace osu.Framework.Platform
         internal Version GLVersion;
         internal Version GLSLVersion;
 
+        public bool CursorInWindow { get; private set; }
+
         protected GameWindow(int width, int height)
             : base(width, height, new GraphicsMode(GraphicsMode.Default.ColorFormat, GraphicsMode.Default.Depth, GraphicsMode.Default.Stencil, GraphicsMode.Default.Samples, GraphicsMode.Default.AccumulatorFormat, 3))
         {
             Closing += (sender, e) => e.Cancel = ExitRequested?.Invoke() ?? false;
             Closed += (sender, e) => Exited?.Invoke();
+
+            MouseEnter += (sender, args) => CursorInWindow = true;
+            MouseLeave += (sender, args) => CursorInWindow = false;
 
             MakeCurrent();
 
