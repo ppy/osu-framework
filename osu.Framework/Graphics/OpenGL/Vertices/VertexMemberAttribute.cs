@@ -10,20 +10,20 @@ namespace osu.Framework.Graphics.OpenGL.Vertices
     public class VertexMemberAttribute : Attribute
     {
         /// <summary>
-        /// The number of components of <see cref="Type"/> represented by this attribute.
-        /// E.g. an <see cref="OpenTK.Vector2"/> is represented by **2** <see cref="VertexAttribPointerType.Float"/> components.
+        /// The number of components of <see cref="Type"/> represented by this vertex attribute member.
+        /// E.g. a <see cref="OpenTK.Vector2"/> is represented by **2** <see cref="VertexAttribPointerType.Float"/> components.
         /// </summary>
         public int Count { get; private set; }
 
         /// <summary>
-        /// The type of this vertex member. This should reflect the type of data represented in the shader.
-        /// E.g. an <see cref="OpenTK.Vector2"/> is represented by 2 **<see cref="VertexAttribPointerType.Float"/>** components.
+        /// The type of each component of this vertex attribute member.
+        /// E.g. a <see cref="OpenTK.Vector2"/> is represented by 2 **<see cref="VertexAttribPointerType.Float"/>** components.
         /// </summary>
         public VertexAttribPointerType Type { get; private set; }
 
         /// <summary>
-        /// Whether this vertex member value is normalized. If this is set to true, the data will be mapped to a range of [-1, 1] (signed) or [0, 1] (unsigned)
-        /// when it is passed to the shader.
+        /// Whether this vertex attribute member is normalized. If this is set to true, the member will be mapped to
+        /// a range of [-1, 1] (signed) or [0, 1] (unsigned) when it is passed to the shader.
         /// </summary>
         public bool Normalized { get; private set; }
 
