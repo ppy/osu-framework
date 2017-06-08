@@ -13,9 +13,14 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    public class TestCaseVertexBenchmark : TestCase
+    public class TestCaseVertexBindBenchmark : TestCase
     {
-        public override string Description => "Stress testing lots of vertex types";
+        /// <summary>
+        /// Number of times to repeat the binding between two <see cref="VertexBuffer{T}"/>s. This ends up resulting in <see cref="ITERATIONS"/> * 2 binds.
+        /// </summary>
+        public const int ITERATIONS = 2000;
+
+        public override string Description => $"Testing lots of VertexBuffer binds";
 
         private FlowContainer<SpriteText> flow;
 
@@ -76,8 +81,6 @@ namespace osu.Framework.VisualTests.Tests
 
         private class TestDrawNode : ContainerDrawNode
         {
-            public const int ITERATIONS = 500;
-
             public TestDrawNodeSharedData TestSharedData;
 
             public override void Draw(Action<TexturedVertex2D> vertexAction)
