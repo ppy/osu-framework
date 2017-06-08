@@ -16,6 +16,9 @@ namespace osu.Framework.Platform
         internal Version GLVersion;
         internal Version GLSLVersion;
 
+        /// <summary>
+        /// Whether the OS cursor is currently contained within the game window.
+        /// </summary>
         public bool CursorInWindow { get; private set; }
 
         protected GameWindow(int width, int height)
