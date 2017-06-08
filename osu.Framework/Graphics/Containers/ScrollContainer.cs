@@ -58,9 +58,9 @@ namespace osu.Framework.Graphics.Containers
 
 
         /// <summary>
-        /// Vertical size of available content (content.Size)
+        /// Vertical size of available content
         /// </summary>
-        private float availableContent = -1;
+        private float availableContent => content.DrawSize[scrollDim];
 
         private float displayableContent => ChildSize[scrollDim];
 
@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         /// Effectively, larger values result in bouncier behavior as the scroll boundaries are approached
         /// with high velocity.
         /// </summary>
-        private const float clamp_extension = 500;
+        public float ClampExtension = 500;
 
         /// <summary>
         /// This corresponds to the clamping force. A larger value means more aggressive clamping.
@@ -146,17 +146,16 @@ namespace osu.Framework.Graphics.Containers
             ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft;
         }
 
-        private float lastUpdateDisplayableContent;
+        private float lastUpdateDisplayableContent = -1;
+        private float lastAvailableContent = -1;
 
         private void updateSize()
         {
-            var newAvailableContent = content.DrawSize[scrollDim];
-
             // ensure we only update scrollbar when something has changed, to avoid transform helpers resetting their transform every frame.
             // also avoids creating many needless Transforms every update frame.
-            if (newAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
+            if (lastAvailableContent != availableContent || lastUpdateDisplayableContent != displayableContent)
             {
-                availableContent = newAvailableContent;
+                lastAvailableContent = availableContent;
                 lastUpdateDisplayableContent = displayableContent;
                 updateScrollbar();
             }
@@ -328,7 +327,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
-                target = clamp(target, clamp_extension);
+                target = clamp(target, ClampExtension);
 
                 // Secondly, we would like to quickly approach the target while we are out of bounds.
                 // This is simulating a "strong" clamping force towards the target.
@@ -351,9 +350,9 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        protected override void Update()
+        protected override void UpdateAfterChildren()
         {
-            base.Update();
+            base.UpdateAfterChildren();
 
             updateSize();
             updatePosition();

@@ -132,6 +132,7 @@
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
+    <Compile Include="Input\CustomInputManager.cs" />
     <Compile Include="Input\GlobalHotkeys.cs" />
     <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
