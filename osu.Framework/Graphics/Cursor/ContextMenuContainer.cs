@@ -14,13 +14,13 @@ namespace osu.Framework.Graphics.Cursor
     public class ContextMenuContainer : Container
     {
         private readonly CursorContainer cursorContainer;
-        private readonly ContextMenu menu;
+        private readonly ContextMenu<ContextMenuItem> menu;
 
         private UserInputManager inputManager;
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
 
-        protected virtual ContextMenu CreateContextMenu() => new ContextMenu();
+        protected virtual ContextMenu<ContextMenuItem> CreateContextMenu() => new ContextMenu<ContextMenuItem>();
 
         public ContextMenuContainer(CursorContainer cursorContainer = null)
         {

@@ -87,8 +87,4 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
     }
-
-    public class ContextMenu : ContextMenu<ContextMenuItem>
-    {
-    }
 }
