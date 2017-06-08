@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -51,7 +52,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
+            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Abs(clock.ElapsedFrameTime) / 1000);
 
             if (counter.DrawWidth != aimWidth)
             {
