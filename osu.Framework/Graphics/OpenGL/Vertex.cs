@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.OpenGL
             {
                 members = new List<VertexMemberAttribute>();
 
-                foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
+                foreach (FieldInfo field in typeof(T).GetFields(BindingFlags.Instance).Where(t => t.IsDefined(typeof(VertexMemberAttribute), true)))
                 {
                     VertexMemberAttribute attrib = (VertexMemberAttribute)field.GetCustomAttribute(typeof(VertexMemberAttribute));
                     attrib.Offset = Marshal.OffsetOf(typeof(T), field.Name);
