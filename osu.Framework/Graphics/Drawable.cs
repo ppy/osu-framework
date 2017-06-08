@@ -1960,7 +1960,7 @@ namespace osu.Framework.Graphics
             return this;
         }
 
-        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Flush specified transforms, using the last available values (ignoring current clock time).
