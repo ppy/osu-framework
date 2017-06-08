@@ -482,7 +482,7 @@ namespace osu.Framework.Graphics
         /// When setting this property, the <see cref="Position"/> is converted such that
         /// <see cref="DrawPosition"/> remains invariant.
         /// </remarks>
-        public Axes RelativePositionAxes
+        public virtual Axes RelativePositionAxes
         {
             get { return relativePositionAxes; }
             set
