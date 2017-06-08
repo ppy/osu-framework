@@ -185,6 +185,9 @@ namespace osu.Framework.Audio.Track
 
                 if (clamped != CurrentTime)
                 {
+                    if (clamped == Length)
+                        Interlocked.Exchange(ref currentTime, clamped);
+
                     long pos = Bass.ChannelSeconds2Bytes(activeStream, clamped / 1000d);
                     Bass.ChannelSetPosition(activeStream, pos);
                 }
