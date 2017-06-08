@@ -20,7 +20,7 @@ namespace osu.Framework.VisualTests.Tests
         /// </summary>
         public const int ITERATIONS = 2000;
 
-        public override string Description => $"Testing lots of VertexBuffer binds";
+        public override string Description => "Testing lots of VertexBuffer binds";
 
         private FlowContainer<SpriteText> flow;
 
