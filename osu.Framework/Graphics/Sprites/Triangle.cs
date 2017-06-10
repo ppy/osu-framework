@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;

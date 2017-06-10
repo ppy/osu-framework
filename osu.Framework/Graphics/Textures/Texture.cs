@@ -12,6 +12,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Textures
 {

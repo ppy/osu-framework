@@ -28,6 +28,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             host.Window.MouseLeave += (s, e) => mouseInWindow = false;
             host.Window.MouseEnter += (s, e) => mouseInWindow = true;
 
+            mouseInWindow = host.Window.CursorInWindow;
+
             Enabled.ValueChanged += enabled =>
             {
                 if (enabled)
