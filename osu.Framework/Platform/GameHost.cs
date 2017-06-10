@@ -310,9 +310,7 @@ namespace osu.Framework.Platform
                 Window.Title = $@"osu!framework (running ""{Name}"")";
             }
 
-            AvailableInputHandlers = CreateAvailableInputHandlers();
-            foreach (var handler in AvailableInputHandlers.OfType<IHasCursorSensitivity>())
-                handler.Sensitivity.BindTo(cursorSensitivity);
+            resetInputHandlers();
 
             DrawThread.Start();
             UpdateThread.Start();
@@ -358,6 +356,25 @@ namespace osu.Framework.Platform
             }
             catch (OutOfMemoryException)
             {
+            }
+        }
+
+        private void resetInputHandlers()
+        {
+            if (AvailableInputHandlers != null)
+                foreach (var h in AvailableInputHandlers)
+                    h.Dispose();
+
+            AvailableInputHandlers = CreateAvailableInputHandlers();
+            foreach (var handler in AvailableInputHandlers)
+            {
+                if (!handler.Initialize(this))
+                {
+                    handler.Enabled.Value = false;
+                    break;
+                }
+
+                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
             }
         }
 
@@ -460,8 +477,8 @@ namespace osu.Framework.Platform
             enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
             enabledInputHandlers.ValueChanged += enabledString =>
             {
-                var configHandlers = enabledString.Split(' ');
-                bool useDefaults = configHandlers.Length == 0;
+                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
+                bool useDefaults = !configHandlers.Any();
 
                 // make sure all the handlers in the configuration file are available, else reset to sane defaults.
                 foreach (string handler in configHandlers)
@@ -474,7 +491,10 @@ namespace osu.Framework.Platform
                 }
 
                 if (useDefaults)
+                {
+                    resetInputHandlers();
                     enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                }
                 else
                 {
                     foreach (var handler in AvailableInputHandlers)

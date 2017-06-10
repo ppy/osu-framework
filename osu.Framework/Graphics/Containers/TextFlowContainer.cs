@@ -103,7 +103,8 @@ namespace osu.Framework.Graphics.Containers
 
         public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
-            layout.Invalidate();
+            if ((invalidation & Invalidation.DrawSize) > 0)
+                layout.Invalidate();
             return base.Invalidate(invalidation, source, shallPropagate);
         }
 
