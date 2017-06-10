@@ -120,6 +120,12 @@
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
     <Compile Include="Graphics\Cursor\TooltipContainer.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\ParticleVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex3D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TimedTexturedVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
@@ -252,11 +258,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\QuadVertexBuffer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\RenderBuffer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\VertexBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\IVertex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\VertexMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\VertexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\GLWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGL.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGLSingle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGLSub.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertex.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IConvexPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Line.cs" />

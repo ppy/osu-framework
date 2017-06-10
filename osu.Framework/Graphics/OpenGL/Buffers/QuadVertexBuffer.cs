@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using OpenTK.Graphics.ES30;
 
 namespace osu.Framework.Graphics.OpenGL.Buffers
@@ -17,7 +18,8 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
         public static int MaxAmountIndices;
     }
 
-    public class QuadVertexBuffer<T> : VertexBuffer<T> where T : struct, IEquatable<T>
+    public class QuadVertexBuffer<T> : VertexBuffer<T>
+        where T : struct, IEquatable<T>, IVertex
     {
         public QuadVertexBuffer(int amountQuads, BufferUsageHint usage)
             : base(amountQuads * 4, usage)
