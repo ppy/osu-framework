@@ -272,6 +272,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Quad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\RectangleF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Triangle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\AttributeInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Shader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
