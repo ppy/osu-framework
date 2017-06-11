@@ -77,13 +77,10 @@ namespace osu.Framework.Graphics.Shaders
             {
                 if (!p.Compiled) p.Compile();
                 GL.AttachShader(this, p);
-            }
 
-            GL.BindAttribLocation(this, 0, "m_Position");
-            GL.BindAttribLocation(this, 1, "m_Colour");
-            GL.BindAttribLocation(this, 2, "m_TexCoord");
-            GL.BindAttribLocation(this, 3, "m_TexRect");
-            GL.BindAttribLocation(this, 4, "m_BlendRange");
+                foreach (AttributeInfo attribute in p.Attributes)
+                    GL.BindAttribLocation(this, attribute.Location, attribute.Name);
+            }
 
             GL.LinkProgram(this);
 

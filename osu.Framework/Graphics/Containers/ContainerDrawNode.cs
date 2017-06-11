@@ -10,6 +10,7 @@ using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {

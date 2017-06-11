@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Batches
 {
-    public abstract class VertexBatch<T> : IVertexBatch where T : struct, IEquatable<T>
+    public abstract class VertexBatch<T> : IVertexBatch
+        where T : struct, IEquatable<T>, IVertex
     {
         public List<VertexBuffer<T>> VertexBuffers = new List<VertexBuffer<T>>();
 

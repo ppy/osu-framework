@@ -17,6 +17,8 @@ namespace osu.Framework.Graphics.Shaders
 
         internal StringBuilder Log = new StringBuilder();
 
+        internal List<AttributeInfo> Attributes = new List<AttributeInfo>();
+
         internal string Name;
         internal bool HasCode;
         internal bool Compiled;
@@ -25,9 +27,12 @@ namespace osu.Framework.Graphics.Shaders
 
         private int partID = -1;
 
+        private int lastAttributeIndex;
+
         private readonly List<string> shaderCodes = new List<string>();
 
         private readonly Regex includeRegex = new Regex("^\\s*#\\s*include\\s+[\"<](.*)[\">]");
+        private readonly Regex attributeRegex = new Regex("^\\s*attribute\\s+[^\\s]+\\s+([^;]+);");
 
         private readonly ShaderManager manager;
 
@@ -78,6 +83,16 @@ namespace osu.Framework.Graphics.Shaders
                     }
                     else
                         code += '\n' + line;
+
+                    Match attributeMatch = attributeRegex.Match(line);
+                    if (attributeMatch.Success)
+                    {
+                        Attributes.Add(new AttributeInfo
+                        {
+                            Location = lastAttributeIndex++,
+                            Name = attributeMatch.Groups[1].Value.Trim()
+                        });
+                    }
                 }
 
                 return code;

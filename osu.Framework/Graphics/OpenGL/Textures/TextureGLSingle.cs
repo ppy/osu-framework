@@ -13,6 +13,7 @@ using OpenTK.Graphics.ES30;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using osu.Framework.Statistics;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {

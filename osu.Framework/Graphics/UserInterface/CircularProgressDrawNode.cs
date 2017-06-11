@@ -10,6 +10,7 @@ using System;
 using osu.Framework.Graphics.Batches;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.MatrixExtensions;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.UserInterface
 {
