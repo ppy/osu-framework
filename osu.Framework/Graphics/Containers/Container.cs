@@ -829,14 +829,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private EdgeEffect edgeEffect;
+        private EdgeEffectParameters edgeEffect;
 
         /// <summary>
         /// Determines an edge effect of this container.
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual EdgeEffect EdgeEffect
+        public virtual EdgeEffectParameters EdgeEffect
         {
             get { return edgeEffect; }
             set

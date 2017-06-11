@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Transforms
             base.Apply(d);
             Container c = (Container)d;
 
-            EdgeEffect e = c.EdgeEffect;
+            EdgeEffectParameters e = c.EdgeEffect;
             e.Colour = CurrentValue;
             c.EdgeEffect = e;
         }
