@@ -2281,8 +2281,7 @@ namespace osu.Framework.Graphics
         public T WithEffect<T>(IEffect<T> effect, Action<T> initializationAction = null) where T : Drawable
         {
             var result = effect.ApplyTo(this);
-            if (initializationAction != null)
-                initializationAction(result);
+            initializationAction?.Invoke(result);
             return result;
         }
 
