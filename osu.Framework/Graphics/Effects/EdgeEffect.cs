@@ -6,12 +6,18 @@ using osu.Framework.Graphics.Containers;
 namespace osu.Framework.Graphics.Effects
 {
     /// <summary>
-    /// 
+    /// An effect applied around the edge of the target drawable.
     /// </summary>
     public class EdgeEffect : IEffect<Container>
     {
+        /// <summary>
+        /// The parameters of the edge effect.
+        /// </summary>
         public EdgeEffectParameters Parameters { get; set; }
 
+        /// <summary>
+        /// Determines how large a radius is masked away around the corners.
+        /// </summary>
         public float CornerRadius { get; set; }
 
         public Container ApplyTo(Drawable drawable)
