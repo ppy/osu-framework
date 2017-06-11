@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The rotation of the blur. Default is 0.
         /// </summary>
-        public float BlurRotation { get; set; } = 0f;
+        public float BlurRotation { get; set; }
 
         public BufferedContainer ApplyTo(Drawable drawable)
         {
