@@ -23,6 +23,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private bool mouseInWindow;
 
+        private bool passNext;
+
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         public BindableDouble Sensitivity => sensitivity;
@@ -62,12 +64,22 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             }
                             else
                             {
-                                currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
+                                // Changing mouse position directly emit mouseMove event that return mouse back
+                                if (!passNext)
+                                {
+                                    currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
 
-                                // update the windows cursor to match our raw cursor position.
-                                // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
-                                var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
-                                OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+                                    // update the windows cursor to match our raw cursor position.
+                                    // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
+                                    var screenPoint = host.Window.PointToScreen(new Point((int)currentPosition.X, (int)currentPosition.Y));
+                                    OpenTK.Input.Mouse.SetPosition(screenPoint.X, screenPoint.Y);
+
+                                    passNext = true;
+                                }
+                                else
+                                {
+                                    passNext = false;
+                                }
                             }
                         }
                         else
