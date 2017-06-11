@@ -43,8 +43,9 @@ namespace osu.Framework.VisualTests.Tests
                         TextSize = 32f
                     }.WithEffect(new BlurEffect
                     {
-                        Sigma = new Vector2(2f, 2f),
-                        Strength = 2f
+                        Sigma = new Vector2(2f, 0f),
+                        Strength = 2f,
+                        BlurRotation = 45f,
                     }),
                     new SpriteText
                     {

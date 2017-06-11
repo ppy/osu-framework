@@ -20,6 +20,10 @@ namespace osu.Framework.Graphics.Effects
         /// The sigma of the blur. Default is (2, 2).
         /// </summary>
         public Vector2 Sigma { get; set; } = new Vector2(2f, 2f);
+        /// <summary>
+        /// The rotation of the blur. Default is 0.
+        /// </summary>
+        public float BlurRotation { get; set; } = 0f;
 
         public BufferedContainer ApplyTo(Drawable drawable)
         {
@@ -30,6 +34,7 @@ namespace osu.Framework.Graphics.Effects
                 BlurSigma = Sigma,
                 Anchor = drawable.Anchor,
                 Origin = drawable.Origin,
+                BlurRotation = BlurRotation,
                 Padding = new MarginPadding
                 {
                     Horizontal = Blur.KernelSize(Sigma.X),
