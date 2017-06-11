@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace osu.Framework.Allocation
             else if (loaderMethods.Length == 1)
                 return loaderMethods[0];
             else
-                throw new InvalidOperationException($"The type {type.FullName} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
+                throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
