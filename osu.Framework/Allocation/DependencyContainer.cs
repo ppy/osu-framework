@@ -31,8 +31,14 @@ namespace osu.Framework.Allocation
 
         private MethodInfo getLoaderMethod(Type type)
         {
-            return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).SingleOrDefault(
-                mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null);
+            var loaderMethods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(
+                mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null).ToArray();
+            if (loaderMethods.Length == 0)
+                return null;
+            else if (loaderMethods.Length == 1)
+                return loaderMethods[0];
+            else
+                throw new InvalidOperationException($"The type {type.FullName} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
