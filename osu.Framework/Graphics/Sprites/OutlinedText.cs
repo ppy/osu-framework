@@ -46,8 +46,8 @@ namespace osu.Framework.Graphics.Sprites
             get { return text.AllowMultiline; }
             set
             {
-                text.AllowMultiline = true;
-                bfcText.AllowMultiline = true;
+                text.AllowMultiline = value;
+                bfcText.AllowMultiline = value;
             }
         }
         /// <summary>
@@ -123,9 +123,9 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private SpriteText text;
-        private BufferedContainer bfc;
-        private SpriteText bfcText;
+        private readonly SpriteText text;
+        private readonly BufferedContainer bfc;
+        private readonly SpriteText bfcText;
 
         /// <summary>
         /// Constructs a new outlined text with default values.
