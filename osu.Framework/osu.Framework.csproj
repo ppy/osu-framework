@@ -220,6 +220,7 @@
     <Compile Include="Localisation\UnicodeBindableString.cs" />
     <Compile Include="Localisation\VaraintFormattableString.cs" />
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="MathUtils\Blur.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
     <Compile Include="Configuration\Bindable.cs" />
