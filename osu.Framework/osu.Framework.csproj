@@ -120,6 +120,10 @@
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
     <Compile Include="Graphics\Cursor\TooltipContainer.cs" />
+    <Compile Include="Graphics\Effects\BlurEffect.cs" />
+    <Compile Include="Graphics\Effects\EdgeEffect.cs" />
+    <Compile Include="Graphics\Effects\EffectExtensions.cs" />
+    <Compile Include="Graphics\Effects\IEffect.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\ParticleVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex3D.cs" />
@@ -220,6 +224,7 @@
     <Compile Include="Localisation\UnicodeBindableString.cs" />
     <Compile Include="Localisation\VaraintFormattableString.cs" />
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="MathUtils\Blur.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
     <Compile Include="Configuration\Bindable.cs" />

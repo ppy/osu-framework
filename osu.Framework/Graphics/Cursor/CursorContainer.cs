@@ -60,7 +60,7 @@ namespace osu.Framework.Graphics.Cursor
                 BorderColour = new Color4(247, 99, 164, 255);
 
                 Masking = true;
-                EdgeEffect = new EdgeEffect
+                EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = new Color4(247, 99, 164, 6),
