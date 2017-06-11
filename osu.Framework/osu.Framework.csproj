@@ -130,6 +130,7 @@
     <Compile Include="Graphics\OpenGL\Vertices\TimedTexturedVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
+    <Compile Include="Graphics\Sprites\OutlinedText.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
