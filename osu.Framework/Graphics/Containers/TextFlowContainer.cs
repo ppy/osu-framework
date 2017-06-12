@@ -218,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
                     continue;
                 }
 
-                nextLineHeight = c.Height;
+                nextLineHeight = ((SpriteText)c).TextSize; //this cast should always success because of valid children types
                 MarginPadding margin = new MarginPadding { Top = previousLineHeight * newLineCount * LineSpacing };
                 if (first)
                 {
