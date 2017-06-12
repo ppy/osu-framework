@@ -11,17 +11,17 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// The draw width of the text of this <see cref="ContextMenuItem"/>.
         /// </summary>
-        public float TextDrawWidth => textContainer.DrawWidth;
+        public float TextDrawWidth => text.DrawWidth;
 
         /// <summary>
         /// The draw width of the content of this <see cref="ContextMenuItem"/>. This does not include <see cref="TextDrawWidth"/>.
         /// </summary>
-        public float ContentDrawWidth => сontentContainer.DrawWidth;
+        public float ContentDrawWidth => content.DrawWidth;
 
-        protected override Container<Drawable> Content => сontentContainer;
+        protected override Container<Drawable> Content => content;
 
-        private readonly Container textContainer;
-        private readonly FillFlowContainer сontentContainer;
+        private readonly Container text;
+        private readonly FillFlowContainer content;
 
         /// <summary>
         /// Creates a new <see cref="ContextMenuItem"/>.
@@ -31,8 +31,8 @@ namespace osu.Framework.Graphics.UserInterface
         {
             base.Content.Add(new Drawable[]
             {
-                textContainer = CreateTextContainer(title),
-                сontentContainer = new FillFlowContainer
+                text = CreateTextContainer(title),
+                content = new FillFlowContainer
                 {
                     Direction = FillDirection.Horizontal,
                     AutoSizeAxes = Axes.Both,
