@@ -17,6 +17,7 @@ namespace osu.Framework.Graphics.Containers
     public class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
+        private Action<SpriteText> defaultCreationParameters;
 
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
@@ -141,11 +142,17 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void NewParagraph() => base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
 
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
         private SpriteText createSpriteTextWithLine(TextLine line)
         {
             var spriteText = CreateSpriteText();
+            defaultCreationParameters?.Invoke(spriteText);
             line.ApplyParameters(spriteText);
             return spriteText;
         }
