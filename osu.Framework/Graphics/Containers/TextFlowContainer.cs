@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
     public class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
-        private Action<SpriteText> defaultCreationParameters;
+        private readonly Action<SpriteText> defaultCreationParameters;
 
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
