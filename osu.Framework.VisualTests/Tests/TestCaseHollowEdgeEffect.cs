@@ -26,30 +26,30 @@ namespace osu.Framework.VisualTests.Tests
 
             float[] cornerRadii = { 0, 0.5f, 0, 0.5f };
             float[] alphas = { 0.5f, 0.5f, 0, 0 };
-            EdgeEffect[] edgeEffects =
+            EdgeEffectParameters[] edgeEffects =
             {
-                new EdgeEffect
+                new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = Color4.Khaki,
                     Radius = size,
                     Hollow = true,
                 },
-                new EdgeEffect
+                new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = Color4.Khaki,
                     Radius = size,
                     Hollow = true,
                 },
-                new EdgeEffect
+                new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = Color4.Khaki,
                     Radius = size,
                     Hollow = true,
                 },
-                new EdgeEffect
+                new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = Color4.Khaki,

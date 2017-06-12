@@ -24,6 +24,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics
 {
@@ -2264,6 +2265,25 @@ namespace osu.Framework.Graphics
         }
 
         #endregion
+
+        #endregion
+
+        #region Effects
+
+        /// <summary>
+        /// Returns the drawable created by applying the given effect to this drawable. This method may add this drawable to a container.
+        /// If this drawable should be the child of another container, make sure to add the created drawable to the container instead of this drawable.
+        /// </summary>
+        /// <typeparam name="T">The type of the drawable that results from applying the given effect.</typeparam>
+        /// <param name="effect">The effect to apply to this drawable.</param>
+        /// <param name="initializationAction">The action that should get called to initialize the created drawable before it is returned.</param>
+        /// <returns>The drawable created by applying the given effect to this drawable.</returns>
+        public T WithEffect<T>(IEffect<T> effect, Action<T> initializationAction = null) where T : Drawable
+        {
+            var result = effect.ApplyTo(this);
+            initializationAction?.Invoke(result);
+            return result;
+        }
 
         #endregion
 
