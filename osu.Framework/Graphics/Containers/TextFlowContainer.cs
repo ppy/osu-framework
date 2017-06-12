@@ -131,6 +131,16 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
         public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addLine(new TextLine(paragraph, creationParameters), false);
 
+        /// <summary>
+        /// Ends current line and start a new one.
+        /// </summary>
+        public void NewLine() => base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = false });
+
+        /// <summary>
+        /// Ends current paragraph and start a new one.
+        /// </summary>
+        public void NewParagraph() => base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
+
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
         private SpriteText createSpriteTextWithLine(TextLine line)
