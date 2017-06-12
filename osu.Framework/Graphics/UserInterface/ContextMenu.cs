@@ -53,7 +53,6 @@ namespace osu.Framework.Graphics.UserInterface
 
         public ContextMenu()
         {
-            AlwaysReceiveInput = true;
             AutoSizeAxes = Axes.Y;
             Add(menu = CreateCustomMenu());
         }
@@ -86,7 +85,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {
-            menuWidth.Invalidate();
+            if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                menuWidth.Invalidate();
             base.InvalidateFromChild(invalidation);
         }
     }

@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Cursor
                     {
                         if (menu.State == MenuState.Opened)
                             menu.Close();
-                        return false;
+                        return true;
                     }
 
                     menu.Items = menuTarget.ContextMenuItems;
@@ -63,18 +63,17 @@ namespace osu.Framework.Graphics.Cursor
                     menu.Position = ToLocalSpace(cursorContainer?.ActiveCursor.ScreenSpaceDrawQuad.TopLeft ?? inputManager.CurrentState.Mouse.Position);
                     relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
                     menu.Open();
-                    break;
+                    return true;
                 default:
                     menu.Close();
-                    break;
+                    return false;
             }
-            return true;
         }
 
         protected override void Update()
         {
             if (menu.State == MenuState.Opened && menuTarget != null)
-                menu.Position = new Vector2(-ToSpaceOfOtherDrawable(-relativeCursorPosition, menuTarget).X, -ToSpaceOfOtherDrawable(-relativeCursorPosition, menuTarget).Y);
+                menu.Position = menuTarget.ToSpaceOfOtherDrawable(relativeCursorPosition, this);
             base.Update();
         }
     }
