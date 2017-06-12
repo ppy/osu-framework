@@ -8,6 +8,10 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.UserInterface
 {
+    /// <summary>
+    /// Creates a container that manages <see cref="ContextMenuItem"/>s within a <see cref="Menu"/>.
+    /// This container will auto-size its width to fit the maximum size of the <see cref="ContextMenuItem"/>s inside <see cref="Items"/>.
+    /// </summary>
     public class ContextMenu<TItem> : Container
         where TItem : ContextMenuItem
     {
@@ -34,7 +38,7 @@ namespace osu.Framework.Graphics.UserInterface
         public void Close() => menu.State = MenuState.Closed;
 
         /// <summary>
-        /// Items which will be contained in menu.
+        /// Gets or sets the items to be contained in the menu.
         /// </summary>
         public IEnumerable<TItem> Items
         {
@@ -52,8 +56,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Creates an autosize container with the <see cref="Menu"/> inside. Width of this container
-        /// will be setted to the maximum size of text and content of <see cref="ContextMenuItem"/>.
+        /// Creates a new <see cref="ContextMenu{TItem}"/>.
         /// </summary>
         public ContextMenu()
         {
@@ -66,7 +69,8 @@ namespace osu.Framework.Graphics.UserInterface
             base.UpdateAfterChildren();
             if (!menuWidth.IsValid)
             {
-                // Sets the width of menu depends on the maximum size of text and content of each item.
+                // The menu items cannot be both relative and auto-sized to fit the entire width of the menu so they (along with the menu)
+                // are defined to be relatively-sized on the x-axis. We need to define the size ourselves to give them a valid size.
                 menuWidth.Refresh(() =>
                 {
                     float textWidth = 0;

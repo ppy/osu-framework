@@ -11,6 +11,11 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
+    /// <summary>
+    /// A container which manages a <see cref="ContextMenu{TItem}"/>.
+    /// If a right-click happens on a <see cref="Drawable"/> that implements <see cref="IHasContextMenu"/> which lies below this container,
+    /// a <see cref="ContextMenu{TItem}"/> will be displayed with bottom-right origin at the right-clicked position.
+    /// </summary>
     public class ContextMenuContainer : Container
     {
         private readonly CursorContainer cursorContainer;
@@ -26,11 +31,10 @@ namespace osu.Framework.Graphics.Cursor
         protected virtual ContextMenu<ContextMenuItem> CreateContextMenu() => new ContextMenu<ContextMenuItem>();
 
         /// <summary>
-        /// Creates a context menu container where the context menu is positioned at the bottom-right of
-        /// the <see cref="CursorContainer.ActiveCursor"/> of the given <see cref="CursorContainer"/>.
+        /// Creates a new <see cref="ContextMenuContainer"/>.
         /// </summary>
         /// <param name="cursorContainer">The <see cref="CursorContainer"/> of which the <see cref="CursorContainer.ActiveCursor"/>
-        /// shall be used for positioning. If null is provided, then a small offset from the current mouse position is used.</param>
+        /// shall be used for positioning. The current mouse position is used if null is provided.</param>
         public ContextMenuContainer(CursorContainer cursorContainer = null)
         {
             this.cursorContainer = cursorContainer;

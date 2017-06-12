@@ -8,27 +8,44 @@ namespace osu.Framework.Graphics.UserInterface
 {
     public class ContextMenuItem : MenuItem
     {
-        private readonly Container textContainer;
-
         /// <summary>
-        /// Creates an autosize container which will be positioned at the centre-right of the <see cref="ContextMenuItem"/>.
-        /// </summary>
-        private readonly FillFlowContainer сontentContainer;
-
-        /// <summary>
-        /// Draw width of <see cref="textContainer"/>
+        /// The draw width of the text of this <see cref="ContextMenuItem"/>.
         /// </summary>
         public float TextDrawWidth => textContainer.DrawWidth;
 
         /// <summary>
-        /// Draw width of <see cref="сontentContainer"/>
+        /// The draw width of the content of this <see cref="ContextMenuItem"/>. This does not include <see cref="TextDrawWidth"/>.
         /// </summary>
         public float ContentDrawWidth => сontentContainer.DrawWidth;
 
+        protected override Container<Drawable> Content => сontentContainer;
+
+        private readonly Container textContainer;
+        private readonly FillFlowContainer сontentContainer;
+
         /// <summary>
-        /// Creates a new container with text which will be displayed at the centre-left of this item.
+        /// Creates a new <see cref="ContextMenuItem"/>.
         /// </summary>
-        /// <param name="title">The text displayed on this container</param>
+        /// <param name="title">The text to be displayed in this <see cref="ContextMenuItem"/>.</param>
+        public ContextMenuItem(string title)
+        {
+            base.Content.Add(new Drawable[]
+            {
+                textContainer = CreateTextContainer(title),
+                сontentContainer = new FillFlowContainer
+                {
+                    Direction = FillDirection.Horizontal,
+                    AutoSizeAxes = Axes.Both,
+                    Anchor = Anchor.CentreRight,
+                    Origin = Anchor.CentreRight,
+                }
+            });
+        }
+
+        /// <summary>
+        /// Creates a new container with text which will be displayed at the centre-left of this <see cref="ContextMenuItem"/>.
+        /// </summary>
+        /// <param name="title">The text to be displayed in this <see cref="ContextMenuItem"/>.</param>
         protected virtual Container CreateTextContainer(string title) => new Container
         {
             AutoSizeAxes = Axes.Both,
@@ -45,26 +62,5 @@ namespace osu.Framework.Graphics.UserInterface
                 }
             }
         };
-
-        protected override Container<Drawable> Content => сontentContainer;
-
-        /// <summary>
-        /// Creates a new item which contains the <see cref="textContainer"/> and the <see cref="сontentContainer"/>.
-        /// </summary>
-        /// <param name="title">The text displayed on this item inside the <see cref="textContainer"/>.</param>
-        public ContextMenuItem(string title)
-        {
-            base.Content.Add(new Drawable[]
-            {
-                textContainer = CreateTextContainer(title),
-                сontentContainer = new FillFlowContainer
-                {
-                    Direction = FillDirection.Horizontal,
-                    AutoSizeAxes = Axes.Both,
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.CentreRight,
-                }
-            });
-        }
     }
 }

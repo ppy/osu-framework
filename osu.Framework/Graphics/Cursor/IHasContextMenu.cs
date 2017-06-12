@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Cursor
     public interface IHasContextMenu : IDrawable
     {
         /// <summary>
-        /// Menu items that appear when the drawable is right-clicked
+        /// Menu items that appear when the drawable is right-clicked.
         /// </summary>
         ContextMenuItem[] ContextMenuItems { get; }
     }
