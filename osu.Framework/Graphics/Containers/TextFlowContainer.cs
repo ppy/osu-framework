@@ -132,12 +132,12 @@ namespace osu.Framework.Graphics.Containers
         public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addLine(new TextLine(paragraph, creationParameters), false);
 
         /// <summary>
-        /// Ends current line and start a new one.
+        /// End current line and start a new one.
         /// </summary>
         public void NewLine() => base.Add(new NewLineContainer(false));
 
         /// <summary>
-        /// Ends current paragraph and start a new one.
+        /// End current paragraph and start a new one.
         /// </summary>
         public void NewParagraph() => base.Add(new NewLineContainer(true));
 
