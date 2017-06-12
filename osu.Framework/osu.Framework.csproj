@@ -118,6 +118,7 @@
     <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\Containers\VisibilityContainer.cs" />
     <Compile Include="Graphics\Cursor\ContextMenuContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasContextMenu.cs" />
     <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
