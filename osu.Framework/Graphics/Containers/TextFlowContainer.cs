@@ -1,13 +1,12 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Text.RegularExpressions;
-using System.Linq;
 using System;
-using osu.Framework.Caching;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -135,12 +134,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Ends current line and start a new one.
         /// </summary>
-        public void NewLine() => base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = false });
+        public void NewLine() => base.Add(new NewLineContainer(false));
 
         /// <summary>
         /// Ends current paragraph and start a new one.
         /// </summary>
-        public void NewParagraph() => base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
+        public void NewParagraph() => base.Add(new NewLineContainer(true));
 
         public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
         {
@@ -162,13 +161,6 @@ namespace osu.Framework.Graphics.Containers
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
         }
 
-        private float getLineHeight(Drawable d)
-        {
-            float? lineHeight = (d as SpriteText)?.TextSize ?? (d as NewLineContainer)?.HeightFactor;
-            Trace.Assert(lineHeight != null, $"Height factor should never be null unless a child has an invalid type. Last child type={d.GetType()}.");
-            return lineHeight.Value;
-        }
-
         private IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
         {
             bool first = true;
@@ -177,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
             if (!newLineIsParagraph)
-                base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
+                base.Add(new NewLineContainer(true));
 
             foreach (string l in line.Text.Split('\n'))
             {
@@ -185,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var lastChild = Children.LastOrDefault();
                     if (lastChild != null)
-                        base.Add(new NewLineContainer { HeightFactor = getLineHeight(lastChild), IndicatesNewParagraph = newLineIsParagraph });
+                        base.Add(new NewLineContainer(newLineIsParagraph));
                 }
 
                 foreach (string word in Regex.Split(l, @"(?<=[ .,;-])"))
@@ -208,44 +200,43 @@ namespace osu.Framework.Graphics.Containers
 
         private void computeLayout()
         {
-            var children = Children.ToList();
-
-            bool first = true;
-
-            Drawable previousC = null;
-            float topMarginFactor = 0;
-            foreach (var c in children)
+            bool first = true, newLine = false;
+            float previousLineHeight = 0, nextLineHeight = 0;
+            foreach (var c in Children)
             {
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
-                    nlc.Height = nlc.IndicatesNewParagraph ? nlc.HeightFactor * paragraphSpacing : 0;
+                    previousLineHeight = nextLineHeight;
+                    nlc.Height = nlc.IndicatesNewParagraph ? previousLineHeight * ParagraphSpacing : 0;
+                    newLine = true;
+                    continue;
                 }
-                else if (first)
+
+                nextLineHeight = c.Height;
+                MarginPadding margin = new MarginPadding { Top = previousLineHeight * LineSpacing };
+                if (first)
                 {
-                    c.Margin = new MarginPadding { Left = FirstLineIndent };
+                    margin.Left = FirstLineIndent;
                     first = false;
                 }
-                else if (previousC is NewLineContainer || c.X == 0)
+                else if (newLine || c.X == 0)
                 {
-                    topMarginFactor = getLineHeight(previousC);
-                    c.Margin = new MarginPadding { Left = ContentIndent, Top = topMarginFactor * LineSpacing };
+                    margin.Left = ContentIndent;
+                    newLine = false;
                 }
-                else
-                    c.Margin = new MarginPadding { Top = topMarginFactor * LineSpacing };
-
-                previousC = c;
+                c.Margin = margin;
             }
         }
 
         private class NewLineContainer : Container
         {
-            public float HeightFactor;
-            public bool IndicatesNewParagraph;
+            public readonly bool IndicatesNewParagraph;
 
-            public NewLineContainer()
+            public NewLineContainer(bool newParagraph)
             {
                 RelativeSizeAxes = Axes.X;
+                IndicatesNewParagraph = newParagraph;
             }
         }
 
