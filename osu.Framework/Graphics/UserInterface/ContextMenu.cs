@@ -51,6 +51,10 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Creates an autosize container with the <see cref="Menu"/> inside. Width of this container
+        /// will be setted to the maximum size of text and content of <see cref="ContextMenuItem"/>.
+        /// </summary>
         public ContextMenu()
         {
             AutoSizeAxes = Axes.Y;

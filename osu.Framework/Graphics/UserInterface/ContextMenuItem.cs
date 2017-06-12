@@ -48,6 +48,10 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected override Container<Drawable> Content => сontentContainer;
 
+        /// <summary>
+        /// Creates a new item which contains the <see cref="textContainer"/> and the <see cref="сontentContainer"/>.
+        /// </summary>
+        /// <param name="title">The text displayed on this item inside the <see cref="textContainer"/>.</param>
         public ContextMenuItem(string title)
         {
             base.Content.Add(new Drawable[]
