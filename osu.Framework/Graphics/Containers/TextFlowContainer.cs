@@ -201,6 +201,7 @@ namespace osu.Framework.Graphics.Containers
         private void computeLayout()
         {
             bool first = true, newLine = false;
+            int newLineCount = 0;
             float previousLineHeight = 0, nextLineHeight = 0;
             foreach (var c in Children)
             {
@@ -209,12 +210,16 @@ namespace osu.Framework.Graphics.Containers
                 {
                     previousLineHeight = nextLineHeight;
                     nlc.Height = nlc.IndicatesNewParagraph ? previousLineHeight * ParagraphSpacing : 0;
+
+                    if (!newLine)
+                        newLineCount = 0;
+                    newLineCount++;
                     newLine = true;
                     continue;
                 }
 
                 nextLineHeight = c.Height;
-                MarginPadding margin = new MarginPadding { Top = previousLineHeight * LineSpacing };
+                MarginPadding margin = new MarginPadding { Top = previousLineHeight * newLineCount * LineSpacing };
                 if (first)
                 {
                     margin.Left = FirstLineIndent;
