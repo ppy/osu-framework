@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <summary>
         /// Creates a new menu. Can be overridden to customize.
         /// </summary>
-        protected virtual Menu<TItem> CreateCustomMenu() => new Menu<TItem>();
+        protected virtual Menu<TItem> CreateMenu() => new Menu<TItem>();
 
         /// <summary>
         /// Current state of menu.
@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.UserInterface
         public ContextMenu()
         {
             AutoSizeAxes = Axes.Y;
-            Add(menu = CreateCustomMenu());
+            Add(menu = CreateMenu());
         }
 
         protected override void UpdateAfterChildren()
