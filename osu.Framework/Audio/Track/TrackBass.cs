@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Track
 
         private volatile int seekCommands;
 
-        private object seekLock = new Object();
+        private readonly object seekLock = new Object();
 
         public TrackBass(Stream data, bool quick = false)
         {
