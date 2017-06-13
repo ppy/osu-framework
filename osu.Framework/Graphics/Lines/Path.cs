@@ -23,7 +23,7 @@ namespace osu.Framework.Graphics.Lines
                 positions = value;
                 recomputeBounds();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -37,7 +37,10 @@ namespace osu.Framework.Graphics.Lines
             positions.Clear();
             resetBounds();
 
-            Invalidate(Invalidation.Geometry);
+            if ((RelativeSizeAxes & Axes.X) == 0) Width = 0;
+            if ((RelativeSizeAxes & Axes.Y) == 0) Height = 0;
+
+            Invalidate(Invalidation.DrawNode);
         }
 
         public void AddVertex(Vector2 pos)
@@ -45,7 +48,7 @@ namespace osu.Framework.Graphics.Lines
             positions.Add(pos);
             expandBounds(pos);
 
-            Invalidate(Invalidation.Geometry);
+            Invalidate(Invalidation.DrawNode);
         }
 
         private float minX;
@@ -91,7 +94,7 @@ namespace osu.Framework.Graphics.Lines
                 pathWidth = value;
                 recomputeBounds();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 

@@ -4,10 +4,12 @@
 using System;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES30;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Batches
 {
-    public class LinearBatch<T> : VertexBatch<T> where T : struct, IEquatable<T>
+    public class LinearBatch<T> : VertexBatch<T>
+        where T : struct, IEquatable<T>, IVertex
     {
         private readonly PrimitiveType type;
 

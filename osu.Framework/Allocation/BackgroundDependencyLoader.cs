@@ -5,9 +5,15 @@ using System;
 
 namespace osu.Framework.Allocation
 {
+    /// <summary>
+    /// Marks a method as the loader-Method of a <see cref="osu.Framework.Graphics.Drawable"/>, allowing for automatic injection of dependencies via the parameters of the method.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
     public class BackgroundDependencyLoader : Attribute
     {
+        /// <summary>
+        /// True if nulls are allowed to be passed to the method marked with this attribute.
+        /// </summary>
         public bool PermitNulls { get; private set; }
 
         /// <summary>

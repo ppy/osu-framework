@@ -63,6 +63,7 @@ namespace osu.Framework.VisualTests.Tests
             textFlowContainer.AddText("\n\n0123456789!@#$%^&*()_-+-[]{}.,<>;'\\\\", t => t.Colour = Color4.Blue);
             textFlowContainer.AddText("\nI'm a paragraph\nnewlines are cool", t => t.Colour = Color4.Beige);
             textFlowContainer.AddText(" (and so are inline styles!)", t => t.Colour = Color4.Yellow);
+            textFlowContainer.AddParagraph("There's 2 line breaks\n\ninside this paragraph!", t => t.Colour = Color4.GreenYellow);
             textFlowContainer.AddParagraph("Make\nTextFlowContainer\ngreat\nagain!", t => t.Colour = Color4.Red);
 
             paragraphContainer.Add(new TextFlowContainer

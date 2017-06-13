@@ -10,6 +10,7 @@ using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Parametrizes the appearance of an edge effect.
     /// </summary>
-    public struct EdgeEffect : IEquatable<EdgeEffect>
+    public struct EdgeEffectParameters : IEquatable<EdgeEffectParameters>
     {
         /// <summary>
         /// Colour of the edge effect.
@@ -61,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public bool Hollow;
 
-        public bool Equals(EdgeEffect other) =>
+        public bool Equals(EdgeEffectParameters other) =>
             Colour.Equals(other.Colour) &&
             Offset == other.Offset &&
             Type == other.Type &&
@@ -116,7 +117,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Information about how the edge effect should be rendered.
         /// </summary>
-        public EdgeEffect EdgeEffect;
+        public EdgeEffectParameters EdgeEffect;
 
         /// <summary>
         /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same

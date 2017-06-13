@@ -408,6 +408,9 @@ namespace osu.Framework.Graphics.Performance
                 default:
                     return Color4.Yellow;
 
+                case StatisticsCounterType.VBufBinds:
+                    return Color4.SkyBlue;
+
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:
                 case StatisticsCounterType.TasksRun:

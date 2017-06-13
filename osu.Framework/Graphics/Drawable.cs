@@ -24,6 +24,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Effects;
 
 namespace osu.Framework.Graphics
 {
@@ -210,8 +211,8 @@ namespace osu.Framework.Graphics
         {
             if (loadState < LoadState.Loaded) return false;
 
-            mainThread = Thread.CurrentThread;
-            scheduler?.SetCurrentThread(mainThread);
+            MainThread = Thread.CurrentThread;
+            scheduler?.SetCurrentThread(MainThread);
 
             Invalidate();
             loadState = LoadState.Alive;
@@ -314,13 +315,13 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
-        private Thread mainThread;
+        internal Thread MainThread { get; private set; }
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(mainThread));
+        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread));
 
         private LifetimeList<ITransform> transforms;
 
@@ -377,7 +378,7 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
-            transformDelay = 0;
+            TransformDelay = 0;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
             updateTransforms();
@@ -433,7 +434,7 @@ namespace osu.Framework.Graphics
                 if (position == value) return;
                 position = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -451,7 +452,7 @@ namespace osu.Framework.Graphics
                 if (x == value) return;
                 x = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -466,7 +467,7 @@ namespace osu.Framework.Graphics
                 if (y == value) return;
                 y = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -555,7 +556,7 @@ namespace osu.Framework.Graphics
                 if (size == value) return;
                 size = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -573,7 +574,7 @@ namespace osu.Framework.Graphics
                 if (width == value) return;
                 width = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -588,7 +589,7 @@ namespace osu.Framework.Graphics
                 if (height == value) return;
                 height = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawSize);
             }
         }
 
@@ -670,7 +671,7 @@ namespace osu.Framework.Graphics
                 margin = value;
                 margin.ThrowIfNegative();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -749,7 +750,7 @@ namespace osu.Framework.Graphics
                     return;
 
                 bypassAutoSizeAxes = value;
-                Parent?.InvalidateFromChild(Invalidation.Geometry);
+                Parent?.InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
             }
         }
 
@@ -776,7 +777,7 @@ namespace osu.Framework.Graphics
                 if (scale == value) return;
                 scale = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -830,7 +831,7 @@ namespace osu.Framework.Graphics
                 if (shear == value) return;
                 shear = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -848,7 +849,7 @@ namespace osu.Framework.Graphics
                 if (value == rotation) return;
                 rotation = value;
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -875,7 +876,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set origin to 0.", nameof(value));
 
                 origin = value;
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -958,7 +959,7 @@ namespace osu.Framework.Graphics
                     throw new ArgumentException("Cannot set anchor to 0.", nameof(value));
 
                 anchor = value;
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.MiscGeometry);
             }
         }
 
@@ -1240,7 +1241,7 @@ namespace osu.Framework.Graphics
                     throw new InvalidOperationException("May not add a drawable to multiple containers.");
 
                 parent = value;
-                Invalidate(Invalidation.Geometry | Invalidation.Colour);
+                Invalidate(InvalidationFromParentSize | Invalidation.Colour);
 
                 if (parent != null)
                 {
@@ -1415,9 +1416,9 @@ namespace osu.Framework.Graphics
             bool alreadyInvalidated = true;
 
             // Either ScreenSize OR ScreenPosition OR Colour
-            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.DrawInfo | Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
             {
-                if ((invalidation & Invalidation.SizeInParentSpace) > 0)
+                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
                     alreadyInvalidated &= !requiredParentSizeToFitBacking.Invalidate();
 
                 alreadyInvalidated &= !screenSpaceDrawQuadBacking.Invalidate();
@@ -1431,6 +1432,19 @@ namespace osu.Framework.Graphics
             OnInvalidate?.Invoke(this);
 
             return !alreadyInvalidated;
+        }
+
+        public Invalidation InvalidationFromParentSize
+        {
+            get
+            {
+                Invalidation result = Invalidation.DrawInfo;
+                if (RelativeSizeAxes != Axes.None)
+                    result |= Invalidation.DrawSize;
+                if (RelativePositionAxes != Axes.None)
+                    result |= Invalidation.MiscGeometry;
+                return result;
+            }
         }
 
         #endregion
@@ -1931,7 +1945,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        private double transformDelay;
+        internal double TransformDelay { get; private set; }
 
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
@@ -1943,11 +1957,11 @@ namespace osu.Framework.Graphics
         {
             if (duration == 0) return this;
 
-            transformDelay += duration;
+            TransformDelay += duration;
             return this;
         }
 
-        public ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, transformDelay);
+        protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Flush specified transforms, using the last available values (ignoring current clock time).
@@ -1979,7 +1993,7 @@ namespace osu.Framework.Graphics
 
         public virtual Drawable DelayReset()
         {
-            Delay(-transformDelay);
+            Delay(-TransformDelay);
             return this;
         }
 
@@ -2000,14 +2014,14 @@ namespace osu.Framework.Graphics
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
-            if (transformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
+            if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
             return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
         }
 
         public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
-                t.Loop(Math.Max(0, transformDelay + delay - t.Duration));
+                t.Loop(Math.Max(0, TransformDelay + delay - t.Duration));
         }
 
         /// <summary>
@@ -2069,7 +2083,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
         /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + transformDelay;
+        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
         public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
         {
@@ -2087,7 +2101,7 @@ namespace osu.Framework.Graphics
 
             TValue startValue = currentValue();
 
-            if (transformDelay == 0)
+            if (TransformDelay == 0)
             {
                 Transforms.RemoveAll(t => t.GetType() == type);
 
@@ -2124,7 +2138,7 @@ namespace osu.Framework.Graphics
             }
 
             //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
-            bool canApplyInstant = transform.Duration == 0 && transformDelay == 0;
+            bool canApplyInstant = transform.Duration == 0 && TransformDelay == 0;
 
             //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
             if (canApplyInstant || transform.StartTime < Time.Current)
@@ -2254,6 +2268,25 @@ namespace osu.Framework.Graphics
 
         #endregion
 
+        #region Effects
+
+        /// <summary>
+        /// Returns the drawable created by applying the given effect to this drawable. This method may add this drawable to a container.
+        /// If this drawable should be the child of another container, make sure to add the created drawable to the container instead of this drawable.
+        /// </summary>
+        /// <typeparam name="T">The type of the drawable that results from applying the given effect.</typeparam>
+        /// <param name="effect">The effect to apply to this drawable.</param>
+        /// <param name="initializationAction">The action that should get called to initialize the created drawable before it is returned.</param>
+        /// <returns>The drawable created by applying the given effect to this drawable.</returns>
+        public T WithEffect<T>(IEffect<T> effect, Action<T> initializationAction = null) where T : Drawable
+        {
+            var result = effect.ApplyTo(this);
+            initializationAction?.Invoke(result);
+            return result;
+        }
+
+        #endregion
+
         /// <summary>
         /// A name used to identify this Drawable internally.
         /// </summary>
@@ -2319,16 +2352,41 @@ namespace osu.Framework.Graphics
     [Flags]
     public enum Invalidation
     {
-        // Individual types
-        Position = 1 << 0,
-        SizeInParentSpace = 1 << 1,
-        Colour = 1 << 2,
-        DrawNode = 1 << 3,
+        /// <summary>
+        /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
+        /// is assumed unless indicated by additional flags.
+        /// </summary>
+        DrawInfo = 1 << 0,
+        /// <summary>
+        /// <see cref="Drawable.DrawSize"/> has changed.
+        /// </summary>
+        DrawSize = 1 << 1,
+        /// <summary>
+        /// Captures all other geometry changes than <see cref="Drawable.DrawSize"/>, such as
+        /// <see cref="Drawable.Rotation"/>, <see cref="Drawable.Shear"/>, and <see cref="Drawable.DrawPosition"/>.
+        /// </summary>
+        MiscGeometry = 1 << 2,
+        /// <summary>
+        /// Our colour changed.
+        /// </summary>
+        Colour = 1 << 3,
+        /// <summary>
+        /// <see cref="Drawable.ApplyDrawNode(Graphics.DrawNode)"/> has to be invoked on all old draw nodes.
+        /// </summary>
+        DrawNode = 1 << 4,
 
-        // Meta
+        /// <summary>
+        /// No invalidation.
+        /// </summary>
         None = 0,
-        Geometry = Position | SizeInParentSpace,
-        All = DrawNode | Geometry | Colour,
+        /// <summary>
+        /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
+        /// </summary>
+        RequiredParentSizeToFit = MiscGeometry | DrawSize,
+        /// <summary>
+        /// All possible things are affected.
+        /// </summary>
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
     }
 
     /// <summary>

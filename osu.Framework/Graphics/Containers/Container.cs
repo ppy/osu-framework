@@ -20,6 +20,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -91,11 +93,19 @@ namespace osu.Framework.Graphics.Containers
             child.Parent = this;
         }
 
+        protected override void LoadComplete()
+        {
+            schedulerAfterChildren?.SetCurrentThread(MainThread);
+            base.LoadComplete();
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
+            schedulerAfterChildren?.Dispose();
+            schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
         }
@@ -223,7 +233,7 @@ namespace osu.Framework.Graphics.Containers
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -299,7 +309,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -322,7 +332,7 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Add(drawable);
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -338,6 +348,10 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         #region Updating (per-frame periodic)
+
+        private Scheduler schedulerAfterChildren;
+
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread));
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -388,6 +402,11 @@ namespace osu.Framework.Graphics.Containers
             foreach (Drawable child in internalChildren.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
+            if (schedulerAfterChildren != null)
+            {
+                int amountScheduledTasks = schedulerAfterChildren.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
@@ -414,7 +433,7 @@ namespace osu.Framework.Graphics.Containers
         {
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -436,8 +455,19 @@ namespace osu.Framework.Graphics.Containers
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
+                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                    childInvalidation |= Invalidation.DrawInfo;
+
+                // Other geometry things like rotation, shearing, etc don't affect child properties.
+                childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Relative positioning can however affect child geometry
+                if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
+                    childInvalidation |= Invalidation.MiscGeometry;
+
+                // No draw size changes if relative size axes does not propagate it downward.
                 if (c.RelativeSizeAxes == Axes.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    childInvalidation &= ~Invalidation.DrawSize;
 
                 c.Invalidate(childInvalidation, this);
             }
@@ -612,6 +642,8 @@ namespace osu.Framework.Graphics.Containers
                 foreach (var c in internalChildren) c.Delay(duration, true);
             return this;
         }
+
+        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
         public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
@@ -797,14 +829,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private EdgeEffect edgeEffect;
+        private EdgeEffectParameters edgeEffect;
 
         /// <summary>
         /// Determines an edge effect of this container.
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual EdgeEffect EdgeEffect
+        public virtual EdgeEffectParameters EdgeEffect
         {
             get { return edgeEffect; }
             set
@@ -862,7 +894,7 @@ namespace osu.Framework.Graphics.Containers
                 padding.ThrowIfNegative();
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize);
             }
         }
 
@@ -893,7 +925,7 @@ namespace osu.Framework.Graphics.Containers
                 relativeChildSize = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize);
             }
         }
 
@@ -912,7 +944,7 @@ namespace osu.Framework.Graphics.Containers
                 relativeChildOffset = value;
 
                 foreach (Drawable c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                    c.Invalidate(c.InvalidationFromParentSize & ~Invalidation.DrawSize);
             }
         }
 
