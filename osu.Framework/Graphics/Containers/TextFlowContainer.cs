@@ -1,13 +1,12 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Text.RegularExpressions;
-using System.Linq;
 using System;
-using osu.Framework.Caching;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
-using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -17,6 +16,7 @@ namespace osu.Framework.Graphics.Containers
     public class TextFlowContainer : FillFlowContainer
     {
         private float firstLineIndent;
+        private readonly Action<SpriteText> defaultCreationParameters;
 
         /// <summary>
         /// An indent value for the first (header) line of a paragraph.
@@ -131,11 +131,27 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="creationParameters">A callback providing any <see cref="SpriteText" /> instances created for this new paragraph.</param>
         public IEnumerable<SpriteText> AddParagraph(string paragraph, Action<SpriteText> creationParameters = null) => addLine(new TextLine(paragraph, creationParameters), false);
 
+        /// <summary>
+        /// End current line and start a new one.
+        /// </summary>
+        public void NewLine() => base.Add(new NewLineContainer(false));
+
+        /// <summary>
+        /// End current paragraph and start a new one.
+        /// </summary>
+        public void NewParagraph() => base.Add(new NewLineContainer(true));
+
+        public TextFlowContainer(Action<SpriteText> defaultCreationParameters = null)
+        {
+            this.defaultCreationParameters = defaultCreationParameters;
+        }
+
         protected virtual SpriteText CreateSpriteText() => new SpriteText();
 
         private SpriteText createSpriteTextWithLine(TextLine line)
         {
             var spriteText = CreateSpriteText();
+            defaultCreationParameters?.Invoke(spriteText);
             line.ApplyParameters(spriteText);
             return spriteText;
         }
@@ -143,13 +159,6 @@ namespace osu.Framework.Graphics.Containers
         public override void Add(Drawable drawable)
         {
             throw new InvalidOperationException($"Use {nameof(AddText)} to add text to a {nameof(TextFlowContainer)}.");
-        }
-
-        private float getLineHeight(Drawable d)
-        {
-            float? lineHeight = (d as SpriteText)?.TextSize ?? (d as NewLineContainer)?.HeightFactor;
-            Trace.Assert(lineHeight != null, $"Height factor should never be null unless a child has an invalid type. Last child type={d.GetType()}.");
-            return lineHeight.Value;
         }
 
         private IEnumerable<SpriteText> addLine(TextLine line, bool newLineIsParagraph)
@@ -160,7 +169,7 @@ namespace osu.Framework.Graphics.Containers
             // !newLineIsParagraph effectively means that we want to add just *one* paragraph, which means we need to make sure that any previous paragraphs
             // are terminated. Thus, we add a NewLineContainer that indicates the end of the paragraph before adding our current paragraph.
             if (!newLineIsParagraph)
-                base.Add(new NewLineContainer { HeightFactor = getLineHeight(Children.LastOrDefault()), IndicatesNewParagraph = true });
+                base.Add(new NewLineContainer(true));
 
             foreach (string l in line.Text.Split('\n'))
             {
@@ -168,7 +177,7 @@ namespace osu.Framework.Graphics.Containers
                 {
                     var lastChild = Children.LastOrDefault();
                     if (lastChild != null)
-                        base.Add(new NewLineContainer { HeightFactor = getLineHeight(lastChild), IndicatesNewParagraph = newLineIsParagraph });
+                        base.Add(new NewLineContainer(newLineIsParagraph));
                 }
 
                 foreach (string word in Regex.Split(l, @"(?<=[ .,;-])"))
@@ -191,44 +200,48 @@ namespace osu.Framework.Graphics.Containers
 
         private void computeLayout()
         {
-            var children = Children.ToList();
-
-            bool first = true;
-
-            Drawable previousC = null;
-            float topMarginFactor = 0;
-            foreach (var c in children)
+            bool first = true, newLine = false;
+            int newLineCount = 0;
+            float previousLineHeight = 0, nextLineHeight = 0;
+            foreach (var c in Children)
             {
                 NewLineContainer nlc = c as NewLineContainer;
                 if (nlc != null)
                 {
-                    nlc.Height = nlc.IndicatesNewParagraph ? nlc.HeightFactor * paragraphSpacing : 0;
+                    previousLineHeight = nextLineHeight;
+                    nlc.Height = nlc.IndicatesNewParagraph ? previousLineHeight * ParagraphSpacing : 0;
+
+                    if (!newLine)
+                        newLineCount = 0;
+                    newLineCount++;
+                    newLine = true;
+                    continue;
                 }
-                else if (first)
+
+                nextLineHeight = ((SpriteText)c).TextSize; //this cast should always success because of valid children types
+                MarginPadding margin = new MarginPadding { Top = previousLineHeight * newLineCount * LineSpacing };
+                if (first)
                 {
-                    c.Margin = new MarginPadding { Left = FirstLineIndent };
+                    margin.Left = FirstLineIndent;
                     first = false;
                 }
-                else if (previousC is NewLineContainer || c.X == 0)
+                else if (newLine || c.X == 0)
                 {
-                    topMarginFactor = getLineHeight(previousC);
-                    c.Margin = new MarginPadding { Left = ContentIndent, Top = topMarginFactor * LineSpacing };
+                    margin.Left = ContentIndent;
+                    newLine = false;
                 }
-                else
-                    c.Margin = new MarginPadding { Top = topMarginFactor * LineSpacing };
-
-                previousC = c;
+                c.Margin = margin;
             }
         }
 
         private class NewLineContainer : Container
         {
-            public float HeightFactor;
-            public bool IndicatesNewParagraph;
+            public readonly bool IndicatesNewParagraph;
 
-            public NewLineContainer()
+            public NewLineContainer(bool newParagraph)
             {
                 RelativeSizeAxes = Axes.X;
+                IndicatesNewParagraph = newParagraph;
             }
         }
 
