@@ -5,6 +5,7 @@ using System;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
 using System.Diagnostics;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Colour
 {
@@ -83,7 +84,7 @@ namespace osu.Framework.Graphics.Colour
             (1 - interp.Y) * ((1 - interp.X) * TopLeft.ToVector() + interp.X * TopRight.ToVector()) +
             interp.Y * ((1 - interp.X) * BottomLeft.ToVector() + interp.X * BottomRight.ToVector()));
 
-        internal void ApplyChild(ColourInfo childColour)
+        public void ApplyChild(ColourInfo childColour)
         {
             Trace.Assert(HasSingleColour);
             if (childColour.HasSingleColour)
@@ -100,7 +101,7 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
-        internal void ApplyChild(ColourInfo childColour, Quad interp)
+        public void ApplyChild(ColourInfo childColour, Quad interp)
         {
             Trace.Assert(!HasSingleColour);
 
@@ -116,7 +117,7 @@ namespace osu.Framework.Graphics.Colour
         }
 
         /// <summary>
-        /// Created a new ColourInfo with the alpha value of the colours of all vertices 
+        /// Created a new ColourInfo with the alpha value of the colours of all vertices
         /// multiplied by a given alpha parameter.
         /// </summary>
         /// <param name="alpha">The alpha parameter to multiply the alpha values of all vertices with.</param>
@@ -195,5 +196,8 @@ namespace osu.Framework.Graphics.Colour
                 return max;
             }
         }
+
+        public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
+        public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
     }
 }

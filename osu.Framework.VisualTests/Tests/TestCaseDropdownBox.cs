@@ -51,7 +51,7 @@ namespace osu.Framework.VisualTests.Tests
             AddRepeatStep("add item", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdownMenu.Items.Count() == items_to_add * 2);
 
-            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children.Skip(13).First().TriggerClick());
+            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children.Skip(13).First().TriggerOnClick());
 
             AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
             AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.Skip(13).First().Value);
@@ -70,7 +70,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private Menu getMenuFromDropdown(StyledDropdownMenu dropdown) => (Menu)dropdown.Children.Skip(1).First();
 
-        private void toggleDropdownViaClick(StyledDropdownMenu dropdown) => dropdown.Children.First().TriggerClick();
+        private void toggleDropdownViaClick(StyledDropdownMenu dropdown) => dropdown.Children.First().TriggerOnClick();
 
         private class StyledDropdownMenu : Dropdown<string>
         {

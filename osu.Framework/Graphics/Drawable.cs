@@ -23,8 +23,6 @@ using osu.Framework.Timing;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
-using KeyboardState = osu.Framework.Input.KeyboardState;
-using MouseState = osu.Framework.Input.MouseState;
 using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics
@@ -250,7 +248,7 @@ namespace osu.Framework.Graphics
 
         public class CreationOrderDepthComparer : IComparer<Drawable>
         {
-            public int Compare(Drawable x, Drawable y)
+            public virtual int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
@@ -263,7 +261,7 @@ namespace osu.Framework.Graphics
 
         public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
         {
-            public int Compare(Drawable x, Drawable y)
+            public virtual int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
@@ -1511,120 +1509,108 @@ namespace osu.Framework.Graphics
 
         #region Interaction / Input
 
-        /// <summary>
-        /// Find the first parent InputManager which this drawable is contained by.
-        /// </summary>
-        private InputManager ourInputManager => this as InputManager ?? (Parent as Drawable)?.ourInputManager;
-
-        public bool TriggerHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
+        public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnHover(InputState state) => false;
 
-        public void TriggerHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
+        public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
         protected virtual void OnHoverLost(InputState state)
         {
         }
 
-        public bool TriggerMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
+        /// <summary>
+        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseDown(InputState state, MouseDownEventArgs args) => false;
 
-        public bool TriggerMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
+        /// <summary>
+        /// Triggers <see cref="OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnMouseUp(InputState state, MouseUpEventArgs args) => false;
 
-        public bool TriggerClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnClick(InputState state) => false;
 
-        public bool TriggerDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDoubleClick(InputState state) => false;
 
-        public bool TriggerDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragStart(InputState state) => false;
 
-        public bool TriggerDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDrag(InputState state) => false;
 
-        public bool TriggerDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnDragEnd(InputState state) => false;
 
-        public bool TriggerWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
-        /// Focuses this drawable.
+        /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="checkCanFocus">Whether we should check this Drawable's OnFocus returns true before actually providing focus.</param>
-        public bool TriggerFocus(InputState screenSpaceState = null, bool checkCanFocus = false)
-        {
-            if (HasFocus)
-                return true;
-
-            if (!IsPresent)
-                return false;
-
-            if (checkCanFocus & !OnFocus(createCloneInParentSpace(screenSpaceState)))
-                return false;
-
-            ourInputManager?.ChangeFocus(this);
-
-            return true;
-        }
-
-        /// <summary>
-        /// If we are not the current focus, this will force our parent InputManager to reconsider what to focus.
-        /// Useful in combination with <see cref="RequestingFocus"/>
-        /// Make sure you are already Present (ie. you've run Update at least once after becoming visible). Schedule recommended.
-        /// </summary>
-        protected void TriggerFocusContention()
-        {
-            if (!IsPresent)
-                throw new InvalidOperationException("Can not obtain focus without being present.");
-
-            if (ourInputManager.FocusedDrawable != this)
-                ourInputManager.ChangeFocus(null);
-        }
+        public bool TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnFocus(InputState state) => false;
 
         /// <summary>
-        /// Unfocuses this drawable.
+        /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
         /// <param name="screenSpaceState">The input state.</param>
-        /// <param name="isCallback">Used to aavoid cyclid recursion.</param>
-        public void TriggerFocusLost(InputState screenSpaceState = null, bool isCallback = false)
-        {
-            if (!HasFocus)
-                return;
-
-            if (screenSpaceState == null)
-                screenSpaceState = new InputState { Keyboard = new KeyboardState(), Mouse = new MouseState() };
-
-            if (!isCallback) ourInputManager.ChangeFocus(null);
-            OnFocusLost(createCloneInParentSpace(screenSpaceState));
-        }
+        public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
         protected virtual void OnFocusLost(InputState state)
         {
         }
 
-        public bool TriggerKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
+        /// <summary>
+        /// Triggers <see cref="OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyDown(InputState state, KeyDownEventArgs args) => false;
 
-        public bool TriggerKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
+        /// <summary>
+        /// Triggers <see cref="OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
 
         protected virtual bool OnKeyUp(InputState state, KeyUpEventArgs args) => false;
 
-        public bool TriggerMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
+        /// <summary>
+        /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
+        /// </summary>
+        public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
 
         protected virtual bool OnMouseMove(InputState state) => false;
 
@@ -1634,9 +1620,9 @@ namespace osu.Framework.Graphics
         public virtual bool HandleInput => false;
 
         /// <summary>
-        /// Check whether we have active focus. Walks up the drawable tree; use sparingly.
+        /// Check whether we have active focus.
         /// </summary>
-        public bool HasFocus => ourInputManager?.FocusedDrawable == this;
+        public bool HasFocus { get; internal set; }
 
         /// <summary>
         /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
@@ -1695,7 +1681,7 @@ namespace osu.Framework.Graphics
             return new InputState
             {
                 Keyboard = screenSpaceState.Keyboard,
-                Mouse = new LocalMouseState(screenSpaceState.Mouse, this),
+                Mouse = new LocalMouseState(screenSpaceState.Mouse.NativeState, this),
                 Last = screenSpaceState.Last
             };
         }
