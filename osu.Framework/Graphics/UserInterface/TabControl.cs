@@ -179,7 +179,12 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
         protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += performTabSort;
+            tab.PinnedChanged += t =>
+            {
+                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
+                Schedule(() => performTabSort(t));
+            };
+
             tab.ActivationRequested += SelectTab;
 
             tabMap[tab.Value] = tab;
