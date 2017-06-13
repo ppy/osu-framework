@@ -1,7 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -23,11 +22,11 @@ namespace osu.Framework.Audio
 
         public void AddItemToList(T item)
         {
-            PendingActions.Enqueue(new Action(delegate
+            PendingActions.Enqueue(delegate
             {
                 if (Items.Contains(item)) return;
                 Items.Add(item);
-            }));
+            });
         }
 
         public void RegisterItem(T item)

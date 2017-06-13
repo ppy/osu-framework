@@ -32,12 +32,9 @@ namespace osu.Framework.Audio
             FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
-            Action queueItem;
-            while (!IsDisposed && PendingActions.TryDequeue(out queueItem))
-            {
-                if (queueItem != null)
-                    queueItem();
-            }
+            Action action;
+            while (!IsDisposed && PendingActions.TryDequeue(out action))
+                action();
         }
 
         public virtual bool HasCompleted => IsDisposed;
