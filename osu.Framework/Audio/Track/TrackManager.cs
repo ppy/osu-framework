@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Track
                 exclusiveTrack = track;
             }
 
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 foreach (var item in Items)
                     if (!item.HasCompleted)
@@ -51,7 +51,7 @@ namespace osu.Framework.Audio.Track
 
                 last?.Dispose();
                 AddItem(track);
-            }));
+            });
         }
 
         public override void Update()

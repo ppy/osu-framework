@@ -41,9 +41,13 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        private volatile int seekCommands;
+
+        private object seekLock = new Object();
+
         public TrackBass(Stream data, bool quick = false)
         {
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 Preview = quick;
 
@@ -83,7 +87,7 @@ namespace osu.Framework.Audio.Track
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                 isLoaded = true;
-            }));
+            });
 
             InvalidateState();
         }
@@ -141,13 +145,13 @@ namespace osu.Framework.Audio.Track
         {
             base.Stop();
 
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 if (IsRunning)
                     Bass.ChannelPause(activeStream);
 
                 isPlayed = false;
-            }));
+            });
         }
 
         private int direction;
@@ -163,13 +167,13 @@ namespace osu.Framework.Audio.Track
             isRunning = true;
 
             base.Start();
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 if (Bass.ChannelPlay(activeStream))
                     isPlayed = true;
                 else
                     isRunning = false;
-            }));
+            });
         }
 
         public override bool Seek(double seek)
@@ -179,8 +183,18 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.Enqueue(LastSeekAction = () =>
+            lock (seekLock)
+                seekCommands++;
+
+            PendingActions.Enqueue(() =>
             {
+                // Make sure this is the most recent seek action
+                lock (seekLock)
+                {
+                    if (--seekCommands != 0)
+                        return;
+                }
+
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
                 if (clamped != CurrentTime)

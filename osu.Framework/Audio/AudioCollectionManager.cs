@@ -32,7 +32,7 @@ namespace osu.Framework.Audio
 
         public void RegisterItem(T item)
         {
-            PendingActions.Enqueue(new Action(() => item.AddAdjustmentDependency(this)));
+            PendingActions.Enqueue(() => item.AddAdjustmentDependency(this));
         }
 
         internal override void OnStateChanged()

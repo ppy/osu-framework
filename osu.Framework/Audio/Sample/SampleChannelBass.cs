@@ -43,7 +43,7 @@ namespace osu.Framework.Audio.Sample
 
         public override void Play(bool restart = true)
         {
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 if (!IsLoaded)
                 {
@@ -55,15 +55,15 @@ namespace osu.Framework.Audio.Sample
                 // be overridden when too many other channels are created from the same sample.
                 channel = ((SampleBass)Sample).CreateChannel();
                 Bass.ChannelGetAttribute(channel, ChannelAttribute.Frequency, out initialFrequency);
-            }));
+            });
 
             InvalidateState();
 
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 if (channel != 0)
                     Bass.ChannelPlay(channel, restart);
-            }));
+            });
 
             // Needs to happen on the main thread such that
             // Played does not become true for a short moment.
@@ -84,12 +84,12 @@ namespace osu.Framework.Audio.Sample
 
             base.Stop();
 
-            PendingActions.Enqueue(new Action(() =>
+            PendingActions.Enqueue(() =>
             {
                 Bass.ChannelStop(channel);
                 // ChannelStop frees the channel.
                 channel = 0;
-            }));
+            });
         }
 
         public override bool Playing => playing;
