@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 
@@ -11,9 +12,9 @@ namespace osu.Framework.Graphics.UserInterface
     {
     }
 
-    public class TabItem<T> : TabItem
+    public abstract class TabItem<T> : TabItem
     {
-        internal Action<TabItem<T>> SelectAction;
+        internal Action<TabItem<T>> ActivationRequested;
 
         internal Action<TabItem<T>> PinnedChanged;
 
@@ -21,9 +22,19 @@ namespace osu.Framework.Graphics.UserInterface
 
         public readonly T Value;
 
-        public TabItem(T value)
+        protected TabItem(T value)
         {
             Value = value;
+
+            Active.ValueChanged += active_ValueChanged;
+        }
+
+        private void active_ValueChanged(bool newValue)
+        {
+            if (newValue)
+                OnActivated();
+            else
+                OnDeactivated();
         }
 
         private bool pinned;
@@ -40,26 +51,18 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private bool active;
+        protected abstract void OnActivated();
+        protected abstract void OnDeactivated();
 
-        public virtual bool Active
-        {
-            get { return active; }
-            set
-            {
-                if (active == value) return;
-
-                active = value;
-                if (active)
-                    SelectAction?.Invoke(this);
-            }
-        }
+        public readonly BindableBool Active = new BindableBool();
 
         protected override bool OnClick(InputState state)
         {
             base.OnClick(state);
-            Active = true;
+            ActivationRequested?.Invoke(this);
             return true;
         }
+
+        public override string ToString() => $"{base.ToString()} value: {Value}";
     }
 }

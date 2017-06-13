@@ -50,14 +50,31 @@ namespace osu.Framework.VisualTests.Tests
                                                          .Select(item => item.Value)
                                                          .FirstOrDefault(test => !pinnedAndAutoSort.Items.Contains(test)));
 
-            AddStep("AddItem", () => pinnedAndAutoSort.AddItem(nextTest.Invoke()));
+            Stack<TestEnum> pinned = new Stack<TestEnum>();
+
+            AddStep("AddItem", () =>
+            {
+                var item = nextTest.Invoke();
+                if (!pinnedAndAutoSort.Items.Contains(item))
+                    pinnedAndAutoSort.AddItem(item);
+            });
+
             AddStep("PinItem", () =>
             {
-                var test = nextTest.Invoke();
-                pinnedAndAutoSort.AddItem(test);
-                pinnedAndAutoSort.PinItem(test);
+                var item = nextTest.Invoke();
+
+                if (!pinnedAndAutoSort.Items.Contains(item))
+                {
+                    pinned.Push(item);
+                    pinnedAndAutoSort.AddItem(item);
+                    pinnedAndAutoSort.PinItem(item);
+                }
             });
-            AddStep("UnpinItem", () => pinnedAndAutoSort.UnpinItem(pinnedAndAutoSort.Items.First()));
+
+            AddStep("UnpinItem", () =>
+            {
+                if (pinned.Count > 0) pinnedAndAutoSort.UnpinItem(pinned.Pop());
+            });
         }
 
         private class StyledTabControl : TabControl<TestEnum>
@@ -70,29 +87,6 @@ namespace osu.Framework.VisualTests.Tests
         private class StyledTabItem : TabItem<TestEnum>
         {
             private readonly SpriteText text;
-
-            public override bool Active
-            {
-                get { return base.Active; }
-                set
-                {
-                    if (value)
-                        fadeActive();
-                    else
-                        fadeInactive();
-                    base.Active = value;
-                }
-            }
-
-            private void fadeActive()
-            {
-                text.Colour = Color4.MediumPurple;
-            }
-
-            private void fadeInactive()
-            {
-                text.Colour = Color4.White;
-            }
 
             public StyledTabItem(TestEnum value) : base(value)
             {
@@ -107,6 +101,10 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 };
             }
+
+            protected override void OnActivated() => text.Colour = Color4.MediumPurple;
+
+            protected override void OnDeactivated() => text.Colour = Color4.White;
         }
 
         private class StyledDropdown : Dropdown<TestEnum>
