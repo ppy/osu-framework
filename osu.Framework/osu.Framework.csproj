@@ -53,8 +53,9 @@
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1341\lib\net45\OpenTK.dll</HintPath>
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
@@ -118,6 +119,7 @@
     <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
     <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\Containers\VisibilityContainer.cs" />
     <Compile Include="Graphics\Cursor\ContextMenuContainer.cs" />
     <Compile Include="Graphics\Cursor\IHasContextMenu.cs" />
     <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
