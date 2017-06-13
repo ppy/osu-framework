@@ -41,7 +41,7 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        private volatile int seekCommands;
+        private volatile byte seekCommands;
 
         private readonly object seekLock = new Object();
 
