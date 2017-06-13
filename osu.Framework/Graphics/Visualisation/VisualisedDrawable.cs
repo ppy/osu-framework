@@ -31,8 +31,23 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
+        public bool IsHighlighted
+        {
+            get
+            {
+                return highlightBackground.Alpha > 0;
+            }
+            set
+            {
+                highlightBackground.Alpha = value ? 1 : 0;
+
+                if (value)
+                    Expand();
+            }
+        }
+
         private readonly Box background;
-        internal readonly Box highlightBackground;
+        private readonly Box highlightBackground;
         private readonly SpriteText text;
         private readonly Drawable previewBox;
         private readonly Drawable activityInvalidate;
@@ -42,22 +57,20 @@ namespace osu.Framework.Graphics.Visualisation
         public Action HoverGained;
         public Action HoverLost;
 
-        public Action<VisualisedDrawable> HighlightTarget;
         public Action RequestTarget;
+        public Action HighlightTarget;
 
         private const int line_height = 12;
 
         public FillFlowContainer<VisualisedDrawable> Flow;
-
-        private readonly DrawVisualiser viz;
+        
         private readonly TreeContainer tree;
 
         private readonly int nestingDepth;
 
-        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, DrawVisualiser viz)
+        public VisualisedDrawable(VisualisedDrawable parent, Drawable d, TreeContainer tree)
         {
-            this.viz = viz;
-            tree = viz.TreeContainer;
+            this.tree = tree;
 
             nestingDepth = (parent?.nestingDepth ?? 0) + 1;
             Target = d;
@@ -189,19 +202,18 @@ namespace osu.Framework.Graphics.Visualisation
         {
             if (args.Button == MouseButton.Right)
             {
-                HighlightTarget?.Invoke(viz.Highlighted == this ? null : this);
+                HighlightTarget?.Invoke();
                 return true;
             }
-
-            return base.OnMouseDown(state, args);
+            return false;
         }
 
         protected override bool OnClick(InputState state)
         {
             if (Flow.IsPresent)
                 Collapse();
-
             else Expand();
+
             return true;
         }
 
@@ -216,11 +228,9 @@ namespace osu.Framework.Graphics.Visualisation
             Flow.Alpha = 1f;
             updateSpecifics();
         }
+
         public void Collapse()
         {
-            if (viz.Highlighted == this)
-                return;
-
             Flow.Alpha = 0f;
             updateSpecifics();
         }

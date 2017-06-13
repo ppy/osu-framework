@@ -107,21 +107,28 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly SpriteText valueText;
         private readonly Box changeMarker;
-
-        private readonly Box box;
+        
         private readonly Func<object> getValue; // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)
         {
+            Type type;
             switch (info.MemberType)
             {
                 case MemberTypes.Property:
-                    getValue = () => ((PropertyInfo)info).GetValue(d);
+                    PropertyInfo propertyInfo = (PropertyInfo)info;
+                    type = propertyInfo.PropertyType;
+                    getValue = () => propertyInfo.GetValue(d);
                     break;
 
                 case MemberTypes.Field:
-                    getValue = () => ((FieldInfo)info).GetValue(d);
+                    FieldInfo fieldInfo = (FieldInfo)info;
+                    type = fieldInfo.FieldType;
+                    getValue = () => fieldInfo.GetValue(d);
                     break;
+
+                default:
+                    throw new NotImplementedException(@"Not a value member.");
             }
 
             RelativeSizeAxes = Axes.X;
@@ -137,23 +144,32 @@ namespace osu.Framework.Graphics.Visualisation
                     },
                     Children = new Drawable[]
                     {
-                        box = new Box()
+                        new FillFlowContainer<SpriteText>()
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
-                            Alpha = 0f
-                        },
-                        new SpriteText()
-                        {
-                            Text = info.Name,
-                            TextSize = Height
-                        },
-                        valueText = new SpriteText()
-                        {
-                            Anchor = Anchor.TopRight,
-                            Origin = Anchor.TopRight,
-                            TextSize = Height
-                        },
+                            AutoSizeAxes = Axes.Both,
+                            Direction = FillDirection.Horizontal,
+                            Spacing = new Vector2(10f),
+                            Children = new[]
+                            {
+                                new SpriteText()
+                                {
+                                    Text = info.Name,
+                                    TextSize = Height,
+                                    Colour = Color4.LightBlue,
+                                },
+                                new SpriteText()
+                                {
+                                    Text = $@"[{type.Name}]:",
+                                    TextSize = Height,
+                                    Colour = Color4.MediumPurple,
+                                },
+                                valueText = new SpriteText()
+                                {
+                                    TextSize = Height,
+                                    Colour = Color4.White,
+                                },
+                            }
+                        }
                     }
                 },
                 changeMarker = new Box()
@@ -164,15 +180,22 @@ namespace osu.Framework.Graphics.Visualisation
                     Colour = Color4.Red
                 }
             });
-        }
 
-        private object lastValue;
+            // Update the value once
+            updateValue();
+        }
 
         protected override void Update()
         {
             base.Update();
 
-            // Update value
+            updateValue();
+        }
+
+        private object lastValue;
+
+        private void updateValue()
+        {
             object value;
             try
             {
@@ -192,17 +215,6 @@ namespace osu.Framework.Graphics.Visualisation
 
             lastValue = value;
             valueText.Text = value.ToString();
-        }
-
-        protected override bool OnHover(InputState state)
-        {
-            box.FadeTo(0.2f, 100);
-
-            return false;
-        }
-        protected override void OnHoverLost(InputState state)
-        {
-            box.FadeOut(100);
         }
     }
 }

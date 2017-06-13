@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Visualisation
     public class DrawVisualiser : OverlayContainer
     {
         internal readonly TreeContainer TreeContainer;
-        internal VisualisedDrawable Highlighted;
+        internal VisualisedDrawable HighlightedTarget;
 
         private readonly PropertyDisplay propertyDisplay;
 
@@ -32,21 +32,13 @@ namespace osu.Framework.Graphics.Visualisation
             RelativeSizeAxes = Axes.Both;
             Children = new Drawable[]
             {
-                overlay = new InfoOverlay()
-                {
-                    Depth = float.MaxValue
-                },
-                propertyDisplay = new PropertyDisplay
-                {
-                    Depth = float.MinValue
-                },
+                overlay = new InfoOverlay(),
                 TreeContainer = new TreeContainer
                 {
-                    Depth = 0f, // Below property display
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
-                        Drawable lastHighlight = Highlighted?.Target;
+                        Drawable lastHighlight = HighlightedTarget?.Target;
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
@@ -57,7 +49,10 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             VisualisedDrawable visualised = findVisualised(lastHighlight, targetDrawable);
                             if (visualised != null)
+                            {
+                                propertyDisplay.State = Visibility.Visible;
                                 setHighlight(visualised);
+                            }
                         }
                     },
                     ToggleProperties = delegate
@@ -71,6 +66,7 @@ namespace osu.Framework.Graphics.Visualisation
                             setHighlight(targetDrawable);
                     },
                 },
+                propertyDisplay = new PropertyDisplay(),
                 new CursorContainer()
             };
 
@@ -79,6 +75,7 @@ namespace osu.Framework.Graphics.Visualisation
                 switch (visibility)
                 {
                     case Visibility.Hidden:
+                        // Dehighlight everything automatically if property display is closed
                         setHighlight(null);
                         break;
                 }
@@ -128,9 +125,6 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void chooseTarget()
         {
-            setHighlight(null);
-            propertyDisplay.State = Visibility.Hidden;
-
             Target = null;
             targetSearching = true;
         }
@@ -183,6 +177,8 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void removeRootVisualisedDrawable()
         {
+            propertyDisplay.State = Visibility.Hidden;
+
             if (targetDrawable != null)
             {
                 TreeContainer.Remove(targetDrawable);
@@ -194,7 +190,6 @@ namespace osu.Framework.Graphics.Visualisation
         private void createRootVisualisedDrawable()
         {
             removeRootVisualisedDrawable();
-            setHighlight(null);
 
             if (target != null)
             {
@@ -226,20 +221,27 @@ namespace osu.Framework.Graphics.Visualisation
 
             visualise(Target, targetDrawable);
         }
-        private void updatePropertyDisplay(Drawable d)
+
+        private void updatePropertyDisplay(VisualisedDrawable vis)
         {
             propertyDisplay.Clear();
 
-            if (d == null)
+            if (vis == null)
+            {
+                // Property display must automatically close when there are no target,
+                // but it may never automatically open
+                propertyDisplay.State = Visibility.Hidden;
                 return;
-
-            Type type = d.GetType();
+            }
+            
+            Type type = vis.Target.GetType();
 
             propertyDisplay.Add(
                 ((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
                 .OrderBy(member => member.Name)
-                .Select(member => new PropertyItem(member, d)));
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name))  // Include non-public fields at the end
+                .Select(member => new PropertyItem(member, vis.Target)));
         }
 
         private void updateHoveredDrawable()
@@ -249,10 +251,9 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable createVisualisedDrawable(VisualisedDrawable parent, Drawable target)
         {
-            var vis = new VisualisedDrawable(parent, target, this)
+            var vis = new VisualisedDrawable(parent, target, TreeContainer)
             {
-                RequestTarget = delegate { Target = target; },
-                HighlightTarget = setHighlight
+                RequestTarget = delegate { Target = target; }
             };
 
             vis.HoverGained = delegate
@@ -267,26 +268,40 @@ namespace osu.Framework.Graphics.Visualisation
                 updateHoveredDrawable();
             };
 
+            vis.HighlightTarget = delegate
+            {
+                // Either highlight or dehighlight the target, depending on whether
+                // it is currently highlighted
+                if (HighlightedTarget == vis)
+                    setHighlight(null);
+                else setHighlight(vis);
+            };
+
             return vis;
         }
+
         private void setHighlight(VisualisedDrawable newHighlight)
         {
-            Highlighted?.highlightBackground.FadeOut();
+            if (HighlightedTarget != null)
+            {
+                // Dehighlight the lastly highlighted target
+                HighlightedTarget.IsHighlighted = false;
+                HighlightedTarget = null;
+            }
 
             if (newHighlight == null)
             {
                 updatePropertyDisplay(null);
-                Highlighted = null;
                 return;
             }
 
-            updatePropertyDisplay(newHighlight.Target);
-            Highlighted = newHighlight;
-
+            // Only update when property display is visible
             if (propertyDisplay.State == Visibility.Visible)
             {
-                newHighlight.highlightBackground.FadeIn();
-                newHighlight.Expand();
+                HighlightedTarget = newHighlight;
+                newHighlight.IsHighlighted = true;
+
+                updatePropertyDisplay(newHighlight);
             }
         }
 
