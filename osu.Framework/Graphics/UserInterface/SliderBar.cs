@@ -61,8 +61,9 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         /// <summary>
-        /// Triggered when the value is changed at all and receives the normalised value.
+        /// Triggered when the <see cref="Current"/> value has changed. Used to update the displayed value.
         /// </summary>
+        /// <param name="value">The normalized <see cref="Current"/> value.</param>
         protected abstract void UpdateValue(float value);
 
         protected override void LoadComplete()
