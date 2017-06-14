@@ -72,7 +72,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         public void UpdateFrom(Drawable source)
         {
-            Clear(true);
+            Clear();
 
             if (source == null)
             {

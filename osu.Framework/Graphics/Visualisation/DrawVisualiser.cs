@@ -247,9 +247,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
-                if (highlightedTarget == vis)
-                    setHighlight(null);
-                else setHighlight(vis);
+                setHighlight(highlightedTarget != vis ? vis : null);
             };
 
             return vis;
