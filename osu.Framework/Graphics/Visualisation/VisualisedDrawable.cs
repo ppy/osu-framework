@@ -31,18 +31,27 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
+        private bool isHighlighted;
+
         public bool IsHighlighted
         {
             get
             {
-                return highlightBackground.Alpha > 0;
+                return isHighlighted;
             }
             set
             {
-                highlightBackground.Alpha = value ? 1 : 0;
+                isHighlighted = value;
 
                 if (value)
+                {
+                    highlightBackground.FadeIn();
                     Expand();
+                }
+                else
+                {
+                    highlightBackground.FadeOut();
+                }
             }
         }
 
@@ -63,7 +72,6 @@ namespace osu.Framework.Graphics.Visualisation
         private const int line_height = 12;
 
         public FillFlowContainer<VisualisedDrawable> Flow;
-        
         private readonly TreeContainer tree;
 
         private readonly int nestingDepth;
@@ -210,7 +218,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         protected override bool OnClick(InputState state)
         {
-            if (Flow.IsPresent)
+            if (isExpanded)
                 Collapse();
             else Expand();
 
@@ -223,16 +231,22 @@ namespace osu.Framework.Graphics.Visualisation
             return true;
         }
 
+        private bool isExpanded = true;
+
         public void Expand()
         {
-            Flow.Alpha = 1f;
+            Flow.FadeIn();
             updateSpecifics();
+
+            isExpanded = true;
         }
 
         public void Collapse()
         {
-            Flow.Alpha = 0f;
+            Flow.FadeOut();
             updateSpecifics();
+
+            isExpanded = false;
         }
 
         private void onAutoSize()
@@ -264,14 +278,14 @@ namespace osu.Framework.Graphics.Visualisation
 
             int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
-            text.Text = Target + (!Flow.IsPresent && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
+            text.Text = Target + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
 
         protected override void Update()
         {
             updateSpecifics();
 
-            text.Colour = !Flow.IsPresent && ((Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0) > 0 ? Color4.LightBlue : Color4.White;
+            text.Colour = !isExpanded && ((Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0) > 0 ? Color4.LightBlue : Color4.White;
             base.Update();
         }
 

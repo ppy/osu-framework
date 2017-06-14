@@ -16,8 +16,8 @@ namespace osu.Framework.Graphics.Visualisation
 {
     public class DrawVisualiser : OverlayContainer
     {
-        internal readonly TreeContainer TreeContainer;
-        internal VisualisedDrawable HighlightedTarget;
+        private readonly TreeContainer treeContainer;
+        private VisualisedDrawable highlightedTarget;
 
         private readonly PropertyDisplay propertyDisplay;
 
@@ -33,12 +33,12 @@ namespace osu.Framework.Graphics.Visualisation
             Children = new Drawable[]
             {
                 overlay = new InfoOverlay(),
-                TreeContainer = new TreeContainer
+                treeContainer = new TreeContainer
                 {
                     ChooseTarget = chooseTarget,
                     GoUpOneParent = delegate
                     {
-                        Drawable lastHighlight = HighlightedTarget?.Target;
+                        Drawable lastHighlight = highlightedTarget?.Target;
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
@@ -181,7 +181,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (targetDrawable != null)
             {
-                TreeContainer.Remove(targetDrawable);
+                treeContainer.Remove(targetDrawable);
                 targetDrawable.Dispose();
                 targetDrawable = null;
             }
@@ -194,7 +194,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (target != null)
             {
                 targetDrawable = createVisualisedDrawable(null, target);
-                TreeContainer.Add(targetDrawable);
+                treeContainer.Add(targetDrawable);
 
                 runUpdate(); // run an initial update to immediately show the selected hierarchy.
 
@@ -233,7 +233,6 @@ namespace osu.Framework.Graphics.Visualisation
                 propertyDisplay.State = Visibility.Hidden;
                 return;
             }
-            
             Type type = vis.Target.GetType();
 
             propertyDisplay.Add(
@@ -251,7 +250,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable createVisualisedDrawable(VisualisedDrawable parent, Drawable target)
         {
-            var vis = new VisualisedDrawable(parent, target, TreeContainer)
+            var vis = new VisualisedDrawable(parent, target, treeContainer)
             {
                 RequestTarget = delegate { Target = target; }
             };
@@ -272,7 +271,7 @@ namespace osu.Framework.Graphics.Visualisation
             {
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
-                if (HighlightedTarget == vis)
+                if (highlightedTarget == vis)
                     setHighlight(null);
                 else setHighlight(vis);
             };
@@ -282,11 +281,11 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void setHighlight(VisualisedDrawable newHighlight)
         {
-            if (HighlightedTarget != null)
+            if (highlightedTarget != null)
             {
                 // Dehighlight the lastly highlighted target
-                HighlightedTarget.IsHighlighted = false;
-                HighlightedTarget = null;
+                highlightedTarget.IsHighlighted = false;
+                highlightedTarget = null;
             }
 
             if (newHighlight == null)
@@ -298,7 +297,7 @@ namespace osu.Framework.Graphics.Visualisation
             // Only update when property display is visible
             if (propertyDisplay.State == Visibility.Visible)
             {
-                HighlightedTarget = newHighlight;
+                highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
                 updatePropertyDisplay(newHighlight);

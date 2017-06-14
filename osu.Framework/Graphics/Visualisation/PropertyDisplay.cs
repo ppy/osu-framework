@@ -107,7 +107,6 @@ namespace osu.Framework.Graphics.Visualisation
     {
         private readonly SpriteText valueText;
         private readonly Box changeMarker;
-        
         private readonly Func<object> getValue; // Use delegate for performance
 
         public PropertyItem(MemberInfo info, IDrawable d)
