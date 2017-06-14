@@ -25,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,8 +39,9 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1341\lib\net45\OpenTK.dll</HintPath>
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,11 +53,19 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\TestCaseCheckboxes.cs" />
+    <Compile Include="Tests\TestCaseCircularProgress.cs" />
     <Compile Include="Tests\TestCaseColourGradient.cs" />
+    <Compile Include="Tests\TestCaseContextMenu.cs" />
+    <Compile Include="Tests\TestCaseCoordinateSpaces.cs" />
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
+    <Compile Include="Tests\TestCaseEffects.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
+    <Compile Include="Tests\TestCaseHollowEdgeEffect.cs" />
+    <Compile Include="Tests\TestCaseInputResampler.cs" />
+    <Compile Include="Tests\TestCaseTextFlow.cs" />
     <Compile Include="Tests\TestCaseRigidBody.cs" />
+    <Compile Include="Tests\TestCaseSearchContainer.cs" />
     <Compile Include="Tests\TestCaseSizing.cs" />
     <Compile Include="Tests\TestCaseSmoothedEdges.cs" />
     <Compile Include="Tests\TestCaseDropdownBox.cs" />
@@ -71,7 +81,9 @@
     <Compile Include="Tests\TestCaseTextBox.cs" />
     <Compile Include="Tests\TestCaseScrollableFlow.cs" />
     <Compile Include="Tests\TestCaseNestedHover.cs" />
+    <Compile Include="Tests\TestCaseTooltip.cs" />
     <Compile Include="Tests\TestCaseTriangles.cs" />
+    <Compile Include="Tests\TestCaseVertexBindBenchmark.cs" />
     <Compile Include="VisualTestGame.cs" />
     <None Include="..\osu-framework.licenseheader">
       <Link>osu-framework.licenseheader</Link>
@@ -93,11 +105,11 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
   -->
 </Project>

@@ -15,7 +15,6 @@ using osu.Framework.Platform;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Statistics;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
@@ -53,8 +52,6 @@ namespace osu.Framework
 
         protected override Container<Drawable> Content => content;
 
-        public DependencyContainer Dependencies => Host.Dependencies;
-
         protected Game()
         {
             AlwaysReceiveInput = true;
@@ -67,7 +64,12 @@ namespace osu.Framework
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
+                    AlwaysReceiveInput = true,
                 },
+                new GlobalHotkeys
+                {
+                    Handler = globalKeyDown
+                }
             });
         }
 
@@ -84,13 +86,6 @@ namespace osu.Framework
             }, AddInternal);
         }
 
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if (!base.Invalidate(invalidation, source, shallPropagate)) return false;
-
-            return true;
-        }
-
         /// <summary>
         /// As Load is run post host creation, you can override this method to alter properties of the host before it makes itself visible to the user.
         /// </summary>
@@ -99,6 +94,8 @@ namespace osu.Framework
         {
             Host = host;
             host.Exiting += OnExiting;
+            host.Activated += () => IsActive = true;
+            host.Deactivated += () => IsActive = false;
         }
 
         [BackgroundDependencyLoader]
@@ -122,10 +119,10 @@ namespace osu.Framework
             Host.RegisterThread(Audio.Thread);
 
             //attach our bindables to the audio subsystem.
-            config.BindWith(FrameworkConfig.AudioDevice, Audio.AudioDevice);
-            config.BindWith(FrameworkConfig.VolumeUniversal, Audio.Volume);
-            config.BindWith(FrameworkConfig.VolumeEffect, Audio.VolumeSample);
-            config.BindWith(FrameworkConfig.VolumeMusic, Audio.VolumeTrack);
+            config.BindWith(FrameworkSetting.AudioDevice, Audio.AudioDevice);
+            config.BindWith(FrameworkSetting.VolumeUniversal, Audio.Volume);
+            config.BindWith(FrameworkSetting.VolumeEffect, Audio.VolumeSample);
+            config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
             Dependencies.Cache(Shaders);
@@ -151,7 +148,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, delegate(Drawable overlay)
+            }, delegate (Drawable overlay)
             {
                 performanceContainer.Threads.AddRange(Host.Threads.Reverse());
 
@@ -187,23 +184,29 @@ namespace osu.Framework
             }
         }
 
-        protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
+        protected FrameStatisticsMode FrameStatisticsMode
+        {
+            get { return performanceContainer.State; }
+            set { performanceContainer.State = value; }
+        }
+
+        private bool globalKeyDown(InputState state, KeyDownEventArgs args)
         {
             if (state.Keyboard.ControlPressed)
             {
                 switch (args.Key)
                 {
                     case Key.F11:
-                        switch (performanceContainer.State)
+                        switch (FrameStatisticsMode)
                         {
                             case FrameStatisticsMode.None:
-                                performanceContainer.State = FrameStatisticsMode.Minimal;
+                                FrameStatisticsMode = FrameStatisticsMode.Minimal;
                                 break;
                             case FrameStatisticsMode.Minimal:
-                                performanceContainer.State = FrameStatisticsMode.Full;
+                                FrameStatisticsMode = FrameStatisticsMode.Full;
                                 break;
                             case FrameStatisticsMode.Full:
-                                performanceContainer.State = FrameStatisticsMode.None;
+                                FrameStatisticsMode = FrameStatisticsMode.None;
                                 break;
                         }
                         return true;
@@ -222,7 +225,7 @@ namespace osu.Framework
                 return true;
             }
 
-            return base.OnKeyDown(state, args);
+            return false;
         }
 
         public void Exit()

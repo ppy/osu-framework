@@ -1,10 +1,10 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
 using System;
+using OpenTK;
 
-namespace osu.Framework.Graphics.Primitives
+namespace osu.Framework.Graphics
 {
     public struct MarginPadding : IEquatable<MarginPadding>
     {
@@ -14,8 +14,16 @@ namespace osu.Framework.Graphics.Primitives
         public float Right;
 
         public float TotalHorizontal => Left + Right;
+        public float Horizontal
+        {
+            set { Left = Right = value; }
+        }
 
         public float TotalVertical => Top + Bottom;
+        public float Vertical
+        {
+            set { Top = Bottom = value; }
+        }
 
         public Vector2 Total => new Vector2(TotalHorizontal, TotalVertical);
 
@@ -28,11 +36,6 @@ namespace osu.Framework.Graphics.Primitives
         {
             if (Top < 0 || Left < 0 || Bottom < 0 || Right < 0)
                 throw new InvalidOperationException($"{nameof(MarginPadding)} may not have negative values, but values are {this}.");
-        }
-
-        public int CompareTo(object obj)
-        {
-            throw new NotImplementedException();
         }
 
         public bool Equals(MarginPadding other)

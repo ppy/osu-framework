@@ -5,6 +5,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using osu.Framework.Configuration;
+using osu.Framework.Input;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
@@ -28,7 +29,9 @@ namespace osu.Framework.Desktop.Platform
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
 
-        private readonly Bindable<WindowMode> mode = new Bindable<WindowMode>();
+        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+
+        private readonly Bindable<ConfineMouseMode> confineMouseMode = new Bindable<ConfineMouseMode>();
 
         public DesktopGameWindow()
             : base(default_width, default_height)
@@ -37,19 +40,24 @@ namespace osu.Framework.Desktop.Platform
 
         public override void SetupWindow(FrameworkConfigManager config)
         {
-            config.BindWith(FrameworkConfig.WidthFullscreen, widthFullscreen);
-            config.BindWith(FrameworkConfig.HeightFullscreen, heightFullscreen);
+            config.BindWith(FrameworkSetting.WidthFullscreen, widthFullscreen);
+            config.BindWith(FrameworkSetting.HeightFullscreen, heightFullscreen);
 
-            config.BindWith(FrameworkConfig.Width, width);
-            config.BindWith(FrameworkConfig.Height, height);
+            config.BindWith(FrameworkSetting.Width, width);
+            config.BindWith(FrameworkSetting.Height, height);
 
-            config.BindWith(FrameworkConfig.WindowedPositionX, windowPositionX);
-            config.BindWith(FrameworkConfig.WindowedPositionY, windowPositionY);
+            config.BindWith(FrameworkSetting.WindowedPositionX, windowPositionX);
+            config.BindWith(FrameworkSetting.WindowedPositionY, windowPositionY);
 
-            config.BindWith(FrameworkConfig.WindowMode, mode);
+            config.BindWith(FrameworkSetting.ConfineMouseMode, confineMouseMode);
 
-            mode.ValueChanged += mode_ValueChanged;
-            mode.TriggerChange();
+            confineMouseMode.ValueChanged += confineMouseMode_ValueChanged;
+            confineMouseMode.TriggerChange();
+
+            config.BindWith(FrameworkSetting.WindowMode, windowMode);
+
+            windowMode.ValueChanged += windowMode_ValueChanged;
+            windowMode.TriggerChange();
 
             Exited += onExit;
         }
@@ -57,7 +65,7 @@ namespace osu.Framework.Desktop.Platform
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            switch (mode.Value)
+            switch (windowMode.Value)
             {
                 case WindowMode.Windowed:
                     width.Value = ClientSize.Width;
@@ -66,7 +74,27 @@ namespace osu.Framework.Desktop.Platform
             }
         }
 
-        private void mode_ValueChanged(WindowMode newMode)
+        private void confineMouseMode_ValueChanged(ConfineMouseMode newValue)
+        {
+            bool confine = false;
+
+            switch (newValue)
+            {
+                case ConfineMouseMode.Fullscreen:
+                    confine = windowMode.Value != WindowMode.Windowed;
+                    break;
+                case ConfineMouseMode.Always:
+                    confine = true;
+                    break;
+            }
+
+            if (confine)
+                CursorState |= Framework.Platform.CursorState.Confined;
+            else
+                CursorState &= ~Framework.Platform.CursorState.Confined;
+        }
+
+        private void windowMode_ValueChanged(WindowMode newMode)
         {
             switch (newMode)
             {
@@ -96,11 +124,13 @@ namespace osu.Framework.Desktop.Platform
                     Position = new Vector2((float)windowPositionX, (float)windowPositionY);
                     break;
             }
+
+            confineMouseMode.TriggerChange();
         }
 
         private void onExit()
         {
-            switch (mode.Value)
+            switch (windowMode.Value)
             {
                 case WindowMode.Fullscreen:
                     widthFullscreen.Value = ClientSize.Width;
@@ -133,16 +163,16 @@ namespace osu.Framework.Desktop.Platform
 
         public override void CycleMode()
         {
-            switch (mode.Value)
+            switch (windowMode.Value)
             {
                 case WindowMode.Windowed:
-                    mode.Value = WindowMode.Borderless;
+                    windowMode.Value = WindowMode.Borderless;
                     break;
                 case WindowMode.Borderless:
-                    mode.Value = WindowMode.Fullscreen;
+                    windowMode.Value = WindowMode.Fullscreen;
                     break;
                 default:
-                    mode.Value = WindowMode.Windowed;
+                    windowMode.Value = WindowMode.Windowed;
                     break;
             }
         }

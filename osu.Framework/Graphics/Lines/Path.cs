@@ -21,9 +21,9 @@ namespace osu.Framework.Graphics.Lines
                 if (positions == value) return;
 
                 positions = value;
-                recomputeBounts();
+                recomputeBounds();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -37,7 +37,10 @@ namespace osu.Framework.Graphics.Lines
             positions.Clear();
             resetBounds();
 
-            Invalidate(Invalidation.Geometry);
+            if ((RelativeSizeAxes & Axes.X) == 0) Width = 0;
+            if ((RelativeSizeAxes & Axes.Y) == 0) Height = 0;
+
+            Invalidate(Invalidation.DrawNode);
         }
 
         public void AddVertex(Vector2 pos)
@@ -45,7 +48,7 @@ namespace osu.Framework.Graphics.Lines
             positions.Add(pos);
             expandBounds(pos);
 
-            Invalidate(Invalidation.Geometry);
+            Invalidate(Invalidation.DrawNode);
         }
 
         private float minX;
@@ -72,7 +75,7 @@ namespace osu.Framework.Graphics.Lines
             minX = minY = maxX = maxY = 0;
         }
 
-        private void recomputeBounts()
+        private void recomputeBounds()
         {
             resetBounds();
             foreach (Vector2 pos in positions)
@@ -89,9 +92,9 @@ namespace osu.Framework.Graphics.Lines
                 if (pathWidth == value) return;
 
                 pathWidth = value;
-                recomputeBounts();
+                recomputeBounds();
 
-                Invalidate(Invalidation.Geometry);
+                Invalidate(Invalidation.DrawNode);
             }
         }
 
@@ -148,8 +151,8 @@ namespace osu.Framework.Graphics.Lines
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.TextureRounded);
-            textureShader = shaders?.Load(VertexShaderDescriptor.Texture3D, FragmentShaderDescriptor.Texture);
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
         }
 
         private Texture texture = Texture.WhitePixel;

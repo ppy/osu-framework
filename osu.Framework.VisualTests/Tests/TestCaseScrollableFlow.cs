@@ -7,7 +7,6 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 
@@ -94,11 +93,11 @@ namespace osu.Framework.VisualTests.Tests
             AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
             AddStep("Both", createAreaBoth);
 
-            AddStep("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddStep("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
+            AddStep("Dragger Anchor 1", delegate { scroll.ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddStep("Dragger Anchor 2", delegate { scroll.ScrollbarAnchor = Anchor.TopLeft; });
 
-            AddStep("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
-            AddStep("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
+            AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
+            AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate
@@ -124,11 +123,13 @@ namespace osu.Framework.VisualTests.Tests
                 flow.Add(container);
 
                 container.FadeInFromZero(1000);
-                container.Delay(RNG.Next(0, 20000), true);
-                container.FadeOutFromOne(4000);
-                box.RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
-                box.ScaleTo(0.5f, 4000);
-                container.Expire();
+                using (container.BeginDelayedSequence(RNG.Next(0, 20000), true))
+                {
+                    container.FadeOutFromOne(4000);
+                    box.RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
+                    box.ScaleTo(0.5f, 4000);
+                    container.Expire();
+                }
             }, 100, true);
         }
     }

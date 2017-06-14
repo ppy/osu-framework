@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 using OpenTK;
@@ -10,8 +9,12 @@ using OpenTK.Graphics;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseSmoothedEdges : TestCase
+    internal class TestCaseSmoothedEdges : GridTestCase
     {
+        public TestCaseSmoothedEdges() : base(2, 2)
+        {
+        }
+
         public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
 
         private readonly Box[] boxes = new Box[4];
@@ -20,108 +23,34 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(new Container
+            Vector2[] smoothnesses =
             {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                new Vector2(0, 0),
+                new Vector2(0, 2),
+                new Vector2(1, 1),
+                new Vector2(2, 2),
+            };
+
+            for (int i = 0; i < Rows * Cols; ++i)
+            {
+                Cell(i).Add(new Drawable[]
                 {
-                    new FillFlowContainer
+                    new SpriteText
+                    {
+                        Text = $"{nameof(Sprite.EdgeSmoothness)}={smoothnesses[i]}",
+                        TextSize = 20,
+                    },
+                    boxes[i] = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new[]
-                        {
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "No smoothing",
-                                        TextSize = 20,
-                                    },
-                                    boxes[0] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.Zero,
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "2-smoothing perpendicular to Y",
-                                        TextSize = 20,
-                                    },
-                                    boxes[1] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        EdgeSmoothness = new Vector2(0, 2),
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "1-smoothing",
-                                        TextSize = 20,
-                                    },
-                                    boxes[2] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.One,
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "2-smoothing",
-                                        TextSize = 20,
-                                    },
-                                    boxes[3] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        EdgeSmoothness = Vector2.One * 2,
-                                    }
-                                }
-                            },
-                        }
-                    }
-                }
-            });
+                        Colour = Color4.White,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(0.5f),
+                        EdgeSmoothness = smoothnesses[i],
+                    },
+                });
+            }
         }
 
         protected override void Update()

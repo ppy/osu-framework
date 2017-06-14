@@ -1,15 +1,16 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
+using System;
 using System.Globalization;
+using System.IO;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.IO.Stores;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 
@@ -19,14 +20,18 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Localisation engine";
 
-        private TestLocalisationEngine engine; //keep a reference to avoid GC of the engine
+        private LocalisationEngine engine; //keep a reference to avoid GC of the engine
 
         public override void Reset()
         {
             base.Reset();
 
             var config = new FakeFrameworkConfigManager();
-            engine = new TestLocalisationEngine(config);
+            engine = new LocalisationEngine(config);
+
+            engine.AddLanguage("en", new FakeStorage());
+            engine.AddLanguage("zh-CHS", new FakeStorage());
+            engine.AddLanguage("ja", new FakeStorage());
 
             Add(new FillFlowContainer<SpriteText>
             {
@@ -62,13 +67,19 @@ namespace osu.Framework.VisualTests.Tests
                         TextSize = 48,
                         Colour = Color4.White
                     },
+                    new SpriteText
+                    {
+                        Current = engine.Format("{0}", DateTime.Now),
+                        TextSize = 48,
+                        Colour = Color4.White
+                    },
                 }
             });
 
-            AddStep("English", () => config.Set(FrameworkConfig.Locale, "en"));
-            AddStep("Japanese", () => config.Set(FrameworkConfig.Locale, "ja"));
-            AddStep("Simplified Chinese", () => config.Set(FrameworkConfig.Locale, "zh-Hans"));
-            AddToggleStep("ShowUnicode", b => config.Set(FrameworkConfig.ShowUnicode, b));
+            AddStep("English", () => config.Set(FrameworkSetting.Locale, "en"));
+            AddStep("Japanese", () => config.Set(FrameworkSetting.Locale, "ja"));
+            AddStep("Simplified Chinese", () => config.Set(FrameworkSetting.Locale, "zh-CHS"));
+            AddToggleStep("ShowUnicode", b => config.Set(FrameworkSetting.ShowUnicode, b));
         }
 
         private class FakeFrameworkConfigManager : FrameworkConfigManager
@@ -79,18 +90,18 @@ namespace osu.Framework.VisualTests.Tests
 
             protected override void InitialiseDefaults()
             {
-                Set(FrameworkConfig.Locale, "");
-                Set(FrameworkConfig.ShowUnicode, false);
+                Set(FrameworkSetting.Locale, "");
+                Set(FrameworkSetting.ShowUnicode, false);
             }
         }
 
-        private class TestLocalisationEngine : LocalisationEngine
+        private class FakeStorage : IResourceStore<string>
         {
-            public TestLocalisationEngine(FrameworkConfigManager config) : base(config) { }
-
-            public override IEnumerable<string> SupportedLocales => new[] { "en", "ja", "zh-Hans" };
-
-            protected override string GetLocalised(string key) => $"{key} in {CultureInfo.CurrentCulture.EnglishName}";
+            public string Get(string name) => $"{name} in {CultureInfo.CurrentCulture.EnglishName}";
+            public Stream GetStream(string name)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }

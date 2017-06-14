@@ -10,6 +10,7 @@ using OpenTK;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Graphics.Colour;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Containers
     /// <summary>
     /// Parametrizes the appearance of an edge effect.
     /// </summary>
-    public struct EdgeEffect
+    public struct EdgeEffectParameters : IEquatable<EdgeEffectParameters>
     {
         /// <summary>
         /// Colour of the edge effect.
@@ -55,6 +56,18 @@ namespace osu.Framework.Graphics.Containers
         /// from the <see cref="Container"/> border the edge effect becomes fully invisible.
         /// </summary>
         public float Radius;
+
+        /// <summary>
+        /// Whether the inside of the EdgeEffect rectangle should be empty.
+        /// </summary>
+        public bool Hollow;
+
+        public bool Equals(EdgeEffectParameters other) =>
+            Colour.Equals(other.Colour) &&
+            Offset == other.Offset &&
+            Type == other.Type &&
+            Roundness == other.Roundness &&
+            Radius == other.Radius;
     }
 
     /// <summary>
@@ -102,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Information about how the edge effect should be rendered.
         /// </summary>
-        public EdgeEffect EdgeEffect;
+        public EdgeEffectParameters EdgeEffect;
 
         /// <summary>
         /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
@@ -129,8 +142,11 @@ namespace osu.Framework.Graphics.Containers
             edgeEffectMaskingInfo.ScreenSpaceAABB = ScreenSpaceMaskingQuad.Value.AABB;
             edgeEffectMaskingInfo.CornerRadius += EdgeEffect.Radius + EdgeEffect.Roundness;
             edgeEffectMaskingInfo.BorderThickness = 0;
+            // HACK HACK HACK. We abuse blend range to give us the linear alpha gradient of
+            // the edge effect along its radius using the same rounded-corners shader.
             edgeEffectMaskingInfo.BlendRange = EdgeEffect.Radius;
             edgeEffectMaskingInfo.AlphaExponent = 2;
+            edgeEffectMaskingInfo.Hollow = EdgeEffect.Hollow;
 
             GLWrapper.PushMaskingInfo(edgeEffectMaskingInfo);
 
@@ -144,7 +160,13 @@ namespace osu.Framework.Graphics.Containers
             colour.TopRight.MultiplyAlpha(DrawInfo.Colour.TopRight.Linear.A);
             colour.BottomRight.MultiplyAlpha(DrawInfo.Colour.BottomRight.Linear.A);
 
-            Texture.WhitePixel.DrawQuad(ScreenSpaceMaskingQuad.Value, colour);
+            Texture.WhitePixel.DrawQuad(
+                ScreenSpaceMaskingQuad.Value,
+                colour, null, null, null,
+                // HACK HACK HACK. We re-use the unused vertex blend range to store the original
+                // masking blend range when rendering edge effects. This is needed for smooth inner edges
+                // with a hollow edge effect.
+                new Vector2(MaskingInfo.Value.BlendRange));
 
             Shader.Unbind();
 

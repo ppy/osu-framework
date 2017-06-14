@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,15 +18,28 @@ namespace osu.Framework.Allocation
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
-        public DependencyContainer()
+        private readonly DependencyContainer parentContainer;
+
+        /// <summary>
+        /// Create a new DependencyContainer instance.
+        /// </summary>
+        /// <param name="parent">An optional parent container which we should use as a fallback for cache lookups.</param>
+        public DependencyContainer(DependencyContainer parent = null)
         {
+            parentContainer = parent;
             Cache(this);
         }
 
         private MethodInfo getLoaderMethod(Type type)
         {
-            return type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).SingleOrDefault(
-                mi => mi.CustomAttributes.Any(attr => attr.AttributeType == typeof(BackgroundDependencyLoader)));
+            var loaderMethods = type.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance).Where(
+                mi => mi.GetCustomAttribute<BackgroundDependencyLoader>() != null).ToArray();
+            if (loaderMethods.Length == 0)
+                return null;
+            else if (loaderMethods.Length == 1)
+                return loaderMethods[0];
+            else
+                throw new InvalidOperationException($"The type {type.ReadableName()} has more than one method marked with the {nameof(BackgroundDependencyLoader)}-Attribute. Any given type can only have one such method.");
         }
 
         private void register(Type type, bool lazy)
@@ -34,16 +48,15 @@ namespace osu.Framework.Allocation
                 throw new InvalidOperationException($@"Type {type.FullName} can not be registered twice");
 
             var initialize = getLoaderMethod(type);
-            var constructor = type.GetConstructors().SingleOrDefault(c => c.GetParameters().Length == 0);
+            var constructor = type.GetConstructor(new Type[] { });
 
             var initializerMethods = new List<MethodInfo>();
-            Type parent = type.BaseType;
-            while (parent != typeof(object))
+
+            for (Type parent = type.BaseType; parent != typeof(object); parent = parent?.BaseType)
             {
                 var init = getLoaderMethod(parent);
                 if (init != null)
                     initializerMethods.Insert(0, init);
-                parent = parent?.BaseType;
             }
             if (initialize != null)
                 initializerMethods.Add(initialize);
@@ -52,7 +65,7 @@ namespace osu.Framework.Allocation
             {
                 var permitNull = initializer.GetCustomAttribute<BackgroundDependencyLoader>().PermitNulls;
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
-                                            .Select(t => (Func<object>)(() =>
+                                            .Select(t => new Func<object>(() =>
                                             {
                                                 var val = get(t);
                                                 if (val == null && !permitNull)
@@ -118,13 +131,14 @@ namespace osu.Framework.Allocation
 
         private object get(Type type)
         {
-            if (cache.ContainsKey(type))
-                return cache[type];
+            object ret;
+            if (cache.TryGetValue(type, out ret))
+                return ret;
+
+            return parentContainer?.get(type);
 
             //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
             //need to revisit this when/if it is required.
-            return null;
-
             //if (!activators.ContainsKey(type))
             //    return null; // Or an exception?
             //object instance = activators[type](this, null);
@@ -151,6 +165,8 @@ namespace osu.Framework.Allocation
         {
             var type = instance.GetType();
 
+            // TODO: consider using parentContainer for activator lookups as a potential performance improvement.
+
             lock (activators)
                 if (autoRegister && !activators.ContainsKey(type))
                     register(type, lazy);
@@ -158,7 +174,7 @@ namespace osu.Framework.Allocation
             ObjectActivator activator;
 
             if (!activators.TryGetValue(type, out activator))
-                throw new Exception("DI Initialisation failed badly.");
+                throw new InvalidOperationException("DI Initialisation failed badly.");
 
             activator(this, instance);
         }

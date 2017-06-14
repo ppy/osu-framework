@@ -53,8 +53,9 @@
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.2.0.50727.1341\lib\net45\OpenTK.dll</HintPath>
+    <Reference Include="OpenTK, Version=3.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ppy.OpenTK.3.0\lib\net45\OpenTK.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="SmartThreadPool, Version=2.2.4.0, Culture=neutral, PublicKeyToken=1126fe8b671e8a79, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\SmartThreadPool.dll.2.2.4\lib\net45\SmartThreadPool.dll</HintPath>
@@ -113,15 +114,39 @@
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
+    <Compile Include="Graphics\Containers\IFilterable.cs" />
+    <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
+    <Compile Include="Graphics\Containers\IHasFilterTerms.cs" />
+    <Compile Include="Graphics\Containers\SearchContainer.cs" />
     <Compile Include="Graphics\Containers\TabbableContainer.cs" />
+    <Compile Include="Graphics\Containers\VisibilityContainer.cs" />
+    <Compile Include="Graphics\Cursor\ContextMenuContainer.cs" />
+    <Compile Include="Graphics\Cursor\IHasContextMenu.cs" />
+    <Compile Include="Graphics\Cursor\IHasTooltip.cs" />
+    <Compile Include="Graphics\Cursor\TooltipContainer.cs" />
+    <Compile Include="Graphics\Effects\BlurEffect.cs" />
+    <Compile Include="Graphics\Effects\EdgeEffect.cs" />
+    <Compile Include="Graphics\Effects\EffectExtensions.cs" />
+    <Compile Include="Graphics\Effects\IEffect.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\ParticleVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TexturedVertex3D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\TimedTexturedVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
+    <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
+    <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
+    <Compile Include="Graphics\UserInterface\ContextMenuItem.cs" />
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
     <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
+    <Compile Include="Input\CustomInputManager.cs" />
+    <Compile Include="Input\GlobalHotkeys.cs" />
+    <Compile Include="Input\Handlers\IHasCursorSensitivity.cs" />
     <Compile Include="Input\KeyUpEventArgs.cs" />
     <Compile Include="Allocation\TimedExpiryCache.cs" />
     <Compile Include="Input\IRequireHighFrequencyMousePosition.cs" />
@@ -151,6 +176,7 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
@@ -165,7 +191,7 @@
     <Compile Include="Graphics\Performance\FpsDisplay.cs" />
     <Compile Include="Graphics\Performance\FrameStatisticsDisplay.cs" />
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
-    <Compile Include="Graphics\Primitives\MarginPadding.cs" />
+    <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
     <Compile Include="Graphics\Transforms\ITransform.cs" />
     <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
@@ -194,10 +220,17 @@
     <Compile Include="IO\Network\UrlEncoding.cs" />
     <Compile Include="IO\Network\WebRequest.cs" />
     <Compile Include="IO\Stores\OnlineStore.cs" />
+    <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />
     <Compile Include="Lists\SortedList.cs" />
+    <Compile Include="Lists\WeakList.cs" />
+    <Compile Include="Localisation\FormattableString.cs" />
     <Compile Include="Localisation\LocalisationEngine.cs" />
+    <Compile Include="Localisation\LocalisedString.cs" />
+    <Compile Include="Localisation\UnicodeBindableString.cs" />
+    <Compile Include="Localisation\VaraintFormattableString.cs" />
     <Compile Include="Logging\Logger.cs" />
+    <Compile Include="MathUtils\Blur.cs" />
     <Compile Include="MathUtils\Precision.cs" />
     <Compile Include="MathUtils\RNG.cs" />
     <Compile Include="Configuration\Bindable.cs" />
@@ -217,6 +250,7 @@
     <Compile Include="Graphics\Textures\PrefixTextureStore.cs" />
     <Compile Include="IO\AsyncBufferStream.cs" />
     <Compile Include="Audio\Sample\SampleChannel.cs" />
+    <Compile Include="Audio\Track\TrackAmplitudes.cs" />
     <Compile Include="Audio\Track\Track.cs" />
     <Compile Include="Audio\Track\TrackBass.cs" />
     <Compile Include="Audio\Track\TrackVirtual.cs" />
@@ -235,11 +269,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\QuadVertexBuffer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\RenderBuffer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Buffers\VertexBuffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\IVertex.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\VertexMemberAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertices\VertexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\GLWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGL.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGLSingle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Textures\TextureGLSub.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Graphics\OpenGL\Vertex.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IConvexPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\IPolygon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Line.cs" />
@@ -247,6 +283,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Quad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\RectangleF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Primitives\Triangle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\AttributeInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Shader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\ShaderPart.cs" />
@@ -287,6 +324,7 @@
     <Compile Include="Input\KeyboardState.cs" />
     <Compile Include="Input\MouseState.cs" />
     <Compile Include="Input\UserInputManager.cs" />
+    <Compile Include="Input\InputResampler.cs" />
     <Compile Include="IUpdateable.cs" />
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
@@ -309,6 +347,9 @@
     <Compile Include="Allocation\DependencyContainer.cs" />
     <Compile Include="Allocation\BackgroundDependencyLoader.cs" />
     <Compile Include="Configuration\BindableNumber.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
+    <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
+    <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">

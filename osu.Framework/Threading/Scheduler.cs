@@ -67,14 +67,14 @@ namespace osu.Framework.Threading
                         {
                             tasksToRemove.Add(sd);
 
-                            if (sd.Cancelled) break;
+                            if (sd.Cancelled) continue;
 
                             schedulerQueue.Enqueue(sd.RunTask);
 
                             if (sd.RepeatInterval >= 0)
                             {
                                 if (timedTasks.Count > 1000)
-                                    throw new OverflowException("Too many timed tasks are in the queue!");
+                                    throw new ArgumentException("Too many timed tasks are in the queue!");
 
                                 sd.ExecutionTime += sd.RepeatInterval;
                                 tasksToSchedule.Add(sd);

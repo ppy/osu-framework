@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,8 +14,19 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseDrawablePath : TestCase
+    internal class TestCaseDrawablePath : GridTestCase
     {
+        public TestCaseDrawablePath() : base(2, 2)
+        {
+        }
+
+        private Drawable createLabel(string text) => new SpriteText
+        {
+            Text = text,
+            TextSize = 20,
+            Colour = Color4.White,
+        };
+
         public override string Description => @"Various cases of drawable paths.";
 
         public override void Reset()
@@ -37,120 +47,69 @@ namespace osu.Framework.VisualTests.Tests
             }
             gradientTexture.SetData(new TextureUpload(data));
 
-            Add(new Container
+            Cell(0).Add(new[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                createLabel("Simple path"),
+                new Path
                 {
-                    new FillFlowContainer
+                    RelativeSizeAxes = Axes.Both,
+                    Positions = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
+                    Texture = gradientTexture,
+                    Colour = Color4.Green,
+                },
+            });
+
+            Cell(1).Add(new[]
+            {
+                createLabel("Curved path"),
+                new Path
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Positions = new List<Vector2>
                     {
-                        RelativeSizeAxes = Axes.Both,
-                        Children = new[]
-                        {
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "Simple path",
-                                        TextSize = 20,
-                                        Colour = Color4.White,
-                                    },
-                                    new Path
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Positions = new List<Vector2> { Vector2.One * 50, Vector2.One * 100 },
-                                        Texture = gradientTexture,
-                                        Colour = Color4.Green,
-                                    },
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "Curved path",
-                                        TextSize = 20,
-                                        Colour = Color4.White,
-                                    },
-                                    new Path
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Positions = new List<Vector2>
-                                        {
-                                            new Vector2(50, 50),
-                                            new Vector2(50, 250),
-                                            new Vector2(250, 250),
-                                            new Vector2(250, 50),
-                                            new Vector2(50, 50),
-                                        },
-                                        Texture = gradientTexture,
-                                        Colour = Color4.Blue,
-                                    },
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "Self-overlapping path",
-                                        TextSize = 20,
-                                        Colour = Color4.White,
-                                    },
-                                    new Path
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Positions = new List<Vector2>
-                                        {
-                                            new Vector2(50, 50),
-                                            new Vector2(50, 250),
-                                            new Vector2(250, 250),
-                                            new Vector2(250, 150),
-                                            new Vector2(20, 150),
-                                        },
-                                        Texture = gradientTexture,
-                                        Colour = Color4.Red,
-                                    },
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "Draw something ;)",
-                                        TextSize = 20,
-                                        Colour = Color4.White,
-                                    },
-                                    new DrawablePath
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Texture = gradientTexture,
-                                        Colour = Color4.White,
-                                    },
-                                }
-                            },
-                        }
-                    }
-                }
+                        new Vector2(50, 50),
+                        new Vector2(50, 250),
+                        new Vector2(250, 250),
+                        new Vector2(250, 50),
+                        new Vector2(50, 50),
+                    },
+                    Texture = gradientTexture,
+                    Colour = Color4.Blue,
+                },
+            });
+
+            Cell(2).Add(new[]
+            {
+                createLabel("Self-overlapping path"),
+                new Path
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Positions = new List<Vector2>
+                    {
+                        new Vector2(50, 50),
+                        new Vector2(50, 250),
+                        new Vector2(250, 250),
+                        new Vector2(250, 150),
+                        new Vector2(20, 150),
+                    },
+                    Texture = gradientTexture,
+                    Colour = Color4.Red,
+                },
+            });
+
+            Cell(3).Add(new[]
+            {
+                createLabel("Draw something ;)"),
+                new UserDrawnPath
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Texture = gradientTexture,
+                    Colour = Color4.White,
+                },
             });
         }
 
-        private class DrawablePath : Path
+        private class UserDrawnPath : Path
         {
             public override bool HandleInput => true;
 

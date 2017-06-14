@@ -3,9 +3,14 @@
 
 using osu.Framework.Graphics.OpenGL;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// Contains all the information required to draw a single <see cref="Drawable"/>.
+    /// A hierarchy of DrawNodes is passed to the draw thread for rendering every frame.
+    /// </summary>
     public class DrawNode
     {
         /// <summary>

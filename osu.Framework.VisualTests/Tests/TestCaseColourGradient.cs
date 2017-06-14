@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
@@ -11,8 +10,12 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    internal class TestCaseColourGradient : TestCase
+    internal class TestCaseColourGradient : GridTestCase
     {
+        public TestCaseColourGradient() : base(2, 2)
+        {
+        }
+
         public override string Description => @"Various cases of colour gradients.";
 
         private readonly Box[] boxes = new Box[4];
@@ -55,111 +58,34 @@ namespace osu.Framework.VisualTests.Tests
                 },
             };
 
-            Add(new Container
+            string[] labels =
             {
-                RelativeSizeAxes = Axes.Both,
-                Children = new[]
+                "Colours",
+                "White to black (linear brightness gradient)",
+                "White to transparent white (sRGB brightness gradient)",
+                "White to transparent black (mixed brightness gradient)",
+            };
+
+            for (int i = 0; i < Rows * Cols; ++i)
+            {
+                Cell(i).Add(new Drawable[]
                 {
-                    new FillFlowContainer
+                    new SpriteText
+                    {
+                        Text = labels[i],
+                        TextSize = 20,
+                        ColourInfo = colours[0],
+                    },
+                    boxes[i] = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Children = new[]
-                        {
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "Colours",
-                                        TextSize = 20,
-                                        ColourInfo = colours[0],
-                                    },
-                                    boxes[0] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        ColourInfo = colours[0],
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "White to black (linear brightness gradient)",
-                                        TextSize = 20,
-                                        ColourInfo = colours[0],
-                                    },
-                                    boxes[1] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        ColourInfo = colours[1],
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "White to transparent white (sRGB brightness gradient)",
-                                        TextSize = 20,
-                                        ColourInfo = colours[0],
-                                    },
-                                    boxes[2] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        ColourInfo = colours[2],
-                                    }
-                                }
-                            },
-                            new Container
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                Size = new Vector2(0.5f),
-                                Children = new Drawable[]
-                                {
-                                    new SpriteText
-                                    {
-                                        Text = "White to transparent black (mixed brightness gradient)",
-                                        TextSize = 20,
-                                        ColourInfo = colours[0],
-                                    },
-                                    boxes[3] = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Both,
-                                        Colour = Color4.White,
-                                        Anchor = Anchor.Centre,
-                                        Origin = Anchor.Centre,
-                                        Size = new Vector2(0.5f),
-                                        ColourInfo = colours[3],
-                                    }
-                                }
-                            },
-                        }
-                    }
-                }
-            });
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Size = new Vector2(0.5f),
+                        ColourInfo = colours[i],
+                    },
+                });
+            }
         }
 
         protected override void Update()

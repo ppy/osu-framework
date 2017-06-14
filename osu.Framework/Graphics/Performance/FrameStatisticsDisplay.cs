@@ -15,7 +15,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Linq;
-using osu.Framework.Graphics.Primitives;
 using System.Collections.Generic;
 using osu.Framework.Threading;
 
@@ -408,6 +407,9 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.Yellow;
+
+                case StatisticsCounterType.VBufBinds:
+                    return Color4.SkyBlue;
 
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:

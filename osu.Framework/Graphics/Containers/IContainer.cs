@@ -11,6 +11,8 @@ namespace osu.Framework.Graphics.Containers
     {
         Vector2 ChildSize { get; }
         Vector2 ChildOffset { get; }
+        Vector2 RelativeToAbsoluteFactor { get; }
+        Vector2 RelativeChildOffset { get; }
 
         float CornerRadius { get; }
 
@@ -24,7 +26,7 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<T> InternalChildren { get; }
+        IEnumerable<Drawable> InternalChildren { get; }
         IEnumerable<T> Children { get; }
 
         int RemoveAll(Predicate<T> match);
@@ -33,13 +35,13 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerCollection<in T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<T> InternalChildren { set; }
+        IEnumerable<Drawable> InternalChildren { set; }
         IEnumerable<T> Children { set; }
 
         void Add(T drawable);
         void Add(IEnumerable<T> collection);
 
-        bool Remove(T drawable);
+        void Remove(T drawable);
         void Remove(IEnumerable<T> range);
     }
 }

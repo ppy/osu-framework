@@ -52,7 +52,7 @@ namespace osu.Framework.IO.Stores
                 }
                 catch
                 {
-                    throw new FontLoadException(assetName);
+                    throw new IOException($@"Couldn't load font asset from {assetName}.");
                 }
             });
 
@@ -129,22 +129,13 @@ namespace osu.Framework.IO.Stores
 
         public Stream GetStream(string name)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         private int loadedPageCount;
         private int loadedGlyphCount;
 
         public override string ToString() => $@"GlyphStore({assetName}) LoadedPages:{loadedPageCount} LoadedGlyphs:{loadedGlyphCount}";
-    }
-
-    public sealed class FontLoadException : Exception
-    {
-        public FontLoadException(string assetName)
-            :
-            base($@"Couldn't load font asset from {assetName}.")
-        {
-        }
     }
 
     public class FontStore : TextureStore

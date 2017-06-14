@@ -15,6 +15,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -87,26 +89,6 @@ namespace osu.Framework.Graphics.Containers
             if (frameBuffer.Texture.Bind())
                 // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
                 frameBuffer.Texture.DrawQuad(drawRectangle, textureRect, colourInfo);
-        }
-
-        private double evalGaussian(float x, float sigma)
-        {
-            const double inv_sqrt_2_pi = 0.39894;
-            return inv_sqrt_2_pi * Math.Exp(-0.5 * x * x / (sigma * sigma)) / sigma;
-        }
-
-        private int findBlurRadius(float sigma)
-        {
-            const float gauss_threshold = 0.1f;
-            const int max_radius = 200;
-
-            double center = evalGaussian(0, sigma);
-            double threshold = gauss_threshold * center;
-            for (int i = 0; i < max_radius; ++i)
-                if (evalGaussian(i, sigma) < threshold)
-                    return Math.Max(i - 1, 0);
-
-            return max_radius;
         }
 
         private void drawChildren(Action<TexturedVertex2D> vertexAction, Vector2 frameBufferSize)
@@ -186,8 +168,8 @@ namespace osu.Framework.Graphics.Containers
                     drawChildren(vertexAction, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
-                    int radiusX = BlurSigma.X > 0 ? findBlurRadius(BlurSigma.X) : 0;
-                    int radiusY = BlurSigma.Y > 0 ? findBlurRadius(BlurSigma.Y) : 0;
+                    int radiusX = Blur.KernelSize(BlurSigma.X);
+                    int radiusY = Blur.KernelSize(BlurSigma.Y);
 
                     if (radiusX > 0 || radiusY > 0)
                     {

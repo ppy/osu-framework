@@ -8,22 +8,23 @@ using System.Reflection;
 using System.Runtime;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
+using OpenTK.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Input;
 using osu.Framework.Input.Handlers;
+using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
-using OpenTK;
-using System.Threading.Tasks;
-using osu.Framework.Caching;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions.IEnumerableExtensions;
-using OpenTK.Input;
-using OpenTK.Graphics;
-using osu.Framework.Localisation;
 
 namespace osu.Framework.Platform
 {
@@ -43,15 +44,13 @@ namespace osu.Framework.Platform
         {
             threads.ForEach(t => t.IsActive = isActive);
 
-            setLatencyMode();
+            activeGCMode.TriggerChange();
 
             if (isActive)
                 Activated?.Invoke();
             else
                 Deactivated?.Invoke();
         }
-
-        private void setLatencyMode() => GCSettings.LatencyMode = IsActive ? activeGCMode : GCLatencyMode.Interactive;
 
         public bool IsActive => InputThread.IsActive;
 
@@ -73,7 +72,7 @@ namespace osu.Framework.Platform
 
         public virtual Task SendMessageAsync(IpcMessage message)
         {
-            throw new NotImplementedException("This platform does not implement IPC.");
+            throw new NotSupportedException("This platform does not implement IPC.");
         }
 
         public virtual Clipboard GetClipboard() => null;
@@ -125,16 +124,14 @@ namespace osu.Framework.Platform
         private PerformanceMonitor inputMonitor => InputThread.Monitor;
         private PerformanceMonitor drawMonitor => DrawThread.Monitor;
 
-        private Cached<string> fullPathBacking = new Cached<string>();
+        private readonly Lazy<string> fullPathBacking = new Lazy<string>(() =>
+        {
+            string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+            UriBuilder uri = new UriBuilder(codeBase);
+            return Uri.UnescapeDataString(uri.Path);
+        });
 
-        public string FullPath => fullPathBacking.EnsureValid()
-            ? fullPathBacking.Value
-            : fullPathBacking.Refresh(() =>
-            {
-                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                return Uri.UnescapeDataString(uri.Path);
-            });
+        public string FullPath => fullPathBacking.Value;
 
         protected string Name { get; }
 
@@ -148,6 +145,7 @@ namespace osu.Framework.Platform
 
             Dependencies.Cache(this);
             Name = gameName;
+            Logger.GameIdentifier = gameName;
 
             threads = new List<GameThread>
             {
@@ -163,9 +161,6 @@ namespace osu.Framework.Platform
                 (InputThread = new InputThread(null, @"Input")) //never gets started.
             };
 
-            MaximumUpdateHz = GameThread.DEFAULT_ACTIVE_HZ;
-            MaximumDrawHz = (DisplayDevice.Default?.RefreshRate ?? 0) * 4;
-
             var path = System.IO.Path.GetDirectoryName(FullPath);
             if (path != null)
                 Environment.CurrentDirectory = path;
@@ -174,6 +169,8 @@ namespace osu.Framework.Platform
         private void exceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
             var exception = (Exception)e.ExceptionObject;
+
+            Logger.Error(exception, @"fatal error:", recursive: true);
 
             var exInfo = ExceptionDispatchInfo.Capture(exception);
 
@@ -235,7 +232,7 @@ namespace osu.Framework.Platform
 
             if (Window?.WindowState != WindowState.Minimized)
                 Root.Size = Window != null ? new Vector2(Window.ClientSize.Width, Window.ClientSize.Height) :
-                    new Vector2(config.Get<int>(FrameworkConfig.Width), config.Get<int>(FrameworkConfig.Height));
+                    new Vector2(config.Get<int>(FrameworkSetting.Width), config.Get<int>(FrameworkSetting.Height));
 
             Root.UpdateSubTree();
             using (var buffer = DrawRoots.Get(UsageType.Write))
@@ -247,8 +244,7 @@ namespace osu.Framework.Platform
             Window.MakeCurrent();
             GLWrapper.Initialize(this);
 
-            if (Window != null)
-                Window.VSync = VSyncMode.Off;
+            setVSyncMode();
         }
 
         private long lastDrawFrameId;
@@ -282,7 +278,14 @@ namespace osu.Framework.Platform
             GLWrapper.FlushCurrentBatch();
 
             using (drawMonitor.BeginCollecting(PerformanceCollectionType.SwapBuffer))
+            {
                 Window.SwapBuffers();
+
+                if (Window.VSync == VSyncMode.On)
+                    // without glFinish, vsync is basically unplayable due to the extra latency introduced.
+                    // we will likely want to give the user control over this in the future as an advanced setting.
+                    GL.Finish();
+            }
         }
 
         private volatile bool exitInitiated;
@@ -311,11 +314,16 @@ namespace osu.Framework.Platform
                 Window.Title = $@"osu!framework (running ""{Name}"")";
             }
 
+            resetInputHandlers();
+
             DrawThread.Start();
             UpdateThread.Start();
 
             DrawThread.WaitUntilInitialized();
             bootstrapSceneGraph(game);
+
+            frameSyncMode.TriggerChange();
+            enabledInputHandlers.TriggerChange();
 
             try
             {
@@ -356,20 +364,35 @@ namespace osu.Framework.Platform
             }
         }
 
+        private void resetInputHandlers()
+        {
+            if (AvailableInputHandlers != null)
+                foreach (var h in AvailableInputHandlers)
+                    h.Dispose();
+
+            AvailableInputHandlers = CreateAvailableInputHandlers();
+            foreach (var handler in AvailableInputHandlers)
+            {
+                if (!handler.Initialize(this))
+                {
+                    handler.Enabled.Value = false;
+                    break;
+                }
+
+                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
+            }
+        }
+
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager
-            {
-                Clock = UpdateThread.Clock,
-                Children = new[] { game },
-            };
+            var root = new UserInputManager { Children = new[] { game } };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);
 
             game.SetHost(this);
 
-            root.Load(game, game.Clock);
+            root.Load(UpdateThread.Clock, Dependencies);
 
             //publish bootstrapped scene graph to all threads.
             Root = root;
@@ -388,16 +411,10 @@ namespace osu.Framework.Platform
             switch (e.Key)
             {
                 case Key.F7:
-                    if (UpdateThread.ActiveHz == maximumUpdateHz)
-                    {
-                        UpdateThread.ActiveHz = double.MaxValue;
-                        DrawThread.ActiveHz = double.MaxValue;
-                    }
-                    else
-                    {
-                        UpdateThread.ActiveHz = maximumUpdateHz;
-                        DrawThread.ActiveHz = maximumDrawHz;
-                    }
+                    var nextMode = frameSyncMode.Value + 1;
+                    if (nextMode > FrameSync.Unlimited)
+                        nextMode = FrameSync.VSync;
+                    frameSyncMode.Value = nextMode;
                     break;
             }
         }
@@ -406,17 +423,106 @@ namespace osu.Framework.Platform
 
         private Bindable<GCLatencyMode> activeGCMode;
 
+        private Bindable<FrameSync> frameSyncMode;
+
+        private Bindable<string> enabledInputHandlers;
+
+        private Bindable<double> cursorSensitivity;
+
         private void setupConfig()
         {
             Dependencies.Cache(debugConfig = new FrameworkDebugConfigManager());
             Dependencies.Cache(config = new FrameworkConfigManager(Storage));
             Dependencies.Cache(Localisation = new LocalisationEngine(config));
 
-            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(FrameworkDebugConfig.ActiveGCMode);
-            activeGCMode.ValueChanged += delegate { setLatencyMode(); };
+            activeGCMode = debugConfig.GetBindable<GCLatencyMode>(DebugSetting.ActiveGCMode);
+            activeGCMode.ValueChanged += newMode =>
+            {
+                GCSettings.LatencyMode = IsActive ? newMode : GCLatencyMode.Interactive;
+            };
+
+            frameSyncMode = config.GetBindable<FrameSync>(FrameworkSetting.FrameSync);
+            frameSyncMode.ValueChanged += newMode =>
+            {
+
+                float refreshRate = DisplayDevice.Default.RefreshRate;
+
+                float drawLimiter = refreshRate;
+                float updateLimiter = drawLimiter * 2;
+
+                setVSyncMode();
+
+                switch (newMode)
+                {
+                    case FrameSync.VSync:
+                        drawLimiter = int.MaxValue;
+                        updateLimiter *= 2;
+                        break;
+                    case FrameSync.Limit2x:
+                        drawLimiter *= 2;
+                        updateLimiter *= 2;
+                        break;
+                    case FrameSync.Limit4x:
+                        drawLimiter *= 4;
+                        updateLimiter *= 4;
+                        break;
+                    case FrameSync.Limit8x:
+                        drawLimiter *= 8;
+                        updateLimiter *= 8;
+                        break;
+                    case FrameSync.Unlimited:
+                        drawLimiter = updateLimiter = int.MaxValue;
+                        break;
+                }
+
+                if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
+                if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
+            };
+
+            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
+            enabledInputHandlers.ValueChanged += enabledString =>
+            {
+                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
+                bool useDefaults = !configHandlers.Any();
+
+                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
+                foreach (string handler in configHandlers)
+                {
+                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
+                    {
+                        useDefaults = true;
+                        break;
+                    }
+                }
+
+                if (useDefaults)
+                {
+                    resetInputHandlers();
+                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                }
+                else
+                {
+                    foreach (var handler in AvailableInputHandlers)
+                    {
+                        var handlerType = handler.ToString();
+                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
+                    }
+                }
+            };
+
+            cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+        private void setVSyncMode()
+        {
+            if (Window == null) return;
+
+            DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
+        }
+
+        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
+
+        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 

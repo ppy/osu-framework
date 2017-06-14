@@ -8,9 +8,13 @@ using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.OpenGL;
 using OpenTK;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// Draw node containing all necessary information to draw a <see cref="Sprite"/>.
+    /// </summary>
     public class SpriteDrawNode : DrawNode
     {
         public Texture Texture;

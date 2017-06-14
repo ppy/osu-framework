@@ -6,7 +6,7 @@ using osu.Framework.Caching;
 
 namespace osu.Framework.Configuration
 {
-    public class FrameworkDebugConfigManager : ConfigManager<FrameworkDebugConfig>
+    public class FrameworkDebugConfigManager : ConfigManager<DebugSetting>
     {
         protected override string Filename => null;
 
@@ -19,12 +19,12 @@ namespace osu.Framework.Configuration
         {
             base.InitialiseDefaults();
 
-            Set(FrameworkDebugConfig.ActiveGCMode, GCLatencyMode.SustainedLowLatency);
-            Set(FrameworkDebugConfig.BypassCaching, false).ValueChanged += delegate { StaticCached.BypassCache = Get<bool>(FrameworkDebugConfig.BypassCaching); };
+            Set(DebugSetting.ActiveGCMode, GCLatencyMode.SustainedLowLatency);
+            Set(DebugSetting.BypassCaching, false).ValueChanged += delegate { StaticCached.BypassCache = Get<bool>(DebugSetting.BypassCaching); };
         }
     }
 
-    public enum FrameworkDebugConfig
+    public enum DebugSetting
     {
         ActiveGCMode,
         BypassCaching

@@ -6,7 +6,6 @@ using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing.Drawables.StepButtons;
 using osu.Framework.Threading;
@@ -38,6 +37,8 @@ namespace osu.Framework.Testing
 
         public virtual void Reset()
         {
+            Clock.ProcessFrame();
+
             if (content == null)
             {
                 InternalChildren = new Drawable[]
@@ -105,25 +106,30 @@ namespace osu.Framework.Testing
 
         private void runNextStep(Action onCompletion)
         {
-            loadableStep?.TriggerClick();
+            loadableStep?.TriggerOnClick();
 
-            string text = $"{(int)Time.Current}: ".PadLeft(7);
+            string text = ".";
 
-            if (actionIndex < 0)
-                text += $"{GetType().ReadableName()}";
-            else
+            if (actionRepetition == 0)
             {
-                if (actionRepetition == 0)
-                    text += $"  Step #{actionIndex + 1}";
-                text = text.PadRight(20) + $"{loadableStep?.ToString() ?? string.Empty}";
+                text = $"{(int)Time.Current}: ".PadLeft(7);
+
+                if (actionIndex < 0)
+                    text += $"{GetType().ReadableName()}";
+                else
+                {
+                    text += $"step {actionIndex + 1}";
+                    text = text.PadRight(16) + $"{loadableStep?.ToString() ?? string.Empty}";
+                }
             }
 
-            Console.WriteLine(text);
+            Console.Write(text);
 
             actionRepetition++;
 
             if (actionRepetition > (loadableStep?.RequiredRepetitions ?? 1) - 1)
             {
+                Console.WriteLine();
                 actionIndex++;
                 actionRepetition = 0;
             }
