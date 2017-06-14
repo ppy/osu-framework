@@ -60,6 +60,9 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
+        /// <summary>
+        /// Triggered when the value is changed at all and receives the normalised value.
+        /// </summary>
         protected abstract void UpdateValue(float value);
 
         protected override void LoadComplete()
