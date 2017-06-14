@@ -5,9 +5,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace osu.Framework.Graphics.Visualisation
@@ -69,6 +70,24 @@ namespace osu.Framework.Graphics.Visualisation
             });
         }
 
+        public void UpdateFrom(Drawable source)
+        {
+            Clear(true);
+
+            if (source == null)
+            {
+                State = Visibility.Hidden;
+                return;
+            }
+            Type type = source.GetType();
+
+            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
+                .OrderBy(member => member.Name)
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name))  // Include non-public fields at the end
+                .Select(member => new PropertyItem(member, source)));
+        }
+
         protected override bool OnDragStart(InputState state) => titleBar.Contains(state.Mouse.NativeState.Position);
 
         protected override bool OnDrag(InputState state)
@@ -101,39 +120,38 @@ namespace osu.Framework.Graphics.Visualisation
                 FadeTo(0.7f, 300);
             }
         }
-    }
 
-    internal class PropertyItem : Container
-    {
-        private readonly SpriteText valueText;
-        private readonly Box changeMarker;
-        private readonly Func<object> getValue; // Use delegate for performance
-
-        public PropertyItem(MemberInfo info, IDrawable d)
+        private class PropertyItem : Container
         {
-            Type type;
-            switch (info.MemberType)
+            private readonly SpriteText valueText;
+            private readonly Box changeMarker;
+            private readonly Func<object> getValue;
+
+            public PropertyItem(MemberInfo info, IDrawable d)
             {
-                case MemberTypes.Property:
-                    PropertyInfo propertyInfo = (PropertyInfo)info;
-                    type = propertyInfo.PropertyType;
-                    getValue = () => propertyInfo.GetValue(d);
-                    break;
+                Type type;
+                switch (info.MemberType)
+                {
+                    case MemberTypes.Property:
+                        PropertyInfo propertyInfo = (PropertyInfo)info;
+                        type = propertyInfo.PropertyType;
+                        getValue = () => propertyInfo.GetValue(d);
+                        break;
 
-                case MemberTypes.Field:
-                    FieldInfo fieldInfo = (FieldInfo)info;
-                    type = fieldInfo.FieldType;
-                    getValue = () => fieldInfo.GetValue(d);
-                    break;
+                    case MemberTypes.Field:
+                        FieldInfo fieldInfo = (FieldInfo)info;
+                        type = fieldInfo.FieldType;
+                        getValue = () => fieldInfo.GetValue(d);
+                        break;
 
-                default:
-                    throw new NotImplementedException(@"Not a value member.");
-            }
+                    default:
+                        throw new NotImplementedException(@"Not a value member.");
+                }
 
-            RelativeSizeAxes = Axes.X;
-            Height = 20f;
-            AddInternal(new Drawable[]
-            {
+                RelativeSizeAxes = Axes.X;
+                Height = 20f;
+                AddInternal(new Drawable[]
+                {
                 new Container()
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -178,42 +196,43 @@ namespace osu.Framework.Graphics.Visualisation
                     Origin = Anchor.CentreRight,
                     Colour = Color4.Red
                 }
-            });
+                });
 
-            // Update the value once
-            updateValue();
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-
-            updateValue();
-        }
-
-        private object lastValue;
-
-        private void updateValue()
-        {
-            object value;
-            try
-            {
-                value = getValue() ?? "<null>";
-            }
-            catch
-            {
-                value = @"<Cannot evaluate>";
+                // Update the value once
+                updateValue();
             }
 
-            if (!value.Equals(lastValue))
+            protected override void Update()
             {
-                changeMarker.ClearTransforms();
-                changeMarker.Alpha = 0.8f;
-                changeMarker.FadeOut(200);
+                base.Update();
+
+                updateValue();
             }
 
-            lastValue = value;
-            valueText.Text = value.ToString();
+            private object lastValue;
+
+            private void updateValue()
+            {
+                object value;
+                try
+                {
+                    value = getValue() ?? "<null>";
+                }
+                catch
+                {
+                    value = @"<Cannot evaluate>";
+                }
+
+                if (!value.Equals(lastValue))
+                {
+                    changeMarker.ClearTransforms();
+                    changeMarker.Alpha = 0.8f;
+                    changeMarker.FadeOut(200);
+                }
+
+                lastValue = value;
+                valueText.Text = value.ToString();
+            }
         }
     }
 }

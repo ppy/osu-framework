@@ -8,9 +8,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using osu.Framework.Lists;
-using System;
-using System.Reflection;
-using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -222,27 +219,6 @@ namespace osu.Framework.Graphics.Visualisation
             visualise(Target, targetDrawable);
         }
 
-        private void updatePropertyDisplay(VisualisedDrawable vis)
-        {
-            propertyDisplay.Clear();
-
-            if (vis == null)
-            {
-                // Property display must automatically close when there are no target,
-                // but it may never automatically open
-                propertyDisplay.State = Visibility.Hidden;
-                return;
-            }
-            Type type = vis.Target.GetType();
-
-            propertyDisplay.Add(
-                ((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
-                .OrderBy(member => member.Name)
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name))  // Include non-public fields at the end
-                .Select(member => new PropertyItem(member, vis.Target)));
-        }
-
         private void updateHoveredDrawable()
         {
             overlay.Target = hoveredDrawables.Count > 0 ? hoveredDrawables.Last().Target : null;
@@ -290,7 +266,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (newHighlight == null)
             {
-                updatePropertyDisplay(null);
+                propertyDisplay.UpdateFrom(null);
                 return;
             }
 
@@ -300,7 +276,7 @@ namespace osu.Framework.Graphics.Visualisation
                 highlightedTarget = newHighlight;
                 newHighlight.IsHighlighted = true;
 
-                updatePropertyDisplay(newHighlight);
+                propertyDisplay.UpdateFrom(newHighlight.Target);
             }
         }
 
