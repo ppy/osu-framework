@@ -9,9 +9,9 @@ namespace osu.Framework.Audio
 {
     public class AdjustableAudioComponent : AudioComponent
     {
-        private readonly List<BindableDouble> volumeAdjustments = new List<BindableDouble>();
-        private readonly List<BindableDouble> balanceAdjustments = new List<BindableDouble>();
-        private readonly List<BindableDouble> frequencyAdjustments = new List<BindableDouble>();
+        private readonly HashSet<BindableDouble> volumeAdjustments = new HashSet<BindableDouble>();
+        private readonly HashSet<BindableDouble> balanceAdjustments = new HashSet<BindableDouble>();
+        private readonly HashSet<BindableDouble> frequencyAdjustments = new HashSet<BindableDouble>();
 
         /// <summary>
         /// Global volume of this component.
@@ -88,15 +88,12 @@ namespace osu.Framework.Audio
             switch (type)
             {
                 case AdjustableProperty.Balance:
-                    if (balanceAdjustments.Contains(adjustBindable)) return;
                     balanceAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Frequency:
-                    if (frequencyAdjustments.Contains(adjustBindable)) return;
                     frequencyAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Volume:
-                    if (volumeAdjustments.Contains(adjustBindable)) return;
                     volumeAdjustments.Add(adjustBindable);
                     break;
             }
