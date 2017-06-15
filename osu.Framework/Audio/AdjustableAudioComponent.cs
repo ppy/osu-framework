@@ -78,9 +78,9 @@ namespace osu.Framework.Audio
 
         public void RemoveAdjustmentDependency(AdjustableAudioComponent component)
         {
-            RemoveAdjustment(component.BalanceCalculated);
-            RemoveAdjustment(component.FrequencyCalculated);
-            RemoveAdjustment(component.VolumeCalculated);
+            RemoveAdjustment(AdjustableProperty.Balance, component.BalanceCalculated);
+            RemoveAdjustment(AdjustableProperty.Frequency, component.FrequencyCalculated);
+            RemoveAdjustment(AdjustableProperty.Volume, component.VolumeCalculated);
         }
 
         public void AddAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
@@ -89,7 +89,6 @@ namespace osu.Framework.Audio
             {
                 case AdjustableProperty.Balance:
                     if (balanceAdjustments.Contains(adjustBindable)) return;
-
                     balanceAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Frequency:
@@ -105,11 +104,20 @@ namespace osu.Framework.Audio
             InvalidateState();
         }
 
-        public void RemoveAdjustment(BindableDouble adjustBindable)
+        public void RemoveAdjustment(AdjustableProperty type, BindableDouble adjustBindable)
         {
-            balanceAdjustments.Remove(adjustBindable);
-            frequencyAdjustments.Remove(adjustBindable);
-            volumeAdjustments.Remove(adjustBindable);
+            switch (type)
+            {
+                case AdjustableProperty.Balance:
+                    balanceAdjustments.Remove(adjustBindable);
+                    break;
+                case AdjustableProperty.Frequency:
+                    volumeAdjustments.Remove(adjustBindable);
+                    break;
+                case AdjustableProperty.Volume:
+                    frequencyAdjustments.Remove(adjustBindable);
+                    break;
+            }
 
             InvalidateState();
         }
