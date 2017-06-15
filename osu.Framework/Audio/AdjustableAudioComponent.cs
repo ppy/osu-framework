@@ -88,12 +88,16 @@ namespace osu.Framework.Audio
             switch (type)
             {
                 case AdjustableProperty.Balance:
+                    if (balanceAdjustments.Contains(adjustBindable)) return;
+
                     balanceAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Frequency:
+                    if (frequencyAdjustments.Contains(adjustBindable)) return;
                     frequencyAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Volume:
+                    if (volumeAdjustments.Contains(adjustBindable)) return;
                     volumeAdjustments.Add(adjustBindable);
                     break;
             }
