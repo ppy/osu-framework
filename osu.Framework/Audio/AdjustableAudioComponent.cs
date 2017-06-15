@@ -109,10 +109,10 @@ namespace osu.Framework.Audio
                     balanceAdjustments.Remove(adjustBindable);
                     break;
                 case AdjustableProperty.Frequency:
-                    volumeAdjustments.Remove(adjustBindable);
+                    frequencyAdjustments.Remove(adjustBindable);
                     break;
                 case AdjustableProperty.Volume:
-                    frequencyAdjustments.Remove(adjustBindable);
+                    volumeAdjustments.Remove(adjustBindable);
                     break;
             }
 
