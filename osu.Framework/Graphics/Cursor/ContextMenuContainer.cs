@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Cursor
                     {
                         if (menu.State == MenuState.Opened)
                             menu.Close();
-                        return true;
+                        return false;
                     }
 
                     menu.Items = menuTarget.ContextMenuItems;
