@@ -142,10 +142,7 @@ namespace osu.Framework.Graphics.Visualisation
                             Colour = Color4.Khaki.Opacity(0.4f),
                             Alpha = 0
                         },
-                        text = new SpriteText
-                        {
-                            Scale = new Vector2(0.9f),
-                        },
+                        text = new SpriteText()
                     }
                 },
                 Flow = new FillFlowContainer<VisualisedDrawable>

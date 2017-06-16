@@ -27,6 +27,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             AddInternal(new ScrollContainer
             {
+                Padding = new MarginPadding(10),
                 RelativeSizeAxes = Axes.Both,
                 ScrollbarOverlapsContent = false,
                 Children = new[]
@@ -50,10 +51,10 @@ namespace osu.Framework.Graphics.Visualisation
 
             Type type = source.GetType();
 
-            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public))                            // And all fields
+            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public)) // Get all properties
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public)) // And all fields
                 .OrderBy(member => member.Name)
-                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name))  // Include non-public fields at the end
+                .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name)) // Include non-public fields at the end
                 .Select(member => new PropertyItem(member, source)));
         }
 
@@ -95,53 +96,53 @@ namespace osu.Framework.Graphics.Visualisation
                 }
 
                 RelativeSizeAxes = Axes.X;
-                Height = 20f;
+                AutoSizeAxes = Axes.Y;
+
                 AddInternal(new Drawable[]
                 {
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding
+                    new Container
                     {
-                        Right = 6
-                    },
-                    Children = new Drawable[]
-                    {
-                        new FillFlowContainer<SpriteText>
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding
                         {
-                            AutoSizeAxes = Axes.Both,
-                            Direction = FillDirection.Horizontal,
-                            Spacing = new Vector2(10f),
-                            Children = new[]
+                            Right = 6
+                        },
+                        Children = new Drawable[]
+                        {
+                            new FillFlowContainer<SpriteText>
                             {
-                                new SpriteText
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Direction = FillDirection.Horizontal,
+                                Spacing = new Vector2(10f),
+                                Children = new[]
                                 {
-                                    Text = info.Name,
-                                    TextSize = Height,
-                                    Colour = Color4.LightBlue,
-                                },
-                                new SpriteText
-                                {
-                                    Text = $@"[{type.Name}]:",
-                                    TextSize = Height,
-                                    Colour = Color4.MediumPurple,
-                                },
-                                valueText = new SpriteText
-                                {
-                                    TextSize = Height,
-                                    Colour = Color4.White,
-                                },
+                                    new SpriteText
+                                    {
+                                        Text = info.Name,
+                                        Colour = Color4.LightBlue,
+                                    },
+                                    new SpriteText
+                                    {
+                                        Text = $@"[{type.Name}]:",
+                                        Colour = Color4.MediumPurple,
+                                    },
+                                    valueText = new SpriteText
+                                    {
+                                        Colour = Color4.White,
+                                    },
+                                }
                             }
                         }
+                    },
+                    changeMarker = new Box
+                    {
+                        Size = new Vector2(4, 18),
+                        Anchor = Anchor.CentreRight,
+                        Origin = Anchor.CentreRight,
+                        Colour = Color4.Red
                     }
-                },
-                changeMarker = new Box
-                {
-                    Size = new Vector2(4, 18),
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.CentreRight,
-                    Colour = Color4.Red
-                }
                 });
 
                 // Update the value once
@@ -151,7 +152,6 @@ namespace osu.Framework.Graphics.Visualisation
             protected override void Update()
             {
                 base.Update();
-
                 updateValue();
             }
 

@@ -149,6 +149,7 @@ namespace osu.Framework.Graphics.Visualisation
                     {
                         scroll = new ScrollContainer
                         {
+                            Padding = new MarginPadding(10),
                             RelativeSizeAxes = Axes.Y,
                             Width = width
                         },
