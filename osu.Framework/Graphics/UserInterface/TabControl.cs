@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.UserInterface
             Current.ValueChanged += newSelection =>
             {
                 if (IsLoaded)
-                    selectTab(tabMap[Current]);
+                    SelectTab(tabMap[Current]);
                 else
                     //will be handled in LoadComplete
                     SelectedTab = tabMap[Current];
@@ -125,9 +125,9 @@ namespace osu.Framework.Graphics.UserInterface
         protected override void LoadComplete()
         {
             if (SelectedTab != null)
-                selectTab(SelectedTab);
+                SelectTab(SelectedTab);
             else if (TabContainer.Children.Any())
-                TabContainer.Children.First().Active = true;
+                SelectTab(TabContainer.Children.First());
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             // Do not allow duplicate adding
             if (tabMap.ContainsKey(value))
-                return null;
+                throw new InvalidOperationException($"Item {value} has already been added to this {nameof(TabControl<T>)}");
 
             var tab = CreateTabItem(value);
             AddTabItem(tab, addToDropdown);
@@ -179,8 +179,13 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="addToDropdown">Whether the tab should be added to the Dropdown if supported by the <see cref="TabControl{T}"/> implementation</param>
         protected void AddTabItem(TabItem<T> tab, bool addToDropdown = true)
         {
-            tab.PinnedChanged += resortTab;
-            tab.SelectAction += selectTab;
+            tab.PinnedChanged += t =>
+            {
+                // Todo: This schedule is a temporary fix for https://github.com/ppy/osu-framework/issues/821
+                Schedule(() => performTabSort(t));
+            };
+
+            tab.ActivationRequested += SelectTab;
 
             tabMap[tab.Value] = tab;
             if (addToDropdown)
@@ -200,27 +205,27 @@ namespace osu.Framework.Graphics.UserInterface
                 Dropdown?.ShowItem(tab.Value);
         }
 
-        private void selectTab(TabItem<T> tab)
+        protected virtual void SelectTab(TabItem<T> tab)
         {
             // Only reorder if not pinned and not showing
             if (AutoSort && !tab.IsPresent && !tab.Pinned)
-                resortTab(tab);
+                performTabSort(tab);
 
             // Deactivate previously selected tab
-            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active = false;
+            if (SelectedTab != null && SelectedTab != tab) SelectedTab.Active.Value = false;
 
             SelectedTab = tab;
-            SelectedTab.Active = true;
+            SelectedTab.Active.Value = true;
 
             Current.Value = SelectedTab.Value;
         }
 
-        private void resortTab(TabItem<T> tab)
+        private void performTabSort(TabItem<T> tab)
         {
             if (IsLoaded)
                 TabContainer.Remove(tab);
 
-            tab.Depth = tab.Pinned ? float.MaxValue : ++depthCounter;
+            tab.Depth = getTabDepth(tab);
 
             // IsPresent of TabItems is based on Y position.
             // We reset it here to allow tabs to get a correct initial position.
@@ -229,6 +234,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (IsLoaded)
                 TabContainer.Add(tab);
         }
+
+        private float getTabDepth(TabItem<T> tab) => tab.Pinned ? float.MinValue : --depthCounter;
 
         public class TabFillFlowContainer<U> : FillFlowContainer<U> where U : TabItem
         {
