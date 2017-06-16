@@ -21,8 +21,7 @@ namespace osu.Framework.Graphics.Visualisation
         private readonly InfoOverlay overlay;
         private ScheduledDelegate task;
 
-        private readonly SortedList<VisualisedDrawable> hoveredDrawables =
-            new SortedList<VisualisedDrawable>(VisualisedDrawable.Comparer);
+        private readonly SortedList<VisualisedDrawable> hoveredDrawables = new SortedList<VisualisedDrawable>(VisualisedDrawable.Comparer);
 
         public DrawVisualiser()
         {
@@ -246,9 +245,11 @@ namespace osu.Framework.Graphics.Visualisation
 
             vis.HighlightTarget = delegate
             {
+                propertyDisplay.State = Visibility.Visible;
+
                 // Either highlight or dehighlight the target, depending on whether
                 // it is currently highlighted
-                setHighlight(highlightedTarget != vis ? vis : null);
+                setHighlight(vis);
             };
 
             return vis;
