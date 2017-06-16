@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -182,5 +183,7 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         private void updateHeaderVisibility() => Header.Alpha = MenuItems.Any(i => i.IsPresent) ? 1 : 0;
+
+        protected override bool OnHover(InputState state) => true;
     }
 }
