@@ -1,70 +1,41 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using OpenTK;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
+using OpenTK;
+using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Visualisation
 {
-    internal class PropertyDisplay : OverlayContainer
+    internal class PropertyDisplay : VisibilityContainer
     {
         private readonly FillFlowContainer flow;
 
         private const float width = 600;
-        private const float height = 400;
-
-        private readonly Box titleBar;
 
         protected override Container<Drawable> Content => flow;
 
         public PropertyDisplay()
         {
-            Masking = true;
-            CornerRadius = 5;
-            Position = new Vector2(500, 100);
-            Size = new Vector2(width, height);
-            Alpha = 0.7f;
-            AddInternal(new Drawable[]
+            Width = width;
+            RelativeSizeAxes = Axes.Y;
+
+            AddInternal(new ScrollContainer
             {
-                new Box
+                RelativeSizeAxes = Axes.Both,
+                ScrollbarOverlapsContent = false,
+                Children = new[]
                 {
-                    Colour = new Color4(30, 30, 30, 240),
-                    RelativeSizeAxes = Axes.Both,
-                    Depth = 0
-                },
-                titleBar = new Box //title decoration
-                {
-                    Colour = Color4.DarkBlue,
-                    RelativeSizeAxes = Axes.X,
-                    Size = new Vector2(1, 20),
-                },
-                new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Top = 20 },
-                    Children = new[]
+                    flow = new FillFlowContainer
                     {
-                        new ScrollContainer
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            ScrollbarOverlapsContent = false,
-                            Children = new[]
-                            {
-                                flow = new FillFlowContainer()
-                                {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Direction = FillDirection.Vertical
-                                }
-                            },
-                        }
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical
                     }
                 },
             });
@@ -75,10 +46,8 @@ namespace osu.Framework.Graphics.Visualisation
             Clear();
 
             if (source == null)
-            {
-                State = Visibility.Hidden;
                 return;
-            }
+
             Type type = source.GetType();
 
             Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public))      // Get all properties
@@ -88,37 +57,14 @@ namespace osu.Framework.Graphics.Visualisation
                 .Select(member => new PropertyItem(member, source)));
         }
 
-        protected override bool OnDragStart(InputState state) => titleBar.Contains(state.Mouse.NativeState.Position);
-
-        protected override bool OnDrag(InputState state)
-        {
-            Position += state.Mouse.Delta;
-            return base.OnDrag(state);
-        }
-
         protected override void PopIn()
         {
-            FadeTo(0.7f, 100);
+            ResizeWidthTo(width, 500, EasingTypes.OutQuint);
         }
 
         protected override void PopOut()
         {
-            FadeOut(100);
-        }
-
-        protected override bool OnHover(InputState state)
-        {
-            FadeIn(300);
-
-            return true;
-        }
-
-        protected override void OnHoverLost(InputState state)
-        {
-            using (BeginDelayedSequence(500, true))
-            {
-                FadeTo(0.7f, 300);
-            }
+            ResizeWidthTo(0, 500, EasingTypes.OutQuint);
         }
 
         private class PropertyItem : Container
@@ -152,35 +98,35 @@ namespace osu.Framework.Graphics.Visualisation
                 Height = 20f;
                 AddInternal(new Drawable[]
                 {
-                new Container()
+                new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding()
+                    Padding = new MarginPadding
                     {
                         Right = 6
                     },
                     Children = new Drawable[]
                     {
-                        new FillFlowContainer<SpriteText>()
+                        new FillFlowContainer<SpriteText>
                         {
                             AutoSizeAxes = Axes.Both,
                             Direction = FillDirection.Horizontal,
                             Spacing = new Vector2(10f),
                             Children = new[]
                             {
-                                new SpriteText()
+                                new SpriteText
                                 {
                                     Text = info.Name,
                                     TextSize = Height,
                                     Colour = Color4.LightBlue,
                                 },
-                                new SpriteText()
+                                new SpriteText
                                 {
                                     Text = $@"[{type.Name}]:",
                                     TextSize = Height,
                                     Colour = Color4.MediumPurple,
                                 },
-                                valueText = new SpriteText()
+                                valueText = new SpriteText
                                 {
                                     TextSize = Height,
                                     Colour = Color4.White,
@@ -189,7 +135,7 @@ namespace osu.Framework.Graphics.Visualisation
                         }
                     }
                 },
-                changeMarker = new Box()
+                changeMarker = new Box
                 {
                     Size = new Vector2(4, 18),
                     Anchor = Anchor.CentreRight,

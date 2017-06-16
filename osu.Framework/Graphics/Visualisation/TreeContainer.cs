@@ -35,6 +35,8 @@ namespace osu.Framework.Graphics.Visualisation
         private const float width = 400;
         private const float height = 600;
 
+        internal PropertyDisplay PropertyDisplay { get; private set; }
+
         private TreeContainerStatus state;
 
         public TreeContainerStatus State
@@ -65,7 +67,10 @@ namespace osu.Framework.Graphics.Visualisation
             Masking = true;
             CornerRadius = 5;
             Position = new Vector2(100, 100);
-            Size = new Vector2(width, height);
+
+            AutoSizeAxes = Axes.X;
+            Height = height;
+
             AddInternal(new Drawable[]
             {
                 new Box
@@ -134,11 +139,21 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     },
                 },
-                new Container
+                new FillFlowContainer
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Y,
+                    AutoSizeAxes = Axes.X,
+                    Direction = FillDirection.Horizontal,
                     Padding = new MarginPadding { Top = 65 },
-                    Children = new[] { scroll = new ScrollContainer { RelativeSizeAxes = Axes.Both } }
+                    Children = new Drawable[]
+                    {
+                        scroll = new ScrollContainer
+                        {
+                            RelativeSizeAxes = Axes.Y,
+                            Width = width
+                        },
+                        PropertyDisplay = new PropertyDisplay()
+                    }
                 },
                 waitingText = new SpriteText
                 {

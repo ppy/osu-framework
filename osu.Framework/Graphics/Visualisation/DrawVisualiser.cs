@@ -63,9 +63,10 @@ namespace osu.Framework.Graphics.Visualisation
                             setHighlight(targetDrawable);
                     },
                 },
-                propertyDisplay = new PropertyDisplay(),
                 new CursorContainer()
             };
+
+            propertyDisplay = treeContainer.PropertyDisplay;
 
             propertyDisplay.StateChanged += (display, visibility) =>
             {
