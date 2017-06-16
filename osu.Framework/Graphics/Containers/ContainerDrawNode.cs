@@ -68,6 +68,8 @@ namespace osu.Framework.Graphics.Containers
             Type == other.Type &&
             Roundness == other.Roundness &&
             Radius == other.Radius;
+
+        public override string ToString() => Type != EdgeEffectType.None ? $@"{Radius} {Type}EdgeEffect" : @"EdgeEffect (Disabled)";
     }
 
     /// <summary>

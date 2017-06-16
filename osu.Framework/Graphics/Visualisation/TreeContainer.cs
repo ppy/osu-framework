@@ -26,13 +26,16 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Action ChooseTarget;
         public Action GoUpOneParent;
+        public Action ToggleProperties;
 
         protected override Container<Drawable> Content => scroll;
 
-        private readonly Box titleBar;
+        private readonly Container titleBar;
 
         private const float width = 400;
         private const float height = 600;
+
+        internal PropertyDisplay PropertyDisplay { get; private set; }
 
         private TreeContainerStatus state;
 
@@ -48,12 +51,10 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     case TreeContainerStatus.Offscreen:
                         using (BeginDelayedSequence(500, true))
-                        {
                             FadeTo(0.7f, 300);
-                        }
                         break;
                     case TreeContainerStatus.Onscreen:
-                        FadeIn(300);
+                        FadeIn(300, EasingTypes.OutQuint);
                         break;
                 }
             }
@@ -64,12 +65,21 @@ namespace osu.Framework.Graphics.Visualisation
             Masking = true;
             CornerRadius = 5;
             Position = new Vector2(100, 100);
-            Size = new Vector2(width, height);
+
+            AutoSizeAxes = Axes.X;
+            Height = height;
+
+            Color4 buttonBackground = new Color4(50, 50, 50, 255);
+            Color4 buttonBackgroundHighlighted = new Color4(80, 80, 80, 255);
+            const float button_width = width / 3 - 1;
+
+            Button propertyButton;
+
             AddInternal(new Drawable[]
             {
                 new Box
                 {
-                    Colour = new Color4(30, 30, 30, 240),
+                    Colour = new Color4(15, 15, 15, 255),
                     RelativeSizeAxes = Axes.Both,
                     Depth = 0
                 },
@@ -80,11 +90,25 @@ namespace osu.Framework.Graphics.Visualisation
                     Direction = FillDirection.Vertical,
                     Children = new Drawable[]
                     {
-                        titleBar = new Box //title decoration
+                        titleBar = new Container
                         {
-                            Colour = Color4.DarkBlue,
                             RelativeSizeAxes = Axes.X,
-                            Size = new Vector2(1, 20),
+                            Size = new Vector2(1, 25),
+                            Children = new Drawable[]
+                            {
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.BlueViolet,
+                                },
+                                new SpriteText
+                                {
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    Text = "draw visualiser (Ctrl+F1 to toggle)",
+                                    Alpha = 0.8f,
+                                },
+                            }
                         },
                         new Container //toolbar
                         {
@@ -105,19 +129,27 @@ namespace osu.Framework.Graphics.Visualisation
                                     {
                                         new Button
                                         {
-                                            BackgroundColour = Color4.DarkGray,
-                                            Size = new Vector2(100, 1),
+                                            BackgroundColour = buttonBackground,
+                                            Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
-                                            Text = @"Choose Target",
+                                            Text = @"choose target",
                                             Action = delegate { ChooseTarget?.Invoke(); }
                                         },
                                         new Button
                                         {
-                                            BackgroundColour = Color4.DarkGray,
-                                            Size = new Vector2(100, 1),
+                                            BackgroundColour = buttonBackground,
+                                            Size = new Vector2(button_width, 1),
                                             RelativeSizeAxes = Axes.Y,
-                                            Text = @"Up one parent",
+                                            Text = @"up one parent",
                                             Action = delegate { GoUpOneParent?.Invoke(); },
+                                        },
+                                        propertyButton = new Button
+                                        {
+                                            BackgroundColour = buttonBackground,
+                                            Size = new Vector2(button_width, 1),
+                                            RelativeSizeAxes = Axes.Y,
+                                            Text = @"view properties",
+                                            Action = delegate { ToggleProperties?.Invoke(); },
                                         },
                                     },
                                 },
@@ -125,11 +157,22 @@ namespace osu.Framework.Graphics.Visualisation
                         },
                     },
                 },
-                new Container
+                new FillFlowContainer
                 {
-                    RelativeSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Y,
+                    AutoSizeAxes = Axes.X,
+                    Direction = FillDirection.Horizontal,
                     Padding = new MarginPadding { Top = 65 },
-                    Children = new[] { scroll = new ScrollContainer { RelativeSizeAxes = Axes.Both } }
+                    Children = new Drawable[]
+                    {
+                        scroll = new ScrollContainer
+                        {
+                            Padding = new MarginPadding(10),
+                            RelativeSizeAxes = Axes.Y,
+                            Width = width
+                        },
+                        PropertyDisplay = new PropertyDisplay()
+                    }
                 },
                 waitingText = new SpriteText
                 {
@@ -138,6 +181,8 @@ namespace osu.Framework.Graphics.Visualisation
                     Origin = Anchor.Centre,
                 }
             });
+
+            PropertyDisplay.StateChanged += (c, v) => propertyButton.BackgroundColour = v == Visibility.Visible ? buttonBackgroundHighlighted : buttonBackground;
         }
 
         protected override void Update()

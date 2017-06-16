@@ -165,6 +165,8 @@ namespace osu.Framework.Graphics.Shaders
             IsBound = false;
         }
 
+        public override string ToString() => $@"{name} Shader (Compiled: {programID != -1})";
+
         /// <summary>
         /// Returns a uniform from the shader.
         /// </summary>

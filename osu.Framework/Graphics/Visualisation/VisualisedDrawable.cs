@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System.Collections.Generic;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -30,7 +31,32 @@ namespace osu.Framework.Graphics.Visualisation
 
         public Drawable Target { get; }
 
-        private readonly Box textBg;
+        private bool isHighlighted;
+
+        public bool IsHighlighted
+        {
+            get
+            {
+                return isHighlighted;
+            }
+            set
+            {
+                isHighlighted = value;
+
+                if (value)
+                {
+                    highlightBackground.FadeIn();
+                    Expand();
+                }
+                else
+                {
+                    highlightBackground.FadeOut();
+                }
+            }
+        }
+
+        private readonly Box background;
+        private readonly Box highlightBackground;
         private readonly SpriteText text;
         private readonly Drawable previewBox;
         private readonly Drawable activityInvalidate;
@@ -41,11 +67,11 @@ namespace osu.Framework.Graphics.Visualisation
         public Action HoverLost;
 
         public Action RequestTarget;
+        public Action HighlightTarget;
 
         private const int line_height = 12;
 
         public FillFlowContainer<VisualisedDrawable> Flow;
-
         private readonly TreeContainer tree;
 
         private readonly int nestingDepth;
@@ -61,7 +87,8 @@ namespace osu.Framework.Graphics.Visualisation
 
             var sprite = Target as Sprite;
 
-            AutoSizeAxes = Axes.Both;
+            RelativeSizeAxes = Axes.X;
+            AutoSizeAxes = Axes.Y;
             Add(new[]
             {
                 activityInvalidate = new Box
@@ -98,7 +125,7 @@ namespace osu.Framework.Graphics.Visualisation
                     Position = new Vector2(24, -3),
                     Children = new Drawable[]
                     {
-                        textBg = new Box
+                        background = new Box
                         {
                             RelativeSizeAxes = Axes.Both,
                             Size = new Vector2(1, 0.8f),
@@ -106,23 +133,29 @@ namespace osu.Framework.Graphics.Visualisation
                             Origin = Anchor.CentreLeft,
                             Colour = Color4.Transparent,
                         },
-                        text = new SpriteText
+                        highlightBackground = new Box
                         {
-                            Scale = new Vector2(0.9f),
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(1, 0.8f),
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            Colour = Color4.Khaki.Opacity(0.4f),
+                            Alpha = 0
                         },
+                        text = new SpriteText()
                     }
                 },
                 Flow = new FillFlowContainer<VisualisedDrawable>
                 {
                     Direction = FillDirection.Vertical,
-                    AutoSizeAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
                     Position = new Vector2(10, 14)
                 },
             });
 
             previewBox.Position = new Vector2(9, 0);
             previewBox.Size = new Vector2(line_height, line_height);
-
             updateSpecifics();
         }
 
@@ -159,21 +192,33 @@ namespace osu.Framework.Graphics.Visualisation
         protected override bool OnHover(InputState state)
         {
             HoverGained?.Invoke();
-            textBg.Colour = Color4.PaleVioletRed.Opacity(0.7f);
+            background.Colour = Color4.PaleVioletRed.Opacity(0.7f);
             return base.OnHover(state);
         }
 
         protected override void OnHoverLost(InputState state)
         {
             HoverLost?.Invoke();
-            textBg.Colour = Color4.Transparent;
+            background.Colour = Color4.Transparent;
             base.OnHoverLost(state);
+        }
+
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            if (args.Button == MouseButton.Right)
+            {
+                HighlightTarget?.Invoke();
+                return true;
+            }
+            return false;
         }
 
         protected override bool OnClick(InputState state)
         {
-            Flow.Alpha = Flow.Alpha > 0 ? 0 : 1;
-            updateSpecifics();
+            if (isExpanded)
+                Collapse();
+            else Expand();
+
             return true;
         }
 
@@ -181,6 +226,24 @@ namespace osu.Framework.Graphics.Visualisation
         {
             RequestTarget?.Invoke();
             return true;
+        }
+
+        private bool isExpanded = true;
+
+        public void Expand()
+        {
+            Flow.FadeIn();
+            updateSpecifics();
+
+            isExpanded = true;
+        }
+
+        public void Collapse()
+        {
+            Flow.FadeOut();
+            updateSpecifics();
+
+            isExpanded = false;
         }
 
         private void onAutoSize()
@@ -212,14 +275,14 @@ namespace osu.Framework.Graphics.Visualisation
 
             int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
 
-            text.Text = Target + (!Flow.IsPresent && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
+            text.Text = Target + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
 
         protected override void Update()
         {
             updateSpecifics();
 
-            text.Colour = !Flow.IsPresent ? Color4.LightBlue : Color4.White;
+            text.Colour = !isExpanded && ((Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0) > 0 ? Color4.LightBlue : Color4.White;
             base.Update();
         }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections.Generic;
 
@@ -62,6 +63,8 @@ namespace osu.Framework.Lists
 
             return index;
         }
+
+        public override string ToString() => $@"{GetType().ReadableName()} ({Count} items)";
 
         private class ComparisonComparer<TComparison> : IComparer<TComparison>
         {

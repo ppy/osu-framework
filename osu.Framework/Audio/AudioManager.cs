@@ -11,6 +11,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Audio
 {
@@ -371,5 +372,7 @@ namespace osu.Framework.Audio
             {
             }
         }
+
+        public override string ToString() => $@"{GetType().ReadableName()} ({currentAudioDevice})";
     }
 }

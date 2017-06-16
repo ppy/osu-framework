@@ -197,6 +197,14 @@ namespace osu.Framework.Graphics.Colour
             }
         }
 
+        public override string ToString()
+        {
+            if (HasSingleColour)
+                return $@"{TopLeft} (Single)";
+
+            else return $@"{TopLeft}, {TopRight}, {BottomLeft}, {BottomRight}";
+        }
+
         public static implicit operator ColourInfo(SRGBColour colour) => SingleColour(colour);
         public static implicit operator ColourInfo(Color4 colour) => (SRGBColour)colour;
     }
