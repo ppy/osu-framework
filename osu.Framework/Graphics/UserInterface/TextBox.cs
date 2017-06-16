@@ -554,6 +554,7 @@ namespace osu.Framework.Graphics.UserInterface
                         moveSelection(amount, state.Keyboard.ShiftPressed);
                         return true;
                     }
+                case Key.KeypadEnter:
                 case Key.Enter:
                     if (HasFocus)
                     {
