@@ -172,9 +172,10 @@ namespace osu.Framework.Graphics.Visualisation
 
         private VisualisedDrawable targetDrawable;
 
-        private void removeRootVisualisedDrawable()
+        private void removeRootVisualisedDrawable(bool hideProperties = true)
         {
-            propertyDisplay.State = Visibility.Hidden;
+            if (hideProperties)
+                propertyDisplay.State = Visibility.Hidden;
 
             if (targetDrawable != null)
             {
@@ -186,7 +187,7 @@ namespace osu.Framework.Graphics.Visualisation
 
         private void createRootVisualisedDrawable()
         {
-            removeRootVisualisedDrawable();
+            removeRootVisualisedDrawable(target == null);
 
             if (target != null)
             {
