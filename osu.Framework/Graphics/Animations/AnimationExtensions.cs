@@ -11,6 +11,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Displays the frame with the given zero-based frame index and stops the animation at that frame.
         /// </summary>
+        /// <param name="animation">The animation that should seek the frame and stop playing.</param>
         /// <param name="frameIndex">The zero-based index of the frame to display.</param>
         public static void GotoAndStop(this IAnimation animation, int frameIndex)
         {
@@ -21,6 +22,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Displays the frame with the given zero-based frame index and plays the animation from that frame.
         /// </summary>
+        /// <param name="animation">The animation that should seek the frame and start playing.</param>
         /// <param name="frameIndex">The zero-based index of the frame to display.</param>
         public static void GotoAndPlay(this IAnimation animation, int frameIndex)
         {

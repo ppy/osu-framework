@@ -18,6 +18,11 @@ namespace osu.Framework.Graphics.Animations
             public double Duration { get; set; }
         }
 
+        /// <summary>
+        /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
+        /// </summary>
+        public static double DefaultFrameLength = 1000.0 / 60.0;
+
         private readonly List<FrameData> frameData;
         private int currentFrameIndex;
 
@@ -32,10 +37,12 @@ namespace osu.Framework.Graphics.Animations
         /// True if the animation is playing, false otherwise.
         /// </summary>
         public bool IsPlaying { get; set; }
+
         /// <summary>
         /// True if the animation should start over from the first frame after finishing. False if it should stop playing and keep displaying the last frame when finishing.
         /// </summary>
         public bool Repeat { get; set; }
+
 
         protected Animation()
         {
@@ -66,15 +73,15 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="content">The content of the new frame.</param>
         /// <param name="displayDuration">The duration the new frame should be displayed for.</param>
-        public void AddFrame(T content, double displayDuration = 1000.0 / 60.0)
+        public void AddFrame(T content, double? displayDuration = null)
         {
             var fd = new FrameData()
             {
-                Duration = displayDuration, // 60 fps by default
+                Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
                 Content = content
             };
             frameData.Add(fd);
-            OnFrameAdded(content, displayDuration);
+            OnFrameAdded(content, fd.Duration);
 
             if (frameData.Count == 1)
                 displayFrame(0);
@@ -89,6 +96,7 @@ namespace osu.Framework.Graphics.Animations
             foreach (var t in contents)
                 AddFrame(t);
         }
+
         /// <summary>
         /// Adds a new frame for each element in the given enumerable. Every frame will be displayed for the given number of milliseconds.
         /// </summary>
@@ -107,6 +115,7 @@ namespace osu.Framework.Graphics.Animations
         /// <remarks>This method will only be called after <see cref="OnFrameAdded(T, double)"/> has been called at least once.</remarks>
         /// <param name="content">The content that will be displayed.</param>
         protected abstract void DisplayFrame(T content);
+
         /// <summary>
         /// Called whenever a new frame was added to this animation.
         /// </summary>
