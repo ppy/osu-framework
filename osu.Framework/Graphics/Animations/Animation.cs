@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
         /// </summary>
-        public static double DefaultFrameLength = 1000.0 / 60.0;
+        public double DefaultFrameLength = 1000.0 / 60.0;
 
         private readonly List<FrameData> frameData;
         private int currentFrameIndex;
