@@ -27,9 +27,9 @@ namespace osu.Framework.Graphics.Animations
             };
         }
 
-        protected override void AddedFrame(Texture content, double displayDuration)
+        protected override void OnFrameAdded(Texture content, double displayDuration)
         {
-            base.AddedFrame(content, displayDuration);
+            base.OnFrameAdded(content, displayDuration);
             maxTextureSize = Vector2.ComponentMax(new Vector2(content.DisplayWidth, content.DisplayHeight), maxTextureSize);
         }
 

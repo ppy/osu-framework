@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Animations
                 Content = content
             };
             frameData.Add(fd);
-            AddedFrame(content, displayDuration);
+            OnFrameAdded(content, displayDuration);
 
             if (frameData.Count == 1)
                 displayFrame(0);
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Displays the given contents.
         /// </summary>
-        /// <remarks>This method will only be called after <see cref="AddedFrame(T, double)"/> has been called at least once.</remarks>
+        /// <remarks>This method will only be called after <see cref="OnFrameAdded(T, double)"/> has been called at least once.</remarks>
         /// <param name="content">The content that will be displayed.</param>
         protected abstract void DisplayFrame(T content);
         /// <summary>
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="content">The content of the new frame.</param>
         /// <param name="displayDuration">The display duration of the new frame.</param>
-        protected virtual void AddedFrame(T content, double displayDuration) { }
+        protected virtual void OnFrameAdded(T content, double displayDuration) { }
 
         protected override void Update()
         {
