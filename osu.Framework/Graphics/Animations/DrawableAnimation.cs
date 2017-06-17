@@ -1,4 +1,7 @@
-﻿namespace osu.Framework.Graphics.Animations
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
+
+namespace osu.Framework.Graphics.Animations
 {
     /// <summary>
     /// An animation that switches the displayed drawable when a new frame is displayed.
