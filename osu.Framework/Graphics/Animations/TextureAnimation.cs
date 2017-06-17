@@ -43,6 +43,9 @@ namespace osu.Framework.Graphics.Animations
         {
             base.OnSizingChanged();
 
+            if (textureHolder == null)
+                return;
+
             textureHolder.RelativeSizeAxes = ~AutoSizeAxes;
             updateTextureHolderSize();
         }
@@ -51,6 +54,9 @@ namespace osu.Framework.Graphics.Animations
         {
             var newSize = Vector2.Zero;
             var content = textureHolder.Texture;
+            if (content == null)
+                return;
+
             if ((AutoSizeAxes & Axes.X) != 0)
                 newSize.X = content.DisplayWidth;
             else
