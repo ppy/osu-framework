@@ -160,19 +160,5 @@ namespace osu.Framework.Graphics.Animations
                 displayFrame(currentFrameIndex);
             }
         }
-
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
-
-            foreach (var frame in frameData)
-                (frame.Content as IDisposable)?.Dispose();
-
-            IsPlaying = false;
-            Repeat = false;
-            frameData.Clear();
-            currentFrameIndex = 0;
-            currentFrameTime = 0;
-        }
     }
 }
