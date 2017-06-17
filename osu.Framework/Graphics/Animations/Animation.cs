@@ -1,13 +1,9 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Animations
 {
@@ -23,7 +19,7 @@ namespace osu.Framework.Graphics.Animations
             public double Duration { get; set; }
         }
 
-        private List<FrameData> frameData;
+        private readonly List<FrameData> frameData;
         private int currentFrameIndex;
 
         private double currentFrameTime;
@@ -42,7 +38,7 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         public bool Repeat { get; set; }
 
-        public Animation()
+        protected Animation()
         {
             AutoSizeAxes = Axes.Both;
 
@@ -114,7 +110,7 @@ namespace osu.Framework.Graphics.Animations
         /// <summary>
         /// Adds a new frame for each element in the given enumerable. Every frame will be displayed for the given number of milliseconds.
         /// </summary>
-        /// <param name="contents">The contents and display durations to use for creating new frames.</param>
+        /// <param name="frames">The contents and display durations to use for creating new frames.</param>
         public void AddFrames(IEnumerable<KeyValuePair<T, double>> frames)
         {
             foreach (var t in frames)
@@ -168,11 +164,10 @@ namespace osu.Framework.Graphics.Animations
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
-            foreach(var frame in frameData)
-            {
-                if(frame.Content is IDisposable)
-                    ((IDisposable)frame.Content).Dispose();
-            }
+
+            foreach (var frame in frameData)
+                (frame.Content as IDisposable)?.Dispose();
+
             IsPlaying = false;
             Repeat = false;
             frameData.Clear();
