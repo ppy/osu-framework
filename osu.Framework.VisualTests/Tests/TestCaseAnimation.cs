@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Testing;
-using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.VisualTests.Tests
@@ -50,7 +49,7 @@ namespace osu.Framework.VisualTests.Tests
             });
 
             bool isScalingUp = true;
-            textureAnimation.OnUpdate = (drawable) =>
+            textureAnimation.OnUpdate = drawable =>
             {
                 if (textureAnimation.Size.X < 0.3f && isScalingUp)
                     textureAnimation.Size += new Vector2(0.001f);
@@ -74,9 +73,9 @@ namespace osu.Framework.VisualTests.Tests
             [BackgroundDependencyLoader]
             private void load(TextureStore textures)
             {
-                AddFrame(textures.Get($@"https://a.ppy.sh/2"), 500);
-                AddFrame(textures.Get($@"https://a.ppy.sh/3"), 500);
-                AddFrame(textures.Get($@"https://a.ppy.sh/1876669"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/2"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/3"), 500);
+                AddFrame(textures.Get("https://a.ppy.sh/1876669"), 500);
             }
         }
     }
