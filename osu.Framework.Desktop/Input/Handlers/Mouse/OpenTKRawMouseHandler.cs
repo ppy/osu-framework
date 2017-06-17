@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Drawing;
@@ -45,6 +45,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                         bool useRawInput = mouseInWindow && host.Window.Focused;
 
+                        //If using raw input, coordinates received from the mouse are not mapped to window, but to the mouse's hardware
                         var state = useRawInput ? OpenTK.Input.Mouse.GetState() : OpenTK.Input.Mouse.GetCursorState();
 
                         if (state.Equals(lastState))
@@ -63,6 +64,18 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             else
                             {
                                 currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
+
+                                if (currentPosition.X < 0f)
+                                    currentPosition.X = 0;
+
+                                if (currentPosition.X > host.Window.Size.Width)
+                                    currentPosition.X = host.Window.Size.Width;
+
+                                if (currentPosition.Y < 0f)
+                                    currentPosition.Y = 0;
+
+                                if (currentPosition.Y > host.Window.Size.Height)
+                                    currentPosition.Y = host.Window.Size.Height;
 
                                 // update the windows cursor to match our raw cursor position.
                                 // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
