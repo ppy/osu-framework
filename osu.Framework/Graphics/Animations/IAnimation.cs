@@ -29,17 +29,5 @@ namespace osu.Framework.Graphics.Animations
         /// </summary>
         /// <param name="frameIndex">The zero-based index of the frame to display.</param>
         void GotoFrame(int frameIndex);
-
-        /// <summary>
-        /// Displays the frame with the given zero-based frame index and stops the animation at that frame.
-        /// </summary>
-        /// <param name="frameIndex">The zero-based index of the frame to display.</param>
-        void GotoAndStop(int frameIndex);
-
-        /// <summary>
-        /// Displays the frame with the given zero-based frame index amd plays the animation from that frame.
-        /// </summary>
-        /// <param name="frameIndex">The zero-based index of the frame to display.</param>
-        void GotoAndPlay(int frameIndex);
     }
 }

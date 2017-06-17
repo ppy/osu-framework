@@ -60,24 +60,6 @@ namespace osu.Framework.Graphics.Animations
             currentFrameIndex = frameIndex;
             displayFrame(currentFrameIndex);
         }
-        /// <summary>
-        /// Displays the frame with the given zero-based frame index and stops the animation at that frame.
-        /// </summary>
-        /// <param name="frameIndex">The zero-based index of the frame to display.</param>
-        public void GotoAndStop(int frameIndex)
-        {
-            GotoFrame(frameIndex);
-            IsPlaying = false;
-        }
-        /// <summary>
-        /// Displays the frame with the given zero-based frame index amd plays the animation from that frame.
-        /// </summary>
-        /// <param name="frameIndex">The zero-based index of the frame to display.</param>
-        public void GotoAndPlay(int frameIndex)
-        {
-            GotoFrame(frameIndex);
-            IsPlaying = true;
-        }
 
         /// <summary>
         /// Adds a new frame with the given content and display duration (in milliseconds) to this animation.
@@ -97,6 +79,7 @@ namespace osu.Framework.Graphics.Animations
             if (frameData.Count == 1)
                 displayFrame(0);
         }
+
         /// <summary>
         /// Adds a new frame for each element in the given enumerable. Every frame will be displayed for 1/60th of a second.
         /// </summary>

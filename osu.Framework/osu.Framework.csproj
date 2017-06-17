@@ -112,6 +112,7 @@
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Animations\Animation.cs" />
+    <Compile Include="Graphics\Animations\AnimationExtensions.cs" />
     <Compile Include="Graphics\Animations\DrawableAnimation.cs" />
     <Compile Include="Graphics\Animations\IAnimation.cs" />
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
