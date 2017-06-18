@@ -11,6 +11,7 @@ namespace osu.Framework.Graphics.Transforms
         public double EndTime { get; set; }
 
         public TValue StartValue { get; set; }
+        public abstract TValue CurrentValue { get; }
         public TValue EndValue { get; set; }
 
         public double LoopDelay;
@@ -65,8 +66,6 @@ namespace osu.Framework.Graphics.Transforms
             LoopCount = loopCount;
         }
 
-        public abstract TValue CurrentValue { get; }
-
         public double LifetimeStart => StartTime;
 
         public double LifetimeEnd => EndTime;
@@ -90,7 +89,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public override string ToString()
         {
-            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(T));
+            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(TValue));
         }
 
         public void Load()

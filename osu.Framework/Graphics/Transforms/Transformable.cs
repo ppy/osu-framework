@@ -12,6 +12,21 @@ namespace osu.Framework.Graphics.Transforms
     {
         public abstract IFrameBasedClock Clock { get; set; }
 
+        /// <summary>
+        /// The current frame's time as observed by this class's <see cref="Clock"/>.
+        /// </summary>
+        public FrameTimeInfo Time => Clock.TimeInfo;
+
+        /// <summary>
+        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// </summary>
+        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
+
+        /// <summary>
+        /// Delay until the transformations are started, in milliseconds.
+        /// </summary>
+        protected double TransformDelay { get; private set; }
+
         private LifetimeList<ITransform<T>> transforms;
 
         /// <summary>
@@ -31,15 +46,10 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        /// <summary>
-        /// The current frame's time as observed by this class's <see cref="Clock"/>.
-        /// </summary>
-        public FrameTimeInfo Time => Clock.TimeInfo;
-
-        /// <summary>
-        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
-        /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
+        private void transforms_OnRemoved(ITransform<T> t)
+        {
+            t.Apply((T)this); //make sure we apply one last time.
+        }
 
         /// <summary>
         /// Process updates to this class based on loaded transforms.
@@ -54,26 +64,38 @@ namespace osu.Framework.Graphics.Transforms
                 t.Apply((T) this);
         }
 
-        private void transforms_OnRemoved(ITransform<T> t)
-        {
-            t.Apply((T) this); //make sure we apply one last time.
-        }
-
-
-        internal double TransformDelay { get; private set; }
-
+        /// <summary>
+        /// Clear all transformations and resets <see cref="TransformDelay"/>.
+        /// </summary>
+        /// <param name="propagateChildren">Whether we also clear down the child tree.</param>
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
             DelayReset();
             transforms?.Clear();
         }
 
+        /// <summary>
+        /// Add a delay duration to <see cref="TransformDelay"/>, in milliseconds.
+        /// </summary>
+        /// <param name="duration">The delay duration to add.</param>
+        /// <param name="propagateChildren">Whether we also delay down the child tree.</param>
+        /// <returns>This</returns>
         public virtual T Delay(double duration, bool propagateChildren = false)
         {
             if (duration == 0) return (T) this;
 
             TransformDelay += duration;
             return (T) this;
+        }
+
+        /// <summary>
+        /// Reset <see cref="TransfThormDelay"/>.
+        /// </summary>
+        /// <returns>This</returns>
+        public virtual T DelayReset()
+        {
+            Delay(-TransformDelay);
+            return (T)this;
         }
 
         /// <summary>
@@ -104,12 +126,6 @@ namespace osu.Framework.Graphics.Transforms
                 Transforms.RemoveAll(t => t.GetType() == flushType);
         }
 
-        public virtual T DelayReset()
-        {
-            Delay(-TransformDelay);
-            return (T) this;
-        }
-
         /// <summary>
         /// Start a sequence of transforms with a (cumulative) relative delay applied.
         /// </summary>
@@ -131,12 +147,20 @@ namespace osu.Framework.Graphics.Transforms
             return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
         }
 
+        /// <summary>
+        /// Set the loop interval of all transformations contained in <see cref="Transforms"/>.
+        /// </summary>
+        /// <param name="delay">The loop interval to set, in milliseconds.</param>
         public void Loop(float delay = 0)
         {
             foreach (var t in Transforms)
                 t.Loop(Math.Max(0, TransformDelay + delay - t.Duration));
         }
 
+        /// <summary>
+        /// Warp the time for all transformations contained in <see cref="Transforms"/>.
+        /// </summary>
+        /// <param name="delay">The time span to warp, in milliseconds.</param>
         public void TimeWarp(double change)
         {
             if (change == 0)
