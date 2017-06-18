@@ -7,7 +7,7 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public interface ITransform<T> : IHasLifetime
+    public interface ITransform<in T> : IHasLifetime
     {
         double Duration { get; }
 

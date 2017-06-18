@@ -341,7 +341,7 @@ namespace osu.Framework.Graphics
             DelayReset();
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
-            updateTransforms();
+            UpdateTransforms();
 
             if (!IsPresent)
                 return true;

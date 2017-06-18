@@ -5,8 +5,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
-using osu.Framework.Graphics.Transforms;
-using System;
 
 namespace osu.Framework.Graphics
 {

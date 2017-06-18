@@ -15,8 +15,7 @@ namespace osu.Framework.Graphics.Transforms
         private LifetimeList<ITransform<T>> transforms;
 
         /// <summary>
-        /// A lazily-initialized list of <see cref="ITransform"/>s applied to this class.
-        /// <see cref="ITransform"/>s are applied right before the <see cref="Update"/> method is called.
+        /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
         public LifetimeList<ITransform<T>> Transforms
         {
@@ -45,7 +44,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Process updates to this class based on loaded transforms.
         /// </summary>
-        protected void updateTransforms()
+        protected void UpdateTransforms()
         {
             if (transforms == null || transforms.Count == 0) return;
 
@@ -167,7 +166,7 @@ namespace osu.Framework.Graphics.Transforms
 
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
-            updateTransforms();
+            UpdateTransforms();
 
             //foreach (ITransform t in Transforms.AliveItems)
             //    if (t.GetType() == type)
