@@ -120,7 +120,7 @@ namespace osu.Framework.Lists
         /// <returns>The index of the first element larger than value.</returns>
         private int getAdditionIndex(T value)
         {
-            int index = list.BinarySearch(value, Comparer);
+            int index = IndexOf(value);
             if (index < 0)
                 index = ~index;
 
