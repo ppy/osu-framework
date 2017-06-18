@@ -100,5 +100,13 @@ namespace osu.Framework.Lists
 
             return true;
         }
+
+        public override void UpdatePosition(T item)
+        {
+            base.UpdatePosition(item);
+
+            // Also sort AliveItems
+            AliveItems.UpdatePosition(item);
+        }
     }
 }

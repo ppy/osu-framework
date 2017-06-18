@@ -43,7 +43,14 @@ namespace osu.Framework.Lists
             foreach (var i in collection) Add(i);
         }
 
-        public virtual int Add(T value)
+        public virtual int Add(T value) => addInternal(value);
+
+        /// <summary>
+        /// Adds the specified item internally without the interference of a possible derived class.
+        /// </summary>
+        /// <param name="value">The item to add.</param>
+        /// <returns>The index of the item within this list.</returns>
+        private int addInternal(T value)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
@@ -79,6 +86,21 @@ namespace osu.Framework.Lists
         public int IndexOf(T value)
         {
             return list.BinarySearch(value, Comparer);
+        }
+
+        /// <summary>
+        /// Repositions the item within this list using <see cref="Comparer"/>.
+        /// Useful when the primary sorting property of the item had changed.
+        /// </summary>
+        /// <param name="item">The item to update its actual index.</param>
+        public virtual void UpdatePosition(T item)
+        {
+            list.Remove(item);
+
+            // Add it back in the right place
+            // Must internally add because it was internally removed.
+            // Derived classes which keeps other sorted list (such as LifetimeList) will extend this function to keep its own lists sorted.
+            addInternal(item);
         }
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
