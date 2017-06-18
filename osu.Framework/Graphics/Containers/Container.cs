@@ -447,7 +447,7 @@ namespace osu.Framework.Graphics.Containers
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
-            List<Drawable> current = internalChildren;
+            SortedList<Drawable> current = internalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -535,7 +535,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<Drawable> current = parentContainer.internalChildren.AliveItems;
+            SortedList<Drawable> current = parentContainer.internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
