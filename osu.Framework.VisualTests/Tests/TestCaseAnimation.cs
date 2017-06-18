@@ -62,9 +62,9 @@ namespace osu.Framework.VisualTests.Tests
             };
             drawableAnimation.AddFrames(new[]
             {
-                new KeyValuePair<Drawable, double>(new Box { Size = new Vector2(50f), Colour = Color4.Red }, 500),
-                new KeyValuePair<Drawable, double>(new Box { Size = new Vector2(50f), Colour = Color4.Green }, 500),
-                new KeyValuePair<Drawable, double>(new Box { Size = new Vector2(50f), Colour = Color4.Blue }, 500),
+                new FrameData<Drawable>(new Box { Size = new Vector2(50f), Colour = Color4.Red }, 500),
+                new FrameData<Drawable>(new Box { Size = new Vector2(50f), Colour = Color4.Green }, 500),
+                new FrameData<Drawable>(new Box { Size = new Vector2(50f), Colour = Color4.Blue }, 500),
             });
         }
 
