@@ -43,5 +43,7 @@ namespace osu.Framework.Graphics.Containers
 
         void Remove(T drawable);
         void Remove(IEnumerable<T> range);
+
+        void UpdateDepth(T drawable);
     }
 }

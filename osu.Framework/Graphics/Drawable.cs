@@ -255,10 +255,21 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                if (Parent != null)
-                    throw new InvalidOperationException("May not change depth while inside a parent container.");
+                if (value == depth)
+                    return;
+
                 depth = value;
+
+                if (Parent != null)
+                {
+                    var container = Parent as IContainerCollection<Drawable>;
+
+                    if (container == null)
+                        throw new NotSupportedException(@"Cannot change depth while inside a parent container which does not implement IContainerCollection<Drawable>.");
+
+                    // Parent will update the actual index of this Drawable within its list
+                    container.UpdateDepth(this);
+                }
             }
         }
 

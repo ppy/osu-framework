@@ -345,6 +345,11 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
+        void IContainerCollection<T>.UpdateDepth(T drawable)
+        {
+            internalChildren.UpdatePosition(drawable);
+        }
+
         #endregion
 
         #region Updating (per-frame periodic)
