@@ -9,7 +9,7 @@ using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
 {
-    public class TestCaseContainerConsistency : TestCase
+    public class TestCaseNonAsyncContainer : TestCase
     {
         public override string Description => "Making sure a container's internal state is consistent prior to async loads.";
 
