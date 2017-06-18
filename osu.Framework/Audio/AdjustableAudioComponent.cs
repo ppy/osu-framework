@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Configuration;
@@ -88,12 +89,21 @@ namespace osu.Framework.Audio
             switch (type)
             {
                 case AdjustableProperty.Balance:
+                    if (balanceAdjustments.Contains(adjustBindable))
+                        throw new ArgumentException("An adjustable binding may only be registered once.");
+
                     balanceAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Frequency:
+                    if (frequencyAdjustments.Contains(adjustBindable))
+                        throw new ArgumentException("An adjustable binding may only be registered once.");
+
                     frequencyAdjustments.Add(adjustBindable);
                     break;
                 case AdjustableProperty.Volume:
+                    if (volumeAdjustments.Contains(adjustBindable))
+                        throw new ArgumentException("An adjustable binding may only be registered once.");
+
                     volumeAdjustments.Add(adjustBindable);
                     break;
             }
