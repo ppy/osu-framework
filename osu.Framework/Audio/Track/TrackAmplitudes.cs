@@ -13,5 +13,11 @@ namespace osu.Framework.Audio.Track
         public float Maximum => Math.Max(LeftChannel, RightChannel);
 
         public float Average => (LeftChannel + RightChannel) / 2;
+
+        /// <summary>
+        /// 256 length array containing bins after combining channels.
+        /// Each bin represents about 78 Hz of the audible spectrum (0Hz - 20,000Hz).
+        /// </summary>
+        public float[] FrequencyAmplitudes;
     }
 }
