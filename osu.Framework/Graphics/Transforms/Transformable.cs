@@ -12,7 +12,6 @@ namespace osu.Framework.Graphics.Transforms
     {
         public abstract IFrameBasedClock Clock { get; set; }
 
-
         private LifetimeList<ITransform<T>> transforms;
 
         /// <summary>
