@@ -29,5 +29,23 @@ namespace osu.Framework.Graphics.Animations
             animation.GotoFrame(frameIndex);
             animation.IsPlaying = true;
         }
+
+        /// <summary>
+        /// Resumes playing the animation.
+        /// </summary>
+        /// <param name="animation">The animation to play.</param>
+        public static void Play(this IAnimation animation) => animation.IsPlaying = true;
+
+        /// <summary>
+        /// Stops playing the animation.
+        /// </summary>
+        /// <param name="animation">The animation to stop playing.</param>
+        public static void Stop(this IAnimation animation) => animation.IsPlaying = false;
+
+        /// <summary>
+        /// Restarts the animation.
+        /// </summary>
+        /// <param name="animation">The animation to restart.</param>
+        public static void Restart(this IAnimation animation) => animation.GotoAndPlay(0);
     }
 }

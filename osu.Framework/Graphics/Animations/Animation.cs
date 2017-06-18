@@ -10,20 +10,14 @@ namespace osu.Framework.Graphics.Animations
     /// Represents a generic, frame-based animation. Inherit this class if you need custom animations.
     /// </summary>
     /// <typeparam name="T">The type of content in the frames of the animation.</typeparam>
-    public abstract class Animation<T> : Container, IAnimation
+    public abstract partial class Animation<T> : Container, IAnimation
     {
-        private struct FrameData
-        {
-            public T Content { get; set; }
-            public double Duration { get; set; }
-        }
-
         /// <summary>
         /// The duration in milliseconds of a newly added frame, if no duration is explicitly specified when adding the frame.
         /// </summary>
         public double DefaultFrameLength = 1000.0 / 60.0;
 
-        private readonly List<FrameData> frameData;
+        private readonly List<FrameData<T>> frameData;
         private int currentFrameIndex;
 
         private double currentFrameTime;
@@ -48,7 +42,7 @@ namespace osu.Framework.Graphics.Animations
         {
             AutoSizeAxes = Axes.Both;
 
-            frameData = new List<FrameData>();
+            frameData = new List<FrameData<T>>();
             IsPlaying = true;
             Repeat = true;
         }
@@ -75,13 +69,17 @@ namespace osu.Framework.Graphics.Animations
         /// <param name="displayDuration">The duration the new frame should be displayed for.</param>
         public void AddFrame(T content, double? displayDuration = null)
         {
-            var fd = new FrameData()
+            AddFrame(new FrameData<T>()
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
                 Content = content
-            };
-            frameData.Add(fd);
-            OnFrameAdded(content, fd.Duration);
+            });
+        }
+
+        public void AddFrame(FrameData<T> frame)
+        {
+            frameData.Add(frame);
+            OnFrameAdded(frame.Content, frame.Duration);
 
             if (frameData.Count == 1)
                 displayFrame(0);
@@ -101,10 +99,10 @@ namespace osu.Framework.Graphics.Animations
         /// Adds a new frame for each element in the given enumerable. Every frame will be displayed for the given number of milliseconds.
         /// </summary>
         /// <param name="frames">The contents and display durations to use for creating new frames.</param>
-        public void AddFrames(IEnumerable<KeyValuePair<T, double>> frames)
+        public void AddFrames(IEnumerable<FrameData<T>> frames)
         {
             foreach (var t in frames)
-                AddFrame(t.Key, t.Value);
+                AddFrame(t.Content, t.Duration);
         }
 
         private void displayFrame(int index) => DisplayFrame(frameData[index].Content);
@@ -130,7 +128,7 @@ namespace osu.Framework.Graphics.Animations
             if (IsPlaying && frameData.Count > 0)
             {
                 currentFrameTime += Time.Elapsed;
-                while(currentFrameTime > frameData[currentFrameIndex].Duration)
+                while (currentFrameTime > frameData[currentFrameIndex].Duration)
                 {
                     currentFrameTime -= frameData[currentFrameIndex].Duration;
                     ++currentFrameIndex;
