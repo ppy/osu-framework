@@ -1010,6 +1010,7 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSizeAxes = value;
                 childrenSizeDependencies.Invalidate();
+                OnSizingChanged();
             }
         }
 
