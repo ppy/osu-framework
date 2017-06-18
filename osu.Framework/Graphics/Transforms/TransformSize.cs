@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Transforms
         }
     }
 
-    public class TransformWidth : TransformFloat
+    public class TransformWidth : TransformFloat<Drawable>
     {
         public override void Apply(Drawable d)
         {
@@ -21,7 +21,7 @@ namespace osu.Framework.Graphics.Transforms
         }
     }
 
-    public class TransformHeight : TransformFloat
+    public class TransformHeight : TransformFloat<Drawable>
     {
         public override void Apply(Drawable d)
         {

@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformPositionX : TransformFloat
+    public class TransformPositionX : TransformFloat<Drawable>
     {
         public override void Apply(Drawable d)
         {

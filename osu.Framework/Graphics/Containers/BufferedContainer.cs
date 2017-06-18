@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
         //}
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that blurs
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs
         /// the buffered container.
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)

@@ -5,13 +5,13 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class Transform<T> : ITransform
+    public abstract class Transform<TValue, T> : ITransform<T>
     {
         public double StartTime { get; set; }
         public double EndTime { get; set; }
 
-        public T StartValue { get; set; }
-        public T EndValue { get; set; }
+        public TValue StartValue { get; set; }
+        public TValue EndValue { get; set; }
 
         public double LoopDelay;
         public int LoopCount;
@@ -40,14 +40,14 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        public ITransform Clone()
+        public ITransform<T> Clone()
         {
-            return (ITransform)MemberwiseClone();
+            return (ITransform<T>)MemberwiseClone();
         }
 
-        public ITransform CloneReverse()
+        public ITransform<T> CloneReverse()
         {
-            ITransform t = Clone();
+            ITransform<T> t = Clone();
             t.Reverse();
             return t;
         }
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Transforms
             LoopCount = loopCount;
         }
 
-        public abstract T CurrentValue { get; }
+        public abstract TValue CurrentValue { get; }
 
         public double LifetimeStart => StartTime;
 
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public bool IsLoaded => true;
 
-        public virtual void Apply(Drawable d)
+        public virtual void Apply(T d)
         {
             if (Time?.Current > EndTime && LoopCount != CurrentLoopCount)
             {
