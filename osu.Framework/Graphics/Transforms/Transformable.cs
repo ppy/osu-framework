@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Reset <see cref="TransfThormDelay"/>.
+        /// Reset <see cref="TransformDelay"/>.
         /// </summary>
         /// <returns>This</returns>
         public virtual T DelayReset()
@@ -160,16 +160,16 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Warp the time for all transformations contained in <see cref="Transforms"/>.
         /// </summary>
-        /// <param name="delay">The time span to warp, in milliseconds.</param>
-        public void TimeWarp(double change)
+        /// <param name="timeSpan">The time span to warp, in milliseconds.</param>
+        public void TimeWarp(double timeSpan)
         {
-            if (change == 0)
+            if (timeSpan == 0)
                 return;
 
             foreach (ITransform<T> t in Transforms)
             {
-                t.StartTime += change;
-                t.EndTime += change;
+                t.StartTime += timeSpan;
+                t.EndTime += timeSpan;
             }
         }
 
