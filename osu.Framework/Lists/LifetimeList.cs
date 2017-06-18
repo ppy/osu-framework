@@ -76,7 +76,7 @@ namespace osu.Framework.Lists
             return changed;
         }
 
-        public new int Add(T item)
+        public override int Add(T item)
         {
             LoadRequested?.Invoke(item);
 
@@ -86,48 +86,19 @@ namespace osu.Framework.Lists
             return i;
         }
 
-        public new bool Remove(T item)
+        public override bool Remove(T item)
         {
             int index = IndexOf(item);
 
             if (index < 0) return false;
 
-            RemoveAt(index);
+            current.RemoveAt(index);
 
             AliveItems.Remove(item);
 
+            base.Remove(item);
+
             return true;
-        }
-
-        public new void RemoveAt(int index)
-        {
-            current.RemoveAt(index);
-            base.RemoveAt(index);
-        }
-
-        public new int RemoveAll(Predicate<T> match)
-        {
-            int count = 0;
-            int i;
-
-            while ((i = FindIndex(match)) >= 0)
-            {
-                if (current[i])
-                    AliveItems.Remove(this[i]);
-
-                RemoveAt(i);
-
-                count++;
-            }
-
-            return count;
-        }
-
-        public new void Clear()
-        {
-            AliveItems.Clear();
-            current.Clear();
-            base.Clear();
         }
     }
 }
