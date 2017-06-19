@@ -227,10 +227,14 @@ namespace osu.Framework.Graphics.Containers
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
-            // The string construction is quite expensive, so we are using Debug.Assert here.
-            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            if (drawable.IsLoaded)
+            {
+                // The string construction is quite expensive, so we are using Debug.Assert here.
+                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            }
 
             drawable.Parent = null;
+            drawable.AddedToParentContainer = false;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -326,9 +330,11 @@ namespace osu.Framework.Graphics.Containers
             if (Content == this && !(drawable is T))
                 throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
-            drawable.Parent = this;
+            if (drawable.IsLoaded)
+                drawable.Parent = this;
 
             internalChildren.Add(drawable);
+            drawable.AddedToParentContainer = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
