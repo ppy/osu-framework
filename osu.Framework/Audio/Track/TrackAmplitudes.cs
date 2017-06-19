@@ -15,8 +15,7 @@ namespace osu.Framework.Audio.Track
         public float Average => (LeftChannel + RightChannel) / 2;
 
         /// <summary>
-        /// 256 length array containing bins after combining channels.
-        /// Each bin represents about 78 Hz of the audible spectrum (0Hz - 20,000Hz).
+        /// 256 length array of bins containing the average frequency of both channels at every ~78Hz step of the audible spectrum (0Hz - 20,000Hz).
         /// </summary>
         public float[] FrequencyAmplitudes;
     }
