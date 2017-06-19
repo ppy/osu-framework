@@ -11,30 +11,6 @@ namespace osu.Framework.Graphics.Shapes
     {
         private readonly Box fill;
 
-        public SRGBColour FillColour
-        {
-            get
-            {
-                return fill.Colour;
-            }
-            set
-            {
-                fill.Colour = value;
-            }
-        }
-
-        public ColourInfo FillColourInfo
-        {
-            get
-            {
-                return fill.ColourInfo;
-            }
-            set
-            {
-                fill.ColourInfo = value;
-            }
-        }
-
         public Circle()
         {
             Masking = true;
