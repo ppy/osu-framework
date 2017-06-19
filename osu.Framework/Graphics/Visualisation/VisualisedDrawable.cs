@@ -11,6 +11,7 @@ using OpenTK.Graphics;
 using osu.Framework.Extensions.Color4Extensions;
 using System.Collections.Generic;
 using OpenTK.Input;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.Visualisation
 {

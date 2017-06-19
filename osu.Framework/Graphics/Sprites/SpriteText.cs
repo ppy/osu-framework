@@ -13,6 +13,7 @@ using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.Sprites
 {

@@ -7,7 +7,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests

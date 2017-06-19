@@ -4,6 +4,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 
 namespace osu.Framework.Graphics.UserInterface

@@ -5,6 +5,7 @@ using osu.Framework;
 using osu.Framework.Graphics;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Allocation;
 

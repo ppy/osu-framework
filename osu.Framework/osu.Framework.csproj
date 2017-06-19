@@ -173,7 +173,7 @@
     <Compile Include="Graphics\Lines\Path.cs" />
     <Compile Include="Graphics\Lines\PathDrawNode.cs" />
     <Compile Include="Graphics\ProxyDrawable.cs" />
-    <Compile Include="Graphics\Sprites\Box.cs" />
+    <Compile Include="Graphics\Shapes\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Sprites\Triangle.cs" />
