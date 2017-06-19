@@ -81,13 +81,6 @@ namespace osu.Framework.VisualTests.Tests
                 green.Depth = 0;
                 purple.Depth = float.MinValue;
             });
-            AddStep(@"random depths", () =>
-            {
-                red.Depth = RNG.NextSingle();
-                blue.Depth = RNG.NextSingle();
-                green.Depth = RNG.NextSingle();
-                purple.Depth = RNG.NextSingle();
-            });
         }
 
         private class DepthBox : Container
