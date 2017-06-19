@@ -2,11 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 
-namespace osu.Framework.Graphics.Containers
+namespace osu.Framework.Graphics.Shapes
 {
-    public class FillCircularContainer : CircularContainer
+    public class Circle : CircularContainer
     {
         private readonly Box fill;
 
@@ -34,7 +35,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        public FillCircularContainer()
+        public Circle()
         {
             Masking = true;
 

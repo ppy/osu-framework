@@ -113,7 +113,7 @@
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
-    <Compile Include="Graphics\Containers\FillCircularContainer.cs" />
+    <Compile Include="Graphics\Shapes\Circle.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
