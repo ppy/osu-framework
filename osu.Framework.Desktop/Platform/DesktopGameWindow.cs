@@ -29,9 +29,9 @@ namespace osu.Framework.Desktop.Platform
         private readonly BindableDouble windowPositionX = new BindableDouble();
         private readonly BindableDouble windowPositionY = new BindableDouble();
 
-        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+        public readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
-        private readonly Bindable<ConfineMouseMode> confineMouseMode = new Bindable<ConfineMouseMode>();
+        public readonly Bindable<ConfineMouseMode> confineMouseMode = new Bindable<ConfineMouseMode>();
 
         public DesktopGameWindow()
             : base(default_width, default_height)
