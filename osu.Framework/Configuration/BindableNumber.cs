@@ -38,12 +38,12 @@ namespace osu.Framework.Configuration
         }
 
         /// <summary>
-        /// The minimum value of this bindable. <see cref="Value"/> will never go below this value.
+        /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
         /// </summary>
         public T MinValue { get; set; }
 
         /// <summary>
-        /// The maximim value of this bindable. <see cref="Value"/> will never go above this value.
+        /// The maximim value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
         /// </summary>
         public T MaxValue { get; set; }
 
