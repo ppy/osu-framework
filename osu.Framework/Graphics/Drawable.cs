@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
-using osu.Framework.Lists;
 using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
@@ -40,7 +39,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : IDisposable, IDrawable
+    public abstract class Drawable : Transformable<Drawable>, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -323,45 +322,6 @@ namespace osu.Framework.Graphics
         /// </summary>
         protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread));
 
-        private LifetimeList<ITransform> transforms;
-
-        /// <summary>
-        /// A lazily-initialized list of <see cref="ITransform"/>s applied to this Drawable.
-        /// <see cref="ITransform"/>s are applied right before the <see cref="Update"/> method is called.
-        /// </summary>
-        public LifetimeList<ITransform> Transforms
-        {
-            get
-            {
-                if (transforms == null)
-                {
-                    transforms = new LifetimeList<ITransform>(new TransformTimeComparer());
-                    transforms.Removed += transforms_OnRemoved;
-                }
-
-                return transforms;
-            }
-        }
-
-        /// <summary>
-        /// Process updates to this drawable based on loaded transforms.
-        /// </summary>
-        /// <returns>Whether we should draw this drawable.</returns>
-        private void updateTransforms()
-        {
-            if (transforms == null || transforms.Count == 0) return;
-
-            transforms.Update(Time);
-
-            foreach (ITransform t in transforms.AliveItems)
-                t.Apply(this);
-        }
-
-        private void transforms_OnRemoved(ITransform t)
-        {
-            t.Apply(this); //make sure we apply one last time.
-        }
-
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
         /// Called once every frame.
@@ -378,10 +338,10 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
-            TransformDelay = 0;
+            DelayReset();
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
-            updateTransforms();
+            UpdateTransforms();
 
             if (!IsPresent)
                 return true;
@@ -631,6 +591,7 @@ namespace osu.Framework.Graphics
                 if ((relativeSizeAxes & Axes.X) > 0 && Width == 0) Width = 1;
                 if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
 
+                OnSizingChanged();
                 // No invalidation necessary as DrawSize remains invariant.
             }
         }
@@ -758,6 +719,11 @@ namespace osu.Framework.Graphics
         /// Computes the bounding box of this drawable in its parent's space.
         /// </summary>
         public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
+
+        /// <summary>
+        /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
+        /// </summary>
+        protected virtual void OnSizingChanged() { }
 
         #endregion
 
@@ -1153,7 +1119,7 @@ namespace osu.Framework.Graphics
         /// If set, then the provided value is used as a custom clock and the
         /// <see cref="Parent"/>'s clock is ignored.
         /// </summary>
-        public IFrameBasedClock Clock
+        public override IFrameBasedClock Clock
         {
             get { return clock; }
             set
@@ -1172,11 +1138,6 @@ namespace osu.Framework.Graphics
         {
             this.clock = customClock ?? clock;
         }
-
-        /// <summary>
-        /// The current frame's time as observed by this drawable's <see cref="Clock"/>.
-        /// </summary>
-        public FrameTimeInfo Time => Clock.TimeInfo;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
@@ -1945,84 +1906,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        internal double TransformDelay { get; private set; }
-
-        public virtual void ClearTransforms(bool propagateChildren = false)
-        {
-            DelayReset();
-            transforms?.Clear();
-        }
-
-        public virtual Drawable Delay(double duration, bool propagateChildren = false)
-        {
-            if (duration == 0) return this;
-
-            TransformDelay += duration;
-            return this;
-        }
-
         protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
-
-        /// <summary>
-        /// Flush specified transforms, using the last available values (ignoring current clock time).
-        /// </summary>
-        /// <param name="propagateChildren">Whether we also flush down the child tree.</param>
-        /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
-        public virtual void Flush(bool propagateChildren = false, Type flushType = null)
-        {
-            var operateTransforms = flushType == null ? Transforms : Transforms.FindAll(t => t.GetType() == flushType);
-
-            double maxTime = double.MinValue;
-            foreach (ITransform t in operateTransforms)
-                if (t.EndTime > maxTime)
-                    maxTime = t.EndTime;
-
-            FrameTimeInfo maxTimeInfo = new FrameTimeInfo { Current = maxTime };
-
-            foreach (ITransform t in operateTransforms)
-            {
-                t.UpdateTime(maxTimeInfo);
-                t.Apply(this);
-            }
-
-            if (flushType == null)
-                ClearTransforms();
-            else
-                Transforms.RemoveAll(t => t.GetType() == flushType);
-        }
-
-        public virtual Drawable DelayReset()
-        {
-            Delay(-TransformDelay);
-            return this;
-        }
-
-        /// <summary>
-        /// Start a sequence of transforms with a (cumulative) relative delay applied.
-        /// </summary>
-        /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
-        /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
-        public TransformSequence BeginDelayedSequence(double delay, bool recursive = false) => new TransformSequence(this, delay, recursive);
-
-        /// <summary>
-        /// Start a sequence of transforms from an absolute time value.
-        /// </summary>
-        /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
-        /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
-        /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
-        {
-            if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
-            return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
-        }
-
-        public void Loop(float delay = 0)
-        {
-            foreach (var t in Transforms)
-                t.Loop(Math.Max(0, TransformDelay + delay - t.Duration));
-        }
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -2038,28 +1922,16 @@ namespace osu.Framework.Graphics
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
             double max = TransformStartTime;
-            foreach (ITransform t in Transforms)
+            foreach (ITransform<Drawable> t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (ITransform t in Transforms)
+                foreach (ITransform<Drawable> t in Transforms)
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
-            }
-        }
-
-        public void TimeWarp(double change)
-        {
-            if (change == 0)
-                return;
-
-            foreach (ITransform t in Transforms)
-            {
-                t.StartTime += change;
-                t.EndTime += change;
             }
         }
 
@@ -2078,78 +1950,6 @@ namespace osu.Framework.Graphics
         public virtual void Show()
         {
             FadeIn();
-        }
-
-        /// <summary>
-        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
-        /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
-
-        public void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>
-        {
-            Type type = transform.GetType();
-
-            double startTime = TransformStartTime;
-
-            //For simplicity let's just update *all* transforms.
-            //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
-            updateTransforms();
-
-            //foreach (ITransform t in Transforms.AliveItems)
-            //    if (t.GetType() == type)
-            //        t.Apply(this);
-
-            TValue startValue = currentValue();
-
-            if (TransformDelay == 0)
-            {
-                Transforms.RemoveAll(t => t.GetType() == type);
-
-                if (startValue.Equals(newValue))
-                    return;
-            }
-            else
-            {
-                var last = Transforms.FindLast(t => t.GetType() == type) as Transform<TValue>;
-                if (last != null)
-                {
-                    //we may be in the middle of an existing transform, so let's update it to the start time of our new transform.
-                    last.UpdateTime(new FrameTimeInfo { Current = startTime });
-                    startValue = last.CurrentValue;
-                }
-            }
-
-            transform.StartTime = startTime;
-            transform.EndTime = startTime + duration;
-            transform.StartValue = startValue;
-            transform.EndValue = newValue;
-            transform.Easing = easing;
-
-            addTransform(transform);
-        }
-
-        private void addTransform(ITransform transform)
-        {
-            if (Clock == null)
-            {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(this);
-                return;
-            }
-
-            //we have no duration and do not need to be delayed, so we can just apply ourselves and be gone.
-            bool canApplyInstant = transform.Duration == 0 && TransformDelay == 0;
-
-            //we should also immediately apply any transforms that have already started to avoid potentially applying them one frame too late.
-            if (canApplyInstant || transform.StartTime < Time.Current)
-            {
-                transform.UpdateTime(Time);
-                transform.Apply(this);
-                if (canApplyInstant)
-                    return;
-            }
-
-            Transforms.Add(transform);
         }
 
         #region Helpers
@@ -2300,49 +2100,6 @@ namespace osu.Framework.Graphics
                 shortClass = $@"{Name} ({shortClass})";
 
             return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
-        }
-
-        /// <summary>
-        /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
-        /// </summary>
-        public class TransformSequence : IDisposable
-        {
-            private readonly Drawable us;
-            private readonly bool recursive;
-            private readonly double adjust;
-
-            public TransformSequence(Drawable us, double adjust, bool recursive = false)
-            {
-                this.recursive = recursive;
-                this.us = us;
-                this.adjust = adjust;
-
-                us.Delay(adjust, recursive);
-            }
-
-            #region IDisposable Support
-            private bool disposed;
-
-            protected virtual void Dispose(bool disposing)
-            {
-                if (!disposed)
-                {
-                    us.Delay(-adjust, recursive);
-                    disposed = true;
-                }
-            }
-
-            ~TransformSequence()
-            {
-                Dispose(false);
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-            #endregion
         }
     }
 

@@ -7,17 +7,17 @@ using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public interface ITransform : IHasLifetime
+    public interface ITransform<in T> : IHasLifetime
     {
         double Duration { get; }
 
         double StartTime { get; set; }
         double EndTime { get; set; }
 
-        void Apply(Drawable d);
+        void Apply(T d);
 
-        ITransform Clone();
-        ITransform CloneReverse();
+        ITransform<T> Clone();
+        ITransform<T> CloneReverse();
 
         void Reverse();
         void Loop(double delay, int loopCount = -1);
@@ -29,9 +29,9 @@ namespace osu.Framework.Graphics.Transforms
         void Shift(double offset);
     }
 
-    public class TransformTimeComparer : IComparer<ITransform>
+    public class TransformTimeComparer<T> : IComparer<ITransform<T>>
     {
-        public int Compare(ITransform x, ITransform y)
+        public int Compare(ITransform<T> x, ITransform<T> y)
         {
             if (x == null) throw new ArgumentNullException(nameof(x));
             if (y == null) throw new ArgumentNullException(nameof(y));

@@ -111,6 +111,12 @@
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
+    <Compile Include="Graphics\Animations\Animation.cs" />
+    <Compile Include="Graphics\Animations\AnimationExtensions.cs" />
+    <Compile Include="Graphics\Animations\DrawableAnimation.cs" />
+    <Compile Include="Graphics\Animations\FrameData.cs" />
+    <Compile Include="Graphics\Animations\IAnimation.cs" />
+    <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />
@@ -292,6 +298,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
     <Compile Include="Graphics\EasingTypes.cs" />
+    <Compile Include="Graphics\Transforms\Transformable.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
