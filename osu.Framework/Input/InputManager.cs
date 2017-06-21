@@ -189,11 +189,16 @@ namespace osu.Framework.Input
                 // we only want to set a last state if both the new and old state are of the same type.
                 // this avoids giving the new state a false impression of being able to calculate delta values based on a last
                 // state potentially from a different input source.
-                if (last.Mouse != null && s.Mouse != null && last.Mouse.GetType() == s.Mouse.GetType())
+                if (last.Mouse != null && s.Mouse != null)
                 {
-                    last.Mouse.LastState = null;
-                    s.Mouse.LastState = last.Mouse;
-                    s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
+                    if (last.Mouse.GetType() == s.Mouse.GetType())
+                    {
+                        last.Mouse.LastState = null;
+                        s.Mouse.LastState = last.Mouse;
+                    }
+
+                    if (s.Mouse.HasAnyButtonPressed)
+                        s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
                 }
 
                 //hover could change even when the mouse state has not.
