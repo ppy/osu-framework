@@ -5,8 +5,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
 using OpenTK;
-using osu.Framework.Graphics.Transforms;
-using System;
 
 namespace osu.Framework.Graphics
 {
@@ -65,16 +63,5 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable is currently hovered over.
         /// </summary>
         bool Hovering { get; }
-
-        /// <summary>
-        /// Applies a transform to this drawable object.
-        /// </summary>
-        /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>
-        /// <param name="currentValue">A function to get the current value to transform from.</param>
-        /// <param name="newValue">The value to transform to.</param>
-        /// <param name="duration">The transform duration.</param>
-        /// <param name="easing">The transform easing.</param>
-        /// <param name="transform">The transform to use.</param>
-        void TransformTo<TValue>(Func<TValue> currentValue, TValue newValue, double duration, EasingTypes easing, Transform<TValue> transform) where TValue : struct, IEquatable<TValue>;
     }
 }

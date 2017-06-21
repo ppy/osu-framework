@@ -6,8 +6,9 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Shapes
 {
     /// <summary>
     /// Represents a sprite that is drawn in a triangle shape, instead of a rectangle shape.

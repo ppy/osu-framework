@@ -2,7 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using System;
 
 namespace osu.Framework.Graphics.Visualisation

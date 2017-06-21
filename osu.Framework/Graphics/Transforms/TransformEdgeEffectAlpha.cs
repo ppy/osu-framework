@@ -5,7 +5,7 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformEdgeEffectAlpha : TransformFloat
+    public class TransformEdgeEffectAlpha : TransformFloat<Drawable>
     {
         public override void Apply(Drawable d)
         {
