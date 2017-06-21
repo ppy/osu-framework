@@ -15,7 +15,6 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseAnimation : TestCase
     {
-        private AvatarAnimation textureAnimation;
         private DrawableAnimation drawableAnimation;
 
         public override string Description => "Various frame-based animations";
@@ -30,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
                 RelativeSizeAxes = Axes.Both,
                 Children = new Drawable[]
                 {
-                    new DelayedLoadWrapper(textureAnimation = new AvatarAnimation
+                    new DelayedLoadWrapper(new AvatarAnimation
                     {
                         AutoSizeAxes = Axes.None,
                         RelativeSizeAxes = Axes.Both,
@@ -47,18 +46,6 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            bool isScalingUp = true;
-            textureAnimation.OnUpdate = drawable =>
-            {
-                if (textureAnimation.Size.X < 0.3f && isScalingUp)
-                    textureAnimation.Size += new Vector2(0.001f);
-                else if (textureAnimation.Size.X >= 0.3f && isScalingUp)
-                    isScalingUp = false;
-                else if (textureAnimation.Size.X > 0.2f && !isScalingUp)
-                    textureAnimation.Size -= new Vector2(0.001f);
-                else if (textureAnimation.Size.X <= 0.2f && !isScalingUp)
-                    isScalingUp = true;
-            };
             drawableAnimation.AddFrames(new[]
             {
                 new FrameData<Drawable>(new Box { Size = new Vector2(50f), Colour = Color4.Red }, 500),
