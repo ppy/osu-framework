@@ -515,7 +515,7 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
-        public FrameworkConfigManager getFrameworkConfigManager()
+        public FrameworkConfigManager GetFrameworkConfigManager()
         {
             return config;
         }
