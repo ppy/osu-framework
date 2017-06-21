@@ -28,7 +28,6 @@ namespace osu.Framework.Graphics.Transforms
         protected double TransformDelay { get; private set; }
 
         private LifetimeList<ITransform<T>> transforms;
-
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
@@ -39,24 +38,32 @@ namespace osu.Framework.Graphics.Transforms
                 if (transforms == null)
                 {
                     transforms = new LifetimeList<ITransform<T>>(new TransformTimeComparer<T>());
-                    transforms.Removed += transforms_OnRemoved;
+
+                    // Apply transforms one last time when they're removed
+                    transforms.Removed += t => t.Apply((T)this);
                 }
 
                 return transforms;
             }
         }
 
-        private void transforms_OnRemoved(ITransform<T> t)
-        {
-            t.Apply((T)this); //make sure we apply one last time.
-        }
-
         /// <summary>
-        /// Process updates to this class based on loaded transforms.
+        /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded transforms.
         /// </summary>
         protected void UpdateTransforms()
         {
-            if (transforms == null || transforms.Count == 0) return;
+            TransformDelay = 0;
+            updateTransforms();
+        }
+
+        /// <summary>
+        /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
+        /// This is used for performing extra updates on transforms when new transforms are added.
+        /// </summary>
+        private void updateTransforms()
+        {
+            if (transforms == null || transforms.Count == 0)
+                return;
 
             transforms.Update(Time);
 
@@ -190,7 +197,7 @@ namespace osu.Framework.Graphics.Transforms
 
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
-            UpdateTransforms();
+            updateTransforms();
 
             //foreach (ITransform t in Transforms.AliveItems)
             //    if (t.GetType() == type)

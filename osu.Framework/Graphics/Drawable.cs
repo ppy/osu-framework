@@ -338,10 +338,8 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
-            DelayReset();
-
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
-            UpdateTransforms();
+            UpdateTransforms(true);
 
             if (!IsPresent)
                 return true;
