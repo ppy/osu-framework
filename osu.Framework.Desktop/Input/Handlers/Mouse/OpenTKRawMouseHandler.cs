@@ -56,8 +56,8 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                         //If mouse is always confined or set to fullscreen confine the mouse
                         if (config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Always ||
-                           (config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Fullscreen &&
-                                config.GetBindable<WindowMode>(FrameworkSetting.WindowMode) == WindowMode.Fullscreen))
+                            config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Fullscreen &&
+                                config.GetBindable<WindowMode>(FrameworkSetting.WindowMode) == WindowMode.Fullscreen)
                         {
                             if (currentPosition.X < 0)
                                 currentPosition.X = 0;
