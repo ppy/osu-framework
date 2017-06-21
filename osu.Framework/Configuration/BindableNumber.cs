@@ -56,6 +56,12 @@ namespace osu.Framework.Configuration
         /// /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <see cref="T"/>.
         /// </summary>
         protected abstract T DefaultMaxValue { get; }
+
+        /// <summary>
+        /// Whether this bindable has a user-defined range that is not the full range of the <see cref="T"/> type.
+        /// </summary>
+        public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) && !MaxValue.Equals(DefaultMaxValue);
+
         public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
 
         public bool IsInteger
