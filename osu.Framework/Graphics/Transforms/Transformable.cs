@@ -7,9 +7,16 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
+    /// <summary>
+    /// A type of object which can have transforms attached to it.
+    /// An implementer of this class must call <see cref="UpdateTransforms"/> to update the transforms.
+    /// </summary>
     public abstract class Transformable<T>
         where T : Transformable<T>
     {
+        /// <summary>
+        /// The clock that is used to provide the timing for the transforms.
+        /// </summary>
         public abstract IFrameBasedClock Clock { get; set; }
 
         /// <summary>
