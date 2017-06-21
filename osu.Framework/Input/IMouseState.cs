@@ -21,6 +21,8 @@ namespace osu.Framework.Input
 
         bool HasMainButtonPressed { get; }
 
+        bool HasAnyButtonPressed { get; }
+
         bool IsPressed(MouseButton button);
 
         void SetPressed(MouseButton button, bool pressed);

@@ -1889,6 +1889,9 @@ namespace osu.Framework.Graphics
             }
 
             public bool HasMainButtonPressed => NativeState.HasMainButtonPressed;
+
+            public bool HasAnyButtonPressed => NativeState.HasAnyButtonPressed;
+
             public int Wheel => NativeState.Wheel;
             public int WheelDelta => NativeState.WheelDelta;
 
