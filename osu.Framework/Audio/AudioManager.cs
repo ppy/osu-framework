@@ -30,7 +30,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
-        internal GameThread Thread;
+        internal AudioThread Thread;
 
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();
@@ -99,7 +99,7 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            Thread = new GameThread(Update, @"Audio");
+            Thread = new AudioThread(Update, @"Audio");
             Thread.Start();
 
             scheduler.Add(() =>
