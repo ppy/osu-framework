@@ -55,12 +55,12 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform.Apply(T)"/>)
+        /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)
         /// however this is both messy and may potentially have a performance overhead. So a local casted reference is kept to avoid this.
         /// </summary>
         private readonly T derivedThis;
 
-        public Transformable()
+        protected Transformable()
         {
             derivedThis = (T)this;
         }
