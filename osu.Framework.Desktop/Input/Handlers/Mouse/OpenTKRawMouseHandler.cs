@@ -9,6 +9,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
 using osu.Framework.Statistics;
+using osu.Framework.Desktop.Platform;
 using MouseState = OpenTK.Input.MouseState;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
@@ -23,19 +24,24 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         private bool mouseInWindow;
 
-        private FrameworkConfigManager config;
-
         private readonly BindableDouble sensitivity = new BindableDouble(1) { MinValue = 0.1, MaxValue = 10 };
 
         public BindableDouble Sensitivity => sensitivity;
+
+        private ConfineMouseMode confineMode;
+
+        private WindowMode windowMode;
+
+        private DesktopGameWindow desktopWindow;
 
         public override bool Initialize(GameHost host)
         {
             host.Window.MouseEnter += window_MouseEnter;
             host.Window.MouseLeave += window_MouseLeave;
-            config = host.GetFrameworkConfigManager();
 
             mouseInWindow = host.Window.CursorInWindow;
+
+            
 
             Enabled.ValueChanged += enabled =>
             {
@@ -48,27 +54,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                         bool useRawInput = mouseInWindow && host.Window.Focused;
 
-                        //If using raw input, coordinates received from the mouse are not mapped to window, but to the mouse's hardware
                         var state = useRawInput ? OpenTK.Input.Mouse.GetState() : OpenTK.Input.Mouse.GetCursorState();
 
                         if (state.Equals(lastState))
                             return;
-
-                        //If mouse is always confined or set to fullscreen confine the mouse
-                        if (config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Always ||
-                            config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Fullscreen &&
-                                config.GetBindable<WindowMode>(FrameworkSetting.WindowMode) == WindowMode.Fullscreen)
-                        {
-                            if (currentPosition.X < 0)
-                                currentPosition.X = 0;
-                            if (currentPosition.X > host.Window.Width)
-                                currentPosition.X = host.Window.Width;
-
-                            if (currentPosition.Y < 0)
-                                currentPosition.Y = 0;
-                            if (currentPosition.Y > host.Window.Height)
-                                currentPosition.Y = host.Window.Height;
-                        }
 
                         if (useRawInput)
                         {
@@ -84,17 +73,27 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             {
                                 currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
 
-                                if (currentPosition.X < 0f)
-                                    currentPosition.X = 0;
+                                //Get the bindables we need to determine whether to confine the mouse to window or not{
+                                desktopWindow = host.Window as DesktopGameWindow;
+                                if (desktopWindow != null)
+                                {
+                                    confineMode = desktopWindow.confineMouseMode;
+                                    windowMode = desktopWindow.windowMode;
+                                }
 
-                                if (currentPosition.X > host.Window.Size.Width)
-                                    currentPosition.X = host.Window.Size.Width;
+                                if (confineMode == ConfineMouseMode.Always ||
+                                   (confineMode == ConfineMouseMode.Fullscreen) && (windowMode == WindowMode.Fullscreen) )
+                                {
+                                    if (currentPosition.X < 0)
+                                        currentPosition.X = 0;
+                                    if (currentPosition.X > host.Window.Width)
+                                        currentPosition.X = host.Window.Width;
 
-                                if (currentPosition.Y < 0f)
-                                    currentPosition.Y = 0;
-
-                                if (currentPosition.Y > host.Window.Size.Height)
-                                    currentPosition.Y = host.Window.Size.Height;
+                                    if (currentPosition.Y < 0)
+                                        currentPosition.Y = 0;
+                                    if (currentPosition.Y > host.Window.Height)
+                                        currentPosition.Y = host.Window.Height;
+                                }
 
                                 // update the windows cursor to match our raw cursor position.
                                 // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
