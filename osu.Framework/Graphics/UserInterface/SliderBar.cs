@@ -55,6 +55,10 @@ namespace osu.Framework.Graphics.UserInterface
                     return 0;
                 var min = Convert.ToSingle(CurrentNumber.MinValue);
                 var max = Convert.ToSingle(CurrentNumber.MaxValue);
+
+                if (max - min == 0)
+                    return 1;
+
                 var val = Convert.ToSingle(CurrentNumber.Value);
                 return (val - min) / (max - min);
             }
