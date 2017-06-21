@@ -11,6 +11,7 @@ using osu.Framework.Input.Handlers;
 using OpenTK;
 using OpenTK.Input;
 using osu.Framework.Platform;
+using osu.Framework.Configuration;
 
 namespace osu.Framework.Input
 {
