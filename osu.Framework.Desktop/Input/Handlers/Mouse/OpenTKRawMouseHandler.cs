@@ -33,7 +33,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         {
             host.Window.MouseEnter += window_MouseEnter;
             host.Window.MouseLeave += window_MouseLeave;
-            config = host.getFrameworkConfigManager();
+            config = host.GetFrameworkConfigManager();
 
             mouseInWindow = host.Window.CursorInWindow;
 
@@ -56,7 +56,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                         //If mouse is always confined or set to fullscreen confine the mouse
                         if (config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Always ||
-                           ((config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Fullscreen) &&
+                           (config.GetBindable<ConfineMouseMode>(FrameworkSetting.ConfineMouseMode) == ConfineMouseMode.Fullscreen &&
                                 config.GetBindable<WindowMode>(FrameworkSetting.WindowMode) == WindowMode.Fullscreen))
                         {
                             if (currentPosition.X < 0)
