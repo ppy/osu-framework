@@ -14,11 +14,12 @@ namespace osu.Framework.Configuration
             set { base.Value = Math.Max(MinValue, Math.Min(MaxValue, value)); }
         }
 
+        protected override long DefaultMinValue => long.MinValue;
+        protected override long DefaultMaxValue => long.MaxValue;
+
         public BindableLong(long value = 0)
             : base(value)
         {
-            MinValue = long.MinValue;
-            MaxValue = long.MaxValue;
         }
 
         public override void BindTo(Bindable<long> them)
