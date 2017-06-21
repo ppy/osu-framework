@@ -7,7 +7,7 @@ using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformEdgeEffectColour : Transform<Color4>
+    public class TransformEdgeEffectColour : Transform<Color4, Drawable>
     {
         /// <summary>
         /// Current value of the transformed colour in linear colour space.

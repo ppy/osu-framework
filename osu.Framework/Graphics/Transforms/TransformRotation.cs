@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformRotation : TransformFloat
+    public class TransformRotation : TransformFloat<Drawable>
     {
         public override void Apply(Drawable d)
         {

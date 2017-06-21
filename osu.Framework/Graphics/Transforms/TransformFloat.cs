@@ -5,7 +5,7 @@ using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class TransformFloat : Transform<float>
+    public abstract class TransformFloat<T> : Transform<float, T>
     {
         public override float CurrentValue
         {
