@@ -7,9 +7,16 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
+    /// <summary>
+    /// A type of object which can have transforms attached to it.
+    /// An implementer of this class must call <see cref="UpdateTransforms"/> to update the transforms.
+    /// </summary>
     public abstract class Transformable<T>
         where T : Transformable<T>
     {
+        /// <summary>
+        /// The clock that is used to provide the timing for the transforms.
+        /// </summary>
         public abstract IFrameBasedClock Clock { get; set; }
 
         /// <summary>
@@ -28,7 +35,6 @@ namespace osu.Framework.Graphics.Transforms
         protected double TransformDelay { get; private set; }
 
         private LifetimeList<ITransform<T>> transforms;
-
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
@@ -39,29 +45,48 @@ namespace osu.Framework.Graphics.Transforms
                 if (transforms == null)
                 {
                     transforms = new LifetimeList<ITransform<T>>(new TransformTimeComparer<T>());
-                    transforms.Removed += transforms_OnRemoved;
+
+                    // Apply transforms one last time when they're removed
+                    transforms.Removed += t => t.Apply(derivedThis);
                 }
 
                 return transforms;
             }
         }
 
-        private void transforms_OnRemoved(ITransform<T> t)
+        /// <summary>
+        /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)
+        /// however this is both messy and may potentially have a performance overhead. So a local casted reference is kept to avoid this.
+        /// </summary>
+        private readonly T derivedThis;
+
+        protected Transformable()
         {
-            t.Apply((T)this); //make sure we apply one last time.
+            derivedThis = (T)this;
         }
 
         /// <summary>
-        /// Process updates to this class based on loaded transforms.
+        /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded transforms.
         /// </summary>
         protected void UpdateTransforms()
         {
-            if (transforms == null || transforms.Count == 0) return;
+            TransformDelay = 0;
+            updateTransforms();
+        }
+
+        /// <summary>
+        /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
+        /// This is used for performing extra updates on transforms when new transforms are added.
+        /// </summary>
+        private void updateTransforms()
+        {
+            if (transforms == null || transforms.Count == 0)
+                return;
 
             transforms.Update(Time);
 
             foreach (ITransform<T> t in transforms.AliveItems)
-                t.Apply((T)this);
+                t.Apply(derivedThis);
         }
 
         /// <summary>
@@ -82,10 +107,10 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>This</returns>
         public virtual T Delay(double duration, bool propagateChildren = false)
         {
-            if (duration == 0) return (T)this;
+            if (duration == 0) return derivedThis;
 
             TransformDelay += duration;
-            return (T)this;
+            return derivedThis;
         }
 
         /// <summary>
@@ -95,7 +120,7 @@ namespace osu.Framework.Graphics.Transforms
         public virtual T DelayReset()
         {
             Delay(-TransformDelay);
-            return (T)this;
+            return derivedThis;
         }
 
         /// <summary>
@@ -117,7 +142,7 @@ namespace osu.Framework.Graphics.Transforms
             foreach (ITransform<T> t in operateTransforms)
             {
                 t.UpdateTime(maxTimeInfo);
-                t.Apply((T)this);
+                t.Apply(derivedThis);
             }
 
             if (flushType == null)
@@ -190,7 +215,7 @@ namespace osu.Framework.Graphics.Transforms
 
             //For simplicity let's just update *all* transforms.
             //The commented (more optimised code) below doesn't consider past "removed" transforms, which can cause discrepancies.
-            UpdateTransforms();
+            updateTransforms();
 
             //foreach (ITransform t in Transforms.AliveItems)
             //    if (t.GetType() == type)
@@ -230,7 +255,7 @@ namespace osu.Framework.Graphics.Transforms
             if (Clock == null)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply((T)this);
+                transform.Apply(derivedThis);
                 return;
             }
 
@@ -241,7 +266,7 @@ namespace osu.Framework.Graphics.Transforms
             if (canApplyInstant || transform.StartTime < Time.Current)
             {
                 transform.UpdateTime(Time);
-                transform.Apply((T)this);
+                transform.Apply(derivedThis);
                 if (canApplyInstant)
                     return;
             }
