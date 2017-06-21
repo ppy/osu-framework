@@ -14,6 +14,7 @@ namespace osu.Framework.Graphics.Containers
         Vector2 RelativeToAbsoluteFactor { get; }
         Vector2 RelativeChildOffset { get; }
 
+        EdgeEffectParameters EdgeEffect { get; set; }
         float CornerRadius { get; }
 
         void InvalidateFromChild(Invalidation invalidation);

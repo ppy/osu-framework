@@ -107,6 +107,10 @@ namespace osu.Framework.Audio.Track
             tempLevel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
             currentAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
 
+            float[] tempFrequencyData = new float[256];
+            Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
+            currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
+
             base.Update();
         }
 
