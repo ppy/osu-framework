@@ -339,7 +339,7 @@ namespace osu.Framework.Graphics
                 if (!loadComplete()) return false;
 
             //todo: this should be moved to after the IsVisible condition once we have TOL for transforms (and some better logic).
-            UpdateTransforms(true);
+            UpdateTransforms();
 
             if (!IsPresent)
                 return true;
