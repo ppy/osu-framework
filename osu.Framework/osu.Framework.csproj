@@ -119,6 +119,7 @@
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
+    <Compile Include="Graphics\Shapes\Circle.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
@@ -147,7 +148,7 @@
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
-    <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
+    <Compile Include="Graphics\Shapes\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
@@ -178,10 +179,10 @@
     <Compile Include="Graphics\Lines\Path.cs" />
     <Compile Include="Graphics\Lines\PathDrawNode.cs" />
     <Compile Include="Graphics\ProxyDrawable.cs" />
-    <Compile Include="Graphics\Sprites\Box.cs" />
+    <Compile Include="Graphics\Shapes\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
-    <Compile Include="Graphics\Sprites\Triangle.cs" />
+    <Compile Include="Graphics\Shapes\Triangle.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
