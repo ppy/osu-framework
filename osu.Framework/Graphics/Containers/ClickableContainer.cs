@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Containers
     public class ClickableContainer : Container
     {
         public Action Action;
-        public BindableBool Enabled { get; set; } = new BindableBool(true);
+        public readonly BindableBool Enabled = new BindableBool(true);
 
         protected override bool OnClick(InputState state)
         {
