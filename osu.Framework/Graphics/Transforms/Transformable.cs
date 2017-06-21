@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Transforms
             transforms.Update(Time);
 
             foreach (ITransform<T> t in transforms.AliveItems)
-                t.Apply((T) this);
+                t.Apply((T)this);
         }
 
         /// <summary>
@@ -82,10 +82,10 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>This</returns>
         public virtual T Delay(double duration, bool propagateChildren = false)
         {
-            if (duration == 0) return (T) this;
+            if (duration == 0) return (T)this;
 
             TransformDelay += duration;
-            return (T) this;
+            return (T)this;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace osu.Framework.Graphics.Transforms
             foreach (ITransform<T> t in operateTransforms)
             {
                 t.UpdateTime(maxTimeInfo);
-                t.Apply((T) this);
+                t.Apply((T)this);
             }
 
             if (flushType == null)
@@ -230,7 +230,7 @@ namespace osu.Framework.Graphics.Transforms
             if (Clock == null)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply((T) this);
+                transform.Apply((T)this);
                 return;
             }
 
@@ -241,7 +241,7 @@ namespace osu.Framework.Graphics.Transforms
             if (canApplyInstant || transform.StartTime < Time.Current)
             {
                 transform.UpdateTime(Time);
-                transform.Apply((T) this);
+                transform.Apply((T)this);
                 if (canApplyInstant)
                     return;
             }
