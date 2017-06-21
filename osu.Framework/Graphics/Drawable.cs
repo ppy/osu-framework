@@ -591,6 +591,7 @@ namespace osu.Framework.Graphics
                 if ((relativeSizeAxes & Axes.X) > 0 && Width == 0) Width = 1;
                 if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
 
+                OnSizingChanged();
                 // No invalidation necessary as DrawSize remains invariant.
             }
         }
@@ -718,6 +719,11 @@ namespace osu.Framework.Graphics
         /// Computes the bounding box of this drawable in its parent's space.
         /// </summary>
         public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
+
+        /// <summary>
+        /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
+        /// </summary>
+        protected virtual void OnSizingChanged() { }
 
         #endregion
 

@@ -127,6 +127,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
+        /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
         public IEnumerable<T> Children
         {
@@ -150,7 +151,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
-        /// This container's own list of children.
+        /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
         /// </summary>
         public IEnumerable<Drawable> InternalChildren
         {
@@ -1010,6 +1011,7 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSizeAxes = value;
                 childrenSizeDependencies.Invalidate();
+                OnSizingChanged();
             }
         }
 
