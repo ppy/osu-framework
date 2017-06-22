@@ -102,12 +102,12 @@ namespace osu.Framework.Desktop.Platform
                     DisplayResolution newResolution = DisplayDevice.Default.SelectResolution(widthFullscreen, heightFullscreen, 0, DisplayDevice.Default.RefreshRate);
                     DisplayDevice.Default.ChangeResolution(newResolution);
 
-                    base.WindowState = WindowState.Fullscreen;
+                    WindowState = WindowState.Fullscreen;
                     break;
                 case Configuration.WindowMode.Borderless:
                     DisplayDevice.Default.RestoreResolution();
 
-                    base.WindowState = WindowState.Maximized;
+                    WindowState = WindowState.Maximized;
                     WindowBorder = WindowBorder.Hidden;
 
                     //must add 1 to enter borderless
@@ -117,7 +117,7 @@ namespace osu.Framework.Desktop.Platform
                 default:
                     DisplayDevice.Default.RestoreResolution();
 
-                    base.WindowState = WindowState.Normal;
+                    WindowState = WindowState.Normal;
                     WindowBorder = WindowBorder.Resizable;
 
                     ClientSize = new Size(width, height);
