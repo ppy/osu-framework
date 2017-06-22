@@ -41,8 +41,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
             mouseInWindow = host.Window.CursorInWindow;
 
-            
-
             Enabled.ValueChanged += enabled =>
             {
                 if (enabled)
@@ -77,12 +75,12 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                                 desktopWindow = host.Window as DesktopGameWindow;
                                 if (desktopWindow != null)
                                 {
-                                    confineMode = desktopWindow.confineMouseMode;
-                                    windowMode = desktopWindow.windowMode;
+                                    confineMode = desktopWindow.ConfineMouseMode;
+                                    windowMode = desktopWindow.WindowMode;
                                 }
 
                                 if (confineMode == ConfineMouseMode.Always ||
-                                   (confineMode == ConfineMouseMode.Fullscreen) && (windowMode == WindowMode.Fullscreen) )
+                                   confineMode == ConfineMouseMode.Fullscreen && windowMode == WindowMode.Fullscreen)
                                 {
                                     if (currentPosition.X < 0)
                                         currentPosition.X = 0;
