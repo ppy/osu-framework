@@ -82,6 +82,7 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
+
             scheduler?.Dispose();
             scheduler = null;
 
@@ -1201,6 +1202,8 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+
+                AddedToParentContainer = value != null;
 
                 if (parent == value) return;
 
