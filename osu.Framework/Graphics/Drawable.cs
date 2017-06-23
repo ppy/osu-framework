@@ -82,7 +82,6 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
-            AddedToParentContainer = false;
 
             scheduler?.Dispose();
             scheduler = null;
@@ -1211,6 +1210,8 @@ namespace osu.Framework.Graphics
 
                 parent = value;
                 Invalidate(InvalidationFromParentSize | Invalidation.Colour);
+
+                AddedToParentContainer = parent != null;
 
                 if (parent != null)
                 {

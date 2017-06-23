@@ -235,7 +235,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             drawable.Parent = null;
-            drawable.AddedToParentContainer = false;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -306,10 +305,7 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
-                {
                     t.Parent = null;
-                    t.AddedToParentContainer = false;
-                }
 
                 Trace.Assert(t.Parent == null);
             }
