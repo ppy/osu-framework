@@ -52,6 +52,7 @@
     <Compile Include="AutomatedVisualTestGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\TestCaseAnimation.cs" />
     <Compile Include="Tests\TestCaseCheckboxes.cs" />
     <Compile Include="Tests\TestCaseCircularProgress.cs" />
     <Compile Include="Tests\TestCaseColourGradient.cs" />

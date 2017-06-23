@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
