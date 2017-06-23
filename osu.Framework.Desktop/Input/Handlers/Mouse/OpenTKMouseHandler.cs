@@ -53,7 +53,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
                         var mapped = host.Window.PointToClient(new Point(state.X, state.Y));
 
-                        handleState(new OpenTKBasicMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
+                        handleState(new OpenTKPollMouseState(state, host.IsActive, new Vector2(mapped.X, mapped.Y)));
                     }, 0, 1000.0 / 60));
                 }
                 else
@@ -77,7 +77,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
             if (!mouseInWindow)
                 return;
 
-            handleState(new OpenTKBasicMouseState(e.Mouse, host.IsActive, null));
+            handleState(new OpenTKEventMouseState(e.Mouse, host.IsActive, null));
         }
 
         private void handleState(MouseState state)
@@ -95,17 +95,6 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
         /// Lowest priority. We want the normal mouse handler to only kick in if all other handlers don't do anything.
         /// </summary>
         public override int Priority => 0;
-
-        /// <summary>
-        /// An OpenTK state which came from an event callback.
-        /// </summary>
-        internal class OpenTKBasicMouseState : OpenTKMouseState
-        {
-            public OpenTKBasicMouseState(OpenTK.Input.MouseState tkState, bool active, Vector2? mappedPosition)
-                : base(tkState, active, mappedPosition)
-            {
-            }
-        }
     }
 }
 

@@ -127,6 +127,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
+        /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
         public IEnumerable<T> Children
         {
@@ -150,7 +151,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
-        /// This container's own list of children.
+        /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
         /// </summary>
         public IEnumerable<Drawable> InternalChildren
         {
@@ -227,8 +228,11 @@ namespace osu.Framework.Graphics.Containers
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
-            // The string construction is quite expensive, so we are using Debug.Assert here.
-            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            if (drawable.IsLoaded)
+            {
+                // The string construction is quite expensive, so we are using Debug.Assert here.
+                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            }
 
             drawable.Parent = null;
 
@@ -301,7 +305,9 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
+                {
                     t.Parent = null;
+                }
 
                 Trace.Assert(t.Parent == null);
             }
@@ -330,6 +336,7 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
+            drawable.AddedToParentContainer = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -662,7 +669,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
@@ -671,7 +678,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
@@ -1010,6 +1017,7 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSizeAxes = value;
                 childrenSizeDependencies.Invalidate();
+                OnSizingChanged();
             }
         }
 

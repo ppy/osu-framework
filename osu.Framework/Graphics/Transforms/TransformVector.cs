@@ -6,7 +6,7 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class TransformVector : Transform<Vector2>
+    public abstract class TransformVector : Transform<Vector2, Drawable>
     {
         public override Vector2 CurrentValue
         {

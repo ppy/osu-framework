@@ -83,6 +83,7 @@ namespace osu.Framework.Audio.Track
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                 isLoaded = true;
+                OnLoaded?.Invoke(this);
             });
 
             InvalidateState();
@@ -106,6 +107,10 @@ namespace osu.Framework.Audio.Track
             currentAmplitudes.LeftChannel = tempLevel == -1 ? 1 : tempLevel;
             tempLevel = Bass.ChannelGetLevelRight(activeStream) / 32768f;
             currentAmplitudes.RightChannel = tempLevel == -1 ? 1 : tempLevel;
+
+            float[] tempFrequencyData = new float[256];
+            Bass.ChannelGetData(activeStream, tempFrequencyData, (int)DataFlags.FFT512);
+            currentAmplitudes.FrequencyAmplitudes = tempFrequencyData;
 
             base.Update();
         }
