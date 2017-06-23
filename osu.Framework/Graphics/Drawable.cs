@@ -82,6 +82,7 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
+
             scheduler?.Dispose();
             scheduler = null;
 
@@ -255,7 +256,7 @@ namespace osu.Framework.Graphics
             set
             {
                 // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                if (Parent != null)
+                if (AddedToParentContainer)
                     throw new InvalidOperationException("May not change depth while inside a parent container.");
                 depth = value;
             }
@@ -1181,6 +1182,14 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
+        /// <summary>
+        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
+        /// to alert the user of an invalid operation.
+        /// </summary>
+        internal bool AddedToParentContainer;
+
         private IContainer parent;
 
         /// <summary>
@@ -1193,6 +1202,8 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+
+                AddedToParentContainer = value != null;
 
                 if (parent == value) return;
 
