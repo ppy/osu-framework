@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             get
             {
-                return Enabled && selected;
+                return Enabled.Value && selected;
             }
             set
             {
