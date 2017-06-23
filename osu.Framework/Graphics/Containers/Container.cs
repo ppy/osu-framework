@@ -17,6 +17,11 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
+using System.Linq;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -47,9 +52,9 @@ namespace osu.Framework.Graphics.Containers
         /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
         /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
         /// </summary>
-        public Container(LifetimeList<T> lifetimeList = null)
+        public Container(LifetimeList<Drawable> lifetimeList = null)
         {
-            internalChildren = lifetimeList ?? new LifetimeList<T>(DepthComparer);
+            internalChildren = lifetimeList ?? new LifetimeList<Drawable>(DepthComparer);
             internalChildren.Removed += obj =>
             {
                 if (obj.DisposeOnDeathRemoval) obj.Dispose();
@@ -82,10 +87,16 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Update(Clock.TimeInfo);
         }
 
-        private void loadChild(T child)
+        private void loadChild(Drawable child)
         {
             child.Load(Clock, Dependencies);
             child.Parent = this;
+        }
+
+        protected override void LoadComplete()
+        {
+            schedulerAfterChildren?.SetCurrentThread(MainThread);
+            base.LoadComplete();
         }
 
         protected override void Dispose(bool isDisposing)
@@ -93,6 +104,8 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
+            schedulerAfterChildren?.Dispose();
+            schedulerAfterChildren = null;
 
             base.Dispose(isDisposing);
         }
@@ -114,11 +127,20 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
         /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
+        /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
         public IEnumerable<T> Children
         {
-            get { return Content != this ? Content.Children : internalChildren; }
+            get
+            {
+                if (Content != this)
+                    return Content.Children;
 
+                if (typeof(T) == typeof(Drawable))
+                    return (IEnumerable<T>)internalChildren;
+
+                return internalChildren.Cast<T>();
+            }
             set
             {
                 Clear();
@@ -126,12 +148,12 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly LifetimeList<T> internalChildren;
+        private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
-        /// This container's own list of children.
+        /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
         /// </summary>
-        public IEnumerable<T> InternalChildren
+        public IEnumerable<Drawable> InternalChildren
         {
             get { return internalChildren; }
 
@@ -142,7 +164,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        protected IEnumerable<T> AliveInternalChildren => internalChildren.AliveItems;
+        protected IEnumerable<Drawable> AliveInternalChildren => internalChildren.AliveItems;
 
         /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
@@ -206,13 +228,16 @@ namespace osu.Framework.Graphics.Containers
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
-            // The string construction is quite expensive, so we are using Debug.Assert here.
-            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            if (drawable.IsLoaded)
+            {
+                // The string construction is quite expensive, so we are using Debug.Assert here.
+                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            }
 
             drawable.Parent = null;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
@@ -223,11 +248,27 @@ namespace osu.Framework.Graphics.Containers
         /// <returns>The amount of removed children.</returns>
         public int RemoveAll(Predicate<T> pred)
         {
-            List<T> toRemove = internalChildren.FindAll(pred);
-            foreach (T removable in toRemove)
-                Remove(removable);
+            if (Content != this)
+                return Content.RemoveAll(pred);
 
-            return toRemove.Count;
+            int removedCount = 0;
+
+            for (int i = 0; i < internalChildren.Count; i++)
+            {
+                var tChild = internalChildren[i] as T;
+
+                if (tChild == null)
+                    continue;
+
+                if (pred.Invoke(tChild))
+                {
+                    Remove(tChild);
+                    removedCount++;
+                    i--;
+                }
+            }
+
+            return removedCount;
         }
 
         /// <summary>
@@ -255,7 +296,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
             }
 
-            foreach (T t in internalChildren)
+            foreach (Drawable t in internalChildren)
             {
                 if (disposeChildren)
                 {
@@ -264,7 +305,9 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
+                {
                     t.Parent = null;
+                }
 
                 Trace.Assert(t.Parent == null);
             }
@@ -272,41 +315,50 @@ namespace osu.Framework.Graphics.Containers
             internalChildren.Clear();
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
-        protected void AddInternal(T drawable)
+        protected void AddInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable), "null Drawables may not be added to Containers.");
+
             if (drawable == this)
                 throw new InvalidOperationException("Container may not be added to itself.");
+
+            if (Content == this && !(drawable is T))
+                throw new InvalidOperationException($"Only {typeof(T).ReadableName()} type drawables may be added to a container of type {GetType().ReadableName()} which does not redirect {nameof(Content)}.");
 
             if (drawable.IsLoaded)
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
+            drawable.AddedToParentContainer = true;
 
             if (AutoSizeAxes != Axes.None)
-                InvalidateFromChild(Invalidation.Geometry);
+                InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
         /// <summary>
         /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
-        /// <see cref="AddInternal(T)"/> on each element of the range in order.
+        /// <see cref="AddInternal(Drawable)"/> on each element of the range in order.
         /// </summary>
-        protected void AddInternal(IEnumerable<T> range)
+        protected void AddInternal(IEnumerable<Drawable> range)
         {
-            foreach (T d in range)
+            foreach (Drawable d in range)
                 AddInternal(d);
         }
 
         #endregion
 
         #region Updating (per-frame periodic)
+
+        private Scheduler schedulerAfterChildren;
+
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread));
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -330,7 +382,7 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
-            foreach (T child in InternalChildren)
+            foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
         }
 
@@ -354,9 +406,14 @@ namespace osu.Framework.Graphics.Containers
             // for children, as they should never affect our present status.
             if (!IsPresent || !RequiresChildrenUpdate) return false;
 
-            foreach (T child in internalChildren.AliveItems)
+            foreach (Drawable child in internalChildren.AliveItems)
                 if (child.IsLoaded) child.UpdateSubTree();
 
+            if (schedulerAfterChildren != null)
+            {
+                int amountScheduledTasks = schedulerAfterChildren.Update();
+                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+            }
             UpdateAfterChildren();
 
             updateChildrenSizeDependencies();
@@ -383,7 +440,7 @@ namespace osu.Framework.Graphics.Containers
         {
             //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
             //Invalidation could be further separated into presence changes.
-            if ((invalidation & (Invalidation.Geometry | Invalidation.Colour)) > 0)
+            if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
 
@@ -397,16 +454,27 @@ namespace osu.Framework.Graphics.Containers
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
-            List<T> current = internalChildren;
+            List<Drawable> current = internalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
-                T c = current[i];
+                Drawable c = current[i];
                 Debug.Assert(c != source);
 
                 Invalidation childInvalidation = invalidation;
+                if ((invalidation & Invalidation.RequiredParentSizeToFit) > 0)
+                    childInvalidation |= Invalidation.DrawInfo;
+
+                // Other geometry things like rotation, shearing, etc don't affect child properties.
+                childInvalidation &= ~Invalidation.MiscGeometry;
+
+                // Relative positioning can however affect child geometry
+                if (c.RelativePositionAxes != Axes.None && (invalidation & Invalidation.DrawSize) > 0)
+                    childInvalidation |= Invalidation.MiscGeometry;
+
+                // No draw size changes if relative size axes does not propagate it downward.
                 if (c.RelativeSizeAxes == Axes.None)
-                    childInvalidation = childInvalidation & ~Invalidation.SizeInParentSpace;
+                    childInvalidation &= ~Invalidation.DrawSize;
 
                 c.Invalidate(childInvalidation, this);
             }
@@ -474,7 +542,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<T> current = parentContainer.internalChildren.AliveItems;
+            List<Drawable> current = parentContainer.internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -582,6 +650,8 @@ namespace osu.Framework.Graphics.Containers
             return this;
         }
 
+        protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
         public override void Flush(bool propagateChildren = false, Type flushType = null)
         {
             base.Flush(propagateChildren, flushType);
@@ -599,7 +669,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
@@ -608,7 +678,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
@@ -640,7 +710,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
-            foreach (T d in internalChildren.AliveItems)
+            foreach (Drawable d in internalChildren.AliveItems)
                 d.BuildKeyboardInputQueue(queue);
 
             return true;
@@ -652,7 +722,7 @@ namespace osu.Framework.Graphics.Containers
                 return false;
 
             //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
-            foreach (T d in internalChildren.AliveItems)
+            foreach (Drawable d in internalChildren.AliveItems)
                 d.BuildMouseInputQueue(screenSpaceMousePos, queue);
 
             return true;
@@ -766,14 +836,14 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private EdgeEffect edgeEffect;
+        private EdgeEffectParameters edgeEffect;
 
         /// <summary>
         /// Determines an edge effect of this container.
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual EdgeEffect EdgeEffect
+        public virtual EdgeEffectParameters EdgeEffect
         {
             get { return edgeEffect; }
             set
@@ -830,8 +900,8 @@ namespace osu.Framework.Graphics.Containers
                 padding = value;
                 padding.ThrowIfNegative();
 
-                foreach (T c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                foreach (Drawable c in internalChildren)
+                    c.Invalidate(c.InvalidationFromParentSize);
             }
         }
 
@@ -847,42 +917,69 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
-        private Vector2 relativeCoordinateSpace = Vector2.One;
+        private Vector2 relativeChildSize = Vector2.One;
         /// <summary>
-        /// The coordinate space revealed to relatively-sized or positioned children such that changing this to
-        /// values (x_1, y_1) will require a child to have a relative size of (x_1, y_1) to fill the container.
-        /// <para>
-        /// Note that relative size children will have a (1, 1) size by default.
-        /// </para>
+        /// The size of the relative position/size coordinate space of children of this container.
+        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.One"/> in this container.
         /// </summary>
-        public Vector2 RelativeCoordinateSpace
+        public Vector2 RelativeChildSize
         {
-            get { return relativeCoordinateSpace; }
+            get { return relativeChildSize; }
             set
             {
-                if (relativeCoordinateSpace == value)
+                if (relativeChildSize == value)
                     return;
-                relativeCoordinateSpace = value;
+                relativeChildSize = value;
 
-                foreach (T c in internalChildren)
-                    c.Invalidate(Invalidation.Geometry);
+                foreach (Drawable c in internalChildren)
+                    c.Invalidate(c.InvalidationFromParentSize);
+            }
+        }
+
+        private Vector2 relativeChildOffset = Vector2.Zero;
+        /// <summary>
+        /// The offset of the relative position/size coordinate space of children of this container.
+        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.Zero"/> in this container.
+        /// </summary>
+        public Vector2 RelativeChildOffset
+        {
+            get { return relativeChildOffset; }
+            set
+            {
+                if (relativeChildOffset == value)
+                    return;
+                relativeChildOffset = value;
+
+                foreach (Drawable c in internalChildren)
+                    c.Invalidate(c.InvalidationFromParentSize & ~Invalidation.DrawSize);
             }
         }
 
         /// <summary>
         /// Conversion factor from relative to absolute coordinates in our space.
         /// </summary>
-        public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeCoordinateSpace);
+        public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeChildSize);
 
         /// <summary>
-        /// Tweens the RelativeCoordinateSpace of this container.
+        /// Tweens the <see cref="RelativeChildSize"/> of this container.
         /// </summary>
-        /// <param name="newCoordinateSpace">The coordinate space to tween to.</param>
+        /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        public void TransformRelativeCoordinateSpaceTo(Vector2 newCoordinateSpace, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => RelativeCoordinateSpace, newCoordinateSpace, duration, easing, new TransformRelativeCoordinateSpace());
+            TransformTo(() => RelativeChildSize, newSize, duration, easing, new TransformRelativeChildSize());
+        }
+
+        /// <summary>
+        /// Tweens the <see cref="RelativeChildOffset"/> of this container.
+        /// </summary>
+        /// <param name="newOffset">The coordinate space to tween to.</param>
+        /// <param name="duration">The tween duration.</param>
+        /// <param name="easing">The tween easing.</param>
+        public void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            TransformTo(() => RelativeChildOffset, newOffset, duration, easing, new TransformRelativeChildOffset());
         }
 
         public override Axes RelativeSizeAxes
@@ -907,7 +1004,7 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public Axes AutoSizeAxes
+        public virtual Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
             set
@@ -920,6 +1017,7 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSizeAxes = value;
                 childrenSizeDependencies.Invalidate();
+                OnSizingChanged();
             }
         }
 
@@ -1028,7 +1126,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 maxBoundSize = Vector2.Zero;
 
                 // Find the maximum width/height of children
-                foreach (T c in AliveInternalChildren)
+                foreach (Drawable c in AliveInternalChildren)
                 {
                     if (!c.IsPresent)
                         continue;
@@ -1126,14 +1224,49 @@ namespace osu.Framework.Graphics.Containers
 
         #endregion
 
-        private class TransformRelativeCoordinateSpace : TransformVector
+        private class TransformRelativeChildSize : TransformVector
         {
+            public override Vector2 CurrentValue
+            {
+                get
+                {
+                    double time = Time?.Current ?? 0;
+                    if (time < StartTime) return StartValue;
+                    if (time >= EndTime) return EndValue;
+
+                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+                }
+            }
+
             public override void Apply(Drawable d)
             {
                 base.Apply(d);
 
                 var c = (Container<T>)d;
-                c.RelativeCoordinateSpace = CurrentValue;
+                c.RelativeChildSize = CurrentValue;
+            }
+        }
+
+        private class TransformRelativeChildOffset : TransformVector
+        {
+            public override Vector2 CurrentValue
+            {
+                get
+                {
+                    double time = Time?.Current ?? 0;
+                    if (time < StartTime) return StartValue;
+                    if (time >= EndTime) return EndValue;
+
+                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+                }
+            }
+
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+
+                var c = (Container<T>)d;
+                c.RelativeChildOffset = CurrentValue;
             }
         }
     }

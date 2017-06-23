@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
+using osu.Framework.Configuration;
 using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.Containers
@@ -9,11 +10,11 @@ namespace osu.Framework.Graphics.Containers
     public class ClickableContainer : Container
     {
         public Action Action;
-        public bool Enabled { get; set; } = true;
+        public readonly BindableBool Enabled = new BindableBool(true);
 
         protected override bool OnClick(InputState state)
         {
-            if (Enabled)
+            if (Enabled.Value)
                 Action?.Invoke();
             return true;
         }

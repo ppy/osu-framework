@@ -7,6 +7,7 @@ using System.Drawing;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Textures;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
@@ -407,6 +408,9 @@ namespace osu.Framework.Graphics.Performance
             {
                 default:
                     return Color4.Yellow;
+
+                case StatisticsCounterType.VBufBinds:
+                    return Color4.SkyBlue;
 
                 case StatisticsCounterType.Invalidations:
                 case StatisticsCounterType.TextureBinds:

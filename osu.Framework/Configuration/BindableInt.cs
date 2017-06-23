@@ -15,11 +15,12 @@ namespace osu.Framework.Configuration
             set { base.Value = MathHelper.Clamp(value, MinValue, MaxValue); }
         }
 
+        protected override int DefaultMinValue => int.MinValue;
+        protected override int DefaultMaxValue => int.MaxValue;
+
         public BindableInt(int value = 0)
             : base(value)
         {
-            MinValue = int.MinValue;
-            MaxValue = int.MaxValue;
         }
 
         public override void BindTo(Bindable<int> them)

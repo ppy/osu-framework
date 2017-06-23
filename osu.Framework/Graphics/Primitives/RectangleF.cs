@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Primitives
     /// <summary>Stores a set of four floating-point numbers that represent the location and size of a rectangle. For more advanced region functions, use a <see cref="T:System.Drawing.Region"></see> object.</summary>
     /// <filterpriority>1</filterpriority>
     [Serializable, StructLayout(LayoutKind.Sequential)]
-    public struct RectangleF
+    public struct RectangleF : IEquatable<RectangleF>
     {
         /// <summary>Represents an instance of the <see cref="T:System.Drawing.RectangleF"></see> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
@@ -59,12 +59,12 @@ namespace osu.Framework.Graphics.Primitives
         public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
-        /// <returns>A <see cref="T:System.Drawing.PointF"></see> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
+        /// <returns>A <see cref="OpenTK.Vector2"/> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
-        public PointF Location
+        public Vector2 Location
         {
-            get { return new PointF(X, Y); }
+            get { return new Vector2(X, Y); }
             set
             {
                 X = value.X;
@@ -73,7 +73,7 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         /// <summary>Gets or sets the size of this <see cref="T:System.Drawing.RectangleF"></see>.</summary>
-        /// <returns>A <see cref="T:System.Drawing.SizeF"></see> that represents the width and height of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
+        /// <returns>A <see cref="OpenTK.Vector2"/> that represents the width and height of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
         /// <filterpriority>1</filterpriority>
         [Browsable(false)]
         public Vector2 Size
@@ -354,9 +354,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
         /// <filterpriority>1</filterpriority>
         /// <PermissionSet><IPermission class="System.Security.Permissions.SecurityPermission, mscorlib, Version=2.0.3600.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" version="1" Flags="UnmanagedCode" /></PermissionSet>
-        public override string ToString() => "{X=" + X.ToString(CultureInfo.CurrentCulture) + ",Y=" + Y.ToString(CultureInfo.CurrentCulture) +
-                                             ",Width=" + Width.ToString(CultureInfo.CurrentCulture) + ",Height=" +
-                                             Height.ToString(CultureInfo.CurrentCulture) + "}";
+        public override string ToString() => $"X={Math.Round(X, 3).ToString(CultureInfo.CurrentCulture)}, "
+                                           + $"Y={Math.Round(Y, 3).ToString(CultureInfo.CurrentCulture)}, "
+                                           + $"Width={Math.Round(Width, 3).ToString(CultureInfo.CurrentCulture)}, "
+                                           + $"Height={Math.Round(Height, 3).ToString(CultureInfo.CurrentCulture)}";
 
         static RectangleF()
         {
@@ -475,5 +476,7 @@ namespace osu.Framework.Graphics.Primitives
                    && c * yQmin - s * xQmax >= -yPdif
                    && c * yQmax - s * xQmin <= yPdif;
         }
+
+        public bool Equals(RectangleF other) => X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }
 }

@@ -310,6 +310,8 @@ namespace osu.Framework.Platform
                 Window.Title = $@"osu!framework (running ""{Name}"")";
             }
 
+            resetInputHandlers();
+
             DrawThread.Start();
             UpdateThread.Start();
 
@@ -317,6 +319,7 @@ namespace osu.Framework.Platform
             bootstrapSceneGraph(game);
 
             frameSyncMode.TriggerChange();
+            enabledInputHandlers.TriggerChange();
 
             try
             {
@@ -353,6 +356,25 @@ namespace osu.Framework.Platform
             }
             catch (OutOfMemoryException)
             {
+            }
+        }
+
+        private void resetInputHandlers()
+        {
+            if (AvailableInputHandlers != null)
+                foreach (var h in AvailableInputHandlers)
+                    h.Dispose();
+
+            AvailableInputHandlers = CreateAvailableInputHandlers();
+            foreach (var handler in AvailableInputHandlers)
+            {
+                if (!handler.Initialize(this))
+                {
+                    handler.Enabled.Value = false;
+                    break;
+                }
+
+                (handler as IHasCursorSensitivity)?.Sensitivity.BindTo(cursorSensitivity);
             }
         }
 
@@ -397,6 +419,10 @@ namespace osu.Framework.Platform
         private Bindable<GCLatencyMode> activeGCMode;
 
         private Bindable<FrameSync> frameSyncMode;
+
+        private Bindable<string> enabledInputHandlers;
+
+        private Bindable<double> cursorSensitivity;
 
         private void setupConfig()
         {
@@ -447,6 +473,39 @@ namespace osu.Framework.Platform
                 if (DrawThread != null) DrawThread.ActiveHz = drawLimiter;
                 if (UpdateThread != null) UpdateThread.ActiveHz = updateLimiter;
             };
+
+            enabledInputHandlers = config.GetBindable<string>(FrameworkSetting.ActiveInputHandlers);
+            enabledInputHandlers.ValueChanged += enabledString =>
+            {
+                var configHandlers = enabledString.Split(' ').Where(s => !string.IsNullOrWhiteSpace(s));
+                bool useDefaults = !configHandlers.Any();
+
+                // make sure all the handlers in the configuration file are available, else reset to sane defaults.
+                foreach (string handler in configHandlers)
+                {
+                    if (AvailableInputHandlers.All(h => h.ToString() != handler))
+                    {
+                        useDefaults = true;
+                        break;
+                    }
+                }
+
+                if (useDefaults)
+                {
+                    resetInputHandlers();
+                    enabledInputHandlers.Value = string.Join(" ", AvailableInputHandlers.Where(h => h.Enabled).Select(h => h.ToString()));
+                }
+                else
+                {
+                    foreach (var handler in AvailableInputHandlers)
+                    {
+                        var handlerType = handler.ToString();
+                        handler.Enabled.Value = configHandlers.Any(ch => ch == handlerType);
+                    }
+                }
+            };
+
+            cursorSensitivity = config.GetBindable<double>(FrameworkSetting.CursorSensitivity);
         }
 
         private void setVSyncMode()
@@ -456,7 +515,9 @@ namespace osu.Framework.Platform
             DrawThread.Scheduler.Add(() => Window.VSync = frameSyncMode == FrameSync.VSync ? VSyncMode.On : VSyncMode.Off);
         }
 
-        public abstract IEnumerable<InputHandler> GetInputHandlers();
+        protected abstract IEnumerable<InputHandler> CreateAvailableInputHandlers();
+
+        public IEnumerable<InputHandler> AvailableInputHandlers { get; private set; }
 
         public abstract ITextInputSource GetTextInput();
 

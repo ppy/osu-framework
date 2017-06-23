@@ -42,7 +42,8 @@ namespace osu.Framework.Graphics.UserInterface
             else if (typeof(T) == typeof(double))
                 CurrentNumber = new BindableDouble() as BindableNumber<T>;
 
-            if (CurrentNumber == null) throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
+            if (CurrentNumber == null)
+                throw new NotSupportedException($"We don't support the generic type of {nameof(BindableNumber<T>)}.");
 
             CurrentNumber.ValueChanged += v => UpdateValue(NormalizedValue);
         }
@@ -53,13 +54,26 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 if (Current == null)
                     return 0;
+
+                if (!CurrentNumber.HasDefinedRange)
+                    throw new InvalidOperationException($"A {nameof(SliderBar<T>)}'s {nameof(Current)} must have user-defined {nameof(BindableNumber<T>.MinValue)}"
+                                                        + $" and {nameof(BindableNumber<T>.MaxValue)} to produce a valid {nameof(NormalizedValue)}.");
+
                 var min = Convert.ToSingle(CurrentNumber.MinValue);
                 var max = Convert.ToSingle(CurrentNumber.MaxValue);
+
+                if (max - min == 0)
+                    return 1;
+
                 var val = Convert.ToSingle(CurrentNumber.Value);
                 return (val - min) / (max - min);
             }
         }
 
+        /// <summary>
+        /// Triggered when the <see cref="Current"/> value has changed. Used to update the displayed value.
+        /// </summary>
+        /// <param name="value">The normalized <see cref="Current"/> value.</param>
         protected abstract void UpdateValue(float value);
 
         protected override void LoadComplete()

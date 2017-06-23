@@ -4,9 +4,9 @@
 using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -19,10 +19,11 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A list of command or selection items.
     /// </summary>
-    public class Menu : Container, IStateful<MenuState>
+    public class Menu<TItem> : Container, IStateful<MenuState>
+        where TItem : MenuItem
     {
         public readonly Box Background;
-        public readonly FillFlowContainer<MenuItem> ItemsContainer;
+        public readonly FillFlowContainer<TItem> ItemsContainer;
         public readonly ScrollContainer ScrollContainer;
 
         public Menu()
@@ -42,7 +43,7 @@ namespace osu.Framework.Graphics.UserInterface
                     Masking = false,
                     Children = new Drawable[]
                     {
-                        ItemsContainer = new FillFlowContainer<MenuItem>
+                        ItemsContainer = new FillFlowContainer<TItem>
                         {
                             RelativeSizeAxes = Axes.X,
                             AutoSizeAxes = Axes.Y,
@@ -121,8 +122,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void AnimateClose() => Hide();
 
-        protected override bool OnFocus(InputState state) => true;
+        public override bool AcceptsFocus => true;
+
+        protected override bool OnClick(InputState state) => true;
 
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
+    }
+
+    public class Menu : Menu<MenuItem>
+    {
     }
 }

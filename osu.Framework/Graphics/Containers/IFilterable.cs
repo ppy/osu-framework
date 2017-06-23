@@ -3,16 +3,11 @@
 
 namespace osu.Framework.Graphics.Containers
 {
-    public interface IFilterable
+    public interface IFilterable : IHasFilterTerms
     {
-        /// <summary>
-        /// An array of relevant terms which match the current object in a filtered scenario.
-        /// </summary>
-        string[] FilterTerms { get; }
-
         /// <summary>
         /// Whether the current object is matching (ie. visible) given the current filter criteria of a parent.
         /// </summary>
-        bool MatchingCurrentFilter { set; }
+        bool MatchingFilter { set; }
     }
 }

@@ -148,6 +148,9 @@ namespace osu.Framework.Graphics.OpenGL
 
             last_bound_buffers[bufferIndex] = buffer;
             GL.BindBuffer(target, buffer);
+
+            FrameStatistics.Increment(StatisticsCounterType.VBufBinds);
+
             return true;
         }
 

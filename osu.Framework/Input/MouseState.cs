@@ -10,38 +10,29 @@ namespace osu.Framework.Input
 {
     public class MouseState : IMouseState
     {
-        public IMouseState LastState;
-
         private const int mouse_button_count = (int)MouseButton.LastButton;
 
         public bool[] PressedButtons = new bool[mouse_button_count];
 
         public IMouseState NativeState => this;
 
-        public virtual int WheelDelta => Wheel - (LastState?.Wheel ?? 0);
+        public IMouseState LastState { get; set; }
+
+        public virtual int WheelDelta => Wheel - LastState?.Wheel ?? 0;
 
         public int Wheel { get; set; }
 
-        public bool HasMainButtonPressed => IsPressed(MouseButton.Left )|| IsPressed(MouseButton.Right);
+        public bool HasMainButtonPressed => IsPressed(MouseButton.Left) || IsPressed(MouseButton.Right);
 
         public bool HasAnyButtonPressed => PressedButtons.Any(b => b);
 
-        public Vector2 Delta => Position - (LastState?.Position ?? Vector2.Zero);
+        public Vector2 Delta => Position - LastPosition;
 
         public Vector2 Position { get; protected set; }
 
         public Vector2 LastPosition => LastState?.Position ?? Position;
 
-        public Vector2? PositionMouseDown { get; internal set; }
-
-        public void SetLast(IMouseState last)
-        {
-            (last as MouseState)?.SetLast(null);
-
-            LastState = last;
-            if (last != null)
-                PositionMouseDown = last.PositionMouseDown;
-        }
+        public Vector2? PositionMouseDown { get; set; }
 
         public IMouseState Clone()
         {

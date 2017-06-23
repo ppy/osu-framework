@@ -18,6 +18,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -54,6 +55,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
 
         public bool ReadOnly;
+
+        public bool ReleaseFocusOnCommit = true;
 
         private ITextInputSource textInput;
         private Clipboard clipboard;
@@ -552,8 +555,20 @@ namespace osu.Framework.Graphics.UserInterface
                         moveSelection(amount, state.Keyboard.ShiftPressed);
                         return true;
                     }
+                case Key.KeypadEnter:
                 case Key.Enter:
-                    if (HasFocus) inputManager.ChangeFocus(null);
+                    if (HasFocus)
+                    {
+                        if (ReleaseFocusOnCommit)
+                            inputManager.ChangeFocus(null);
+
+                        Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+                        Background.ClearTransforms();
+                        Background.FlashColour(BackgroundCommit, 400);
+
+                        audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                        OnCommit?.Invoke(this, true);
+                    }
                     return true;
                 case Key.Delete:
                     if (selectionLength == 0)
@@ -753,35 +768,25 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-            if (!Current.Disabled && state.Keyboard.Keys.Contains(Key.Enter))
-            {
-                Background.Colour = BackgroundUnfocused;
-                Background.ClearTransforms();
-                Background.FlashColour(BackgroundCommit, 400);
 
-                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-                OnCommit?.Invoke(this, true);
-            }
-            else
-            {
-                Background.ClearTransforms();
-                Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
-            }
+            Background.ClearTransforms();
+            Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
 
             cursorAndLayout.Invalidate();
         }
 
-        protected override bool OnFocus(InputState state)
-        {
-            if (ReadOnly) return false;
+        public override bool AcceptsFocus => true;
 
+        protected override bool OnClick(InputState state) => !ReadOnly;
+
+        protected override void OnFocus(InputState state)
+        {
             bindInput();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         #region Native TextBox handling (winform specific)
