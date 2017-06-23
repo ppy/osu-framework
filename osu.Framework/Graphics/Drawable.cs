@@ -82,6 +82,8 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
+            AddedToParentContainer = false;
+
             scheduler?.Dispose();
             scheduler = null;
 
