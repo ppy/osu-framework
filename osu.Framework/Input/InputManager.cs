@@ -197,7 +197,7 @@ namespace osu.Framework.Input
                         s.Mouse.LastState = last.Mouse;
                     }
 
-                    if (s.Mouse.HasAnyButtonPressed)
+                    if (last.Mouse.HasAnyButtonPressed)
                         s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
                 }
 
