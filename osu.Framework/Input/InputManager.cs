@@ -79,6 +79,11 @@ namespace osu.Framework.Input
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
+        /// <summary>
+        /// Contains all hovered <see cref="Drawable"/>s in top-down order.
+        /// Top-down in this case means reverse draw order, i.e. the front-most visible
+        /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
+        /// </summary>
         public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
 
         protected InputManager()
