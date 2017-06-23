@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Cursor
 
         public CursorContainer()
         {
-            AlwaysReceiveInput = true;
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
