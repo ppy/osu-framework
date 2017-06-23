@@ -333,23 +333,10 @@ namespace osu.Framework.Input
             List<Drawable> lastHoveredDrawables = new List<Drawable>(hoveredDrawables);
             hoveredDrawables.Clear();
 
-            // Unconditionally unhover all that aren't directly hovered anymore
-            List<Drawable> newlyUnhoveredDrawables = lastHoveredDrawables.Except(mouseInputQueue).ToList();
-            foreach (Drawable d in newlyUnhoveredDrawables)
-            {
-                d.Hovering = false;
-                d.TriggerOnHoverLost(state);
-            }
-
-            // Don't care about what's now explicitly unhovered
-            lastHoveredDrawables = lastHoveredDrawables.Except(newlyUnhoveredDrawables).ToList();
-
-            // lastHoveredDrawables now contain only drawables that were hovered in the previous frame
-            // that may continue being hovered. We need to construct hoveredDrawables for the current frame
+            // First, we need to construct hoveredDrawables for the current frame
             foreach (Drawable d in mouseInputQueue)
             {
                 hoveredDrawables.Add(d);
-                lastHoveredDrawables.Remove(d);
 
                 // Don't need to re-hover those that are already hovered
                 if (d.Hovering)
@@ -372,9 +359,8 @@ namespace osu.Framework.Input
                 }
             }
 
-            // lastHoveredDrawables now contains only drawables that were hovered in the previous frame
-            // but should no longer be hovered as a result of a drawable handling hover this frame
-            foreach (Drawable d in lastHoveredDrawables)
+            // Unhover all previously hovered drawables which are no longer hovered.
+            foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
             {
                 d.Hovering = false;
                 d.TriggerOnHoverLost(state);
