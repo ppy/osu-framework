@@ -59,6 +59,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (obj.DisposeOnDeathRemoval) obj.Dispose();
             };
+
+            if (typeof(T) == typeof(Drawable))
+                internalChildrenAsT = (IReadOnlyList<T>)internalChildren;
+            else
+                internalChildrenAsT = new LazyList<Drawable, T>(internalChildren, c => (T)c);
         }
 
         private Game game;
@@ -129,18 +134,26 @@ namespace osu.Framework.Graphics.Containers
         /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
         /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
-        public IEnumerable<T> Children
+        public IReadOnlyList<T> Children
         {
             get
             {
                 if (Content != this)
                     return Content.Children;
 
-                if (typeof(T) == typeof(Drawable))
-                    return (IEnumerable<T>)internalChildren;
-
-                return internalChildren.Cast<T>();
+                return internalChildrenAsT;
             }
+            set
+            {
+                ChildrenEnumerable = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets all children of this container to the elements contained in the enumerable.
+        /// </summary>
+        public IEnumerable<T> ChildrenEnumerable
+        {
             set
             {
                 Clear();
@@ -149,14 +162,23 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly LifetimeList<Drawable> internalChildren;
+        private readonly IReadOnlyList<T> internalChildrenAsT;
 
         /// <summary>
         /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
         /// </summary>
-        public IEnumerable<Drawable> InternalChildren
+        public IReadOnlyList<Drawable> InternalChildren
         {
             get { return internalChildren; }
 
+            set { InternalChildrenEnumerable = value; }
+        }
+
+        /// <summary>
+        /// Sets all internal children of this container to the elements contained in the enumerable.
+        /// </summary>
+        public IEnumerable<Drawable> InternalChildrenEnumerable
+        {
             set
             {
                 Clear();

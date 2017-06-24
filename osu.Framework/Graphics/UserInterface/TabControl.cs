@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Depth = -1,
                 Masking = true,
                 TabVisibilityChanged = updateDropdown,
-                Children = tabMap.Values
+                ChildrenEnumerable = tabMap.Values
             });
 
             Current.ValueChanged += newSelection =>
