@@ -330,8 +330,8 @@ namespace osu.Framework.Graphics.Containers
             // Scroll up or down depending on the current scroll position
             if (childPos < Current)
                 ScrollTo(childPos, animated);
-            else if (childPos > Current + displayableContent - d.Height)
-                ScrollTo(childPos - displayableContent + d.Height, animated);
+            else if (childPos > Current + displayableContent - d.DrawHeight)
+                ScrollTo(childPos - displayableContent + d.DrawHeight, animated);
         }
 
         public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
