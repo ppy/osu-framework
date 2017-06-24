@@ -44,7 +44,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             set
             {
-                menu.ItemsContainer.Children = value;
+                menu.ItemsContainer.ChildrenEnumerable = value;
 
                 foreach (var item in Items)
                     item.Action += Close;

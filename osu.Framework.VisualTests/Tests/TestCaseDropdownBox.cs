@@ -51,13 +51,13 @@ namespace osu.Framework.VisualTests.Tests
             AddRepeatStep("add item", () => styledDropdownMenu.AddDropdownItem(@"test " + i, @"test " + i++), items_to_add);
             AddAssert("item count is correct", () => styledDropdownMenu.Items.Count() == items_to_add * 2);
 
-            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children.Skip(13).First().TriggerOnClick());
+            AddStep("click item 13", () => getMenuFromDropdown(styledDropdownMenu).ItemsContainer.Children[13].TriggerOnClick());
 
             AddAssert("dropdown1 is closed", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Closed);
-            AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.Skip(13).First().Value);
+            AddAssert("item 13 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.ElementAt(13).Value);
 
-            AddStep("select item 15", () => styledDropdownMenu.Current.Value = styledDropdownMenu.Items.Skip(15).First().Value);
-            AddAssert("item 15 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.Skip(15).First().Value);
+            AddStep("select item 15", () => styledDropdownMenu.Current.Value = styledDropdownMenu.Items.ElementAt(15).Value);
+            AddAssert("item 15 is selected", () => styledDropdownMenu.Current == styledDropdownMenu.Items.ElementAt(15).Value);
 
             AddStep("click dropdown1", () => toggleDropdownViaClick(styledDropdownMenu));
             AddAssert("dropdown1 is open", () => getMenuFromDropdown(styledDropdownMenu).State == MenuState.Opened);
@@ -68,7 +68,7 @@ namespace osu.Framework.VisualTests.Tests
             AddAssert("dropdown2 is open", () => getMenuFromDropdown(styledDropdownMenu2).State == MenuState.Opened);
         }
 
-        private Menu getMenuFromDropdown(StyledDropdownMenu dropdown) => (Menu)dropdown.Children.Skip(1).First();
+        private Menu getMenuFromDropdown(StyledDropdownMenu dropdown) => (Menu)dropdown.Children[1];
 
         private void toggleDropdownViaClick(StyledDropdownMenu dropdown) => dropdown.Children.First().TriggerOnClick();
 
