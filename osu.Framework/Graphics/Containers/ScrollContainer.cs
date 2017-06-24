@@ -293,16 +293,6 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
-        /// <summary>
-        /// Offsets the scroll position.
-        /// </summary>
-        /// <param name="offset">The scroll offset.</param>
-        public void OffsetScrollPosition(float offset)
-        {
-            target += offset;
-            Current += offset;
-        }
-
         private void offset(float value, bool animated, double distanceDecay = float.PositiveInfinity) => scrollTo(target + value, animated, distanceDecay);
 
         /// <summary>
