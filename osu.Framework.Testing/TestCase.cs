@@ -100,7 +100,7 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion);
         }
 
-        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.Skip(actionIndex).FirstOrDefault() : null;
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
 
         protected virtual double TimePerAction => 200;
 
@@ -134,7 +134,7 @@ namespace osu.Framework.Testing
                 actionRepetition = 0;
             }
 
-            if (actionIndex > StepsContainer.Children.Count() - 1)
+            if (actionIndex > StepsContainer.Children.Count - 1)
             {
                 onCompletion?.Invoke();
                 return;

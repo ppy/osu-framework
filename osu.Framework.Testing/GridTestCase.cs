@@ -4,7 +4,6 @@
 using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using System.Linq;
 
 namespace osu.Framework.Testing
 {
@@ -57,7 +56,7 @@ namespace osu.Framework.Testing
         /// <summary>
         /// Access a cell by its index. Valid indices range from 0 to <see cref="Rows"/> * <see cref="Cols"/> - 1.
         /// </summary>
-        protected Container Cell(int index) => testContainer.Children.ElementAt(index);
+        protected Container Cell(int index) => testContainer.Children[index];
 
         /// <summary>
         /// Access a cell by its row and column.

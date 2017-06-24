@@ -153,13 +153,14 @@ namespace osu.Framework.Graphics.Performance
                                                 Direction = FillDirection.Horizontal,
                                                 AutoSizeAxes = Axes.X,
                                                 RelativeSizeAxes = Axes.Y,
-                                                Children = from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
-                                                           where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
-                                                           select counterBars[t] = new CounterBar
-                                                           {
-                                                               Colour = getColour(t),
-                                                               Label = t.ToString(),
-                                                           },
+                                                ChildrenEnumerable =
+                                                    from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                    where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
+                                                    select counterBars[t] = new CounterBar
+                                                    {
+                                                        Colour = getColour(t),
+                                                        Label = t.ToString(),
+                                                    },
                                             },
                                         }
                                     }
@@ -199,14 +200,15 @@ namespace osu.Framework.Graphics.Performance
                                             AutoSizeAxes = Axes.Both,
                                             Spacing = new Vector2(5, 1),
                                             Padding = new MarginPadding { Right = 5 },
-                                            Children = from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
-                                                       where t < PerformanceCollectionType.AmountTypes
-                                                       select legendMapping[(int)t] = new SpriteText
-                                                       {
-                                                           Colour = getColour(t),
-                                                           Text = t.ToString(),
-                                                           Alpha = 0
-                                                       },
+                                            ChildrenEnumerable =
+                                                from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                                where t < PerformanceCollectionType.AmountTypes
+                                                select legendMapping[(int)t] = new SpriteText
+                                                {
+                                                    Colour = getColour(t),
+                                                    Text = t.ToString(),
+                                                    Alpha = 0
+                                                },
                                         },
                                         new SpriteText
                                         {

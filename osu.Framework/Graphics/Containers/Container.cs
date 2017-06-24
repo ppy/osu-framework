@@ -17,7 +17,6 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
-using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -59,6 +58,11 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (obj.DisposeOnDeathRemoval) obj.Dispose();
             };
+
+            if (typeof(T) == typeof(Drawable))
+                internalChildrenAsT = (IReadOnlyList<T>)internalChildren;
+            else
+                internalChildrenAsT = new LazyList<Drawable, T>(internalChildren, c => (T)c);
         }
 
         private Game game;
@@ -129,18 +133,26 @@ namespace osu.Framework.Graphics.Containers
         /// If <see cref="Content"/> is this container, then returns <see cref="InternalChildren"/>.
         /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
-        public IEnumerable<T> Children
+        public IReadOnlyList<T> Children
         {
             get
             {
                 if (Content != this)
                     return Content.Children;
 
-                if (typeof(T) == typeof(Drawable))
-                    return (IEnumerable<T>)internalChildren;
-
-                return internalChildren.Cast<T>();
+                return internalChildrenAsT;
             }
+            set
+            {
+                ChildrenEnumerable = value;
+            }
+        }
+
+        /// <summary>
+        /// Sets all children of this container to the elements contained in the enumerable.
+        /// </summary>
+        public IEnumerable<T> ChildrenEnumerable
+        {
             set
             {
                 Clear();
@@ -149,14 +161,23 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private readonly LifetimeList<Drawable> internalChildren;
+        private readonly IReadOnlyList<T> internalChildrenAsT;
 
         /// <summary>
         /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
         /// </summary>
-        public IEnumerable<Drawable> InternalChildren
+        public IReadOnlyList<Drawable> InternalChildren
         {
             get { return internalChildren; }
 
+            set { InternalChildrenEnumerable = value; }
+        }
+
+        /// <summary>
+        /// Sets all internal children of this container to the elements contained in the enumerable.
+        /// </summary>
+        public IEnumerable<Drawable> InternalChildrenEnumerable
+        {
             set
             {
                 Clear();
@@ -228,8 +249,11 @@ namespace osu.Framework.Graphics.Containers
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
-            // The string construction is quite expensive, so we are using Debug.Assert here.
-            Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            if (drawable.IsLoaded)
+            {
+                // The string construction is quite expensive, so we are using Debug.Assert here.
+                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+            }
 
             drawable.Parent = null;
 
@@ -302,7 +326,9 @@ namespace osu.Framework.Graphics.Containers
                     t.Dispose();
                 }
                 else
+                {
                     t.Parent = null;
+                }
 
                 Trace.Assert(t.Parent == null);
             }
@@ -331,6 +357,7 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
+            drawable.AddedToParentContainer = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -688,13 +715,13 @@ namespace osu.Framework.Graphics.Containers
         // TODO: Evaluate effects of this on performance and address.
         public override bool HandleInput => true;
 
-        protected override bool InternalContains(Vector2 screenSpacePos)
+        public override bool Contains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
-                return base.InternalContains(screenSpacePos);
+                return base.Contains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
@@ -712,7 +739,7 @@ namespace osu.Framework.Graphics.Containers
 
         internal override bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue))
+            if (!base.BuildMouseInputQueue(screenSpaceMousePos, queue) && (!CanReceiveInput || Masking))
                 return false;
 
             //don't use AliveInternalChildren here as it will cause too many allocations (IEnumerable).
