@@ -4,7 +4,6 @@
 using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using System.Linq;
 
 namespace osu.Framework.Testing
 {
