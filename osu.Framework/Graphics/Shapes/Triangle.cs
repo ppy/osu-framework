@@ -30,7 +30,7 @@ namespace osu.Framework.Graphics.Shapes
             q.BottomLeft,
             q.BottomRight);
 
-        protected override bool InternalContains(Vector2 screenSpacePos)
+        public override bool Contains(Vector2 screenSpacePos)
         {
             return toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
         }

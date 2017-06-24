@@ -82,6 +82,7 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
+
             scheduler?.Dispose();
             scheduler = null;
 
@@ -255,7 +256,7 @@ namespace osu.Framework.Graphics
             set
             {
                 // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                if (Parent != null)
+                if (AddedToParentContainer)
                     throw new InvalidOperationException("May not change depth while inside a parent container.");
                 depth = value;
             }
@@ -1181,6 +1182,14 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
+        /// <summary>
+        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
+        /// to alert the user of an invalid operation.
+        /// </summary>
+        internal bool AddedToParentContainer;
+
         private IContainer parent;
 
         /// <summary>
@@ -1193,6 +1202,8 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+
+                AddedToParentContainer = value != null;
 
                 if (parent == value) return;
 
@@ -1775,27 +1786,12 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
-        /// Receive input even if the cursor is not contained within our <see cref="Drawable.DrawRectangle"/>.
-        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
-        /// Note that this only applied from the current container onwards (ie. if a parent is masking us we will still not receive input).
-        /// </summary>
-        public bool AlwaysReceiveInput;
-
-        /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
         /// Mouse input events are only received when this function is true, or when the drawable
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        public bool Contains(Vector2 screenSpacePos) => AlwaysReceiveInput || InternalContains(screenSpacePos);
-
-        /// <summary>
-        /// Computes whether a given screen-space position is contained within this drawable.
-        /// Mouse input events are only received when this function is true, or when the drawable
-        /// is in focus.
-        /// </summary>
-        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
         /// Whether this Drawable can receive input, taking into account all optimizations and masking.

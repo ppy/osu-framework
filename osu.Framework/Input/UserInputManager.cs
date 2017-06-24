@@ -8,11 +8,6 @@ namespace osu.Framework.Input
 {
     public class UserInputManager : InputManager
     {
-        public UserInputManager()
-        {
-            AlwaysReceiveInput = true;
-        }
-
         protected override IEnumerable<InputHandler> InputHandlers => Host.AvailableInputHandlers;
     }
 }
