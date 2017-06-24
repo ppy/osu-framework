@@ -30,6 +30,9 @@ namespace osu.Framework.Graphics.Containers
 
         private bool scrollbarVisible = true;
 
+        /// <summary>
+        /// Determines whether the scrollbar is visible.
+        /// </summary>
         public bool ScrollbarVisible
         {
             get { return scrollbarVisible; }
@@ -46,6 +49,9 @@ namespace osu.Framework.Graphics.Containers
 
         private bool scrollbarOverlapsContent = true;
 
+        /// <summary>
+        /// Determines whether the scrollbar overlaps the available content.
+        /// </summary>
         public bool ScrollbarOverlapsContent
         {
             get { return scrollbarOverlapsContent; }
@@ -64,6 +70,9 @@ namespace osu.Framework.Graphics.Containers
 
         private float displayableContent => ChildSize[scrollDim];
 
+        /// <summary>
+        /// Controls the scroll distance when scrolling with the mouse wheel.
+        /// </summary>
         public float MouseWheelScrollDistance = 80;
 
         /// <summary>
@@ -114,6 +123,11 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Determines whether the available content is scrolled to the end.
+        /// </summary>
+        /// <param name="lenience">The comparision tolerance.</param>
+        /// <returns>True if the available content is scrolled to the end.</returns>
         public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
 
         /// <summary>
@@ -279,6 +293,10 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
+        /// <summary>
+        /// Offsets the scroll position.
+        /// </summary>
+        /// <param name="offset">The scroll offset.</param>
         public void OffsetScrollPosition(float offset)
         {
             target += offset;
@@ -297,8 +315,18 @@ namespace osu.Framework.Graphics.Containers
             if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
         }
 
+        /// <summary>
+        /// Scrolls by a relativ offset.
+        /// </summary>
+        /// <param name="offset">The scroll offset.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
+        /// <summary>
+        /// Scrolls to a absolute position.
+        /// </summary>
+        /// <param name="value">The position to scroll to.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
@@ -334,6 +362,11 @@ namespace osu.Framework.Graphics.Containers
                 ScrollTo(childPos - displayableContent + d.DrawHeight, animated);
         }
 
+        /// <summary>
+        /// Determines the position (in relation to the current <see cref="scrollDim"/>) of a child in the content.
+        /// </summary>
+        /// <param name="d">The child to get the position from.</param>
+        /// <returns>The position (in relation to the current <see cref="scrollDim"/>) of the child.</returns>
         public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
 
         private void updatePosition()
