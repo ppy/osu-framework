@@ -311,7 +311,30 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildPosInContent(d));
+        /// <summary>
+        /// Scrolls a <see cref="Drawable"/> to the top.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> to scroll to.</param>
+        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
+        public void ScrollTo(Drawable d) => ScrollTo(GetChildPosInContent(d));
+
+        /// <summary>
+        /// Scrolls a <see cref="Drawable"/> into view.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> to scroll into view.</param>
+        public void ScrollIntoView(Drawable d)
+        {
+            float childPos = GetChildPosInContent(d);
+
+            // Abort if the drawable is already visible
+            if (childPos >= Current && childPos <= Current + displayableContent - d.Height)
+                return;
+
+            if (childPos >= Current)
+                ScrollTo(childPos - displayableContent + d.Height);
+            else
+                ScrollTo(childPos);
+        }
 
         public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
 
