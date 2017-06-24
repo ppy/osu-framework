@@ -315,13 +315,15 @@ namespace osu.Framework.Graphics.Containers
         /// Scrolls a <see cref="Drawable"/> to the top.
         /// </summary>
         /// <param name="d">The <see cref="Drawable"/> to scroll to.</param>
-        public void ScrollTo(Drawable d) => ScrollTo(GetChildPosInContent(d));
+        /// <param name="animated">Whether to animate the movement.</param>
+        public void ScrollTo(Drawable d, bool animated = true) => ScrollTo(GetChildPosInContent(d), animated);
 
         /// <summary>
         /// Scrolls a <see cref="Drawable"/> into view.
         /// </summary>
         /// <param name="d">The <see cref="Drawable"/> to scroll into view.</param>
-        public void ScrollIntoView(Drawable d)
+        /// <param name="animated">Whether to animate the movement.</param>
+        public void ScrollIntoView(Drawable d, bool animated = true)
         {
             float childPos = GetChildPosInContent(d);
 
@@ -330,9 +332,9 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             if (childPos >= Current)
-                ScrollTo(childPos - displayableContent + d.Height);
+                ScrollTo(childPos - displayableContent + d.Height, animated);
             else
-                ScrollTo(childPos);
+                ScrollTo(childPos, animated);
         }
 
         public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
