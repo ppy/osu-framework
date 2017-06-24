@@ -694,13 +694,13 @@ namespace osu.Framework.Graphics.Containers
         // TODO: Evaluate effects of this on performance and address.
         public override bool HandleInput => true;
 
-        protected override bool InternalContains(Vector2 screenSpacePos)
+        public override bool Contains(Vector2 screenSpacePos)
         {
             float cRadius = CornerRadius;
 
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
-                return base.InternalContains(screenSpacePos);
+                return base.Contains(screenSpacePos);
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 

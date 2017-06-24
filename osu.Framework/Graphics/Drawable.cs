@@ -1791,15 +1791,7 @@ namespace osu.Framework.Graphics
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        public bool Contains(Vector2 screenSpacePos) => InternalContains(screenSpacePos);
-
-        /// <summary>
-        /// Computes whether a given screen-space position is contained within this drawable.
-        /// Mouse input events are only received when this function is true, or when the drawable
-        /// is in focus.
-        /// </summary>
-        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
         /// Whether this Drawable can receive input, taking into account all optimizations and masking.
