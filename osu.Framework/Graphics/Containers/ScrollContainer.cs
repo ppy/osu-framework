@@ -315,7 +315,6 @@ namespace osu.Framework.Graphics.Containers
         /// Scrolls a <see cref="Drawable"/> to the top.
         /// </summary>
         /// <param name="d">The <see cref="Drawable"/> to scroll to.</param>
-        /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
         public void ScrollTo(Drawable d) => ScrollTo(GetChildPosInContent(d));
 
         /// <summary>
