@@ -134,7 +134,7 @@ namespace osu.Framework.Testing
                 actionRepetition = 0;
             }
 
-            if (actionIndex > StepsContainer.Children.Count() - 1)
+            if (actionIndex > StepsContainer.Children.Count - 1)
             {
                 onCompletion?.Invoke();
                 return;

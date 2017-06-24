@@ -274,7 +274,7 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.ColourInfo = Target.ColourInfo;
 
-            int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0;
+            int childCount = (Target as IContainerEnumerable<Drawable>)?.Children.Count ?? 0;
 
             text.Text = Target + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
         }
@@ -283,7 +283,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             updateSpecifics();
 
-            text.Colour = !isExpanded && ((Target as IContainerEnumerable<Drawable>)?.Children.Count() ?? 0) > 0 ? Color4.LightBlue : Color4.White;
+            text.Colour = !isExpanded && ((Target as IContainerEnumerable<Drawable>)?.Children.Count ?? 0) > 0 ? Color4.LightBlue : Color4.White;
             base.Update();
         }
 

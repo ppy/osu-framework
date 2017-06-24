@@ -17,7 +17,6 @@ using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Caching;
 using System.Threading.Tasks;
-using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
