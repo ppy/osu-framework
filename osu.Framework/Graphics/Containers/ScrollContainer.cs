@@ -71,7 +71,7 @@ namespace osu.Framework.Graphics.Containers
         private float displayableContent => ChildSize[scrollDim];
 
         /// <summary>
-        /// Controls the scroll distance when scrolling with the mouse wheel.
+        /// Controls the scroll distance per tick when scrolling with the mouse wheel.
         /// </summary>
         public float MouseWheelScrollDistance = 80;
 
@@ -124,10 +124,10 @@ namespace osu.Framework.Graphics.Containers
         protected override Container<Drawable> Content => content;
 
         /// <summary>
-        /// Determines whether the available content is scrolled to the end.
+        /// Determines whether the content is scrolled to the end.
         /// </summary>
         /// <param name="lenience">The comparision tolerance.</param>
-        /// <returns>True if the available content is scrolled to the end.</returns>
+        /// <returns>True if the content is scrolled to the end.</returns>
         public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace osu.Framework.Graphics.Containers
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
         /// <summary>
-        /// Offsets the scroll position.
+        /// Immediately offsets the current and target scroll position.
         /// </summary>
         /// <param name="offset">The scroll offset.</param>
         public void OffsetScrollPosition(float offset)
@@ -316,7 +316,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Scrolls by a relativ offset.
+        /// Offsets the position.
         /// </summary>
         /// <param name="offset">The scroll offset.</param>
         /// <param name="animated">Whether to animate the movement.</param>
