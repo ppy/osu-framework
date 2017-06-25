@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Containers
         private bool scrollbarOverlapsContent = true;
 
         /// <summary>
-        /// Determines whether the scrollbar overlaps the available content.
+        /// Whether the scrollbar overlaps the content.
         /// </summary>
         public bool ScrollbarOverlapsContent
         {
@@ -124,7 +124,7 @@ namespace osu.Framework.Graphics.Containers
         protected override Container<Drawable> Content => content;
 
         /// <summary>
-        /// Determines whether the content is scrolled to the end.
+        /// Whether the content is scrolled to the end.
         /// </summary>
         /// <param name="lenience">The comparision tolerance.</param>
         /// <returns>True if the content is scrolled to the end.</returns>
@@ -316,14 +316,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Offsets the position.
+        /// Scrolls to a new position relative to the current scroll offset.
         /// </summary>
-        /// <param name="offset">The scroll offset.</param>
+        /// <param name="offset">The amount by which we should scroll.</param>
         /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
         /// <summary>
-        /// Scrolls to a absolute position.
+        /// Scrolls to an absolute position.
         /// </summary>
         /// <param name="value">The position to scroll to.</param>
         /// <param name="animated">Whether to animate the movement.</param>
@@ -363,10 +363,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Determines the position (in relation to the current <see cref="scrollDim"/>) of a child in the content.
+        /// Determines the position of a child in the content.
         /// </summary>
         /// <param name="d">The child to get the position from.</param>
-        /// <returns>The position (in relation to the current <see cref="scrollDim"/>) of the child.</returns>
+        /// <returns>The position of the child.</returns>
         public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
 
         private void updatePosition()
