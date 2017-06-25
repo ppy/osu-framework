@@ -30,57 +30,26 @@ namespace osu.Framework.VisualTests.Tests
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    AutoSizeAxes = Axes.Both,
+                    Size = new Vector2(340),
                     Children = new[]
                     {
-                        red = new DepthBox(Color4.Red, Anchor.TopLeft)
-                        {
-                            Position = new Vector2(-60),
-                        },
-                        blue = new DepthBox(Color4.Blue, Anchor.TopRight)
-                        {
-                            Position = new Vector2(60, -60),
-                        },
-                        green = new DepthBox(Color4.Green, Anchor.BottomRight)
-                        {
-                            Position = new Vector2(60),
-                        },
-                        purple = new DepthBox(Color4.Purple, Anchor.BottomLeft)
-                        {
-                            Position = new Vector2(-60, 60),
-                        },
+                        red = new DepthBox(Color4.Red, Anchor.TopLeft),
+                        blue = new DepthBox(Color4.Blue, Anchor.TopRight),
+                        green = new DepthBox(Color4.Green, Anchor.BottomRight),
+                        purple = new DepthBox(Color4.Purple, Anchor.BottomLeft),
                     }
                 }
             });
+            
+            AddStep($@"bring forward {nameof(red)}", () => red.Depth--);
+            AddStep($@"bring forward {nameof(blue)}", () => blue.Depth--);
+            AddStep($@"bring forward {nameof(green)}", () => green.Depth--);
+            AddStep($@"bring forward {nameof(purple)}", () => purple.Depth--);
 
-            AddStep($@"{nameof(red)} first", () =>
-            {
-                red.Depth = float.MinValue;
-                blue.Depth = 0;
-                green.Depth = 0;
-                purple.Depth = 0;
-            });
-            AddStep($@"{nameof(blue)} first", () =>
-            {
-                red.Depth = 0;
-                blue.Depth = float.MinValue;
-                green.Depth = 0;
-                purple.Depth = 0;
-            });
-            AddStep($@"{nameof(green)} first", () =>
-            {
-                red.Depth = 0;
-                blue.Depth = 0;
-                green.Depth = float.MinValue;
-                purple.Depth = 0;
-            });
-            AddStep($@"{nameof(purple)} first", () =>
-            {
-                red.Depth = 0;
-                blue.Depth = 0;
-                green.Depth = 0;
-                purple.Depth = float.MinValue;
-            });
+            AddStep($@"send backward {nameof(red)}", () => red.Depth++);
+            AddStep($@"send backward {nameof(blue)}", () => blue.Depth++);
+            AddStep($@"send backward {nameof(green)}", () => green.Depth++);
+            AddStep($@"send backward {nameof(purple)}", () => purple.Depth++);
         }
 
         private class DepthBox : Container
@@ -90,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
             public DepthBox(Color4 colour, Anchor anchor)
             {
                 Size = new Vector2(240);
-                Anchor = Origin = Anchor.Centre;
+                Anchor = Origin = anchor;
 
                 Add(new Drawable[]
                 {
