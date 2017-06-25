@@ -160,6 +160,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        public T Child
+        {
+            set
+            {
+                Clear();
+                Add(value);
+            }
+        }
+
         private readonly LifetimeList<Drawable> internalChildren;
         private readonly IReadOnlyList<T> internalChildrenAsT;
 
