@@ -5,11 +5,10 @@ using osu.Framework.Extensions.TypeExtensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IEnumerable<T>, IEnumerable, IReadOnlyList<T>
+    public class SortedList<T> : ICollection<T>, IReadOnlyList<T>
     {
         private readonly List<T> list;
 
