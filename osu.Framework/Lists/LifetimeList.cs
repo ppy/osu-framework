@@ -101,7 +101,14 @@ namespace osu.Framework.Lists
             return true;
         }
 
+        public override void Clear()
         {
+            base.Clear();
+
+            current.Clear();
+            AliveItems.Clear();
+        }
+
         public override void UpdateSorting(T item)
         {
             base.UpdateSorting(item);

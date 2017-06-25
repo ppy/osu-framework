@@ -73,10 +73,9 @@ namespace osu.Framework.Lists
             return found.Count;
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
-            foreach (var i in list.ToList())
-                Remove(i);
+            list.Clear();
         }
 
         public bool Contains(T item) => list.Contains(item);
