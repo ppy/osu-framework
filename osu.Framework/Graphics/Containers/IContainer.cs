@@ -49,6 +49,6 @@ namespace osu.Framework.Graphics.Containers
     public interface ISortedContainerCollection<in T> : IContainerCollection<T>
         where T : IDrawable
     {
-        void UpdateSorting(T drawable);
+        void UpdateSorting(Drawable drawable);
     }
 }

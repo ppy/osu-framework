@@ -256,6 +256,7 @@ namespace osu.Framework.Graphics.Containers
             }
 
             drawable.Parent = null;
+            drawable.DepthChanged = null;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -358,6 +359,7 @@ namespace osu.Framework.Graphics.Containers
 
             internalChildren.Add(drawable);
             drawable.AddedToParentContainer = true;
+            drawable.DepthChanged = UpdateSorting;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -373,7 +375,7 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        public void UpdateSorting(T drawable)
+        public void UpdateSorting(Drawable drawable)
         {
             internalChildren.UpdateSorting(drawable);
         }

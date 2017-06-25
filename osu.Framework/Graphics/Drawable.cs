@@ -242,6 +242,8 @@ namespace osu.Framework.Graphics
 
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
+        internal Action<Drawable> DepthChanged;
+
         private float depth;
 
         /// <summary>
@@ -260,16 +262,8 @@ namespace osu.Framework.Graphics
 
                 depth = value;
 
-                if (AddedToParentContainer)
-                {
-                    var container = Parent as ISortedContainerCollection<Drawable>;
-
-                    if (container == null)
-                        throw new NotSupportedException($@"{Parent.GetType()} does not implement {nameof(ISortedContainerCollection<Drawable>)}.");
-
-                    // Parent will update the actual index of this Drawable within its list
-                    container.UpdateSorting(this);
-                }
+                // Assigned parent will update the actual index of this Drawable within its list
+                DepthChanged?.Invoke(this);
             }
         }
 
