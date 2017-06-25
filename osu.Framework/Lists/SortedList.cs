@@ -18,7 +18,7 @@ namespace osu.Framework.Lists
         public int Count => list.Count;
 
         bool ICollection<T>.IsReadOnly => ((ICollection<T>)list).IsReadOnly;
-        
+
         public T this[int index] => list[index];
 
         public SortedList(Func<T,T,int> comparer)
