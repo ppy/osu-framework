@@ -19,13 +19,7 @@ namespace osu.Framework.Lists
 
         bool ICollection<T>.IsReadOnly => ((ICollection<T>)list).IsReadOnly;
         
-        public T this[int index]
-        {
-            get
-            {
-                return list[index];
-            }
-        }
+        public T this[int index] => list[index];
 
         public SortedList(Func<T,T,int> comparer)
             : this(new ComparisonComparer<T>(comparer))
@@ -55,7 +49,11 @@ namespace osu.Framework.Lists
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            int index = getAdditionIndex(value);
+            int index = list.BinarySearch(value, Comparer);
+
+            if (index < 0)
+                index = ~index;
+
             list.Insert(index, value);
 
             return index;
@@ -83,17 +81,14 @@ namespace osu.Framework.Lists
 
         public bool Contains(T item) => list.Contains(item);
 
-        public int IndexOf(T value)
-        {
-            return list.BinarySearch(value, Comparer);
-        }
+        public int IndexOf(T value) => list.IndexOf(value);
 
         /// <summary>
         /// Repositions the item within this list using <see cref="Comparer"/>.
         /// Useful when the primary sorting property of the item had changed.
         /// </summary>
         /// <param name="item">The item to update its actual index.</param>
-        public virtual void UpdatePosition(T item)
+        public virtual void UpdateSorting(T item)
         {
             list.Remove(item);
 
@@ -112,28 +107,6 @@ namespace osu.Framework.Lists
         public T FindLast(Predicate<T> match) => list.FindLast(match);
 
         public int FindIndex(Predicate<T> match) => list.FindIndex(match);
-
-        /// <summary>
-        /// Gets the first index of the element larger than value.
-        /// </summary>
-        /// <param name="value">The value to search for.</param>
-        /// <returns>The index of the first element larger than value.</returns>
-        private int getAdditionIndex(T value)
-        {
-            int index = IndexOf(value);
-            if (index < 0)
-                index = ~index;
-
-            // Binary search is not guaranteed to give the last index
-            // when duplicates are involved, so let's move towards it
-            for (; index < Count; index++)
-            {
-                if (Comparer.Compare(this[index], value) != 0)
-                    break;
-            }
-
-            return index;
-        }
 
         public override string ToString() => $@"{GetType().ReadableName()} ({Count} items)";
 

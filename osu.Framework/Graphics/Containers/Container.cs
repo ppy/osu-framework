@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
+    public class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>, ISortedContainerCollection<T>
         where T : Drawable
     {
         #region Contruction and disposal
@@ -373,9 +373,9 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        void IContainerCollection<T>.UpdateDepth(T drawable)
+        public void UpdateSorting(T drawable)
         {
-            internalChildren.UpdatePosition(drawable);
+            internalChildren.UpdateSorting(drawable);
         }
 
         #endregion

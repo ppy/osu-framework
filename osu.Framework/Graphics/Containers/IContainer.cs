@@ -44,7 +44,11 @@ namespace osu.Framework.Graphics.Containers
 
         void Remove(T drawable);
         void Remove(IEnumerable<T> range);
+    }
 
-        void UpdateDepth(T drawable);
+    public interface ISortedContainerCollection<in T> : IContainerCollection<T>
+        where T : IDrawable
+    {
+        void UpdateSorting(T drawable);
     }
 }

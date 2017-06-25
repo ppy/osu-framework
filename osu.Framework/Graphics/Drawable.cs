@@ -262,13 +262,13 @@ namespace osu.Framework.Graphics
 
                 if (AddedToParentContainer)
                 {
-                    var container = Parent as IContainerCollection<Drawable>;
+                    var container = Parent as ISortedContainerCollection<Drawable>;
 
                     if (container == null)
-                        throw new NotSupportedException(@"Cannot change depth while inside a parent container which does not implement IContainerCollection<Drawable>.");
+                        throw new NotSupportedException($@"{Parent.GetType()} does not implement {nameof(ISortedContainerCollection<Drawable>)}.");
 
                     // Parent will update the actual index of this Drawable within its list
-                    container.UpdateDepth(this);
+                    container.UpdateSorting(this);
                 }
             }
         }

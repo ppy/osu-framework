@@ -101,12 +101,13 @@ namespace osu.Framework.Lists
             return true;
         }
 
-        public override void UpdatePosition(T item)
         {
-            base.UpdatePosition(item);
+        public override void UpdateSorting(T item)
+        {
+            base.UpdateSorting(item);
 
             // Also sort AliveItems
-            AliveItems.UpdatePosition(item);
+            AliveItems.UpdateSorting(item);
         }
     }
 }
