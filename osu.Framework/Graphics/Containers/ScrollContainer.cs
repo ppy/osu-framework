@@ -8,6 +8,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -92,6 +93,12 @@ namespace osu.Framework.Graphics.Containers
         /// Controls the rate with which the target position is approached after jumping to a specific location.
         /// </summary>
         public double DistanceDecayJump = 0.01;
+
+        /// <summary>
+        /// The scrollcontainer jumps to the relative position of the mouse when the right mouse button is pressed or dragged.
+        /// Uses the value of <see cref="DistanceDecayJump"/> to jump
+        /// </summary>
+        public bool RelativeMouseDrag = false;
 
         /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
@@ -202,6 +209,10 @@ namespace osu.Framework.Graphics.Containers
         {
             // Continue from where we currently are scrolled to.
             target = Current;
+            if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
+            {
+                onRelativeDrag(state.Mouse.Position[scrollDim]);
+            }
             return true;
         }
 
@@ -221,27 +232,34 @@ namespace osu.Framework.Graphics.Containers
         {
             Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
 
-            double currentTime = Time.Current;
-            double timeDelta = currentTime - lastDragTime;
-            double decay = Math.Pow(0.95, timeDelta);
+            if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
+            {
+                onRelativeDrag(state.Mouse.Position[scrollDim]);
+            }
+            else
+            {
+                double currentTime = Time.Current;
+                double timeDelta = currentTime - lastDragTime;
+                double decay = Math.Pow(0.95, timeDelta);
 
-            averageDragTime = averageDragTime * decay + timeDelta;
-            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[scrollDim];
+                averageDragTime = averageDragTime * decay + timeDelta;
+                averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[scrollDim];
 
-            lastDragTime = currentTime;
+                lastDragTime = currentTime;
 
-            Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
+                Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
 
-            float scrollOffset = -childDelta[scrollDim];
-            float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
+                float scrollOffset = -childDelta[scrollDim];
+                float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
 
-            Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+                Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
-            // If we are dragging past the extent of the scrollable area, half the offset
-            // such that the user can feel it.
-            scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
+                // If we are dragging past the extent of the scrollable area, half the offset
+                // such that the user can feel it.
+                scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
-            offset(scrollOffset, false);
+                offset(scrollOffset, false);
+            }
             return true;
         }
 
@@ -276,6 +294,8 @@ namespace osu.Framework.Graphics.Containers
             offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
             return true;
         }
+
+        private void onRelativeDrag(float value) => ScrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]), true);
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
