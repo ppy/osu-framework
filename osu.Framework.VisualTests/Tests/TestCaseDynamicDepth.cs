@@ -40,7 +40,7 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 }
             });
-            
+
             AddStep($@"bring forward {nameof(red)}", () => red.Depth--);
             AddStep($@"bring forward {nameof(blue)}", () => blue.Depth--);
             AddStep($@"bring forward {nameof(green)}", () => green.Depth--);
