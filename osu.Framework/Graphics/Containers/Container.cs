@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                Clear();
+                ClearInternal();
                 AddInternal(value);
             }
         }
@@ -242,18 +242,22 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Removes a given child from this container.
+        /// Removes a given child from this container's <see cref="InternalChildren"/>.
         /// </summary>
         public void Remove(T drawable)
         {
+            if (Content != this)
+                Content.Remove(drawable);
+            else RemoveInternal(drawable);
+        }
+
+        /// <summary>
+        /// Removes a given child from this container.
+        /// </summary>
+        public void RemoveInternal(T drawable)
+        {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
-
-            if (Content != this)
-            {
-                Content.Remove(drawable);
-                return;
-            }
 
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
@@ -321,11 +325,16 @@ namespace osu.Framework.Graphics.Containers
         public virtual void Clear(bool disposeChildren = true)
         {
             if (Content != null && Content != this)
-            {
                 Content.Clear(disposeChildren);
-                return;
-            }
+            else ClearInternal(disposeChildren);
+        }
 
+        /// <summary>
+        /// Clear all of <see cref="InternalChildren"/>.
+        /// </summary>
+        /// <param name="disposeChildren">Whether removed children should also get disposed.</param>
+        public void ClearInternal(bool disposeChildren = true)
+        {
             foreach (Drawable t in internalChildren)
             {
                 if (disposeChildren)
