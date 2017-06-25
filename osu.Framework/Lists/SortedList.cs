@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace osu.Framework.Lists
 {
-    public class SortedList<T> : ICollection<T>, IEnumerable<T>, IEnumerable
+    public class SortedList<T> : ICollection<T>, IEnumerable<T>, IEnumerable, IReadOnlyList<T>
     {
         private readonly List<T> list;
 
