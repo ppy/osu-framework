@@ -358,7 +358,6 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
-            drawable.AddedToParentContainer = true;
             drawable.DepthChanged = UpdateSorting;
 
             if (AutoSizeAxes != Axes.None)
