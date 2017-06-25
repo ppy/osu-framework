@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     value = getValue() ?? "<null>";
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
