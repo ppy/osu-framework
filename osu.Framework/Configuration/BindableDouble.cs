@@ -27,11 +27,12 @@ namespace osu.Framework.Configuration
             }
         }
 
+        protected override double DefaultMinValue => double.MinValue;
+        protected override double DefaultMaxValue => double.MaxValue;
+
         public BindableDouble(double value = 0)
             : base(value)
         {
-            MinValue = double.MinValue;
-            MaxValue = double.MaxValue;
         }
 
         public override void BindTo(Bindable<double> them)

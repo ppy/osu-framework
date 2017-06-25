@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Transforms
     /// <summary>
     /// Transforms colour value in linear colour space.
     /// </summary>
-    public class TransformColour : Transform<Color4>
+    public class TransformColour : Transform<Color4, Drawable>
     {
         /// <summary>
         /// Current value of the transformed colour in linear colour space.

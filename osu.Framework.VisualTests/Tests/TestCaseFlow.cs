@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
@@ -307,7 +308,7 @@ namespace osu.Framework.VisualTests.Tests
                         fillContainer.Invalidate();
                     }
 
-                    if (fillContainer.Children.Count() < 1000 && !doNotAddChildren)
+                    if (fillContainer.Children.Count < 1000 && !doNotAddChildren)
                     {
                         fillContainer.Add(new Container
                         {
@@ -328,7 +329,7 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativePositionAxes = Axes.Both,
                                     Position = new Vector2(0.5f, 0.5f),
                                     Origin = Anchor.Centre,
-                                    Text = fillContainer.Children.Count().ToString()
+                                    Text = fillContainer.Children.Count.ToString()
                                 }
                             }
                         });

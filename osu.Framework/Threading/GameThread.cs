@@ -62,7 +62,7 @@ namespace osu.Framework.Threading
 
         public bool Running => Thread.IsAlive;
 
-        public void Exit() => exitRequested = true;
+        public virtual void Exit() => exitRequested = true;
 
         private volatile bool exitRequested;
 

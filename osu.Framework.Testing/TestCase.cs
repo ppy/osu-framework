@@ -6,7 +6,7 @@ using System.Linq;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing.Drawables.StepButtons;
 using osu.Framework.Threading;
 using OpenTK;
@@ -100,7 +100,7 @@ namespace osu.Framework.Testing
             runNextStep(onCompletion);
         }
 
-        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.Skip(actionIndex).FirstOrDefault() : null;
+        private StepButton loadableStep => actionIndex >= 0 ? StepsContainer.Children.ElementAtOrDefault(actionIndex) : null;
 
         protected virtual double TimePerAction => 200;
 
@@ -134,7 +134,7 @@ namespace osu.Framework.Testing
                 actionRepetition = 0;
             }
 
-            if (actionIndex > StepsContainer.Children.Count() - 1)
+            if (actionIndex > StepsContainer.Children.Count - 1)
             {
                 onCompletion?.Invoke();
                 return;

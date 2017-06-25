@@ -18,6 +18,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -230,8 +231,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
-                var d = TextFlow.Children.ElementAt(index - 1);
+                    return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
+                var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
             return 0;

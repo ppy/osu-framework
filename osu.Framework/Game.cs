@@ -54,7 +54,6 @@ namespace osu.Framework
 
         protected Game()
         {
-            AlwaysReceiveInput = true;
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]
@@ -64,7 +63,6 @@ namespace osu.Framework
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    AlwaysReceiveInput = true,
                 },
                 new GlobalHotkeys
                 {

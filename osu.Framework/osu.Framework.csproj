@@ -111,8 +111,15 @@
     <Compile Include="Extensions\ExtensionMethods.cs" />
     <Compile Include="Extensions\IEnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions\TypeExtensions.cs" />
+    <Compile Include="Graphics\Animations\Animation.cs" />
+    <Compile Include="Graphics\Animations\AnimationExtensions.cs" />
+    <Compile Include="Graphics\Animations\DrawableAnimation.cs" />
+    <Compile Include="Graphics\Animations\FrameData.cs" />
+    <Compile Include="Graphics\Animations\IAnimation.cs" />
+    <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
+    <Compile Include="Graphics\Shapes\Circle.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />
     <Compile Include="Graphics\Containers\IHasFilterableChildren.cs" />
@@ -141,7 +148,7 @@
     <Compile Include="Graphics\UserInterface\IHasCurrentValue.cs" />
     <Compile Include="Graphics\UserInterface\MenuItem.cs" />
     <Compile Include="Graphics\UserInterface\Menu.cs" />
-    <Compile Include="Graphics\Sprites\EquilateralTriangle.cs" />
+    <Compile Include="Graphics\Shapes\EquilateralTriangle.cs" />
     <Compile Include="Graphics\UserInterface\TabControl.cs" />
     <Compile Include="Graphics\UserInterface\TabItem.cs" />
     <Compile Include="Input\CustomInputManager.cs" />
@@ -172,10 +179,10 @@
     <Compile Include="Graphics\Lines\Path.cs" />
     <Compile Include="Graphics\Lines\PathDrawNode.cs" />
     <Compile Include="Graphics\ProxyDrawable.cs" />
-    <Compile Include="Graphics\Sprites\Box.cs" />
+    <Compile Include="Graphics\Shapes\Box.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
-    <Compile Include="Graphics\Sprites\Triangle.cs" />
+    <Compile Include="Graphics\Shapes\Triangle.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
@@ -223,6 +230,7 @@
     <Compile Include="IO\Stores\OnlineStore.cs" />
     <Compile Include="IO\Stores\StorageBackedResourceStore.cs" />
     <Compile Include="IStateful.cs" />
+    <Compile Include="Lists\LazyList.cs" />
     <Compile Include="Lists\SortedList.cs" />
     <Compile Include="Lists\WeakList.cs" />
     <Compile Include="Localisation\FormattableString.cs" />
@@ -291,6 +299,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\Uniform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphics\Shaders\UniformBase.cs" />
     <Compile Include="Graphics\EasingTypes.cs" />
+    <Compile Include="Graphics\Transforms\Transformable.cs" />
     <Compile Include="Graphics\Transforms\Transform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\IHasLifetime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lists\LifetimeList.cs" />
@@ -351,6 +360,7 @@
     <Compile Include="Graphics\UserInterface\CircularProgressDrawNode.cs" />
     <Compile Include="Graphics\Containers\TextFlowContainer.cs" />
     <Compile Include="Graphics\UserInterface\CircularProgress.cs" />
+    <Compile Include="Threading\AudioThread.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\osu-framework.licenseheader">
