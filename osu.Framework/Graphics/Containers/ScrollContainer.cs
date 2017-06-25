@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onRelativeDrag(float value) => ScrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]), true);
+        private void onRelativeDrag(float value) => ScrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]));
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
