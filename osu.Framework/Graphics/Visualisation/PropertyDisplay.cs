@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation
 {
@@ -52,7 +53,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             Type type = source.GetType();
 
-            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public)) // Get all properties
+            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetMethod != null)) // Get all properties that can have a value
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public)) // And all fields
                 .OrderBy(member => member.Name)
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name)) // Include non-public fields at the end
@@ -165,9 +166,9 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     value = getValue() ?? "<null>";
                 }
-                catch
+                catch (Exception e)
                 {
-                    value = @"<Cannot evaluate>";
+                    value = $@"<{((e as TargetInvocationException)?.InnerException ?? e).GetType().ReadableName()} occured during evaluation>";
                 }
 
                 if (!value.Equals(lastValue))
