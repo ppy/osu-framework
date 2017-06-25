@@ -1186,7 +1186,7 @@ namespace osu.Framework.Graphics
         #endregion
 
         #region Parenting (scene graph operations, including ProxyDrawable)
-        
+
         private IContainer parent;
 
         /// <summary>
