@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -17,7 +17,7 @@ namespace osu.Framework.Graphics.Textures
         // inflating texture rectangles.
         private const int padding = (1 << TextureGLSingle.MAX_MIPMAP_LEVELS) + Sprite.MAX_EDGE_SMOOTHNESS * 2;
 
-        private readonly List<Rectangle> subTextureBounds = new List<Rectangle>();
+        private readonly List<RectangleI> subTextureBounds = new List<RectangleI>();
         private TextureGLSingle atlasTexture;
 
         private readonly int atlasWidth;
@@ -59,18 +59,18 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        private Point findPosition(int width, int height)
+        private Vector2I findPosition(int width, int height)
         {
-            if (atlasHeight == 0 || atlasWidth == 0) return Point.Empty;
+            if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
 
             if (currentY + height > atlasHeight)
                 Reset();
 
             // Super naive implementation only going from left to right.
-            Point res = new Point(0, currentY);
+            Vector2I res = new Vector2I(0, currentY);
 
             int maxY = currentY;
-            foreach (Rectangle bounds in subTextureBounds)
+            foreach (RectangleI bounds in subTextureBounds)
             {
                 // +1 is required to prevent aliasing issues with sub-pixel positions while drawing. Bordering edged of other textures can show without it.
                 res.X = Math.Max(res.X, bounds.Right + padding);
@@ -95,8 +95,8 @@ namespace osu.Framework.Graphics.Textures
                 if (atlasTexture == null)
                     Reset();
 
-                Point position = findPosition(width, height);
-                Rectangle bounds = new Rectangle(position.X, position.Y, width, height);
+                Vector2I position = findPosition(width, height);
+                RectangleI bounds = new RectangleI(position.X, position.Y, width, height);
                 subTextureBounds.Add(bounds);
 
                 return new Texture(new TextureGLSub(bounds, atlasTexture));

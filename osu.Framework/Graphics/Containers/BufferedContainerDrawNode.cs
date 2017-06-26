@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using Rectangle = System.Drawing.Rectangle;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -43,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            Rectangle screenSpaceMaskingRect = new Rectangle((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {
@@ -55,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            GLWrapper.PushViewport(new Rectangle(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
+            GLWrapper.PushViewport(new RectangleI(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
 
             return new InvokeOnDisposal(delegate
             {
