@@ -170,7 +170,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleF"></see>; otherwise false.</returns>
         /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(RectangleF rect) => 
+        public bool Contains(RectangleF rect) =>
             X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
             rect.Y + rect.Height <= Y + Height;
 
