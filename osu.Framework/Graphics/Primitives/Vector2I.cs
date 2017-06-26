@@ -17,15 +17,15 @@ namespace osu.Framework.Graphics.Primitives
         {
         }
 
-        public Vector2I(int X, int Y)
+        public Vector2I(int x, int y)
         {
-            this.X = X;
-            this.Y = Y;
+            X = x;
+            Y = y;
         }
 
-        public static readonly Vector2I ZERO = new Vector2I();
+        public static readonly Vector2I Zero;
 
-        public static readonly Vector2I ONE = new Vector2I(1, 1);
+        public static readonly Vector2I One = new Vector2I(1);
 
         public static implicit operator Vector2(Vector2I r) => new Vector2(r.X, r.Y);
 

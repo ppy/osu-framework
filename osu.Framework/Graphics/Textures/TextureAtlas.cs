@@ -61,7 +61,7 @@ namespace osu.Framework.Graphics.Textures
 
         private Vector2I findPosition(int width, int height)
         {
-            if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.ZERO;
+            if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
 
             if (currentY + height > atlasHeight)
                 Reset();

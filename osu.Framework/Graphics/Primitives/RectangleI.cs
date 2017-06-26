@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Primitives
     {
         /// <summary>Represents an instance of the <see cref="T:System.Drawing.RectangleI"></see> class with its members uninitialized.</summary>
         /// <filterpriority>1</filterpriority>
-        public static readonly RectangleI Empty = new RectangleI();
+        public static readonly RectangleI Empty;
 
         public int X;
         public int Y;
