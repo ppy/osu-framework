@@ -1,8 +1,6 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Drawing;
-using osu.Framework.Extensions.RectangleExtensions;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 
@@ -24,20 +22,6 @@ namespace osu.Framework.Extensions.PolygonExtensions
         {
             Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
             Vector2[][] bothVertices = { first.Vertices, second.Vertices };
-
-            return intersects(bothAxes, bothVertices);
-        }
-
-        /// <summary>
-        /// Determines whether two convex polygons intersect.
-        /// </summary>
-        /// <param name="first">The first polygon.</param>
-        /// <param name="second">The second polygon.</param>
-        /// <returns>Whether the two polygons intersect.</returns>
-        public static bool Intersects(this IConvexPolygon first, Rectangle second)
-        {
-            Vector2[][] bothAxes = { first.GetAxes(), second.GetAxes() };
-            Vector2[][] bothVertices = { first.Vertices, second.GetVertices() };
 
             return intersects(bothAxes, bothVertices);
         }

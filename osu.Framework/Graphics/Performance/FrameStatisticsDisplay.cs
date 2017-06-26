@@ -3,7 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -18,6 +17,7 @@ using OpenTK.Input;
 using System.Linq;
 using System.Collections.Generic;
 using osu.Framework.Threading;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -329,7 +329,7 @@ namespace osu.Framework.Graphics.Performance
             TimeBar timeBar = timeBars[timeBarIndex];
             TextureUpload upload = new TextureUpload(HEIGHT * 4, textureBufferStack)
             {
-                Bounds = new Rectangle(timeBarX, 0, 1, HEIGHT)
+                Bounds = new RectangleI(timeBarX, 0, 1, HEIGHT)
             };
 
             int currentHeight = HEIGHT;

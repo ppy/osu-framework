@@ -2,12 +2,12 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Concurrent;
-using System.Drawing;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.IO.Stores;
 using System;
 using System.Threading;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Textures
             Texture tex = atlas != null ? atlas.Add(raw.Width, raw.Height) : new Texture(raw.Width, raw.Height);
             tex.SetData(new TextureUpload(raw.Pixels)
             {
-                Bounds = new Rectangle(0, 0, raw.Width, raw.Height),
+                Bounds = new RectangleI(0, 0, raw.Width, raw.Height),
                 Format = raw.PixelFormat,
             });
 
