@@ -207,11 +207,14 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            // Continue from where we currently are scrolled to.
-            target = Current;
             if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
             {
                 onRelativeDrag(state.Mouse.Position[scrollDim]);
+            }
+            else
+            {
+                // Continue from where we currently are scrolled to.
+                target = Current;
             }
             return true;
         }
@@ -235,31 +238,31 @@ namespace osu.Framework.Graphics.Containers
             if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
             {
                 onRelativeDrag(state.Mouse.Position[scrollDim]);
+                return true;
             }
-            else
-            {
-                double currentTime = Time.Current;
-                double timeDelta = currentTime - lastDragTime;
-                double decay = Math.Pow(0.95, timeDelta);
 
-                averageDragTime = averageDragTime * decay + timeDelta;
-                averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[scrollDim];
+            double currentTime = Time.Current;
+            double timeDelta = currentTime - lastDragTime;
+            double decay = Math.Pow(0.95, timeDelta);
 
-                lastDragTime = currentTime;
+            averageDragTime = averageDragTime * decay + timeDelta;
+            averageDragDelta = averageDragDelta * decay - state.Mouse.Delta[scrollDim];
 
-                Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
+            lastDragTime = currentTime;
 
-                float scrollOffset = -childDelta[scrollDim];
-                float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
+            Vector2 childDelta = ToLocalSpace(state.Mouse.NativeState.Position) - ToLocalSpace(state.Mouse.NativeState.LastPosition);
 
-                Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
+            float scrollOffset = -childDelta[scrollDim];
+            float clampedScrollOffset = clamp(target + scrollOffset) - clamp(target);
 
-                // If we are dragging past the extent of the scrollable area, half the offset
-                // such that the user can feel it.
-                scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
+            Trace.Assert(Precision.AlmostBigger(Math.Abs(scrollOffset), clampedScrollOffset * Math.Sign(scrollOffset)));
 
-                offset(scrollOffset, false);
-            }
+            // If we are dragging past the extent of the scrollable area, half the offset
+            // such that the user can feel it.
+            scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
+
+            offset(scrollOffset, false);
+
             return true;
         }
 
