@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             if (!(this is T))
-                throw new InvalidOperationException($"The {nameof(T)} parameter of the {nameof(LoadAsync)} must be a subtype of {this.GetType().ReadableName()}.");
+                throw new InvalidOperationException($"The {nameof(T)} parameter of the {nameof(LoadAsync)} must be a subtype of {GetType().ReadableName()}.");
 
             loadState = LoadState.Loading;
 
