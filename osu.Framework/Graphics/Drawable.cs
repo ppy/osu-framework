@@ -1199,7 +1199,7 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
-                
+
                 if (parent == value) return;
 
                 if (value != null && parent != null)
