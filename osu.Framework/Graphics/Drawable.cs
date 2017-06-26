@@ -132,7 +132,8 @@ namespace osu.Framework.Graphics
         /// </param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync<T>(Game game, Drawable target, Action<T> onLoaded = null)
+            where T : Drawable
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
@@ -142,7 +143,7 @@ namespace osu.Framework.Graphics
             return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
-                onLoaded?.Invoke(this);
+                onLoaded?.Invoke((T)this);
                 loadTask = null;
             }));
         }
