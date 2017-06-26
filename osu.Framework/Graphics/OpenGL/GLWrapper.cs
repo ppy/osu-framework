@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.OpenGL
             GLWrapper.host = host;
             reset_scheduler.SetCurrentThread();
 
-            MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
+            MaxTextureSize = Math.Min(4096, GL.GetInteger(GetPName.MaxTextureSize));
 
             GL.Disable(EnableCap.DepthTest);
             GL.Disable(EnableCap.StencilTest);
