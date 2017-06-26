@@ -2247,7 +2247,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action{Drawable})"/>).
+        /// thread via <see cref="Drawable.LoadAsync{T}(Game, Drawable, Action{T})"/>).
         /// </summary>
         Loading,
         /// <summary>
