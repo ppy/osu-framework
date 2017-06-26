@@ -262,7 +262,6 @@ namespace osu.Framework.Graphics.Containers
             scrollOffset = clampedScrollOffset + (scrollOffset - clampedScrollOffset) / 2;
 
             offset(scrollOffset, false);
-
             return true;
         }
 
