@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Game game;
 
-        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, this, onLoaded);
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable => component.LoadAsync(game, this, onLoaded);
 
         [BackgroundDependencyLoader(true)]
         private void load(Game game, ShaderManager shaders)

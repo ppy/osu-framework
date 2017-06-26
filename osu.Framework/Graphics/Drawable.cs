@@ -132,17 +132,21 @@ namespace osu.Framework.Graphics
         /// </param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync<T>(Game game, Drawable target, Action<T> onLoaded = null)
+            where T : Drawable
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+
+            if (!(this is T))
+                throw new InvalidOperationException($"The {nameof(T)} parameter of the {nameof(LoadAsync)} must be a subtype of {GetType().ReadableName()}.");
 
             loadState = LoadState.Loading;
 
             return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
-                onLoaded?.Invoke(this);
+                onLoaded?.Invoke((T)this);
                 loadTask = null;
             }));
         }
@@ -2246,7 +2250,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action{Drawable})"/>).
+        /// thread via <see cref="Drawable.LoadAsync{T}(Game, Drawable, Action{T})"/>).
         /// </summary>
         Loading,
         /// <summary>
