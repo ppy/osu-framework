@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using osu.Framework.Allocation;
 using OpenTK.Graphics.ES30;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
 
         public int Level;
         public PixelFormat Format = PixelFormat.Rgba;
-        public Rectangle Bounds;
+        public RectangleI Bounds;
         public readonly byte[] Data;
 
         private readonly BufferStack<byte> bufferStack;
