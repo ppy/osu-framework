@@ -76,6 +76,7 @@ namespace osu.Framework.Input
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
+        private readonly List<Drawable> lastHoveredDrawables = new List<Drawable>();
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
         private Drawable hoverHandledDrawable;
 
@@ -352,7 +353,8 @@ namespace osu.Framework.Input
             Drawable lastHoverHandledDrawable = hoverHandledDrawable;
             hoverHandledDrawable = null;
 
-            List<Drawable> lastHoveredDrawables = new List<Drawable>(hoveredDrawables);
+            lastHoveredDrawables.Clear();
+            lastHoveredDrawables.AddRange(hoveredDrawables);
             hoveredDrawables.Clear();
 
             // First, we need to construct hoveredDrawables for the current frame
