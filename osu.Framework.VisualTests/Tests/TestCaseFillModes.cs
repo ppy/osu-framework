@@ -36,13 +36,12 @@ namespace osu.Framework.VisualTests.Tests
 
             FillMode[] fillModes =
             {
-                FillMode.None,
                 FillMode.Stretch,
                 FillMode.Fit,
                 FillMode.Fill,
             };
 
-            for (int i = 0; i < Rows * Cols; ++i)
+            for (int i = 0; i < 3; ++i)
             {
                 Cell(i).Add(new Drawable[]
                 {
@@ -67,6 +66,7 @@ namespace osu.Framework.VisualTests.Tests
                             },
                             new Sprite
                             {
+                                RelativeSizeAxes = Axes.Both,
                                 FillMode = fillModes[i],
                                 Anchor = Anchor.Centre,
                                 Origin = Anchor.Centre,

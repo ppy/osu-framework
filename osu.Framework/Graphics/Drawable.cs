@@ -492,7 +492,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset);
+                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -606,7 +606,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Vector2 DrawSize => drawSizeBacking.EnsureValid()
             ? drawSizeBacking.Value
-            : drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
+            : drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -679,11 +679,24 @@ namespace osu.Framework.Graphics
         /// <param name="relativeAxes">Describes which axes are relative.</param>
         /// <param name="v">The coordinates to convert.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v)
+        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
+
+                // FillMode only makes sense if both axes are relatively sized as the general rule
+                // for n-dimensional aspect preservation is to simply take the minimum or the maximum
+                // scale among all active axes. For single axes the minimum / maximum is just the
+                // value itself.
+                if (relativeAxes == Axes.Both)
+                {
+                    if (fillMode == FillMode.Fill)
+                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y));
+                    else if (fillMode == FillMode.Fit)
+                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y));
+                }
+
                 if ((relativeAxes & Axes.X) > 0)
                     v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
@@ -751,39 +764,17 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// The method to use to fill this drawable's parent space.
+        /// Controls the behavior of <see cref="Drawable.RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
+        /// Otherwise, this member has no effect. By default, <see cref="FillMode.Stretch"/> is used, which simply scales
+        /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="IContainer.RelativeToAbsoluteFactor"/>
+        /// disregarding this drawable's aspect ratio. Other values of <see cref="FillMode"/> allow preserving the aspect ratio.
         /// </summary>
         public FillMode FillMode { get; set; }
 
         /// <summary>
         /// Relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
-        protected virtual Vector2 DrawScale
-        {
-            get
-            {
-                if (FillMode == FillMode.None)
-                    return Scale;
-
-                Vector2 modifier = Vector2.One;
-                Vector2 relativeToAbsolute = relativeToAbsoluteFactor;
-
-                switch (FillMode)
-                {
-                    case FillMode.Fill:
-                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Fit:
-                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Stretch:
-                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
-                        break;
-                }
-
-                return Scale * modifier;
-            }
-        }
+        protected virtual Vector2 DrawScale => Scale;
 
         private Vector2 shear = Vector2.Zero;
 
@@ -2265,23 +2256,22 @@ namespace osu.Framework.Graphics
         Alive
     }
 
+    /// <summary>
+    /// Controls the behavior of <see cref="Drawable.RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
+    /// </summary>
     public enum FillMode
     {
         /// <summary>
-        /// This drawable shouldn't automatically fill its parent space.
+        /// Completely fill the parent with a relative size of 1 at the cost of stretching the aspect ratio (default).
         /// </summary>
-        None,
+        Stretch,
         /// <summary>
-        /// This drawable should be scaled to fill its parent space while maintaining aspect ratio.
+        /// Always maintains aspect ratio while a relative size of 1 results in completely filling the parent.
         /// </summary>
         Fill,
         /// <summary>
-        /// This drawable should be scaled to fit inside the dimensions of its parent space while maintaining aspect ratio.
+        /// Always maintains aspect ratio while a relative size of 1 results in fitting into the parent.
         /// </summary>
         Fit,
-        /// <summary>
-        /// This drawable should stretch to fill its parent space.
-        /// </summary>
-        Stretch
     }
 }
