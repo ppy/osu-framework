@@ -118,7 +118,7 @@ namespace osu.Framework.Graphics.Containers
                             throw new InvalidOperationException(
                                 $"{GetType().FullName}.{nameof(ComputeLayoutPositions)} returned a total of {positions.Length} positions for {i} children. {nameof(ComputeLayoutPositions)} must return 1 position per child.");
 
-                        if ((d.RelativeSizeAxes & AutoSizeAxes) != 0)
+                        if ((d.RelativeSizeAxes & AutoSizeAxes) != 0 && (d.FillMode != FillMode.Fit || AutoSizeAxes == Axes.Both))
                             throw new InvalidOperationException(
                                 "Drawables inside a flow container may not have a relative size axis that the flow container is auto sizing for." +
                                 $"The flow container is set to autosize in {AutoSizeAxes} axes and the child is set to relative size in {d.RelativeSizeAxes} axes.");
