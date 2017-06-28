@@ -686,6 +686,7 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="relativeAxes">Describes which axes are relative.</param>
         /// <param name="v">The coordinates to convert.</param>
+        /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
         private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
@@ -796,7 +797,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
-        /// Otherwise, this member has no effect. By default, <see cref="FillMode.Stretch"/> is used, which simply scales
+        /// Otherwise, this member has no effect. By default, stretching is used, which simply scales
         /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="IContainer.RelativeToAbsoluteFactor"/>
         /// disregarding this drawable's <see cref="FillAspectRatio"/>. Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
         /// </summary>
