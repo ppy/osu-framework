@@ -689,12 +689,13 @@ namespace osu.Framework.Graphics
                 // for n-dimensional aspect preservation is to simply take the minimum or the maximum
                 // scale among all active axes. For single axes the minimum / maximum is just the
                 // value itself.
-                if (relativeAxes == Axes.Both)
+                if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
                 {
                     if (fillMode == FillMode.Fill)
-                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y));
+                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
                     else if (fillMode == FillMode.Fit)
-                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y));
+                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
+                    conversion.Y /= fillAspectRatio;
                 }
 
                 if ((relativeAxes & Axes.X) > 0)
@@ -763,13 +764,45 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private float fillAspectRatio = 1;
+
         /// <summary>
-        /// Controls the behavior of <see cref="Drawable.RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
+        /// The desired ratio of width to height when under the effect of a non-stretching <see cref="FillMode"/>
+        /// and <see cref="RelativeSizeAxes"/> being <see cref="Axes.Both"/>.
+        /// </summary>
+        public float FillAspectRatio
+        {
+            get { return fillAspectRatio; }
+
+            set
+            {
+                if (fillAspectRatio == value) return;
+                fillAspectRatio = value;
+
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
+
+        private FillMode fillMode;
+
+        /// <summary>
+        /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
         /// Otherwise, this member has no effect. By default, <see cref="FillMode.Stretch"/> is used, which simply scales
         /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="IContainer.RelativeToAbsoluteFactor"/>
-        /// disregarding this drawable's aspect ratio. Other values of <see cref="FillMode"/> allow preserving the aspect ratio.
+        /// disregarding this drawable's <see cref="FillAspectRatio"/>. Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
         /// </summary>
-        public FillMode FillMode { get; set; }
+        public FillMode FillMode
+        {
+            get { return fillMode; }
+
+            set
+            {
+                if (fillMode == value) return;
+                fillMode = value;
+
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
 
         /// <summary>
         /// Relative scaling factor around <see cref="OriginPosition"/>.
