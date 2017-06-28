@@ -577,17 +577,26 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
-                if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                    Width = conversion.X == 0 ? 0 : Width / conversion.X;
-                else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
-                    Width *= conversion.X;
+                // In some cases we cannot easily preserve our size, and so we simply invalidate and
+                // leave correct sizing to the user.
+                if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
+                    Invalidate(Invalidation.DrawSize);
+                else
+                {
+                    // Convert coordinates from relative to absolute or vice versa
+                    Vector2 conversion = relativeToAbsoluteFactor;
+                    if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
+                        Width = conversion.X == 0 ? 0 : Width / conversion.X;
+                    else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                        Width *= conversion.X;
 
-                if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                    Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
-                else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
-                    Height *= conversion.Y;
+                    if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
+                        Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
+                    else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
+                        Height *= conversion.Y;
+
+                    // No invalidation is necessary as DrawSize remains invariant.
+                }
 
                 relativeSizeAxes = value;
 
@@ -595,7 +604,6 @@ namespace osu.Framework.Graphics
                 if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
 
                 OnSizingChanged();
-                // No invalidation necessary as DrawSize remains invariant.
             }
         }
 
@@ -779,7 +787,8 @@ namespace osu.Framework.Graphics
                 if (fillAspectRatio == value) return;
                 fillAspectRatio = value;
 
-                Invalidate(Invalidation.DrawSize);
+                if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
+                    Invalidate(Invalidation.DrawSize);
             }
         }
 
