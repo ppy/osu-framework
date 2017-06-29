@@ -1794,7 +1794,7 @@ namespace osu.Framework.Graphics
         /// given screen-space position.
         /// </summary>
         /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
-        /// <returns>True iff input is received at the given screen-space position.</returns>
+        /// <returns>True if input is received at the given screen-space position.</returns>
         public virtual bool ReceiveMouseInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
 
         /// <summary>
