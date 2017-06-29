@@ -1790,6 +1790,14 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
+        /// Determines whether this drawable receives mouse input when the mouse is at the
+        /// given screen-space position.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
+        /// <returns>True iff input is received at the given screen-space position.</returns>
+        public virtual bool ReceiveMouseInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
+
+        /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
         /// Mouse input events are only received when this function is true, or when the drawable
         /// is in focus.
@@ -1807,7 +1815,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && ReceiveMouseInputAt(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.

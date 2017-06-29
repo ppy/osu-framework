@@ -30,10 +30,7 @@ namespace osu.Framework.Graphics.Shapes
             q.BottomLeft,
             q.BottomRight);
 
-        public override bool Contains(Vector2 screenSpacePos)
-        {
-            return toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
-        }
+        public override bool Contains(Vector2 screenSpacePos) => toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
 
         protected override DrawNode CreateDrawNode() => new TriangleDrawNode();
 
