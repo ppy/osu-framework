@@ -161,6 +161,9 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Gets or sets the only child of this container.
+        /// </summary>
         public T Child
         {
             get
@@ -247,7 +250,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Removes a given child from this container's <see cref="InternalChildren"/>.
+        /// Removes a given child from this container.
         /// </summary>
         public void Remove(T drawable)
         {
@@ -257,7 +260,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Removes a given child from this container.
+        /// Removes a given child from this container's <see cref="InternalChildren"/>.
         /// </summary>
         public void RemoveInternal(T drawable)
         {
