@@ -177,6 +177,22 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Gets or sets the only child in <see cref="InternalChildren"/>.
+        /// </summary>
+        public Drawable InternalChild
+        {
+            get
+            {
+                return InternalChildren.Single();
+            }
+            set
+            {
+                ClearInternal();
+                AddInternal(value);
+            }
+        }
+
         private readonly LifetimeList<Drawable> internalChildren;
         private readonly IReadOnlyList<T> internalChildrenAsT;
 
