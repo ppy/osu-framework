@@ -76,15 +76,34 @@ namespace osu.Framework.Input
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
-        private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
-        private Drawable hoverHandledDrawable;
 
         /// <summary>
-        /// Contains all hovered <see cref="Drawable"/>s in top-down order.
+        /// Contains the previously hovered <see cref="Drawable"/>s prior to when
+        /// <see cref="hoveredDrawables"/> got updated.
+        /// </summary>
+        private readonly List<Drawable> lastHoveredDrawables = new List<Drawable>();
+
+        /// <summary>
+        /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
+        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
         /// Top-down in this case means reverse draw order, i.e. the front-most visible
         /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
         /// </summary>
-        public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
+        private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
+
+        /// <summary>
+        /// The <see cref="Drawable"/> which returned true in its
+        /// <see cref="Drawable.OnHover(InputState)"/> method, or null if none did so.
+        /// </summary>
+        private Drawable hoverHandledDrawable;
+
+        /// <summary>
+        /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
+        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
+        /// Top-down in this case means reverse draw order, i.e. the front-most visible
+        /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
+        /// </summary>
+        public IReadOnlyList<Drawable> HoveredDrawables => hoveredDrawables;
 
         protected InputManager()
         {
@@ -352,7 +371,8 @@ namespace osu.Framework.Input
             Drawable lastHoverHandledDrawable = hoverHandledDrawable;
             hoverHandledDrawable = null;
 
-            List<Drawable> lastHoveredDrawables = new List<Drawable>(hoveredDrawables);
+            lastHoveredDrawables.Clear();
+            lastHoveredDrawables.AddRange(hoveredDrawables);
             hoveredDrawables.Clear();
 
             // First, we need to construct hoveredDrawables for the current frame

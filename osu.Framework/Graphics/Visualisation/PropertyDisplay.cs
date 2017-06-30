@@ -32,15 +32,12 @@ namespace osu.Framework.Graphics.Visualisation
                 Padding = new MarginPadding(10),
                 RelativeSizeAxes = Axes.Both,
                 ScrollbarOverlapsContent = false,
-                Children = new[]
+                Child = flow = new FillFlowContainer
                 {
-                    flow = new FillFlowContainer
-                    {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Direction = FillDirection.Vertical
-                    }
-                },
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical
+                }
             });
         }
 
@@ -110,31 +107,28 @@ namespace osu.Framework.Graphics.Visualisation
                         {
                             Right = 6
                         },
-                        Children = new Drawable[]
+                        Child = new FillFlowContainer<SpriteText>
                         {
-                            new FillFlowContainer<SpriteText>
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Direction = FillDirection.Horizontal,
+                            Spacing = new Vector2(10f),
+                            Children = new[]
                             {
-                                RelativeSizeAxes = Axes.X,
-                                AutoSizeAxes = Axes.Y,
-                                Direction = FillDirection.Horizontal,
-                                Spacing = new Vector2(10f),
-                                Children = new[]
+                                new SpriteText
                                 {
-                                    new SpriteText
-                                    {
-                                        Text = info.Name,
-                                        Colour = Color4.LightBlue,
-                                    },
-                                    new SpriteText
-                                    {
-                                        Text = $@"[{type.Name}]:",
-                                        Colour = Color4.MediumPurple,
-                                    },
-                                    valueText = new SpriteText
-                                    {
-                                        Colour = Color4.White,
-                                    },
-                                }
+                                    Text = info.Name,
+                                    Colour = Color4.LightBlue,
+                                },
+                                new SpriteText
+                                {
+                                    Text = $@"[{type.Name}]:",
+                                    Colour = Color4.MediumPurple,
+                                },
+                                valueText = new SpriteText
+                                {
+                                    Colour = Color4.White,
+                                },
                             }
                         }
                     },
