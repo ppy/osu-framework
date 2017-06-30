@@ -21,7 +21,6 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -168,7 +167,10 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                return Children.Single();
+                if (Children.Count != 1)
+                    throw new InvalidOperationException($"{nameof(Child)} is only available when there's only 1 in {nameof(Children)}!");
+
+                return Children[0];
             }
             set
             {
@@ -184,7 +186,10 @@ namespace osu.Framework.Graphics.Containers
         {
             get
             {
-                return InternalChildren.Single();
+                if (InternalChildren.Count != 1)
+                    throw new InvalidOperationException($"{nameof(InternalChild)} is only available when there's only 1 in {nameof(InternalChildren)}!");
+
+                return InternalChildren[0];
             }
             set
             {
