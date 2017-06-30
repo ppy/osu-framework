@@ -272,7 +272,8 @@ namespace osu.Framework.Graphics.Containers
         {
             if (Content != this)
                 Content.Remove(drawable);
-            else RemoveInternal(drawable);
+            else
+                RemoveInternal(drawable);
         }
 
         /// <summary>
@@ -350,7 +351,8 @@ namespace osu.Framework.Graphics.Containers
         {
             if (Content != null && Content != this)
                 Content.Clear(disposeChildren);
-            else ClearInternal(disposeChildren);
+            else
+                ClearInternal(disposeChildren);
         }
 
         /// <summary>
