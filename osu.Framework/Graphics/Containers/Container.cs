@@ -21,6 +21,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -162,6 +163,10 @@ namespace osu.Framework.Graphics.Containers
 
         public T Child
         {
+            get
+            {
+                return Children.Single();
+            }
             set
             {
                 Clear();
