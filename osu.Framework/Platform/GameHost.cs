@@ -380,7 +380,7 @@ namespace osu.Framework.Platform
 
         private void bootstrapSceneGraph(Game game)
         {
-            var root = new UserInputManager { Children = new[] { game } };
+            var root = new UserInputManager { Child = game };
 
             Dependencies.Cache(root);
             Dependencies.Cache(game);

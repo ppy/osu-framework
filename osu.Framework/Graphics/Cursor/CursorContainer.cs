@@ -68,14 +68,11 @@ namespace osu.Framework.Graphics.Cursor
                     Radius = 50
                 };
 
-                Children = new[]
+                Child = new Box
                 {
-                    new Box
-                    {
-                        Size = new Vector2(8, 8),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
-                    }
+                    Size = new Vector2(8, 8),
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
                 };
             }
         }
