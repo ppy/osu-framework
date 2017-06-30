@@ -351,7 +351,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes all children.
         /// </summary>
-        /// <param name="disposeChildren">Whether removed children should also get disposed.</param>
+        /// <param name="disposeChildren">
+        /// Whether removed children should also get disposed.
+        /// Disposal will be recursive.
+        /// </param>
         public virtual void Clear(bool disposeChildren = true)
         {
             if (Content != null && Content != this)
@@ -363,7 +366,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Clear all of <see cref="InternalChildren"/>.
         /// </summary>
-        /// <param name="disposeChildren">Whether removed children should also get disposed.</param>
+        /// <param name="disposeChildren">
+        /// Whether removed children should also get disposed.
+        /// Disposal will be recursive.
+        /// </param>
         public void ClearInternal(bool disposeChildren = true)
         {
             foreach (Drawable t in internalChildren)
