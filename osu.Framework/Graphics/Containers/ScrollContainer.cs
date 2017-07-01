@@ -196,17 +196,25 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        //Saves if the drag start event was triggered while the right mouse button was pressed
+        private bool scrollRelative;
+
         protected override bool OnDragStart(InputState state)
         {
+            if (isDragging) return false;
+
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
 
             isDragging = true;
+            scrollRelative = RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right);
             return true;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
+            if (isDragging) return false;
+
             if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
             {
                 onRelativeDrag(state.Mouse.Position[scrollDim]);
@@ -235,7 +243,7 @@ namespace osu.Framework.Graphics.Containers
         {
             Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
 
-            if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
+            if (scrollRelative)
             {
                 onRelativeDrag(state.Mouse.Position[scrollDim]);
                 return true;
