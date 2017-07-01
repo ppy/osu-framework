@@ -16,6 +16,7 @@ using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.MathUtils;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -151,9 +152,12 @@ namespace osu.Framework.Graphics.Containers
         {
             if (currentFrameBufferIndex != 0)
             {
+                Trace.Assert(currentFrameBufferIndex == 1,
+                    $"Only the first two framebuffers should be the last to be written to at the end of {nameof(Draw)}.");
+
                 FrameBuffer temp = FrameBuffers[0];
-                FrameBuffers[0] = FrameBuffers[currentFrameBufferIndex];
-                FrameBuffers[currentFrameBufferIndex] = temp;
+                FrameBuffers[0] = FrameBuffers[1];
+                FrameBuffers[1] = temp;
 
                 currentFrameBufferIndex = 0;
             }
