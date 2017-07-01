@@ -22,9 +22,13 @@ namespace osu.Framework.Graphics.Containers
     public class BufferedContainerDrawNode : ContainerDrawNode
     {
         public FrameBuffer[] FrameBuffers;
+
+        public bool DrawOriginal;
         public Color4 BackgroundColour;
+        public ColourInfo EffectColour;
 
         public Vector2 BlurSigma;
+        public Vector2I BlurRadius;
         public float BlurRotation;
 
         public Shader BlurShader;
@@ -145,18 +149,25 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void finalizeFrameBuffer()
         {
-            if (currentFrameBufferIndex == 1)
+            if (currentFrameBufferIndex != 0)
             {
                 FrameBuffer temp = FrameBuffers[0];
-                FrameBuffers[0] = FrameBuffers[1];
-                FrameBuffers[1] = temp;
+                FrameBuffers[0] = FrameBuffers[currentFrameBufferIndex];
+                FrameBuffers[currentFrameBufferIndex] = temp;
 
                 currentFrameBufferIndex = 0;
             }
         }
 
+        // Our effects will be drawn into framebuffers 0 and 1. If we want to preserve the originally
+        // drawn children we need to put them in a separate buffer; in this case buffer 2. Otherwise,
+        // we do not want to allocate a third buffer for nothing and hence we start with 0.
+        private int originalIndex => DrawOriginal && (BlurRadius.X > 0 || BlurRadius.Y > 0) ? 2 : 0;
+
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
+            currentFrameBufferIndex = originalIndex;
+
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
             if (UpdateVersion > DrawVersion.Value || frameBufferSize != FrameBuffers[0].Size)
             {
@@ -167,15 +178,12 @@ namespace osu.Framework.Graphics.Containers
                     drawChildren(vertexAction, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
-                    int radiusX = Blur.KernelSize(BlurSigma.X);
-                    int radiusY = Blur.KernelSize(BlurSigma.Y);
-
-                    if (radiusX > 0 || radiusY > 0)
+                    if (BlurRadius.X > 0 || BlurRadius.Y > 0)
                     {
                         GL.Disable(EnableCap.ScissorTest);
 
-                        if (radiusX > 0) drawBlurredFrameBuffer(radiusX, BlurSigma.X, BlurRotation);
-                        if (radiusY > 0) drawBlurredFrameBuffer(radiusY, BlurSigma.Y, BlurRotation + 90);
+                        if (BlurRadius.X > 0) drawBlurredFrameBuffer(BlurRadius.X, BlurSigma.X, BlurRotation);
+                        if (BlurRadius.Y > 0) drawBlurredFrameBuffer(BlurRadius.Y, BlurSigma.Y, BlurRotation + 90);
 
                         GL.Enable(EnableCap.ScissorTest);
                     }
@@ -192,7 +200,14 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.SetBlend(DrawInfo.Blending);
 
             Shader.Bind();
-            drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, DrawInfo.Colour);
+
+            ColourInfo effectColour = DrawInfo.Colour;
+            effectColour.ApplyChild(EffectColour);
+            drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, effectColour);
+
+            if (DrawOriginal)
+                drawFrameBufferToBackBuffer(FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+
             Shader.Unbind();
         }
     }

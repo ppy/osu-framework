@@ -14,6 +14,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using System;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.MathUtils;
+using osu.Framework.Graphics.Primitives;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -39,6 +41,26 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class BufferedContainer<T> : Container<T> where T : Drawable
     {
+        private bool drawOriginal;
+
+        /// <summary>
+        /// If true the original buffered children will be drawn a second time on top of any effect (e.g. blur).
+        /// </summary>
+        public bool DrawOriginal
+        {
+            get { return drawOriginal; }
+
+            set
+            {
+                if (drawOriginal == value)
+                    return;
+
+                drawOriginal = value;
+                ForceRedraw();
+            }
+        }
+
+
         private Vector2 blurSigma = Vector2.Zero;
 
         /// <summary>
@@ -97,6 +119,45 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private ColourInfo effectColour = Color4.White;
+
+        /// <summary>
+        /// The colour of drawn buffered object after applying all effects (e.g. blur). Does not affect the original
+        /// which is drawn when <see cref="DrawOriginal"/> is true.
+        /// </summary>
+        public ColourInfo EffectColour
+        {
+            get { return effectColour; }
+
+            set
+            {
+                if (effectColour.Equals(value))
+                    return;
+
+                effectColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+
+        /// <summary>
+        /// The background colour of the framebuffer. Transparent black by default.
+        /// </summary>
+        public Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+
+            set
+            {
+                if (backgroundColour == value)
+                    return;
+
+                backgroundColour = value;
+                ForceRedraw();
+            }
+        }
+
         private Shader blurShader;
 
         /// <summary>
@@ -118,15 +179,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The background colour of the framebuffer. Transparent black by default.
-        /// </summary>
-        public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
-
-        /// <summary>
         /// We need 2 frame buffers such that we can accumulate post-processing effects in a
         /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
         /// </summary>
-        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[2];
+        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
 
         /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
@@ -185,10 +241,13 @@ namespace osu.Framework.Graphics.Containers
 
             n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
-            n.BackgroundColour = BackgroundColour;
+            n.BackgroundColour = backgroundColour;
+            n.EffectColour = effectColour;
 
-            n.BlurSigma = BlurSigma;
-            n.BlurRotation = BlurRotation;
+            n.DrawOriginal = drawOriginal;
+            n.BlurSigma = blurSigma;
+            n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
+            n.BlurRotation = blurRotation;
             n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);
