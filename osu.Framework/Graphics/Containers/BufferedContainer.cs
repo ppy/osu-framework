@@ -1,21 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK.Graphics.ES30;
-using osu.Framework.Threading;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Shaders;
 using OpenTK;
-using osu.Framework.Graphics.Colour;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transforms;
-using System;
+using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osu.Framework.MathUtils;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Transforms;
+using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
