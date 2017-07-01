@@ -39,7 +39,7 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
             mouseInWindow = host.Window.CursorInWindow;
 
-            //Get the bindables we need to determine whether to confine the mouse to window or not{
+            // Get the bindables we need to determine whether to confine the mouse to window or not
             DesktopGameWindow desktopWindow = host.Window as DesktopGameWindow;
             if (desktopWindow != null)
             {
