@@ -96,9 +96,16 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The scrollcontainer jumps to the relative position of the mouse when the right mouse button is pressed or dragged.
-        /// Uses the value of <see cref="DistanceDecayJump"/> to jump
+        /// Uses the value of <see cref="DistanceDecayRelativeDrag"/> to smoothly scroll to the dragged location.
         /// </summary>
         public bool RelativeMouseDrag = false;
+
+        private bool shouldPerformRelativeDrag(InputState state) => RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right);
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached when performing a relative drag. Default is 0.02.
+        /// </summary>
+        public double DistanceDecayRelativeDrag = 0.02;
 
         /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
@@ -128,7 +135,17 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<Drawable> ScrollContent => content;
 
-        private bool isDragging;
+        /// <summary>
+        /// Encapsulates the types of drags which can be performed on a scrollcontainer.
+        /// </summary>
+        private enum DragStatus
+        {
+            None,
+            Absolute,
+            Relative,
+        }
+
+        private DragStatus dragStatus;
 
         private readonly Direction scrollDir;
         private int scrollDim => (int)scrollDir;
@@ -196,34 +213,27 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        //Saves if the drag start event was triggered while the right mouse button was pressed
-        private bool scrollRelative;
-
         protected override bool OnDragStart(InputState state)
         {
-            if (isDragging) return false;
+            if (dragStatus != DragStatus.None) return false;
 
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
 
-            isDragging = true;
-            scrollRelative = RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right);
+            dragStatus = shouldPerformRelativeDrag(state) ? DragStatus.Relative : DragStatus.Absolute;
             return true;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            if (isDragging) return false;
+            if (dragStatus != DragStatus.None) return false;
 
-            if (RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right))
-            {
-                onRelativeDrag(state.Mouse.Position[scrollDim]);
-            }
+            if (shouldPerformRelativeDrag(state))
+                scrollToRelative(state.Mouse.Position[scrollDim]);
             else
-            {
                 // Continue from where we currently are scrolled to.
                 target = Current;
-            }
+
             return true;
         }
 
@@ -241,13 +251,15 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
+            Trace.Assert(dragStatus != DragStatus.None, "We should never receive OnDrag if we are not dragging.");
 
-            if (scrollRelative)
+            if (dragStatus == DragStatus.Relative)
             {
-                onRelativeDrag(state.Mouse.Position[scrollDim]);
+                scrollToRelative(state.Mouse.Position[scrollDim]);
                 return true;
             }
+
+            Trace.Assert(dragStatus == DragStatus.Absolute, "The following code assumes absolute dragging.");
 
             double currentTime = Time.Current;
             double timeDelta = currentTime - lastDragTime;
@@ -275,9 +287,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            Trace.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
+            Trace.Assert(dragStatus != DragStatus.None, "We should never receive OnDragEnd if we are not dragging.");
 
-            isDragging = false;
+            dragStatus = DragStatus.None;
 
             if (averageDragTime <= 0.0)
                 return true;
@@ -305,7 +317,7 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
-        private void onRelativeDrag(float value) => ScrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]));
+        private void scrollToRelative(float value) => scrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]), true, DistanceDecayRelativeDrag);
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
@@ -324,7 +336,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
         public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
         {
-            if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
+            if (dragStatus == DragStatus.None || allowDuringDrag)
+                scrollTo(scrollableExtent, animated, DistanceDecayJump);
         }
 
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
@@ -353,7 +366,7 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!isDragging && Current != clamp(Current) && target != clamp(target, -0.01f))
+            if (dragStatus == DragStatus.None && Current != clamp(Current) && target != clamp(target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
