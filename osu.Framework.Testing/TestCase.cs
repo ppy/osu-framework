@@ -69,13 +69,10 @@ namespace osu.Framework.Testing
                             Bottom = padding,
                         },
                         RelativeSizeAxes = Axes.Both,
-                        Children = new []
+                        Child = content = new Container
                         {
-                            content = new Container
-                            {
-                                Masking = true,
-                                RelativeSizeAxes = Axes.Both
-                            }
+                            Masking = true,
+                            RelativeSizeAxes = Axes.Both
                         }
                     },
                 };

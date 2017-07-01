@@ -51,15 +51,12 @@ namespace osu.Framework.Graphics.UserInterface
             AutoSizeAxes = Axes.Both,
             Anchor = Anchor.CentreLeft,
             Origin = Anchor.CentreLeft,
-            Children = new Drawable[]
+            Child = new SpriteText
             {
-                new SpriteText
-                {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    TextSize = 17,
-                    Text = title,
-                }
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                TextSize = 17,
+                Text = title,
             }
         };
     }

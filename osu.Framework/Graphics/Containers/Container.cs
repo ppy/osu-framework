@@ -67,7 +67,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Game game;
 
-        protected Task LoadComponentAsync(Drawable component, Action<Drawable> onLoaded = null) => component.LoadAsync(game, this, onLoaded);
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable => component.LoadAsync(game, this, onLoaded);
 
         [BackgroundDependencyLoader(true)]
         private void load(Game game, ShaderManager shaders)
@@ -160,6 +160,44 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// Gets or sets the only child of this container.
+        /// </summary>
+        public T Child
+        {
+            get
+            {
+                if (Children.Count != 1)
+                    throw new InvalidOperationException($"{nameof(Child)} is only available when there's only 1 in {nameof(Children)}!");
+
+                return Children[0];
+            }
+            set
+            {
+                Clear();
+                Add(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the only child in <see cref="InternalChildren"/>.
+        /// </summary>
+        public Drawable InternalChild
+        {
+            get
+            {
+                if (InternalChildren.Count != 1)
+                    throw new InvalidOperationException($"{nameof(InternalChild)} is only available when there's only 1 in {nameof(InternalChildren)}!");
+
+                return InternalChildren[0];
+            }
+            set
+            {
+                ClearInternal();
+                AddInternal(value);
+            }
+        }
+
         private readonly LifetimeList<Drawable> internalChildren;
         private readonly IReadOnlyList<T> internalChildrenAsT;
 
@@ -180,7 +218,7 @@ namespace osu.Framework.Graphics.Containers
         {
             set
             {
-                Clear();
+                ClearInternal();
                 AddInternal(value);
             }
         }
@@ -237,14 +275,19 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void Remove(T drawable)
         {
+            if (Content != this)
+                Content.Remove(drawable);
+            else
+                RemoveInternal(drawable);
+        }
+
+        /// <summary>
+        /// Removes a given child from this container's <see cref="InternalChildren"/>.
+        /// </summary>
+        public void RemoveInternal(T drawable)
+        {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
-
-            if (Content != this)
-            {
-                Content.Remove(drawable);
-                return;
-            }
 
             if (!internalChildren.Remove(drawable))
                 throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
@@ -308,15 +351,27 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes all children.
         /// </summary>
-        /// <param name="disposeChildren">Whether removed children should also get disposed.</param>
+        /// <param name="disposeChildren">
+        /// Whether removed children should also get disposed.
+        /// Disposal will be recursive.
+        /// </param>
         public virtual void Clear(bool disposeChildren = true)
         {
             if (Content != null && Content != this)
-            {
                 Content.Clear(disposeChildren);
-                return;
-            }
+            else
+                ClearInternal(disposeChildren);
+        }
 
+        /// <summary>
+        /// Clear all of <see cref="InternalChildren"/>.
+        /// </summary>
+        /// <param name="disposeChildren">
+        /// Whether removed children should also get disposed.
+        /// Disposal will be recursive.
+        /// </param>
+        public void ClearInternal(bool disposeChildren = true)
+        {
             foreach (Drawable t in internalChildren)
             {
                 if (disposeChildren)

@@ -41,14 +41,11 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Children = new Drawable[]
+                    Child = ItemsContainer = new FillFlowContainer<TItem>
                     {
-                        ItemsContainer = new FillFlowContainer<TItem>
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Direction = FillDirection.Vertical
-                        }
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical
                     }
                 }
             };

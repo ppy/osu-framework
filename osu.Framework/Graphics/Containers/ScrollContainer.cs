@@ -418,10 +418,7 @@ namespace osu.Framework.Graphics.Containers
 
                 Masking = true;
 
-                Children = new Drawable[]
-                {
-                    box = new Box { RelativeSizeAxes = Axes.Both }
-                };
+                Child = box = new Box { RelativeSizeAxes = Axes.Both };
 
                 ResizeTo(1);
             }

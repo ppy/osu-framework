@@ -195,15 +195,12 @@ namespace osu.Framework.Graphics.Visualisation
                     Anchor = Anchor.CentreLeft,
                     Origin = Anchor.CentreLeft,
                     Padding = new MarginPadding { Left = target_box_width + 10 },
-                    Children = new Drawable[]
+                    Child = new SpriteText
                     {
-                        new SpriteText
-                        {
-                            AutoSizeAxes = Axes.Y,
-                            RelativeSizeAxes = Axes.X,
-                            TextSize = font_size,
-                            Text = entry.Message
-                        }
+                        AutoSizeAxes = Axes.Y,
+                        RelativeSizeAxes = Axes.X,
+                        TextSize = font_size,
+                        Text = entry.Message
                     }
                 }
             };
