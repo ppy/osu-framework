@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osu.Framework.MathUtils;
 using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
