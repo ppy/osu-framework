@@ -28,9 +28,9 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public BindableDouble Sensitivity => sensitivity;
 
-        private Bindable<ConfineMouseMode> confineMode = new Bindable<ConfineMouseMode>();
+        private readonly Bindable<ConfineMouseMode> confineMode = new Bindable<ConfineMouseMode>();
 
-        private Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
 
         public override bool Initialize(GameHost host)
         {
