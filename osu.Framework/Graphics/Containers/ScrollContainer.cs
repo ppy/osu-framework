@@ -31,6 +31,9 @@ namespace osu.Framework.Graphics.Containers
 
         private bool scrollbarVisible = true;
 
+        /// <summary>
+        /// Whether the scrollbar is visible.
+        /// </summary>
         public bool ScrollbarVisible
         {
             get { return scrollbarVisible; }
@@ -44,9 +47,11 @@ namespace osu.Framework.Graphics.Containers
         private readonly Container content;
         private readonly Scrollbar scrollbar;
 
-
         private bool scrollbarOverlapsContent = true;
 
+        /// <summary>
+        /// Whether the scrollbar overlaps the content or resides in its own padded space.
+        /// </summary>
         public bool ScrollbarOverlapsContent
         {
             get { return scrollbarOverlapsContent; }
@@ -59,12 +64,18 @@ namespace osu.Framework.Graphics.Containers
 
 
         /// <summary>
-        /// Vertical size of available content
+        /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
         private float availableContent => content.DrawSize[scrollDim];
 
+        /// <summary>
+        /// Size of the viewport in the scroll direction.
+        /// </summary>
         private float displayableContent => ChildSize[scrollDim];
 
+        /// <summary>
+        /// Controls the distance scrolled when turning the mouse wheel a single notch.
+        /// </summary>
         public float MouseWheelScrollDistance = 80;
 
         /// <summary>
@@ -75,22 +86,22 @@ namespace osu.Framework.Graphics.Containers
         public float ClampExtension = 500;
 
         /// <summary>
-        /// This corresponds to the clamping force. A larger value means more aggressive clamping.
+        /// This corresponds to the clamping force. A larger value means more aggressive clamping. Default is 0.012.
         /// </summary>
         private const double distance_decay_clamping = 0.012;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after ending a drag.
+        /// Controls the rate with which the target position is approached after ending a drag. Default is 0.0035.
         /// </summary>
         public double DistanceDecayDrag = 0.0035;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after using the mouse wheel.
+        /// Controls the rate with which the target position is approached after using the mouse wheel. Default is 0.01
         /// </summary>
         public double DistanceDecayWheel = 0.01;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after jumping to a specific location.
+        /// Controls the rate with which the target position is approached after jumping to a specific location. Default is 0.01.
         /// </summary>
         public double DistanceDecayJump = 0.01;
 
@@ -128,6 +139,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Whether we are currently scrolled as far as possible into the scroll direction.
+        /// </summary>
+        /// <param name="lenience">How close to the extent we need to be.</param>
         public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
 
         /// <summary>
@@ -150,6 +165,10 @@ namespace osu.Framework.Graphics.Containers
         private readonly Direction scrollDir;
         private int scrollDim => (int)scrollDir;
 
+        /// <summary>
+        /// Creates a scroll container.
+        /// </summary>
+        /// <param name="scrollDir">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
         public ScrollContainer(Direction scrollDir = Direction.Vertical)
         {
             this.scrollDir = scrollDir;
