@@ -27,8 +27,8 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<Drawable> InternalChildren { get; }
-        IEnumerable<T> Children { get; }
+        IReadOnlyList<Drawable> InternalChildren { get; }
+        IReadOnlyList<T> Children { get; }
 
         int RemoveAll(Predicate<T> match);
     }
@@ -36,8 +36,8 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerCollection<in T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<Drawable> InternalChildren { set; }
-        IEnumerable<T> Children { set; }
+        IReadOnlyList<Drawable> InternalChildren { set; }
+        IReadOnlyList<T> Children { set; }
 
         void Add(T drawable);
         void Add(IEnumerable<T> collection);

@@ -41,7 +41,7 @@ namespace osu.Framework.Testing
 
         private int testIndex;
 
-        private TestCase loadableTest => testIndex >= 0 ? browser.Tests.Skip(testIndex).FirstOrDefault() : null;
+        private TestCase loadableTest => testIndex >= 0 ? browser.Tests.ElementAtOrDefault(testIndex) : null;
 
         private readonly TestBrowser browser;
         private GameHost host;

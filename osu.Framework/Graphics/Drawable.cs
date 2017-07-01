@@ -82,6 +82,7 @@ namespace osu.Framework.Graphics
             Dispose(isDisposing);
 
             Parent = null;
+
             scheduler?.Dispose();
             scheduler = null;
 
@@ -131,17 +132,21 @@ namespace osu.Framework.Graphics
         /// </param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync(Game game, Drawable target, Action<Drawable> onLoaded = null)
+        internal Task LoadAsync<T>(Game game, Drawable target, Action<T> onLoaded = null)
+            where T : Drawable
         {
             if (loadState != LoadState.NotLoaded)
                 throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+
+            if (!(this is T))
+                throw new InvalidOperationException($"The {nameof(T)} parameter of the {nameof(LoadAsync)} must be a subtype of {GetType().ReadableName()}.");
 
             loadState = LoadState.Loading;
 
             return loadTask = Task.Run(() => Load(target.Clock, target.Dependencies)).ContinueWith(task => game.Schedule(() =>
             {
                 task.ThrowIfFaulted();
-                onLoaded?.Invoke(this);
+                onLoaded?.Invoke((T)this);
                 loadTask = null;
             }));
         }
@@ -255,7 +260,7 @@ namespace osu.Framework.Graphics
             set
             {
                 // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
-                if (Parent != null)
+                if (AddedToParentContainer)
                     throw new InvalidOperationException("May not change depth while inside a parent container.");
                 depth = value;
             }
@@ -1181,6 +1186,14 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
+        /// <summary>
+        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
+        /// to alert the user of an invalid operation.
+        /// </summary>
+        internal bool AddedToParentContainer;
+
         private IContainer parent;
 
         /// <summary>
@@ -1193,6 +1206,8 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+
+                AddedToParentContainer = value != null;
 
                 if (parent == value) return;
 
@@ -1775,11 +1790,12 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
-        /// Receive input even if the cursor is not contained within our <see cref="Drawable.DrawRectangle"/>.
-        /// Setting this to true will completely bypass this container's <see cref="Contains(Vector2)"/> check.
-        /// Note that this only applied from the current container onwards (ie. if a parent is masking us we will still not receive input).
+        /// Determines whether this drawable receives mouse input when the mouse is at the
+        /// given screen-space position.
         /// </summary>
-        public bool AlwaysReceiveInput;
+        /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
+        /// <returns>True iff input is received at the given screen-space position.</returns>
+        public virtual bool ReceiveMouseInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
 
         /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
@@ -1787,15 +1803,7 @@ namespace osu.Framework.Graphics
         /// is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        public bool Contains(Vector2 screenSpacePos) => AlwaysReceiveInput || InternalContains(screenSpacePos);
-
-        /// <summary>
-        /// Computes whether a given screen-space position is contained within this drawable.
-        /// Mouse input events are only received when this function is true, or when the drawable
-        /// is in focus.
-        /// </summary>
-        /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
-        protected virtual bool InternalContains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
+        public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
 
         /// <summary>
         /// Whether this Drawable can receive input, taking into account all optimizations and masking.
@@ -1807,7 +1815,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && ReceiveMouseInputAt(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -2250,7 +2258,7 @@ namespace osu.Framework.Graphics
         NotLoaded,
         /// <summary>
         /// Currently loading (possibly and usually on a background
-        /// thread via <see cref="Drawable.LoadAsync(Game, Drawable, Action{Drawable})"/>).
+        /// thread via <see cref="Drawable.LoadAsync{T}(Game, Drawable, Action{T})"/>).
         /// </summary>
         Loading,
         /// <summary>

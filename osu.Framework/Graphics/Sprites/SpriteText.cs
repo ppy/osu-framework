@@ -299,7 +299,7 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Size = new Vector2(fixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
                             Scale = new Vector2(TextSize),
-                            Children = new[] { d }
+                            Child = d
                         };
 
                         if (shadow && shadowAlpha > 0)

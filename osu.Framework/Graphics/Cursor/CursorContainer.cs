@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Cursor
 
         public CursorContainer()
         {
-            AlwaysReceiveInput = true;
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
@@ -32,6 +31,8 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         protected virtual Drawable CreateCursor() => new Cursor();
+
+        public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {
@@ -67,14 +68,11 @@ namespace osu.Framework.Graphics.Cursor
                     Radius = 50
                 };
 
-                Children = new[]
+                Child = new Box
                 {
-                    new Box
-                    {
-                        Size = new Vector2(8, 8),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
-                    }
+                    Size = new Vector2(8, 8),
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
                 };
             }
         }

@@ -83,6 +83,7 @@ namespace osu.Framework.Audio.Track
                 bitrate = (int)Bass.ChannelGetAttribute(activeStream, ChannelAttribute.Bitrate);
 
                 isLoaded = true;
+                OnLoaded?.Invoke(this);
             });
 
             InvalidateState();

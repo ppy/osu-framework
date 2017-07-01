@@ -4,8 +4,8 @@
 using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using System;
-using System.Drawing;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 
 namespace osu.Framework.Physics.RigidBodies
@@ -130,7 +130,7 @@ namespace osu.Framework.Physics.RigidBodies
             drawable.Rotation = MathHelper.RadiansToDegrees(Rotation); // TODO: Fix rotations
         }
 
-        public override Rectangle ScreenSpaceAABB => drawable.ScreenSpaceDrawQuad.AABB;
+        public override RectangleI ScreenSpaceAABB => drawable.ScreenSpaceDrawQuad.AABB;
 
         public override bool Contains(Vector2 screenSpacePos) => drawable.Contains(screenSpacePos);
     }

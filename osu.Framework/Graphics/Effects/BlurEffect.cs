@@ -41,10 +41,7 @@ namespace osu.Framework.Graphics.Effects
                     Vertical = Blur.KernelSize(Sigma.Y)
                 },
                 Alpha = Strength,
-                Children = new[]
-                {
-                    drawable
-                }
+                Child = drawable
             };
         }
     }

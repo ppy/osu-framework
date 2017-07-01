@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using osu.Framework.Extensions.PolygonExtensions;
 using OpenTK;
 using osu.Framework.MathUtils;
@@ -33,18 +32,10 @@ namespace osu.Framework.Graphics.Primitives
             BottomRight = new Vector2(x + width, y + height);
         }
 
-        public static implicit operator Quad(Rectangle r) => FromRectangle(r);
+        public static implicit operator Quad(RectangleI r) => FromRectangle(r);
         public static implicit operator Quad(RectangleF r) => FromRectangle(r);
 
         public static Quad FromRectangle(RectangleF rectangle)
-        {
-            return new Quad(new Vector2(rectangle.Left, rectangle.Top),
-                new Vector2(rectangle.Right, rectangle.Top),
-                new Vector2(rectangle.Left, rectangle.Bottom),
-                new Vector2(rectangle.Right, rectangle.Bottom));
-        }
-
-        public static Quad FromRectangle(Rectangle rectangle)
         {
             return new Quad(new Vector2(rectangle.Left, rectangle.Top),
                 new Vector2(rectangle.Right, rectangle.Top),
@@ -86,7 +77,7 @@ namespace osu.Framework.Graphics.Primitives
         public float Width => Vector2.Distance(TopLeft, TopRight);
         public float Height => Vector2.Distance(TopLeft, BottomLeft);
 
-        public Rectangle AABB
+        public RectangleI AABB
         {
             get
             {
@@ -95,7 +86,7 @@ namespace osu.Framework.Graphics.Primitives
                 int xMax = (int)Math.Ceiling(Math.Max(TopLeft.X, Math.Max(TopRight.X, Math.Max(BottomLeft.X, BottomRight.X))));
                 int yMax = (int)Math.Ceiling(Math.Max(TopLeft.Y, Math.Max(TopRight.Y, Math.Max(BottomLeft.Y, BottomRight.Y))));
 
-                return new Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+                return new RectangleI(xMin, yMin, xMax - xMin, yMax - yMin);
             }
         }
 
@@ -145,11 +136,6 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         public bool Intersects(IConvexPolygon other)
-        {
-            return (this as IConvexPolygon).Intersects(other);
-        }
-
-        public bool Intersects(Rectangle other)
         {
             return (this as IConvexPolygon).Intersects(other);
         }

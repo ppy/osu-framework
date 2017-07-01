@@ -33,11 +33,6 @@ namespace osu.Framework.Graphics.UserInterface
         /// </summary>
         public bool AutoSort { set; get; }
 
-        /// <summary>
-        /// We need a special case here to allow for the dropdown "overflowing" our own bounds.
-        /// </summary>
-        protected override bool InternalContains(Vector2 screenSpacePos) => base.InternalContains(screenSpacePos) || (Dropdown?.Contains(screenSpacePos) ?? false);
-
         protected Dropdown<T> Dropdown;
 
         protected TabFillFlowContainer<TabItem<T>> TabContainer;
@@ -97,7 +92,7 @@ namespace osu.Framework.Graphics.UserInterface
                 Depth = -1,
                 Masking = true,
                 TabVisibilityChanged = updateDropdown,
-                Children = tabMap.Values
+                ChildrenEnumerable = tabMap.Values
             });
 
             Current.ValueChanged += newSelection =>
