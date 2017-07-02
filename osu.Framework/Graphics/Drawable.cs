@@ -1321,7 +1321,7 @@ namespace osu.Framework.Graphics
         /// of this drawable.
         /// </summary>
         public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
-        
+
 
         private Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
 
