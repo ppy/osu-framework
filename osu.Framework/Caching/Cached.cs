@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Statistics;
+using System;
 
 namespace osu.Framework.Caching
 {
@@ -16,7 +17,13 @@ namespace osu.Framework.Caching
 
         public T Value
         {
-            get { return value; }
+            get
+            {
+                if (!isValid)
+                    throw new InvalidOperationException($"May not query {nameof(Value)} of an invalid {nameof(Cached<T>)}.");
+                return value;
+            }
+
             set
             {
                 this.value = value;
