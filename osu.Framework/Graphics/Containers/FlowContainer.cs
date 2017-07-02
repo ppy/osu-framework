@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Cached layout;
+        private Cached layout = new Cached();
 
         protected void InvalidateLayout() => layout.Invalidate();
 
