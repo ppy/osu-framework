@@ -1301,6 +1301,9 @@ namespace osu.Framework.Graphics
                 di.Colour.ApplyChild(colour);
             else
             {
+                Debug.Assert(Parent != null,
+                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+
                 // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
                 Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
                 Vector2 parentSize = Parent.DrawSize;
