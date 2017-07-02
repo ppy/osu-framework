@@ -101,7 +101,7 @@ namespace osu.Framework.Graphics.UserInterface
             }
         }
 
-        private Cached menuWidth = new Cached();
+        private Cached menuWidth;
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {

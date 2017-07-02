@@ -200,7 +200,7 @@ namespace osu.Framework.Graphics.Containers
             return sprites;
         }
 
-        private Cached layout = new Cached();
+        private Cached layout;
 
         private void computeLayout()
         {

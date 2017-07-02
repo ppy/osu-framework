@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
-        private Cached<bool> isIntersectingBacking = new Cached<bool>();
+        private Cached<bool> isIntersectingBacking;
 
         private bool isIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : (isIntersectingBacking.Value = checkScrollIntersection());
 

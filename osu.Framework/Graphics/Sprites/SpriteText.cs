@@ -95,7 +95,7 @@ namespace osu.Framework.Graphics.Sprites
             }
         }
 
-        private Cached layout = new Cached();
+        private Cached layout;
 
         private float spaceWidth;
 

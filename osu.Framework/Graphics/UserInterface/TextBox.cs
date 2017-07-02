@@ -265,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
-        private Cached cursorAndLayout = new Cached();
+        private Cached cursorAndLayout;
 
         private void moveSelection(int offset, bool expand)
         {
