@@ -604,9 +604,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.EnsureValid()
-            ? drawSizeBacking.Value
-            : drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -1271,62 +1269,93 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
-            ? screenSpaceDrawQuadBacking.Value
-            : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
 
 
         private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
+
+        private DrawInfo computeDrawInfo()
+        {
+            DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
+
+            Vector2 pos = DrawPosition + AnchorPosition;
+            Vector2 drawScale = DrawScale;
+            BlendingMode localBlendingMode = BlendingMode;
+
+            if (Parent != null)
+            {
+                pos += Parent.ChildOffset;
+
+                if (localBlendingMode == BlendingMode.Inherit)
+                    localBlendingMode = Parent.BlendingMode;
+            }
+
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+            di.Blending = new BlendingInfo(localBlendingMode);
+
+            ColourInfo colour = alpha != 1 ? colourInfo.MultiplyAlpha(alpha) : colourInfo;
+
+            // No need for a Parent null check here, because null parents always have
+            // a single colour (white).
+            if (di.Colour.HasSingleColour)
+                di.Colour.ApplyChild(colour);
+            else
+            {
+                // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Vector2 parentSize = Parent.DrawSize;
+
+                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
+                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
+                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
+                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+
+                di.Colour.ApplyChild(colour, interp);
+            }
+
+            return di;
+        }
 
         /// <summary>
         /// Contains a linear transformation, colour information, and blending information
         /// of this drawable.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid()
-            ? drawInfoBacking.Value
-            : drawInfoBacking.Refresh(delegate
-            {
-                DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
-
-                Vector2 pos = DrawPosition + AnchorPosition;
-                Vector2 drawScale = DrawScale;
-                BlendingMode localBlendingMode = BlendingMode;
-
-                if (Parent != null)
-                {
-                    pos += Parent.ChildOffset;
-
-                    if (localBlendingMode == BlendingMode.Inherit)
-                        localBlendingMode = Parent.BlendingMode;
-                }
-
-                di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-                di.Blending = new BlendingInfo(localBlendingMode);
-
-                // We need an additional parent null check here, since the following block
-                // requires up-to-date matrices.
-                if (Parent == null)
-                    di.Colour = ColourInfo;
-                else if (di.Colour.HasSingleColour)
-                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha));
-                else
-                {
-                    // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
-                    Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
-                    Vector2 parentSize = Parent.DrawSize;
-
-                    interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                    interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                    interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                    interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
-
-                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha), interp);
-                }
-
-                return di;
-            });
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
+        
 
         private Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
+
+        private Vector2 computeRequiredParentSizeToFit()
+        {
+            // Auxilary variables required for the computation
+            Vector2 ap = AnchorPosition;
+            Vector2 rap = RelativeAnchorPosition;
+
+            Vector2 ratio1 = new Vector2(
+                rap.X <= 0 ? 0 : 1 / rap.X,
+                rap.Y <= 0 ? 0 : 1 / rap.Y);
+
+            Vector2 ratio2 = new Vector2(
+                rap.X >= 1 ? 0 : 1 / (1 - rap.X),
+                rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
+
+            RectangleF bbox = BoundingBox;
+
+            // Compute the required size of the parent such that we fit in snugly when positioned
+            // at our relative anchor in the parent.
+            Vector2 topLeftOffset = ap - bbox.TopLeft;
+            Vector2 topLeftSize1 = topLeftOffset * ratio1;
+            Vector2 topLeftSize2 = -topLeftOffset * ratio2;
+
+            Vector2 bottomRightOffset = ap - bbox.BottomRight;
+            Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
+            Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
+
+            // Expand bounds according to clipped offset
+            return Vector2.ComponentMax(
+                Vector2.ComponentMax(topLeftSize1, topLeftSize2),
+                Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+        }
 
         /// <summary>
         /// Returns the size of the smallest axis aligned box in parent space which
@@ -1338,39 +1367,8 @@ namespace osu.Framework.Graphics
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.EnsureValid()
-            ? requiredParentSizeToFitBacking.Value
-            : requiredParentSizeToFitBacking.Refresh(() =>
-            {
-                // Auxilary variables required for the computation
-                Vector2 ap = AnchorPosition;
-                Vector2 rap = RelativeAnchorPosition;
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
 
-                Vector2 ratio1 = new Vector2(
-                    rap.X <= 0 ? 0 : 1 / rap.X,
-                    rap.Y <= 0 ? 0 : 1 / rap.Y);
-
-                Vector2 ratio2 = new Vector2(
-                    rap.X >= 1 ? 0 : 1 / (1 - rap.X),
-                    rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
-
-                RectangleF bbox = BoundingBox;
-
-                // Compute the required size of the parent such that we fit in snugly when positioned
-                // at our relative anchor in the parent.
-                Vector2 topLeftOffset = ap - bbox.TopLeft;
-                Vector2 topLeftSize1 = topLeftOffset * ratio1;
-                Vector2 topLeftSize2 = -topLeftOffset * ratio2;
-
-                Vector2 bottomRightOffset = ap - bbox.BottomRight;
-                Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
-                Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
-
-                // Expand bounds according to clipped offset
-                return Vector2.ComponentMax(
-                    Vector2.ComponentMax(topLeftSize1, topLeftSize2),
-                    Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
-            });
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
         private long invalidationID;
