@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
     /// If non-<see cref="Drawable"/> <see cref="Container{T}.Children"/> are desired, use
-    /// <see cref="FillFlowContainer{T}"/>. 
+    /// <see cref="FillFlowContainer{T}"/>.
     /// </summary>
     public class FillFlowContainer : FillFlowContainer<Drawable>
     {
@@ -99,7 +99,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private Vector2 spacingFactor(T c)
+        private Vector2 spacingFactor(Drawable c)
         {
             Vector2 result = c.RelativeOriginPosition;
             if ((c.Anchor & Anchor.x2) > 0)
@@ -145,7 +145,7 @@ namespace osu.Framework.Graphics.Containers
             Vector2 size = Vector2.Zero;
             for (int i = 0; i < children.Length; ++i)
             {
-                T c = children[i];
+                Drawable c = children[i];
 
                 // Populate running variables with sane initial values.
                 if (i == 0)

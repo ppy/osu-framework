@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using OpenTK;
-using osu.Framework.Graphics.Sprites;
 using OpenTK.Graphics;
 
 namespace osu.Framework.Graphics.Cursor
@@ -22,7 +22,6 @@ namespace osu.Framework.Graphics.Cursor
 
         public CursorContainer()
         {
-            AlwaysReceiveInput = true;
             Depth = float.MinValue;
             RelativeSizeAxes = Axes.Both;
 
@@ -32,6 +31,8 @@ namespace osu.Framework.Graphics.Cursor
         }
 
         protected virtual Drawable CreateCursor() => new Cursor();
+
+        public override bool ReceiveMouseInputAt(Vector2 screenSpacePos) => true;
 
         protected override bool OnMouseMove(InputState state)
         {
@@ -60,21 +61,18 @@ namespace osu.Framework.Graphics.Cursor
                 BorderColour = new Color4(247, 99, 164, 255);
 
                 Masking = true;
-                EdgeEffect = new EdgeEffect
+                EdgeEffect = new EdgeEffectParameters
                 {
                     Type = EdgeEffectType.Glow,
                     Colour = new Color4(247, 99, 164, 6),
                     Radius = 50
                 };
 
-                Children = new[]
+                Child = new Box
                 {
-                    new Box
-                    {
-                        Size = new Vector2(8, 8),
-                        Origin = Anchor.Centre,
-                        Anchor = Anchor.Centre,
-                    }
+                    Size = new Vector2(8, 8),
+                    Origin = Anchor.Centre,
+                    Anchor = Anchor.Centre,
                 };
             }
         }

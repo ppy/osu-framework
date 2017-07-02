@@ -54,7 +54,6 @@ namespace osu.Framework
 
         protected Game()
         {
-            AlwaysReceiveInput = true;
             RelativeSizeAxes = Axes.Both;
 
             AddInternal(new Drawable[]
@@ -64,7 +63,6 @@ namespace osu.Framework
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Both,
-                    AlwaysReceiveInput = true,
                 },
                 new GlobalHotkeys
                 {
@@ -84,13 +82,6 @@ namespace osu.Framework
             {
                 Depth = float.MinValue / 2,
             }, AddInternal);
-        }
-
-        public override bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
-        {
-            if (!base.Invalidate(invalidation, source, shallPropagate)) return false;
-
-            return true;
         }
 
         /// <summary>
@@ -155,7 +146,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, delegate(Drawable overlay)
+            }, delegate (Drawable overlay)
             {
                 performanceContainer.Threads.AddRange(Host.Threads.Reverse());
 

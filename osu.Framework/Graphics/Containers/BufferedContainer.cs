@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Threading;
@@ -14,6 +13,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Transforms;
 using System;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -255,7 +255,7 @@ namespace osu.Framework.Graphics.Containers
         //}
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{T}"/> that blurs
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs
         /// the buffered container.
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)

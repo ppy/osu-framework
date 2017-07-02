@@ -7,7 +7,7 @@ using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using OpenTK;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -30,6 +30,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 scroll = new ScrollContainer(dir)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
@@ -53,12 +54,14 @@ namespace osu.Framework.VisualTests.Tests
             {
                 new ScrollContainer(Direction.Horizontal)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
                     Children = new[]
                     {
                         scroll = new ScrollContainer
                         {
+                            RelativeMouseDrag = true,
                             RelativeSizeAxes = Axes.Y,
                             AutoSizeAxes = Axes.X,
                             Children = new[]
@@ -93,11 +96,11 @@ namespace osu.Framework.VisualTests.Tests
             AddStep("Horizontal", delegate { createArea(scrollDir = Direction.Horizontal); });
             AddStep("Both", createAreaBoth);
 
-            AddStep("Dragger Anchor 1", delegate { scroll.ScrollDraggerAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
-            AddStep("Dragger Anchor 2", delegate { scroll.ScrollDraggerAnchor = Anchor.TopLeft; });
+            AddStep("Dragger Anchor 1", delegate { scroll.ScrollbarAnchor = scrollDir == Direction.Vertical ? Anchor.TopRight : Anchor.BottomLeft; });
+            AddStep("Dragger Anchor 2", delegate { scroll.ScrollbarAnchor = Anchor.TopLeft; });
 
-            AddStep("Dragger Visible", delegate { scroll.ScrollDraggerVisible = !scroll.ScrollDraggerVisible; });
-            AddStep("Dragger Overlap", delegate { scroll.ScrollDraggerOverlapsContent = !scroll.ScrollDraggerOverlapsContent; });
+            AddStep("Dragger Visible", delegate { scroll.ScrollbarVisible = !scroll.ScrollbarVisible; });
+            AddStep("Dragger Overlap", delegate { scroll.ScrollbarOverlapsContent = !scroll.ScrollbarOverlapsContent; });
 
             boxCreator?.Cancel();
             boxCreator = Scheduler.AddDelayed(delegate

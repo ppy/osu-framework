@@ -18,6 +18,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -42,6 +43,8 @@ namespace osu.Framework.Graphics.UserInterface
 
         private AudioManager audio;
 
+        private InputManager inputManager;
+
         /// <summary>
         /// Should this TextBox accept arrow keys for navigation?
         /// </summary>
@@ -52,6 +55,8 @@ namespace osu.Framework.Graphics.UserInterface
         protected virtual Color4 BackgroundUnfocused => new Color4(100, 100, 100, 120);
 
         public bool ReadOnly;
+
+        public bool ReleaseFocusOnCommit = true;
 
         private ITextInputSource textInput;
         private Clipboard clipboard;
@@ -107,9 +112,10 @@ namespace osu.Framework.Graphics.UserInterface
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host, AudioManager audio)
+        private void load(GameHost host, AudioManager audio, UserInputManager inputManager)
         {
             this.audio = audio;
+            this.inputManager = inputManager;
 
             textInput = host.GetTextInput();
             clipboard = host.GetClipboard();
@@ -225,8 +231,8 @@ namespace osu.Framework.Graphics.UserInterface
             if (index > 0)
             {
                 if (index < text.Length)
-                    return TextFlow.Children.ElementAt(index).DrawPosition.X + TextFlow.DrawPosition.X;
-                var d = TextFlow.Children.ElementAt(index - 1);
+                    return TextFlow.Children[index].DrawPosition.X + TextFlow.DrawPosition.X;
+                var d = TextFlow.Children[index - 1];
                 return d.DrawPosition.X + d.DrawSize.X + TextFlow.Spacing.X + TextFlow.DrawPosition.X;
             }
             return 0;
@@ -549,8 +555,20 @@ namespace osu.Framework.Graphics.UserInterface
                         moveSelection(amount, state.Keyboard.ShiftPressed);
                         return true;
                     }
+                case Key.KeypadEnter:
                 case Key.Enter:
-                    TriggerFocusLost(state);
+                    if (HasFocus)
+                    {
+                        if (ReleaseFocusOnCommit)
+                            inputManager.ChangeFocus(null);
+
+                        Background.Colour = ReleaseFocusOnCommit ? BackgroundUnfocused : BackgroundFocused;
+                        Background.ClearTransforms();
+                        Background.FlashColour(BackgroundCommit, 400);
+
+                        audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
+                        OnCommit?.Invoke(this, true);
+                    }
                     return true;
                 case Key.Delete:
                     if (selectionLength == 0)
@@ -665,7 +683,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 selectionEnd = getCharacterClosestTo(state.Mouse.Position);
                 if (selectionLength > 0)
-                    TriggerFocus();
+                    inputManager.ChangeFocus(this);
 
                 cursorAndLayout.Invalidate();
             }
@@ -750,35 +768,25 @@ namespace osu.Framework.Graphics.UserInterface
             Caret.ClearTransforms();
             Caret.FadeOut(200);
 
-            if (!Current.Disabled && state.Keyboard.Keys.Contains(Key.Enter))
-            {
-                Background.Colour = BackgroundUnfocused;
-                Background.ClearTransforms();
-                Background.FlashColour(BackgroundCommit, 400);
 
-                audio.Sample.Get(@"Keyboard/key-confirm")?.Play();
-                OnCommit?.Invoke(this, true);
-            }
-            else
-            {
-                Background.ClearTransforms();
-                Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
-            }
+            Background.ClearTransforms();
+            Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
 
             cursorAndLayout.Invalidate();
         }
 
-        protected override bool OnFocus(InputState state)
-        {
-            if (ReadOnly) return false;
+        public override bool AcceptsFocus => true;
 
+        protected override bool OnClick(InputState state) => !ReadOnly;
+
+        protected override void OnFocus(InputState state)
+        {
             bindInput();
 
             Background.ClearTransforms();
             Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
 
             cursorAndLayout.Invalidate();
-            return true;
         }
 
         #region Native TextBox handling (winform specific)

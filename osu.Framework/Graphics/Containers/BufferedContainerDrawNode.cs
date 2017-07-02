@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using Rectangle = System.Drawing.Rectangle;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -15,6 +14,8 @@ using osu.Framework.Allocation;
 using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -41,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            Rectangle screenSpaceMaskingRect = new Rectangle((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {
@@ -53,7 +54,7 @@ namespace osu.Framework.Graphics.Containers
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            GLWrapper.PushViewport(new Rectangle(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
+            GLWrapper.PushViewport(new RectangleI(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
 
             return new InvokeOnDisposal(delegate
             {
@@ -87,26 +88,6 @@ namespace osu.Framework.Graphics.Containers
             if (frameBuffer.Texture.Bind())
                 // Color was already applied by base.Draw(); no need to re-apply. Thus we use White here.
                 frameBuffer.Texture.DrawQuad(drawRectangle, textureRect, colourInfo);
-        }
-
-        private double evalGaussian(float x, float sigma)
-        {
-            const double inv_sqrt_2_pi = 0.39894;
-            return inv_sqrt_2_pi * Math.Exp(-0.5 * x * x / (sigma * sigma)) / sigma;
-        }
-
-        private int findBlurRadius(float sigma)
-        {
-            const float gauss_threshold = 0.1f;
-            const int max_radius = 200;
-
-            double center = evalGaussian(0, sigma);
-            double threshold = gauss_threshold * center;
-            for (int i = 0; i < max_radius; ++i)
-                if (evalGaussian(i, sigma) < threshold)
-                    return Math.Max(i - 1, 0);
-
-            return max_radius;
         }
 
         private void drawChildren(Action<TexturedVertex2D> vertexAction, Vector2 frameBufferSize)
@@ -186,8 +167,8 @@ namespace osu.Framework.Graphics.Containers
                     drawChildren(vertexAction, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
-                    int radiusX = BlurSigma.X > 0 ? findBlurRadius(BlurSigma.X) : 0;
-                    int radiusY = BlurSigma.Y > 0 ? findBlurRadius(BlurSigma.Y) : 0;
+                    int radiusX = Blur.KernelSize(BlurSigma.X);
+                    int radiusY = Blur.KernelSize(BlurSigma.Y);
 
                     if (radiusX > 0 || radiusY > 0)
                     {

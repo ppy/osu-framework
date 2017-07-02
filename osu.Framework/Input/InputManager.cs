@@ -14,7 +14,7 @@ using osu.Framework.Platform;
 
 namespace osu.Framework.Input
 {
-    public class InputManager : Container, IRequireHighFrequencyMousePosition
+    public abstract class InputManager : Container, IRequireHighFrequencyMousePosition
     {
         /// <summary>
         /// The initial delay before key repeat begins.
@@ -50,7 +50,7 @@ namespace osu.Framework.Input
 
         internal Drawable FocusedDrawable;
 
-        private readonly List<InputHandler> inputHandlers = new List<InputHandler>();
+        protected abstract IEnumerable<InputHandler> InputHandlers { get; }
 
         private double lastClickTime;
 
@@ -76,12 +76,36 @@ namespace osu.Framework.Input
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
         private Drawable draggingDrawable;
+
+        /// <summary>
+        /// Contains the previously hovered <see cref="Drawable"/>s prior to when
+        /// <see cref="hoveredDrawables"/> got updated.
+        /// </summary>
+        private readonly List<Drawable> lastHoveredDrawables = new List<Drawable>();
+
+        /// <summary>
+        /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
+        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
+        /// Top-down in this case means reverse draw order, i.e. the front-most visible
+        /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
+        /// </summary>
         private readonly List<Drawable> hoveredDrawables = new List<Drawable>();
+
+        /// <summary>
+        /// The <see cref="Drawable"/> which returned true in its
+        /// <see cref="Drawable.OnHover(InputState)"/> method, or null if none did so.
+        /// </summary>
         private Drawable hoverHandledDrawable;
 
-        public IEnumerable<Drawable> HoveredDrawables => hoveredDrawables;
+        /// <summary>
+        /// Contains all hovered <see cref="Drawable"/>s in top-down order up to the first
+        /// which returned true in its <see cref="Drawable.OnHover(InputState)"/> method.
+        /// Top-down in this case means reverse draw order, i.e. the front-most visible
+        /// <see cref="Drawable"/> first, and <see cref="Container"/>s after their children.
+        /// </summary>
+        public IReadOnlyList<Drawable> HoveredDrawables => hoveredDrawables;
 
-        public InputManager()
+        protected InputManager()
         {
             RelativeSizeAxes = Axes.Both;
         }
@@ -93,17 +117,62 @@ namespace osu.Framework.Input
         }
 
         /// <summary>
-        /// Handles the internal passing on focus. Note that this doesn't perform a check on the new focus drawable.
-        /// Usually you'd want to call TriggerFocus on the drawable directly instead.
+        /// Reset current focused drawable to the top-most drawable which is <see cref="Drawable.RequestsFocus"/>.
         /// </summary>
-        /// <param name="focus">The drawable to become focused.</param>
-        internal void ChangeFocus(Drawable focus)
+        public void TriggerFocusContention()
         {
-            if (focus == FocusedDrawable) return;
+            if (FocusedDrawable != this)
+                ChangeFocus(null);
+        }
 
-            FocusedDrawable?.TriggerFocusLost(null, true);
-            FocusedDrawable = focus;
-            FocusedDrawable?.TriggerFocus(CurrentState, true);
+        /// <summary>
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
+        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
+        /// If the given drawable is already focused, nothing happens and no events are fired.
+        /// </summary>
+        /// <param name="potentialFocusTarget">The drawable to become focused.</param>
+        /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
+        public bool ChangeFocus(Drawable potentialFocusTarget) => ChangeFocus(potentialFocusTarget, CurrentState);
+
+        /// <summary>
+        /// Changes the currently-focused drawable. First checks that <see cref="potentialFocusTarget"/> is in a valid state to receive focus,
+        /// then unfocuses the current <see cref="FocusedDrawable"/> and focuses <see cref="potentialFocusTarget"/>.
+        /// <see cref="potentialFocusTarget"/> can be null to reset focus.
+        /// If the given drawable is already focused, nothing happens and no events are fired.
+        /// </summary>
+        /// <param name="potentialFocusTarget">The drawable to become focused.</param>
+        /// <param name="state">The <see cref="InputState"/> associated with the focusing event.</param>
+        /// <returns>True if the given drawable is now focused (or focus is dropped in the case of a null target).</returns>
+        protected bool ChangeFocus(Drawable potentialFocusTarget, InputState state)
+        {
+            if (potentialFocusTarget == FocusedDrawable)
+                return true;
+
+            if (potentialFocusTarget != null && (!potentialFocusTarget.IsPresent || !potentialFocusTarget.AcceptsFocus))
+                return false;
+
+            var previousFocus = FocusedDrawable;
+
+            FocusedDrawable = null;
+
+            if (previousFocus != null)
+            {
+                previousFocus.HasFocus = false;
+                previousFocus.TriggerOnFocusLost(state);
+
+                if (FocusedDrawable != null) throw new InvalidOperationException($"Focus cannot be changed inside {nameof(OnFocusLost)}");
+            }
+
+            FocusedDrawable = potentialFocusTarget;
+
+            if (FocusedDrawable != null)
+            {
+                FocusedDrawable.HasFocus = true;
+                FocusedDrawable.TriggerOnFocus(state);
+            }
+
+            return true;
         }
 
         internal override bool BuildKeyboardInputQueue(List<Drawable> queue) => false;
@@ -114,7 +183,7 @@ namespace osu.Framework.Input
         {
             var pendingStates = createDistinctInputStates(GetPendingStates()).ToArray();
 
-            unfocusIfNoLongerValid(CurrentState);
+            unfocusIfNoLongerValid();
 
             //we need to make sure the code in the foreach below is run at least once even if we have no new pending states.
             if (pendingStates.Length == 0)
@@ -141,7 +210,20 @@ namespace osu.Framework.Input
                 //move above?
                 updateInputQueues(CurrentState);
 
-                (s.Mouse as MouseState)?.SetLast(last.Mouse); //necessary for now as last state is used internally for stuff
+                // we only want to set a last state if both the new and old state are of the same type.
+                // this avoids giving the new state a false impression of being able to calculate delta values based on a last
+                // state potentially from a different input source.
+                if (last.Mouse != null && s.Mouse != null)
+                {
+                    if (last.Mouse.GetType() == s.Mouse.GetType())
+                    {
+                        last.Mouse.LastState = null;
+                        s.Mouse.LastState = last.Mouse;
+                    }
+
+                    if (last.Mouse.HasAnyButtonPressed)
+                        s.Mouse.PositionMouseDown = last.Mouse.PositionMouseDown;
+                }
 
                 //hover could change even when the mouse state has not.
                 updateHoverEvents(CurrentState);
@@ -157,13 +239,13 @@ namespace osu.Framework.Input
             {
                 foreach (var d in mouseInputQueue)
                     if (d is IRequireHighFrequencyMousePosition)
-                        if (d.TriggerMouseMove(CurrentState)) break;
+                        if (d.TriggerOnMouseMove(CurrentState)) break;
             }
 
             keyboardRepeatTime -= Time.Elapsed;
 
             if (FocusedDrawable == null)
-                focusTopMostRequestingDrawable(CurrentState);
+                focusTopMostRequestingDrawable();
 
             base.Update();
         }
@@ -249,9 +331,9 @@ namespace osu.Framework.Input
         {
             var pendingStates = new List<InputState>();
 
-            foreach (var h in inputHandlers)
+            foreach (var h in InputHandlers)
             {
-                if (h.IsActive)
+                if (h.IsActive && h.Enabled)
                     pendingStates.AddRange(h.GetPendingStates());
                 else
                     h.GetPendingStates();
@@ -277,6 +359,9 @@ namespace osu.Framework.Input
                 foreach (Drawable d in AliveInternalChildren)
                     d.BuildMouseInputQueue(state.Mouse.Position, mouseInputQueue);
 
+            // Keyboard and mouse queues were created in back-to-front order.
+            // We want input to first reach front-most drawables, so the queues
+            // need to be reversed.
             keyboardInputQueue.Reverse();
             mouseInputQueue.Reverse();
         }
@@ -286,26 +371,14 @@ namespace osu.Framework.Input
             Drawable lastHoverHandledDrawable = hoverHandledDrawable;
             hoverHandledDrawable = null;
 
-            List<Drawable> lastHoveredDrawables = new List<Drawable>(hoveredDrawables);
+            lastHoveredDrawables.Clear();
+            lastHoveredDrawables.AddRange(hoveredDrawables);
             hoveredDrawables.Clear();
 
-            // Unconditionally unhover all that aren't directly hovered anymore
-            List<Drawable> newlyUnhoveredDrawables = lastHoveredDrawables.Except(mouseInputQueue).ToList();
-            foreach (Drawable d in newlyUnhoveredDrawables)
-            {
-                d.Hovering = false;
-                d.TriggerHoverLost(state);
-            }
-
-            // Don't care about what's now explicitly unhovered
-            lastHoveredDrawables = lastHoveredDrawables.Except(newlyUnhoveredDrawables).ToList();
-
-            // lastHoveredDrawables now contain only drawables that were hovered in the previous frame
-            // that may continue being hovered. We need to construct hoveredDrawables for the current frame
+            // First, we need to construct hoveredDrawables for the current frame
             foreach (Drawable d in mouseInputQueue)
             {
                 hoveredDrawables.Add(d);
-                lastHoveredDrawables.Remove(d);
 
                 // Don't need to re-hover those that are already hovered
                 if (d.Hovering)
@@ -321,19 +394,18 @@ namespace osu.Framework.Input
                 }
 
                 d.Hovering = true;
-                if (d.TriggerHover(state))
+                if (d.TriggerOnHover(state))
                 {
                     hoverHandledDrawable = d;
                     break;
                 }
             }
 
-            // lastHoveredDrawables now contains only drawables that were hovered in the previous frame
-            // but should no longer be hovered as a result of a drawable handling hover this frame
-            foreach (Drawable d in lastHoveredDrawables)
+            // Unhover all previously hovered drawables which are no longer hovered.
+            foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
             {
                 d.Hovering = false;
-                d.TriggerHoverLost(state);
+                d.TriggerOnHoverLost(state);
             }
         }
 
@@ -479,7 +551,7 @@ namespace osu.Framework.Input
 
             mouseDownInputQueue = new List<Drawable>(mouseInputQueue);
 
-            return mouseInputQueue.Find(target => target.TriggerMouseDown(state, args)) != null;
+            return mouseInputQueue.Find(target => target.TriggerOnMouseDown(state, args)) != null;
         }
 
         private bool handleMouseUp(InputState state, MouseButton button)
@@ -492,38 +564,69 @@ namespace osu.Framework.Input
             };
 
             //extra check for IsAlive because we are using an outdated queue.
-            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerMouseUp(state, args));
+            return mouseDownInputQueue.Any(target => target.IsAlive && target.IsPresent && target.TriggerOnMouseUp(state, args));
         }
 
         private bool handleMouseMove(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerMouseMove(state));
+            return mouseInputQueue.Any(target => target.TriggerOnMouseMove(state));
         }
 
         private bool handleMouseClick(InputState state)
         {
-            //extra check for IsAlive because we are using an outdated queue.
-            if (mouseInputQueue.Intersect(mouseDownInputQueue).Any(t => t.IsHovered(state.Mouse.Position) && t.TriggerClick(state) | t.TriggerFocus(state, true)))
-                return true;
+            var intersectingQueue = mouseInputQueue.Intersect(mouseDownInputQueue);
 
-            FocusedDrawable?.TriggerFocusLost();
-            return false;
+            Drawable focusTarget = null;
+
+            // click pass, triggering an OnClick on all drawables up to the first which returns true.
+            // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
+            var clickedDrawable = intersectingQueue.FirstOrDefault(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state));
+
+            if (clickedDrawable != null)
+            {
+                focusTarget = clickedDrawable;
+
+                if (!focusTarget.AcceptsFocus)
+                {
+                    // search upwards from the clicked drawable until we find something to handle focus.
+                    Drawable previousFocused = FocusedDrawable;
+
+                    while (focusTarget?.AcceptsFocus == false)
+                        focusTarget = focusTarget.Parent as Drawable;
+
+                    if (focusTarget != null && previousFocused != null)
+                    {
+                        // we found a focusable target above us.
+                        // now search upwards from previousFocused to check whether focusTarget is a common parent.
+                        Drawable search = previousFocused;
+                        while (search != null && search != focusTarget)
+                            search = search.Parent as Drawable;
+
+                        if (focusTarget == search)
+                            // we have a common parent, so let's keep focus on the previously focused target.
+                            focusTarget = previousFocused;
+                    }
+                }
+            }
+
+            ChangeFocus(focusTarget, state);
+            return clickedDrawable != null;
         }
 
         private bool handleMouseDoubleClick(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerDoubleClick(state));
+            return mouseInputQueue.Any(target => target.TriggerOnDoubleClick(state));
         }
 
         private bool handleMouseDrag(InputState state)
         {
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return draggingDrawable?.TriggerDrag(state) ?? false;
+            return draggingDrawable?.TriggerOnDrag(state) ?? false;
         }
 
         private bool handleMouseDragStart(InputState state)
         {
-            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerDragStart(state));
+            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
             return draggingDrawable != null;
         }
 
@@ -532,7 +635,7 @@ namespace osu.Framework.Input
             if (draggingDrawable == null)
                 return false;
 
-            bool result = draggingDrawable.TriggerDragEnd(state);
+            bool result = draggingDrawable.TriggerOnDragEnd(state);
             draggingDrawable = null;
 
             return result;
@@ -540,7 +643,7 @@ namespace osu.Framework.Input
 
         private bool handleWheel(InputState state)
         {
-            return mouseInputQueue.Any(target => target.TriggerWheel(state));
+            return mouseInputQueue.Any(target => target.TriggerOnWheel(state));
         }
 
         private bool handleKeyDown(InputState state, Key key, bool repeat)
@@ -551,18 +654,18 @@ namespace osu.Framework.Input
                 Repeat = repeat
             };
 
-            if (!unfocusIfNoLongerValid(state))
+            if (!unfocusIfNoLongerValid())
             {
                 if (args.Key == Key.Escape)
                 {
-                    FocusedDrawable.TriggerFocusLost(state);
+                    ChangeFocus(null);
                     return true;
                 }
-                if (FocusedDrawable.TriggerKeyDown(state, args))
+                if (FocusedDrawable.TriggerOnKeyDown(state, args))
                     return true;
             }
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyDown(state, args));
+            return keyboardInputQueue.Any(target => target.TriggerOnKeyDown(state, args));
         }
 
         private bool handleKeyUp(InputState state, Key key)
@@ -572,17 +675,17 @@ namespace osu.Framework.Input
                 Key = key
             };
 
-            if (!unfocusIfNoLongerValid(state) && (FocusedDrawable?.TriggerKeyUp(state, args) ?? false))
+            if (!unfocusIfNoLongerValid() && (FocusedDrawable?.TriggerOnKeyUp(state, args) ?? false))
                 return true;
 
-            return keyboardInputQueue.Any(target => target.TriggerKeyUp(state, args));
+            return keyboardInputQueue.Any(target => target.TriggerOnKeyUp(state, args));
         }
 
         /// <summary>
         /// Unfocus the current focused drawable if it is no longer in a valid state.
         /// </summary>
         /// <returns>true if there is no longer a focus.</returns>
-        private bool unfocusIfNoLongerValid(InputState state)
+        private bool unfocusIfNoLongerValid()
         {
             if (FocusedDrawable == null) return true;
 
@@ -606,51 +709,11 @@ namespace osu.Framework.Input
             if (stillValid)
                 return false;
 
-            FocusedDrawable.TriggerFocusLost(state);
-            FocusedDrawable = null;
+            ChangeFocus(null);
             return true;
         }
 
-        private void focusTopMostRequestingDrawable(InputState state) => keyboardInputQueue.FirstOrDefault(target => target.RequestingFocus)?.TriggerFocus(state, true);
-
-        public InputHandler GetHandler(Type handlerType)
-        {
-            return inputHandlers.Find(h => h.GetType() == handlerType);
-        }
-
-        protected bool AddHandler(InputHandler handler)
-        {
-            try
-            {
-                if (handler.Initialize(Host))
-                {
-                    int index = inputHandlers.BinarySearch(handler, new InputHandlerComparer());
-                    if (index < 0)
-                    {
-                        index = ~index;
-                    }
-
-                    inputHandlers.Insert(index, handler);
-
-                    return true;
-                }
-            }
-            catch
-            {
-            }
-
-            return false;
-        }
-
-        protected bool RemoveHandler(InputHandler handler) => inputHandlers.Remove(handler);
-
-        protected override void Dispose(bool isDisposing)
-        {
-            foreach (var h in inputHandlers)
-                h.Dispose();
-
-            base.Dispose(isDisposing);
-        }
+        private void focusTopMostRequestingDrawable() => ChangeFocus(keyboardInputQueue.FirstOrDefault(target => target.RequestsFocus));
     }
 
     public enum ConfineMouseMode

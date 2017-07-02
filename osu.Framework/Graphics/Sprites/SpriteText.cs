@@ -13,9 +13,13 @@ using osu.Framework.Allocation;
 using osu.Framework.IO.Stores;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.Sprites
 {
+    /// <summary>
+    /// A container for simple text rendering purposes. If more complex text rendering is required, use <see cref="TextFlowContainer"/> instead.
+    /// </summary>
     public class SpriteText : FillFlowContainer, IHasCurrentValue<string>
     {
         private static readonly char[] default_fixed_width_exceptions = { '.', ':', ',' };
@@ -33,6 +37,9 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool IsPresent => base.IsPresent && !string.IsNullOrEmpty(text);
 
+        /// <summary>
+        /// True if the text should be wrapped if it gets too wide. Note that \n does NOT cause a line break. If you need explicit line breaks, use <see cref="TextFlowContainer"/> instead.
+        /// </summary>
         public bool AllowMultiline
         {
             get { return Direction == FillDirection.Full; }
@@ -41,6 +48,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private string font;
 
+        /// <summary>
+        /// The name of the font to use when looking up textures for the individual characters.
+        /// </summary>
         public string Font
         {
             get { return font; }
@@ -53,6 +63,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private bool shadow;
 
+        /// <summary>
+        /// True if a shadow should be displayed around the text.
+        /// </summary>
         public bool Shadow
         {
             get { return shadow; }
@@ -68,6 +81,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private Color4 shadowColour = new Color4(0f, 0f, 0f, 0.2f);
 
+        /// <summary>
+        /// The colour of the shadow displayed around the text. A shadow will only be displayed if the <see cref="Shadow"/> property is set to true.
+        /// </summary>
         public Color4 ShadowColour
         {
             get { return shadowColour; }
@@ -87,6 +103,9 @@ namespace osu.Framework.Graphics.Sprites
 
         public override bool HandleInput => false;
 
+        /// <summary>
+        /// Creates a new sprite text. <see cref="Container{T}.AutoSizeAxes"/> is set to <see cref="Axes.Both"/> by default.
+        /// </summary>
         public SpriteText()
         {
             AutoSizeAxes = Axes.Both;
@@ -96,6 +115,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private float textSize = default_text_size;
 
+        /// <summary>
+        /// The size of the text in local space. This means that if TextSize is set to 16, a single line will have a height of 16.
+        /// </summary>
         public float TextSize
         {
             get { return textSize; }
@@ -127,6 +149,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private Bindable<string> current;
 
+        /// <summary>
+        /// Implements the <see cref="IHasCurrentValue{T}"/> interface.
+        /// </summary>
         public Bindable<string> Current
         {
             get { return current; }
@@ -155,6 +180,9 @@ namespace osu.Framework.Graphics.Sprites
 
         private string text = string.Empty;
 
+        /// <summary>
+        /// Gets or sets the text to be displayed.
+        /// </summary>
         public string Text
         {
             get { return text; }
@@ -168,6 +196,9 @@ namespace osu.Framework.Graphics.Sprites
         }
 
         private float? constantWidth;
+        /// <summary>
+        /// True if all characters should be spaced apart the same distance.
+        /// </summary>
         public bool FixedWidth;
 
         protected override void Update()
@@ -268,7 +299,7 @@ namespace osu.Framework.Graphics.Sprites
                         {
                             Size = new Vector2(fixedWidth ? constantWidth.GetValueOrDefault() : d.DrawSize.X, UseFullGlyphHeight ? 1 : d.DrawSize.Y),
                             Scale = new Vector2(TextSize),
-                            Children = new[] { d }
+                            Child = d
                         };
 
                         if (shadow && shadowAlpha > 0)
@@ -294,6 +325,10 @@ namespace osu.Framework.Graphics.Sprites
             });
         }
 
+        /// <summary>
+        /// Creates a <see cref="Drawable"/> to use if the current font does not have a texture for a character.
+        /// </summary>
+        /// <returns>The <see cref="Drawable"/> to use if the current font does not have a texture for a character.</returns>
         protected virtual Drawable CreateFallbackCharacterDrawable() => new Box
         {
             Origin = Anchor.Centre,
@@ -301,6 +336,11 @@ namespace osu.Framework.Graphics.Sprites
             Scale = new Vector2(0.7f)
         };
 
+        /// <summary>
+        /// Creates a <see cref="Drawable"/> to use for a given character.
+        /// </summary>
+        /// <param name="c">The character the drawable should be created for.</param>
+        /// <returns>The <see cref="Drawable"/> created for the given character.</returns>
         protected virtual Drawable CreateCharacterDrawable(char c)
         {
             var tex = GetTextureForCharacter(c);
@@ -310,6 +350,11 @@ namespace osu.Framework.Graphics.Sprites
             return CreateFallbackCharacterDrawable();
         }
 
+        /// <summary>
+        /// Gets the texture for the given character.
+        /// </summary>
+        /// <param name="c">The character to get the texture for.</param>
+        /// <returns>The texture for the given character.</returns>
         protected Texture GetTextureForCharacter(char c)
         {
             return store?.Get(getTextureName(c)) ?? store?.Get(getTextureName(c, false));

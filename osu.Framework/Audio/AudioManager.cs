@@ -11,6 +11,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Threading;
 using System.Linq;
 using System.Diagnostics;
+using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Audio
 {
@@ -29,7 +30,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
-        internal GameThread Thread;
+        internal AudioThread Thread;
 
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();
@@ -98,7 +99,7 @@ namespace osu.Framework.Audio
             sampleStore.AddExtension(@"wav");
             sampleStore.AddExtension(@"mp3");
 
-            Thread = new GameThread(Update, @"Audio");
+            Thread = new AudioThread(Update, @"Audio");
             Thread.Start();
 
             scheduler.Add(() =>
@@ -371,5 +372,7 @@ namespace osu.Framework.Audio
             {
             }
         }
+
+        public override string ToString() => $@"{GetType().ReadableName()} ({currentAudioDevice})";
     }
 }

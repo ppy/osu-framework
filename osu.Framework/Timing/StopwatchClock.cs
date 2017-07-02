@@ -1,6 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
+using System;
 using System.Diagnostics;
 
 namespace osu.Framework.Timing
@@ -54,5 +56,7 @@ namespace osu.Framework.Timing
             seekOffset = position - CurrentTime;
             return true;
         }
+
+        public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms)";
     }
 }

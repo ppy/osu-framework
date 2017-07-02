@@ -12,7 +12,9 @@ namespace osu.Framework.Graphics.Containers
         Vector2 ChildSize { get; }
         Vector2 ChildOffset { get; }
         Vector2 RelativeToAbsoluteFactor { get; }
+        Vector2 RelativeChildOffset { get; }
 
+        EdgeEffectParameters EdgeEffect { get; set; }
         float CornerRadius { get; }
 
         void InvalidateFromChild(Invalidation invalidation);
@@ -25,8 +27,8 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<T> InternalChildren { get; }
-        IEnumerable<T> Children { get; }
+        IReadOnlyList<Drawable> InternalChildren { get; }
+        IReadOnlyList<T> Children { get; }
 
         int RemoveAll(Predicate<T> match);
     }
@@ -34,8 +36,8 @@ namespace osu.Framework.Graphics.Containers
     public interface IContainerCollection<in T> : IContainer
         where T : IDrawable
     {
-        IEnumerable<T> InternalChildren { set; }
-        IEnumerable<T> Children { set; }
+        IReadOnlyList<Drawable> InternalChildren { set; }
+        IReadOnlyList<T> Children { set; }
 
         void Add(T drawable);
         void Add(IEnumerable<T> collection);

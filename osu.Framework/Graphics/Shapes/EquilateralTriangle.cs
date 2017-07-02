@@ -3,7 +3,7 @@
 
 using OpenTK;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Shapes
 {
     /// <summary>
     /// A triangle which has all side lengths and angles equal.

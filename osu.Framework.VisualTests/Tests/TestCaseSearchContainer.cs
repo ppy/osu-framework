@@ -42,7 +42,7 @@ namespace osu.Framework.VisualTests.Tests
                                 new HeaderContainer("Subsection 1")
                                 {
                                     AutoSizeAxes = Axes.Both,
-                                    Children = new[]
+                                    Children = new Drawable[]
                                     {
                                         new SearchableText
                                         {
@@ -59,6 +59,26 @@ namespace osu.Framework.VisualTests.Tests
                                         new SearchableText
                                         {
                                             Text = "444",
+                                        },
+                                        new FilterableFlowContainer
+                                        {
+                                            Direction = FillDirection.Horizontal,
+                                            AutoSizeAxes = Axes.Both,
+                                            Children = new []
+                                            {
+                                                new KeywordText
+                                                {
+                                                    Text = "multi",
+                                                },
+                                                new KeywordText
+                                                {
+                                                    Text = "piece",
+                                                },
+                                                new KeywordText
+                                                {
+                                                    Text = "container",
+                                                },
+                                            }
                                         },
                                         new SearchableText
                                         {
@@ -90,12 +110,14 @@ namespace osu.Framework.VisualTests.Tests
             new Dictionary<string, int>
             {
                 { "test", 2 },
-                { "sUbSeCtIoN 1", 5 },
+                { "sUbSeCtIoN 1", 6 },
                 { "€", 1 },
                 { "èê", 1 },
                 { "321", 0 },
-                { "header", 7 }
-            }.ToList().ForEach(term => {
+                { "mul pi", 1},
+                { "header", 8 }
+            }.ToList().ForEach(term =>
+            {
                 AddStep("Search term: " + term.Key, () => search.SearchTerm = term.Key);
                 AddAssert("Visible end-children: " + term.Value, () => term.Value == search.Children.SelectMany(container => container.Children.Cast<Container>()).SelectMany(container => container.Children).Count(drawable => drawable.IsPresent));
             });
@@ -106,7 +128,8 @@ namespace osu.Framework.VisualTests.Tests
         private class HeaderContainer : Container, IHasFilterableChildren
         {
             public string[] FilterTerms => header.FilterTerms;
-            public bool MatchingCurrentFilter
+
+            public bool MatchingFilter
             {
                 set
                 {
@@ -116,6 +139,7 @@ namespace osu.Framework.VisualTests.Tests
                         FadeOut();
                 }
             }
+
             public IEnumerable<IFilterable> FilterableChildren => Children.OfType<IFilterable>();
 
             protected override Container<Drawable> Content => flowContainer;
@@ -138,11 +162,32 @@ namespace osu.Framework.VisualTests.Tests
             }
         }
 
+        private class KeywordText : SpriteText, IHasFilterTerms
+        {
+            public string[] FilterTerms => new[] { Text };
+        }
+
+        private class FilterableFlowContainer : FillFlowContainer, IFilterable
+        {
+            public string[] FilterTerms => Children.OfType<IHasFilterTerms>().SelectMany(d => d.FilterTerms).ToArray();
+
+            public bool MatchingFilter
+            {
+                set
+                {
+                    if (value)
+                        Show();
+                    else
+                        Hide();
+                }
+            }
+        }
+
         private class SearchableText : SpriteText, IFilterable
         {
             public string[] FilterTerms => new[] { Text };
 
-            public bool MatchingCurrentFilter
+            public bool MatchingFilter
             {
                 set
                 {

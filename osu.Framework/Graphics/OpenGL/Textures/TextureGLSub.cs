@@ -2,25 +2,25 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using System.Drawing;
 using osu.Framework.Graphics.Primitives;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.OpenGL.Textures
 {
     internal class TextureGLSub : TextureGL
     {
         private readonly TextureGLSingle parent;
-        private Rectangle bounds;
+        private RectangleI bounds;
 
         public override TextureGL Native => parent.Native;
 
         public override int TextureId => parent.TextureId;
         public override bool Loaded => parent.Loaded;
 
-        public TextureGLSub(Rectangle bounds, TextureGLSingle parent)
+        public TextureGLSub(RectangleI bounds, TextureGLSingle parent)
         {
             // If GLWrapper is not initialized at this point, it means we do not have OpenGL available
             // and thus will never draw anything. In this case it is fine if the parent texture is null.
@@ -69,9 +69,9 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             parent.DrawTriangle(vertexTriangle, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
         }
 
-        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
-            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage);
+            parent.DrawQuad(vertexQuad, boundsInParent(textureRect), drawColour, vertexAction, inflationPercentage, blendRangeOverride);
         }
 
         internal override bool Upload()
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                     $"Texture is too small to fit the requested upload. Texture size is {bounds.Width} x {bounds.Height}, upload size is {upload.Bounds.Width} x {upload.Bounds.Height}.",
                     nameof(upload));
 
-            if (upload.Bounds.Size.IsEmpty)
+            if (upload.Bounds.IsEmpty)
                 upload.Bounds = bounds;
             else
             {

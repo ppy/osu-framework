@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
@@ -32,12 +33,13 @@ namespace osu.Framework.VisualTests.Tests
 
         private FillFlowContainer fillContainer;
         private ScheduledDelegate scheduledAdder;
-        private bool addChildren;
+        private bool doNotAddChildren;
 
         public override void Reset()
         {
             base.Reset();
 
+            doNotAddChildren = false;
             scheduledAdder?.Cancel();
 
             Add(new Container
@@ -292,7 +294,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            AddToggleStep("Stop adding children", state => { addChildren = state; });
+            AddToggleStep("Stop adding children", state => { doNotAddChildren = state; });
 
             scheduledAdder?.Cancel();
             scheduledAdder = Scheduler.AddDelayed(
@@ -301,12 +303,12 @@ namespace osu.Framework.VisualTests.Tests
                     if (fillContainer.Parent == null)
                         scheduledAdder.Cancel();
 
-                    if (addChildren)
+                    if (doNotAddChildren)
                     {
                         fillContainer.Invalidate();
                     }
 
-                    if (fillContainer.Children.Count() < 1000 && !addChildren)
+                    if (fillContainer.Children.Count < 1000 && !doNotAddChildren)
                     {
                         fillContainer.Add(new Container
                         {
@@ -327,7 +329,7 @@ namespace osu.Framework.VisualTests.Tests
                                     RelativePositionAxes = Axes.Both,
                                     Position = new Vector2(0.5f, 0.5f),
                                     Origin = Anchor.Centre,
-                                    Text = fillContainer.Children.Count().ToString()
+                                    Text = fillContainer.Children.Count.ToString()
                                 }
                             }
                         });

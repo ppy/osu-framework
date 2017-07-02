@@ -4,8 +4,9 @@
 using System;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
+using osu.Framework.Allocation;
+using osu.Framework.Graphics.Shapes;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -18,10 +19,11 @@ namespace osu.Framework.Graphics.UserInterface
     /// <summary>
     /// A list of command or selection items.
     /// </summary>
-    public class Menu : Container, IStateful<MenuState>
+    public class Menu<TItem> : Container, IStateful<MenuState>
+        where TItem : MenuItem
     {
         public readonly Box Background;
-        public readonly FillFlowContainer<MenuItem> ItemsContainer;
+        public readonly FillFlowContainer<TItem> ItemsContainer;
         public readonly ScrollContainer ScrollContainer;
 
         public Menu()
@@ -39,18 +41,23 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     RelativeSizeAxes = Axes.Both,
                     Masking = false,
-                    Children = new Drawable[]
+                    Child = ItemsContainer = new FillFlowContainer<TItem>
                     {
-                        ItemsContainer = new FillFlowContainer<MenuItem>
-                        {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
-                            Direction = FillDirection.Vertical
-                        }
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical
                     }
                 }
             };
             AnimateClose();
+        }
+
+        private InputManager inputManager;
+
+        [BackgroundDependencyLoader]
+        private void load(UserInputManager inputManager)
+        {
+            this.inputManager = inputManager;
         }
 
         private MenuState state;
@@ -66,13 +73,14 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     case MenuState.Closed:
                         AnimateClose();
-                        TriggerFocusLost();
+                        if (HasFocus)
+                            inputManager.ChangeFocus(null);
                         break;
                     case MenuState.Opened:
                         AnimateOpen();
 
                         //schedule required as we may not be present currently.
-                        Schedule(() => TriggerFocus());
+                        Schedule(() => inputManager.ChangeFocus(this));
                         break;
                 }
 
@@ -111,8 +119,14 @@ namespace osu.Framework.Graphics.UserInterface
 
         protected virtual void AnimateClose() => Hide();
 
-        protected override bool OnFocus(InputState state) => true;
+        public override bool AcceptsFocus => true;
+
+        protected override bool OnClick(InputState state) => true;
 
         protected override void OnFocusLost(InputState state) => State = MenuState.Closed;
+    }
+
+    public class Menu : Menu<MenuItem>
+    {
     }
 }

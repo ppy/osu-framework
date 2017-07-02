@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Testing;
@@ -40,6 +41,7 @@ namespace osu.Framework.VisualTests.Tests
                 @"Margin",
                 @"Inner Margin",
                 @"Drawable Margin",
+                @"Relative Inside Autosize"
             };
 
             for (int i = 0; i < testNames.Length; i++)
@@ -881,10 +883,65 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 b.ScaleTo(new Vector2(1, 1), 1000);
                                 using (b.BeginDelayedSequence(1000))
-                                {
                                     b.Loop();
+                            }
+                        }
+
+                        break;
+                    }
+                case 12:
+                    {
+                        // demonstrates how relativeaxes drawables act inside an autosize parent
+                        Drawable sizedBox;
+
+                        testContainer.Add(new FillFlowContainer
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                            new Container
+                            {
+                                Size = new Vector2(300),
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Children = new Drawable[]
+                                {
+                                    new Box { Colour = Color4.Gray, RelativeSizeAxes = Axes.Both },
+                                    new Container
+                                    {
+                                        AutoSizeAxes = Axes.Both,
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        Children = new[]
+                                        {
+                                            // defines the size of autosize
+                                            sizedBox = new Box
+                                            {
+                                                Colour = Color4.Red,
+                                                Anchor = Anchor.Centre,
+                                                Origin = Anchor.Centre,
+                                                Size = new Vector2(100f)
+                                            },
+                                            // gets relative size based on autosize
+                                            new Box
+                                            {
+                                                Colour = Color4.Black,
+                                                RelativeSizeAxes = Axes.Both,
+                                                Size = new Vector2(0.5f)
+                                            },
+                                        }
+                                    }
                                 }
                             }
+                            }
+                        });
+
+                        sizedBox.ScaleTo(new Vector2(2, 2), 1000, EasingTypes.Out);
+                        using (sizedBox.BeginDelayedSequence(1000))
+                        {
+                            sizedBox.ScaleTo(new Vector2(1, 1), 1000, EasingTypes.In);
+                            using (sizedBox.BeginDelayedSequence(1000))
+                                sizedBox.Loop();
                         }
 
                         break;

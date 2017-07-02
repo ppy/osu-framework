@@ -24,6 +24,7 @@ namespace osu.Framework.Configuration
                 typeof(float),
                 typeof(double)
             };
+
             if (!allowedTypes.Contains(typeof(T)))
                 throw new ArgumentException(
                     $"{nameof(BindableNumber<T>)} only accepts the primitive numeric types (except for {typeof(decimal).FullName}) as type arguments. You provided {typeof(T).FullName}.");
@@ -32,10 +33,34 @@ namespace osu.Framework.Configuration
         protected BindableNumber(T value = default(T))
             : base(value)
         {
+            MinValue = DefaultMinValue;
+            MaxValue = DefaultMaxValue;
         }
 
+        /// <summary>
+        /// The minimum value of this bindable. <see cref="Bindable{T}.Value"/> will never go below this value.
+        /// </summary>
         public T MinValue { get; set; }
+
+        /// <summary>
+        /// The maximim value of this bindable. <see cref="Bindable{T}.Value"/> will never go above this value.
+        /// </summary>
         public T MaxValue { get; set; }
+
+        /// <summary>
+        /// The default <see cref="MinValue"/>. This should be equal to the minimum value of type <see cref="T"/>.
+        /// </summary>
+        protected abstract T DefaultMinValue { get; }
+
+        /// <summary>
+        /// /// The default <see cref="MaxValue"/>. This should be equal to the maximum value of type <see cref="T"/>.
+        /// </summary>
+        protected abstract T DefaultMaxValue { get; }
+
+        /// <summary>
+        /// Whether this bindable has a user-defined range that is not the full range of the <see cref="T"/> type.
+        /// </summary>
+        public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) && !MaxValue.Equals(DefaultMaxValue);
 
         public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
 

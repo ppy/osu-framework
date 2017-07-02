@@ -3,7 +3,7 @@
 
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 
 namespace osu.Framework.Graphics.UserInterface
@@ -45,13 +45,10 @@ namespace osu.Framework.Graphics.UserInterface
                     Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
                     Colour = Color4.DarkGray,
-                    Children = new[]
+                    Child = new Box
                     {
-                        new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Color4.White,
-                        },
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = Color4.White,
                     },
                 },
                 Foreground = new Container

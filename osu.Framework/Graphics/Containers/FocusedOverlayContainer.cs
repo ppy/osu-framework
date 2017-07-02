@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Input;
 using OpenTK.Input;
+using osu.Framework.Allocation;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -12,9 +13,11 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public abstract class FocusedOverlayContainer : OverlayContainer
     {
-        public override bool RequestingFocus => State == Visibility.Visible;
+        protected InputManager InputManager;
 
-        protected override bool OnFocus(InputState state) => true;
+        public override bool RequestsFocus => State == Visibility.Visible;
+
+        public override bool AcceptsFocus => true;
 
         protected override void OnFocusLost(InputState state)
         {
@@ -23,14 +26,21 @@ namespace osu.Framework.Graphics.Containers
             base.OnFocusLost(state);
         }
 
+        [BackgroundDependencyLoader]
+        private void load(UserInputManager inputManager)
+        {
+            InputManager = inputManager;
+        }
+
         protected override void PopIn()
         {
-            Schedule(TriggerFocusContention);
+            Schedule(() => InputManager.TriggerFocusContention());
         }
 
         protected override void PopOut()
         {
-            TriggerFocusLost();
+            if (HasFocus)
+                InputManager.ChangeFocus(null);
         }
     }
 }

@@ -10,6 +10,7 @@ using osu.Framework.Configuration;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
@@ -37,7 +38,7 @@ namespace osu.Framework.Testing
         {
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             Assembly asm = Assembly.GetCallingAssembly();
-            foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase))))
+            foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract))
                 Tests.Add((TestCase)Activator.CreateInstance(type));
 
             Tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
@@ -64,17 +65,15 @@ namespace osu.Framework.Testing
                         new ScrollContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            ScrollDraggerOverlapsContent = false,
-                            Children = new[]
+                            ScrollbarOverlapsContent = false,
+                            RelativeMouseDrag = true,
+                            Child = leftFlowContainer = new FillFlowContainer<TestCaseButton>
                             {
-                                leftFlowContainer = new FillFlowContainer<TestCaseButton>
-                                {
-                                    Padding = new MarginPadding(3),
-                                    Direction = FillDirection.Vertical,
-                                    Spacing = new Vector2(0, 5),
-                                    AutoSizeAxes = Axes.Y,
-                                    RelativeSizeAxes = Axes.X,
-                                }
+                                Padding = new MarginPadding(3),
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(0, 5),
+                                AutoSizeAxes = Axes.Y,
+                                RelativeSizeAxes = Axes.X,
                             }
                         }
                     }
@@ -83,31 +82,28 @@ namespace osu.Framework.Testing
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 200 },
-                    Children = new Drawable[]
+                    Child = compilingNotice = new Container
                     {
-                        compilingNotice = new Container
+                        Alpha = 0,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        Depth = float.MinValue,
+                        CornerRadius = 5,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            Alpha = 0,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Masking = true,
-                            Depth = float.MinValue,
-                            CornerRadius = 5,
-                            AutoSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            new Box
                             {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
-                                },
-                                new SpriteText
-                                {
-                                    TextSize = 30,
-                                    Text = @"Compiling new version..."
-                                }
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Black,
                             },
-                        }
+                            new SpriteText
+                            {
+                                TextSize = 30,
+                                Text = @"Compiling new version..."
+                            }
+                        },
                     }
                 }
             };

@@ -2,15 +2,22 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System;
-using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Textures;
 using OpenTK;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Sprites;
 
-namespace osu.Framework.Graphics.Sprites
+namespace osu.Framework.Graphics.Shapes
 {
+    /// <summary>
+    /// Represents a sprite that is drawn in a triangle shape, instead of a rectangle shape.
+    /// </summary>
     public class Triangle : Sprite
     {
+        /// <summary>
+        /// Creates a new triangle with a white pixel as texture.
+        /// </summary>
         public Triangle()
         {
             Texture = Texture.WhitePixel;
@@ -23,10 +30,7 @@ namespace osu.Framework.Graphics.Sprites
             q.BottomLeft,
             q.BottomRight);
 
-        protected override bool InternalContains(Vector2 screenSpacePos)
-        {
-            return toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
-        }
+        public override bool Contains(Vector2 screenSpacePos) => toTriangle(ScreenSpaceDrawQuad).Contains(screenSpacePos);
 
         protected override DrawNode CreateDrawNode() => new TriangleDrawNode();
 

@@ -12,6 +12,7 @@ using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
 using OpenTK;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Vertices;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -143,7 +144,7 @@ namespace osu.Framework.Graphics.Textures
             TextureUpload upload = new TextureUpload(width * height * 4)
             {
                 Level = level,
-                Bounds = new Rectangle(0, 0, width, height)
+                Bounds = new RectangleI(0, 0, width, height)
             };
 
             byte[] data = upload.Data;
@@ -196,12 +197,14 @@ namespace osu.Framework.Graphics.Textures
             TextureGL.DrawTriangle(vertexTriangle, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
         }
 
-        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null)
+        public void DrawQuad(Quad vertexQuad, ColourInfo colour, RectangleF? textureRect = null, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
         {
             if (TextureGL == null || !TextureGL.Bind()) return;
 
-            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage);
+            TextureGL.DrawQuad(vertexQuad, TextureBounds(textureRect), colour, vertexAction, inflationPercentage, blendRangeOverride);
         }
+
+        public override string ToString() => $@"{AssetName} ({Width}, {Height})";
     }
 
     public class TextureWhitePixel : Texture

@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
@@ -100,7 +101,7 @@ namespace osu.Framework.VisualTests.Tests
                             CornerRadius = 100,
                             BorderColour = Color4.Aquamarine,
                             BorderThickness = 3,
-                            EdgeEffect = new EdgeEffect
+                            EdgeEffect = new EdgeEffectParameters
                             {
                                 Type = EdgeEffectType.Shadow,
                                 Radius = 100,
@@ -191,7 +192,7 @@ namespace osu.Framework.VisualTests.Tests
                         {
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
-                            EdgeEffect = new EdgeEffect
+                            EdgeEffect = new EdgeEffectParameters
                             {
                                 Type = EdgeEffectType.Glow,
                                 Radius = 100,
