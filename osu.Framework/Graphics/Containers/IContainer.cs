@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using OpenTK;
-using osu.Framework.Lists;
 
 namespace osu.Framework.Graphics.Containers
 {
