@@ -20,38 +20,39 @@ namespace osu.Framework.VisualTests.Tests
         private DepthBox green;
         private DepthBox purple;
 
+        private Container container;
+
+        private void addDepthSteps(DepthBox box)
+        {
+            AddStep($@"bring forward {box.Name}", () => container.ChangeChildDepth(box, box.Depth - 1));
+            AddStep($@"send backward {box.Name}", () => container.ChangeChildDepth(box, box.Depth + 1));
+        }
+
         public override void Reset()
         {
             base.Reset();
 
             Add(new[]
             {
-                new Container()
+                container = new Container()
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(340),
                     Children = new[]
                     {
-                        red = new DepthBox(Color4.Red, Anchor.TopLeft),
-                        blue = new DepthBox(Color4.Blue, Anchor.TopRight),
-                        green = new DepthBox(Color4.Green, Anchor.BottomRight),
-                        purple = new DepthBox(Color4.Purple, Anchor.BottomLeft),
+                        red = new DepthBox(Color4.Red, Anchor.TopLeft) { Name = "red" },
+                        blue = new DepthBox(Color4.Blue, Anchor.TopRight) { Name = "blue" },
+                        green = new DepthBox(Color4.Green, Anchor.BottomRight) { Name = "green" },
+                        purple = new DepthBox(Color4.Purple, Anchor.BottomLeft) { Name = "purple" },
                     }
                 }
             });
 
-            AddStep($@"bring forward {nameof(red)}", () => red.Depth--);
-            AddStep($@"send backward {nameof(red)}", () => red.Depth++);
-
-            AddStep($@"bring forward {nameof(blue)}", () => blue.Depth--);
-            AddStep($@"send backward {nameof(blue)}", () => blue.Depth++);
-
-            AddStep($@"bring forward {nameof(green)}", () => green.Depth--);
-            AddStep($@"send backward {nameof(green)}", () => green.Depth++);
-
-            AddStep($@"bring forward {nameof(purple)}", () => purple.Depth--);
-            AddStep($@"send backward {nameof(purple)}", () => purple.Depth++);
+            addDepthSteps(red);
+            addDepthSteps(blue);
+            addDepthSteps(green);
+            addDepthSteps(purple);
         }
 
         private class DepthBox : Container

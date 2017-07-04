@@ -81,40 +81,34 @@ namespace osu.Framework.Lists
             LoadRequested?.Invoke(item);
 
             int i = base.Add(item);
-            current.Insert(i, false);
+
+            bool isLoaded = item.IsLoaded;
+            current.Insert(i, isLoaded);
+            if (isLoaded)
+                AliveItems.Add(item);
 
             return i;
         }
 
-        public override bool Remove(T item)
+        public override void RemoveRange(int index, int count)
         {
-            int index = IndexOf(item);
+            // A bit inefficient, but so far isn't used in any performance-critical code.
+            for (int i = 0; i < count; ++i)
+                RemoveAt(index);
+        }
 
-            if (index < 0) return false;
-
+        public override void RemoveAt(int index)
+        {
+            AliveItems.Remove(this[index]);
+            base.RemoveAt(index);
             current.RemoveAt(index);
-
-            AliveItems.Remove(item);
-
-            base.Remove(item);
-
-            return true;
         }
 
         public override void Clear()
         {
-            base.Clear();
-
-            current.Clear();
             AliveItems.Clear();
-        }
-
-        public override void UpdateSorting(T item)
-        {
-            base.UpdateSorting(item);
-
-            // Also sort AliveItems
-            AliveItems.UpdateSorting(item);
+            base.Clear();
+            current.Clear();
         }
     }
 }

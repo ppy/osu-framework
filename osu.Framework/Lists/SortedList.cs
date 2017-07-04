@@ -18,10 +18,13 @@ namespace osu.Framework.Lists
 
         bool ICollection<T>.IsReadOnly => ((ICollection<T>)list).IsReadOnly;
 
-        public T this[int index] => list[index];
+        public T this[int index]
+        {
+            get { return list[index]; }
+            set { list[index] = value; }
+        }
 
-        public SortedList(Func<T,T,int> comparer)
-            : this(new ComparisonComparer<T>(comparer))
+        public SortedList(Func<T,T,int> comparer) : this(new ComparisonComparer<T>(comparer))
         {
         }
 
@@ -33,8 +36,11 @@ namespace osu.Framework.Lists
 
         public void AddRange(IEnumerable<T> collection)
         {
-            foreach (var i in collection) Add(i);
+            foreach (var i in collection)
+                Add(i);
         }
+
+        public virtual void RemoveRange(int index, int count) => list.RemoveRange(index, count);
 
         public virtual int Add(T value) => addInternal(value);
 
@@ -58,9 +64,16 @@ namespace osu.Framework.Lists
             return index;
         }
 
-        public virtual bool Remove(T item) => list.Remove(item);
+        public bool Remove(T item)
+        {
+            int index = IndexOf(item);
+            if (index < 0)
+                return false;
+            RemoveAt(index);
+            return true;
+        }
 
-        public void RemoveAt(int index) => Remove(this[index]);
+        public virtual void RemoveAt(int index) => list.RemoveAt(index);
 
         public int RemoveAll(Predicate<T> match)
         {
@@ -72,29 +85,13 @@ namespace osu.Framework.Lists
             return found.Count;
         }
 
-        public virtual void Clear()
-        {
-            list.Clear();
-        }
+        public virtual void Clear() => list.Clear();
 
-        public bool Contains(T item) => list.Contains(item);
+        public bool Contains(T item) => IndexOf(item) >= 0;
 
-        public int IndexOf(T value) => list.IndexOf(value);
+        public int BinarySearch(T value) => list.BinarySearch(value, Comparer);
 
-        /// <summary>
-        /// Repositions the item within this list using <see cref="Comparer"/>.
-        /// Useful when the primary sorting property of the item had changed.
-        /// </summary>
-        /// <param name="item">The item to update its actual index.</param>
-        public virtual void UpdateSorting(T item)
-        {
-            list.Remove(item);
-
-            // Add it back in the right place
-            // Must internally add because it was internally removed.
-            // Derived classes which keeps other sorted list (such as LifetimeList) will extend this function to keep its own lists sorted.
-            addInternal(item);
-        }
+        public int IndexOf(T value) => list.BinarySearch(value, Comparer);
 
         public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 

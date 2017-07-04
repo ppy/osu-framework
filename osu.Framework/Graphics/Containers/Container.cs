@@ -42,7 +42,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : Drawable, IContainerEnumerable<T>, ISortedContainerCollection<T>
+    public class Container<T> : Drawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
         #region Contruction and disposal
@@ -226,24 +226,38 @@ namespace osu.Framework.Graphics.Containers
         protected IEnumerable<Drawable> AliveInternalChildren => internalChildren.AliveItems;
 
         /// <summary>
+        /// The index of a given child within <see cref="Children"/>.
+        /// </summary>
+        /// <returns>
+        /// If the child is found, its index. Otherwise, the negated index it would obtain
+        /// if it were added to <see cref="Children"/>.
+        /// </returns>
+        public int IndexOf(T drawable)
+        {
+            if (Content != this)
+                return Content.IndexOf(drawable);
+
+            return IndexOfInternal(drawable);
+        }
+
+        /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
         /// </summary>
         /// <returns>
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
-        public int IndexOf(T drawable)
-        {
-            return internalChildren.IndexOf(drawable);
-        }
+        public int IndexOfInternal(Drawable drawable) => internalChildren.IndexOf(drawable);
+
+        /// <summary>
+        /// Checks whether a given child is contained within <see cref="Children"/>.
+        /// </summary>
+        public bool Contains(T drawable) => IndexOf(drawable) >= 0;
 
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
-        public bool Contains(T drawable)
-        {
-            return IndexOf(drawable) >= 0;
-        }
+        public bool ContainsInternal(Drawable drawable) => IndexOfInternal(drawable) >= 0;
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
@@ -284,7 +298,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container's <see cref="InternalChildren"/>.
         /// </summary>
-        public void RemoveInternal(T drawable)
+        public void RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -299,7 +313,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             drawable.Parent = null;
-            drawable.DepthChanged = null;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -413,7 +426,7 @@ namespace osu.Framework.Graphics.Containers
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
-            drawable.DepthChanged = UpdateSorting;
+            drawable.AddedToParentContainer = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -429,9 +442,34 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
-        public void UpdateSorting(Drawable drawable)
+        /// <summary>
+        /// Changes the depth of a child. This affects ordering of children within this container.
+        /// </summary>
+        /// <param name="child">The child whose depth is to be changed.</param>
+        /// <param name="newDepth">The new depth value to be set.</param>
+        public void ChangeChildDepth(T child, float newDepth)
         {
-            internalChildren.UpdateSorting(drawable);
+            if (!Contains(child))
+                throw new InvalidOperationException("Can not change depth of drawable which is not contained within this container.");
+
+            Remove(child);
+            child.Depth = newDepth;
+            Add(child);
+        }
+
+        /// <summary>
+        /// Changes the depth of an internal child. This affects ordering of children within this container.
+        /// </summary>
+        /// <param name="child">The child whose depth is to be changed.</param>
+        /// <param name="newDepth">The new depth value to be set.</param>
+        public void ChangeInternalChildDepth(Drawable child, float newDepth)
+        {
+            if (!ContainsInternal(child))
+                throw new InvalidOperationException("Can not change depth of drawable which is not contained within this container.");
+
+            RemoveInternal(child);
+            child.Depth = newDepth;
+            AddInternal(child);
         }
 
         #endregion

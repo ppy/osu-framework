@@ -246,7 +246,7 @@ namespace osu.Framework.Graphics
 
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
-        internal Action<Drawable> DepthChanged;
+        internal bool AddedToParentContainer;
 
         private float depth;
 
@@ -261,13 +261,10 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                if (value == depth)
-                    return;
+                if (AddedToParentContainer)
+                    throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
 
                 depth = value;
-
-                // Assigned parent will update the actual index of this Drawable within its list
-                DepthChanged?.Invoke(this);
             }
         }
 
@@ -1203,6 +1200,8 @@ namespace osu.Framework.Graphics
             {
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
+
+                AddedToParentContainer = value != null;
 
                 if (parent == value) return;
 
