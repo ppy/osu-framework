@@ -34,6 +34,11 @@ namespace osu.Framework.Audio
             PendingActions.Enqueue(() => item.AddAdjustmentDependency(this));
         }
 
+        public void UnregisterItem(T item)
+        {
+            PendingActions.Enqueue(() => item.RemoveAdjustmentDependency(this));
+        }
+
         internal override void OnStateChanged()
         {
             base.OnStateChanged();

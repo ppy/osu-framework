@@ -32,6 +32,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnClick(InputState state) => BlockPassThroughMouse;
 
+        protected override bool OnDragStart(InputState state) => BlockPassThroughMouse;
+
+        protected override bool OnWheel(InputState state) => BlockPassThroughMouse;
+
         protected override bool OnKeyDown(InputState state, KeyDownEventArgs args)
         {
             switch (args.Key)

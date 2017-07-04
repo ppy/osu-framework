@@ -98,7 +98,6 @@
     <Compile Include="Extensions\Color4Extensions\Color4Extensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\ConvexPolygonExtensions.cs" />
     <Compile Include="Extensions\PolygonExtensions\PolygonExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\RectangleExtensions\RectangleExtensions.cs" />
     <Compile Include="Allocation\ObjectStack.cs" />
     <Compile Include="Allocation\ObjectUsage.cs" />
     <Compile Include="Allocation\TripleBuffer.cs" />
@@ -119,6 +118,8 @@
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
+    <Compile Include="Graphics\Primitives\RectangleI.cs" />
+    <Compile Include="Graphics\Primitives\Vector2I.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />
     <Compile Include="Graphics\Containers\FillFlowContainer.cs" />
     <Compile Include="Graphics\Containers\IFilterable.cs" />

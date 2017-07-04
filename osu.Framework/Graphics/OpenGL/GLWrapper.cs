@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Rectangle = System.Drawing.Rectangle;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL.Textures;
@@ -24,7 +23,7 @@ namespace osu.Framework.Graphics.OpenGL
     internal static class GLWrapper
     {
         public static MaskingInfo CurrentMaskingInfo { get; private set; }
-        public static Rectangle Viewport { get; private set; }
+        public static RectangleI Viewport { get; private set; }
         public static RectangleF Ortho { get; private set; }
         public static Matrix4 ProjectionMatrix { get; private set; }
 
@@ -50,7 +49,7 @@ namespace osu.Framework.Graphics.OpenGL
             GLWrapper.host = host;
             reset_scheduler.SetCurrentThread();
 
-            MaxTextureSize = Math.Min(2048, GL.GetInteger(GetPName.MaxTextureSize));
+            MaxTextureSize = Math.Min(4096, GL.GetInteger(GetPName.MaxTextureSize));
 
             GL.Disable(EnableCap.DepthTest);
             GL.Disable(EnableCap.StencilTest);
@@ -92,15 +91,15 @@ namespace osu.Framework.Graphics.OpenGL
             masking_stack.Clear();
             scissor_rect_stack.Clear();
 
-            scissor_rect_stack.Push(new Rectangle(0, 0, (int)size.X, (int)size.Y));
+            scissor_rect_stack.Push(new RectangleI(0, 0, (int)size.X, (int)size.Y));
 
-            Viewport = Rectangle.Empty;
-            Ortho = Rectangle.Empty;
+            Viewport = RectangleI.Empty;
+            Ortho = RectangleF.Empty;
 
-            PushViewport(new Rectangle(0, 0, (int)size.X, (int)size.Y));
+            PushViewport(new RectangleI(0, 0, (int)size.X, (int)size.Y));
             PushMaskingInfo(new MaskingInfo
             {
-                ScreenSpaceAABB = new Rectangle(0, 0, (int)size.X, (int)size.Y),
+                ScreenSpaceAABB = new RectangleI(0, 0, (int)size.X, (int)size.Y),
                 MaskingRect = new RectangleF(0, 0, size.X, size.Y),
                 ToMaskingSpace = Matrix3.Identity,
                 BlendRange = 1,
@@ -272,13 +271,13 @@ namespace osu.Framework.Graphics.OpenGL
             return last;
         }
 
-        private static readonly Stack<Rectangle> viewport_stack = new Stack<Rectangle>();
+        private static readonly Stack<RectangleI> viewport_stack = new Stack<RectangleI>();
 
         /// <summary>
         /// Applies a new viewport rectangle.
         /// </summary>
         /// <param name="viewport">The viewport rectangle.</param>
-        public static void PushViewport(Rectangle viewport)
+        public static void PushViewport(RectangleI viewport)
         {
             var actualRect = viewport;
 
@@ -317,7 +316,7 @@ namespace osu.Framework.Graphics.OpenGL
             PopOrtho();
 
             viewport_stack.Pop();
-            Rectangle actualRect = viewport_stack.Peek();
+            RectangleI actualRect = viewport_stack.Peek();
 
             if (Viewport == actualRect)
                 return;
@@ -372,16 +371,16 @@ namespace osu.Framework.Graphics.OpenGL
         }
 
         private static readonly Stack<MaskingInfo> masking_stack = new Stack<MaskingInfo>();
-        private static readonly Stack<Rectangle> scissor_rect_stack = new Stack<Rectangle>();
+        private static readonly Stack<RectangleI> scissor_rect_stack = new Stack<RectangleI>();
 
         public static void UpdateScissorToCurrentViewportAndOrtho()
         {
             RectangleF viewportRect = Viewport;
             Vector2 offset = viewportRect.TopLeft - Ortho.TopLeft;
 
-            Rectangle currentScissorRect = scissor_rect_stack.Peek();
+            RectangleI currentScissorRect = scissor_rect_stack.Peek();
 
-            Rectangle scissorRect = new Rectangle(
+            RectangleI scissorRect = new RectangleI(
                 currentScissorRect.X + (int)Math.Floor(offset.X),
                 Viewport.Height - currentScissorRect.Bottom - (int)Math.Ceiling(offset.Y),
                 currentScissorRect.Width,
@@ -421,7 +420,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             Shader.SetGlobalProperty(@"g_DiscardInner", maskingInfo.Hollow);
 
-            Rectangle actualRect = maskingInfo.ScreenSpaceAABB;
+            RectangleI actualRect = maskingInfo.ScreenSpaceAABB;
             actualRect.X += Viewport.X;
             actualRect.Y += Viewport.Y;
 
@@ -440,7 +439,7 @@ namespace osu.Framework.Graphics.OpenGL
 
             if (isPushing)
             {
-                Rectangle currentScissorRect;
+                RectangleI currentScissorRect;
                 if (overwritePreviousScissor)
                     currentScissorRect = actualRect;
                 else
@@ -640,7 +639,7 @@ namespace osu.Framework.Graphics.OpenGL
 
     public struct MaskingInfo : IEquatable<MaskingInfo>
     {
-        public Rectangle ScreenSpaceAABB;
+        public RectangleI ScreenSpaceAABB;
         public RectangleF MaskingRect;
 
         /// <summary>

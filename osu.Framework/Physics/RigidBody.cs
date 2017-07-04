@@ -2,9 +2,9 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using OpenTK;
+using osu.Framework.Graphics.Primitives;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace osu.Framework.Physics
 {
@@ -229,7 +229,7 @@ namespace osu.Framework.Physics
         /// <summary>
         /// Axis-aligned bounding box of this body.
         /// </summary>
-        public abstract Rectangle ScreenSpaceAABB { get; }
+        public abstract RectangleI ScreenSpaceAABB { get; }
 
         /// <summary>
         /// Whether a parent-space position is contained within this body.

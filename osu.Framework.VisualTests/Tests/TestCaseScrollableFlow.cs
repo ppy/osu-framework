@@ -30,6 +30,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 scroll = new ScrollContainer(dir)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
@@ -53,12 +54,14 @@ namespace osu.Framework.VisualTests.Tests
             {
                 new ScrollContainer(Direction.Horizontal)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
                     Children = new[]
                     {
                         scroll = new ScrollContainer
                         {
+                            RelativeMouseDrag = true,
                             RelativeSizeAxes = Axes.Y,
                             AutoSizeAxes = Axes.X,
                             Children = new[]

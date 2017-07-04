@@ -8,6 +8,7 @@ using osu.Framework.MathUtils;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
+using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -30,6 +31,9 @@ namespace osu.Framework.Graphics.Containers
 
         private bool scrollbarVisible = true;
 
+        /// <summary>
+        /// Whether the scrollbar is visible.
+        /// </summary>
         public bool ScrollbarVisible
         {
             get { return scrollbarVisible; }
@@ -43,9 +47,11 @@ namespace osu.Framework.Graphics.Containers
         private readonly Container content;
         private readonly Scrollbar scrollbar;
 
-
         private bool scrollbarOverlapsContent = true;
 
+        /// <summary>
+        /// Whether the scrollbar overlaps the content or resides in its own padded space.
+        /// </summary>
         public bool ScrollbarOverlapsContent
         {
             get { return scrollbarOverlapsContent; }
@@ -58,12 +64,18 @@ namespace osu.Framework.Graphics.Containers
 
 
         /// <summary>
-        /// Vertical size of available content
+        /// Size of available content (i.e. everything that can be scrolled to) in the scroll direction.
         /// </summary>
         private float availableContent => content.DrawSize[scrollDim];
 
+        /// <summary>
+        /// Size of the viewport in the scroll direction.
+        /// </summary>
         private float displayableContent => ChildSize[scrollDim];
 
+        /// <summary>
+        /// Controls the distance scrolled when turning the mouse wheel a single notch.
+        /// </summary>
         public float MouseWheelScrollDistance = 80;
 
         /// <summary>
@@ -74,24 +86,37 @@ namespace osu.Framework.Graphics.Containers
         public float ClampExtension = 500;
 
         /// <summary>
-        /// This corresponds to the clamping force. A larger value means more aggressive clamping.
+        /// This corresponds to the clamping force. A larger value means more aggressive clamping. Default is 0.012.
         /// </summary>
         private const double distance_decay_clamping = 0.012;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after ending a drag.
+        /// Controls the rate with which the target position is approached after ending a drag. Default is 0.0035.
         /// </summary>
         public double DistanceDecayDrag = 0.0035;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after using the mouse wheel.
+        /// Controls the rate with which the target position is approached after using the mouse wheel. Default is 0.01
         /// </summary>
         public double DistanceDecayWheel = 0.01;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached after jumping to a specific location.
+        /// Controls the rate with which the target position is approached after jumping to a specific location. Default is 0.01.
         /// </summary>
         public double DistanceDecayJump = 0.01;
+
+        /// <summary>
+        /// The scrollcontainer jumps to the relative position of the mouse when the right mouse button is pressed or dragged.
+        /// Uses the value of <see cref="DistanceDecayRelativeDrag"/> to smoothly scroll to the dragged location.
+        /// </summary>
+        public bool RelativeMouseDrag = false;
+
+        private bool shouldPerformRelativeDrag(InputState state) => RelativeMouseDrag && state.Mouse.IsPressed(MouseButton.Right);
+
+        /// <summary>
+        /// Controls the rate with which the target position is approached when performing a relative drag. Default is 0.02.
+        /// </summary>
+        public double DistanceDecayRelativeDrag = 0.02;
 
         /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
@@ -114,6 +139,10 @@ namespace osu.Framework.Graphics.Containers
 
         protected override Container<Drawable> Content => content;
 
+        /// <summary>
+        /// Whether we are currently scrolled as far as possible into the scroll direction.
+        /// </summary>
+        /// <param name="lenience">How close to the extent we need to be.</param>
         public bool IsScrolledToEnd(float lenience = Precision.FLOAT_EPSILON) => Precision.AlmostBigger(target, scrollableExtent, lenience);
 
         /// <summary>
@@ -121,11 +150,25 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<Drawable> ScrollContent => content;
 
-        private bool isDragging;
+        /// <summary>
+        /// Encapsulates the types of drags which can be performed on a scrollcontainer.
+        /// </summary>
+        private enum DragStatus
+        {
+            None,
+            Absolute,
+            Relative,
+        }
+
+        private DragStatus dragStatus;
 
         private readonly Direction scrollDir;
         private int scrollDim => (int)scrollDir;
 
+        /// <summary>
+        /// Creates a scroll container.
+        /// </summary>
+        /// <param name="scrollDir">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
         public ScrollContainer(Direction scrollDir = Direction.Vertical)
         {
             this.scrollDir = scrollDir;
@@ -191,17 +234,25 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragStart(InputState state)
         {
+            if (dragStatus != DragStatus.None) return false;
+
             lastDragTime = Time.Current;
             averageDragDelta = averageDragTime = 0;
 
-            isDragging = true;
+            dragStatus = shouldPerformRelativeDrag(state) ? DragStatus.Relative : DragStatus.Absolute;
             return true;
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
         {
-            // Continue from where we currently are scrolled to.
-            target = Current;
+            if (dragStatus != DragStatus.None) return false;
+
+            if (shouldPerformRelativeDrag(state))
+                scrollToRelative(state.Mouse.Position[scrollDim]);
+            else
+                // Continue from where we currently are scrolled to.
+                target = Current;
+
             return true;
         }
 
@@ -219,7 +270,15 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDrag(InputState state)
         {
-            Trace.Assert(isDragging, "We should never receive OnDrag if we are not dragging.");
+            Trace.Assert(dragStatus != DragStatus.None, "We should never receive OnDrag if we are not dragging.");
+
+            if (dragStatus == DragStatus.Relative)
+            {
+                scrollToRelative(state.Mouse.Position[scrollDim]);
+                return true;
+            }
+
+            Trace.Assert(dragStatus == DragStatus.Absolute, "The following code assumes absolute dragging.");
 
             double currentTime = Time.Current;
             double timeDelta = currentTime - lastDragTime;
@@ -247,9 +306,9 @@ namespace osu.Framework.Graphics.Containers
 
         protected override bool OnDragEnd(InputState state)
         {
-            Trace.Assert(isDragging, "We should never receive OnDragEnd if we are not dragging.");
+            Trace.Assert(dragStatus != DragStatus.None, "We should never receive OnDragEnd if we are not dragging.");
 
-            isDragging = false;
+            dragStatus = DragStatus.None;
 
             if (averageDragTime <= 0.0)
                 return true;
@@ -277,6 +336,8 @@ namespace osu.Framework.Graphics.Containers
             return true;
         }
 
+        private void scrollToRelative(float value) => scrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]), true, DistanceDecayRelativeDrag);
+
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
         public void OffsetScrollPosition(float offset)
@@ -294,7 +355,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="allowDuringDrag">Whether we should interrupt a user's active drag.</param>
         public void ScrollToEnd(bool animated = true, bool allowDuringDrag = false)
         {
-            if (!isDragging || allowDuringDrag) scrollTo(scrollableExtent, animated, DistanceDecayJump);
+            if (dragStatus == DragStatus.None || allowDuringDrag)
+                scrollTo(scrollableExtent, animated, DistanceDecayJump);
         }
 
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
@@ -323,7 +385,7 @@ namespace osu.Framework.Graphics.Containers
             // then we should handle the clamping force. Note, that if the target is _within_
             // acceptable bounds, then we do not need special handling of the clamping force, as
             // we will naturally scroll back into acceptable bounds.
-            if (!isDragging && Current != clamp(Current) && target != clamp(target, -0.01f))
+            if (dragStatus == DragStatus.None && Current != clamp(Current) && target != clamp(target, -0.01f))
             {
                 // Firstly, we want to limit how far out the target may go to limit overly bouncy
                 // behaviour with extreme scroll velocities.
@@ -396,10 +458,7 @@ namespace osu.Framework.Graphics.Containers
 
                 Masking = true;
 
-                Children = new Drawable[]
-                {
-                    box = new Box { RelativeSizeAxes = Axes.Both }
-                };
+                Child = box = new Box { RelativeSizeAxes = Axes.Both };
 
                 ResizeTo(1);
             }

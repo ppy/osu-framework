@@ -3,7 +3,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using OpenTK;
@@ -48,15 +47,6 @@ namespace osu.Framework.Graphics.Primitives
             Width = size.X;
             Height = size.Y;
         }
-
-        /// <summary>Creates a <see cref="T:System.Drawing.RectangleF"></see> structure with upper-left corner and lower-right corner at the specified locations.</summary>
-        /// <returns>The new <see cref="T:System.Drawing.RectangleF"></see> that this method creates.</returns>
-        /// <param name="right">The x-coordinate of the lower-right corner of the rectangular region. </param>
-        /// <param name="bottom">The y-coordinate of the lower-right corner of the rectangular region. </param>
-        /// <param name="left">The x-coordinate of the upper-left corner of the rectangular region. </param>
-        /// <param name="top">The y-coordinate of the upper-left corner of the rectangular region. </param>
-        /// <filterpriority>1</filterpriority>
-        public static RectangleF FromLTRB(float left, float top, float right, float bottom) => new RectangleF(left, top, right - left, bottom - top);
 
         /// <summary>Gets or sets the coordinates of the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>A <see cref="OpenTK.Vector2"/> that represents the upper-left corner of this <see cref="T:System.Drawing.RectangleF"></see> structure.</returns>
@@ -148,10 +138,10 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the equality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the equality operator. </param>
         /// <filterpriority>3</filterpriority>
-        public static bool operator ==(RectangleF left, RectangleF right) => left.X == right.X && left.Y == right.Y && left.Width == right.Width && left.Height == right.Height;
+        public static bool operator ==(RectangleF left, RectangleF right) => left.Equals(right);
 
         /// <summary>Tests whether two <see cref="T:System.Drawing.RectangleF"></see> structures differ in location or size.</summary>
-        /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleF.X"></see> , <see cref="P:System.Drawing.RectangleF.Y"></see>, <see cref="P:System.Drawing.RectangleF.Width"></see>, or <see cref="P:System.Drawing.RectangleF.Height"></see> properties of the two <see cref="T:System.Drawing.Rectangle"></see> structures are unequal; otherwise false.</returns>
+        /// <returns>This operator returns true if any of the <see cref="P:System.Drawing.RectangleF.X"></see> , <see cref="P:System.Drawing.RectangleF.Y"></see>, <see cref="P:System.Drawing.RectangleF.Width"></see>, or <see cref="P:System.Drawing.RectangleF.Height"></see> properties of the two <see cref="T:System.Drawing.RectangleF"></see> structures are unequal; otherwise false.</returns>
         /// <param name="right">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the right of the inequality operator. </param>
         /// <param name="left">The <see cref="T:System.Drawing.RectangleF"></see> structure that is to the left of the inequality operator. </param>
         /// <filterpriority>3</filterpriority>
@@ -174,39 +164,15 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if the point represented by the pt parameter is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
         /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(PointF pt) => Contains(pt.X, pt.Y);
-
-        /// <summary>Determines if the specified point is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
-        /// <returns>This method returns true if the point represented by the pt parameter is contained within this <see cref="T:System.Drawing.RectangleF"></see> structure; otherwise false.</returns>
-        /// <param name="pt">The <see cref="T:System.Drawing.PointF"></see> to test. </param>
-        /// <filterpriority>1</filterpriority>
-        public bool Contains(Point pt) => Contains(pt.X, pt.Y);
+        public bool Contains(Vector2I pt) => Contains(pt.X, pt.Y);
 
         /// <summary>Determines if the rectangular region represented by rect is entirely contained within this <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
         /// <returns>This method returns true if the rectangular region represented by rect is entirely contained within the rectangular region represented by this <see cref="T:System.Drawing.RectangleF"></see>; otherwise false.</returns>
         /// <param name="rect">The <see cref="T:System.Drawing.RectangleF"></see> to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool Contains(RectangleF rect) => X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
-                                                 rect.Y + rect.Height <= Y + Height;
-
-        public bool ContainsRotated(Vector2 pt, Vector2 rotationCenter, float angle)
-        {
-            if (angle == 0)
-                return Contains(pt);
-
-            Matrix2 rotationMatrix = Matrix2.CreateRotation(-angle);
-            Vector2 rotatedPt = (pt - rotationCenter) * rotationMatrix + rotationCenter;
-            return Contains(rotatedPt.X, rotatedPt.Y);
-        }
-
-        public void GetRotatedCorners(Vector2 rotationCenter, float angle, out Vector2 topLeft, out Vector2 topRight, out Vector2 bottomLeft, out Vector2 bottomRight)
-        {
-            Matrix2 rotationMatrix = Matrix2.CreateRotation(angle);
-            topLeft = (new Vector2(Left, Top) - rotationCenter) * rotationMatrix + rotationCenter;
-            topRight = (new Vector2(Right, Top) - rotationCenter) * rotationMatrix + rotationCenter;
-            bottomLeft = (new Vector2(Left, Bottom) - rotationCenter) * rotationMatrix + rotationCenter;
-            bottomRight = (new Vector2(Right, Bottom) - rotationCenter) * rotationMatrix + rotationCenter;
-        }
+        public bool Contains(RectangleF rect) =>
+            X <= rect.X && rect.X + rect.Width <= X + Width && Y <= rect.Y &&
+            rect.Y + rect.Height <= Y + Height;
 
         /// <summary>Gets the hash code for this <see cref="T:System.Drawing.RectangleF"></see> structure. For information about the use of hash codes, see Object.GetHashCode.</summary>
         /// <returns>The hash code for this <see cref="T:System.Drawing.RectangleF"></see>.</returns>
@@ -301,7 +267,7 @@ namespace osu.Framework.Graphics.Primitives
         /// <returns>This method returns true if there is any intersection.</returns>
         /// <param name="rect">The rectangle to test. </param>
         /// <filterpriority>1</filterpriority>
-        public bool IntersectsWith(Rectangle rect) =>
+        public bool IntersectsWith(RectangleI rect) =>
             rect.X < X + Width && X < rect.X + rect.Width && rect.Y < Y + Height && Y < rect.Y + rect.Height;
 
         /// <summary>Creates the smallest possible third rectangle that can contain both of two rectangles that form a union.</summary>
@@ -342,13 +308,13 @@ namespace osu.Framework.Graphics.Primitives
         }
 
         // This could be optimized further in the future, but made for a simple implementation right now.
-        public Rectangle AABB => ((Quad)this).AABB;
+        public RectangleI AABB => ((Quad)this).AABB;
 
-        /// <summary>Converts the specified <see cref="T:System.Drawing.Rectangle"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
-        /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.Rectangle"></see> structure.</returns>
-        /// <param name="r">The <see cref="T:System.Drawing.Rectangle"></see> structure to convert. </param>
+        /// <summary>Converts the specified <see cref="T:System.Drawing.RectangleI"></see> structure to a <see cref="T:System.Drawing.RectangleF"></see> structure.</summary>
+        /// <returns>The <see cref="T:System.Drawing.RectangleF"></see> structure that is converted from the specified <see cref="T:System.Drawing.RectangleI"></see> structure.</returns>
+        /// <param name="r">The <see cref="T:System.Drawing.RectangleI"></see> structure to convert. </param>
         /// <filterpriority>3</filterpriority>
-        public static implicit operator RectangleF(Rectangle r) => new RectangleF(r.X, r.Y, r.Width, r.Height);
+        public static implicit operator RectangleF(RectangleI r) => new RectangleF(r.X, r.Y, r.Width, r.Height);
 
         /// <summary>Converts the Location and <see cref="T:System.Drawing.Size"></see> of this <see cref="T:System.Drawing.RectangleF"></see> to a human-readable string.</summary>
         /// <returns>A string that contains the position, width, and height of this <see cref="T:System.Drawing.RectangleF"></see> structure¾for example, "{X=20, Y=20, Width=100, Height=50}".</returns>
@@ -358,124 +324,6 @@ namespace osu.Framework.Graphics.Primitives
                                            + $"Y={Math.Round(Y, 3).ToString(CultureInfo.CurrentCulture)}, "
                                            + $"Width={Math.Round(Width, 3).ToString(CultureInfo.CurrentCulture)}, "
                                            + $"Height={Math.Round(Height, 3).ToString(CultureInfo.CurrentCulture)}";
-
-        static RectangleF()
-        {
-            Empty = new RectangleF();
-        }
-
-        public static bool RectCollide(double angle, RectangleF rP, RectangleF rQ, Vector2 origin)
-        {
-            // Calling arguments similar to a C implementation by Oren Becker
-            // but different algorithm for detecting rectangle intersection.
-            // angle gives rotation of the first rectangle around its left side's
-            // midpoint.  The second rectangle is unrotated, aligned to axes.
-
-            double xPmin, xPmax, yPmin, yPmax, xQmin, xQmax, yQmin, yQmax;
-
-            if (angle == 0.0)
-            {
-                xPmax = (xPmin = rP.X) + rP.Width;
-                yPmax = (yPmin = rP.Y) + rP.Height;
-                xQmax = (xQmin = rQ.X) + rQ.Width;
-                yQmax = (yQmin = rQ.Y) + rQ.Height;
-
-                return xPmin <= xQmax && xQmin <= xPmax && yPmin <= yQmax && yQmin <= yPmax;
-            }
-
-            // Otherwise we need two trigonometric function calls
-            double c = Math.Cos(angle), s = Math.Sin(angle);
-            bool cPos = c > 0.0, sPos = s > 0.0;
-
-            /* Phase 1: Form bounding box on tilted rectangle P.
-             *          Check whether bounding box and Q intersect.
-             *          If not, then P and Q do not intersect.
-             *          Otherwise proceed to Phase 2.
-             */
-
-            double xPdif = 0.5 * rP.Width;
-            double yPdif = 0.5 * rP.Height;
-
-            /* P rotates around the midpoint of its left side. */
-            double xPctr = rP.X + origin.X;
-            double yPctr = rP.Y + origin.Y;
-            double cxPdf = c * xPdif;
-            double sxPdf = s * xPdif;
-            double cyPdf = c * yPdif;
-            double syPdf = s * yPdif;
-
-            /* Translate coordinates of Q so P is re-centered at origin. */
-            xQmax = (xQmin = rQ.X - xPctr) + rQ.Width;
-            yQmax = (yQmin = rQ.Y - yPctr) + rQ.Height;
-
-            /* Compute the bounding box coordinates for P. */
-            if (cPos)
-                if (sPos)
-                {
-                    xPmin = -(xPmax = cxPdf + syPdf);
-                    yPmin = -(yPmax = cyPdf + sxPdf);
-                }
-                else /* s <= 0.0 */
-                {
-                    xPmin = -(xPmax = cxPdf - syPdf);
-                    yPmin = -(yPmax = cyPdf - sxPdf);
-                }
-            else /* c <= 0.0 */ if (sPos)
-            {
-                xPmax = -(xPmin = cxPdf - syPdf);
-                yPmax = -(yPmin = cyPdf - sxPdf);
-            }
-            else /* s <= 0.0 */
-            {
-                xPmax = -(xPmin = cxPdf + syPdf);
-                yPmax = -(yPmin = cyPdf + sxPdf);
-            }
-
-            /*
-                        if (InputManager.PressedKeys != null && OsuGame.Input.DontUseMeState.Keyboard.Keys.Contains(Keys.N))
-                        {
-                            OsuGame.LineManager.DrawPoint(xPmin + xPctr, yPmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                            OsuGame.LineManager.DrawPoint(xPmax + xPctr, yPmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                            OsuGame.LineManager.DrawPoint(xQmin + xPctr, yQmin + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                            OsuGame.LineManager.DrawPoint(xQmax + xPctr, yQmax + yPctr, Microsoft.Xna.Framework.Graphics.Color4.GreenYellow);
-                        }
-            */
-
-            /* Now perform the standard rectangle intersection test. */
-            if (xPmin > xQmax || xQmin > xPmax || yPmin > yQmax || yQmin > yPmax)
-                return false;
-
-            /* Phase 2: If we get here, check the edges of P to see
-             *          if one of them excludes all vertices of Q.
-             *          If so, then P and Q do not intersect.
-             *          (If not, then P and Q do intersect.)
-             */
-            if (cPos)
-            {
-                if (sPos)
-                {
-                    return c * xQmax + s * yQmax >= -xPdif
-                           && c * xQmin + s * yQmin <= xPdif
-                           && c * yQmax - s * xQmin >= -yPdif
-                           && c * yQmin - s * xQmax <= yPdif;
-                }
-                return c * xQmax + s * yQmin >= -xPdif
-                       && c * xQmin + s * yQmax <= xPdif
-                       && c * yQmax - s * xQmax >= -yPdif
-                       && c * yQmin - s * xQmin <= yPdif;
-            }
-            if (sPos)
-            {
-                return c * xQmin + s * yQmax >= -xPdif
-                       && c * xQmax + s * yQmin <= xPdif
-                       && c * yQmin - s * xQmin >= -yPdif
-                       && c * yQmax - s * xQmax <= yPdif;
-            }
-            return c * xQmin + s * yQmin >= -xPdif
-                   && c * xQmax + s * yQmax <= xPdif
-                   && c * yQmin - s * xQmax >= -yPdif
-                   && c * yQmax - s * xQmin <= yPdif;
-        }
 
         public bool Equals(RectangleF other) => X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
     }
