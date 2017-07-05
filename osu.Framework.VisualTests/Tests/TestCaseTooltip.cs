@@ -35,35 +35,6 @@ namespace osu.Framework.VisualTests.Tests
         private void generateTest(bool cursorlessTooltip)
         {
             testContainer.Clear();
-            testContainer.Add(new FillFlowContainer
-            {
-                RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Spacing = new Vector2(0, 10),
-                Children = new Drawable[]
-                {
-                    new TooltipSpriteText("this text has a tooltip!"),
-                    new TooltipSpriteText("this one too!"),
-                    new TooltipTextbox
-                    {
-                        Text = "with real time updates!",
-                        Size = new Vector2(400, 30),
-                    },
-                    new Container()
-                    {
-                        AutoSizeAxes = Axes.Both,
-                        Children = new Drawable[]
-                        {
-                            new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
-                            new TooltipContainer(),
-                        }
-                    },
-                },
-            });
-
-            testContainer.Add(makeBox(Anchor.BottomLeft));
-            testContainer.Add(makeBox(Anchor.TopRight));
-            testContainer.Add(makeBox(Anchor.BottomRight));
 
             CursorContainer cursor = null;
             if (!cursorlessTooltip)
@@ -72,7 +43,39 @@ namespace osu.Framework.VisualTests.Tests
                 testContainer.Add(cursor);
             }
 
-            testContainer.Add(new TooltipContainer(cursor));
+            TooltipContainer ttc;
+            testContainer.Add(ttc = new TooltipContainer(cursor)
+            {
+                Child = new FillFlowContainer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Direction = FillDirection.Vertical,
+                    Spacing = new Vector2(0, 10),
+                    Children = new Drawable[]
+                    {
+                        new TooltipSpriteText("this text has a tooltip!"),
+                        new TooltipSpriteText("this one too!"),
+                        new TooltipTextbox
+                        {
+                            Text = "with real time updates!",
+                            Size = new Vector2(400, 30),
+                        },
+                        new Container()
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
+                            {
+                                new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
+                                new TooltipContainer(),
+                            }
+                        },
+                    },
+                }
+            });
+
+            ttc.Add(makeBox(Anchor.BottomLeft));
+            ttc.Add(makeBox(Anchor.TopRight));
+            ttc.Add(makeBox(Anchor.BottomRight));
         }
 
         public override void Reset()

@@ -35,6 +35,9 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual Tooltip CreateTooltip() => new Tooltip();
 
+        private Container content;
+        protected override Container<Drawable> Content => content;
+
         /// <summary>
         /// Creates a tooltip container where the tooltip is positioned at the bottom-right of
         /// the <see cref="CursorContainer.ActiveCursor"/> of the given <see cref="CursorContainer"/>.
@@ -46,7 +49,22 @@ namespace osu.Framework.Graphics.Cursor
             this.cursorContainer = cursorContainer;
             AlwaysPresent = true;
             RelativeSizeAxes = Axes.Both;
-            Add(tooltip = CreateTooltip());
+            AddInternal(content = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+            AddInternal(tooltip = CreateTooltip());
+        }
+
+        protected override void OnSizingChanged()
+        {
+            base.OnSizingChanged();
+
+            if (content != null)
+            {
+                content.RelativeSizeAxes = RelativeSizeAxes;
+                content.AutoSizeAxes = AutoSizeAxes;
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -146,7 +164,7 @@ namespace osu.Framework.Graphics.Cursor
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                var tooltipTarget = inputManager.HoveredDrawables
+                var tooltipTarget = inputManager.HoveredDrawables.Reverse()
                     // Skip hovered drawables above this tooltip container
                     .SkipWhile(d => d != this)
                     .Skip(1)
