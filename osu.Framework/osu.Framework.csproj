@@ -117,6 +117,7 @@
     <Compile Include="Graphics\Animations\IAnimation.cs" />
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
+    <Compile Include="Graphics\Containers\ContainerBase.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />

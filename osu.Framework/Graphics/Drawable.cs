@@ -1194,12 +1194,12 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
-        private IContainer parent;
+        private ContainerBase parent;
 
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        public IContainer Parent
+        public ContainerBase Parent
         {
             get { return parent; }
             internal set

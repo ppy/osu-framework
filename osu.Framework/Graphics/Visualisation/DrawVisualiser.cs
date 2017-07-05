@@ -141,7 +141,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (!containsCursor && !d.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
                 return null;
 
-            var dAsContainer = d as IContainerEnumerable<Drawable>;
+            var dAsContainer = d as ContainerBase;
 
             Drawable containedTarget = null;
 
@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
 
-            var dContainer = d as IContainerEnumerable<Drawable>;
+            var dContainer = d as ContainerBase;
 
             if (d is SpriteText) return;
 

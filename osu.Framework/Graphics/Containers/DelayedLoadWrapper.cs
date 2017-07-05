@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Containers
         private bool checkScrollIntersection()
         {
             IOnScreenOptimisingContainer scroll = null;
-            IContainer cursor = this;
+            ContainerBase cursor = this;
             while (scroll == null && (cursor = cursor.Parent) != null)
                 scroll = cursor as IOnScreenOptimisingContainer;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
         /// </summary>
-        public interface IOnScreenOptimisingContainer : IContainer
+        public interface IOnScreenOptimisingContainer
         {
             Quad ScreenSpaceDrawQuad { get; }
         }
