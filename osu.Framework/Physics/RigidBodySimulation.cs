@@ -18,10 +18,10 @@ namespace osu.Framework.Physics
     /// </summary>
     public class RigidBodySimulation
     {
-        private readonly ContainerBase container;
+        private readonly CompositeDrawable container;
         private readonly Dictionary<Drawable, RigidBody> states = new Dictionary<Drawable, RigidBody>();
 
-        public RigidBodySimulation(ContainerBase container)
+        public RigidBodySimulation(CompositeDrawable container)
         {
             this.container = container;
 

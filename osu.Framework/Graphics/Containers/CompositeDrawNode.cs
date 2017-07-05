@@ -15,7 +15,7 @@ using osu.Framework.Graphics.OpenGL.Vertices;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// Types of edge effects that can be applied to containers.
+    /// Types of edge effects that can be applied to <see cref="CompositeDrawable"/>s.
     /// </summary>
     public enum EdgeEffectType
     {
@@ -46,14 +46,14 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffectType Type;
 
         /// <summary>
-        /// How round the edge effect should appear. Adds to the <see cref="Container{T}.CornerRadius"/>
-        /// of the corresponding container. Not to confuse with the <see cref="Radius"/>.
+        /// How round the edge effect should appear. Adds to the <see cref="CompositeDrawable.CornerRadius"/>
+        /// of the corresponding <see cref="CompositeDrawable"/>. Not to confuse with the <see cref="Radius"/>.
         /// </summary>
         public float Roundness;
 
         /// <summary>
-        /// How "thick" the edge effect is around the container. In other words: At what distance
-        /// from the <see cref="Container"/> border the edge effect becomes fully invisible.
+        /// How "thick" the edge effect is around the <see cref="CompositeDrawable"/>. In other words: At what distance
+        /// from the <see cref="CompositeDrawable"/>'s border the edge effect becomes fully invisible.
         /// </summary>
         public float Radius;
 
@@ -73,10 +73,10 @@ namespace osu.Framework.Graphics.Containers
     }
 
     /// <summary>
-    /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
-    /// <see cref="Container"/>.
+    /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
+    /// <see cref="CompositeDrawable"/>.
     /// </summary>
-    public class ContainerDrawNodeSharedData
+    public class CompositeDrawNodeSharedData
     {
         /// <summary>
         /// The vertex batch used for rendering.
@@ -85,20 +85,20 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// Whether we always want to use our own vertex batch for our corresponding
-        /// <see cref="Container"/>. If false, then we may get rendered with some other
+        /// <see cref="CompositeDrawable"/>. If false, then we may get rendered with some other
         /// shared vertex batch.
         /// </summary>
         public bool ForceOwnVertexBatch;
     }
 
     /// <summary>
-    /// A draw node responsible for rendering a <see cref="Container"/> and the
+    /// A draw node responsible for rendering a <see cref="CompositeDrawable"/> and the
     /// <see cref="DrawNode"/>s of its children.
     /// </summary>
-    public class ContainerDrawNode : DrawNode
+    public class CompositeDrawNode : DrawNode
     {
         /// <summary>
-        /// The <see cref="DrawNode"/>s of the children of our <see cref="Container"/>.
+        /// The <see cref="DrawNode"/>s of the children of our <see cref="CompositeDrawable"/>.
         /// </summary>
         public List<DrawNode> Children;
 
@@ -120,10 +120,10 @@ namespace osu.Framework.Graphics.Containers
         public EdgeEffectParameters EdgeEffect;
 
         /// <summary>
-        /// Shared data between all <see cref="ContainerDrawNode"/>s corresponding to the same
-        /// <see cref="Container"/>.
+        /// Shared data between all <see cref="CompositeDrawNode"/>s corresponding to the same
+        /// <see cref="CompositeDrawable"/>.
         /// </summary>
-        public ContainerDrawNodeSharedData Shared;
+        public CompositeDrawNodeSharedData Shared;
 
         /// <summary>
         /// The shader to be used for rendering the edge effect.

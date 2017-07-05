@@ -247,12 +247,12 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="ContainerBase"/>. Note that this does NOT imply that
+        /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
         /// <see cref="Parent"/> has been set.
         /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
         /// to alert the user of an invalid operation.
         /// </summary>
-        internal bool AddedToParentContainer;
+        internal bool IsPartOfComposite;
 
         private float depth;
 
@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                if (AddedToParentContainer)
+                if (IsPartOfComposite)
                     throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
 
                 depth = value;
@@ -1194,12 +1194,12 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
-        private ContainerBase parent;
+        private CompositeDrawable parent;
 
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        public ContainerBase Parent
+        public CompositeDrawable Parent
         {
             get { return parent; }
             internal set
@@ -1207,7 +1207,7 @@ namespace osu.Framework.Graphics
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
-                AddedToParentContainer = value != null;
+                IsPartOfComposite = value != null;
 
                 if (parent == value) return;
 

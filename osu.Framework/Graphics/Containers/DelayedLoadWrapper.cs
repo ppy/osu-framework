@@ -47,7 +47,7 @@ namespace osu.Framework.Graphics.Containers
         private bool checkScrollIntersection()
         {
             IOnScreenOptimisingContainer scroll = null;
-            ContainerBase cursor = this;
+            CompositeDrawable cursor = this;
             while (scroll == null && (cursor = cursor.Parent) != null)
                 scroll = cursor as IOnScreenOptimisingContainer;
 

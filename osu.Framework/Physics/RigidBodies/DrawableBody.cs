@@ -43,7 +43,7 @@ namespace osu.Framework.Physics.RigidBodies
             Vertices.Clear();
             Normals.Clear();
 
-            float cornerRadius = (drawable as ContainerBase)?.CornerRadius ?? 0;
+            float cornerRadius = (drawable as CompositeDrawable)?.CornerRadius ?? 0;
 
             // Sides
             RectangleF rect = drawable.DrawRectangle;

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : ContainerBase, IContainerEnumerable<T>, IContainerCollection<T>
+    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>
         where T : Drawable
     {
         /// <summary>
@@ -57,7 +57,7 @@ namespace osu.Framework.Graphics.Containers
         /// The content of this container. <see cref="Children"/> and all methods that mutate
         /// <see cref="Children"/> (e.g. <see cref="Add(T)"/> and <see cref="Remove(T)"/>) are
         /// forwarded to the content. By default a container's content is itself, in which case
-        /// <see cref="Children"/> refers to <see cref="ContainerBase.InternalChildren"/>.
+        /// <see cref="Children"/> refers to <see cref="CompositeDrawable.InternalChildren"/>.
         /// This property is useful for containers that require internal children that should
         /// not be exposed to the outside world, e.g. <see cref="ScrollContainer"/>.
         /// </summary>
@@ -65,7 +65,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The publicly accessible list of children. Forwards to the children of <see cref="Content"/>.
-        /// If <see cref="Content"/> is this container, then returns <see cref="ContainerBase.InternalChildren"/>.
+        /// If <see cref="Content"/> is this container, then returns <see cref="CompositeDrawable.InternalChildren"/>.
         /// Assigning to this property will dispose all existing children of this Container.
         /// </summary>
         public IReadOnlyList<T> Children

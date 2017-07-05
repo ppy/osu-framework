@@ -273,7 +273,7 @@ namespace osu.Framework.Graphics.Visualisation
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
             previewBox.ColourInfo = Target.ColourInfo;
 
-            int childCount = (Target as ContainerBase)?.InternalChildren.Count ?? 0;
+            int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 
             text.Text = Target + (!isExpanded && childCount > 0 ? $@" ({childCount} children)" : string.Empty);
             text.Colour = !isExpanded && childCount > 0 ? Color4.LightBlue : Color4.White;

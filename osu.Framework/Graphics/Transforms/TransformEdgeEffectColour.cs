@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Transforms
         public override void Apply(Drawable d)
         {
             base.Apply(d);
-            ContainerBase c = (ContainerBase)d;
+            CompositeDrawable c = (CompositeDrawable)d;
 
             EdgeEffectParameters e = c.EdgeEffect;
             e.Colour = CurrentValue;

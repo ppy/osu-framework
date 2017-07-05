@@ -23,20 +23,21 @@ using osu.Framework.Statistics;
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A drawable which can have children added to it. Transformations applied to
-    /// a container are also applied to its children.
-    /// Additionally, containers support various effects, such as masking, edge effect,
+    /// A drawable consisting of a composite of child drawables which are
+    /// manages by the composite object itself. Transformations applied to
+    /// a <see cref="CompositeDrawable"/> are also applied to its children.
+    /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public abstract class ContainerBase : Drawable
+    public abstract class CompositeDrawable : Drawable
     {
         #region Contruction and disposal
 
         /// <summary>
-        /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
+        /// Contructs a <see cref="CompositeDrawable"/> that stores its children in a given <see cref="LifetimeList{T}"/>.
         /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
         /// </summary>
-        protected ContainerBase(LifetimeList<Drawable> lifetimeList = null)
+        protected CompositeDrawable(LifetimeList<Drawable> lifetimeList = null)
         {
             internalChildren = lifetimeList ?? new LifetimeList<Drawable>(DepthComparer);
             internalChildren.Removed += obj =>
@@ -114,7 +115,7 @@ namespace osu.Framework.Graphics.Containers
         private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
-        /// This container's own list of children. Assigning to this property will dispose all existing internal children of this Container.
+        /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected internal IReadOnlyList<Drawable> InternalChildren
         {
@@ -124,7 +125,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Sets all internal children of this container to the elements contained in the enumerable.
+        /// Replaces all internal children of this <see cref="CompositeDrawable"/> with the elements contained in the enumerable.
         /// </summary>
         protected internal IEnumerable<Drawable> InternalChildrenEnumerable
         {
@@ -152,7 +153,7 @@ namespace osu.Framework.Graphics.Containers
         protected internal bool ContainsInternal(Drawable drawable) => IndexOfInternal(drawable) >= 0;
 
         /// <summary>
-        /// Removes a given child from this container's <see cref="InternalChildren"/>.
+        /// Removes a given child from this <see cref="InternalChildren"/>.
         /// </summary>
         protected internal void RemoveInternal(Drawable drawable)
         {
@@ -188,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
                 if (disposeChildren)
                 {
                     //cascade disposal
-                    (t as ContainerBase)?.ClearInternal();
+                    (t as CompositeDrawable)?.ClearInternal();
                     t.Dispose();
                 }
                 else
@@ -211,16 +212,16 @@ namespace osu.Framework.Graphics.Containers
         protected internal virtual void AddInternal(Drawable drawable)
         {
             if (drawable == null)
-                throw new ArgumentNullException(nameof(drawable), "null Drawables may not be added to Containers.");
+                throw new ArgumentNullException(nameof(drawable), $"null {nameof(Drawable)}s may not be added to {nameof(CompositeDrawable)}.");
 
             if (drawable == this)
-                throw new InvalidOperationException("Container may not be added to itself.");
+                throw new InvalidOperationException($"{nameof(CompositeDrawable)} may not be added to itself.");
 
             if (drawable.IsLoaded)
                 drawable.Parent = this;
 
             internalChildren.Add(drawable);
-            drawable.AddedToParentContainer = true;
+            drawable.IsPartOfComposite = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
@@ -237,14 +238,14 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Changes the depth of an internal child. This affects ordering of children within this container.
+        /// Changes the depth of an internal child. This affects ordering of <see cref="InternalChildren"/>.
         /// </summary>
         /// <param name="child">The child whose depth is to be changed.</param>
         /// <param name="newDepth">The new depth value to be set.</param>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
             if (!ContainsInternal(child))
-                throw new InvalidOperationException("Can not change depth of drawable which is not contained within this container.");
+                throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
             RemoveInternal(child);
             child.Depth = newDepth;
@@ -286,7 +287,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Specifies whether this Container requires an update of its children.
+        /// Specifies whether this <see cref="CompositeDrawable"/> requires an update of its children.
         /// If the return value is false, then children are not updated and
         /// <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
@@ -338,7 +339,7 @@ namespace osu.Framework.Graphics.Containers
         #region Invalidation
 
         /// <summary>
-        /// Informs this container that a child has been invalidated.
+        /// Informs this <see cref="CompositeDrawable"/> that a child has been invalidated.
         /// </summary>
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation)
@@ -391,14 +392,14 @@ namespace osu.Framework.Graphics.Containers
 
         #region DrawNode
 
-        private readonly ContainerDrawNodeSharedData containerDrawNodeSharedData = new ContainerDrawNodeSharedData();
+        private readonly CompositeDrawNodeSharedData compositeDrawNodeSharedData = new CompositeDrawNodeSharedData();
         private Shader shader;
 
-        protected override DrawNode CreateDrawNode() => new ContainerDrawNode();
+        protected override DrawNode CreateDrawNode() => new CompositeDrawNode();
 
         protected override void ApplyDrawNode(DrawNode node)
         {
-            ContainerDrawNode n = (ContainerDrawNode)node;
+            CompositeDrawNode n = (CompositeDrawNode)node;
 
             if (!Masking && (BorderThickness != 0.0f || EdgeEffect.Type != EdgeEffectType.None))
                 throw new InvalidOperationException("Can not have border effects/edge effects if masking is disabled.");
@@ -425,7 +426,7 @@ namespace osu.Framework.Graphics.Containers
             n.EdgeEffect = EdgeEffect;
 
             n.ScreenSpaceMaskingQuad = null;
-            n.Shared = containerDrawNodeSharedData;
+            n.Shared = compositeDrawNodeSharedData;
 
             n.Shader = shader;
 
@@ -437,17 +438,17 @@ namespace osu.Framework.Graphics.Containers
         private const int amount_children_required_for_masking_check = 2;
 
         /// <summary>
-        /// This function adds all children's DrawNodes to a target List, flattening the children of certain types
-        /// of container subtrees for optimization purposes.
+        /// This function adds all children's <see cref="DrawNode"/>s to a target List, flattening the children of certain types
+        /// of <see cref="CompositeDrawable"/> subtrees for optimization purposes.
         /// </summary>
         /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
         /// <param name="j">The running index into the target List.</param>
-        /// <param name="parentContainer">The container whose children's DrawNodes to add.</param>
+        /// <param name="parentComposite">The <see cref="CompositeDrawable"/> whose children's DrawNodes to add.</param>
         /// <param name="target">The target list to fill with DrawNodes.</param>
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
-        private static void addFromContainer(int treeIndex, ref int j, ContainerBase parentContainer, List<DrawNode> target, RectangleF maskingBounds)
+        private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, RectangleF maskingBounds)
         {
-            SortedList<Drawable> current = parentContainer.internalChildren.AliveItems;
+            SortedList<Drawable> current = parentComposite.internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -466,16 +467,16 @@ namespace osu.Framework.Graphics.Containers
                 if (!drawable.IsPresent)
                     continue;
 
-                ContainerBase container = drawable as ContainerBase;
-                if (container?.CanBeFlattened == true)
+                CompositeDrawable composite = drawable as CompositeDrawable;
+                if (composite?.CanBeFlattened == true)
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    container.IsMaskedAway = container.AliveInternalChildren.Count >= amount_children_required_for_masking_check &&
+                    composite.IsMaskedAway = composite.AliveInternalChildren.Count >= amount_children_required_for_masking_check &&
                                              !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
-                    if (!container.IsMaskedAway)
-                        addFromContainer(treeIndex, ref j, container, target, maskingBounds);
+                    if (!composite.IsMaskedAway)
+                        addFromComposite(treeIndex, ref j, composite, target, maskingBounds);
 
                     continue;
                 }
@@ -503,7 +504,7 @@ namespace osu.Framework.Graphics.Containers
             if (internalChildren.AliveItems.Count == 0 && CanBeFlattened)
                 return null;
 
-            ContainerDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as ContainerDrawNode;
+            CompositeDrawNode cNode = base.GenerateDrawNodeSubtree(treeIndex, bounds) as CompositeDrawNode;
             if (cNode == null)
                 return null;
 
@@ -521,7 +522,7 @@ namespace osu.Framework.Graphics.Containers
             List<DrawNode> target = cNode.Children;
 
             int j = 0;
-            addFromContainer(treeIndex, ref j, this, target, childBounds);
+            addFromComposite(treeIndex, ref j, this, target, childBounds);
 
             if (j < target.Count)
                 target.RemoveRange(j, target.Count - j);
@@ -641,7 +642,7 @@ namespace osu.Framework.Graphics.Containers
         private bool masking;
 
         /// <summary>
-        /// If enabled, only the portion of children that falls within this container's
+        /// If enabled, only the portion of children that falls within this <see cref="CompositeDrawable"/>'s
         /// shape is drawn to the screen.
         /// </summary>
         public bool Masking
@@ -745,7 +746,7 @@ namespace osu.Framework.Graphics.Containers
         private EdgeEffectParameters edgeEffect;
 
         /// <summary>
-        /// Determines an edge effect of this container.
+        /// Determines an edge effect of this <see cref="CompositeDrawable"/>.
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
@@ -824,9 +825,10 @@ namespace osu.Framework.Graphics.Containers
         public Vector2 ChildOffset => new Vector2(Padding.Left, Padding.Top);
 
         private Vector2 relativeChildSize = Vector2.One;
+
         /// <summary>
-        /// The size of the relative position/size coordinate space of children of this container.
-        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.One"/> in this container.
+        /// The size of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
+        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.One"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
         public Vector2 RelativeChildSize
         {
@@ -843,9 +845,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private Vector2 relativeChildOffset = Vector2.Zero;
+
         /// <summary>
-        /// The offset of the relative position/size coordinate space of children of this container.
-        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.Zero"/> in this container.
+        /// The offset of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
+        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.Zero"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
         public Vector2 RelativeChildOffset
         {
@@ -867,7 +870,7 @@ namespace osu.Framework.Graphics.Containers
         public Vector2 RelativeToAbsoluteFactor => Vector2.Divide(ChildSize, RelativeChildSize);
 
         /// <summary>
-        /// Tweens the <see cref="RelativeChildSize"/> of this container.
+        /// Tweens the <see cref="RelativeChildSize"/> of this <see cref="CompositeDrawable"/>.
         /// </summary>
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
@@ -878,7 +881,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Tweens the <see cref="RelativeChildOffset"/> of this container.
+        /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.
         /// </summary>
         /// <param name="newOffset">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
@@ -976,7 +979,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
-                    throw new InvalidOperationException("The width of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
                 base.Width = value;
             }
         }
@@ -993,7 +996,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
-                    throw new InvalidOperationException("The height of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
                 base.Height = value;
             }
         }
@@ -1012,7 +1015,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
-                    throw new InvalidOperationException("The Size of an AutoSizeContainer should only be manually set if it is relative to its parent.");
+                    throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
                 base.Size = value;
             }
         }
@@ -1104,7 +1107,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// A helper method for <see cref="TransformAutoSize"/> to change the size of auto size containers.
+        /// A helper method for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         /// <param name="newSize"></param>
         private void setBaseSize(Vector2 newSize)
@@ -1116,7 +1119,7 @@ namespace osu.Framework.Graphics.Containers
         #endregion
 
         /// <summary>
-        /// A special type of transform which can change the size of auto size containers.
+        /// A special type of transform which can change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// Used for <see cref="AutoSizeDuration"/>.
         /// </summary>
         private class TransformAutoSize : TransformVector
@@ -1125,7 +1128,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                var c = (ContainerBase)d;
+                var c = (CompositeDrawable)d;
                 c.setBaseSize(CurrentValue);
             }
         }
@@ -1148,7 +1151,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                var c = (ContainerBase)d;
+                var c = (CompositeDrawable)d;
                 c.RelativeChildSize = CurrentValue;
             }
         }
@@ -1171,7 +1174,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 base.Apply(d);
 
-                var c = (ContainerBase)d;
+                var c = (CompositeDrawable)d;
                 c.RelativeChildOffset = CurrentValue;
             }
         }
