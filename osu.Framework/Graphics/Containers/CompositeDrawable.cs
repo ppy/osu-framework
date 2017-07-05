@@ -574,7 +574,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        public void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectColour));
             TransformTo(() => EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
@@ -583,7 +583,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        public void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectAlpha));
             TransformTo(() => EdgeEffect.Colour, newColour, duration, easing, new TransformEdgeEffectColour());
@@ -648,7 +648,7 @@ namespace osu.Framework.Graphics.Containers
         public bool Masking
         {
             get { return masking; }
-            set
+            protected set
             {
                 if (masking == value)
                     return;
@@ -667,7 +667,7 @@ namespace osu.Framework.Graphics.Containers
         public float MaskingSmoothness
         {
             get { return maskingSmoothness; }
-            set
+            protected set
             {
                 //must be above zero to avoid a div-by-zero in the shader logic.
                 value = Math.Max(0.01f, value);
@@ -686,10 +686,10 @@ namespace osu.Framework.Graphics.Containers
         /// Determines how large of a radius is masked away around the corners.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual float CornerRadius
+        public float CornerRadius
         {
             get { return cornerRadius; }
-            set
+            protected set
             {
                 if (cornerRadius == value)
                     return;
@@ -714,7 +714,7 @@ namespace osu.Framework.Graphics.Containers
         public float BorderThickness
         {
             get { return borderThickness; }
-            set
+            protected set
             {
                 if (borderThickness == value)
                     return;
@@ -730,10 +730,10 @@ namespace osu.Framework.Graphics.Containers
         /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual SRGBColour BorderColour
+        public SRGBColour BorderColour
         {
             get { return borderColour; }
-            set
+            protected set
             {
                 if (borderColour.Equals(value))
                     return;
@@ -750,10 +750,10 @@ namespace osu.Framework.Graphics.Containers
         /// Edge effects are e.g. glow or a shadow.
         /// Only has an effect when <see cref="Masking"/> is true.
         /// </summary>
-        public virtual EdgeEffectParameters EdgeEffect
+        public EdgeEffectParameters EdgeEffect
         {
             get { return edgeEffect; }
-            set
+            protected set
             {
                 if (edgeEffect.Equals(value))
                     return;
@@ -797,10 +797,14 @@ namespace osu.Framework.Graphics.Containers
 
         private MarginPadding padding;
 
+        /// <summary>
+        /// Shrinks the space children may occupy within this <see cref="CompositeDrawable"/>
+        /// by the specified amount on each side.
+        /// </summary>
         public MarginPadding Padding
         {
             get { return padding; }
-            set
+            protected set
             {
                 if (padding.Equals(value)) return;
 
@@ -828,12 +832,12 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The size of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
-        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.One"/> in this <see cref="CompositeDrawable"/>.
+        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.One"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
         public Vector2 RelativeChildSize
         {
             get { return relativeChildSize; }
-            set
+            protected set
             {
                 if (relativeChildSize == value)
                     return;
@@ -848,12 +852,12 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The offset of the relative position/size coordinate space of children of this <see cref="CompositeDrawable"/>.
-        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="OpenTK.Vector2.Zero"/> in this <see cref="CompositeDrawable"/>.
+        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.Zero"/> in this <see cref="CompositeDrawable"/>.
         /// </summary>
         public Vector2 RelativeChildOffset
         {
             get { return relativeChildOffset; }
-            set
+            protected set
             {
                 if (relativeChildOffset == value)
                     return;
@@ -875,7 +879,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        public void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(() => RelativeChildSize, newSize, duration, easing, new TransformRelativeChildSize());
         }
@@ -886,7 +890,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newOffset">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        public void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             TransformTo(() => RelativeChildOffset, newOffset, duration, easing, new TransformRelativeChildOffset());
         }
@@ -913,10 +917,10 @@ namespace osu.Framework.Graphics.Containers
         /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
         /// on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
-        public virtual Axes AutoSizeAxes
+        public Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
-            set
+            protected set
             {
                 if (value == autoSizeAxes)
                     return;
@@ -939,7 +943,7 @@ namespace osu.Framework.Graphics.Containers
         public float AutoSizeDuration
         {
             get { return autoSizeDuration; }
-            set
+            protected set
             {
                 if (autoSizeDuration == value) return;
 
@@ -957,7 +961,7 @@ namespace osu.Framework.Graphics.Containers
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
         /// is non-zero.
         /// </summary>
-        public EasingTypes AutoSizeEasing;
+        public EasingTypes AutoSizeEasing { get; protected set; }
 
         /// <summary>
         /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
@@ -1117,6 +1121,47 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
+
+        private class TransformEdgeEffectAlpha : TransformFloat<Drawable>
+        {
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                CompositeDrawable c = (CompositeDrawable)d;
+
+                EdgeEffectParameters e = c.EdgeEffect;
+                e.Colour.Linear.A = CurrentValue;
+                c.EdgeEffect = e;
+            }
+        }
+
+        private class TransformEdgeEffectColour : Transform<Color4, Drawable>
+        {
+            /// <summary>
+            /// Current value of the transformed colour in linear colour space.
+            /// </summary>
+            public override Color4 CurrentValue
+            {
+                get
+                {
+                    double time = Time?.Current ?? 0;
+                    if (time < StartTime) return StartValue;
+                    if (time >= EndTime) return EndValue;
+
+                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
+                }
+            }
+
+            public override void Apply(Drawable d)
+            {
+                base.Apply(d);
+                CompositeDrawable c = (CompositeDrawable)d;
+
+                EdgeEffectParameters e = c.EdgeEffect;
+                e.Colour = CurrentValue;
+                c.EdgeEffect = e;
+            }
+        }
 
         /// <summary>
         /// A special type of transform which can change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.

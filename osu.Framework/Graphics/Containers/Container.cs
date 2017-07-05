@@ -7,6 +7,9 @@ using System;
 using osu.Framework.Allocation;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
+using OpenTK.Graphics;
+using osu.Framework.Graphics.Colour;
+using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -249,6 +252,163 @@ namespace osu.Framework.Graphics.Containers
             Remove(child);
             child.Depth = newDepth;
             Add(child);
+        }
+
+        /// <summary>
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// </summary>
+        public new void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) => base.FadeEdgeEffectTo(newAlpha, duration, easing);
+
+        /// <summary>
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// </summary>
+        public new void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) => base.FadeEdgeEffectTo(newColour, duration, easing);
+
+        /// <summary>
+        /// If enabled, only the portion of children that falls within this <see cref="Container"/>'s
+        /// shape is drawn to the screen.
+        /// </summary>
+        public new bool Masking
+        {
+            get { return base.Masking; }
+            set { base.Masking = value; }
+        }
+
+        /// <summary>
+        /// Determines over how many pixels the alpha component smoothly fades out.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public new float MaskingSmoothness
+        {
+            get { return base.MaskingSmoothness; }
+            set { base.MaskingSmoothness = value; }
+        }
+
+        /// <summary>
+        /// Determines how large of a radius is masked away around the corners.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public new float CornerRadius
+        {
+            get { return base.CornerRadius; }
+            set { base.CornerRadius = value; }
+        }
+
+        /// <summary>
+        /// Determines how thick of a border to draw around the inside of the masked region.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// The border only is drawn on top of children using a sprite shader.
+        /// </summary>
+        /// <remarks>
+        /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
+        /// borders are only drawn correctly on top of quad-shaped children using our sprite
+        /// shaders.
+        /// </remarks>
+        public new float BorderThickness
+        {
+            get { return base.BorderThickness; }
+            set { base.BorderThickness = value; }
+        }
+
+        /// <summary>
+        /// Determines the color of the border controlled by <see cref="BorderThickness"/>.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public new SRGBColour BorderColour
+        {
+            get { return base.BorderColour; }
+            set { base.BorderColour = value; }
+        }
+
+        /// <summary>
+        /// Determines an edge effect of this <see cref="Container"/>.
+        /// Edge effects are e.g. glow or a shadow.
+        /// Only has an effect when <see cref="Masking"/> is true.
+        /// </summary>
+        public new EdgeEffectParameters EdgeEffect
+        {
+            get { return base.EdgeEffect; }
+            set { base.EdgeEffect = value; }
+        }
+
+        /// <summary>
+        /// Shrinks the space children may occupy within this <see cref="Container"/>
+        /// by the specified amount on each side.
+        /// </summary>
+        public new MarginPadding Padding
+        {
+            get { return base.Padding; }
+            set { base.Padding = value; }
+        }
+
+        /// <summary>
+        /// The size of the relative position/size coordinate space of children of this <see cref="Container"/>.
+        /// Children positioned at this size will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.One"/> in this <see cref="Container"/>.
+        /// </summary>
+        public new Vector2 RelativeChildSize
+        {
+            get { return base.RelativeChildSize; }
+            set { base.RelativeChildSize = value; }
+        }
+
+        /// <summary>
+        /// The offset of the relative position/size coordinate space of children of this <see cref="Container"/>.
+        /// Children positioned at this offset will appear as if they were positioned at <see cref="Drawable.Position"/> = <see cref="Vector2.Zero"/> in this <see cref="Container"/>.
+        /// </summary>
+        public new Vector2 RelativeChildOffset
+        {
+            get { return base.RelativeChildOffset; }
+            set { base.RelativeChildOffset = value; }
+        }
+
+        /// <summary>
+        /// Tweens the <see cref="RelativeChildSize"/> of this <see cref="Container"/>.
+        /// </summary>
+        /// <param name="newSize">The coordinate space to tween to.</param>
+        /// <param name="duration">The tween duration.</param>
+        /// <param name="easing">The tween easing.</param>
+        public new void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformRelativeChildSizeTo(newSize, duration, easing);
+
+        /// <summary>
+        /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="Container"/>.
+        /// </summary>
+        /// <param name="newOffset">The coordinate space to tween to.</param>
+        /// <param name="duration">The tween duration.</param>
+        /// <param name="easing">The tween easing.</param>
+        public new void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformRelativeChildOffsetTo(newOffset, duration, easing);
+
+        /// <summary>
+        /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
+        /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> of children
+        /// do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
+        /// on any <see cref="Axes"/> which are automatically sized.
+        /// </summary>
+        public new Axes AutoSizeAxes
+        {
+            get { return base.AutoSizeAxes; }
+            set { base.AutoSizeAxes = value; }
+        }
+
+        /// <summary>
+        /// The duration which automatic sizing should take. If zero, then it is instantaneous.
+        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
+        /// </summary>
+        public new float AutoSizeDuration
+        {
+            get { return base.AutoSizeDuration; }
+            set { base.AutoSizeDuration = value; }
+        }
+
+        /// <summary>
+        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
+        /// is non-zero.
+        /// </summary>
+        public new EasingTypes AutoSizeEasing
+        {
+            get { return base.AutoSizeEasing; }
+            set { base.AutoSizeEasing = value; }
         }
     }
 }

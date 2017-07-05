@@ -117,7 +117,7 @@
     <Compile Include="Graphics\Animations\IAnimation.cs" />
     <Compile Include="Graphics\Animations\TextureAnimation.cs" />
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
-    <Compile Include="Graphics\Containers\ContainerBase.cs" />
+    <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\IBufferedContainer.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
@@ -186,8 +186,6 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Shapes\Triangle.cs" />
-    <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />
-    <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
