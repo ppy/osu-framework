@@ -235,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
             else
                 ClearInternal(disposeChildren);
         }
-        
+
         /// <summary>
         /// Changes the depth of a child. This affects ordering of children within this container.
         /// </summary>
