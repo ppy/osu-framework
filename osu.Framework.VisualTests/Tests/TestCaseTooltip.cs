@@ -60,13 +60,13 @@ namespace osu.Framework.VisualTests.Tests
                             Text = "with real time updates!",
                             Size = new Vector2(400, 30),
                         },
-                        new Container()
+                        new TooltipContainer()
                         {
+                            RelativeSizeAxes = Axes.None,
                             AutoSizeAxes = Axes.Both,
                             Children = new Drawable[]
                             {
                                 new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
-                                new TooltipContainer(),
                             }
                         },
                     },
