@@ -247,7 +247,7 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// Whether this drawable has been added to a parent <see cref="ContainerBase"/>. Note that this does NOT imply that
         /// <see cref="Parent"/> has been set.
         /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
         /// to alert the user of an invalid operation.

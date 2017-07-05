@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Containers
         /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
         /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
         /// </summary>
-        public ContainerBase(LifetimeList<Drawable> lifetimeList = null)
+        protected ContainerBase(LifetimeList<Drawable> lifetimeList = null)
         {
             internalChildren = lifetimeList ?? new LifetimeList<Drawable>(DepthComparer);
             internalChildren.Removed += obj =>
@@ -307,6 +307,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             var aliveChildren = internalChildren.AliveItems;
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveChildren.Count; ++i)
             {
                 Drawable c = aliveChildren[i];
@@ -612,6 +613,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             var aliveChildren = internalChildren.AliveItems;
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveChildren.Count; ++i)
                 aliveChildren[i].BuildKeyboardInputQueue(queue);
 
@@ -625,6 +627,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             var aliveChildren = internalChildren.AliveItems;
+            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveChildren.Count; ++i)
                 aliveChildren[i].BuildMouseInputQueue(screenSpaceMousePos, queue);
 

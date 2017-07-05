@@ -56,7 +56,7 @@ namespace osu.Framework.Physics
 
             foreach (Drawable d in container.InternalChildren)
                 toSimulate.Add(d);
-            toSimulate.Add((Drawable)container);
+            toSimulate.Add(container);
 
             // Read the new state from each drawable in question
             foreach (Drawable d in toSimulate)

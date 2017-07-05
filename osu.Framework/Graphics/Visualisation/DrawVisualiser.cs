@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
-                            Target = (Drawable)Target?.Parent;
+                            Target = Target?.Parent;
 
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
@@ -323,14 +323,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(InputState state)
         {
-            return findTargetIn(Parent?.Parent as Drawable, state);
+            return findTargetIn(Parent?.Parent, state);
         }
 
         protected override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
-                Target = (Drawable)findTarget(state)?.Parent;
+                Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {

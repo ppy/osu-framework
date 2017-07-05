@@ -592,7 +592,7 @@ namespace osu.Framework.Input
                     Drawable previousFocused = FocusedDrawable;
 
                     while (focusTarget?.AcceptsFocus == false)
-                        focusTarget = focusTarget.Parent as Drawable;
+                        focusTarget = focusTarget.Parent;
 
                     if (focusTarget != null && previousFocused != null)
                     {
@@ -600,7 +600,7 @@ namespace osu.Framework.Input
                         // now search upwards from previousFocused to check whether focusTarget is a common parent.
                         Drawable search = previousFocused;
                         while (search != null && search != focusTarget)
-                            search = search.Parent as Drawable;
+                            search = search.Parent;
 
                         if (focusTarget == search)
                             // we have a common parent, so let's keep focus on the previously focused target.
