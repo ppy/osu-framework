@@ -246,6 +246,14 @@ namespace osu.Framework.Graphics
 
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
+        /// <summary>
+        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
+        /// to alert the user of an invalid operation.
+        /// </summary>
+        internal bool AddedToParentContainer;
+
         private float depth;
 
         /// <summary>
@@ -259,9 +267,9 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
                 if (AddedToParentContainer)
-                    throw new InvalidOperationException("May not change depth while inside a parent container.");
+                    throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
+
                 depth = value;
             }
         }
@@ -1185,14 +1193,6 @@ namespace osu.Framework.Graphics
         #endregion
 
         #region Parenting (scene graph operations, including ProxyDrawable)
-
-        /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
-        /// <see cref="Parent"/> has been set.
-        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
-        /// to alert the user of an invalid operation.
-        /// </summary>
-        internal bool AddedToParentContainer;
 
         private IContainer parent;
 
