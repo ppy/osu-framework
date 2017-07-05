@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
@@ -62,7 +63,12 @@ namespace osu.Framework.Graphics.Cursor
 
             if (content != null)
             {
-                content.RelativeSizeAxes = RelativeSizeAxes;
+                // reset to none to prevent exceptions
+                content.RelativeSizeAxes = Axes.None;
+                content.AutoSizeAxes = Axes.None;
+
+                // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+                content.RelativeSizeAxes = RelativeSizeAxes | (Axes.Both & ~(RelativeSizeAxes | AutoSizeAxes));
                 content.AutoSizeAxes = AutoSizeAxes;
             }
         }
@@ -151,6 +157,8 @@ namespace osu.Framework.Graphics.Cursor
             currentlyDisplayed = null;
         }
 
+        private HashSet<Drawable> pathDrawables = new HashSet<Drawable>();
+        private HashSet<Drawable> nestedPathDrawables = new HashSet<Drawable>();
         private void updateTooltipVisibility(InputState state)
         {
             // Nothing to do if we're still hovering a tooltipped drawable
@@ -164,14 +172,36 @@ namespace osu.Framework.Graphics.Cursor
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                var tooltipTarget = inputManager.HoveredDrawables.Reverse()
-                    // Skip hovered drawables above this tooltip container
+                var targetCandidates = inputManager.HoveredDrawables.Reverse()
+                    // Skip hovered drawables below this tooltip container
                     .SkipWhile(d => d != this)
-                    .Skip(1)
-                    // Only handle drawables above any potentially nested tooltip container
-                    .TakeWhile(d => !(d is TooltipContainer))
-                    .OfType<IHasTooltip>()
-                    .FirstOrDefault();
+                    .Skip(1);
+
+                // keep track of all hovered drawables below this and nested containers
+                // so we can decide which are valid candidates for displaying a
+                // tooltip and so we know when we can abort our search.
+                pathDrawables.Clear();
+                pathDrawables.Add(this);
+                nestedPathDrawables.Clear();
+                IHasTooltip tooltipTarget = null;
+                foreach (var candidate in targetCandidates)
+                {
+                    if (!pathDrawables.Contains((Drawable)candidate.Parent))
+                        break;
+
+                    pathDrawables.Add((Drawable)candidate);
+
+                    var nestedTtc = candidate as TooltipContainer;
+                    if (nestedTtc != null || nestedPathDrawables.Contains((Drawable)candidate.Parent))
+                    {
+                        nestedPathDrawables.Add(nestedTtc ?? candidate);
+                        continue;
+                    }
+
+                    tooltipTarget = candidate as IHasTooltip;
+                    if (tooltipTarget != null)
+                        break;
+                }
 
                 if (tooltipTarget == null) return;
 
