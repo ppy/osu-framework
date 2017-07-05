@@ -36,7 +36,7 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual Tooltip CreateTooltip() => new Tooltip();
 
-        private Container content;
+        private readonly Container content;
         protected override Container<Drawable> Content => content;
 
         /// <summary>
@@ -157,8 +157,8 @@ namespace osu.Framework.Graphics.Cursor
             currentlyDisplayed = null;
         }
 
-        private HashSet<Drawable> pathDrawables = new HashSet<Drawable>();
-        private HashSet<Drawable> nestedPathDrawables = new HashSet<Drawable>();
+        private readonly HashSet<Drawable> pathDrawables = new HashSet<Drawable>();
+        private readonly HashSet<Drawable> nestedPathDrawables = new HashSet<Drawable>();
         private void updateTooltipVisibility(InputState state)
         {
             // Nothing to do if we're still hovering a tooltipped drawable
@@ -189,7 +189,7 @@ namespace osu.Framework.Graphics.Cursor
                     if (!pathDrawables.Contains((Drawable)candidate.Parent))
                         break;
 
-                    pathDrawables.Add((Drawable)candidate);
+                    pathDrawables.Add(candidate);
 
                     var nestedTtc = candidate as TooltipContainer;
                     if (nestedTtc != null || nestedPathDrawables.Contains((Drawable)candidate.Parent))
