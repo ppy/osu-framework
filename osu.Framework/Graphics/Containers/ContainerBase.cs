@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class ContainerBase : Drawable
+    public abstract class ContainerBase : Drawable
     {
         #region Contruction and disposal
 
