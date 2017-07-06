@@ -14,10 +14,15 @@ using System;
 
 namespace osu.Framework.Graphics.Cursor
 {
+    /// <summary>
+    /// Displays Tooltips for all its children that inherit from the <see cref="IHasTooltip"/> or <see cref="IHasCustomTooltip"/> interfaces.
+    /// </summary>
     public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>
     {
         private readonly CursorContainer cursorContainer;
-        private readonly Tooltip tooltip;
+        private readonly ITooltip defaultTooltip;
+
+        private ITooltip currentTooltip;
 
         private ScheduledDelegate findTooltipTask;
         private UserInputManager inputManager;
@@ -32,7 +37,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new tooltip. Can be overridden to supply custom subclass of <see cref="Tooltip"/>.
         /// </summary>
-        protected virtual Tooltip CreateTooltip() => new Tooltip();
+        protected virtual ITooltip CreateTooltip() => new Tooltip();
 
         private readonly Container content;
         protected override Container<Drawable> Content => content;
@@ -50,7 +55,8 @@ namespace osu.Framework.Graphics.Cursor
             {
                 RelativeSizeAxes = Axes.Both,
             });
-            AddInternal(tooltip = CreateTooltip());
+            AddInternal((Drawable)(currentTooltip = CreateTooltip()));
+            defaultTooltip = currentTooltip;
         }
 
         protected override void OnSizingChanged()
@@ -103,29 +109,39 @@ namespace osu.Framework.Graphics.Cursor
             Vector2 tooltipPos = cursorCentre + southEast * boundingRadius;
 
             // Clamp position to tooltip container
-            tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - tooltip.DrawWidth - 5);
+            tooltipPos.X = Math.Min(tooltipPos.X, DrawWidth - currentTooltip.DrawSize.X - 5);
             float dX = Math.Max(0, tooltipPos.X - cursorCentre.X);
             float dY = (float)Math.Sqrt(boundingRadius * boundingRadius - dX * dX);
 
-            if (tooltipPos.Y > DrawHeight - tooltip.DrawHeight - 5)
-                tooltipPos.Y = cursorCentre.Y - dY - tooltip.DrawHeight;
+            if (tooltipPos.Y > DrawHeight - currentTooltip.DrawSize.Y - 5)
+                tooltipPos.Y = cursorCentre.Y - dY - currentTooltip.DrawSize.Y;
             else
                 tooltipPos.Y = cursorCentre.Y + dY;
 
             return tooltipPos;
         }
 
+        /// <summary>
+        /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position, updates its <see cref="ITooltip.TooltipText"/> and calls its <see cref="ITooltip.Refresh"/> method.
+        /// </summary>
+        /// <param name="tooltip">The tooltip that is refreshed.</param>
+        /// <param name="tooltipTarget">The target of the tooltip.</param>
+        protected virtual void RefreshTooltip(ITooltip tooltip, IHasTooltip tooltipTarget)
+        {
+            if (tooltipTarget != null)
+            {
+                tooltip.TooltipText = tooltipTarget.TooltipText;
+                tooltip.Refresh();
+            }
+
+            tooltip.Move(computeTooltipPosition());
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
-            if (!tooltip.IsPresent)
-                return;
-
-            if (currentlyDisplayed != null)
-                tooltip.TooltipText = currentlyDisplayed.TooltipText;
-
-            tooltip.Move(computeTooltipPosition());
+            RefreshTooltip(currentTooltip, currentlyDisplayed);
         }
 
         protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
@@ -149,18 +165,22 @@ namespace osu.Framework.Graphics.Cursor
 
         private void hideTooltip()
         {
-            tooltip.Hide();
+            currentTooltip.Hide();
             currentlyDisplayed = null;
         }
 
+        /// <summary>
+        /// Returns true if the currently visible tooltip should be hidden, false otherwise. By default, returns true if the target of the tooltip is neither hovered nor dragged.
+        /// </summary>
+        /// <param name="tooltipTarget">The target of the tooltip.</param>
+        /// <param name="state">The input state.</param>
+        /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
+        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget, InputState state) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+
         private void updateTooltipVisibility(InputState state)
         {
-            // Nothing to do if we're still hovering a tooltipped drawable
-            if (currentlyDisplayed?.Hovering == true)
-                return;
-
             // Hide if we stopped hovering and do not have any button pressed.
-            if (currentlyDisplayed != null && !state.Mouse.HasMainButtonPressed)
+            if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed, state))
                 hideTooltip();
 
             findTooltipTask?.Cancel();
@@ -170,13 +190,23 @@ namespace osu.Framework.Graphics.Cursor
                 if (target != null)
                 {
                     currentlyDisplayed = target;
-                    tooltip.Show();
+
+                    RemoveInternal((Drawable)currentTooltip);
+                    currentTooltip = getTooltip(target);
+                    AddInternal((Drawable)currentTooltip);
+
+                    currentTooltip.Show();
                 }
 
-            }, (1 - tooltip.Alpha) * AppearDelay);
+            }, (1 - currentTooltip.Alpha) * AppearDelay);
         }
 
-        public class Tooltip : OverlayContainer
+        private ITooltip getTooltip(IHasTooltip target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
+
+        /// <summary>
+        /// The default tooltip. Simply displays its text on a gray background and performs no easing.
+        /// </summary>
+        public class Tooltip : OverlayContainer, ITooltip
         {
             private readonly SpriteText text;
 
@@ -195,6 +225,9 @@ namespace osu.Framework.Graphics.Cursor
 
             private const float text_size = 16;
 
+            /// <summary>
+            /// Constructs a new tooltip that starts out invisible.
+            /// </summary>
             public Tooltip()
             {
                 Alpha = 0;
@@ -214,6 +247,8 @@ namespace osu.Framework.Graphics.Cursor
                     }
                 };
             }
+
+            public virtual void Refresh() { }
 
             /// <summary>
             /// Called whenever the tooltip appears. When overriding do not forget to fade in.
