@@ -60,15 +60,40 @@ namespace osu.Framework.VisualTests.Tests
                             Text = "with real time updates!",
                             Size = new Vector2(400, 30),
                         },
-                        new TooltipContainer()
+                        new TooltipContainer
                         {
                             RelativeSizeAxes = Axes.None,
                             AutoSizeAxes = Axes.Both,
-                            Children = new Drawable[]
-                            {
-                                new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
-                            }
+                            Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
                         },
+                        new TooltipTooltipContainer("This tooltip container has a tooltip itself!")
+                        {
+                            RelativeSizeAxes = Axes.None,
+                            AutoSizeAxes = Axes.Both,
+                            Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
+                        },
+                        new Container
+                        {
+                            Child = new FillFlowContainer
+                            {
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(0, 8),
+                                Children = new[]
+                                {
+                                    new Container
+                                    {
+                                        Child = new Container
+                                        {
+                                            Child = new TooltipSpriteText("Tooltip within containers with zero size; i.e. parent is never hovered."),
+                                        }
+                                    },
+                                    new Container
+                                    {
+                                        Child = new TooltipSpriteText("Other tooltip within containers with zero size; different nesting; overlap."),
+                                    }
+                                }
+                            }
+                        }
                     },
                 }
             });
@@ -107,6 +132,16 @@ namespace osu.Framework.VisualTests.Tests
                         Text = tooltipText,
                     }
                 };
+            }
+        }
+
+        private class TooltipTooltipContainer : TooltipContainer, IHasTooltip
+        {
+            public string TooltipText { get; set; }
+
+            public TooltipTooltipContainer(string tooltipText)
+            {
+                TooltipText = tooltipText;
             }
         }
 
