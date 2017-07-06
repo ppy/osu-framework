@@ -105,6 +105,14 @@ namespace osu.Framework.Input
         /// </summary>
         public IReadOnlyList<Drawable> HoveredDrawables => hoveredDrawables;
 
+        /// <summary>
+        /// Contains all <see cref="Drawable"/>s in top-down order which are considered
+        /// for mouse input. This list is the same as <see cref="HoveredDrawables"/>, only
+        /// that the return value of <see cref="Drawable.OnHover(InputState)"/> is not taken
+        /// into account.
+        /// </summary>
+        public IReadOnlyList<Drawable> MouseInputQueue => mouseInputQueue;
+
         protected InputManager()
         {
             RelativeSizeAxes = Axes.Both;
