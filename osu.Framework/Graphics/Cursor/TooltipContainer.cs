@@ -172,12 +172,10 @@ namespace osu.Framework.Graphics.Cursor
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                var targetCandidates = inputManager.HoveredDrawables.Reverse()
-                    // Skip hovered drawables below this tooltip container
-                    .SkipWhile(d => d != this)
-                    .Skip(1);
+                // Skip all drawables in the hierarchy prior to (and including) ourself.
+                var targetCandidates = inputManager.HoveredDrawables.Reverse().SkipWhile(d => d != this).Skip(1);
 
-                // keep track of all hovered drawables below this and nested containers
+                // keep track of all hovered drawables below this and nested tooltip containers
                 // so we can decide which are valid candidates for displaying a
                 // tooltip and so we know when we can abort our search.
                 pathDrawables.Clear();
@@ -186,11 +184,17 @@ namespace osu.Framework.Graphics.Cursor
 
                 foreach (var candidate in targetCandidates)
                 {
+                    // Children of drawables we are responsible for transitively also fall into our subtree,
+                    // and therefore we need to handle them. If they are children of any drawables we handle,
+                    // it means that we iterated beyond our subtree and may terminate.
                     if (!pathDrawables.Contains(candidate.Parent))
                         break;
 
                     pathDrawables.Add(candidate);
 
+                    // Ignore drawables whose tooltips are managed by a nested tooltip container. Note, that
+                    // nested tooltip containers themselves could implement IHasTooltip and are still our
+                    // own responsibility to handle.
                     if (candidate.Parent is TooltipContainer || nestedPathDrawables.Contains(candidate.Parent))
                     {
                         nestedPathDrawables.Add(candidate);
@@ -200,6 +204,7 @@ namespace osu.Framework.Graphics.Cursor
                     IHasTooltip tooltipTarget = candidate as IHasTooltip;
                     if (tooltipTarget != null)
                     {
+                        // We found a valid tooltip target
                         currentlyDisplayed = tooltipTarget;
                         tooltip.Show();
                         return;
