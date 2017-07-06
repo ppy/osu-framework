@@ -160,6 +160,66 @@ namespace osu.Framework.Graphics.Cursor
         private readonly HashSet<IDrawable> childDrawables = new HashSet<IDrawable>();
         private readonly HashSet<IDrawable> nestedTtcChildDrawables = new HashSet<IDrawable>();
         private readonly List<IDrawable> newChildDrawables = new List<IDrawable>();
+        private readonly List<IHasTooltip> tooltippedChildren = new List<IHasTooltip>();
+
+        private void findTooltippedChildren()
+        {
+            // Skip all drawables in the hierarchy prior to (and including) ourself.
+            var targetCandidates = inputManager.HoveredDrawables.Reverse().SkipWhile(d => d != this).Skip(1);
+
+            // keep track of all hovered drawables below this and nested tooltip containers
+            // so we can decide which are valid candidates for displaying a tooltip and so
+            // we know when we can abort our search.
+            childDrawables.Clear();
+            childDrawables.Add(this);
+            nestedTtcChildDrawables.Clear();
+            tooltippedChildren.Clear();
+
+            foreach (var candidate in targetCandidates)
+            {
+                // Children of drawables we are responsible for transitively also fall into our subtree,
+                // and therefore we need to handle them. If they are not children of any drawables we handle,
+                // it means that we iterated beyond our subtree and may terminate.
+                IDrawable parent = candidate.Parent;
+
+                // We keep track of all drawables we found while traversing the parent chain upwards.
+                newChildDrawables.Clear();
+                newChildDrawables.Add(candidate);
+                // When we encounter a drawable we already encountered before, then there is no need
+                // to keep going upward, since we already recorded it previously. At that point we know
+                // the drawables we found are in fact children of ours.
+                while (!childDrawables.Contains(parent))
+                {
+                    // If we reach to the root node (i.e. parent == null), then we found a drawable
+                    // which is no longer a child of ours and we may terminate.
+                    if (parent == null)
+                        return;
+
+                    newChildDrawables.Add(parent);
+                    parent = parent.Parent;
+                }
+
+                // Assuming we did _not_ end up terminating, then all found drawables are children of ours
+                // and need to be added.
+                childDrawables.UnionWith(newChildDrawables);
+
+                // Keep track of child drawables whose tooltips are managed by a nested tooltip container.
+                // Note, that nested tooltip containers themselves could implement IHasTooltip and
+                // are still our own responsibility to handle.
+                nestedTtcChildDrawables.UnionWith(
+                    ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
+                    .SkipWhile(d => d.Parent == this || !(d.Parent is TooltipContainer) && !nestedTtcChildDrawables.Contains(d.Parent)));
+
+                // Ignore drawables whose tooltips are managed by a nested tooltip container.
+                if (nestedTtcChildDrawables.Contains(candidate))
+                    continue;
+
+                IHasTooltip tooltipTarget = candidate as IHasTooltip;
+                if (tooltipTarget != null)
+                    // We found a valid candidate; keep track of it
+                    tooltippedChildren.Add(tooltipTarget);
+            }
+        }
 
         private void updateTooltipVisibility(InputState state)
         {
@@ -174,63 +234,14 @@ namespace osu.Framework.Graphics.Cursor
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                // Skip all drawables in the hierarchy prior to (and including) ourself.
-                var targetCandidates = inputManager.HoveredDrawables.Reverse().SkipWhile(d => d != this).Skip(1);
+                findTooltippedChildren();
 
-                // keep track of all hovered drawables below this and nested tooltip containers
-                // so we can decide which are valid candidates for displaying a tooltip and so
-                // we know when we can abort our search.
-                childDrawables.Clear();
-                childDrawables.Add(this);
-                nestedTtcChildDrawables.Clear();
-
-                foreach (var candidate in targetCandidates)
+                // If we found any children with valid tooltips, pick the _last_ one as it
+                // represents the front-most drawn one.
+                if (tooltippedChildren.Count > 0)
                 {
-                    // Children of drawables we are responsible for transitively also fall into our subtree,
-                    // and therefore we need to handle them. If they are not children of any drawables we handle,
-                    // it means that we iterated beyond our subtree and may terminate.
-                    IDrawable parent = candidate.Parent;
-
-                    // We keep track of all drawables we found while traversing the parent chain upwards.
-                    newChildDrawables.Clear();
-                    newChildDrawables.Add(candidate);
-                    // When we encounter a drawable we already encountered before, then there is no need
-                    // to keep going upward, since we already recorded it previously. At that point we know
-                    // the drawables we found are in fact children of ours.
-                    while (!childDrawables.Contains(parent))
-                    {
-                        // If we reach to the root node (i.e. parent == null), then we found a drawable
-                        // which is no longer a child of ours and we may terminate.
-                        if (parent == null)
-                            return;
-
-                        newChildDrawables.Add(parent);
-                        parent = parent.Parent;
-                    }
-
-                    // Assuming we did _not_ end up terminating, then all found drawables are children of ours
-                    // and need to be added.
-                    childDrawables.UnionWith(newChildDrawables);
-
-                    // Keep track of child drawables whose tooltips are managed by a nested tooltip container.
-                    // Note, that nested tooltip containers themselves could implement IHasTooltip and
-                    // are still our own responsibility to handle.
-                    nestedTtcChildDrawables.UnionWith(
-                        ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
-                        .SkipWhile(d => d.Parent == this || !(d.Parent is TooltipContainer) && !nestedTtcChildDrawables.Contains(d.Parent)));
-
-                    // Ignore drawables whose tooltips are managed by a nested tooltip container.
-                    if (nestedTtcChildDrawables.Contains(candidate))
-                        continue;
-
-                    IHasTooltip tooltipTarget = candidate as IHasTooltip;
-                    if (tooltipTarget != null)
-                    {
-                        // We found a valid tooltip target
-                        currentlyDisplayed = tooltipTarget;
-                        tooltip.Show();
-                        return;
-                    }
+                    currentlyDisplayed = tooltippedChildren.Last();
+                    tooltip.Show();
                 }
 
             }, (1 - tooltip.Alpha) * AppearDelay);
