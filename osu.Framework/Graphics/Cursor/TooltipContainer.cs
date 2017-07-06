@@ -191,10 +191,9 @@ namespace osu.Framework.Graphics.Cursor
 
                     pathDrawables.Add(candidate);
 
-                    var nestedTtc = candidate as TooltipContainer;
-                    if (nestedTtc != null || nestedPathDrawables.Contains((Drawable)candidate.Parent))
+                    if (candidate.Parent is TooltipContainer || nestedPathDrawables.Contains(candidate.Parent))
                     {
-                        nestedPathDrawables.Add(nestedTtc ?? candidate);
+                        nestedPathDrawables.Add(candidate);
                         continue;
                     }
 
