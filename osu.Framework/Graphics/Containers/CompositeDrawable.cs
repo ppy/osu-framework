@@ -1096,8 +1096,11 @@ namespace osu.Framework.Graphics.Containers
 
             try
             {
-                if (!childrenSizeDependencies.EnsureValid())
-                    childrenSizeDependencies.Refresh(updateAutoSize);
+                if (!childrenSizeDependencies.IsValid)
+                {
+                    updateAutoSize();
+                    childrenSizeDependencies.Validate();
+                }
             }
             finally
             {

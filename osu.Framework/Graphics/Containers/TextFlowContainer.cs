@@ -112,7 +112,11 @@ namespace osu.Framework.Graphics.Containers
         {
             base.UpdateAfterChildren();
 
-            if (!layout.IsValid) layout.Refresh(computeLayout);
+            if (!layout.IsValid)
+            {
+                computeLayout();
+                layout.Validate();
+            }
         }
 
         /// <summary>

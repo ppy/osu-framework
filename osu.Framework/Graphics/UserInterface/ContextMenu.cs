@@ -64,6 +64,22 @@ namespace osu.Framework.Graphics.UserInterface
             Add(menu = CreateMenu());
         }
 
+        private float computeMenuWidth()
+        {
+            // The menu items cannot be both relative and auto-sized to fit the entire width of the menu so they (along with the menu)
+            // are defined to be relatively-sized on the x-axis. We need to define the size ourselves to give them a valid size.
+            float textWidth = 0;
+            float contentWidth = 0;
+
+            foreach (var item in Items)
+            {
+                textWidth = Math.Max(textWidth, item.TextDrawWidth);
+                contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
+            }
+
+            return textWidth + contentWidth;
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
@@ -71,25 +87,21 @@ namespace osu.Framework.Graphics.UserInterface
             {
                 // The menu items cannot be both relative and auto-sized to fit the entire width of the menu so they (along with the menu)
                 // are defined to be relatively-sized on the x-axis. We need to define the size ourselves to give them a valid size.
-                menuWidth.Refresh(() =>
+                float textWidth = 0;
+                float contentWidth = 0;
+
+                foreach (var item in Items)
                 {
-                    float textWidth = 0;
-                    float contentWidth = 0;
+                    textWidth = Math.Max(textWidth, item.TextDrawWidth);
+                    contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
+                }
 
-                    foreach (var item in Items)
-                    {
-                        textWidth = Math.Max(textWidth, item.TextDrawWidth);
-                        contentWidth = Math.Max(contentWidth, item.ContentDrawWidth);
-                    }
-
-                    return textWidth + contentWidth;
-                });
-
-                Width = menuWidth.Value;
+                Width = computeMenuWidth();
+                menuWidth.Validate();
             }
         }
 
-        private Cached<float> menuWidth = new Cached<float>();
+        private Cached menuWidth = new Cached();
 
         public override void InvalidateFromChild(Invalidation invalidation)
         {
