@@ -68,7 +68,7 @@ namespace osu.Framework.Graphics.Cursor
                 content.AutoSizeAxes = Axes.None;
 
                 // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
-                content.RelativeSizeAxes = RelativeSizeAxes | (Axes.Both & ~(RelativeSizeAxes | AutoSizeAxes));
+                content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
                 content.AutoSizeAxes = AutoSizeAxes;
             }
         }
