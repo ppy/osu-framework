@@ -226,24 +226,38 @@ namespace osu.Framework.Graphics.Containers
         protected IEnumerable<Drawable> AliveInternalChildren => internalChildren.AliveItems;
 
         /// <summary>
+        /// The index of a given child within <see cref="Children"/>.
+        /// </summary>
+        /// <returns>
+        /// If the child is found, its index. Otherwise, the negated index it would obtain
+        /// if it were added to <see cref="Children"/>.
+        /// </returns>
+        public int IndexOf(T drawable)
+        {
+            if (Content != this)
+                return Content.IndexOf(drawable);
+
+            return IndexOfInternal(drawable);
+        }
+
+        /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
         /// </summary>
         /// <returns>
         /// If the child is found, its index. Otherwise, the negated index it would obtain
         /// if it were added to <see cref="InternalChildren"/>.
         /// </returns>
-        public int IndexOf(T drawable)
-        {
-            return internalChildren.IndexOf(drawable);
-        }
+        public int IndexOfInternal(Drawable drawable) => internalChildren.IndexOf(drawable);
+
+        /// <summary>
+        /// Checks whether a given child is contained within <see cref="Children"/>.
+        /// </summary>
+        public bool Contains(T drawable) => IndexOf(drawable) >= 0;
 
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
-        public bool Contains(T drawable)
-        {
-            return IndexOf(drawable) >= 0;
-        }
+        public bool ContainsInternal(Drawable drawable) => IndexOfInternal(drawable) >= 0;
 
         /// <summary>
         /// Adds a child to this container. This amount to adding a child to <see cref="Content"/>'s
@@ -284,7 +298,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container's <see cref="InternalChildren"/>.
         /// </summary>
-        public void RemoveInternal(T drawable)
+        public void RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
@@ -428,6 +442,36 @@ namespace osu.Framework.Graphics.Containers
                 AddInternal(d);
         }
 
+        /// <summary>
+        /// Changes the depth of a child. This affects ordering of children within this container.
+        /// </summary>
+        /// <param name="child">The child whose depth is to be changed.</param>
+        /// <param name="newDepth">The new depth value to be set.</param>
+        public void ChangeChildDepth(T child, float newDepth)
+        {
+            if (!Contains(child))
+                throw new InvalidOperationException("Can not change depth of drawable which is not contained within this container.");
+
+            Remove(child);
+            child.Depth = newDepth;
+            Add(child);
+        }
+
+        /// <summary>
+        /// Changes the depth of an internal child. This affects ordering of children within this container.
+        /// </summary>
+        /// <param name="child">The child whose depth is to be changed.</param>
+        /// <param name="newDepth">The new depth value to be set.</param>
+        public void ChangeInternalChildDepth(Drawable child, float newDepth)
+        {
+            if (!ContainsInternal(child))
+                throw new InvalidOperationException("Can not change depth of drawable which is not contained within this container.");
+
+            RemoveInternal(child);
+            child.Depth = newDepth;
+            AddInternal(child);
+        }
+
         #endregion
 
         #region Updating (per-frame periodic)
@@ -530,7 +574,7 @@ namespace osu.Framework.Graphics.Containers
             // This way of looping turns out to be slightly faster than a foreach
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
-            List<Drawable> current = internalChildren;
+            SortedList<Drawable> current = internalChildren;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -618,7 +662,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="maskingBounds">The masking bounds. Children lying outside of them should be ignored.</param>
         private static void addFromContainer(int treeIndex, ref int j, Container<T> parentContainer, List<DrawNode> target, RectangleF maskingBounds)
         {
-            List<Drawable> current = parentContainer.internalChildren.AliveItems;
+            SortedList<Drawable> current = parentContainer.internalChildren.AliveItems;
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -1259,8 +1303,11 @@ namespace osu.Framework.Graphics.Containers
 
             try
             {
-                if (!childrenSizeDependencies.EnsureValid())
-                    childrenSizeDependencies.Refresh(updateAutoSize);
+                if (!childrenSizeDependencies.IsValid)
+                {
+                    updateAutoSize();
+                    childrenSizeDependencies.Validate();
+                }
             }
             finally
             {

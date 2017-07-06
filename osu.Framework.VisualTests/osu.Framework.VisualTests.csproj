@@ -60,6 +60,7 @@
     <Compile Include="Tests\TestCaseContextMenu.cs" />
     <Compile Include="Tests\TestCaseCoordinateSpaces.cs" />
     <Compile Include="Tests\TestCaseDrawablePath.cs" />
+    <Compile Include="Tests\TestCaseDynamicDepth.cs" />
     <Compile Include="Tests\TestCaseEffects.cs" />
     <Compile Include="Tests\TestCaseFillModes.cs" />
     <Compile Include="Tests\TestCaseFlow.cs" />
