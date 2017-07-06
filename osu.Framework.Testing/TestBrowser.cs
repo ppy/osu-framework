@@ -66,16 +66,14 @@ namespace osu.Framework.Testing
                         {
                             RelativeSizeAxes = Axes.Both,
                             ScrollbarOverlapsContent = false,
-                            Children = new[]
+                            RelativeMouseDrag = true,
+                            Child = leftFlowContainer = new FillFlowContainer<TestCaseButton>
                             {
-                                leftFlowContainer = new FillFlowContainer<TestCaseButton>
-                                {
-                                    Padding = new MarginPadding(3),
-                                    Direction = FillDirection.Vertical,
-                                    Spacing = new Vector2(0, 5),
-                                    AutoSizeAxes = Axes.Y,
-                                    RelativeSizeAxes = Axes.X,
-                                }
+                                Padding = new MarginPadding(3),
+                                Direction = FillDirection.Vertical,
+                                Spacing = new Vector2(0, 5),
+                                AutoSizeAxes = Axes.Y,
+                                RelativeSizeAxes = Axes.X,
                             }
                         }
                     }
@@ -84,31 +82,28 @@ namespace osu.Framework.Testing
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 200 },
-                    Children = new Drawable[]
+                    Child = compilingNotice = new Container
                     {
-                        compilingNotice = new Container
+                        Alpha = 0,
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Masking = true,
+                        Depth = float.MinValue,
+                        CornerRadius = 5,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
                         {
-                            Alpha = 0,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Masking = true,
-                            Depth = float.MinValue,
-                            CornerRadius = 5,
-                            AutoSizeAxes = Axes.Both,
-                            Children = new Drawable[]
+                            new Box
                             {
-                                new Box
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Colour = Color4.Black,
-                                },
-                                new SpriteText
-                                {
-                                    TextSize = 30,
-                                    Text = @"Compiling new version..."
-                                }
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Color4.Black,
                             },
-                        }
+                            new SpriteText
+                            {
+                                TextSize = 30,
+                                Text = @"Compiling new version..."
+                            }
+                        },
                     }
                 }
             };

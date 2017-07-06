@@ -43,26 +43,23 @@ namespace osu.Framework.Graphics.UserInterface
 
             AutoSizeAxes = Axes.Both;
 
-            Children = new Drawable[]
+            Child = new FillFlowContainer
             {
-                new FillFlowContainer
+                Direction = FillDirection.Horizontal,
+                AutoSizeAxes = Axes.Both,
+                Children = new Drawable[]
                 {
-                    Direction = FillDirection.Horizontal,
-                    AutoSizeAxes = Axes.Both,
-                    Children = new Drawable[]
+                    labelSpriteText = new SpriteText
                     {
-                        labelSpriteText = new SpriteText
+                        Padding = new MarginPadding
                         {
-                            Padding = new MarginPadding
-                            {
-                                Left = 10
-                            },
-                            Depth = float.MinValue
+                            Left = 10
                         },
-                        box = new Box
-                        {
-                            Size = new Vector2(20, 20),
-                        }
+                        Depth = float.MinValue
+                    },
+                    box = new Box
+                    {
+                        Size = new Vector2(20, 20),
                     }
                 }
             };

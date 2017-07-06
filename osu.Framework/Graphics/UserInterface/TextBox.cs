@@ -154,76 +154,80 @@ namespace osu.Framework.Graphics.UserInterface
 
         private string textAtLastLayout = string.Empty;
 
+        private void updateCursorAndLayout()
+        {
+            Placeholder.TextSize = CalculatedTextSize;
+
+            textUpdateScheduler.Update();
+
+            Vector2 cursorPos = Vector2.Zero;
+            if (text.Length > 0)
+                cursorPos.X = getPositionAt(selectionLeft);
+
+            float cursorPosEnd = getPositionAt(selectionEnd);
+
+            float cursorWidth = 2;
+
+            if (selectionLength > 0)
+                cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
+
+            float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
+
+            //we only want to reposition the view when the cursor reaches near the extremities.
+            if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
+            {
+                textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
+            }
+
+            textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
+
+            TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, EasingTypes.OutExpo);
+
+            if (HasFocus)
+            {
+                Caret.ClearTransforms();
+                Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
+                Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
+
+                if (selectionLength > 0)
+                {
+                    Caret.FadeTo(0.5f, 200, EasingTypes.Out);
+                    Caret.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
+                }
+                else
+                {
+                    Caret.FadeTo(0.7f, 200, EasingTypes.Out);
+                    Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
+                    Caret.Transforms.Add(new TransformAlpha
+                    {
+                        StartValue = 0.7f,
+                        EndValue = 0.4f,
+                        StartTime = Time.Current,
+                        EndTime = Time.Current + 500,
+                        Easing = EasingTypes.InOutSine,
+                        LoopCount = -1,
+                    });
+                }
+            }
+
+            if (textAtLastLayout != text)
+                Current.Value = text;
+            if (textAtLastLayout.Length == 0 || text.Length == 0)
+                Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
+
+            textAtLastLayout = text;
+        }
+
         protected override void UpdateAfterChildren()
         {
             base.UpdateAfterChildren();
 
             //have to run this after children flow
-            cursorAndLayout.Refresh(delegate
+            if (!cursorAndLayout.IsValid)
             {
-                Placeholder.TextSize = CalculatedTextSize;
-
-                textUpdateScheduler.Update();
-
-                Vector2 cursorPos = Vector2.Zero;
-                if (text.Length > 0)
-                    cursorPos.X = getPositionAt(selectionLeft);
-
-                float cursorPosEnd = getPositionAt(selectionEnd);
-
-                float cursorWidth = 2;
-
-                if (selectionLength > 0)
-                    cursorWidth = getPositionAt(selectionRight) - cursorPos.X;
-
-                float cursorRelativePositionAxesInBox = (cursorPosEnd - textContainerPosX) / DrawWidth;
-
-                //we only want to reposition the view when the cursor reaches near the extremities.
-                if (cursorRelativePositionAxesInBox < 0.1 || cursorRelativePositionAxesInBox > 0.9)
-                {
-                    textContainerPosX = cursorPosEnd - DrawWidth / 2 + LeftRightPadding * 2;
-                }
-
-                textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
-
-                TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, EasingTypes.OutExpo);
-
-                if (HasFocus)
-                {
-                    Caret.ClearTransforms();
-                    Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
-                    Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
-
-                    if (selectionLength > 0)
-                    {
-                        Caret.FadeTo(0.5f, 200, EasingTypes.Out);
-                        Caret.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
-                    }
-                    else
-                    {
-                        Caret.FadeTo(0.7f, 200, EasingTypes.Out);
-                        Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
-                        Caret.Transforms.Add(new TransformAlpha
-                        {
-                            StartValue = 0.7f,
-                            EndValue = 0.4f,
-                            StartTime = Time.Current,
-                            EndTime = Time.Current + 500,
-                            Easing = EasingTypes.InOutSine,
-                            LoopCount = -1,
-                        });
-                    }
-                }
-
-                if (textAtLastLayout != text)
-                    Current.Value = text;
-                if (textAtLastLayout.Length == 0 || text.Length == 0)
-                    Placeholder.FadeTo(text.Length == 0 ? 1 : 0, 200);
-
-                textAtLastLayout = text;
-
-                return cursorPos;
-            });
+                updateCursorAndLayout();
+                cursorAndLayout.Validate();
+            }
         }
 
         private float getPositionAt(int index)
@@ -261,7 +265,7 @@ namespace osu.Framework.Graphics.UserInterface
         private int selectionLeft => Math.Min(selectionStart, selectionEnd);
         private int selectionRight => Math.Max(selectionStart, selectionEnd);
 
-        private Cached<Vector2> cursorAndLayout = new Cached<Vector2>();
+        private Cached cursorAndLayout = new Cached();
 
         private void moveSelection(int offset, bool expand)
         {

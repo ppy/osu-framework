@@ -110,124 +110,121 @@ namespace osu.Framework.Graphics.Performance
                 if (monitor.Counters[i] != null)
                     hasCounters = true;
 
-            Children = new Drawable[]
+            Child = new Container
             {
-                new Container
+                AutoSizeAxes = Axes.Both,
+                Children = new[]
                 {
-                    AutoSizeAxes = Axes.Both,
-                    Children = new[]
+                    new Container
                     {
-                        new Container
+                        Origin = Anchor.TopRight,
+                        AutoSizeAxes = Axes.X,
+                        RelativeSizeAxes = Axes.Y,
+                        Children = new[]
                         {
-                            Origin = Anchor.TopRight,
-                            AutoSizeAxes = Axes.X,
-                            RelativeSizeAxes = Axes.Y,
-                            Children = new[]
+                            labelText = new SpriteText
                             {
-                                labelText = new SpriteText
-                                {
-                                    Text = Name,
-                                    Origin = Anchor.BottomCentre,
-                                    Anchor = Anchor.CentreLeft,
-                                    Rotation = -90,
-                                },
-                                !hasCounters
-                                    ? new Container { Width = 2 }
-                                    : new Container
-                                    {
-                                        Masking = true,
-                                        CornerRadius = 5,
-                                        AutoSizeAxes = Axes.X,
-                                        RelativeSizeAxes = Axes.Y,
-                                        Margin = new MarginPadding { Right = 2, Left = 2 },
-                                        Children = new Drawable[]
-                                        {
-                                            counterBarBackground = new Sprite
-                                            {
-                                                Texture = atlas.Add(1, HEIGHT),
-                                                RelativeSizeAxes = Axes.Both,
-                                                Size = new Vector2(1, 1),
-                                            },
-                                            new FillFlowContainer
-                                            {
-                                                Direction = FillDirection.Horizontal,
-                                                AutoSizeAxes = Axes.X,
-                                                RelativeSizeAxes = Axes.Y,
-                                                ChildrenEnumerable =
-                                                    from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
-                                                    where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
-                                                    select counterBars[t] = new CounterBar
-                                                    {
-                                                        Colour = getColour(t),
-                                                        Label = t.ToString(),
-                                                    },
-                                            },
-                                        }
-                                    }
-                            }
-                        },
-                        mainContainer = new Container
-                        {
-                            Size = new Vector2(WIDTH, HEIGHT),
-                            Children = new[]
-                            {
-                                timeBarsContainer = new Container
+                                Text = Name,
+                                Origin = Anchor.BottomCentre,
+                                Anchor = Anchor.CentreLeft,
+                                Rotation = -90,
+                            },
+                            !hasCounters
+                                ? new Container { Width = 2 }
+                                : new Container
                                 {
                                     Masking = true,
                                     CornerRadius = 5,
-                                    RelativeSizeAxes = Axes.Both,
-                                    Children = timeBars = new[]
+                                    AutoSizeAxes = Axes.X,
+                                    RelativeSizeAxes = Axes.Y,
+                                    Margin = new MarginPadding { Right = 2, Left = 2 },
+                                    Children = new Drawable[]
                                     {
-                                        new TimeBar(atlas),
-                                        new TimeBar(atlas),
-                                    },
-                                },
-                                fpsDisplay = new FpsDisplay(monitor.Clock)
-                                {
-                                    Anchor = Anchor.BottomRight,
-                                    Origin = Anchor.BottomRight,
-                                },
-                                overlayContainer = new Container
-                                {
-                                    RelativeSizeAxes = Axes.Both,
-                                    Alpha = 0,
-                                    Children = new[]
-                                    {
+                                        counterBarBackground = new Sprite
+                                        {
+                                            Texture = atlas.Add(1, HEIGHT),
+                                            RelativeSizeAxes = Axes.Both,
+                                            Size = new Vector2(1, 1),
+                                        },
                                         new FillFlowContainer
                                         {
-                                            Anchor = Anchor.TopRight,
-                                            Origin = Anchor.TopRight,
-                                            AutoSizeAxes = Axes.Both,
-                                            Spacing = new Vector2(5, 1),
-                                            Padding = new MarginPadding { Right = 5 },
+                                            Direction = FillDirection.Horizontal,
+                                            AutoSizeAxes = Axes.X,
+                                            RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
-                                                from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
-                                                where t < PerformanceCollectionType.AmountTypes
-                                                select legendMapping[(int)t] = new SpriteText
+                                                from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
+                                                where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
+                                                select counterBars[t] = new CounterBar
                                                 {
                                                     Colour = getColour(t),
-                                                    Text = t.ToString(),
-                                                    Alpha = 0
+                                                    Label = t.ToString(),
                                                 },
                                         },
-                                        new SpriteText
-                                        {
-                                            Padding = new MarginPadding { Left = 4 },
-                                            Text = $@"{visible_ms_range}ms"
-                                        },
-                                        new SpriteText
-                                        {
-                                            Padding = new MarginPadding { Left = 4 },
-                                            Text = @"0ms",
-                                            Anchor = Anchor.BottomLeft,
-                                            Origin = Anchor.BottomLeft
-                                        }
+                                    }
+                                }
+                        }
+                    },
+                    mainContainer = new Container
+                    {
+                        Size = new Vector2(WIDTH, HEIGHT),
+                        Children = new[]
+                        {
+                            timeBarsContainer = new Container
+                            {
+                                Masking = true,
+                                CornerRadius = 5,
+                                RelativeSizeAxes = Axes.Both,
+                                Children = timeBars = new[]
+                                {
+                                    new TimeBar(atlas),
+                                    new TimeBar(atlas),
+                                },
+                            },
+                            fpsDisplay = new FpsDisplay(monitor.Clock)
+                            {
+                                Anchor = Anchor.BottomRight,
+                                Origin = Anchor.BottomRight,
+                            },
+                            overlayContainer = new Container
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Alpha = 0,
+                                Children = new[]
+                                {
+                                    new FillFlowContainer
+                                    {
+                                        Anchor = Anchor.TopRight,
+                                        Origin = Anchor.TopRight,
+                                        AutoSizeAxes = Axes.Both,
+                                        Spacing = new Vector2(5, 1),
+                                        Padding = new MarginPadding { Right = 5 },
+                                        ChildrenEnumerable =
+                                            from PerformanceCollectionType t in Enum.GetValues(typeof(PerformanceCollectionType))
+                                            where t < PerformanceCollectionType.AmountTypes
+                                            select legendMapping[(int)t] = new SpriteText
+                                            {
+                                                Colour = getColour(t),
+                                                Text = t.ToString(),
+                                                Alpha = 0
+                                            },
+                                    },
+                                    new SpriteText
+                                    {
+                                        Padding = new MarginPadding { Left = 4 },
+                                        Text = $@"{visible_ms_range}ms"
+                                    },
+                                    new SpriteText
+                                    {
+                                        Padding = new MarginPadding { Left = 4 },
+                                        Text = @"0ms",
+                                        Anchor = Anchor.BottomLeft,
+                                        Origin = Anchor.BottomLeft
                                     }
                                 }
                             }
                         }
                     }
-                },
+                }
             };
 
             textureBufferStack = new BufferStack<byte>(timeBars.Length * WIDTH);
@@ -496,10 +493,7 @@ namespace osu.Framework.Graphics.Performance
             public TimeBar(TextureAtlas atlas)
             {
                 Size = new Vector2(WIDTH, HEIGHT);
-                Children = new[]
-                {
-                    Sprite = new Sprite()
-                };
+                Child = Sprite = new Sprite();
 
                 Sprite.Texture = atlas.Add(WIDTH, HEIGHT);
             }

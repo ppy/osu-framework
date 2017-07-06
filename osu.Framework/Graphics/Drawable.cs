@@ -246,6 +246,14 @@ namespace osu.Framework.Graphics
 
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
+        /// <summary>
+        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
+        /// to alert the user of an invalid operation.
+        /// </summary>
+        internal bool AddedToParentContainer;
+
         private float depth;
 
         /// <summary>
@@ -259,9 +267,9 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                // TODO: Consider automatically resorting the parents children instead of simply forbidding this.
                 if (AddedToParentContainer)
-                    throw new InvalidOperationException("May not change depth while inside a parent container.");
+                    throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
+
                 depth = value;
             }
         }
@@ -607,14 +615,12 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Cached<Vector2> drawSizeBacking = new Cached<Vector2>();
+        private Cached<Vector2> drawSizeBacking;
 
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.EnsureValid()
-            ? drawSizeBacking.Value
-            : drawSizeBacking.Refresh(() => applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -1220,14 +1226,6 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
-        /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
-        /// <see cref="Parent"/> has been set.
-        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
-        /// to alert the user of an invalid operation.
-        /// </summary>
-        internal bool AddedToParentContainer;
-
         private IContainer parent;
 
         /// <summary>
@@ -1298,69 +1296,103 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway;
 
-        private Cached<Quad> screenSpaceDrawQuadBacking = new Cached<Quad>();
+        private Cached<Quad> screenSpaceDrawQuadBacking;
 
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
 
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.EnsureValid()
-            ? screenSpaceDrawQuadBacking.Value
-            : screenSpaceDrawQuadBacking.Refresh(ComputeScreenSpaceDrawQuad);
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
 
 
-        private Cached<DrawInfo> drawInfoBacking = new Cached<DrawInfo>();
+        private Cached<DrawInfo> drawInfoBacking;
+
+        private DrawInfo computeDrawInfo()
+        {
+            DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
+
+            Vector2 pos = DrawPosition + AnchorPosition;
+            Vector2 drawScale = DrawScale;
+            BlendingMode localBlendingMode = BlendingMode;
+
+            if (Parent != null)
+            {
+                pos += Parent.ChildOffset;
+
+                if (localBlendingMode == BlendingMode.Inherit)
+                    localBlendingMode = Parent.BlendingMode;
+            }
+
+            di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
+            di.Blending = new BlendingInfo(localBlendingMode);
+
+            ColourInfo colour = alpha != 1 ? colourInfo.MultiplyAlpha(alpha) : colourInfo;
+
+            // No need for a Parent null check here, because null parents always have
+            // a single colour (white).
+            if (di.Colour.HasSingleColour)
+                di.Colour.ApplyChild(colour);
+            else
+            {
+                Debug.Assert(Parent != null,
+                    $"The {nameof(di)} of null parents should always have the single colour white, and therefore this branch should never be hit.");
+
+                // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
+                Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
+                Vector2 parentSize = Parent.DrawSize;
+
+                interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
+                interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
+                interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
+                interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+
+                di.Colour.ApplyChild(colour, interp);
+            }
+
+            return di;
+        }
 
         /// <summary>
         /// Contains a linear transformation, colour information, and blending information
         /// of this drawable.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.EnsureValid()
-            ? drawInfoBacking.Value
-            : drawInfoBacking.Refresh(delegate
-            {
-                DrawInfo di = Parent?.DrawInfo ?? new DrawInfo(null);
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
 
-                Vector2 pos = DrawPosition + AnchorPosition;
-                Vector2 drawScale = DrawScale;
-                BlendingMode localBlendingMode = BlendingMode;
 
-                if (Parent != null)
-                {
-                    pos += Parent.ChildOffset;
+        private Cached<Vector2> requiredParentSizeToFitBacking;
 
-                    if (localBlendingMode == BlendingMode.Inherit)
-                        localBlendingMode = Parent.BlendingMode;
-                }
+        private Vector2 computeRequiredParentSizeToFit()
+        {
+            // Auxilary variables required for the computation
+            Vector2 ap = AnchorPosition;
+            Vector2 rap = RelativeAnchorPosition;
 
-                di.ApplyTransform(pos, drawScale, Rotation, Shear, OriginPosition);
-                di.Blending = new BlendingInfo(localBlendingMode);
+            Vector2 ratio1 = new Vector2(
+                rap.X <= 0 ? 0 : 1 / rap.X,
+                rap.Y <= 0 ? 0 : 1 / rap.Y);
 
-                // We need an additional parent null check here, since the following block
-                // requires up-to-date matrices.
-                if (Parent == null)
-                    di.Colour = ColourInfo;
-                else if (di.Colour.HasSingleColour)
-                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha));
-                else
-                {
-                    // Cannot use ToParentSpace here, because ToParentSpace depends on DrawInfo to be completed
-                    Quad interp = Quad.FromRectangle(DrawRectangle) * (di.Matrix * Parent.DrawInfo.MatrixInverse);
-                    Vector2 parentSize = Parent.DrawSize;
+            Vector2 ratio2 = new Vector2(
+                rap.X >= 1 ? 0 : 1 / (1 - rap.X),
+                rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
 
-                    interp.TopLeft = Vector2.Divide(interp.TopLeft, parentSize);
-                    interp.TopRight = Vector2.Divide(interp.TopRight, parentSize);
-                    interp.BottomLeft = Vector2.Divide(interp.BottomLeft, parentSize);
-                    interp.BottomRight = Vector2.Divide(interp.BottomRight, parentSize);
+            RectangleF bbox = BoundingBox;
 
-                    di.Colour.ApplyChild(ColourInfo.MultiplyAlpha(alpha), interp);
-                }
+            // Compute the required size of the parent such that we fit in snugly when positioned
+            // at our relative anchor in the parent.
+            Vector2 topLeftOffset = ap - bbox.TopLeft;
+            Vector2 topLeftSize1 = topLeftOffset * ratio1;
+            Vector2 topLeftSize2 = -topLeftOffset * ratio2;
 
-                return di;
-            });
+            Vector2 bottomRightOffset = ap - bbox.BottomRight;
+            Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
+            Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
 
-        private Cached<Vector2> requiredParentSizeToFitBacking = new Cached<Vector2>();
+            // Expand bounds according to clipped offset
+            return Vector2.ComponentMax(
+                Vector2.ComponentMax(topLeftSize1, topLeftSize2),
+                Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
+        }
 
         /// <summary>
         /// Returns the size of the smallest axis aligned box in parent space which
@@ -1372,39 +1404,8 @@ namespace osu.Framework.Graphics
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.EnsureValid()
-            ? requiredParentSizeToFitBacking.Value
-            : requiredParentSizeToFitBacking.Refresh(() =>
-            {
-                // Auxilary variables required for the computation
-                Vector2 ap = AnchorPosition;
-                Vector2 rap = RelativeAnchorPosition;
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
 
-                Vector2 ratio1 = new Vector2(
-                    rap.X <= 0 ? 0 : 1 / rap.X,
-                    rap.Y <= 0 ? 0 : 1 / rap.Y);
-
-                Vector2 ratio2 = new Vector2(
-                    rap.X >= 1 ? 0 : 1 / (1 - rap.X),
-                    rap.Y >= 1 ? 0 : 1 / (1 - rap.Y));
-
-                RectangleF bbox = BoundingBox;
-
-                // Compute the required size of the parent such that we fit in snugly when positioned
-                // at our relative anchor in the parent.
-                Vector2 topLeftOffset = ap - bbox.TopLeft;
-                Vector2 topLeftSize1 = topLeftOffset * ratio1;
-                Vector2 topLeftSize2 = -topLeftOffset * ratio2;
-
-                Vector2 bottomRightOffset = ap - bbox.BottomRight;
-                Vector2 bottomRightSize1 = bottomRightOffset * ratio1;
-                Vector2 bottomRightSize2 = -bottomRightOffset * ratio2;
-
-                // Expand bounds according to clipped offset
-                return Vector2.ComponentMax(
-                    Vector2.ComponentMax(topLeftSize1, topLeftSize2),
-                    Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
-            });
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
         private long invalidationID;
@@ -1824,6 +1825,14 @@ namespace osu.Framework.Graphics
         public bool Hovering { get; internal set; }
 
         /// <summary>
+        /// Determines whether this drawable receives mouse input when the mouse is at the
+        /// given screen-space position.
+        /// </summary>
+        /// <param name="screenSpacePos">The screen-space position where input could be received.</param>
+        /// <returns>True iff input is received at the given screen-space position.</returns>
+        public virtual bool ReceiveMouseInputAt(Vector2 screenSpacePos) => Contains(screenSpacePos);
+
+        /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
         /// Mouse input events are only received when this function is true, or when the drawable
         /// is in focus.
@@ -1841,7 +1850,7 @@ namespace osu.Framework.Graphics
         /// taking into account whether this Drawable can receive input.
         /// </summary>
         /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && Contains(screenSpaceMousePos);
+        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && ReceiveMouseInputAt(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.

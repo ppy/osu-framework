@@ -261,14 +261,14 @@ namespace osu.Framework.Graphics.Primitives
         /// <param name="rect">The rectangle to test. </param>
         /// <filterpriority>1</filterpriority>
         public bool IntersectsWith(RectangleF rect) =>
-            rect.X < X + Width && X < rect.X + rect.Width && rect.Y < Y + Height && Y < rect.Y + rect.Height;
+            rect.X <= X + Width && X <= rect.X + rect.Width && rect.Y <= Y + Height && Y <= rect.Y + rect.Height;
 
         /// <summary>Determines if this rectangle intersects with rect.</summary>
         /// <returns>This method returns true if there is any intersection.</returns>
         /// <param name="rect">The rectangle to test. </param>
         /// <filterpriority>1</filterpriority>
         public bool IntersectsWith(RectangleI rect) =>
-            rect.X < X + Width && X < rect.X + rect.Width && rect.Y < Y + Height && Y < rect.Y + rect.Height;
+            rect.X <= X + Width && X <= rect.X + rect.Width && rect.Y <= Y + Height && Y <= rect.Y + rect.Height;
 
         /// <summary>Creates the smallest possible third rectangle that can contain both of two rectangles that form a union.</summary>
         /// <returns>A third <see cref="T:System.Drawing.RectangleF"></see> structure that contains both of the two rectangles that form the union.</returns>
