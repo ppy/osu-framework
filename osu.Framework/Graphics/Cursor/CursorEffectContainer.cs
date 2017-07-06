@@ -39,8 +39,8 @@ namespace osu.Framework.Graphics.Cursor
 
             childDrawables.Add(this);
 
-            // keep track of all hovered drawables below this and nested tooltip containers
-            // so we can decide which are valid candidates for displaying a tooltip and so
+            // keep track of all hovered drawables below this and nested effect containers
+            // so we can decide which ones are valid candidates for receiving our effect and so
             // we know when we can abort our search.
             foreach (var candidate in targetCandidates)
             {
@@ -70,21 +70,21 @@ namespace osu.Framework.Graphics.Cursor
                 // and need to be added.
                 childDrawables.UnionWith(newChildDrawables);
 
-                // Keep track of child drawables whose tooltips are managed by a nested tooltip container.
-                // Note, that nested tooltip containers themselves could implement TTarget and
+                // Keep track of child drawables whose effects are managed by a nested effect container.
+                // Note, that nested effect containers themselves could implement TTarget and
                 // are still our own responsibility to handle.
                 nestedTtcChildDrawables.UnionWith(
                     ((IEnumerable<IDrawable>)newChildDrawables).Reverse()
                     .SkipWhile(d => d.Parent == this || !(d.Parent is TSelf) && !nestedTtcChildDrawables.Contains(d.Parent)));
 
-                // Ignore drawables whose tooltips are managed by a nested tooltip container.
+                // Ignore drawables whose effects are managed by a nested effect container.
                 if (nestedTtcChildDrawables.Contains(candidate))
                     continue;
 
-                TTarget tooltipTarget = candidate as TTarget;
-                if (tooltipTarget != null && tooltipTarget.Hovering)
+                TTarget target = candidate as TTarget;
+                if (target != null && target.Hovering)
                     // We found a valid candidate; keep track of it
-                    targetChildren.Add(tooltipTarget);
+                    targetChildren.Add(target);
             }
         }
 
@@ -92,7 +92,7 @@ namespace osu.Framework.Graphics.Cursor
         {
             findTargetChildren();
 
-            // If we found any children with valid tooltips, pick the _last_ one as it
+            // If we found any valid effect targets, pick the _last_ one as it
             // represents the front-most drawn one.
             TTarget result = targetChildren.LastOrDefault();
 
