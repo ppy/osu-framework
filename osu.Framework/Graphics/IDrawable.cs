@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics
         bool IsDragged { get; }
 
         /// <summary>
-        /// Multiplicative alpha factor applied on top of <see cref="ColourInfo"/> and its existing
+        /// Multiplicative alpha factor applied on top of <see cref="Colour.ColourInfo"/> and its existing
         /// alpha channel(s).
         /// </summary>
         float Alpha { get; }
