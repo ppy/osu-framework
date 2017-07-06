@@ -11,8 +11,6 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {

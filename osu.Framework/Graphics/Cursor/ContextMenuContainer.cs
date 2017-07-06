@@ -3,11 +3,9 @@
 
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -34,8 +32,6 @@ namespace osu.Framework.Graphics.Cursor
         /// <summary>
         /// Creates a new <see cref="ContextMenuContainer"/>.
         /// </summary>
-        /// <param name="cursorContainer">The <see cref="CursorContainer"/> of which the <see cref="CursorContainer.ActiveCursor"/>
-        /// shall be used for positioning. The current mouse position is used if null is provided.</param>
         public ContextMenuContainer()
         {
             AddInternal(content = new Container
