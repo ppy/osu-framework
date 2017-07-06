@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Cursor
         private void findTooltippedChildren()
         {
             // Skip all drawables in the hierarchy prior to (and including) ourself.
-            var targetCandidates = inputManager.HoveredDrawables.Reverse().SkipWhile(d => d != this).Skip(1);
+            var targetCandidates = inputManager.MouseInputQueue.Reverse().SkipWhile(d => d != this).Skip(1);
 
             // keep track of all hovered drawables below this and nested tooltip containers
             // so we can decide which are valid candidates for displaying a tooltip and so
