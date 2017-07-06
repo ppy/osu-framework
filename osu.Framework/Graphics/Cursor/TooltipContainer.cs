@@ -142,25 +142,16 @@ namespace osu.Framework.Graphics.Cursor
             base.UpdateAfterChildren();
 
             RefreshTooltip(currentTooltip, currentlyDisplayed);
-        }
 
-        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
-        {
-            updateTooltipVisibility(state);
-            return base.OnMouseUp(state, args);
+            if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed))
+                hideTooltip();
+
         }
 
         protected override bool OnMouseMove(InputState state)
         {
             updateTooltipVisibility(state);
             return base.OnMouseMove(state);
-        }
-
-        protected override void OnHoverLost(InputState state)
-        {
-            if (!state.Mouse.HasMainButtonPressed)
-                hideTooltip();
-            base.OnHoverLost(state);
         }
 
         private void hideTooltip()
@@ -175,14 +166,10 @@ namespace osu.Framework.Graphics.Cursor
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <param name="state">The input state.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
-        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget, InputState state) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
+        protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
 
         private void updateTooltipVisibility(InputState state)
         {
-            // Hide if we stopped hovering and do not have any button pressed.
-            if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed, state))
-                hideTooltip();
-
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
