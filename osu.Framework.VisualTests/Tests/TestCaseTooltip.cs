@@ -69,7 +69,11 @@ namespace osu.Framework.VisualTests.Tests
                         new TooltipTooltipContainer("This tooltip container has a tooltip itself!")
                         {
                             AutoSizeAxes = Axes.Both,
-                            Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
+                            Child = new Container
+                            {
+                                AutoSizeAxes = Axes.Both,
+                                Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
+                            }
                         },
                         new Container
                         {
