@@ -150,7 +150,7 @@ namespace osu.Framework.Graphics.Cursor
 
         protected override bool OnMouseMove(InputState state)
         {
-            updateTooltipVisibility(state);
+            updateTooltipVisibility();
             return base.OnMouseMove(state);
         }
 
@@ -167,7 +167,7 @@ namespace osu.Framework.Graphics.Cursor
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
         protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
 
-        private void updateTooltipVisibility(InputState state)
+        private void updateTooltipVisibility()
         {
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
