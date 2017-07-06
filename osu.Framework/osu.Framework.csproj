@@ -119,6 +119,7 @@
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
     <Compile Include="Graphics\Effects\OutlineEffect.cs" />
+    <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
     <Compile Include="Graphics\Primitives\RectangleI.cs" />
     <Compile Include="Graphics\Primitives\Vector2I.cs" />
     <Compile Include="Graphics\Shapes\Circle.cs" />
