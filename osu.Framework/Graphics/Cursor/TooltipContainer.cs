@@ -213,7 +213,7 @@ namespace osu.Framework.Graphics.Cursor
                     continue;
 
                 IHasTooltip tooltipTarget = candidate as IHasTooltip;
-                if (tooltipTarget != null)
+                if (tooltipTarget != null && tooltipTarget.Hovering)
                     // We found a valid candidate; keep track of it
                     tooltippedChildren.Add(tooltipTarget);
             }
