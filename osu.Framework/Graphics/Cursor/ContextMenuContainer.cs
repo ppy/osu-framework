@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Cursor
     public class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
     {
         private readonly ContextMenu<ContextMenuItem> menu;
-        
+
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
 
