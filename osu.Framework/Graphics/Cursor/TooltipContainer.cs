@@ -183,7 +183,7 @@ namespace osu.Framework.Graphics.Cursor
                 pathDrawables.Clear();
                 pathDrawables.Add(this);
                 nestedPathDrawables.Clear();
-                IHasTooltip tooltipTarget = null;
+
                 foreach (var candidate in targetCandidates)
                 {
                     if (!pathDrawables.Contains(candidate.Parent))
@@ -197,15 +197,14 @@ namespace osu.Framework.Graphics.Cursor
                         continue;
                     }
 
-                    tooltipTarget = candidate as IHasTooltip;
+                    IHasTooltip tooltipTarget = candidate as IHasTooltip;
                     if (tooltipTarget != null)
-                        break;
+                    {
+                        currentlyDisplayed = tooltipTarget;
+                        tooltip.Show();
+                        return;
+                    }
                 }
-
-                if (tooltipTarget == null) return;
-
-                currentlyDisplayed = tooltipTarget;
-                tooltip.Show();
 
             }, (1 - tooltip.Alpha) * AppearDelay);
         }
