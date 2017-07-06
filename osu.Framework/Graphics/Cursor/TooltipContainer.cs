@@ -164,7 +164,6 @@ namespace osu.Framework.Graphics.Cursor
         /// Returns true if the currently visible tooltip should be hidden, false otherwise. By default, returns true if the target of the tooltip is neither hovered nor dragged.
         /// </summary>
         /// <param name="tooltipTarget">The target of the tooltip.</param>
-        /// <param name="state">The input state.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
         protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
 
