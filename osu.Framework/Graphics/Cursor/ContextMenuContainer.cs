@@ -3,11 +3,9 @@
 
 using OpenTK;
 using OpenTK.Input;
-using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -16,12 +14,10 @@ namespace osu.Framework.Graphics.Cursor
     /// If a right-click happens on a <see cref="Drawable"/> that implements <see cref="IHasContextMenu"/> and exists as a child of the same <see cref="InputManager"/> as this container,
     /// a <see cref="ContextMenu{TItem}"/> will be displayed with bottom-right origin at the right-clicked position.
     /// </summary>
-    public class ContextMenuContainer : Container
+    public class ContextMenuContainer : CursorEffectContainer<ContextMenuContainer, IHasContextMenu>
     {
-        private readonly CursorContainer cursorContainer;
         private readonly ContextMenu<ContextMenuItem> menu;
 
-        private UserInputManager inputManager;
         private IHasContextMenu menuTarget;
         private Vector2 relativeCursorPosition;
 
@@ -30,22 +26,35 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual ContextMenu<ContextMenuItem> CreateContextMenu() => new ContextMenu<ContextMenuItem>();
 
+        private readonly Container content;
+        protected override Container<Drawable> Content => content;
+
         /// <summary>
         /// Creates a new <see cref="ContextMenuContainer"/>.
         /// </summary>
-        /// <param name="cursorContainer">The <see cref="CursorContainer"/> of which the <see cref="CursorContainer.ActiveCursor"/>
-        /// shall be used for positioning. The current mouse position is used if null is provided.</param>
-        public ContextMenuContainer(CursorContainer cursorContainer = null)
+        public ContextMenuContainer()
         {
-            this.cursorContainer = cursorContainer;
-            RelativeSizeAxes = Axes.Both;
-            Add(menu = CreateContextMenu());
+            AddInternal(content = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+            AddInternal(menu = CreateContextMenu());
         }
 
-        [BackgroundDependencyLoader]
-        private void load(UserInputManager input)
+        protected override void OnSizingChanged()
         {
-            inputManager = input;
+            base.OnSizingChanged();
+
+            if (content != null)
+            {
+                // reset to none to prevent exceptions
+                content.RelativeSizeAxes = Axes.None;
+                content.AutoSizeAxes = Axes.None;
+
+                // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+                content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
+                content.AutoSizeAxes = AutoSizeAxes;
+            }
         }
 
         protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
@@ -53,7 +62,7 @@ namespace osu.Framework.Graphics.Cursor
             switch (args.Button)
             {
                 case MouseButton.Right:
-                    menuTarget = inputManager.HoveredDrawables.OfType<IHasContextMenu>().FirstOrDefault();
+                    menuTarget = FindTarget();
 
                     if (menuTarget == null)
                     {
@@ -64,7 +73,7 @@ namespace osu.Framework.Graphics.Cursor
 
                     menu.Items = menuTarget.ContextMenuItems;
 
-                    menu.Position = ToLocalSpace(cursorContainer?.ActiveCursor.ScreenSpaceDrawQuad.TopLeft ?? inputManager.CurrentState.Mouse.Position);
+                    menu.Position = state.Mouse.Position;
                     relativeCursorPosition = ToSpaceOfOtherDrawable(menu.Position, menuTarget);
                     menu.Open();
                     return true;

@@ -44,11 +44,18 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.Reset();
 
-            Add(makeBox(Anchor.TopLeft));
-            Add(makeBox(Anchor.TopRight));
-            Add(makeBox(Anchor.BottomLeft));
-            Add(makeBox(Anchor.BottomRight));
-            Add(movingBox = makeBox(Anchor.Centre));
+            Add(new ContextMenuContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new[]
+                {
+                    makeBox(Anchor.TopLeft),
+                    makeBox(Anchor.TopRight),
+                    makeBox(Anchor.BottomLeft),
+                    makeBox(Anchor.BottomRight),
+                    movingBox = makeBox(Anchor.Centre),
+                }
+            });
 
             movingBox.Transforms.Add(new TransformPosition
             {
@@ -86,8 +93,6 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
-
-            Add(new ContextMenuContainer());
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

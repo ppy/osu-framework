@@ -11,11 +11,10 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using System;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
-    public class TooltipContainer : Container
+    public class TooltipContainer : CursorEffectContainer<TooltipContainer, IHasTooltip>
     {
         private readonly CursorContainer cursorContainer;
         private readonly Tooltip tooltip;
@@ -35,6 +34,9 @@ namespace osu.Framework.Graphics.Cursor
         /// </summary>
         protected virtual Tooltip CreateTooltip() => new Tooltip();
 
+        private readonly Container content;
+        protected override Container<Drawable> Content => content;
+
         /// <summary>
         /// Creates a tooltip container where the tooltip is positioned at the bottom-right of
         /// the <see cref="CursorContainer.ActiveCursor"/> of the given <see cref="CursorContainer"/>.
@@ -44,9 +46,27 @@ namespace osu.Framework.Graphics.Cursor
         public TooltipContainer(CursorContainer cursorContainer = null)
         {
             this.cursorContainer = cursorContainer;
-            AlwaysPresent = true;
-            RelativeSizeAxes = Axes.Both;
-            Add(tooltip = CreateTooltip());
+            AddInternal(content = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+            AddInternal(tooltip = CreateTooltip());
+        }
+
+        protected override void OnSizingChanged()
+        {
+            base.OnSizingChanged();
+
+            if (content != null)
+            {
+                // reset to none to prevent exceptions
+                content.RelativeSizeAxes = Axes.None;
+                content.AutoSizeAxes = Axes.None;
+
+                // in addition to using this.RelativeSizeAxes, sets RelativeSizeAxes on every axis that is neither relative size nor auto size
+                content.RelativeSizeAxes = Axes.Both & ~AutoSizeAxes;
+                content.AutoSizeAxes = AutoSizeAxes;
+            }
         }
 
         [BackgroundDependencyLoader]
@@ -146,19 +166,12 @@ namespace osu.Framework.Graphics.Cursor
             findTooltipTask?.Cancel();
             findTooltipTask = Scheduler.AddDelayed(delegate
             {
-                var tooltipTarget = inputManager.HoveredDrawables
-                    // Skip hovered drawables above this tooltip container
-                    .SkipWhile(d => d != this)
-                    .Skip(1)
-                    // Only handle drawables above any potentially nested tooltip container
-                    .TakeWhile(d => !(d is TooltipContainer))
-                    .OfType<IHasTooltip>()
-                    .FirstOrDefault();
-
-                if (tooltipTarget == null) return;
-
-                currentlyDisplayed = tooltipTarget;
-                tooltip.Show();
+                IHasTooltip target = FindTarget();
+                if (target != null)
+                {
+                    currentlyDisplayed = target;
+                    tooltip.Show();
+                }
 
             }, (1 - tooltip.Alpha) * AppearDelay);
         }
