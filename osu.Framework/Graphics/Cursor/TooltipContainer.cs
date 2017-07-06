@@ -48,8 +48,6 @@ namespace osu.Framework.Graphics.Cursor
         public TooltipContainer(CursorContainer cursorContainer = null)
         {
             this.cursorContainer = cursorContainer;
-            AlwaysPresent = true;
-            RelativeSizeAxes = Axes.Both;
             AddInternal(content = new Container
             {
                 RelativeSizeAxes = Axes.Both,

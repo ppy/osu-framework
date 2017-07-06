@@ -46,6 +46,7 @@ namespace osu.Framework.VisualTests.Tests
             TooltipContainer ttc;
             testContainer.Add(ttc = new TooltipContainer(cursor)
             {
+                RelativeSizeAxes = Axes.Both,
                 Child = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.Both,
@@ -62,13 +63,11 @@ namespace osu.Framework.VisualTests.Tests
                         },
                         new TooltipContainer
                         {
-                            RelativeSizeAxes = Axes.None,
                             AutoSizeAxes = Axes.Both,
                             Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
                         },
                         new TooltipTooltipContainer("This tooltip container has a tooltip itself!")
                         {
-                            RelativeSizeAxes = Axes.None,
                             AutoSizeAxes = Axes.Both,
                             Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
                         },
