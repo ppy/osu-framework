@@ -1,17 +1,17 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Input;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.DebugUtils;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
@@ -19,11 +19,11 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics.Effects;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics
 {
@@ -1408,7 +1408,9 @@ namespace osu.Framework.Graphics
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-        private long invalidationID;
+
+        // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
+        private long invalidationID = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
@@ -1822,7 +1824,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
-        public bool Hovering { get; internal set; }
+        public bool IsHovered { get; internal set; }
+
+        /// <summary>
+        /// Whether this Drawable is currently being dragged.
+        /// </summary>
+        public bool IsDragged { get; internal set; }
 
         /// <summary>
         /// Determines whether this drawable receives mouse input when the mouse is at the
@@ -1844,13 +1851,6 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable can receive input, taking into account all optimizations and masking.
         /// </summary>
         public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
-
-        /// <summary>
-        /// Whether this Drawable is hovered by the given screen space mouse position,
-        /// taking into account whether this Drawable can receive input.
-        /// </summary>
-        /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && ReceiveMouseInputAt(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -1895,7 +1895,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!IsHovered(screenSpaceMousePos))
+            if (!CanReceiveInput || !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             queue.Add(this);
@@ -1982,19 +1982,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Hide sprite instantly.
         /// </summary>
-        /// <returns></returns>
-        public virtual void Hide()
-        {
-            FadeOut();
-        }
+        public virtual void Hide() => FadeOut();
 
         /// <summary>
         /// Show sprite instantly.
         /// </summary>
-        public virtual void Show()
-        {
-            FadeIn();
-        }
+        public virtual void Show() => FadeIn();
 
         #region Helpers
 
