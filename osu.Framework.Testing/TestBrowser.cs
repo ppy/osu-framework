@@ -41,10 +41,8 @@ namespace osu.Framework.Testing
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract))
                 TestTypes.Add(type);
 
-            TestTypes.Sort((a, b) => string.Compare(instantiateTest(a).Name, instantiateTest(b).Name, StringComparison.Ordinal));
+            TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
-
-        private TestCase instantiateTest(Type testType) => (TestCase)Activator.CreateInstance(testType);
 
         [BackgroundDependencyLoader]
         private void load(Storage storage)
@@ -185,8 +183,8 @@ namespace osu.Framework.Testing
 
             if (testType != null)
             {
-                testContentContainer.Add(CurrentTest = instantiateTest(testType));
-                CurrentTest.RunAllSteps(onCompletion);
+                testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
+                CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
             }
 
             updateButtons();
