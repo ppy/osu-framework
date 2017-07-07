@@ -47,57 +47,84 @@ namespace osu.Framework.VisualTests.Tests
             testContainer.Add(ttc = new TooltipContainer(cursor)
             {
                 RelativeSizeAxes = Axes.Both,
-                Child = new FillFlowContainer
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Direction = FillDirection.Vertical,
-                    Spacing = new Vector2(0, 10),
-                    Children = new Drawable[]
+                    new Container
                     {
-                        new TooltipSpriteText("this text has a tooltip!"),
-                        new TooltipSpriteText("this one too!"),
-                        new TooltipTextbox
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        AutoSizeAxes = Axes.Both,
+                        Children = new[]
                         {
-                            Text = "with real time updates!",
-                            Size = new Vector2(400, 30),
-                        },
-                        new TooltipContainer
+                            new TooltipBox
+                            {
+                                TooltipText = "Outer Tooltip",
+                                Colour = Color4.CornflowerBlue,
+                                Size = new Vector2(300, 300),
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre
+                            },
+                            new TooltipBox
+                            {
+                                TooltipText = "Inner Tooltip",
+                                Size = new Vector2(150, 150),
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre
+                            },
+                        }
+                    },
+                    new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(0, 10),
+                        Children = new Drawable[]
                         {
-                            AutoSizeAxes = Axes.Both,
-                            Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
-                        },
-                        new TooltipTooltipContainer("This tooltip container has a tooltip itself!")
-                        {
-                            AutoSizeAxes = Axes.Both,
-                            Child = new Container
+                            new TooltipSpriteText("this text has a tooltip!"),
+                            new TooltipSpriteText("this one too!"),
+                            new TooltipTextbox
+                            {
+                                Text = "with real time updates!",
+                                Size = new Vector2(400, 30),
+                            },
+                            new TooltipContainer
                             {
                                 AutoSizeAxes = Axes.Both,
-                                Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
-                            }
-                        },
-                        new Container
-                        {
-                            Child = new FillFlowContainer
+                                Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases!"),
+                            },
+                            new TooltipTooltipContainer("This tooltip container has a tooltip itself!")
                             {
-                                Direction = FillDirection.Vertical,
-                                Spacing = new Vector2(0, 8),
-                                Children = new[]
+                                AutoSizeAxes = Axes.Both,
+                                Child = new Container
                                 {
-                                    new Container
+                                    AutoSizeAxes = Axes.Both,
+                                    Child = new TooltipSpriteText("Nested tooltip; uses no cursor in all cases; parent TooltipContainer has a tooltip"),
+                                }
+                            },
+                            new Container
+                            {
+                                Child = new FillFlowContainer
+                                {
+                                    Direction = FillDirection.Vertical,
+                                    Spacing = new Vector2(0, 8),
+                                    Children = new[]
                                     {
-                                        Child = new Container
+                                        new Container
                                         {
-                                            Child = new TooltipSpriteText("Tooltip within containers with zero size; i.e. parent is never hovered."),
+                                            Child = new Container
+                                            {
+                                                Child = new TooltipSpriteText("Tooltip within containers with zero size; i.e. parent is never hovered."),
+                                            }
+                                        },
+                                        new Container
+                                        {
+                                            Child = new TooltipSpriteText("Other tooltip within containers with zero size; different nesting; overlap."),
                                         }
-                                    },
-                                    new Container
-                                    {
-                                        Child = new TooltipSpriteText("Other tooltip within containers with zero size; different nesting; overlap."),
                                     }
                                 }
                             }
-                        }
-                    },
+                        },
+                    }
                 }
             });
 
