@@ -15,14 +15,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Dynamically change depth of a child.";
 
-        private DepthBox red;
-        private DepthBox blue;
-        private DepthBox green;
-        private DepthBox purple;
-
-        private Container container;
-
-        private void addDepthSteps(DepthBox box)
+        private void addDepthSteps(DepthBox box, Container container)
         {
             AddStep($@"bring forward {box.Name}", () => container.ChangeChildDepth(box, box.Depth - 1));
             AddStep($@"send backward {box.Name}", () => container.ChangeChildDepth(box, box.Depth + 1));
@@ -30,6 +23,9 @@ namespace osu.Framework.VisualTests.Tests
 
         public TestCaseDynamicDepth()
         {
+            DepthBox red, blue, green, purple;
+            Container container;
+
             Add(new[]
             {
                 container = new Container()
@@ -47,10 +43,10 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            addDepthSteps(red);
-            addDepthSteps(blue);
-            addDepthSteps(green);
-            addDepthSteps(purple);
+            addDepthSteps(red, container);
+            addDepthSteps(blue, container);
+            addDepthSteps(green, container);
+            addDepthSteps(purple, container);
         }
 
         private class DepthBox : Container

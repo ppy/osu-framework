@@ -12,7 +12,7 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T>
+    public class DynamicClassCompiler
     {
         public Action CompilationStarted;
 

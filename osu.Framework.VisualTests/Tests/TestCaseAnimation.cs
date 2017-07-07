@@ -15,12 +15,12 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseAnimation : TestCase
     {
-        private DrawableAnimation drawableAnimation;
-
         public override string Description => "Various frame-based animations";
 
         public TestCaseAnimation()
         {
+            DrawableAnimation drawableAnimation;
+
             Add(new Container
             {
                 Position = new Vector2(10f, 10f),

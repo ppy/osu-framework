@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tooltip that shows when hovering a drawable";
 
-        private Container testContainer;
+        private readonly Container testContainer;
 
         public TestCaseTooltip()
         {

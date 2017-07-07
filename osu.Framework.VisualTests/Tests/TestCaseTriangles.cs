@@ -15,7 +15,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Various scenarios which potentially challenge triangles.";
 
-        private Container testContainer;
+        private readonly Container testContainer;
 
         public TestCaseTriangles()
         {

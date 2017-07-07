@@ -13,7 +13,7 @@ namespace osu.Framework.Testing
     /// </summary>
     public abstract class GridTestCase : TestCase
     {
-        private FillFlowContainer<Container> testContainer;
+        private readonly FillFlowContainer<Container> testContainer;
 
         /// <summary>
         /// The amount of rows of the grid.

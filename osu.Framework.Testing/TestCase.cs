@@ -18,9 +18,8 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        public FillFlowContainer<StepButton> StepsContainer;
-
-        private Container content;
+        public readonly FillFlowContainer<StepButton> StepsContainer;
+        private readonly Container content;
 
         protected override Container<Drawable> Content => content;
 

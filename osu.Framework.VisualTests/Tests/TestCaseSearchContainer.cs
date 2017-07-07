@@ -16,10 +16,9 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tests the SearchContainer";
 
-        private SearchContainer<HeaderContainer> search;
-
         public TestCaseSearchContainer()
         {
+            SearchContainer<HeaderContainer> search;
             TextBox textBox;
 
             Children = new Drawable[] {

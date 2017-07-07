@@ -32,7 +32,7 @@ namespace osu.Framework.Testing
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestCase> backgroundCompiler;
+        private DynamicClassCompiler backgroundCompiler;
 
         public TestBrowser()
         {
@@ -111,7 +111,7 @@ namespace osu.Framework.Testing
             //Add buttons for each TestCase.
             leftFlowContainer.Add(TestTypes.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
-            backgroundCompiler = new DynamicClassCompiler<TestCase>()
+            backgroundCompiler = new DynamicClassCompiler()
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,

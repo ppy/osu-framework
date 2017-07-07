@@ -63,7 +63,7 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Description => @"Test sprite display and fill modes";
 
-        private Sprite sprite;
+        private readonly Sprite sprite;
 
         [BackgroundDependencyLoader]
         private void load(TextureStore store)
