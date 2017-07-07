@@ -1,16 +1,17 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using OpenTK;
+using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Handlers;
-using OpenTK;
-using OpenTK.Input;
 using osu.Framework.Platform;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace osu.Framework.Input
 {
@@ -389,7 +390,7 @@ namespace osu.Framework.Input
                 hoveredDrawables.Add(d);
 
                 // Don't need to re-hover those that are already hovered
-                if (d.Hovering)
+                if (d.IsHovered)
                 {
                     // Check if this drawable previously handled hover, and assume it would once more
                     if (d == lastHoverHandledDrawable)
@@ -401,7 +402,7 @@ namespace osu.Framework.Input
                     continue;
                 }
 
-                d.Hovering = true;
+                d.IsHovered = true;
                 if (d.TriggerOnHover(state))
                 {
                     hoverHandledDrawable = d;
@@ -412,7 +413,7 @@ namespace osu.Framework.Input
             // Unhover all previously hovered drawables which are no longer hovered.
             foreach (Drawable d in lastHoveredDrawables.Except(hoveredDrawables))
             {
-                d.Hovering = false;
+                d.IsHovered = false;
                 d.TriggerOnHoverLost(state);
             }
         }
@@ -588,7 +589,7 @@ namespace osu.Framework.Input
 
             // click pass, triggering an OnClick on all drawables up to the first which returns true.
             // an extra IsHovered check is performed because we are using an outdated queue (for valid reasons which we need to document).
-            var clickedDrawable = intersectingQueue.FirstOrDefault(t => t.IsHovered(state.Mouse.Position) && t.TriggerOnClick(state));
+            var clickedDrawable = intersectingQueue.FirstOrDefault(t => t.CanReceiveInput && t.ReceiveMouseInputAt(state.Mouse.Position) && t.TriggerOnClick(state));
 
             if (clickedDrawable != null)
             {
@@ -634,7 +635,10 @@ namespace osu.Framework.Input
 
         private bool handleMouseDragStart(InputState state)
         {
+            Trace.Assert(draggingDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
             draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
+            if (draggingDrawable != null)
+                draggingDrawable.IsDragged = true;
             return draggingDrawable != null;
         }
 
@@ -644,6 +648,7 @@ namespace osu.Framework.Input
                 return false;
 
             bool result = draggingDrawable.TriggerOnDragEnd(state);
+            draggingDrawable.IsDragged = false;
             draggingDrawable = null;
 
             return result;
