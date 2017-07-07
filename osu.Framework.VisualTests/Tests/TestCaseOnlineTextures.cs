@@ -20,10 +20,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private const int panel_count = 2048;
 
-        public override void Reset()
+        public TestCaseOnlineTextures()
         {
-            base.Reset();
-
             Children = new Drawable[]
             {
                 scroll = new ScrollContainer

@@ -18,21 +18,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCaseInputResampler() : base(3, 3)
         {
-        }
-
-        private SpriteText createLabel(string text) => new SpriteText
-        {
-            Text = text,
-            TextSize = 14,
-            Colour = Color4.White,
-        };
-
-        public override string Description => @"Live optimizing paths to relevant nodes.";
-
-        public override void Reset()
-        {
-            base.Reset();
-
             const int width = 2;
             Texture gradientTexture = new Texture(width, 1, true);
             byte[] data = new byte[width * 4];
@@ -126,6 +111,15 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
         }
+
+        private SpriteText createLabel(string text) => new SpriteText
+        {
+            Text = text,
+            TextSize = 14,
+            Colour = Color4.White,
+        };
+
+        public override string Description => @"Live optimizing paths to relevant nodes.";
 
         private class SmoothedPath : Path
         {

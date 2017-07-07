@@ -28,10 +28,8 @@ namespace osu.Framework.VisualTests.Tests
             AddStep($@"send backward {box.Name}", () => container.ChangeChildDepth(box, box.Depth + 1));
         }
 
-        public override void Reset()
+        public TestCaseDynamicDepth()
         {
-            base.Reset();
-
             Add(new[]
             {
                 container = new Container()

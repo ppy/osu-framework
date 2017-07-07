@@ -18,10 +18,8 @@ namespace osu.Framework.VisualTests.Tests
         private Container testContainer;
         private RigidBodySimulation sim;
 
-        public override void Reset()
+        public TestCaseRigidBody()
         {
-            base.Reset();
-
             Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,

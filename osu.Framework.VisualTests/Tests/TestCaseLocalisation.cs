@@ -22,10 +22,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private LocalisationEngine engine; //keep a reference to avoid GC of the engine
 
-        public override void Reset()
+        public TestCaseLocalisation()
         {
-            base.Reset();
-
             var config = new FakeFrameworkConfigManager();
             engine = new LocalisationEngine(config);
 

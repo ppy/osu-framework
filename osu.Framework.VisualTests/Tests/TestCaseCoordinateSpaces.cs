@@ -15,16 +15,14 @@ namespace osu.Framework.VisualTests.Tests
 {
     public class TestCaseCoordinateSpaces : TestCase
     {
-        public override void Reset()
+        public TestCaseCoordinateSpaces()
         {
-            base.Reset();
-
             AddStep("0-1 space", () => loadCase(0));
             AddStep("0-150 space", () => loadCase(1));
             AddStep("50-200 space", () => loadCase(2));
             AddStep("150-(-50) space", () => loadCase(3));
             AddStep("0-300 space", () => loadCase(4));
-            AddStep("-250-250 space", () => loadCase(4));
+            AddStep("-250-250 space", () => loadCase(5));
         }
 
         private void loadCase(int i)
@@ -80,6 +78,16 @@ namespace osu.Framework.VisualTests.Tests
                     h.CreateMarkerAt(250);
                     break;
                 case 4:
+                    h.RelativeChildOffset = new Vector2(0, 0);
+                    h.RelativeChildSize = new Vector2(300, 1);
+                    h.CreateMarkerAt(0);
+                    h.CreateMarkerAt(50);
+                    h.CreateMarkerAt(100);
+                    h.CreateMarkerAt(150);
+                    h.CreateMarkerAt(200);
+                    h.CreateMarkerAt(250);
+                    break;
+                case 5:
                     h.RelativeChildOffset = new Vector2(-250, 0);
                     h.RelativeChildSize = new Vector2(500, 1);
                     h.CreateMarkerAt(-300);

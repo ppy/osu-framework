@@ -18,9 +18,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private SearchContainer<HeaderContainer> search;
 
-        public override void Reset()
+        public TestCaseSearchContainer()
         {
-            base.Reset();
             TextBox textBox;
 
             Children = new Drawable[] {

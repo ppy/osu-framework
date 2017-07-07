@@ -17,10 +17,8 @@ namespace osu.Framework.VisualTests.Tests
         private BindableDouble sliderBarValue;
         private SpriteText sliderbarText;
 
-        public override void Reset()
+        public TestCaseSliderbar()
         {
-            base.Reset();
-
             sliderBarValue = new BindableDouble(8)
             {
                 MinValue = -10,

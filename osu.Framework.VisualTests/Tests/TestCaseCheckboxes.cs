@@ -13,10 +13,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Checkboxes with clickable labels";
 
-        public override void Reset()
+        public TestCaseCheckboxes()
         {
-            base.Reset();
-
             Children = new Drawable[]
             {
                 new FillFlowContainer

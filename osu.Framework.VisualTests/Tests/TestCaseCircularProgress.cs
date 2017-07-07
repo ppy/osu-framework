@@ -25,10 +25,8 @@ namespace osu.Framework.VisualTests.Tests
         private Texture gradientTextureVertical;
         private Texture gradientTextureBoth;
 
-        public override void Reset()
+        public TestCaseCircularProgress()
         {
-            base.Reset();
-
             const int width = 128;
             byte[] data = new byte[width * 4];
 

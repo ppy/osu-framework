@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
+using System;
 
 namespace osu.Framework.Testing.Drawables
 {
@@ -16,7 +17,7 @@ namespace osu.Framework.Testing.Drawables
         private readonly Box box;
         private readonly Container text;
 
-        public readonly TestCase TestCase;
+        public readonly Type TestType;
 
         public bool Current
         {
@@ -37,15 +38,17 @@ namespace osu.Framework.Testing.Drawables
             }
         }
 
-        public TestCaseButton(TestCase test)
+        public TestCaseButton(Type test)
         {
             Masking = true;
 
-            TestCase = test;
+            TestType = test;
 
             CornerRadius = 5;
             RelativeSizeAxes = Axes.X;
             Size = new Vector2(1, 60);
+
+            TestCase tempTestCase = (TestCase)Activator.CreateInstance(test);
 
             Add(new Drawable[]
             {
@@ -70,13 +73,13 @@ namespace osu.Framework.Testing.Drawables
                         {
                             Anchor = Anchor.TopCentre,
                             Origin = Anchor.TopCentre,
-                            Text = test.Name,
+                            Text = tempTestCase.Name,
                         },
                         new SpriteText
                         {
                             Anchor = Anchor.BottomLeft,
                             Origin = Anchor.BottomLeft,
-                            Text = test.Description,
+                            Text = tempTestCase.Description,
                             TextSize = 15,
                             AutoSizeAxes = Axes.Y,
                             RelativeSizeAxes = Axes.X,

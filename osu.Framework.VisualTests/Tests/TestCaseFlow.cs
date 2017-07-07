@@ -22,7 +22,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Test lots of different settings for Flow Containers";
 
-        private FlowTestCase current;
         private FillDirectionDropdown selectionDropdown;
 
         private Anchor childAnchor = Anchor.TopLeft;
@@ -35,14 +34,17 @@ namespace osu.Framework.VisualTests.Tests
         private ScheduledDelegate scheduledAdder;
         private bool doNotAddChildren;
 
-        public override void Reset()
+        public TestCaseFlow()
         {
-            base.Reset();
+            reset();
+        }
 
+        private void reset()
+        {
             doNotAddChildren = false;
             scheduledAdder?.Cancel();
 
-            Add(new Container
+            Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Width = 0.2f,
@@ -102,19 +104,12 @@ namespace osu.Framework.VisualTests.Tests
                         }
                     }
                 }
-            });
-
-            selectionDropdown.Current.ValueChanged += newValue =>
-            {
-                if (current == newValue)
-                    return;
-
-                current = newValue;
-                Reset();
             };
 
-            selectionDropdown.Current.Value = current;
-            changeTest(current);
+            selectionDropdown.Current.ValueChanged += changeTest;
+            buildTest();
+            selectionDropdown.Current.Value = FlowTestCase.Full;
+            changeTest(FlowTestCase.Full);
         }
 
         protected override void Update()
@@ -138,14 +133,13 @@ namespace osu.Framework.VisualTests.Tests
 
         private void changeTest(FlowTestCase testCase)
         {
-            current = testCase;
             var method =
                 GetType().GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(m => m.GetCustomAttribute<FlowTestCaseAttribute>()?.TestCase == testCase);
             if (method != null)
                 method.Invoke(this, new object[0]);
         }
 
-        private void buildTest(FillDirection dir, Vector2 spacing)
+        private void buildTest()
         {
             Add(new Container
             {
@@ -157,8 +151,6 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         RelativeSizeAxes = Axes.Both,
                         AutoSizeAxes = Axes.None,
-                        Direction = dir,
-                        Spacing = spacing,
                     },
                     new Box
                     {
@@ -343,19 +335,22 @@ namespace osu.Framework.VisualTests.Tests
         [FlowTestCase(FlowTestCase.Full)]
         private void test1()
         {
-            buildTest(FillDirection.Full, new Vector2(5, 5));
+            fillContainer.Direction = FillDirection.Full;
+            fillContainer.Spacing = new Vector2(5, 5);
         }
 
         [FlowTestCase(FlowTestCase.Horizontal)]
         private void test2()
         {
-            buildTest(FillDirection.Horizontal, new Vector2(5, 5));
+            fillContainer.Direction = FillDirection.Horizontal;
+            fillContainer.Spacing = new Vector2(5, 5);
         }
 
         [FlowTestCase(FlowTestCase.Vertical)]
         private void test3()
         {
-            buildTest(FillDirection.Vertical, new Vector2(5, 5));
+            fillContainer.Direction = FillDirection.Vertical;
+            fillContainer.Spacing = new Vector2(5, 5);
         }
 
         private class TestCaseDropdownHeader : DropdownHeader

@@ -17,10 +17,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private Container testContainer;
 
-        public override void Reset()
+        public TestCaseTriangles()
         {
-            base.Reset();
-
             Add(testContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,

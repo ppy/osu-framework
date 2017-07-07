@@ -86,10 +86,8 @@ namespace osu.Framework.VisualTests.Tests
             scroll.ScrollContent.AutoSizeAxes = Axes.Both;
         }
 
-        public override void Reset()
+        public TestCaseScrollableFlow()
         {
-            base.Reset();
-
             createArea(scrollDir = Direction.Vertical);
 
             AddStep("Vertical", delegate { createArea(scrollDir = Direction.Vertical); });

@@ -40,10 +40,8 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
-        public override void Reset()
+        public TestCaseContextMenu()
         {
-            base.Reset();
-
             Add(new ContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,

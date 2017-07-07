@@ -34,29 +34,29 @@ namespace osu.Framework.Testing
 
             Push(browser);
 
-            Console.WriteLine($@"{(int)Time.Current}: Running {browser.Tests.Count} visual test cases...");
+            Console.WriteLine($@"{(int)Time.Current}: Running {browser.TestTypes.Count} visual test cases...");
 
             runNext();
         }
 
         private int testIndex;
 
-        private TestCase loadableTest => testIndex >= 0 ? browser.Tests.ElementAtOrDefault(testIndex) : null;
+        private Type loadableTestType => testIndex >= 0 ? browser.TestTypes.ElementAtOrDefault(testIndex) : null;
 
         private readonly TestBrowser browser;
         private GameHost host;
 
         private void runNext()
         {
-            if (loadableTest == null)
+            if (loadableTestType == null)
             {
                 //we're done
                 Scheduler.AddDelayed(host.Exit, time_between_tests);
                 return;
             }
 
-            if (browser.CurrentTest != loadableTest)
-                browser.LoadTest(loadableTest, () =>
+            if (browser.CurrentTest?.GetType() != loadableTestType)
+                browser.LoadTest(loadableTestType, () =>
                 {
                     testIndex++;
                     Scheduler.AddDelayed(runNext, time_between_tests);

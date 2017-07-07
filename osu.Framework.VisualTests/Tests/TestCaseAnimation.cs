@@ -19,10 +19,8 @@ namespace osu.Framework.VisualTests.Tests
 
         public override string Description => "Various frame-based animations";
 
-        public override void Reset()
+        public TestCaseAnimation()
         {
-            base.Reset();
-
             Add(new Container
             {
                 Position = new Vector2(10f, 10f),

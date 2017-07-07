@@ -12,10 +12,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Test all sizes of text rendering";
 
-        public override void Reset()
+        public TestCaseSpriteText()
         {
-            base.Reset();
-
             FillFlowContainer flow;
 
             Children = new Drawable[]

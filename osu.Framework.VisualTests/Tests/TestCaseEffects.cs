@@ -15,10 +15,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tests classes implement the IEffect interface.";
 
-        public override void Reset()
+        public TestCaseEffects()
         {
-            base.Reset();
-
             var effect = new EdgeEffect
             {
                 CornerRadius = 3f,
