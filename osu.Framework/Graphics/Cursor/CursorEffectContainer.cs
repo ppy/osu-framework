@@ -82,7 +82,7 @@ namespace osu.Framework.Graphics.Cursor
                     continue;
 
                 TTarget target = candidate as TTarget;
-                if (target != null && target.Hovering)
+                if (target != null && target.IsHovered)
                     // We found a valid candidate; keep track of it
                     targetChildren.Add(target);
             }
