@@ -1374,7 +1374,9 @@ namespace osu.Framework.Graphics
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-        private long invalidationID;
+
+        // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
+        private long invalidationID = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
