@@ -804,7 +804,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
         /// Otherwise, this member has no effect. By default, stretching is used, which simply scales
-        /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="IContainer.RelativeToAbsoluteFactor"/>
+        /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="CompositeDrawable.RelativeToAbsoluteFactor"/>
         /// disregarding this drawable's <see cref="FillAspectRatio"/>. Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
         /// </summary>
         public FillMode FillMode
