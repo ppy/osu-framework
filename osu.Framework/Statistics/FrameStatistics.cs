@@ -24,9 +24,9 @@ namespace osu.Framework.Statistics
             Counts.Clear();
         }
 
-        public static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
+        internal static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
 
-        public static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
+        internal static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
     }
 
     internal enum PerformanceCollectionType
