@@ -21,7 +21,7 @@ namespace osu.Framework.Threading
             StatisticsCounterType.DrawCalls,
             StatisticsCounterType.VerticesDraw,
             StatisticsCounterType.VerticesUpl,
-            StatisticsCounterType.KiloPixels,
+            StatisticsCounterType.Pixels,
         };
     }
 }

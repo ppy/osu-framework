@@ -99,7 +99,6 @@ namespace osu.Framework.Statistics
                     FrameStatistics.COUNTERS[i] = 0;
                 }
 
-            currentFrame.Postprocess();
             PendingFrames.Enqueue(currentFrame);
             if (PendingFrames.Count >= max_pending_frames)
             {

@@ -12,8 +12,8 @@ namespace osu.Framework.Statistics
         internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>(NumStatisticsCounterTypes);
         internal readonly List<int> GarbageCollections = new List<int>();
 
-        internal static int NumStatisticsCounterTypes = Enum.GetValues(typeof(StatisticsCounterType)).Length;
-        internal static int NumPerformanceCollectionTypes = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
+        internal static readonly int NumStatisticsCounterTypes = Enum.GetValues(typeof(StatisticsCounterType)).Length;
+        internal static readonly int NumPerformanceCollectionTypes = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
 
         internal static readonly long[] COUNTERS = new long[NumStatisticsCounterTypes];
 
@@ -22,12 +22,6 @@ namespace osu.Framework.Statistics
             CollectedTimes.Clear();
             GarbageCollections.Clear();
             Counts.Clear();
-        }
-
-        internal void Postprocess()
-        {
-            if (Counts.ContainsKey(StatisticsCounterType.KiloPixels))
-                Counts[StatisticsCounterType.KiloPixels] /= 1000;
         }
 
         public static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
@@ -61,7 +55,7 @@ namespace osu.Framework.Statistics
         DrawCalls,
         VerticesDraw,
         VerticesUpl,
-        KiloPixels,
+        Pixels,
 
         TasksRun,
         Tracks,

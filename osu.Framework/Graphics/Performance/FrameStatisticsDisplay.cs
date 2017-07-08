@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.Input;
+using osu.Framework.MathUtils;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using System;
@@ -428,7 +429,7 @@ namespace osu.Framework.Graphics.Performance
                     return Color4.Red;
 
                 case StatisticsCounterType.ScheduleInvk:
-                case StatisticsCounterType.KiloPixels:
+                case StatisticsCounterType.Pixels:
                 case StatisticsCounterType.Components:
                     return Color4.Cyan;
             }
@@ -523,7 +524,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = $@"{Label}: {(long)Math.Round(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
+                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSISuffix(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
                     }
                 }
             }
