@@ -85,8 +85,11 @@ namespace osu.Framework.Graphics.Transforms
 
             transforms.Update(Time);
 
-            foreach (ITransform<T> t in transforms.AliveItems)
-                t.Apply(derivedThis);
+            // We iterate by index to gain performance
+            var aliveTransforms = transforms.AliveItems;
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (int i = 0; i < aliveTransforms.Count; ++i)
+                aliveTransforms[i].Apply(derivedThis);
         }
 
         /// <summary>

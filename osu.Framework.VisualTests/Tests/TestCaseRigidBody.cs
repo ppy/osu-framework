@@ -41,7 +41,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private bool overlapsAny(Drawable d)
         {
-            foreach (Drawable other in testContainer.InternalChildren)
+            foreach (Drawable other in testContainer.Children)
                 if (other.ScreenSpaceDrawQuad.AABB.IntersectsWith(d.ScreenSpaceDrawQuad.AABB))
                     return true;
 

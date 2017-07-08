@@ -86,7 +86,9 @@ namespace osu.Framework.Graphics.Sprites
 
         /// <summary>
         /// The texture that this sprite should draw. If <see cref="CanDisposeTexture"/> is true and the texture gets replaced, the old texture will be disposed.
-        /// If this sprite's <see cref="Drawable.Size"/> is <see cref="Vector2.Zero"/> (eg if it has not been set previously), the <see cref="Drawable.Size"/> of this sprite will be set to the size of the texture.
+        /// If this sprite's <see cref="Drawable.Size"/> is <see cref="Vector2.Zero"/> (eg if it has not been set previously), the <see cref="Drawable.Size"/>
+        /// of this sprite will be set to the size of the texture.
+        /// <see cref="Drawable.FillAspectRatio"/> is automatically set to the aspect ratio of the given texture or 1 if the texture is null.
         /// </summary>
         public Texture Texture
         {
@@ -100,6 +102,7 @@ namespace osu.Framework.Graphics.Sprites
                     texture.Dispose();
 
                 texture = value;
+                FillAspectRatio = (float)(texture?.Width ?? 1) / (texture?.Height ?? 1);
                 Invalidate(Invalidation.DrawNode);
 
                 if (Size == Vector2.Zero)

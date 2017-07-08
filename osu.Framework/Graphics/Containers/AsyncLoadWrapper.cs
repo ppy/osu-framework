@@ -22,7 +22,7 @@ namespace osu.Framework.Graphics.Containers
             this.content = content;
 
             RelativeSizeAxes = content.RelativeSizeAxes;
-            AutoSizeAxes = (content as IContainer)?.AutoSizeAxes ?? AutoSizeAxes;
+            AutoSizeAxes = (content as CompositeDrawable)?.AutoSizeAxes ?? AutoSizeAxes;
         }
 
         public override double LifetimeStart => content.LifetimeStart;

@@ -16,48 +16,54 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseFillModes : GridTestCase
     {
-        public TestCaseFillModes() : base(2, 2)
+        public TestCaseFillModes() : base(3, 3)
         {
             FillMode[] fillModes =
             {
-                FillMode.None,
                 FillMode.Stretch,
                 FillMode.Fit,
                 FillMode.Fill,
             };
 
-            for (int i = 0; i < Rows * Cols; ++i)
+            float[] aspects = { 1, 2, 0.5f };
+
+            for (int i = 0; i < Rows; ++i)
             {
-                Cell(i).Add(new Drawable[]
+                for (int j = 0; j < Cols; ++j)
                 {
-                    new SpriteText
+                    Cell(i, j).Add(new Drawable[]
                     {
-                        Text = $"{nameof(FillMode)}=FillMode.{fillModes[i]}",
-                        TextSize = 20,
-                    },
-                    new Container
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Size = new Vector2(0.5f),
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Masking = true,
-                        Children = new Drawable[]
+                        new SpriteText
                         {
-                            new Box
+                            Text = $"{nameof(FillMode)}=FillMode.{fillModes[i]}, {nameof(FillAspectRatio)}={aspects[j]}",
+                            TextSize = 20,
+                        },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.5f),
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Masking = true,
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = Color4.Blue,
-                            },
-                            sprite = new Sprite
-                            {
-                                FillMode = fillModes[i],
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = Color4.Blue,
+                                },
+                                sprite = new Sprite
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Anchor = Anchor.Centre,
+                                    Origin = Anchor.Centre,
+                                    FillMode = fillModes[i],
+                                    FillAspectRatio = aspects[j],
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
