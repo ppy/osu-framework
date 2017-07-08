@@ -53,7 +53,7 @@ namespace osu.Framework.Audio.Sample
 
         public override void Update()
         {
-            FrameStatistics.Increment(StatisticsCounterType.Samples, sampleCache.Count);
+            FrameStatistics.Add(StatisticsCounterType.Samples, sampleCache.Count);
             base.Update();
         }
 

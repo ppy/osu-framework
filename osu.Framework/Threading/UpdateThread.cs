@@ -7,18 +7,19 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Threading
 {
-    public class InputThread : GameThread
+    public class UpdateThread : GameThread
     {
-        public InputThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
+        public UpdateThread(Action onNewFrame, string threadName) : base(onNewFrame, threadName)
         {
         }
 
         internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
         {
-            StatisticsCounterType.MouseEvents,
-            StatisticsCounterType.KeyEvents,
+            StatisticsCounterType.Invalidations,
+            StatisticsCounterType.Refreshes,
+            StatisticsCounterType.DrawNodeCtor,
+            StatisticsCounterType.DrawNodeAppl,
+            StatisticsCounterType.ScheduleInvk,
         };
-
-        public void RunUpdate() => ProcessFrame();
     }
 }

@@ -1,22 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Allocation;
+using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using osu.Framework.Allocation;
-using osu.Framework.Timing;
-using osu.Framework.Threading;
 
 namespace osu.Framework.Statistics
 {
-    public class PerformanceMonitor
+    internal class PerformanceMonitor
     {
         private readonly StopwatchClock ourClock = new StopwatchClock(true);
 
         private readonly Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
-        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[(int)PerformanceCollectionType.AmountTypes];
+        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
         private FrameStatistics currentFrame;
 
@@ -24,9 +23,11 @@ namespace osu.Framework.Statistics
 
         private const int max_pending_frames = 100;
 
-        internal ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
-        internal ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
-        internal AtomicCounter[] Counters = new AtomicCounter[(int)StatisticsCounterType.AmountTypes];
+        internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
+        internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
+        private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
+
+        internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
 
         private double consumptionTime;
 
@@ -34,23 +35,20 @@ namespace osu.Framework.Statistics
 
         public double FrameAimTime => 1000.0 / (Clock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
 
-        public PerformanceMonitor(IFrameBasedClock clock)
+        internal PerformanceMonitor(IFrameBasedClock clock, IEnumerable<StatisticsCounterType> counters)
         {
             Clock = clock;
+            currentFrame = FramesHeap.ReserveObject();
 
-            for (int i = 0; i < (int)PerformanceCollectionType.AmountTypes; i++)
+            foreach (var c in counters)
+                activeCounters[(int)c] = true;
+
+            for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
             {
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
             }
         }
-
-        public void RegisterCounter(StatisticsCounterType type)
-        {
-            Counters[(int)type] = new AtomicCounter();
-        }
-
-        public AtomicCounter GetCounter(StatisticsCounterType counterType) => Counters[(int)counterType];
 
         /// <summary>
         /// Start collecting a type of passing time.
@@ -82,8 +80,6 @@ namespace osu.Framework.Statistics
             currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
         }
 
-        public int TargetFrameRate;
-
         private readonly int[] lastAmountGarbageCollects = new int[3];
 
         public bool HandleGC = true;
@@ -93,16 +89,20 @@ namespace osu.Framework.Statistics
         /// </summary>
         public void NewFrame()
         {
-            if (currentFrame != null)
-            {
-                currentFrame.Postprocess();
-                PendingFrames.Enqueue(currentFrame);
-                if (PendingFrames.Count >= max_pending_frames)
+            // Reset the counters we keep track of
+            for (int i = 0; i < activeCounters.Length; ++i)
+                if (activeCounters[i])
                 {
-                    FrameStatistics oldFrame;
-                    PendingFrames.TryDequeue(out oldFrame);
-                    FramesHeap.FreeObject(oldFrame);
+                    currentFrame.Counts[(StatisticsCounterType)i] = FrameStatistics.COUNTERS[i];
+                    FrameStatistics.COUNTERS[i] = 0;
                 }
+
+            PendingFrames.Enqueue(currentFrame);
+            if (PendingFrames.Count >= max_pending_frames)
+            {
+                FrameStatistics oldFrame;
+                PendingFrames.TryDequeue(out oldFrame);
+                FramesHeap.FreeObject(oldFrame);
             }
 
             currentFrame = FramesHeap.ReserveObject();
@@ -119,13 +119,6 @@ namespace osu.Framework.Statistics
                         currentFrame.GarbageCollections.Add(i);
                     }
                 }
-            }
-
-            for (int i = 0; i < (int)StatisticsCounterType.AmountTypes; ++i)
-            {
-                AtomicCounter counter = Counters[i];
-                if (counter != null)
-                    currentFrame.Counts[(StatisticsCounterType)i] = counter.Reset();
             }
 
             //check for dropped (stutter) frames

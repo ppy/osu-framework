@@ -29,7 +29,7 @@ namespace osu.Framework.Audio
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not update disposed audio components.");
 
-            FrameStatistics.Increment(StatisticsCounterType.TasksRun, PendingActions.Count);
+            FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
             Action action;

@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using osu.Framework.Statistics;
 using osu.Framework.Timing;
+using System.Collections.Generic;
 
 namespace osu.Framework.Threading
 {
@@ -13,7 +14,7 @@ namespace osu.Framework.Threading
         internal const double DEFAULT_ACTIVE_HZ = 1000;
         internal const double DEFAULT_INACTIVE_HZ = 60;
 
-        public PerformanceMonitor Monitor { get; }
+        internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
@@ -70,6 +71,8 @@ namespace osu.Framework.Threading
 
         public Action OnThreadStart;
 
+        internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => new StatisticsCounterType[0];
+
         public GameThread(Action onNewFrame, string threadName)
         {
             this.onNewFrame = onNewFrame;
@@ -80,7 +83,7 @@ namespace osu.Framework.Threading
             };
 
             Clock = new ThrottledFrameClock();
-            Monitor = new PerformanceMonitor(Clock);
+            Monitor = new PerformanceMonitor(Clock, StatisticsCounters);
             Scheduler = new Scheduler(null);
         }
 

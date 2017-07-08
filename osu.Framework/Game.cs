@@ -15,7 +15,6 @@ using osu.Framework.Platform;
 using OpenTK.Input;
 using osu.Framework.Allocation;
 using osu.Framework.Configuration;
-using osu.Framework.Statistics;
 using OpenTK;
 using GameWindow = osu.Framework.Platform.GameWindow;
 
@@ -136,7 +135,7 @@ namespace osu.Framework
         {
             base.LoadComplete();
 
-            LoadComponentAsync(performanceContainer = new PerformanceOverlay
+            LoadComponentAsync(performanceContainer = new PerformanceOverlay(Host.Threads.Reverse())
             {
                 Margin = new MarginPadding(5),
                 Direction = FillDirection.Vertical,
@@ -146,19 +145,7 @@ namespace osu.Framework
                 Anchor = Anchor.BottomRight,
                 Origin = Anchor.BottomRight,
                 Depth = float.MinValue
-            }, delegate (Drawable overlay)
-            {
-                performanceContainer.Threads.AddRange(Host.Threads.Reverse());
-
-                // Note, that RegisterCounters only has an effect for the first
-                // GameHost to be passed into it; i.e. the first GameHost
-                // to be instantiated.
-                FrameStatistics.RegisterCounters(performanceContainer);
-
-                performanceContainer.CreateDisplays();
-
-                AddInternal(overlay);
-            });
+            }, AddInternal);
 
             addDebugTools();
         }
