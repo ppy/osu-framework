@@ -1,17 +1,17 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Input;
+using osu.Framework.Allocation;
 using osu.Framework.Caching;
 using osu.Framework.DebugUtils;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
@@ -19,11 +19,11 @@ using osu.Framework.Logging;
 using osu.Framework.Statistics;
 using osu.Framework.Threading;
 using osu.Framework.Timing;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Input;
-using osu.Framework.Allocation;
-using osu.Framework.Graphics.Effects;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics
 {
@@ -247,12 +247,12 @@ namespace osu.Framework.Graphics
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="IContainer"/>. Note that this does NOT imply that
+        /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
         /// <see cref="Parent"/> has been set.
         /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
         /// to alert the user of an invalid operation.
         /// </summary>
-        internal bool AddedToParentContainer;
+        internal bool IsPartOfComposite;
 
         private float depth;
 
@@ -267,7 +267,7 @@ namespace osu.Framework.Graphics
             get { return depth; }
             set
             {
-                if (AddedToParentContainer)
+                if (IsPartOfComposite)
                     throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
 
                 depth = value;
@@ -500,7 +500,7 @@ namespace osu.Framework.Graphics
                         offset.Y = 0;
                 }
 
-                return applyRelativeAxes(RelativePositionAxes, Position - offset);
+                return applyRelativeAxes(RelativePositionAxes, Position - offset, FillMode.Stretch);
             }
         }
 
@@ -585,17 +585,26 @@ namespace osu.Framework.Graphics
                 if (value == relativeSizeAxes)
                     return;
 
-                // Convert coordinates from relative to absolute or vice versa
-                Vector2 conversion = relativeToAbsoluteFactor;
-                if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                    Width = conversion.X == 0 ? 0 : Width / conversion.X;
-                else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
-                    Width *= conversion.X;
+                // In some cases we cannot easily preserve our size, and so we simply invalidate and
+                // leave correct sizing to the user.
+                if (fillMode != FillMode.Stretch && (value == Axes.Both || relativeSizeAxes == Axes.Both))
+                    Invalidate(Invalidation.DrawSize);
+                else
+                {
+                    // Convert coordinates from relative to absolute or vice versa
+                    Vector2 conversion = relativeToAbsoluteFactor;
+                    if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
+                        Width = conversion.X == 0 ? 0 : Width / conversion.X;
+                    else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
+                        Width *= conversion.X;
 
-                if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                    Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
-                else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
-                    Height *= conversion.Y;
+                    if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
+                        Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
+                    else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
+                        Height *= conversion.Y;
+
+                    // No invalidation is necessary as DrawSize remains invariant.
+                }
 
                 relativeSizeAxes = value;
 
@@ -603,7 +612,6 @@ namespace osu.Framework.Graphics
                 if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
 
                 OnSizingChanged();
-                // No invalidation necessary as DrawSize remains invariant.
             }
         }
 
@@ -612,7 +620,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size));
+        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -684,12 +692,27 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="relativeAxes">Describes which axes are relative.</param>
         /// <param name="v">The coordinates to convert.</param>
+        /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v)
+        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
         {
             if (relativeAxes != Axes.None)
             {
                 Vector2 conversion = relativeToAbsoluteFactor;
+
+                // FillMode only makes sense if both axes are relatively sized as the general rule
+                // for n-dimensional aspect preservation is to simply take the minimum or the maximum
+                // scale among all active axes. For single axes the minimum / maximum is just the
+                // value itself.
+                if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
+                {
+                    if (fillMode == FillMode.Fill)
+                        conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
+                    else if (fillMode == FillMode.Fit)
+                        conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
+                    conversion.Y /= fillAspectRatio;
+                }
+
                 if ((relativeAxes & Axes.X) > 0)
                     v.X *= conversion.X;
                 if ((relativeAxes & Axes.Y) > 0)
@@ -756,40 +779,51 @@ namespace osu.Framework.Graphics
             }
         }
 
+        private float fillAspectRatio = 1;
+
         /// <summary>
-        /// The method to use to fill this drawable's parent space.
+        /// The desired ratio of width to height when under the effect of a non-stretching <see cref="FillMode"/>
+        /// and <see cref="RelativeSizeAxes"/> being <see cref="Axes.Both"/>.
         /// </summary>
-        public FillMode FillMode { get; set; }
+        public float FillAspectRatio
+        {
+            get { return fillAspectRatio; }
+
+            set
+            {
+                if (fillAspectRatio == value) return;
+                fillAspectRatio = value;
+
+                if (fillMode != FillMode.Stretch && RelativeSizeAxes == Axes.Both)
+                    Invalidate(Invalidation.DrawSize);
+            }
+        }
+
+        private FillMode fillMode;
+
+        /// <summary>
+        /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
+        /// Otherwise, this member has no effect. By default, stretching is used, which simply scales
+        /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="CompositeDrawable.RelativeToAbsoluteFactor"/>
+        /// disregarding this drawable's <see cref="FillAspectRatio"/>. Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
+        /// </summary>
+        public FillMode FillMode
+        {
+            get { return fillMode; }
+
+            set
+            {
+                if (fillMode == value) return;
+                fillMode = value;
+
+                Invalidate(Invalidation.DrawSize);
+            }
+        }
 
         /// <summary>
         /// Relative scaling factor around <see cref="OriginPosition"/>.
         /// </summary>
-        protected virtual Vector2 DrawScale
-        {
-            get
-            {
-                if (FillMode == FillMode.None)
-                    return Scale;
-
-                Vector2 modifier = Vector2.One;
-                Vector2 relativeToAbsolute = relativeToAbsoluteFactor;
-
-                switch (FillMode)
-                {
-                    case FillMode.Fill:
-                        modifier = new Vector2(Math.Max(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Fit:
-                        modifier = new Vector2(Math.Min(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight));
-                        break;
-                    case FillMode.Stretch:
-                        modifier = new Vector2(relativeToAbsolute.X / DrawWidth, relativeToAbsolute.Y / DrawHeight);
-                        break;
-                }
-
-                return Scale * modifier;
-            }
-        }
+        protected virtual Vector2 DrawScale => Scale;
 
         private Vector2 shear = Vector2.Zero;
 
@@ -1192,12 +1226,12 @@ namespace osu.Framework.Graphics
 
         #region Parenting (scene graph operations, including ProxyDrawable)
 
-        private IContainer parent;
+        private CompositeDrawable parent;
 
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        public IContainer Parent
+        public CompositeDrawable Parent
         {
             get { return parent; }
             internal set
@@ -1205,7 +1239,7 @@ namespace osu.Framework.Graphics
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
-                AddedToParentContainer = value != null;
+                IsPartOfComposite = value != null;
 
                 if (parent == value) return;
 
@@ -1374,7 +1408,9 @@ namespace osu.Framework.Graphics
 
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
-        private long invalidationID;
+
+        // Make sure we start out with a value of 1 such that ApplyDrawNode is always called at least once
+        private long invalidationID = invalidation_counter.Increment();
 
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
@@ -1788,7 +1824,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
-        public bool Hovering { get; internal set; }
+        public bool IsHovered { get; internal set; }
+
+        /// <summary>
+        /// Whether this Drawable is currently being dragged.
+        /// </summary>
+        public bool IsDragged { get; internal set; }
 
         /// <summary>
         /// Determines whether this drawable receives mouse input when the mouse is at the
@@ -1810,13 +1851,6 @@ namespace osu.Framework.Graphics
         /// Whether this Drawable can receive input, taking into account all optimizations and masking.
         /// </summary>
         public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
-
-        /// <summary>
-        /// Whether this Drawable is hovered by the given screen space mouse position,
-        /// taking into account whether this Drawable can receive input.
-        /// </summary>
-        /// <param name="screenSpaceMousePos">The mouse position to be checked.</param>
-        internal bool IsHovered(Vector2 screenSpaceMousePos) => CanReceiveInput && ReceiveMouseInputAt(screenSpaceMousePos);
 
         /// <summary>
         /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
@@ -1861,7 +1895,7 @@ namespace osu.Framework.Graphics
         /// <returns>Whether we have added ourself to the queue.</returns>
         internal virtual bool BuildMouseInputQueue(Vector2 screenSpaceMousePos, List<Drawable> queue)
         {
-            if (!IsHovered(screenSpaceMousePos))
+            if (!CanReceiveInput || !ReceiveMouseInputAt(screenSpaceMousePos))
                 return false;
 
             queue.Add(this);
@@ -1948,19 +1982,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Hide sprite instantly.
         /// </summary>
-        /// <returns></returns>
-        public virtual void Hide()
-        {
-            FadeOut();
-        }
+        public virtual void Hide() => FadeOut();
 
         /// <summary>
         /// Show sprite instantly.
         /// </summary>
-        public virtual void Show()
-        {
-            FadeIn();
-        }
+        public virtual void Show() => FadeIn();
 
         #region Helpers
 
@@ -2274,23 +2301,24 @@ namespace osu.Framework.Graphics
         Alive
     }
 
+    /// <summary>
+    /// Controls the behavior of <see cref="Drawable.RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
+    /// </summary>
     public enum FillMode
     {
         /// <summary>
-        /// This drawable shouldn't automatically fill its parent space.
+        /// Completely fill the parent with a relative size of 1 at the cost of stretching the aspect ratio (default).
         /// </summary>
-        None,
+        Stretch,
         /// <summary>
-        /// This drawable should be scaled to fill its parent space while maintaining aspect ratio.
+        /// Always maintains aspect ratio while filling the portion of the parent's size denoted by the relative size.
+        /// A relative size of 1 results in completely filling the parent by scaling the smaller axis of the drawable to fill the parent.
         /// </summary>
         Fill,
         /// <summary>
-        /// This drawable should be scaled to fit inside the dimensions of its parent space while maintaining aspect ratio.
+        /// Always maintains aspect ratio while fitting into the portion of the parent's size denoted by the relative size.
+        /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.
         /// </summary>
         Fit,
-        /// <summary>
-        /// This drawable should stretch to fill its parent space.
-        /// </summary>
-        Stretch
     }
 }

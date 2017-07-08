@@ -111,7 +111,7 @@ namespace osu.Framework.VisualTests.Tests
             public int DrawIteration;
         }
 
-        private class TestDrawNode : ContainerDrawNode
+        private class TestDrawNode : CompositeDrawNode
         {
             public TestDrawNodeSharedData TestSharedData;
 

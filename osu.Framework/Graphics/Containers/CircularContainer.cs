@@ -10,11 +10,10 @@ namespace osu.Framework.Graphics.Containers
     /// </summary>
     public class CircularContainer : Container
     {
-        public override float CornerRadius
+        protected override void UpdateAfterChildren()
         {
-            get { return Math.Min(DrawSize.X, DrawSize.Y) / 2f; }
-
-            set { throw new InvalidOperationException($"Cannot manually set {nameof(CornerRadius)} of {nameof(CircularContainer)}."); }
+            base.UpdateAfterChildren();
+            CornerRadius = Math.Min(DrawSize.X, DrawSize.Y) / 2f;
         }
     }
 }

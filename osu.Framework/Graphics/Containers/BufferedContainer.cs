@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T> where T : Drawable
+    public class BufferedContainer<T> : Container<T>, IBufferedContainer where T : Drawable
     {
         private bool drawOriginal;
 
