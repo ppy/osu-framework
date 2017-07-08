@@ -15,12 +15,10 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Various scenarios which potentially challenge triangles.";
 
-        private Container testContainer;
+        private readonly Container testContainer;
 
-        public override void Reset()
+        public TestCaseTriangles()
         {
-            base.Reset();
-
             Add(testContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,

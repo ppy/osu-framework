@@ -28,20 +28,20 @@ namespace osu.Framework.Testing
         private Container testContentContainer;
         private Container compilingNotice;
 
-        public readonly List<TestCase> Tests = new List<TestCase>();
+        public readonly List<Type> TestTypes = new List<Type>();
 
         private ConfigManager<TestBrowserSetting> config;
 
-        private DynamicClassCompiler<TestCase> backgroundCompiler;
+        private DynamicClassCompiler backgroundCompiler;
 
         public TestBrowser()
         {
             //we want to build the lists here because we're interested in the assembly we were *created* on.
             Assembly asm = Assembly.GetCallingAssembly();
             foreach (Type type in asm.GetLoadableTypes().Where(t => t.IsSubclassOf(typeof(TestCase)) && !t.IsAbstract))
-                Tests.Add((TestCase)Activator.CreateInstance(type));
+                TestTypes.Add(type);
 
-            Tests.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+            TestTypes.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         }
 
         [BackgroundDependencyLoader]
@@ -109,9 +109,9 @@ namespace osu.Framework.Testing
             };
 
             //Add buttons for each TestCase.
-            leftFlowContainer.Add(Tests.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
+            leftFlowContainer.Add(TestTypes.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
-            backgroundCompiler = new DynamicClassCompiler<TestCase>()
+            backgroundCompiler = new DynamicClassCompiler()
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,
@@ -134,17 +134,17 @@ namespace osu.Framework.Testing
             compilingNotice.FadeColour(Color4.White);
         }
 
-        private void compileFinished(TestCase newVersion)
+        private void compileFinished(Type newType)
         {
             Schedule(() =>
             {
                 compilingNotice.FadeOut(800, EasingTypes.InQuint);
-                compilingNotice.FadeColour(newVersion == null ? Color4.Red : Color4.YellowGreen, 100);
+                compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
 
-                if (newVersion == null) return;
+                if (newType == null) return;
 
-                int i = Tests.FindIndex(t => t.GetType().Name == newVersion.GetType().Name);
-                Tests[i] = newVersion;
+                int i = TestTypes.FindIndex(t => t.Name == newType.Name);
+                TestTypes[i] = newType;
                 LoadTest(i);
             });
         }
@@ -154,7 +154,7 @@ namespace osu.Framework.Testing
             base.LoadComplete();
 
             if (CurrentTest == null)
-                LoadTest(Tests.Find(t => t.Name == config.Get<string>(TestBrowserSetting.LastTest)));
+                LoadTest(TestTypes.Find(t => t.Name == config.Get<string>(TestBrowserSetting.LastTest)));
         }
 
         protected override bool OnExiting(Screen next)
@@ -165,37 +165,35 @@ namespace osu.Framework.Testing
             return base.OnExiting(next);
         }
 
-        public void LoadTest(int testIndex) => LoadTest(Tests[testIndex]);
+        public void LoadTest(int testIndex) => LoadTest(TestTypes[testIndex]);
 
-        public void LoadTest(TestCase testCase = null, Action onCompletion = null)
+        public void LoadTest(Type testType = null, Action onCompletion = null)
         {
-            if (testCase == null && Tests.Count > 0)
-                testCase = Tests[0];
+            if (testType == null && TestTypes.Count > 0)
+                testType = TestTypes[0];
 
-            config.Set(TestBrowserSetting.LastTest, testCase?.Name);
+            config.Set(TestBrowserSetting.LastTest, testType?.Name);
 
             if (CurrentTest != null)
             {
                 testContentContainer.Remove(CurrentTest);
                 CurrentTest.Clear();
-
-                var button = getButtonFor(CurrentTest);
-                if (button != null) button.Current = false;
-
                 CurrentTest = null;
             }
 
-            if (testCase != null)
+            if (testType != null)
             {
-                testContentContainer.Add(CurrentTest = testCase);
-                testCase.Reset();
-                testCase.RunAllSteps(onCompletion);
-
-                var button = getButtonFor(CurrentTest);
-                if (button != null) button.Current = true;
+                testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
+                CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
             }
+
+            updateButtons();
         }
 
-        private TestCaseButton getButtonFor(TestCase currentTest) => leftFlowContainer.Children.FirstOrDefault(b => b.TestCase.Name == currentTest.Name);
+        private void updateButtons()
+        {
+            foreach (var b in leftFlowContainer.Children)
+                b.Current = b.TestType.Name == CurrentTest.GetType().Name;
+        }
     }
 }

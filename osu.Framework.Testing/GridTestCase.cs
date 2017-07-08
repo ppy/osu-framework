@@ -13,7 +13,7 @@ namespace osu.Framework.Testing
     /// </summary>
     public abstract class GridTestCase : TestCase
     {
-        private FillFlowContainer<Container> testContainer;
+        private readonly FillFlowContainer<Container> testContainer;
 
         /// <summary>
         /// The amount of rows of the grid.
@@ -34,17 +34,6 @@ namespace osu.Framework.Testing
         {
             Rows = rows;
             Cols = cols;
-        }
-
-        private Container createCell() => new Container
-        {
-            RelativeSizeAxes = Axes.Both,
-            Size = new Vector2(1.0f / Cols, 1.0f / Rows),
-        };
-
-        public override void Reset()
-        {
-            base.Reset();
 
             testContainer = new FillFlowContainer<Container> { RelativeSizeAxes = Axes.Both };
             for (int i = 0; i < Rows * Cols; ++i)
@@ -52,6 +41,12 @@ namespace osu.Framework.Testing
 
             Add(testContainer);
         }
+
+        private Container createCell() => new Container
+        {
+            RelativeSizeAxes = Axes.Both,
+            Size = new Vector2(1.0f / Cols, 1.0f / Rows),
+        };
 
         /// <summary>
         /// Access a cell by its index. Valid indices range from 0 to <see cref="Rows"/> * <see cref="Cols"/> - 1.

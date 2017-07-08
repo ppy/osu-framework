@@ -15,13 +15,11 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Rigid body simulation scenarios.";
 
-        private Container testContainer;
+        private readonly Container testContainer;
         private RigidBodySimulation sim;
 
-        public override void Reset()
+        public TestCaseRigidBody()
         {
-            base.Reset();
-
             Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,

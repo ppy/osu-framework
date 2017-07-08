@@ -13,10 +13,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Text entry evolved";
 
-        public override void Reset()
+        public TestCaseTextBox()
         {
-            base.Reset();
-
             FillFlowContainer textBoxes = new FillFlowContainer
             {
                 Direction = FillDirection.Vertical,

@@ -15,20 +15,18 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Circular progress bar";
 
-        private CircularProgress clock;
+        private readonly CircularProgress clock;
 
         private int rotateMode;
         private const double period = 4000;
         private const double transition_period = 2000;
 
-        private Texture gradientTextureHorizontal;
-        private Texture gradientTextureVertical;
-        private Texture gradientTextureBoth;
+        private readonly Texture gradientTextureHorizontal;
+        private readonly Texture gradientTextureVertical;
+        private readonly Texture gradientTextureBoth;
 
-        public override void Reset()
+        public TestCaseCircularProgress()
         {
-            base.Reset();
-
             const int width = 128;
             byte[] data = new byte[width * 4];
 

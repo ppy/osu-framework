@@ -16,14 +16,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCasePadding() : base(2, 2)
         {
-        }
-
-        public override string Description => @"Add fixed padding via a PaddingContainer";
-
-        public override void Reset()
-        {
-            base.Reset();
-
             Cell(0).Add(new Drawable[]
             {
                 new SpriteText { Text = @"Padding - 20 All Sides" },
@@ -180,6 +172,8 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
         }
+
+        public override string Description => @"Add fixed padding via a PaddingContainer";
 
         private class PaddedBox : Container
         {

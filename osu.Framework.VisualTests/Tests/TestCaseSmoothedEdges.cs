@@ -14,16 +14,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCaseSmoothedEdges() : base(2, 2)
         {
-        }
-
-        public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
-
-        private readonly Box[] boxes = new Box[4];
-
-        public override void Reset()
-        {
-            base.Reset();
-
             Vector2[] smoothnesses =
             {
                 new Vector2(0, 0),
@@ -53,6 +43,10 @@ namespace osu.Framework.VisualTests.Tests
                 });
             }
         }
+
+        public override string Description => @"Boxes with automatically smoothed edges (no anti-aliasing).";
+
+        private readonly Box[] boxes = new Box[4];
 
         protected override void Update()
         {

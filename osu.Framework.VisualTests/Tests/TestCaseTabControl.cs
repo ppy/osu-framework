@@ -20,10 +20,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Tab control";
 
-        public override void Reset()
+        public TestCaseTabControl()
         {
-            base.Reset();
-
             List<KeyValuePair<string, TestEnum>> items = new List<KeyValuePair<string, TestEnum>>();
             foreach (var val in (TestEnum[])Enum.GetValues(typeof(TestEnum)))
                 items.Add(new KeyValuePair<string, TestEnum>(val.GetDescription(), val));

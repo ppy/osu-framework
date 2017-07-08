@@ -17,7 +17,18 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tooltip that shows when hovering a drawable";
 
-        private Container testContainer;
+        private readonly Container testContainer;
+
+        public TestCaseTooltip()
+        {
+            Add(testContainer = new Container
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+
+            AddToggleStep("Cursor-less tooltip", generateTest);
+            generateTest(false);
+        }
 
         private TooltipBox makeBox(Anchor anchor)
         {
@@ -131,19 +142,6 @@ namespace osu.Framework.VisualTests.Tests
             ttc.Add(makeBox(Anchor.BottomLeft));
             ttc.Add(makeBox(Anchor.TopRight));
             ttc.Add(makeBox(Anchor.BottomRight));
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
-
-            Add(testContainer = new Container
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
-
-            AddToggleStep("Cursor-less tooltip", generateTest);
-            generateTest(false);
         }
 
         private class TooltipSpriteText : Container, IHasTooltip

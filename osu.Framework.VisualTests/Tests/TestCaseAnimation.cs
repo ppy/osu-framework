@@ -15,13 +15,11 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseAnimation : TestCase
     {
-        private DrawableAnimation drawableAnimation;
-
         public override string Description => "Various frame-based animations";
 
-        public override void Reset()
+        public TestCaseAnimation()
         {
-            base.Reset();
+            DrawableAnimation drawableAnimation;
 
             Add(new Container
             {

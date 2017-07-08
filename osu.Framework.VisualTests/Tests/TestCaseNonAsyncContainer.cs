@@ -11,10 +11,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Making sure a container's internal state is consistent prior to async loads.";
 
-        public override void Reset()
+        public TestCaseNonAsyncContainer()
         {
-            base.Reset();
-
             testRemoval();
             testReAddingDrawable();
         }

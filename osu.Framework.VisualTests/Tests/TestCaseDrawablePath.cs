@@ -18,21 +18,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCaseDrawablePath() : base(2, 2)
         {
-        }
-
-        private Drawable createLabel(string text) => new SpriteText
-        {
-            Text = text,
-            TextSize = 20,
-            Colour = Color4.White,
-        };
-
-        public override string Description => @"Various cases of drawable paths.";
-
-        public override void Reset()
-        {
-            base.Reset();
-
             const int width = 20;
             Texture gradientTexture = new Texture(width, 1, true);
             byte[] data = new byte[width * 4];
@@ -108,6 +93,15 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
         }
+
+        private Drawable createLabel(string text) => new SpriteText
+        {
+            Text = text,
+            TextSize = 20,
+            Colour = Color4.White,
+        };
+
+        public override string Description => @"Various cases of drawable paths.";
 
         private class UserDrawnPath : Path
         {

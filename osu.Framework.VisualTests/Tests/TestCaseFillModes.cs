@@ -20,19 +20,9 @@ namespace osu.Framework.VisualTests.Tests
         {
         }
 
-        public override string Description => @"Test sprite display and fill modes";
-
-        private Texture sampleTexture;
-
-        [BackgroundDependencyLoader]
-        private void load(TextureStore store)
+        protected override void LoadComplete()
         {
-            sampleTexture = store.Get(@"sample-texture");
-        }
-
-        public override void Reset()
-        {
-            base.Reset();
+            base.LoadComplete();
 
             FillMode[] fillModes =
             {
@@ -71,9 +61,9 @@ namespace osu.Framework.VisualTests.Tests
                                 new Sprite
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    Texture = texture,
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
-                                    Texture = sampleTexture,
                                     FillMode = fillModes[i],
                                     FillAspectRatio = aspects[j],
                                 }
@@ -82,6 +72,16 @@ namespace osu.Framework.VisualTests.Tests
                     });
                 }
             }
+        }
+
+        public override string Description => @"Test sprite display and fill modes";
+
+        private Texture texture;
+
+        [BackgroundDependencyLoader]
+        private void load(TextureStore store)
+        {
+            texture = store.Get(@"sample-texture");
         }
 
         private class PaddedBox : Container

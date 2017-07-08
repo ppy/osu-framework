@@ -15,14 +15,12 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseOnlineTextures : TestCase
     {
-        private FillFlowContainerNoInput flow;
-        private ScrollContainer scroll;
-
         private const int panel_count = 2048;
 
-        public override void Reset()
+        public TestCaseOnlineTextures()
         {
-            base.Reset();
+            FillFlowContainerNoInput flow;
+            ScrollContainer scroll;
 
             Children = new Drawable[]
             {

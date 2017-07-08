@@ -12,10 +12,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Test word-wrapping and paragraphs";
 
-        public override void Reset()
+        public TestCaseTextFlow()
         {
-            base.Reset();
-
             FillFlowContainer flow;
 
             Children = new Drawable[]

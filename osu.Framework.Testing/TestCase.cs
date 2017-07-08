@@ -18,9 +18,8 @@ namespace osu.Framework.Testing
     {
         public virtual string Description => @"The base class for a test case";
 
-        public FillFlowContainer<StepButton> StepsContainer;
-
-        private Container content;
+        public readonly FillFlowContainer<StepButton> StepsContainer;
+        private readonly Container content;
 
         protected override Container<Drawable> Content => content;
 
@@ -30,59 +29,46 @@ namespace osu.Framework.Testing
 
             RelativeSizeAxes = Axes.Both;
             Masking = true;
+
+            InternalChildren = new Drawable[]
+            {
+                new Box
+                {
+                    Colour = new Color4(25, 25, 25, 255),
+                    RelativeSizeAxes = Axes.Y,
+                    Width = steps_width,
+                },
+                StepsContainer = new FillFlowContainer<StepButton>
+                {
+                    Direction = FillDirection.Vertical,
+                    Depth = float.MinValue,
+                    Padding = new MarginPadding(5),
+                    Spacing = new Vector2(5),
+                    AutoSizeAxes = Axes.Y,
+                    Width = steps_width,
+                },
+                new Container
+                {
+                    Masking = true,
+                    Padding = new MarginPadding
+                    {
+                        Left = steps_width + padding,
+                        Right = padding,
+                        Top = padding,
+                        Bottom = padding,
+                    },
+                    RelativeSizeAxes = Axes.Both,
+                    Child = content = new Container
+                    {
+                        Masking = true,
+                        RelativeSizeAxes = Axes.Both
+                    }
+                },
+            };
         }
 
         private const float steps_width = 180;
         private const float padding = 0;
-
-        public virtual void Reset()
-        {
-            Clock.ProcessFrame();
-
-            if (content == null)
-            {
-                InternalChildren = new Drawable[]
-                {
-                    new Box
-                    {
-                        Colour = new Color4(25, 25, 25, 255),
-                        RelativeSizeAxes = Axes.Y,
-                        Width = steps_width,
-                    },
-                    StepsContainer = new FillFlowContainer<StepButton>
-                    {
-                        Direction = FillDirection.Vertical,
-                        Depth = float.MinValue,
-                        Padding = new MarginPadding(5),
-                        Spacing = new Vector2(5),
-                        AutoSizeAxes = Axes.Y,
-                        Width = steps_width,
-                    },
-                    new Container
-                    {
-                        Masking = true,
-                        Padding = new MarginPadding
-                        {
-                            Left = steps_width + padding,
-                            Right = padding,
-                            Top = padding,
-                            Bottom = padding,
-                        },
-                        RelativeSizeAxes = Axes.Both,
-                        Child = content = new Container
-                        {
-                            Masking = true,
-                            RelativeSizeAxes = Axes.Both
-                        }
-                    },
-                };
-            }
-            else
-            {
-                content.Clear();
-                StepsContainer.Clear();
-            }
-        }
 
         private int actionIndex;
         private int actionRepetition;

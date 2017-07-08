@@ -15,14 +15,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCaseHollowEdgeEffect() : base(2, 2)
         {
-        }
-
-        public override string Description => @"Hollow Container with EdgeEffect";
-
-        public override void Reset()
-        {
-            base.Reset();
-
             const float size = 60;
 
             float[] cornerRadii = { 0, 0.5f, 0, 0.5f };
@@ -91,5 +83,7 @@ namespace osu.Framework.VisualTests.Tests
                 });
             }
         }
+
+        public override string Description => @"Hollow Container with EdgeEffect";
     }
 }

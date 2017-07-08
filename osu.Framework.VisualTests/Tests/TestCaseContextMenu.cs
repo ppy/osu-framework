@@ -20,8 +20,6 @@ namespace osu.Framework.VisualTests.Tests
         private const int start_time = 0;
         private const int duration = 1000;
 
-        private ContextMenuBox movingBox;
-
         private ContextMenuBox makeBox(Anchor anchor)
         {
             return new ContextMenuBox
@@ -40,10 +38,9 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
-        public override void Reset()
+        public TestCaseContextMenu()
         {
-            base.Reset();
-
+            ContextMenuBox movingBox;
             Add(new ContextMenuContainer
             {
                 RelativeSizeAxes = Axes.Both,

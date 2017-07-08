@@ -15,10 +15,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Hovering multiple nested elements";
 
-        public override void Reset()
+        public TestCaseNestedHover()
         {
-            base.Reset();
-
             HoverBox box1;
             Add(box1 = new HoverBox(Color4.Gray, Color4.White)
             {
