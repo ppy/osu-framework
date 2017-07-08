@@ -9,7 +9,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
-    public class PerformanceMonitor
+    internal class PerformanceMonitor
     {
         private readonly StopwatchClock ourClock = new StopwatchClock(true);
 
@@ -35,7 +35,7 @@ namespace osu.Framework.Statistics
 
         public double FrameAimTime => 1000.0 / (Clock as ThrottledFrameClock)?.MaximumUpdateHz ?? double.MaxValue;
 
-        public PerformanceMonitor(IFrameBasedClock clock, IEnumerable<StatisticsCounterType> counters)
+        internal PerformanceMonitor(IFrameBasedClock clock, IEnumerable<StatisticsCounterType> counters)
         {
             Clock = clock;
             currentFrame = FramesHeap.ReserveObject();

@@ -14,7 +14,7 @@ namespace osu.Framework.Threading
         internal const double DEFAULT_ACTIVE_HZ = 1000;
         internal const double DEFAULT_INACTIVE_HZ = 60;
 
-        public PerformanceMonitor Monitor { get; }
+        internal PerformanceMonitor Monitor { get; }
         public ThrottledFrameClock Clock { get; }
         public Thread Thread { get; }
         public Scheduler Scheduler { get; }
@@ -71,7 +71,7 @@ namespace osu.Framework.Threading
 
         public Action OnThreadStart;
 
-        protected virtual IEnumerable<StatisticsCounterType> StatisticsCounters => new StatisticsCounterType[0];
+        internal virtual IEnumerable<StatisticsCounterType> StatisticsCounters => new StatisticsCounterType[0];
 
         public GameThread(Action onNewFrame, string threadName)
         {

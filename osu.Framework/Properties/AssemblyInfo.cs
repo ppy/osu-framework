@@ -2,6 +2,7 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -16,6 +17,14 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © ppy Pty Ltd 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+
+// We publish our internal attributes to other sub-projects of the framework.
+// Note, that we omit visual tests as they are meant to test the framework
+// behavior "in the wild".
+
+[assembly: InternalsVisibleTo("osu.Framework.Desktop")]
+[assembly: InternalsVisibleTo("osu.Framework.Desktop.Tests")]
+[assembly: InternalsVisibleTo("osu.Framework.Testing")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

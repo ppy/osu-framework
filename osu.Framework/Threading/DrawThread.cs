@@ -13,7 +13,7 @@ namespace osu.Framework.Threading
         {
         }
 
-        protected override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
+        internal override IEnumerable<StatisticsCounterType> StatisticsCounters => new[]
         {
             StatisticsCounterType.VBufBinds,
             StatisticsCounterType.VBufOverflow,

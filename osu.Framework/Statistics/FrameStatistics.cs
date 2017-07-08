@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Statistics
 {
-    public class FrameStatistics
+    internal class FrameStatistics
     {
         internal readonly Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>((int)PerformanceCollectionType.AmountTypes);
         internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>((int)StatisticsCounterType.AmountTypes);
@@ -31,7 +31,7 @@ namespace osu.Framework.Statistics
         public static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
     }
 
-    public enum PerformanceCollectionType
+    internal enum PerformanceCollectionType
     {
         Work = 0,
         SwapBuffer,
@@ -44,7 +44,7 @@ namespace osu.Framework.Statistics
         AmountTypes,
     }
 
-    public enum StatisticsCounterType
+    internal enum StatisticsCounterType
     {
         Invalidations = 0,
         Refreshes,
