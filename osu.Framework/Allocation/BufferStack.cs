@@ -8,7 +8,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// A stack of buffers (arrays with elements of type <see cref="T"/>) which allows bypassing the
     /// garbage collector and expensive allocations when buffers can be frequently re-used.
-    /// The stack nature ensures, that the most recently used buffers remain hot in memory, while
+    /// The stack nature ensures that the most recently used buffers remain hot in memory, while
     /// at the same time guaranteeing a certain degree of order preservation.
     /// </summary>
     public class BufferStack<T>
