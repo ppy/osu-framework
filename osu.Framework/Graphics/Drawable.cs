@@ -2312,12 +2312,12 @@ namespace osu.Framework.Graphics
         Stretch,
         /// <summary>
         /// Always maintains aspect ratio while filling the portion of the parent's size denoted by the relative size.
-        /// A relative size of 1 results in completely filling the parent.
+        /// A relative size of 1 results in completely filling the parent by scaling the smaller axis of the drawable to fill the parent.
         /// </summary>
         Fill,
         /// <summary>
         /// Always maintains aspect ratio while fitting into the portion of the parent's size denoted by the relative size.
-        /// A relative size of 1 results in fitting exactly into the parent.
+        /// A relative size of 1 results in fitting exactly into the parent by scaling the larger axis of the drawable to fit into the parent.
         /// </summary>
         Fit,
     }
