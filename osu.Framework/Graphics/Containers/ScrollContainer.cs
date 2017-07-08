@@ -401,21 +401,32 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollIntoView(Drawable d, bool animated = true)
         {
-            float childPos = GetChildPosInContent(d);
+            float childPos0 = GetChildPosInContent(d);
+            float childPos1 = GetChildPosInContent(d, d.DrawSize);
 
-            // Scroll up or down depending on the current scroll position
-            if (childPos < Current)
-                ScrollTo(childPos, animated);
-            else if (childPos > Current + displayableContent - d.DrawHeight)
-                ScrollTo(childPos - displayableContent + d.DrawHeight, animated);
+            float minPos = Math.Min(childPos0, childPos1);
+            float maxPos = Math.Max(childPos0, childPos1);
+
+            if (minPos < Current)
+                ScrollTo(minPos, animated);
+            else if (maxPos > Current + displayableContent)
+                ScrollTo(maxPos - displayableContent, animated);
         }
 
         /// <summary>
         /// Determines the position of a child in the content.
         /// </summary>
         /// <param name="d">The child to get the position from.</param>
+        /// <param name="offset">Positional offset in the child's space.</param>
         /// <returns>The position of the child.</returns>
-        public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
+        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, content)[scrollDim];
+
+        /// <summary>
+        /// Determines the position of a child in the content.
+        /// </summary>
+        /// <param name="d">The child to get the position from.</param>
+        /// <returns>The position of the child.</returns>
+        public float GetChildPosInContent(Drawable d) => GetChildPosInContent(d, Vector2.Zero);
 
         private void updatePosition()
         {
