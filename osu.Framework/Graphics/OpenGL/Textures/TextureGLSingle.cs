@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.BottomRight.Linear,
             });
 
-            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexTriangle.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexTriangle.ConservativeArea);
         }
 
         public override void DrawQuad(Quad vertexQuad, RectangleF? textureRect, ColourInfo drawColour, Action<TexturedVertex2D> vertexAction = null, Vector2? inflationPercentage = null, Vector2? blendRangeOverride = null)
@@ -257,7 +257,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
                 Colour = drawColour.TopLeft.Linear,
             });
 
-            FrameStatistics.Increment(StatisticsCounterType.KiloPixels, (long)vertexQuad.ConservativeArea);
+            FrameStatistics.Add(StatisticsCounterType.Pixels, (long)vertexQuad.ConservativeArea);
         }
 
         private void updateWrapMode()

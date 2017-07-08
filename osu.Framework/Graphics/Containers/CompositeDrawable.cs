@@ -318,7 +318,7 @@ namespace osu.Framework.Graphics.Containers
             if (schedulerAfterChildren != null)
             {
                 int amountScheduledTasks = schedulerAfterChildren.Update();
-                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+                FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
             UpdateAfterChildren();
 

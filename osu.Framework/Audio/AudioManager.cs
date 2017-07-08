@@ -30,7 +30,7 @@ namespace osu.Framework.Audio
         /// <summary>
         /// The thread audio operations (mainly Bass calls) are ran on.
         /// </summary>
-        internal AudioThread Thread;
+        internal readonly AudioThread Thread;
 
         private List<DeviceInfo> audioDevices = new List<DeviceInfo>();
         private List<string> audioDeviceNames = new List<string>();

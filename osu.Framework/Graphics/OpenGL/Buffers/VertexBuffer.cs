@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.OpenGL.Buffers
 
             Unbind();
 
-            FrameStatistics.Increment(StatisticsCounterType.VerticesUpl, amountVertices);
+            FrameStatistics.Add(StatisticsCounterType.VerticesUpl, amountVertices);
         }
     }
 }
