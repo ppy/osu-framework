@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Visualisation
                 },
                 childShape = new FlashyBox(delegate(Drawable d)
                 {
-                    var c = d as IContainer;
+                    var c = d as CompositeDrawable;
                     if (c == null)
                         return d.ScreenSpaceDrawQuad;
 

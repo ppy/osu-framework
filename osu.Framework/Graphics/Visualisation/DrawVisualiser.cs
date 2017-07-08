@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
-                            Target = (Drawable)Target?.Parent;
+                            Target = Target?.Parent;
 
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
@@ -141,7 +141,7 @@ namespace osu.Framework.Graphics.Visualisation
             if (!containsCursor && !d.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
                 return null;
 
-            var dAsContainer = d as IContainerEnumerable<Drawable>;
+            var dAsContainer = d as CompositeDrawable;
 
             Drawable containedTarget = null;
 
@@ -295,7 +295,7 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
 
-            var dContainer = d as IContainerEnumerable<Drawable>;
+            var dContainer = d as CompositeDrawable;
 
             if (d is SpriteText) return;
 
@@ -323,14 +323,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(InputState state)
         {
-            return findTargetIn(Parent?.Parent as Drawable, state);
+            return findTargetIn(Parent?.Parent, state);
         }
 
         protected override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
-                Target = (Drawable)findTarget(state)?.Parent;
+                Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {

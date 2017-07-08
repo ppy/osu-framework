@@ -19,7 +19,7 @@ using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BufferedContainerDrawNode : ContainerDrawNode
+    public class BufferedContainerDrawNode : CompositeDrawNode
     {
         public FrameBuffer[] FrameBuffers;
         public Color4 BackgroundColour;
