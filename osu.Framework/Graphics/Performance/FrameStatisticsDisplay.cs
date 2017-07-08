@@ -105,11 +105,7 @@ namespace osu.Framework.Graphics.Performance
             AutoSizeAxes = Axes.Both;
             Alpha = alpha_when_inactive;
 
-            bool hasCounters = false;
-            for (int i = 0; i < (int)StatisticsCounterType.AmountTypes; ++i)
-                if (monitor.Counters[i] != null)
-                    hasCounters = true;
-
+            bool hasCounters = monitor.ActiveCounters.Any(b => b);
             Child = new Container
             {
                 AutoSizeAxes = Axes.Both,
@@ -153,7 +149,7 @@ namespace osu.Framework.Graphics.Performance
                                             RelativeSizeAxes = Axes.Y,
                                             ChildrenEnumerable =
                                                 from StatisticsCounterType t in Enum.GetValues(typeof(StatisticsCounterType))
-                                                where t < StatisticsCounterType.AmountTypes && monitor.Counters[(int)t] != null
+                                                where t < StatisticsCounterType.AmountTypes && monitor.ActiveCounters[(int)t]
                                                 select counterBars[t] = new CounterBar
                                                 {
                                                     Colour = getColour(t),

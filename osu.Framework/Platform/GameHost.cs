@@ -149,16 +149,16 @@ namespace osu.Framework.Platform
 
             threads = new List<GameThread>
             {
-                (DrawThread = new GameThread(DrawFrame, @"Draw")
+                (DrawThread = new DrawThread(DrawFrame, @"Draw")
                 {
                     OnThreadStart = DrawInitialize,
                 }),
-                (UpdateThread = new GameThread(UpdateFrame, @"Update")
+                (UpdateThread = new UpdateThread(UpdateFrame, @"Update")
                 {
                     OnThreadStart = UpdateInitialize,
-                    Monitor = { HandleGC = true }
+                    Monitor = { HandleGC = true },
                 }),
-                (InputThread = new InputThread(null, @"Input")) //never gets started.
+                (InputThread = new InputThread(null, @"Input")), //never gets started.
             };
 
             var path = System.IO.Path.GetDirectoryName(FullPath);

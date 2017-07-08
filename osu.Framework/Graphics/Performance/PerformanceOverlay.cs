@@ -42,18 +42,13 @@ namespace osu.Framework.Graphics.Performance
             }
         }
 
-        public List<GameThread> Threads = new List<GameThread>();
-
-        public void CreateDisplays()
-        {
-            foreach (GameThread t in Threads)
-                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
-        }
-
-        public PerformanceOverlay()
+        public PerformanceOverlay(IEnumerable<GameThread> threads)
         {
             Direction = FillDirection.Vertical;
             atlas = new TextureAtlas(GLWrapper.MaxTextureSize, GLWrapper.MaxTextureSize, true, All.Nearest);
+
+            foreach (GameThread t in threads)
+                Add(new FrameStatisticsDisplay(t, atlas) { State = state });
         }
     }
 

@@ -344,6 +344,8 @@
     <Compile Include="Platform\Clipboard.cs" />
     <Compile Include="Platform\IIpcHost.cs" />
     <Compile Include="Threading\GameThread.cs" />
+    <Compile Include="Threading\DrawThread.cs" />
+    <Compile Include="Threading\UpdateThread.cs" />
     <Compile Include="Threading\InputThread.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Graphics\Textures\TextureStore.cs" />
