@@ -340,6 +340,10 @@ namespace osu.Framework.Graphics.Containers
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
+        /// <summary>
+        /// Immediately offsets the current and target scroll position.
+        /// </summary>
+        /// <param name="offset">The scroll offset.</param>
         public void OffsetScrollPosition(float offset)
         {
             target += offset;
@@ -359,8 +363,18 @@ namespace osu.Framework.Graphics.Containers
                 scrollTo(scrollableExtent, animated, DistanceDecayJump);
         }
 
+        /// <summary>
+        /// Scrolls to a new position relative to the current scroll offset.
+        /// </summary>
+        /// <param name="offset">The amount by which we should scroll.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollBy(float offset, bool animated = true) => scrollTo(target + offset, animated);
 
+        /// <summary>
+        /// Scrolls to an absolute position.
+        /// </summary>
+        /// <param name="value">The position to scroll to.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
         public void ScrollTo(float value, bool animated = true) => scrollTo(value, animated, DistanceDecayJump);
 
         private void scrollTo(float value, bool animated, double distanceDecay = float.PositiveInfinity)
@@ -373,9 +387,46 @@ namespace osu.Framework.Graphics.Containers
                 Current = target;
         }
 
-        public void ScrollIntoView(Drawable d) => ScrollTo(GetChildPosInContent(d));
+        /// <summary>
+        /// Scrolls a <see cref="Drawable"/> to the top.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> to scroll to.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
+        public void ScrollTo(Drawable d, bool animated = true) => ScrollTo(GetChildPosInContent(d), animated);
 
-        public float GetChildPosInContent(Drawable d) => d.Parent.ToSpaceOfOtherDrawable(d.Position, content)[scrollDim];
+        /// <summary>
+        /// Scrolls a <see cref="Drawable"/> into view.
+        /// </summary>
+        /// <param name="d">The <see cref="Drawable"/> to scroll into view.</param>
+        /// <param name="animated">Whether to animate the movement.</param>
+        public void ScrollIntoView(Drawable d, bool animated = true)
+        {
+            float childPos0 = GetChildPosInContent(d);
+            float childPos1 = GetChildPosInContent(d, d.DrawSize);
+
+            float minPos = Math.Min(childPos0, childPos1);
+            float maxPos = Math.Max(childPos0, childPos1);
+
+            if (minPos < Current)
+                ScrollTo(minPos, animated);
+            else if (maxPos > Current + displayableContent)
+                ScrollTo(maxPos - displayableContent, animated);
+        }
+
+        /// <summary>
+        /// Determines the position of a child in the content.
+        /// </summary>
+        /// <param name="d">The child to get the position from.</param>
+        /// <param name="offset">Positional offset in the child's space.</param>
+        /// <returns>The position of the child.</returns>
+        public float GetChildPosInContent(Drawable d, Vector2 offset) => d.ToSpaceOfOtherDrawable(offset, content)[scrollDim];
+
+        /// <summary>
+        /// Determines the position of a child in the content.
+        /// </summary>
+        /// <param name="d">The child to get the position from.</param>
+        /// <returns>The position of the child.</returns>
+        public float GetChildPosInContent(Drawable d) => GetChildPosInContent(d, Vector2.Zero);
 
         private void updatePosition()
         {
