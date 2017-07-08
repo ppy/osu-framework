@@ -123,7 +123,7 @@ namespace osu.Framework.Graphics.Batches
             changeBeginIndex = -1;
 
             FrameStatistics.Increment(StatisticsCounterType.DrawCalls);
-            FrameStatistics.Increment(StatisticsCounterType.VerticesDraw, count);
+            FrameStatistics.Add(StatisticsCounterType.VerticesDraw, count);
 
             return count;
         }

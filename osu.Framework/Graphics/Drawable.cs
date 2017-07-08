@@ -360,7 +360,7 @@ namespace osu.Framework.Graphics
             if (scheduler != null)
             {
                 int amountScheduledTasks = scheduler.Update();
-                FrameStatistics.Increment(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
+                FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
             Update();

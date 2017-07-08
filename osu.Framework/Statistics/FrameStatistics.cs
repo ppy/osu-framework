@@ -26,7 +26,9 @@ namespace osu.Framework.Statistics
                 Counts[StatisticsCounterType.KiloPixels] /= 1000;
         }
 
-        public static void Increment(StatisticsCounterType type, long amount = 1) => ++COUNTERS[(int)type];
+        public static void Increment(StatisticsCounterType type) => ++COUNTERS[(int)type];
+
+        public static void Add(StatisticsCounterType type, long amount) => COUNTERS[(int)type] += amount;
     }
 
     public enum PerformanceCollectionType
