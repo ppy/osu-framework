@@ -17,15 +17,15 @@ namespace osu.Framework.MathUtils
         /// <param name="number">The number to print.</param>
         /// <returns>The number with at most two decimal digits, followed by a magnitude suffic (k, M, G, T, etc.) depending on the magnitude of the number. If the number is
         /// too large or small this will print the number using scientific notation instead.</returns>
-        public static string PrintWithSISuffix(double number)
+        public static string PrintWithSiSuffix(double number)
         {
             var isNeg = number < 0;
             number = Math.Abs(number);
             var strs = new[] { "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
-            for (int i = 0; i < strs.Length; ++i)
+            foreach (var str in strs)
             {
                 if (number < 1000)
-                    return $"{(isNeg ? "-" : "")}{Math.Round(number, 2):G}{strs[i]}";
+                    return $"{(isNeg ? "-" : "")}{Math.Round(number, 2):G}{str}";
 
                 number = number / 1000;
             }

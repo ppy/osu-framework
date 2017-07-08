@@ -15,7 +15,7 @@ namespace osu.Framework.Statistics
 
         private readonly Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
-        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NumPerformanceCollectionTypes];
+        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
 
         private FrameStatistics currentFrame;
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Statistics
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
-        private readonly bool[] activeCounters = new bool[FrameStatistics.NumStatisticsCounterTypes];
+        private readonly bool[] activeCounters = new bool[FrameStatistics.NUM_STATISTICS_COUNTER_TYPES];
 
         internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Statistics
             foreach (var c in counters)
                 activeCounters[(int)c] = true;
 
-            for (int i = 0; i < FrameStatistics.NumPerformanceCollectionTypes; i++)
+            for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
             {
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
@@ -79,8 +79,6 @@ namespace osu.Framework.Statistics
             if (!currentFrame.CollectedTimes.ContainsKey(type)) currentFrame.CollectedTimes[type] = 0;
             currentFrame.CollectedTimes[type] += consumeStopwatchElapsedTime();
         }
-
-        public int TargetFrameRate;
 
         private readonly int[] lastAmountGarbageCollects = new int[3];
 

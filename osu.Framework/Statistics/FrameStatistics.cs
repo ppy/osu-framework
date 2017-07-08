@@ -8,14 +8,14 @@ namespace osu.Framework.Statistics
 {
     internal class FrameStatistics
     {
-        internal readonly Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>(NumStatisticsCounterTypes);
-        internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>(NumStatisticsCounterTypes);
+        internal readonly Dictionary<PerformanceCollectionType, double> CollectedTimes = new Dictionary<PerformanceCollectionType, double>(NUM_STATISTICS_COUNTER_TYPES);
+        internal readonly Dictionary<StatisticsCounterType, long> Counts = new Dictionary<StatisticsCounterType, long>(NUM_STATISTICS_COUNTER_TYPES);
         internal readonly List<int> GarbageCollections = new List<int>();
 
-        internal static readonly int NumStatisticsCounterTypes = Enum.GetValues(typeof(StatisticsCounterType)).Length;
-        internal static readonly int NumPerformanceCollectionTypes = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
+        internal static readonly int NUM_STATISTICS_COUNTER_TYPES = Enum.GetValues(typeof(StatisticsCounterType)).Length;
+        internal static readonly int NUM_PERFORMANCE_COLLECTION_TYPES = Enum.GetValues(typeof(PerformanceCollectionType)).Length;
 
-        internal static readonly long[] COUNTERS = new long[NumStatisticsCounterTypes];
+        internal static readonly long[] COUNTERS = new long[NUM_STATISTICS_COUNTER_TYPES];
 
         internal void Clear()
         {

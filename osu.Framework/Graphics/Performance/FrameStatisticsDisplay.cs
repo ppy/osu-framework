@@ -55,7 +55,7 @@ namespace osu.Framework.Graphics.Performance
         private readonly Container mainContainer;
         private readonly Container timeBarsContainer;
 
-        private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NumPerformanceCollectionTypes];
+        private readonly Drawable[] legendMapping = new Drawable[FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES];
         private readonly Dictionary<StatisticsCounterType, CounterBar> counterBars = new Dictionary<StatisticsCounterType, CounterBar>();
 
         private readonly FpsDisplay fpsDisplay;
@@ -327,9 +327,9 @@ namespace osu.Framework.Graphics.Performance
 
             int currentHeight = HEIGHT;
 
-            for (int i = 0; i < FrameStatistics.NumPerformanceCollectionTypes; i++)
+            for (int i = 0; i < FrameStatistics.NUM_PERFORMANCE_COLLECTION_TYPES; i++)
                 currentHeight = addArea(frame, (PerformanceCollectionType)i, currentHeight, upload.Data, amount_ms_steps);
-            currentHeight = addArea(frame, null, currentHeight, upload.Data, amount_ms_steps);
+            addArea(frame, null, currentHeight, upload.Data, amount_ms_steps);
 
             timeBar.Sprite.Texture.SetData(upload);
 
@@ -524,7 +524,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSISuffix(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
+                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
                     }
                 }
             }
