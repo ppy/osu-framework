@@ -20,12 +20,11 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Localisation engine";
 
-        private LocalisationEngine engine; //keep a reference to avoid GC of the engine
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private readonly LocalisationEngine engine; //keep a reference to avoid GC of the engine
 
-        public override void Reset()
+        public TestCaseLocalisation()
         {
-            base.Reset();
-
             var config = new FakeFrameworkConfigManager();
             engine = new LocalisationEngine(config);
 

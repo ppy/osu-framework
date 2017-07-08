@@ -19,10 +19,8 @@ namespace osu.Framework.VisualTests.Tests
 
         protected Container TestContainer;
 
-        public override void Reset()
+        public TestCaseMasking()
         {
-            base.Reset();
-
             Add(TestContainer = new Container()
             {
                 RelativeSizeAxes = Axes.Both,

@@ -12,10 +12,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Buffered containers containing almost all visual effects.";
 
-        public override void Reset()
+        public TestCaseBufferedContainer()
         {
-            base.Reset();
-
             Remove(TestContainer);
 
             BufferedContainer buffer;

@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                         var parent = Target?.Parent;
                         if (parent?.Parent != null)
-                            Target = (Drawable)Target?.Parent;
+                            Target = Target?.Parent;
 
                         // Rehighlight the last highlight
                         if (lastHighlight != null)
@@ -136,12 +136,12 @@ namespace osu.Framework.Graphics.Visualisation
 
             bool containsCursor = d.ScreenSpaceDrawQuad.Contains(state.Mouse.NativeState.Position);
             // This is an optimization: We don't need to consider drawables which we don't hover, and which do not
-            // forward input further to children (via d.Contains). If they do forward input to children, then there
+            // forward input further to children (via d.ReceiveMouseInputAt). If they do forward input to children, then there
             // is a good chance they have children poking out of their bounds, which we need to catch.
-            if (!containsCursor && !d.Contains(state.Mouse.NativeState.Position))
+            if (!containsCursor && !d.ReceiveMouseInputAt(state.Mouse.NativeState.Position))
                 return null;
 
-            var dAsContainer = d as IContainerEnumerable<Drawable>;
+            var dAsContainer = d as CompositeDrawable;
 
             Drawable containedTarget = null;
 
@@ -179,8 +179,12 @@ namespace osu.Framework.Graphics.Visualisation
 
             if (targetDrawable != null)
             {
-                treeContainer.Remove(targetDrawable);
-                targetDrawable.Dispose();
+                if (targetDrawable.Parent != null)
+                {
+                    // targetDrawable may have gotten purged from the TreeContainer
+                    treeContainer.Remove(targetDrawable);
+                    targetDrawable.Dispose();
+                }
                 targetDrawable = null;
             }
         }
@@ -291,7 +295,7 @@ namespace osu.Framework.Graphics.Visualisation
                 if (!dd.CheckExpiry())
                     visualise(dd.Target, dd);
 
-            var dContainer = d as IContainerEnumerable<Drawable>;
+            var dContainer = d as CompositeDrawable;
 
             if (d is SpriteText) return;
 
@@ -319,14 +323,14 @@ namespace osu.Framework.Graphics.Visualisation
 
         private Drawable findTarget(InputState state)
         {
-            return findTargetIn(Parent?.Parent as Drawable, state);
+            return findTargetIn(Parent?.Parent, state);
         }
 
         protected override bool OnClick(InputState state)
         {
             if (targetSearching)
             {
-                Target = (Drawable)findTarget(state)?.Parent;
+                Target = findTarget(state)?.Parent;
 
                 if (Target != null)
                 {

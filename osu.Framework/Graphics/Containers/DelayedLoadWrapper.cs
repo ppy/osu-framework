@@ -40,14 +40,14 @@ namespace osu.Framework.Graphics.Containers
             base.Update();
         }
 
-        private bool isIntersecting => isIntersectingBacking.EnsureValid() ? isIntersectingBacking.Value : isIntersectingBacking.Refresh(checkScrollIntersection);
+        private Cached<bool> isIntersectingBacking;
 
-        private Cached<bool> isIntersectingBacking = new Cached<bool>();
+        private bool isIntersecting => isIntersectingBacking.IsValid ? isIntersectingBacking : (isIntersectingBacking.Value = checkScrollIntersection());
 
         private bool checkScrollIntersection()
         {
             IOnScreenOptimisingContainer scroll = null;
-            IContainer cursor = this;
+            CompositeDrawable cursor = this;
             while (scroll == null && (cursor = cursor.Parent) != null)
                 scroll = cursor as IOnScreenOptimisingContainer;
 
@@ -63,7 +63,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// A container which acts as a masking parent for on-screen delayed load optimisations.
         /// </summary>
-        public interface IOnScreenOptimisingContainer : IContainer
+        public interface IOnScreenOptimisingContainer
         {
             Quad ScreenSpaceDrawQuad { get; }
         }

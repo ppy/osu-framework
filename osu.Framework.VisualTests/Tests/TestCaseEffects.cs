@@ -6,6 +6,7 @@ using OpenTK.Graphics;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Testing;
 
@@ -15,10 +16,8 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Tests classes implement the IEffect interface.";
 
-        public override void Reset()
+        public TestCaseEffects()
         {
-            base.Reset();
-
             var effect = new EdgeEffect
             {
                 CornerRadius = 3f,
@@ -96,6 +95,23 @@ namespace osu.Framework.VisualTests.Tests
                             Type = EdgeEffectType.Shadow
                         }
                     }),
+                    new Container
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                Colour = Color4.CornflowerBlue,
+                                RelativeSizeAxes = Axes.Both,
+                            },
+                            new SpriteText
+                            {
+                                Text = "Outlined Text",
+                                TextSize = 32f
+                            }.WithEffect(new OutlineEffect { BlurSigma = new Vector2(3f), Strength = 3f, OutlineColour = new Color4(1f, 0f, 0f, 1f) })
+                        }
+                    }
                 }
             });
         }

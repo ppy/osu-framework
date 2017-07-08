@@ -14,13 +14,12 @@ namespace osu.Framework.VisualTests.Tests
 {
     internal class TestCaseScrollableFlow : TestCase
     {
-        private ScheduledDelegate boxCreator;
+        private readonly ScheduledDelegate boxCreator;
 
         public override string Description => @"A flow container in a scroll container";
 
         private ScrollContainer scroll;
         private FillFlowContainer flow;
-        private Direction scrollDir;
 
         private void createArea(Direction dir)
         {
@@ -30,6 +29,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 scroll = new ScrollContainer(dir)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
@@ -53,12 +53,14 @@ namespace osu.Framework.VisualTests.Tests
             {
                 new ScrollContainer(Direction.Horizontal)
                 {
+                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Left = 150 },
                     Children = new[]
                     {
                         scroll = new ScrollContainer
                         {
+                            RelativeMouseDrag = true,
                             RelativeSizeAxes = Axes.Y,
                             AutoSizeAxes = Axes.X,
                             Children = new[]
@@ -83,9 +85,9 @@ namespace osu.Framework.VisualTests.Tests
             scroll.ScrollContent.AutoSizeAxes = Axes.Both;
         }
 
-        public override void Reset()
+        public TestCaseScrollableFlow()
         {
-            base.Reset();
+            Direction scrollDir;
 
             createArea(scrollDir = Direction.Vertical);
 

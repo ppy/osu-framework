@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using osu.Framework.DebugUtils;
 using osu.Framework.Graphics.Batches;
@@ -276,8 +275,8 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             if (IsDisposed)
                 throw new ObjectDisposedException(ToString(), "Can not set data of a disposed texture.");
 
-            if (upload.Bounds == Rectangle.Empty)
-                upload.Bounds = new Rectangle(0, 0, width, height);
+            if (upload.Bounds.IsEmpty)
+                upload.Bounds = new RectangleI(0, 0, width, height);
 
             IsTransparent = false;
 

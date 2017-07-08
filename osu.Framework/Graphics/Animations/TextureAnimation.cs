@@ -17,13 +17,10 @@ namespace osu.Framework.Graphics.Animations
 
         public TextureAnimation()
         {
-            Children = new[]
+            Child = textureHolder = new Sprite
             {
-                textureHolder = new Sprite
-                {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                }
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
             };
         }
 

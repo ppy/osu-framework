@@ -1,13 +1,20 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
-using OpenTK;
 
 namespace osu.Framework.Graphics
 {
+    /// <summary>
+    /// Exposes various properties that are part of the public interface of <see cref="Drawable"/>.
+    /// This interface should generally NOT be implemented by other classes than <see cref="Drawable"/>, but only used to
+    /// specify that an object is of type <see cref="Drawable"/>.
+    /// It is mostly useful in cases where you need to specify additional constraints on a <see cref="Drawable"/>, but also do not want to force inheriting from
+    /// any particular subclass of <see cref="Drawable"/>.
+    /// </summary>
     public interface IDrawable : IHasLifetime
     {
         /// <summary>
@@ -24,7 +31,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
-        IContainer Parent { get; }
+        CompositeDrawable Parent { get; }
 
         /// <summary>
         /// Whether this drawable is present for any sort of user-interaction.
@@ -62,6 +69,27 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Whether this Drawable is currently hovered over.
         /// </summary>
-        bool Hovering { get; }
+        bool IsHovered { get; }
+
+        /// <summary>
+        /// Whether this Drawable is currently dragged.
+        /// </summary>
+        bool IsDragged { get; }
+
+        /// <summary>
+        /// Multiplicative alpha factor applied on top of <see cref="Colour.ColourInfo"/> and its existing
+        /// alpha channel(s).
+        /// </summary>
+        float Alpha { get; }
+
+        /// <summary>
+        /// Show sprite instantly.
+        /// </summary>
+        void Show();
+
+        /// <summary>
+        /// Hide sprite instantly.
+        /// </summary>
+        void Hide();
     }
 }

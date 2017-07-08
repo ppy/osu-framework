@@ -12,11 +12,11 @@ using osu.Framework.Logging;
 
 namespace osu.Framework.Testing
 {
-    public class DynamicClassCompiler<T>
+    public class DynamicClassCompiler
     {
         public Action CompilationStarted;
 
-        public Action<T> CompilationFinished;
+        public Action<Type> CompilationFinished;
 
         private FileSystemWatcher fsw;
 
@@ -39,7 +39,7 @@ namespace osu.Framework.Testing
         {
             var csc = new CSharpCodeProvider();
 
-            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.2.0.1", "tools", "csc.exe");
+            var newPath = Path.Combine(findSolutionPath(), "packages", "Microsoft.Net.Compilers.2.2.0", "tools", "csc.exe");
 
             //Black magic to fix incorrect packaged path (http://stackoverflow.com/a/40311406)
             var settings = csc.GetType().GetField("_compilerSettings", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(csc);
@@ -94,7 +94,7 @@ namespace osu.Framework.Testing
 
                 CompilationStarted?.Invoke();
 
-                T newVersion = default(T);
+                Type newType = null;
 
                 using (var provider = createCodeProvider())
                 {
@@ -112,13 +112,13 @@ namespace osu.Framework.Testing
                     {
                         Module module = compile.CompiledAssembly.GetModules()[0];
                         if (module != null)
-                            newVersion = (T)Activator.CreateInstance(module.GetTypes()[0]);
+                            newType = module.GetTypes()[0];
                     }
                 }
 
-                CompilationFinished?.Invoke(newVersion);
+                CompilationFinished?.Invoke(newType);
 
-                if (newVersion != null)
+                if (newType != null)
                     Logger.Log(@"Complete!", LoggingTarget.Runtime, LogLevel.Important);
 
             };

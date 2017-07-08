@@ -15,16 +15,6 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCaseColourGradient() : base(2, 2)
         {
-        }
-
-        public override string Description => @"Various cases of colour gradients.";
-
-        private readonly Box[] boxes = new Box[4];
-
-        public override void Reset()
-        {
-            base.Reset();
-
             Color4 transparentBlack = new Color4(0, 0, 0, 0);
 
             ColourInfo[] colours =
@@ -88,6 +78,10 @@ namespace osu.Framework.VisualTests.Tests
                 });
             }
         }
+
+        public override string Description => @"Various cases of colour gradients.";
+
+        private readonly Box[] boxes = new Box[4];
 
         protected override void Update()
         {

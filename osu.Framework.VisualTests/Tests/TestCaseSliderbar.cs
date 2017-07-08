@@ -13,14 +13,13 @@ namespace osu.Framework.VisualTests.Tests
     public class TestCaseSliderbar : TestCase
     {
         public override string Description => @"Sliderbar tests.";
-        private SliderBar<double> sliderBar;
-        private BindableDouble sliderBarValue;
-        private SpriteText sliderbarText;
 
-        public override void Reset()
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private readonly BindableDouble sliderBarValue; //keep a reference to avoid GC of the bindable
+        private readonly SpriteText sliderbarText;
+
+        public TestCaseSliderbar()
         {
-            base.Reset();
-
             sliderBarValue = new BindableDouble(8)
             {
                 MinValue = -10,
@@ -33,7 +32,8 @@ namespace osu.Framework.VisualTests.Tests
                 Text = $"Selected value: {sliderBarValue.Value}",
                 Position = new Vector2(25, 0)
             };
-            sliderBar = new BasicSliderBar<double>
+
+            SliderBar<double> sliderBar = new BasicSliderBar<double>
             {
                 Size = new Vector2(200, 10),
                 Position = new Vector2(25, 25),

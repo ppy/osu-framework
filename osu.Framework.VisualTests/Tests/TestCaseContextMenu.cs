@@ -20,8 +20,6 @@ namespace osu.Framework.VisualTests.Tests
         private const int start_time = 0;
         private const int duration = 1000;
 
-        private ContextMenuBox movingBox;
-
         private ContextMenuBox makeBox(Anchor anchor)
         {
             return new ContextMenuBox
@@ -40,15 +38,21 @@ namespace osu.Framework.VisualTests.Tests
             };
         }
 
-        public override void Reset()
+        public TestCaseContextMenu()
         {
-            base.Reset();
-
-            Add(makeBox(Anchor.TopLeft));
-            Add(makeBox(Anchor.TopRight));
-            Add(makeBox(Anchor.BottomLeft));
-            Add(makeBox(Anchor.BottomRight));
-            Add(movingBox = makeBox(Anchor.Centre));
+            ContextMenuBox movingBox;
+            Add(new ContextMenuContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Children = new[]
+                {
+                    makeBox(Anchor.TopLeft),
+                    makeBox(Anchor.TopRight),
+                    makeBox(Anchor.BottomLeft),
+                    makeBox(Anchor.BottomRight),
+                    movingBox = makeBox(Anchor.Centre),
+                }
+            });
 
             movingBox.Transforms.Add(new TransformPosition
             {
@@ -86,8 +90,6 @@ namespace osu.Framework.VisualTests.Tests
                 LoopCount = -1,
                 LoopDelay = duration * 3
             });
-
-            Add(new ContextMenuContainer());
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

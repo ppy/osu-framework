@@ -61,7 +61,12 @@ namespace osu.Framework.Audio.Track
                     // We repeat the if-check inside the lock to make sure exclusiveTrack
                     // has not been overwritten prior to us taking the lock.
                     if (exclusiveTrack?.HasCompleted != false)
+                    {
+                        if (exclusiveTrack != null)
+                            UnregisterItem(exclusiveTrack);
+
                         exclusiveTrack = Items.FirstOrDefault();
+                    }
 
             base.Update();
         }

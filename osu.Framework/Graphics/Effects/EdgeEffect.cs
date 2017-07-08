@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Effects
                 Origin = drawable.Origin,
                 RelativeSizeAxes = drawable.RelativeSizeAxes,
                 AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-                Children = new[] { drawable }
+                Child = drawable
             };
         }
     }

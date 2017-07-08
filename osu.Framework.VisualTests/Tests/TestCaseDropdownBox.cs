@@ -16,15 +16,11 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Drop-down boxes";
 
-        private StyledDropdownMenu styledDropdownMenu;
-
-        private StyledDropdownMenu styledDropdownMenu2;
-
         private const int items_to_add = 10;
 
-        public override void Reset()
+        public TestCaseDropdownBox()
         {
-            base.Reset();
+            StyledDropdownMenu styledDropdownMenu, styledDropdownMenu2;
 
             var testItems = new string[10];
             int i = 0;

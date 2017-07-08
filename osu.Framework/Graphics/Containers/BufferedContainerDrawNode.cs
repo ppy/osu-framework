@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using System.Collections.Generic;
-using Rectangle = System.Drawing.Rectangle;
 using osu.Framework.Graphics.Batches;
 using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Buffers;
@@ -16,16 +15,20 @@ using osu.Framework.Graphics.Shaders;
 using System;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.OpenGL.Vertices;
-using osu.Framework.MathUtils;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class BufferedContainerDrawNode : ContainerDrawNode
+    public class BufferedContainerDrawNode : CompositeDrawNode
     {
         public FrameBuffer[] FrameBuffers;
+
+        public bool DrawOriginal;
         public Color4 BackgroundColour;
+        public ColourInfo EffectColour;
 
         public Vector2 BlurSigma;
+        public Vector2I BlurRadius;
         public float BlurRotation;
 
         public Shader BlurShader;
@@ -43,7 +46,7 @@ namespace osu.Framework.Graphics.Containers
             // Disable masking for generating the frame buffer since masking will be re-applied
             // when actually drawing later on anyways. This allows more information to be captured
             // in the frame buffer and helps with cached buffers being re-used.
-            Rectangle screenSpaceMaskingRect = new Rectangle((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
+            RectangleI screenSpaceMaskingRect = new RectangleI((int)Math.Floor(ScreenSpaceDrawRectangle.X), (int)Math.Floor(ScreenSpaceDrawRectangle.Y), (int)roundedSize.X + 1, (int)roundedSize.Y + 1);
 
             GLWrapper.PushMaskingInfo(new MaskingInfo
             {
@@ -55,7 +58,7 @@ namespace osu.Framework.Graphics.Containers
             }, true);
 
             // Match viewport to FrameBuffer such that we don't draw unnecessary pixels.
-            GLWrapper.PushViewport(new Rectangle(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
+            GLWrapper.PushViewport(new RectangleI(0, 0, (int)roundedSize.X, (int)roundedSize.Y));
 
             return new InvokeOnDisposal(delegate
             {
@@ -146,8 +149,11 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private void finalizeFrameBuffer()
         {
-            if (currentFrameBufferIndex == 1)
+            if (currentFrameBufferIndex != 0)
             {
+                Trace.Assert(currentFrameBufferIndex == 1,
+                    $"Only the first two framebuffers should be the last to be written to at the end of {nameof(Draw)}.");
+
                 FrameBuffer temp = FrameBuffers[0];
                 FrameBuffers[0] = FrameBuffers[1];
                 FrameBuffers[1] = temp;
@@ -156,8 +162,15 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        // Our effects will be drawn into framebuffers 0 and 1. If we want to preserve the originally
+        // drawn children we need to put them in a separate buffer; in this case buffer 2. Otherwise,
+        // we do not want to allocate a third buffer for nothing and hence we start with 0.
+        private int originalIndex => DrawOriginal && (BlurRadius.X > 0 || BlurRadius.Y > 0) ? 2 : 0;
+
         public override void Draw(Action<TexturedVertex2D> vertexAction)
         {
+            currentFrameBufferIndex = originalIndex;
+
             Vector2 frameBufferSize = new Vector2((float)Math.Ceiling(ScreenSpaceDrawRectangle.Width), (float)Math.Ceiling(ScreenSpaceDrawRectangle.Height));
             if (UpdateVersion > DrawVersion.Value || frameBufferSize != FrameBuffers[0].Size)
             {
@@ -168,15 +181,12 @@ namespace osu.Framework.Graphics.Containers
                     drawChildren(vertexAction, frameBufferSize);
 
                     // Blur post-processing in case a blur radius is defined.
-                    int radiusX = Blur.KernelSize(BlurSigma.X);
-                    int radiusY = Blur.KernelSize(BlurSigma.Y);
-
-                    if (radiusX > 0 || radiusY > 0)
+                    if (BlurRadius.X > 0 || BlurRadius.Y > 0)
                     {
                         GL.Disable(EnableCap.ScissorTest);
 
-                        if (radiusX > 0) drawBlurredFrameBuffer(radiusX, BlurSigma.X, BlurRotation);
-                        if (radiusY > 0) drawBlurredFrameBuffer(radiusY, BlurSigma.Y, BlurRotation + 90);
+                        if (BlurRadius.X > 0) drawBlurredFrameBuffer(BlurRadius.X, BlurSigma.X, BlurRotation);
+                        if (BlurRadius.Y > 0) drawBlurredFrameBuffer(BlurRadius.Y, BlurSigma.Y, BlurRotation + 90);
 
                         GL.Enable(EnableCap.ScissorTest);
                     }
@@ -193,7 +203,14 @@ namespace osu.Framework.Graphics.Containers
             GLWrapper.SetBlend(DrawInfo.Blending);
 
             Shader.Bind();
-            drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, DrawInfo.Colour);
+
+            ColourInfo effectColour = DrawInfo.Colour;
+            effectColour.ApplyChild(EffectColour);
+            drawFrameBufferToBackBuffer(FrameBuffers[0], drawRectangle, effectColour);
+
+            if (DrawOriginal)
+                drawFrameBufferToBackBuffer(FrameBuffers[originalIndex], drawRectangle, DrawInfo.Colour);
+
             Shader.Unbind();
         }
     }

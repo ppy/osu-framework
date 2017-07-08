@@ -16,12 +16,10 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Various scenarios which potentially challenge size calculations.";
 
-        private Container testContainer;
+        private readonly Container testContainer;
 
-        public override void Reset()
+        public TestCaseSizing()
         {
-            base.Reset();
-
             Add(testContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,

@@ -1,19 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Collections.Generic;
-using osu.Framework.Graphics.Batches;
-using osu.Framework.Graphics.OpenGL.Buffers;
-using OpenTK.Graphics.ES30;
-using osu.Framework.Threading;
-using OpenTK.Graphics;
-using osu.Framework.Graphics.Shaders;
 using OpenTK;
-using osu.Framework.Graphics.Colour;
+using OpenTK.Graphics;
+using OpenTK.Graphics.ES30;
 using osu.Framework.Allocation;
-using osu.Framework.Graphics.Transforms;
-using System;
+using osu.Framework.Graphics.Batches;
+using osu.Framework.Graphics.Colour;
+using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Transforms;
+using osu.Framework.MathUtils;
+using osu.Framework.Threading;
+using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -37,8 +39,28 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T> where T : Drawable
+    public class BufferedContainer<T> : Container<T>, IBufferedContainer where T : Drawable
     {
+        private bool drawOriginal;
+
+        /// <summary>
+        /// If true the original buffered children will be drawn a second time on top of any effect (e.g. blur).
+        /// </summary>
+        public bool DrawOriginal
+        {
+            get { return drawOriginal; }
+
+            set
+            {
+                if (drawOriginal == value)
+                    return;
+
+                drawOriginal = value;
+                ForceRedraw();
+            }
+        }
+
+
         private Vector2 blurSigma = Vector2.Zero;
 
         /// <summary>
@@ -97,6 +119,45 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        private ColourInfo effectColour = Color4.White;
+
+        /// <summary>
+        /// The colour of drawn buffered object after applying all effects (e.g. blur). Does not affect the original
+        /// which is drawn when <see cref="DrawOriginal"/> is true.
+        /// </summary>
+        public ColourInfo EffectColour
+        {
+            get { return effectColour; }
+
+            set
+            {
+                if (effectColour.Equals(value))
+                    return;
+
+                effectColour = value;
+                Invalidate(Invalidation.DrawNode);
+            }
+        }
+
+        private Color4 backgroundColour = new Color4(0, 0, 0, 0);
+
+        /// <summary>
+        /// The background colour of the framebuffer. Transparent black by default.
+        /// </summary>
+        public Color4 BackgroundColour
+        {
+            get { return backgroundColour; }
+
+            set
+            {
+                if (backgroundColour == value)
+                    return;
+
+                backgroundColour = value;
+                ForceRedraw();
+            }
+        }
+
         private Shader blurShader;
 
         /// <summary>
@@ -118,15 +179,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The background colour of the framebuffer. Transparent black by default.
-        /// </summary>
-        public Color4 BackgroundColour = new Color4(0, 0, 0, 0);
-
-        /// <summary>
         /// We need 2 frame buffers such that we can accumulate post-processing effects in a
         /// ping-pong fashion going back and forth (reading from one buffer, writing into the other).
         /// </summary>
-        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[2];
+        private readonly FrameBuffer[] frameBuffers = new FrameBuffer[3];
 
         /// <summary>
         /// In order to signal the draw thread to re-draw the buffered container we version it.
@@ -185,10 +241,13 @@ namespace osu.Framework.Graphics.Containers
 
             n.DrawVersion = drawVersion;
             n.UpdateVersion = updateVersion;
-            n.BackgroundColour = BackgroundColour;
+            n.BackgroundColour = backgroundColour;
+            n.EffectColour = effectColour;
 
-            n.BlurSigma = BlurSigma;
-            n.BlurRotation = BlurRotation;
+            n.DrawOriginal = drawOriginal;
+            n.BlurSigma = blurSigma;
+            n.BlurRadius = new Vector2I(Blur.KernelSize(BlurSigma.X), Blur.KernelSize(BlurSigma.Y));
+            n.BlurRotation = blurRotation;
             n.BlurShader = blurShader;
 
             base.ApplyDrawNode(node);

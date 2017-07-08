@@ -204,7 +204,7 @@ namespace osu.Framework.Graphics.Visualisation
             base.OnHoverLost(state);
         }
 
-        protected override bool OnDragStart(InputState state) => titleBar.Contains(state.Mouse.NativeState.Position);
+        protected override bool OnDragStart(InputState state) => titleBar.ReceiveMouseInputAt(state.Mouse.NativeState.Position);
 
         protected override bool OnDrag(InputState state)
         {

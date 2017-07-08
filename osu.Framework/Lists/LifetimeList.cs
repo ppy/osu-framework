@@ -76,58 +76,39 @@ namespace osu.Framework.Lists
             return changed;
         }
 
-        public new int Add(T item)
+        public override int Add(T item)
         {
             LoadRequested?.Invoke(item);
 
             int i = base.Add(item);
-            current.Insert(i, false);
+
+            bool isLoaded = item.IsLoaded;
+            current.Insert(i, isLoaded);
+            if (isLoaded)
+                AliveItems.Add(item);
 
             return i;
         }
 
-        public new bool Remove(T item)
+        public override void RemoveRange(int index, int count)
         {
-            int index = IndexOf(item);
-
-            if (index < 0) return false;
-
-            RemoveAt(index);
-
-            AliveItems.Remove(item);
-
-            return true;
+            // A bit inefficient, but so far isn't used in any performance-critical code.
+            for (int i = 0; i < count; ++i)
+                RemoveAt(index);
         }
 
-        public new void RemoveAt(int index)
+        public override void RemoveAt(int index)
         {
-            current.RemoveAt(index);
+            AliveItems.Remove(this[index]);
             base.RemoveAt(index);
+            current.RemoveAt(index);
         }
 
-        public new int RemoveAll(Predicate<T> match)
-        {
-            int count = 0;
-            int i;
-
-            while ((i = FindIndex(match)) >= 0)
-            {
-                if (current[i])
-                    AliveItems.Remove(this[i]);
-
-                RemoveAt(i);
-
-                count++;
-            }
-
-            return count;
-        }
-
-        public new void Clear()
+        public override void Clear()
         {
             AliveItems.Clear();
-            current.Clear();
             base.Clear();
+            current.Clear();
         }
     }
 }

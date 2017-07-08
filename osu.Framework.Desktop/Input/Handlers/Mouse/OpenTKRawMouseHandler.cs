@@ -9,6 +9,7 @@ using osu.Framework.Platform;
 using osu.Framework.Threading;
 using OpenTK;
 using osu.Framework.Statistics;
+using osu.Framework.Desktop.Platform;
 using MouseState = OpenTK.Input.MouseState;
 
 namespace osu.Framework.Desktop.Input.Handlers.Mouse
@@ -27,12 +28,24 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
 
         public BindableDouble Sensitivity => sensitivity;
 
+        private readonly Bindable<ConfineMouseMode> confineMode = new Bindable<ConfineMouseMode>();
+
+        private readonly Bindable<WindowMode> windowMode = new Bindable<WindowMode>();
+
         public override bool Initialize(GameHost host)
         {
             host.Window.MouseEnter += window_MouseEnter;
             host.Window.MouseLeave += window_MouseLeave;
 
             mouseInWindow = host.Window.CursorInWindow;
+
+            // Get the bindables we need to determine whether to confine the mouse to window or not
+            DesktopGameWindow desktopWindow = host.Window as DesktopGameWindow;
+            if (desktopWindow != null)
+            {
+                confineMode.BindTo(desktopWindow.ConfineMouseMode);
+                windowMode.BindTo(desktopWindow.WindowMode);
+            }
 
             Enabled.ValueChanged += enabled =>
             {
@@ -63,6 +76,10 @@ namespace osu.Framework.Desktop.Input.Handlers.Mouse
                             else
                             {
                                 currentPosition += new Vector2(state.X - lastState.Value.X, state.Y - lastState.Value.Y) * (float)sensitivity.Value;
+
+                                // When confining, clamp to the window size.
+                                if (confineMode.Value == ConfineMouseMode.Always || confineMode.Value == ConfineMouseMode.Fullscreen && windowMode.Value == WindowMode.Fullscreen)
+                                    currentPosition = Vector2.Clamp(currentPosition, Vector2.Zero, new Vector2(host.Window.Width, host.Window.Height));
 
                                 // update the windows cursor to match our raw cursor position.
                                 // this is important when sensitivity is decreased below 1.0, where we need to ensure the cursor stays withing the window.
