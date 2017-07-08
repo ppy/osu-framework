@@ -86,7 +86,12 @@ namespace osu.Framework.Graphics.Colour
 
         public void ApplyChild(ColourInfo childColour)
         {
-            Trace.Assert(HasSingleColour);
+            if (!HasSingleColour)
+            {
+                ApplyChild(childColour, new Quad(0, 0, 1, 1));
+                return;
+            }
+
             if (childColour.HasSingleColour)
                 Colour *= childColour.Colour;
             else
