@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Allocation;
+using osu.Framework.Timing;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using osu.Framework.Allocation;
-using osu.Framework.Timing;
 
 namespace osu.Framework.Statistics
 {
@@ -15,7 +15,7 @@ namespace osu.Framework.Statistics
 
         private readonly Stack<PerformanceCollectionType> currentCollectionTypeStack = new Stack<PerformanceCollectionType>();
 
-        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[(int)PerformanceCollectionType.AmountTypes];
+        private readonly InvokeOnDisposal[] endCollectionDelegates = new InvokeOnDisposal[FrameStatistics.NumPerformanceCollectionTypes];
 
         private FrameStatistics currentFrame;
 
@@ -25,7 +25,7 @@ namespace osu.Framework.Statistics
 
         internal readonly ConcurrentQueue<FrameStatistics> PendingFrames = new ConcurrentQueue<FrameStatistics>();
         internal readonly ObjectStack<FrameStatistics> FramesHeap = new ObjectStack<FrameStatistics>(max_pending_frames);
-        private readonly bool[] activeCounters = new bool[(int)StatisticsCounterType.AmountTypes];
+        private readonly bool[] activeCounters = new bool[FrameStatistics.NumStatisticsCounterTypes];
 
         internal bool[] ActiveCounters => (bool[])activeCounters.Clone();
 
@@ -43,7 +43,7 @@ namespace osu.Framework.Statistics
             foreach (var c in counters)
                 activeCounters[(int)c] = true;
 
-            for (int i = 0; i < (int)PerformanceCollectionType.AmountTypes; i++)
+            for (int i = 0; i < FrameStatistics.NumPerformanceCollectionTypes; i++)
             {
                 var t = (PerformanceCollectionType)i;
                 endCollectionDelegates[i] = new InvokeOnDisposal(() => endCollecting(t));
@@ -92,7 +92,7 @@ namespace osu.Framework.Statistics
         public void NewFrame()
         {
             // Reset the counters we keep track of
-            for (int i = 0; i < (int)StatisticsCounterType.AmountTypes; ++i)
+            for (int i = 0; i < activeCounters.Length; ++i)
                 if (activeCounters[i])
                 {
                     currentFrame.Counts[(StatisticsCounterType)i] = FrameStatistics.COUNTERS[i];
