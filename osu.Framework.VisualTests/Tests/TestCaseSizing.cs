@@ -357,7 +357,7 @@ namespace osu.Framework.VisualTests.Tests
                         using (shrinkContainer.BeginDelayedSequence(1000))
                             shrinkContainer.ScaleTo(new Vector2(1f, 1), 1000);
                     }
-                        
+
                     break;
 
                 case 8:
