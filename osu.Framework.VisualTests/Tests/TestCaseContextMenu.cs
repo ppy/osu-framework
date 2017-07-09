@@ -18,7 +18,8 @@ namespace osu.Framework.VisualTests.Tests
 
         private const int start_time = 0;
         private const int duration = 1000;
-        private ContextMenuBox movingBox;
+
+        private readonly ContextMenuBox movingBox;
 
         private ContextMenuBox makeBox(Anchor anchor)
         {

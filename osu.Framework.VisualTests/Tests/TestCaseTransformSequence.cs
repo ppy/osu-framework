@@ -13,7 +13,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Sequences (potentially looping) of transforms";
 
-        private Drawable[] boxes;
+        private readonly Drawable[] boxes;
 
         public TestCaseTransformSequence() : base(2, 2)
         {
@@ -28,7 +28,7 @@ namespace osu.Framework.VisualTests.Tests
             boxes = new Drawable[Rows * Cols];
             for (int i = 0; i < Rows * Cols; ++i)
             {
-                Cell(i).Add(new Drawable[]
+                Cell(i).Add(new[]
                 {
                     new SpriteText
                     {

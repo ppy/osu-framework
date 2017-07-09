@@ -78,7 +78,7 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms();
         }
 
-        private List<ITransform<T>> loopingTransforms = new List<ITransform<T>>();
+        private readonly List<ITransform<T>> loopingTransforms = new List<ITransform<T>>();
 
         /// <summary>
         /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
@@ -182,7 +182,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
+        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
         {
             Delay(delay, recursive);
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
-        /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
+        /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
         public InvokeOnDisposal BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
