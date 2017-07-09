@@ -4,6 +4,10 @@
 using System;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
+using System.Linq;
+using System.Diagnostics;
+using osu.Framework.Allocation;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -160,7 +164,12 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="delay">The offset in milliseconds from current time. Note that this stacks with other nested sequences.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
-        public TransformSequence BeginDelayedSequence(double delay, bool recursive = false) => new TransformSequence(this, delay, recursive);
+        public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
+        {
+            Delay(delay, recursive);
+
+            return new InvokeOnDisposal(() => Delay(-delay, recursive));
+        }
 
         /// <summary>
         /// Start a sequence of transforms from an absolute time value.
@@ -169,20 +178,43 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="TransformSequence" /> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public TransformSequence BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
+        public InvokeOnDisposal BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
         {
             if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
-            return new TransformSequence(this, -(Clock?.CurrentTime ?? 0) + startOffset, recursive);
+            return BeginDelayedSequence(-(Clock?.CurrentTime ?? 0) + startOffset, recursive);
         }
 
+        private bool isInLoopedSequence;
+
         /// <summary>
-        /// Set the loop interval of all transformations contained in <see cref="Transforms"/>.
+        /// Loop all transforms created within a using block of this sequence.
         /// </summary>
-        /// <param name="delay">The loop interval to set, in milliseconds.</param>
-        public void Loop(float delay = 0)
+        /// <param name="pause">The time to pause between loop iterations. 0 by default.</param>
+        /// <param name="numIterations">The amount of loop iterations to perform. A negative value results in looping indefinitely. -1 by default.</param>
+        public InvokeOnDisposal BeginLoopedSequece(double pause = 0, int numIterations = -1)
         {
-            foreach (var t in Transforms)
-                t.Loop(Math.Max(0, TransformDelay + delay - t.Duration));
+            if (isInLoopedSequence)
+                throw new InvalidOperationException($"May not nest multiple {nameof(BeginLoopedSequece)}s.");
+            isInLoopedSequence = true;
+
+            if (pause < 0)
+                throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequece)} with a negative {nameof(pause)}, but was {pause}.");
+
+            // We do not want to loop those
+            HashSet<ITransform<T>> existingTransforms = new HashSet<ITransform<T>>(Transforms);
+
+            return new InvokeOnDisposal(delegate
+            {
+                var newTransforms = Transforms.Except(existingTransforms).ToArray();
+                isInLoopedSequence = false;
+
+                if (newTransforms.Length == 0)
+                    return;
+
+                double duration = newTransforms.Max(t => t.EndTime) - newTransforms.Min(t => t.StartTime);
+                foreach (var t in Transforms.Except(existingTransforms))
+                    t.Loop(pause + duration - t.Duration, numIterations);
+            });
         }
 
         /// <summary>
@@ -275,49 +307,6 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             Transforms.Add(transform);
-        }
-
-        /// <summary>
-        /// A disposable-pattern object to handle isolated sequences of transforms. Should only be used in using blocks.
-        /// </summary>
-        public class TransformSequence : IDisposable
-        {
-            private readonly Transformable<T> us;
-            private readonly bool recursive;
-            private readonly double adjust;
-
-            public TransformSequence(Transformable<T> us, double adjust, bool recursive = false)
-            {
-                this.recursive = recursive;
-                this.us = us;
-                this.adjust = adjust;
-
-                us.Delay(adjust, recursive);
-            }
-
-            #region IDisposable Support
-            private bool disposed;
-
-            protected virtual void Dispose(bool disposing)
-            {
-                if (!disposed)
-                {
-                    us.Delay(-adjust, recursive);
-                    disposed = true;
-                }
-            }
-
-            ~TransformSequence()
-            {
-                Dispose(false);
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-            #endregion
         }
     }
 }

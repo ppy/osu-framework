@@ -20,6 +20,8 @@ namespace osu.Framework.Graphics.Transforms
         ITransform<T> CloneReverse();
 
         void Reverse();
+
+
         void Loop(double delay, int loopCount = -1);
 
         /// <summary>
