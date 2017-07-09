@@ -150,6 +150,10 @@ namespace osu.Framework.Logging
         /// <param name="level">The verbosity level.</param>
         public void Add(string message = @"", LogLevel level = LogLevel.Verbose)
         {
+#if DEBUG
+            System.Diagnostics.Debug.Print($"[{Target.ToString().ToLower()}:{level.ToString().ToLower()}] {message}");
+#endif
+
 #if Public
             if (level < LogLevel.Important) return;
 #endif
