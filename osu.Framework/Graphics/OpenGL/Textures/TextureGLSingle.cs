@@ -21,7 +21,22 @@ namespace osu.Framework.Graphics.OpenGL.Textures
         public const int MAX_MIPMAP_LEVELS = 3;
 
         private static QuadBatch<TexturedVertex2D> quadBatch;
+        private static Action<TexturedVertex2D> defaultQuadAction;
+
         private static LinearBatch<TexturedVertex2D> triangleBatch;
+        private static Action<TexturedVertex2D> defaultTriangleAction;
+
+        static TextureGLSingle()
+        {
+            quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
+            defaultQuadAction = quadBatch.Add;
+
+            // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
+            // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
+            // grouping of vertices into primitives.
+            triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
+            defaultTriangleAction = triangleBatch.Add;
+        }
 
         private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
 
@@ -136,14 +151,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
-            {
-                if (triangleBatch == null)
-                    // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
-                    // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
-                    // grouping of vertices into primitives.
-                    triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
-                vertexAction = triangleBatch.Add;
-            }
+                vertexAction = defaultTriangleAction;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -218,11 +226,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
             if (vertexAction == null)
-            {
-                if (quadBatch == null)
-                    quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-                vertexAction = quadBatch.Add;
-            }
+                vertexAction = defaultQuadAction;
 
             vertexAction(new TexturedVertex2D
             {
