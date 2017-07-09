@@ -26,7 +26,7 @@ namespace osu.Framework.MathUtils
             var isNeg = number < 0;
             number = Math.Abs(number);
             var strs = new[] { "y", "z", "a", "f", "p", "n", "µ", "m", "", "k", "M", "G", "T", "P", "E", "Z", "Y" };
-            int log1000 = (int)Math.Floor(Math.Log10(number) / 3);
+            int log1000 = (int)Math.Floor(Math.Log(number, 1000));
             int index = log1000 + 8;
 
             if (index < 0 || index >= strs.Length)
