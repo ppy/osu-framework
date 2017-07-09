@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Performance
         private const float visible_ms_range = 20;
         private const float scale = HEIGHT / visible_ms_range;
 
-        private const float alpha_when_inactive = 0.75f;
+        private const float alpha_when_active = 0.75f;
 
         private readonly TimeBar[] timeBars;
         private readonly BufferStack<byte> textureBufferStack;
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Performance
 
             Origin = Anchor.TopRight;
             AutoSizeAxes = Axes.Both;
-            Alpha = alpha_when_inactive;
+            Alpha = alpha_when_active;
 
             bool hasCounters = monitor.ActiveCounters.Any(b => b);
             Child = new Container
@@ -274,26 +274,12 @@ namespace osu.Framework.Graphics.Performance
 
                 active = value || state != FrameStatisticsMode.Full;
 
-                if (active)
-                {
-                    overlayContainer.FadeOut(100);
-                    FadeTo(alpha_when_inactive, 100);
-                    fpsDisplay.Counting = true;
-                    processFrames = true;
-
-                    foreach (CounterBar bar in counterBars.Values)
-                        bar.Active = true;
-                }
-                else
-                {
-                    overlayContainer.FadeIn(100);
-                    FadeIn(100);
-                    fpsDisplay.Counting = false;
-                    processFrames = false;
-
-                    foreach (CounterBar bar in counterBars.Values)
-                        bar.Active = false;
-                }
+                overlayContainer.FadeTo(active ? 0 : 1, 100);
+                FadeTo(active ? alpha_when_active : 1, 100);
+                fpsDisplay.Counting = active;
+                processFrames = active;
+                foreach (CounterBar bar in counterBars.Values)
+                    bar.Active = active;
             }
         }
 
@@ -524,7 +510,7 @@ namespace osu.Framework.Graphics.Performance
                     {
                         ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
-                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(Math.Pow(10, box.Height * amount_count_steps) - 1)}";
+                        text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(this.value)}";
                     }
                 }
             }
@@ -533,6 +519,16 @@ namespace osu.Framework.Graphics.Performance
             private double velocity;
             private const double acceleration = 0.000001;
             private const float bar_width = 6;
+
+            private long value;
+            public long Value
+            {
+                set
+                {
+                    this.value = value;
+                    height = Math.Log10(value + 1) / amount_count_steps;
+                }
+            }
 
             public CounterBar()
             {
@@ -561,17 +557,9 @@ namespace osu.Framework.Graphics.Performance
                 Active = true;
             }
 
-            public long Value
-            {
-                set { height = Math.Log10(value + 1) / amount_count_steps; }
-            }
-
             protected override void Update()
             {
                 base.Update();
-
-                if (!Active)
-                    return;
 
                 double elapsedTime = Time.Elapsed;
                 double movement = velocity * Time.Elapsed + 0.5 * acceleration * elapsedTime * elapsedTime;
