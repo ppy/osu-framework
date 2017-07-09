@@ -59,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            using (movingBox.BeginLoopedSequece())
+            using (movingBox.BeginLoopedSequence())
             {
                 movingBox.MoveTo(new Vector2(0, 100), duration);
                 using (movingBox.BeginDelayedSequence(duration))

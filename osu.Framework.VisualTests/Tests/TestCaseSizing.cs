@@ -351,7 +351,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
                     }
 
-                    using (shrinkContainer.BeginLoopedSequece())
+                    using (shrinkContainer.BeginLoopedSequence())
                     {
                         shrinkContainer.ScaleTo(new Vector2(1.5f, 1), 1000);
                         using (shrinkContainer.BeginDelayedSequence(1000))
@@ -478,7 +478,7 @@ namespace osu.Framework.VisualTests.Tests
 
                         foreach (Container b in new[] { box1, box2, box3 })
                         {
-                            using (b.BeginLoopedSequece())
+                            using (b.BeginLoopedSequence())
                             {
                                 b.ScaleTo(new Vector2(2, 2), 1000);
                                 using (b.BeginDelayedSequence(1000))
@@ -607,7 +607,7 @@ namespace osu.Framework.VisualTests.Tests
 
                         foreach (Container b in new[] { box1, box2, box3 })
                         {
-                            using (b.BeginLoopedSequece())
+                            using (b.BeginLoopedSequence())
                             {
                                 b.ScaleTo(new Vector2(2, 2), 1000);
                                 using (b.BeginDelayedSequence(1000))
@@ -736,7 +736,7 @@ namespace osu.Framework.VisualTests.Tests
 
                         foreach (Container b in new[] { box1, box2, box3 })
                         {
-                            using (b.BeginLoopedSequece())
+                            using (b.BeginLoopedSequence())
                             {
                                 b.ScaleTo(new Vector2(2, 2), 1000);
                                 using (b.BeginDelayedSequence(1000))
@@ -865,7 +865,7 @@ namespace osu.Framework.VisualTests.Tests
 
                         foreach (Drawable b in new[] { box1, box2, box3 })
                         {
-                            using (b.BeginLoopedSequece())
+                            using (b.BeginLoopedSequence())
                             {
                                 b.ScaleTo(new Vector2(2, 2), 1000);
                                 using (b.BeginDelayedSequence(1000))
@@ -922,7 +922,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        using (sizedBox.BeginLoopedSequece())
+                        using (sizedBox.BeginLoopedSequence())
                         {
                             sizedBox.ScaleTo(new Vector2(2, 2), 1000, EasingTypes.Out);
                             using (sizedBox.BeginDelayedSequence(1000))

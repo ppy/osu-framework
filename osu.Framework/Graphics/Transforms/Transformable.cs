@@ -210,14 +210,14 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="pause">The time to pause between loop iterations. 0 by default.</param>
         /// <param name="numIterations">The amount of loop iterations to perform. A negative value results in looping indefinitely. -1 by default.</param>
-        public InvokeOnDisposal BeginLoopedSequece(double pause = 0, int numIterations = -1)
+        public InvokeOnDisposal BeginLoopedSequence(double pause = 0, int numIterations = -1)
         {
             if (isInLoopedSequence)
-                throw new InvalidOperationException($"May not nest multiple {nameof(BeginLoopedSequece)}s.");
+                throw new InvalidOperationException($"May not nest multiple {nameof(BeginLoopedSequence)}s.");
             isInLoopedSequence = true;
 
             if (pause < 0)
-                throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequece)} with a negative {nameof(pause)}, but was {pause}.");
+                throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequence)} with a negative {nameof(pause)}, but was {pause}.");
 
             // We do not want to loop those
             HashSet<ITransform<T>> existingTransforms = new HashSet<ITransform<T>>(Transforms);

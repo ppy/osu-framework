@@ -197,7 +197,7 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     Caret.FadeTo(0.7f, 200, EasingTypes.Out);
                     Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
-                    using (Caret.BeginLoopedSequece())
+                    using (Caret.BeginLoopedSequence())
                         Caret.FadeTo(0.4f, 500, EasingTypes.InOutSine);
                 }
             }

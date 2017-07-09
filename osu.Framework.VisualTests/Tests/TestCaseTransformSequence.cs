@@ -50,20 +50,20 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            using (boxes[0].BeginLoopedSequece(0, 3))
+            using (boxes[0].BeginLoopedSequence(0, 3))
                 boxes[0].RotateTo(360, 1000);
 
-            using (boxes[1].BeginLoopedSequece(1000))
+            using (boxes[1].BeginLoopedSequence(1000))
                 boxes[1].RotateTo(360, 1000);
 
-            using (boxes[2].BeginLoopedSequece())
+            using (boxes[2].BeginLoopedSequence())
             {
                 boxes[2].RotateTo(360, 1000);
                 using (boxes[2].BeginDelayedSequence(1000))
                     boxes[2].RotateTo(0, 1000);
             }
 
-            using (boxes[3].BeginLoopedSequece(1000))
+            using (boxes[3].BeginLoopedSequence(1000))
             {
                 boxes[3].RotateTo(360, 1000);
                 using (boxes[3].BeginDelayedSequence(1000))
