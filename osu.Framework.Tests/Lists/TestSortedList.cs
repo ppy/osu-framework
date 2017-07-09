@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
 using osu.Framework.Lists;
 
 namespace osu.Framework.Tests.Lists

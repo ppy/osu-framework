@@ -78,6 +78,8 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms();
         }
 
+        private List<ITransform<T>> loopingTransforms = new List<ITransform<T>>();
+
         /// <summary>
         /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on transforms when new transforms are added.
@@ -91,9 +93,26 @@ namespace osu.Framework.Graphics.Transforms
 
             // We iterate by index to gain performance
             var aliveTransforms = transforms.AliveItems;
+
+            Debug.Assert(loopingTransforms.Count == 0, $"{nameof(loopingTransforms)} should only be populated inside the following code section.");
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveTransforms.Count; ++i)
-                aliveTransforms[i].Apply(derivedThis);
+            {
+                var t = aliveTransforms[i];
+                t.Apply(derivedThis);
+                if (t.HasNextIteration)
+                    loopingTransforms.Add(t);
+            }
+
+            foreach (var t in loopingTransforms)
+            {
+                Transforms.Remove(t);
+                t.NextIteration();
+                Transforms.Add(t);
+            }
+
+            loopingTransforms.Clear();
         }
 
         /// <summary>

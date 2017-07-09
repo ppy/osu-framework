@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading;
-using NUnit.Framework;
 using osu.Framework.Desktop.Platform;
 using osu.Framework.Platform;
 
