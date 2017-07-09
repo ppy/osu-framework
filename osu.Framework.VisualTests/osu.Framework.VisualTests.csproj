@@ -56,6 +56,7 @@
     <Compile Include="Tests\TestCaseCheckboxes.cs" />
     <Compile Include="Tests\TestCaseCircularProgress.cs" />
     <Compile Include="Tests\TestCaseColourGradient.cs" />
+    <Compile Include="Tests\TestCaseTransformSequence.cs" />
     <Compile Include="Tests\TestCaseNonAsyncContainer.cs" />
     <Compile Include="Tests\TestCaseContextMenu.cs" />
     <Compile Include="Tests\TestCaseCoordinateSpaces.cs" />

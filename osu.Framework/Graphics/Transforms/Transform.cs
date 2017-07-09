@@ -14,9 +14,9 @@ namespace osu.Framework.Graphics.Transforms
         public abstract TValue CurrentValue { get; }
         public TValue EndValue { get; set; }
 
-        public double LoopDelay;
-        public int LoopCount;
-        public int CurrentLoopCount;
+        private double loopDelay;
+        private int loopCount;
+        private int currentLoopCount;
 
         public EasingTypes Easing;
 
@@ -37,7 +37,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (StartTime > Time?.Current)
                     return false;
 
-                return EndTime >= Time?.Current || LoopCount != CurrentLoopCount;
+                return EndTime >= Time?.Current || loopCount != currentLoopCount;
             }
         }
 
@@ -62,8 +62,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public void Loop(double delay, int loopCount = -1)
         {
-            LoopDelay = delay;
-            LoopCount = loopCount;
+            loopDelay = delay;
+            this.loopCount = loopCount;
         }
 
         public double LifetimeStart => StartTime;
@@ -76,16 +76,12 @@ namespace osu.Framework.Graphics.Transforms
 
         public bool IsLoaded => true;
 
+        public bool HasNextIteration => Time?.Current > EndTime && loopCount != currentLoopCount;
+
         public virtual void Apply(T d)
         {
-            if (Time?.Current > EndTime && LoopCount != CurrentLoopCount)
-            {
-                CurrentLoopCount++;
-                double duration = Duration;
-                StartTime = EndTime + LoopDelay;
-                EndTime = StartTime + duration;
-            }
         }
+
 
         public override string ToString()
         {
@@ -100,6 +96,14 @@ namespace osu.Framework.Graphics.Transforms
         {
             StartTime += offset;
             EndTime += offset;
+        }
+
+        public void NextIteration()
+        {
+            currentLoopCount++;
+            double duration = Duration;
+            StartTime = EndTime + loopDelay;
+            EndTime = StartTime + duration;
         }
     }
 }

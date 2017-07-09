@@ -7,7 +7,6 @@ using System.Linq;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
@@ -198,15 +197,8 @@ namespace osu.Framework.Graphics.UserInterface
                 {
                     Caret.FadeTo(0.7f, 200, EasingTypes.Out);
                     Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
-                    Caret.Transforms.Add(new TransformAlpha
-                    {
-                        StartValue = 0.7f,
-                        EndValue = 0.4f,
-                        StartTime = Time.Current,
-                        EndTime = Time.Current + 500,
-                        Easing = EasingTypes.InOutSine,
-                        LoopCount = -1,
-                    });
+                    using (Caret.BeginLoopedSequence())
+                        Caret.FadeTo(0.4f, 500, EasingTypes.InOutSine);
                 }
             }
 

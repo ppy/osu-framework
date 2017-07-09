@@ -20,6 +20,7 @@ namespace osu.Framework.Graphics.Transforms
         ITransform<T> CloneReverse();
 
         void Reverse();
+
         void Loop(double delay, int loopCount = -1);
 
         /// <summary>
@@ -27,6 +28,10 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         /// <param name="offset">Time in milliseconds to shift the transform.</param>
         void Shift(double offset);
+
+        void NextIteration();
+
+        bool HasNextIteration { get; }
     }
 
     public class TransformTimeComparer<T> : IComparer<ITransform<T>>
