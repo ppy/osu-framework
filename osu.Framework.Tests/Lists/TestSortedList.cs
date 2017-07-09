@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Lists;
+using NUnit.Framework;
 
 namespace osu.Framework.Tests.Lists
 {

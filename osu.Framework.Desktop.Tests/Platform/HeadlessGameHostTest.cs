@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using osu.Framework.Desktop.Platform;
 using osu.Framework.Platform;
+using NUnit.Framework;
 
 namespace osu.Framework.Desktop.Tests.Platform
 {
