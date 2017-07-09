@@ -20,22 +20,19 @@ namespace osu.Framework.Graphics.OpenGL.Textures
     {
         public const int MAX_MIPMAP_LEVELS = 3;
 
-        private static QuadBatch<TexturedVertex2D> quadBatch;
-        private static Action<TexturedVertex2D> defaultQuadAction;
-
-        private static LinearBatch<TexturedVertex2D> triangleBatch;
-        private static Action<TexturedVertex2D> defaultTriangleAction;
+        private static readonly Action<TexturedVertex2D> default_quad_action;
+        private static readonly Action<TexturedVertex2D> default_triangle_action;
 
         static TextureGLSingle()
         {
-            quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
-            defaultQuadAction = quadBatch.Add;
+            QuadBatch<TexturedVertex2D> quadBatch = new QuadBatch<TexturedVertex2D>(512, 128);
+            default_quad_action = quadBatch.Add;
 
             // We multiply the size param by 3 such that the amount of vertices is a multiple of the amount of vertices
             // per primitive (triangles in this case). Otherwise overflowing the batch will result in wrong
             // grouping of vertices into primitives.
-            triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
-            defaultTriangleAction = triangleBatch.Add;
+            LinearBatch<TexturedVertex2D> triangleBatch = new LinearBatch<TexturedVertex2D>(512 * 3, 128, PrimitiveType.Triangles);
+            default_triangle_action = triangleBatch.Add;
         }
 
         private readonly ConcurrentQueue<TextureUpload> uploadQueue = new ConcurrentQueue<TextureUpload>();
@@ -151,7 +148,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             RectangleF inflatedTexRect = texRect.Inflate(inflationAmount);
 
             if (vertexAction == null)
-                vertexAction = defaultTriangleAction;
+                vertexAction = default_triangle_action;
 
             // We split the triangle into two, such that we can obtain smooth edges with our
             // texture coordinate trick. We might want to revert this to drawing a single
@@ -226,7 +223,7 @@ namespace osu.Framework.Graphics.OpenGL.Textures
             Vector2 blendRange = blendRangeOverride ?? inflationAmount;
 
             if (vertexAction == null)
-                vertexAction = defaultQuadAction;
+                vertexAction = default_quad_action;
 
             vertexAction(new TexturedVertex2D
             {
