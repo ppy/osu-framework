@@ -5,28 +5,19 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformSize : TransformVector
     {
-        public override void Apply(Drawable d)
-        {
-            base.Apply(d);
-            d.Size = CurrentValue;
-        }
+        public override void Apply(Drawable d) => d.Size = CurrentValue;
+        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Size;
     }
 
     public class TransformWidth : TransformFloat<Drawable>
     {
-        public override void Apply(Drawable d)
-        {
-            base.Apply(d);
-            d.Width = CurrentValue;
-        }
+        public override void Apply(Drawable d) => d.Width = CurrentValue;
+        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Width;
     }
 
     public class TransformHeight : TransformFloat<Drawable>
     {
-        public override void Apply(Drawable d)
-        {
-            base.Apply(d);
-            d.Height = CurrentValue;
-        }
+        public override void Apply(Drawable d) => d.Height = CurrentValue;
+        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Height;
     }
 }

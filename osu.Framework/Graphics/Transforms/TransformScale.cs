@@ -5,10 +5,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformScale : TransformVector
     {
-        public override void Apply(Drawable d)
-        {
-            base.Apply(d);
-            d.Scale = CurrentValue;
-        }
+        public override void Apply(Drawable d) => d.Scale = CurrentValue;
+        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Scale;
     }
 }

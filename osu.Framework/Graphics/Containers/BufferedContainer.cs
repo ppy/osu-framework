@@ -319,17 +319,13 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => BlurSigma, newBlurSigma, duration, easing, new TransformBlurSigma());
+            TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma());
         }
 
         protected class TransformBlurSigma : TransformVector
         {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-                BufferedContainer bufferedContainer = (BufferedContainer)d;
-                bufferedContainer.BlurSigma = CurrentValue;
-            }
+            public override void Apply(Drawable d) => ((BufferedContainer)d).BlurSigma = CurrentValue;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((BufferedContainer)d).BlurSigma;
         }
     }
 }

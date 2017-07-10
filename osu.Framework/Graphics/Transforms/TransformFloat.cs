@@ -7,7 +7,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformFloat<T> : Transform<float, T>
     {
-        public override float CurrentValue
+        public virtual float CurrentValue
         {
             get
             {

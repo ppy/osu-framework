@@ -87,16 +87,13 @@ namespace osu.Framework.Graphics.Containers
 
         public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => Spacing, newSpacing, duration, easing, new TransformSpacing());
+            TransformTo(newSpacing, duration, easing, new TransformSpacing());
         }
 
         public class TransformSpacing : TransformVector
         {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-                ((FillFlowContainer<T>)d).Spacing = CurrentValue;
-            }
+            public override void Apply(Drawable d) => ((FillFlowContainer<T>)d).Spacing = CurrentValue;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((FillFlowContainer<T>)d).Spacing;
         }
 
         private Vector2 spacingFactor(Drawable c)

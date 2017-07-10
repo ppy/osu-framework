@@ -82,7 +82,7 @@ namespace osu.Framework.Lists
 
             int i = base.Add(item);
 
-            bool isLoaded = item.IsLoaded;
+            bool isLoaded = item.IsLoaded && item.IsAlive;
             current.Insert(i, isLoaded);
             if (isLoaded)
                 AliveItems.Add(item);

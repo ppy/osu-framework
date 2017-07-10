@@ -577,7 +577,7 @@ namespace osu.Framework.Graphics.Containers
         protected void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectColour));
-            TransformTo(() => EdgeEffect.Colour.Linear.A, newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+            TransformTo(newAlpha, duration, easing, new TransformEdgeEffectAlpha());
         }
 
         /// <summary>
@@ -586,7 +586,7 @@ namespace osu.Framework.Graphics.Containers
         protected void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectAlpha));
-            TransformTo(() => EdgeEffect.Colour, newColour, duration, easing, new TransformEdgeEffectColour());
+            TransformTo(newColour, duration, easing, new TransformEdgeEffectColour());
         }
 
         #endregion
@@ -881,7 +881,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="easing">The tween easing.</param>
         protected void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => RelativeChildSize, newSize, duration, easing, new TransformRelativeChildSize());
+            TransformTo(newSize, duration, easing, new TransformRelativeChildSize());
         }
 
         /// <summary>
@@ -892,7 +892,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="easing">The tween easing.</param>
         protected void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => RelativeChildOffset, newOffset, duration, easing, new TransformRelativeChildOffset());
+            TransformTo(newOffset, duration, easing, new TransformRelativeChildOffset());
         }
 
         public override Axes RelativeSizeAxes
@@ -1110,17 +1110,21 @@ namespace osu.Framework.Graphics.Containers
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            TransformTo(() => Size, newSize, duration, easing, new TransformAutoSize());
+            TransformTo(newSize, duration, easing, new TransformAutoSize());
         }
 
         /// <summary>
-        /// A helper method for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
-        /// <param name="newSize"></param>
-        private void setBaseSize(Vector2 newSize)
+        private Vector2 baseSize
         {
-            base.Width = newSize.X;
-            base.Height = newSize.Y;
+            get { return new Vector2(base.Width, base.Height); }
+
+            set
+            {
+                base.Width = value.X;
+                base.Height = value.Y;
+            }
         }
 
         #endregion
@@ -1129,13 +1133,14 @@ namespace osu.Framework.Graphics.Containers
         {
             public override void Apply(Drawable d)
             {
-                base.Apply(d);
                 CompositeDrawable c = (CompositeDrawable)d;
 
                 EdgeEffectParameters e = c.EdgeEffect;
                 e.Colour.Linear.A = CurrentValue;
                 c.EdgeEffect = e;
             }
+
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).Colour.Linear.A;
         }
 
         private class TransformEdgeEffectColour : Transform<Color4, Drawable>
@@ -1143,7 +1148,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Current value of the transformed colour in linear colour space.
             /// </summary>
-            public override Color4 CurrentValue
+            public virtual Color4 CurrentValue
             {
                 get
                 {
@@ -1157,13 +1162,14 @@ namespace osu.Framework.Graphics.Containers
 
             public override void Apply(Drawable d)
             {
-                base.Apply(d);
                 CompositeDrawable c = (CompositeDrawable)d;
 
                 EdgeEffectParameters e = c.EdgeEffect;
                 e.Colour = CurrentValue;
                 c.EdgeEffect = e;
             }
+
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).Colour;
         }
 
         /// <summary>
@@ -1172,13 +1178,8 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         private class TransformAutoSize : TransformVector
         {
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-
-                var c = (CompositeDrawable)d;
-                c.setBaseSize(CurrentValue);
-            }
+            public override void Apply(Drawable d) => ((CompositeDrawable)d).baseSize = CurrentValue;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).baseSize;
         }
 
         private class TransformRelativeChildSize : TransformVector
@@ -1195,13 +1196,8 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-
-                var c = (CompositeDrawable)d;
-                c.RelativeChildSize = CurrentValue;
-            }
+            public override void Apply(Drawable d) => ((CompositeDrawable)d).RelativeChildSize = CurrentValue;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).RelativeChildSize;
         }
 
         private class TransformRelativeChildOffset : TransformVector
@@ -1218,13 +1214,8 @@ namespace osu.Framework.Graphics.Containers
                 }
             }
 
-            public override void Apply(Drawable d)
-            {
-                base.Apply(d);
-
-                var c = (CompositeDrawable)d;
-                c.RelativeChildOffset = CurrentValue;
-            }
+            public override void Apply(Drawable d) => ((CompositeDrawable)d).RelativeChildOffset = CurrentValue;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).RelativeChildOffset;
         }
     }
 }
