@@ -336,25 +336,11 @@ namespace osu.Framework.Graphics
         protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread));
 
         /// <summary>
-        /// Should be called once per update cycle in order to process any pending operations on this Drawable.
-        /// </summary>
-        /// <returns>False if the drawable should not be updated.</returns>
-        internal bool UpdateFromParent()
-        {
-            if (!UpdateSubTree())
-                return false;
-
-            Update();
-            OnUpdate?.Invoke(this);
-            return true;
-        }
-
-        /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
         /// Called once every frame.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
-        protected virtual bool UpdateSubTree()
+        public virtual bool UpdateSubTree()
         {
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
@@ -368,7 +354,7 @@ namespace osu.Framework.Graphics
             UpdateTransforms();
 
             if (!IsPresent)
-                return false;
+                return true;
 
             if (scheduler != null)
             {
@@ -376,6 +362,8 @@ namespace osu.Framework.Graphics
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
 
+            Update();
+            OnUpdate?.Invoke(this);
             return true;
         }
 
