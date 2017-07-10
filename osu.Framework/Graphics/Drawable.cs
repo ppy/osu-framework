@@ -339,7 +339,7 @@ namespace osu.Framework.Graphics
         /// Should be called once per update cycle in order to process any pending operations on this Drawable.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
-        public bool UpdateFromParent()
+        internal bool UpdateFromParent()
         {
             if (!UpdateSubTree())
                 return false;
