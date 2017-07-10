@@ -6,25 +6,9 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class Transform<TValue, T> : ITransform<T>
+    public abstract class Transform<T> : ITransform<T>
     {
-        public double StartTime { get; set; }
-        public double EndTime { get; set; }
-
-        public TValue StartValue { get; protected set; }
-        public TValue EndValue { get; set; }
-
-        private double loopDelay;
-        private int loopCount;
-        private int currentLoopCount;
-
-        public EasingTypes Easing;
-
         public long CreationID { get; private set; }
-
-        public double Duration => EndTime - StartTime;
-
-        public FrameTimeInfo? Time { get; private set; }
 
         // ReSharper disable once StaticMemberInGenericType
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
@@ -34,26 +18,25 @@ namespace osu.Framework.Graphics.Transforms
             CreationID = creation_counter.Increment();
         }
 
-        public void UpdateTime(FrameTimeInfo time)
-        {
-            Time = time;
-        }
+        public double Duration => EndTime - StartTime;
 
-        public void Loop(double delay, int loopCount = -1)
-        {
-            loopDelay = delay;
-            this.loopCount = loopCount;
-        }
+        public EasingTypes Easing;
 
-        public bool HasNextIteration => Time?.Current > EndTime && loopCount != currentLoopCount;
+        public double StartTime { get; set; }
+        public double EndTime { get; set; }
 
         public abstract void Apply(T d);
 
         public abstract void ReadIntoStartValue(T d);
 
-        public override string ToString()
+        private double loopDelay;
+        private int loopCount;
+        private int currentLoopCount;
+
+        public void Loop(double delay, int loopCount = -1)
         {
-            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(TValue));
+            loopDelay = delay;
+            this.loopCount = loopCount;
         }
 
         public void NextIteration()
@@ -62,6 +45,26 @@ namespace osu.Framework.Graphics.Transforms
             double duration = Duration;
             StartTime = EndTime + loopDelay;
             EndTime = StartTime + duration;
+        }
+
+        public bool HasNextIteration => Time?.Current > EndTime && loopCount != currentLoopCount;
+
+        public void UpdateTime(FrameTimeInfo time)
+        {
+            Time = time;
+        }
+
+        public FrameTimeInfo? Time { get; private set; }
+    }
+
+    public abstract class Transform<TValue, T> : Transform<T>
+    {
+        public TValue StartValue { get; protected set; }
+        public TValue EndValue { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(TValue));
         }
     }
 }
