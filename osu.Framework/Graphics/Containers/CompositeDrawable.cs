@@ -1,48 +1,49 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.Lists;
-using System.Collections.Generic;
-using System;
-using System.Diagnostics;
 using OpenTK;
-using osu.Framework.Graphics.Primitives;
-using osu.Framework.Graphics.OpenGL;
 using OpenTK.Graphics;
-using osu.Framework.Graphics.Shaders;
+using osu.Framework.Allocation;
+using osu.Framework.Caching;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Colour;
-using osu.Framework.Allocation;
+using osu.Framework.Graphics.OpenGL;
+using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Transforms;
-using osu.Framework.Timing;
-using osu.Framework.Caching;
+using osu.Framework.Lists;
 using osu.Framework.MathUtils;
-using osu.Framework.Threading;
 using osu.Framework.Statistics;
+using osu.Framework.Threading;
+using osu.Framework.Timing;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Containers
 {
     /// <summary>
-    /// A drawable consisting of a composite of child drawables which are
-    /// manages by the composite object itself. Transformations applied to
-    /// a <see cref="CompositeDrawable"/> are also applied to its children.
+    /// A drawable consisting of a composite of child drawables which are managed by the composite object itself.
+    /// Transformations applied to a <see cref="CompositeDrawable"/> are also applied to its children.
     /// Additionally, <see cref="CompositeDrawable"/>s support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
     public abstract class CompositeDrawable : Drawable
     {
-        #region Contruction and disposal
+        #region Construction and disposal
 
         /// <summary>
-        /// Contructs a <see cref="CompositeDrawable"/> that stores its children in a given <see cref="LifetimeList{T}"/>.
-        /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
+        /// Constructs a <see cref="CompositeDrawable"/> that stores its children in a given <see cref="LifetimeList{T}"/>.
+        /// If <paramref name="lifetimeList"/> is null, a new <see cref="LifetimeList{T}"/> is created.
         /// </summary>
+        /// <param name="lifetimeList">The <see cref="LifetimeList{T}"/> to keep the container's children.</param>
         protected CompositeDrawable(LifetimeList<Drawable> lifetimeList = null)
         {
             internalChildren = lifetimeList ?? new LifetimeList<Drawable>(DepthComparer);
             internalChildren.Removed += obj =>
             {
-                if (obj.DisposeOnDeathRemoval) obj.Dispose();
+                if (obj.DisposeOnDeathRemoval)
+                    obj.Dispose();
             };
         }
 
@@ -75,6 +76,7 @@ namespace osu.Framework.Graphics.Containers
         protected override void LoadComplete()
         {
             schedulerAfterChildren?.SetCurrentThread(MainThread);
+
             base.LoadComplete();
         }
 
@@ -83,6 +85,7 @@ namespace osu.Framework.Graphics.Containers
             InternalChildren?.ForEach(c => c.Dispose());
 
             OnAutoSize = null;
+
             schedulerAfterChildren?.Dispose();
             schedulerAfterChildren = null;
 
@@ -96,6 +99,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Gets or sets the only child in <see cref="InternalChildren"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">There only has to be one child in order to access the property getter.</exception>
         protected internal Drawable InternalChild
         {
             get
@@ -115,12 +119,12 @@ namespace osu.Framework.Graphics.Containers
         private readonly LifetimeList<Drawable> internalChildren;
 
         /// <summary>
-        /// This <see cref="CompositeDrawable"/> list of children. Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
+        /// The readonly list of children in this <see cref="CompositeDrawable"/>.
+        /// Assigning to this property will dispose all existing children of this <see cref="CompositeDrawable"/>.
         /// </summary>
         protected internal IReadOnlyList<Drawable> InternalChildren
         {
             get { return internalChildren; }
-
             set { InternalChildrenEnumerable = value; }
         }
 
@@ -136,37 +140,46 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
+        /// <summary>
+        /// The readonly list of alive children in this <see cref="CompositeDrawable"/>.
+        /// </summary>
         protected internal IReadOnlyList<Drawable> AliveInternalChildren => internalChildren.AliveItems;
 
         /// <summary>
         /// The index of a given child within <see cref="InternalChildren"/>.
         /// </summary>
+        /// <param name="drawable">The drawable to search for.</param>
         /// <returns>
-        /// If the child is found, its index. Otherwise, the negated index it would obtain
-        /// if it were added to <see cref="InternalChildren"/>.
+        /// If the child is found, its index.
+        /// Otherwise, the negated index it would obtain if it were added to <see cref="InternalChildren"/>.
         /// </returns>
         protected internal int IndexOfInternal(Drawable drawable) => internalChildren.IndexOf(drawable);
 
         /// <summary>
         /// Checks whether a given child is contained within <see cref="InternalChildren"/>.
         /// </summary>
+        /// <param name="drawable">The drawable to search for.</param>
+        /// <returns>Whether <paramref name="drawable"/> was found within the internal children.</returns>
         protected internal bool ContainsInternal(Drawable drawable) => IndexOfInternal(drawable) >= 0;
 
         /// <summary>
-        /// Removes a given child from this <see cref="InternalChildren"/>.
+        /// Removes a given child from <see cref="InternalChildren"/>.
         /// </summary>
+        /// <param name="drawable">The drawable to remove internally.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="drawable"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Cannot remove a drawable which is not part of this composite.</exception>
         protected internal void RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
 
             if (!internalChildren.Remove(drawable))
-                throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
+                throw new InvalidOperationException($"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
 
             if (drawable.IsLoaded)
             {
                 // The string construction is quite expensive, so we are using Debug.Assert here.
-                Debug.Assert(drawable.Parent == this, $@"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
+                Debug.Assert(drawable.Parent == this, $"Removed a drawable ({drawable}) whose parent was not this ({this}), but {drawable.Parent}.");
             }
 
             drawable.Parent = null;
@@ -176,7 +189,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Clear all of <see cref="InternalChildren"/>.
+        /// Clears all of <see cref="InternalChildren"/>.
         /// </summary>
         /// <param name="disposeChildren">
         /// Whether removed children should also get disposed.
@@ -188,14 +201,12 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (disposeChildren)
                 {
-                    //cascade disposal
+                    // Cascade disposal
                     (t as CompositeDrawable)?.ClearInternal();
                     t.Dispose();
                 }
                 else
-                {
                     t.Parent = null;
-                }
 
                 Trace.Assert(t.Parent == null);
             }
@@ -209,6 +220,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
+        /// <param name="drawable">
+        /// The drawable to add internally.
+        /// This must not be added to any other composites while within this composite.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="drawable"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Cannot add the composite to itself.</exception>
         protected internal virtual void AddInternal(Drawable drawable)
         {
             if (drawable == null)
@@ -228,9 +245,10 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
-        /// <see cref="AddInternal(Drawable)"/> on each element of the range in order.
+        /// Adds a range of children to <see cref="InternalChildren"/>.
+        /// This is equivalent to calling <see cref="AddInternal(Drawable)"/> on each element of the range in order.
         /// </summary>
+        /// <param name="range">The range of drawables to add internally.</param>
         protected internal void AddInternal(IEnumerable<Drawable> range)
         {
             foreach (Drawable d in range)
@@ -238,14 +256,20 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Changes the depth of an internal child. This affects ordering of <see cref="InternalChildren"/>.
+        /// Changes the depth of an internal child.
+        /// This affects the ordering of <see cref="InternalChildren"/>.
         /// </summary>
+        /// <remarks>
+        /// This method actually simply removes the specified drawable internally and adds it back,
+        /// updating the position of its actual index within the list.
+        /// </remarks>
         /// <param name="child">The child whose depth is to be changed.</param>
         /// <param name="newDepth">The new depth value to be set.</param>
+        /// <exception cref="InvalidOperationException">Cannot change depth of drawable which is not part of this composite.</exception>
         protected internal void ChangeInternalChildDepth(Drawable child, float newDepth)
         {
             if (!ContainsInternal(child))
-                throw new InvalidOperationException($"Can not change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
+                throw new InvalidOperationException($"Cannot change depth of drawable which is not contained within this {nameof(CompositeDrawable)}.");
 
             RemoveInternal(child);
             child.Depth = newDepth;
@@ -261,8 +285,8 @@ namespace osu.Framework.Graphics.Containers
         protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread));
 
         /// <summary>
-        /// Updates the life status of <see cref="InternalChildren"/> according to their
-        /// <see cref="IHasLifetime.IsAlive"/> property.
+        /// Updates the life status of all children in <see cref="InternalChildren"/>
+        /// according to their <see cref="IHasLifetime.IsAlive"/> property.
         /// </summary>
         /// <returns>True iff the life status of at least one child changed.</returns>
         protected virtual bool UpdateChildrenLife()
@@ -282,14 +306,14 @@ namespace osu.Framework.Graphics.Containers
                 return;
 
             base.UpdateClock(clock);
+
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
         }
 
         /// <summary>
         /// Specifies whether this <see cref="CompositeDrawable"/> requires an update of its children.
-        /// If the return value is false, then children are not updated and
-        /// <see cref="UpdateAfterChildren"/> is not called.
+        /// If the return value is false, then children are not updated and <see cref="UpdateAfterChildren"/> is not called.
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
@@ -308,6 +332,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             var aliveChildren = internalChildren.AliveItems;
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveChildren.Count; ++i)
             {
@@ -320,9 +345,10 @@ namespace osu.Framework.Graphics.Containers
                 int amountScheduledTasks = schedulerAfterChildren.Update();
                 FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
             }
-            UpdateAfterChildren();
 
+            UpdateAfterChildren();
             updateChildrenSizeDependencies();
+
             return true;
         }
 
@@ -344,8 +370,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="invalidation">The type of invalidation applied to the child.</param>
         public virtual void InvalidateFromChild(Invalidation invalidation)
         {
-            //Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
-            //Invalidation could be further separated into presence changes.
+            // Colour captures potential changes in IsPresent. If this ever becomes a bottleneck,
+            // Invalidation could be further separated into presence changes.
             if ((invalidation & (Invalidation.RequiredParentSizeToFit | Invalidation.Colour)) > 0)
                 childrenSizeDependencies.Invalidate();
         }
@@ -361,6 +387,7 @@ namespace osu.Framework.Graphics.Containers
             // or directly indexing a SortedList<T>. This part of the code is often
             // hot, so an optimization like this makes sense here.
             SortedList<Drawable> current = internalChildren;
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -424,10 +451,8 @@ namespace osu.Framework.Graphics.Containers
                 };
 
             n.EdgeEffect = EdgeEffect;
-
             n.ScreenSpaceMaskingQuad = null;
             n.Shared = compositeDrawNodeSharedData;
-
             n.Shader = shader;
 
             base.ApplyDrawNode(node);
@@ -438,7 +463,7 @@ namespace osu.Framework.Graphics.Containers
         private const int amount_children_required_for_masking_check = 2;
 
         /// <summary>
-        /// This function adds all children's <see cref="DrawNode"/>s to a target List, flattening the children of certain types
+        /// Adds all children's <see cref="DrawNode"/>s to a target List, flattening the children of certain types
         /// of <see cref="CompositeDrawable"/> subtrees for optimization purposes.
         /// </summary>
         /// <param name="treeIndex">The index of the currently in-use DrawNode tree.</param>
@@ -449,6 +474,7 @@ namespace osu.Framework.Graphics.Containers
         private static void addFromComposite(int treeIndex, ref int j, CompositeDrawable parentComposite, List<DrawNode> target, RectangleF maskingBounds)
         {
             SortedList<Drawable> current = parentComposite.internalChildren.AliveItems;
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < current.Count; ++i)
             {
@@ -472,8 +498,8 @@ namespace osu.Framework.Graphics.Containers
                 {
                     // The masking check is overly expensive (requires creation of ScreenSpaceDrawQuad)
                     // when only few children exist.
-                    composite.IsMaskedAway = composite.AliveInternalChildren.Count >= amount_children_required_for_masking_check &&
-                                             !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
+                    composite.IsMaskedAway = composite.AliveInternalChildren.Count >= amount_children_required_for_masking_check
+                                             && !maskingBounds.IntersectsWith(drawable.ScreenSpaceDrawQuad.AABBFloat);
 
                     if (!composite.IsMaskedAway)
                         addFromComposite(treeIndex, ref j, composite, target, maskingBounds);
@@ -509,6 +535,7 @@ namespace osu.Framework.Graphics.Containers
                 return null;
 
             RectangleF childBounds = bounds;
+
             // If we are going to render a buffered container we need to make sure no children get masked away,
             // even if they are off-screen.
             if (this is IBufferedContainer)
@@ -550,6 +577,7 @@ namespace osu.Framework.Graphics.Containers
 
             if (propagateChildren)
                 foreach (var c in internalChildren) c.Delay(duration, true);
+
             return this;
         }
 
@@ -566,14 +594,19 @@ namespace osu.Framework.Graphics.Containers
         public override Drawable DelayReset()
         {
             base.DelayReset();
-            foreach (var c in internalChildren) c.DelayReset();
+
+            foreach (var c in internalChildren)
+                c.DelayReset();
 
             return this;
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Fades the current <see cref="EdgeEffect"/> to the specified alpha value.
         /// </summary>
+        /// <param name="newAlpha">The new alpha value of the edge effect.</param>
+        /// <param name="duration">The transform duration.</param>
+        /// <param name="easing">The transform easing.</param>
         protected void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectColour));
@@ -581,8 +614,11 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
+        /// Fades the current <see cref="EdgeEffect"/> to the specified colour value.
         /// </summary>
+        /// <param name="newColour">The new colour value of the edge effect.</param>
+        /// <param name="duration">The transform duration.</param>
+        /// <param name="easing">The transform easing.</param>
         protected void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectAlpha));
@@ -604,6 +640,7 @@ namespace osu.Framework.Graphics.Containers
             // Select a cheaper contains method when we don't need rounded edges.
             if (cRadius == 0.0f)
                 return base.Contains(screenSpacePos);
+
             return DrawRectangle.Shrink(cRadius).DistanceSquared(ToLocalSpace(screenSpacePos)) <= cRadius * cRadius;
         }
 
@@ -614,6 +651,7 @@ namespace osu.Framework.Graphics.Containers
 
             // We iterate by index to gain performance
             var aliveChildren = internalChildren.AliveItems;
+
             // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < aliveChildren.Count; ++i)
                 aliveChildren[i].BuildKeyboardInputQueue(queue);
@@ -642,8 +680,8 @@ namespace osu.Framework.Graphics.Containers
         private bool masking;
 
         /// <summary>
-        /// If enabled, only the portion of children that falls within this <see cref="CompositeDrawable"/>'s
-        /// shape is drawn to the screen.
+        /// If enabled, only the portion of children that falls within this
+        /// <see cref="CompositeDrawable"/>'s shape is drawn to the screen.
         /// </summary>
         public bool Masking
         {
@@ -707,9 +745,8 @@ namespace osu.Framework.Graphics.Containers
         /// The border only is drawn on top of children using a sprite shader.
         /// </summary>
         /// <remarks>
-        /// Drawing borders is optimized heavily into our sprite shaders. As a consequence
-        /// borders are only drawn correctly on top of quad-shaped children using our sprite
-        /// shaders.
+        /// Drawing borders is optimized heavily into our sprite shaders.
+        /// As a consequence borders are only drawn correctly on top of quad-shaped children using our sprite shaders.
         /// </remarks>
         public float BorderThickness
         {
@@ -772,6 +809,7 @@ namespace osu.Framework.Graphics.Containers
             get
             {
                 float cRadius = CornerRadius;
+
                 if (cRadius == 0.0f)
                     return base.BoundingBox;
 
@@ -782,7 +820,7 @@ namespace osu.Framework.Graphics.Containers
                 Vector2 offset = ToParentSpace(Vector2.Zero);
                 Vector2 u = ToParentSpace(new Vector2(cRadius, 0)) - offset;
                 Vector2 v = ToParentSpace(new Vector2(0, cRadius)) - offset;
-                Vector2 inflation = new Vector2((float)Math.Sqrt(u.X * u.X + v.X * v.X), (float)Math.Sqrt(u.Y * u.Y + v.Y * v.Y));
+                Vector2 inflation = new Vector2((float)Math.Sqrt((u.X * u.X) + (v.X * v.X)), (float)Math.Sqrt((u.Y * u.Y) + (v.Y * v.Y)));
 
                 RectangleF result = ToParentSpace(drawRect).AABBFloat.Inflate(inflation);
                 // The above algorithm will return incorrect results if the rounded corners are not fully visible.
@@ -912,11 +950,10 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="InternalChildren"/>.
         /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
-        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> of children
-        /// do not affect automatic sizing to avoid circular size dependencies.
-        /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>)
-        /// on any <see cref="Axes"/> which are automatically sized.
+        /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="RelativeSizeAxes"/> of children do not affect automatic sizing to avoid circular size dependencies.
+        /// It is not allowed to manually set <see cref="Size"/> (or <see cref="Width"/> / <see cref="Height"/>) on any <see cref="Axes"/> which are automatically sized.
         /// </summary>
+        /// <exception cref="InvalidOperationException">No axis can be relatively sized and automatically sized at the same time.</exception>
         public Axes AutoSizeAxes
         {
             get { return autoSizeAxes; }
@@ -949,8 +986,8 @@ namespace osu.Framework.Graphics.Containers
 
                 autoSizeDuration = value;
 
-                // if we have an existing transform, we want to update its duration.
-                // not doing this could potentially cause incorrect final autosize dimensions.
+                // If we have an existing transform, we want to update its duration.
+                // Not doing this could potentially cause incorrect final autosize dimensions.
                 var existing = Transforms.Find(t => t is TransformAutoSize);
                 if (existing != null)
                     existing.EndTime = existing.StartTime + autoSizeDuration;
@@ -958,8 +995,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
-        /// is non-zero.
+        /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/> is non-zero.
         /// </summary>
         public EasingTypes AutoSizeEasing { get; protected set; }
 
@@ -977,6 +1013,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.X) > 0)
                     updateChildrenSizeDependencies();
+
                 return base.Width;
             }
 
@@ -984,6 +1021,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.X) != 0)
                     throw new InvalidOperationException($"The width of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Width = value;
             }
         }
@@ -994,6 +1032,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && (AutoSizeAxes & Axes.Y) > 0)
                     updateChildrenSizeDependencies();
+
                 return base.Height;
             }
 
@@ -1001,6 +1040,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Y) != 0)
                     throw new InvalidOperationException($"The height of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Height = value;
             }
         }
@@ -1013,6 +1053,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if (!StaticCached.BypassCache && !isComputingChildrenSizeDependencies && AutoSizeAxes != Axes.None)
                     updateChildrenSizeDependencies();
+
                 return base.Size;
             }
 
@@ -1020,6 +1061,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 if ((AutoSizeAxes & Axes.Both) != 0)
                     throw new InvalidOperationException($"The Size of a {nameof(CompositeDrawable)} with {nameof(AutoSizeAxes)} should only be manually set if it is relative to its parent.");
+
                 base.Size = value;
             }
         }
@@ -1075,18 +1117,18 @@ namespace osu.Framework.Graphics.Containers
             Vector2 b = computeAutoSize() + Padding.Total;
 
             if (AutoSizeDuration > 0)
-                autoSizeResizeTo(new Vector2(
-                    (AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width,
-                    (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height
-                ), AutoSizeDuration, AutoSizeEasing);
+                autoSizeResizeTo(
+                    new Vector2((AutoSizeAxes & Axes.X) > 0 ? b.X : base.Width, (AutoSizeAxes & Axes.Y) > 0 ? b.Y : base.Height),
+                    AutoSizeDuration,
+                    AutoSizeEasing);
             else
             {
                 if ((AutoSizeAxes & Axes.X) > 0) base.Width = b.X;
                 if ((AutoSizeAxes & Axes.Y) > 0) base.Height = b.Y;
             }
 
-            //note that this is called before autoSize becomes valid. may be something to consider down the line.
-            //might work better to add an OnRefresh event in Cached<> and invoke there.
+            // Note that this is called before autoSize becomes valid. May be something to consider down the line.
+            // Might work better to add an OnRefresh event in Cached<> and invoke there.
             OnAutoSize?.Invoke();
         }
 
