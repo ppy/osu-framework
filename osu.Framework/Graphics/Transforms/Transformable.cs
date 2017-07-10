@@ -72,7 +72,6 @@ namespace osu.Framework.Graphics.Transforms
             if (transforms == null || transforms.Count == 0)
                 return;
 
-            // ReSharper disable once ForCanBeConvertedToForeach
             for (int i = 0; i < transforms.Count; ++i)
             {
                 var t = transforms[i];
