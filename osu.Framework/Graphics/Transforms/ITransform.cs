@@ -7,7 +7,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public interface ITransform<T>
+    public interface ITransform<in T>
     {
         long CreationID { get; }
 

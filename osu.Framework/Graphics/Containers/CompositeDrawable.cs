@@ -1148,7 +1148,7 @@ namespace osu.Framework.Graphics.Containers
             /// <summary>
             /// Current value of the transformed colour in linear colour space.
             /// </summary>
-            public virtual Color4 CurrentValue
+            public Color4 CurrentValue
             {
                 get
                 {

@@ -41,16 +41,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
-        public SortedList<ITransform<T>> Transforms
-        {
-            get
-            {
-                if (transforms == null)
-                    transforms = new SortedList<ITransform<T>>(new TransformTimeComparer<T>());
-
-                return transforms;
-            }
-        }
+        public SortedList<ITransform<T>> Transforms => transforms ?? (transforms = new SortedList<ITransform<T>>(new TransformTimeComparer<T>()));
 
         /// <summary>
         /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)

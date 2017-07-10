@@ -26,9 +26,10 @@ namespace osu.Framework.Graphics.Transforms
 
         public FrameTimeInfo? Time { get; private set; }
 
+        // ReSharper disable once StaticMemberInGenericType
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
-        public Transform()
+        protected Transform()
         {
             CreationID = creation_counter.Increment();
         }
