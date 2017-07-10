@@ -286,7 +286,9 @@ namespace osu.Framework.Graphics.Transforms
 
             Transforms.Add(transform);
 
-            if (Transforms.LastOrDefault(t => t.StartTime <= Time.Current && t.GetType() == transform.GetType()) == transform)
+            var transformType = transform.GetType();
+
+            if (Transforms.LastOrDefault(t => t.StartTime <= Time.Current && t.GetType() == transformType) == transform)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = Time.Current });
                 transform.ReadIntoStartValue(derivedThis);
