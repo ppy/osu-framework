@@ -167,22 +167,16 @@ namespace osu.Framework.Graphics.Transforms
         {
             var operateTransforms = flushType == null ? Transforms : Transforms.Where(t => t.GetType() == flushType);
 
-            var pairs = new Dictionary<Type, ITransform<T>>();
-
-            // store the most recent transform of each type, modifying its endTime to now.
             foreach (ITransform<T> t in operateTransforms)
             {
-                t.EndTime = Time.Current;
-                pairs[t.GetType()] = t;
+                t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
+                t.Apply(derivedThis);
             }
 
             if (flushType == null)
                 ClearTransforms();
             else
                 Transforms.RemoveAll(t => t.GetType() == flushType);
-
-            foreach (var t in pairs.Values)
-                Transforms.Add(t);
         }
 
         /// <summary>

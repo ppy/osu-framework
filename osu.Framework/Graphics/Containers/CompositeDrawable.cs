@@ -293,7 +293,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected virtual bool RequiresChildrenUpdate => !IsMaskedAway || !childrenSizeDependencies.IsValid;
 
-        public override bool UpdateSubTree()
+        protected override bool UpdateSubTree()
         {
             if (!base.UpdateSubTree()) return false;
 
@@ -312,7 +312,7 @@ namespace osu.Framework.Graphics.Containers
             for (int i = 0; i < aliveChildren.Count; ++i)
             {
                 Drawable c = aliveChildren[i];
-                if (c.IsLoaded) c.UpdateSubTree();
+                if (c.IsLoaded) c.UpdateFromParent();
             }
 
             if (schedulerAfterChildren != null)
