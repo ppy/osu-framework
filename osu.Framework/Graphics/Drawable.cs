@@ -346,8 +346,6 @@ namespace osu.Framework.Graphics
 
             Update();
             OnUpdate?.Invoke(this);
-
-            UpdateTransforms();
             return true;
         }
 
@@ -367,13 +365,10 @@ namespace osu.Framework.Graphics
             if (loadState < LoadState.Alive)
                 if (!loadComplete()) return false;
 
+            UpdateTransforms();
+
             if (!IsPresent)
-            {
-                // if we aren't present, we still want to run UpdateTransforms here in case we have a transform that makes us visible.
-                UpdateTransforms();
-                if (!IsPresent)
-                    return false;
-            }
+                return false;
 
             if (scheduler != null)
             {

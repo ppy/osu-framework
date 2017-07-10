@@ -274,6 +274,9 @@ namespace osu.Framework.Graphics.Transforms
 
         private void addTransform(ITransform<T> transform)
         {
+            if (transform == null)
+                throw new ArgumentNullException(nameof(transform));
+
             if (Clock == null)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
@@ -282,6 +285,13 @@ namespace osu.Framework.Graphics.Transforms
             }
 
             Transforms.Add(transform);
+
+            if (Transforms.LastOrDefault(t => t.StartTime <= Time.Current && t.GetType() == transform.GetType()) == transform)
+            {
+                transform.UpdateTime(new FrameTimeInfo { Current = Time.Current });
+                transform.ReadIntoStartValue(derivedThis);
+                transform.Apply(derivedThis);
+            }
         }
     }
 }
