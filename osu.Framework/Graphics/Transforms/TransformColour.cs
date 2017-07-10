@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>
-        public override Color4 CurrentValue
+        public virtual Color4 CurrentValue
         {
             get
             {
@@ -26,10 +26,7 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        public override void Apply(Drawable d)
-        {
-            base.Apply(d);
-            d.Colour = CurrentValue;
-        }
+        public override void Apply(Drawable d) => d.Colour = CurrentValue;
+        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Colour;
     }
 }

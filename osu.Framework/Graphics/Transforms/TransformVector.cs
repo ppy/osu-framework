@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformVector : Transform<Vector2, Drawable>
     {
-        public override Vector2 CurrentValue
+        public virtual Vector2 CurrentValue
         {
             get
             {

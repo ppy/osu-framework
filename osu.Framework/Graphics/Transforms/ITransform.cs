@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using osu.Framework.Lists;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public interface ITransform<in T> : IHasLifetime
+    public interface ITransform<in T>
     {
+        long CreationID { get; }
+
         double Duration { get; }
 
         double StartTime { get; set; }
@@ -16,22 +18,17 @@ namespace osu.Framework.Graphics.Transforms
 
         void Apply(T d);
 
-        ITransform<T> Clone();
-        ITransform<T> CloneReverse();
-
-        void Reverse();
+        void ReadIntoStartValue(T d);
 
         void Loop(double delay, int loopCount = -1);
-
-        /// <summary>
-        /// Shift this transform by the specified time value.
-        /// </summary>
-        /// <param name="offset">Time in milliseconds to shift the transform.</param>
-        void Shift(double offset);
 
         void NextIteration();
 
         bool HasNextIteration { get; }
+
+        void UpdateTime(FrameTimeInfo time);
+
+        FrameTimeInfo? Time { get; }
     }
 
     public class TransformTimeComparer<T> : IComparer<ITransform<T>>
@@ -43,7 +40,7 @@ namespace osu.Framework.Graphics.Transforms
 
             int compare = x.StartTime.CompareTo(y.StartTime);
             if (compare != 0) return compare;
-            compare = x.EndTime.CompareTo(y.EndTime);
+            compare = x.CreationID.CompareTo(y.CreationID);
             return compare;
         }
     }
