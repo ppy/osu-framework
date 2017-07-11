@@ -17,10 +17,10 @@ namespace osu.Framework.MathUtils
         {
             if (smoothing < 0 || smoothing > 1)
                 throw new ArgumentOutOfRangeException($"{nameof(smoothing)} has to lie in [0,1], but is {smoothing}.", nameof(smoothing));
-            if (delta < 0)
+            if (!Precision.AlmostBigger(delta, 0))
                 throw new ArgumentOutOfRangeException($"{nameof(delta)} has to be bigger than 0, but is {delta}.", nameof(delta));
 
-            return Lerp(start, final, 1 - (float)Math.Pow(smoothing, delta));
+            return Lerp(start, final, 1 - (float)Math.Pow(smoothing, Math.Max(0, delta)));
         }
 
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
