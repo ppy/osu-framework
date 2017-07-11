@@ -5,7 +5,6 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using osu.Framework.Graphics.OpenGL;
 using osu.Framework.Graphics.OpenGL.Textures;
 using osu.Framework.Graphics.Primitives;
 using RectangleF = osu.Framework.Graphics.Primitives.RectangleF;
@@ -18,7 +17,7 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
-        private static Texture whitePixel;
+        private static TextureWhitePixel whitePixel;
 
         public static Texture WhitePixel
         {
@@ -76,7 +75,7 @@ namespace osu.Framework.Graphics.Textures
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool isDisposing)
+        protected virtual void Dispose(bool isDisposing)
         {
             if (IsDisposed)
                 return;
@@ -205,22 +204,5 @@ namespace osu.Framework.Graphics.Textures
         }
 
         public override string ToString() => $@"{AssetName} ({Width}, {Height})";
-    }
-
-    public class TextureWhitePixel : Texture
-    {
-        public TextureWhitePixel(TextureGL textureGl)
-            : base(textureGl)
-        {
-        }
-
-        protected override RectangleF TextureBounds(RectangleF? textureRect = null)
-        {
-            // We need non-zero texture bounds for EdgeSmoothness to work correctly.
-            // Let's be very conservative and use a tenth of the size of a pixel in the
-            // largest possible texture.
-            float smallestPixelTenth = 0.1f / GLWrapper.MaxTextureSize;
-            return new RectangleF(0, 0, smallestPixelTenth, smallestPixelTenth);
-        }
     }
 }
