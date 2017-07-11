@@ -67,6 +67,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Disposes this drawable.
         /// </summary>
+        /// <param name="isDisposing">Whether to free unmanaged resources.</param>
         protected virtual void Dispose(bool isDisposing)
         {
         }
@@ -76,7 +77,7 @@ namespace osu.Framework.Graphics
             if (isDisposed)
                 return;
 
-            //we can't dispose if we are mid-load, else our children may get in a bad state.
+            // We can't dispose if we are in the middle of loading, else our children may get in a bad state.
             loadTask?.Wait();
 
             Dispose(isDisposing);
@@ -125,6 +126,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loads this Drawable asynchronously.
         /// </summary>
+        /// <typeparam name="T">The type of <see cref="Drawable"/> to be loaded asynchronously.</typeparam>
         /// <param name="game">The game to load this Drawable on.</param>
         /// <param name="target">
         /// The target this Drawable may eventually be loaded into.
@@ -132,14 +134,17 @@ namespace osu.Framework.Graphics
         /// </param>
         /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
-        internal Task LoadAsync<T>(Game game, Drawable target, Action<T> onLoaded = null)
-            where T : Drawable
+        /// <exception cref="InvalidOperationException">
+        /// Either the drawable state is other than not-loaded,
+        /// or type <typeparamref name="T"/> is not supported.
+        /// </exception>
+        internal Task LoadAsync<T>(Game game, Drawable target, Action<T> onLoaded = null) where T : Drawable
         {
             if (loadState != LoadState.NotLoaded)
-                throw new InvalidOperationException($@"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
+                throw new InvalidOperationException($"{nameof(LoadAsync)} may not be called more than once on the same Drawable.");
 
             if (!(this is T))
-                throw new InvalidOperationException($"The {nameof(T)} parameter of the {nameof(LoadAsync)} must be a subtype of {GetType().ReadableName()}.");
+                throw new InvalidOperationException($"The {nameof(T)} parameter of method {nameof(LoadAsync)} must be a subtype of {GetType().ReadableName()}.");
 
             loadState = LoadState.Loading;
 
@@ -170,9 +175,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Loads this drawable, including the gathering of dependencies and initialisation of required resources.
         /// </summary>
-        /// <param name="clock">The clock we should use by default.</param>
-        /// <param name="dependencies">The dependency tree we will inherit by default. May be extended via <see cref="CreateLocalDependencies(DependencyContainer)"/></param>
-        internal void Load(IFrameBasedClock clock, DependencyContainer dependencies)
+        /// <param name="defaultClock">The clock we should use by default.</param>
+        /// <param name="dependencies">
+        /// The dependency tree we will inherit by default.
+        /// May be extended via <see cref="CreateLocalDependencies(DependencyContainer)"/>
+        /// </param>
+        internal void Load(IFrameBasedClock defaultClock, DependencyContainer dependencies)
         {
             // Blocks when loading from another thread already.
             lock (loadLock)
@@ -192,18 +200,18 @@ namespace osu.Framework.Graphics
                         break;
                 }
 
-                UpdateClock(clock);
+                UpdateClock(defaultClock);
 
-                double t1 = perf.CurrentTime;
+                double startTime = perf.CurrentTime;
 
-                // get our dependencies from our parent, but allow local overriding of our inherited dependency container
+                // Get our dependencies from our parent, but allow local overriding of our inherited dependency container
                 Dependencies = CreateLocalDependencies(dependencies);
-
                 Dependencies.Initialize(this);
 
-                double elapsed = perf.CurrentTime - t1;
+                double elapsed = perf.CurrentTime - startTime;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
-                    Logger.Log($@"Drawable [{ToString()}] took {elapsed:0.00}ms to load and was not async!", LoggingTarget.Performance);
+                    Logger.Log($"Drawable [{ToString()}] took {elapsed.ToString():0.00}ms to load and was not async!", LoggingTarget.Performance);
+
                 loadState = LoadState.Loaded;
             }
         }
@@ -213,20 +221,24 @@ namespace osu.Framework.Graphics
         /// </summary>
         private bool loadComplete()
         {
-            if (loadState < LoadState.Loaded) return false;
+            if (loadState < LoadState.Loaded)
+                return false;
 
             MainThread = Thread.CurrentThread;
             scheduler?.SetCurrentThread(MainThread);
 
             Invalidate();
+
             loadState = LoadState.Alive;
             LoadComplete();
+
             OnLoadComplete?.Invoke(this);
             return true;
         }
 
         /// <summary>
-        /// Play initial animation etc.
+        /// Called only once on the update thread right after this drawable has been completely loaded.
+        /// Useful for playing initial animation etc.
         /// </summary>
         protected virtual void LoadComplete()
         {
@@ -237,20 +249,19 @@ namespace osu.Framework.Graphics
         #region Sorting (CreationID / Depth)
 
         /// <summary>
-        /// Captures the order in which Drawables were created. Each Drawable
-        /// is assigned a unique, monotonically increasing ID upon creation in a thread-safe manner.
-        /// The primary use case of this ID is stable sorting of Drawables with equal
-        /// <see cref="Depth"/>.
+        /// Captures the order in which Drawables were created.
+        /// Each Drawable is assigned a unique, monotonically increasing ID upon creation in a thread-safe manner.
+        /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        private long creationID { get; }
+        private readonly long creationID;
 
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
         /// <summary>
-        /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
-        /// <see cref="Parent"/> has been set.
-        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
-        /// to alert the user of an invalid operation.
+        /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>.
+        /// Note that this does NOT imply that <see cref="Parent"/> has been set.
+        /// This is primarily used to block properties such as <see cref="Depth"/> that strictly
+        /// rely on the value of <see cref="Parent"/> to alert the user of an invalid operation.
         /// </summary>
         internal bool IsPartOfComposite;
 
@@ -259,9 +270,10 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which Drawables are behind or in front of other Drawables.
         /// This amounts to sorting Drawables by their <see cref="Depth"/>.
-        /// A Drawable with higher <see cref="Depth"/> than another Drawable is
-        /// drawn behind the other Drawable.
+        /// A Drawable with higher <see cref="Depth"/> than another Drawable is drawn behind the other Drawable.
+        /// The value of depth can be changed using <see cref="Container{T}.ChangeChildDepth(T, float)"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Cannot change the value of depth using this member.</exception>
         public float Depth
         {
             get { return depth; }
@@ -274,42 +286,50 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public class CreationOrderDepthComparer : IComparer<Drawable>
+        public sealed class CreationOrderDepthComparer : IComparer<Drawable>
         {
-            public virtual int Compare(Drawable x, Drawable y)
+            public static readonly IComparer<Drawable> Instance = new CreationOrderDepthComparer();
+
+            public int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
+                if (i != 0)
+                    return i;
+
                 return x.creationID.CompareTo(y.creationID);
             }
         }
 
-        public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
+        public sealed class ReverseCreationOrderDepthComparer : IComparer<Drawable>
         {
-            public virtual int Compare(Drawable x, Drawable y)
+            public static readonly IComparer<Drawable> Instance = new ReverseCreationOrderDepthComparer();
+
+            public int Compare(Drawable x, Drawable y)
             {
                 if (x == null) throw new ArgumentNullException(nameof(x));
                 if (y == null) throw new ArgumentNullException(nameof(y));
 
                 int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
+                if (i != 0)
+                    return i;
+
                 return y.creationID.CompareTo(x.creationID);
             }
         }
 
-        protected virtual IComparer<Drawable> DepthComparer => new CreationOrderDepthComparer();
+        protected virtual IComparer<Drawable> DepthComparer => CreationOrderDepthComparer.Instance;
 
         #endregion
 
         #region Periodic tasks (events, Scheduler, Transforms, Update)
 
         /// <summary>
-        /// This event is fired after the <see cref="Update"/> method is called at the end of
-        /// <see cref="UpdateSubTree"/>. It should be used when a simple action should be performed
-        /// at the end of every update call which does not warrant overriding the Drawable.
+        /// This event is fired after the <see cref="Update"/> method is called at the end of <see cref="UpdateSubTree"/>.
+        /// It should be used when a simple action should be performed at the end of
+        /// every update call which does not warrant overriding the Drawable.
         /// </summary>
         public Action<Drawable> OnUpdate;
 
@@ -327,7 +347,7 @@ namespace osu.Framework.Graphics
         internal event Action<Drawable> OnInvalidate;
 
         private Scheduler scheduler;
-        internal Thread MainThread { get; private set; }
+        protected internal Thread MainThread;
 
         /// <summary>
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
@@ -340,16 +360,19 @@ namespace osu.Framework.Graphics
         /// Called once every frame.
         /// </summary>
         /// <returns>False if the drawable should not be updated.</returns>
+        /// <exception cref="ObjectDisposedException">This drawable is already disposed.</exception>
         public virtual bool UpdateSubTree()
         {
             if (isDisposed)
                 throw new ObjectDisposedException(ToString(), "Disposed Drawables may never be in the scene graph.");
 
-            if (Parent != null) //we don't want to update our clock if we are at the top of the stack. it's handled elsewhere for us.
+            // We don't want to update our clock if we are at the top of the stack. It's handled elsewhere for us.
+            if (Parent != null)
                 customClock?.ProcessFrame();
 
-            if (loadState < LoadState.Alive)
-                if (!loadComplete()) return false;
+            if (loadState < LoadState.Alive
+                && !loadComplete())
+                return false;
 
             UpdateTransforms();
 
@@ -357,10 +380,7 @@ namespace osu.Framework.Graphics
                 return true;
 
             if (scheduler != null)
-            {
-                int amountScheduledTasks = scheduler.Update();
-                FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, amountScheduledTasks);
-            }
+                FrameStatistics.Add(StatisticsCounterType.ScheduleInvk, scheduler.Update());
 
             Update();
             OnUpdate?.Invoke(this);
@@ -368,9 +388,9 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Performs a once-per-frame update specific to this Drawable. A more elegant alternative to
-        /// <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>. Note, that this
-        /// method is always called before Drawables further down the scene graph are updated.
+        /// Performs a once-per-frame update specific to this Drawable.
+        /// A more elegant alternative to <see cref="OnUpdate"/> when deriving from <see cref="Drawable"/>.
+        /// Note, that this method is always called before Drawables further down the scene graph are updated.
         /// </summary>
         protected virtual void Update()
         {
@@ -380,29 +400,21 @@ namespace osu.Framework.Graphics
 
         #region Position / Size (with margin)
 
-        private Vector2 position
+        /// <summary>
+        /// Positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/>
+        /// in the <see cref="Parent"/>'s coordinate system.
+        /// May be in absolute or relative units (controlled by <see cref="RelativePositionAxes"/>).
+        /// </summary>
+        public Vector2 Position
         {
             get { return new Vector2(x, y); }
             set
             {
+                if (x == value.X && y == value.Y)
+                    return;
+
                 x = value.X;
                 y = value.Y;
-            }
-        }
-
-        /// <summary>
-        /// Positional offset of <see cref="Origin"/> to <see cref="RelativeAnchorPosition"/> in the
-        /// <see cref="Parent"/>'s coordinate system. May be in absolute or relative units
-        /// (controlled by <see cref="RelativePositionAxes"/>).
-        /// </summary>
-        public Vector2 Position
-        {
-            get { return position; }
-
-            set
-            {
-                if (position == value) return;
-                position = value;
 
                 Invalidate(Invalidation.MiscGeometry);
             }
@@ -446,8 +458,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which <see cref="Axes"/> of <see cref="Position"/> are relative w.r.t.
         /// <see cref="Parent"/>'s size (from 0 to 1) rather than absolute.
-        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing
-        /// parents.
+        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing parents.
         /// </summary>
         /// <remarks>
         /// When setting this property, the <see cref="Position"/> is converted such that
@@ -488,6 +499,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 offset = Vector2.Zero;
+
                 if (Parent != null && RelativePositionAxes != Axes.None)
                 {
                     offset = Parent.RelativeChildOffset;
@@ -503,28 +515,19 @@ namespace osu.Framework.Graphics
             }
         }
 
-        private Vector2 size
-        {
-            get { return new Vector2(width, height); }
-            set
-            {
-                width = value.X;
-                height = value.Y;
-            }
-        }
-
         /// <summary>
         /// Size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// May be in absolute or relative units (controlled by <see cref="RelativeSizeAxes"/>).
         /// </summary>
         public virtual Vector2 Size
         {
-            get { return size; }
-
+            get { return new Vector2(width, height); }
             set
             {
-                if (size == value) return;
-                size = value;
+                if (width == value.X && height == value.Y) return;
+
+                width = value.X;
+                height = value.Y;
 
                 Invalidate(Invalidation.DrawSize);
             }
@@ -568,8 +571,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Controls which <see cref="Axes"/> are relative sizes w.r.t. <see cref="Parent"/>'s size
         /// (from 0 to 1) in the <see cref="Parent"/>'s coordinate system, rather than absolute sizes.
-        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing
-        /// parents.
+        /// The <see cref="Axes"/> set in this property are ignored by automatically sizing parents.
         /// </summary>
         /// <remarks>
         /// If an axis becomes relatively sized and its component of <see cref="Size"/> was previously 0,
@@ -593,12 +595,12 @@ namespace osu.Framework.Graphics
                     // Convert coordinates from relative to absolute or vice versa
                     Vector2 conversion = relativeToAbsoluteFactor;
                     if ((value & Axes.X) > (relativeSizeAxes & Axes.X))
-                        Width = conversion.X == 0 ? 0 : Width / conversion.X;
+                        Width = conversion.X == 0 ? 0 : width / conversion.X;
                     else if ((relativeSizeAxes & Axes.X) > (value & Axes.X))
                         Width *= conversion.X;
 
                     if ((value & Axes.Y) > (relativeSizeAxes & Axes.Y))
-                        Height = conversion.Y == 0 ? 0 : Height / conversion.Y;
+                        Height = conversion.Y == 0 ? 0 : height / conversion.Y;
                     else if ((relativeSizeAxes & Axes.Y) > (value & Axes.Y))
                         Height *= conversion.Y;
 
@@ -607,8 +609,8 @@ namespace osu.Framework.Graphics
 
                 relativeSizeAxes = value;
 
-                if ((relativeSizeAxes & Axes.X) > 0 && Width == 0) Width = 1;
-                if ((relativeSizeAxes & Axes.Y) > 0 && Height == 0) Height = 1;
+                if ((relativeSizeAxes & Axes.X) > 0 && width == 0) Width = 1;
+                if ((relativeSizeAxes & Axes.Y) > 0 && height == 0) Height = 1;
 
                 OnSizingChanged();
             }
@@ -619,7 +621,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.
         /// </summary>
-        public Vector2 DrawSize => drawSizeBacking.IsValid ? drawSizeBacking : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
+        public Vector2 DrawSize => drawSizeBacking.IsValid
+            ? drawSizeBacking
+            : (drawSizeBacking.Value = applyRelativeAxes(RelativeSizeAxes, Size, FillMode));
 
         /// <summary>
         /// X component of <see cref="DrawSize"/>.
@@ -634,8 +638,8 @@ namespace osu.Framework.Graphics
         private MarginPadding margin;
 
         /// <summary>
-        /// Size of an empty region around this Drawable used to manipulate
-        /// layout. Does not affect <see cref="DrawSize"/> or the region of accepted input,
+        /// Size of an empty region around this Drawable used to manipulate layout.
+        /// Does not affect <see cref="DrawSize"/> or the region of accepted input,
         /// but does affect <see cref="LayoutSize"/>.
         /// </summary>
         public MarginPadding Margin
@@ -691,9 +695,9 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="relativeAxes">Describes which axes are relative.</param>
         /// <param name="v">The coordinates to convert.</param>
-        /// <param name="fillMode">The <see cref="FillMode"/> to be used.</param>
+        /// <param name="targetMode">The <see cref="FillMode"/> to be used.</param>
         /// <returns>Absolute coordinates in <see cref="Parent"/>'s space.</returns>
-        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode fillMode)
+        private Vector2 applyRelativeAxes(Axes relativeAxes, Vector2 v, FillMode targetMode)
         {
             if (relativeAxes != Axes.None)
             {
@@ -703,12 +707,13 @@ namespace osu.Framework.Graphics
                 // for n-dimensional aspect preservation is to simply take the minimum or the maximum
                 // scale among all active axes. For single axes the minimum / maximum is just the
                 // value itself.
-                if (relativeAxes == Axes.Both && fillMode != FillMode.Stretch)
+                if (relativeAxes == Axes.Both && targetMode != FillMode.Stretch)
                 {
-                    if (fillMode == FillMode.Fill)
+                    if (targetMode == FillMode.Fill)
                         conversion = new Vector2(Math.Max(conversion.X, conversion.Y * fillAspectRatio));
-                    else if (fillMode == FillMode.Fit)
+                    else if (targetMode == FillMode.Fit)
                         conversion = new Vector2(Math.Min(conversion.X, conversion.Y * fillAspectRatio));
+
                     conversion.Y /= fillAspectRatio;
                 }
 
@@ -717,6 +722,7 @@ namespace osu.Framework.Graphics
                 if ((relativeAxes & Axes.Y) > 0)
                     v.Y *= conversion.Y;
             }
+
             return v;
         }
 
@@ -734,8 +740,12 @@ namespace osu.Framework.Graphics
         /// </summary>
         public Axes BypassAutoSizeAxes
         {
-            get { return bypassAutoSizeAxes | relativeSizeAxes | relativePositionAxes; }
-
+            get
+            {
+                return bypassAutoSizeAxes
+                    | relativeSizeAxes
+                    | relativePositionAxes;
+            }
             set
             {
                 if (value == bypassAutoSizeAxes)
@@ -752,9 +762,12 @@ namespace osu.Framework.Graphics
         public virtual RectangleF BoundingBox => ToParentSpace(LayoutRectangle).AABBFloat;
 
         /// <summary>
-        /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed, or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
+        /// Called whenever the <see cref="RelativeSizeAxes"/> of this drawable is changed,
+        /// or when the <see cref="Container{T}.AutoSizeAxes"/> are changed if this drawable is a <see cref="Container{T}"/>.
         /// </summary>
-        protected virtual void OnSizingChanged() { }
+        protected virtual void OnSizingChanged()
+        {
+        }
 
         #endregion
 
@@ -768,7 +781,6 @@ namespace osu.Framework.Graphics
         public Vector2 Scale
         {
             get { return scale; }
-
             set
             {
                 if (scale == value) return;
@@ -787,7 +799,6 @@ namespace osu.Framework.Graphics
         public float FillAspectRatio
         {
             get { return fillAspectRatio; }
-
             set
             {
                 if (fillAspectRatio == value) return;
@@ -802,14 +813,15 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Controls the behavior of <see cref="RelativeSizeAxes"/> when it is set to <see cref="Axes.Both"/>.
-        /// Otherwise, this member has no effect. By default, stretching is used, which simply scales
-        /// this drawable's <see cref="Size"/> according to <see cref="Parent"/>'s <see cref="CompositeDrawable.RelativeToAbsoluteFactor"/>
-        /// disregarding this drawable's <see cref="FillAspectRatio"/>. Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
+        /// Otherwise this member has no effect.
+        /// By default, stretching is used, which simply scales this drawable's <see cref="Size"/>
+        /// according to <see cref="Parent"/>'s <see cref="CompositeDrawable.RelativeToAbsoluteFactor"/>,
+        /// disregarding this drawable's <see cref="FillAspectRatio"/>.
+        /// Other values of <see cref="FillMode"/> preserve <see cref="FillAspectRatio"/>.
         /// </summary>
         public FillMode FillMode
         {
             get { return fillMode; }
-
             set
             {
                 if (fillMode == value) return;
@@ -833,7 +845,6 @@ namespace osu.Framework.Graphics
         public Vector2 Shear
         {
             get { return shear; }
-
             set
             {
                 if (shear == value) return;
@@ -851,7 +862,6 @@ namespace osu.Framework.Graphics
         public float Rotation
         {
             get { return rotation; }
-
             set
             {
                 if (value == rotation) return;
@@ -872,10 +882,10 @@ namespace osu.Framework.Graphics
         /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
         /// or a fixed absolute position via <see cref="OriginPosition"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">Origin cannot be 0.</exception>
         public virtual Anchor Origin
         {
             get { return origin; }
-
             set
             {
                 if (origin == value) return;
@@ -888,7 +898,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-
         private Vector2 customOrigin;
 
         /// <summary>
@@ -896,14 +905,16 @@ namespace osu.Framework.Graphics
         /// in relative coordinates expressed in the coordinate system with origin at the
         /// top left corner of the <see cref="DrawRectangle"/> (not <see cref="LayoutRectangle"/>).
         /// </summary>
+        /// <exception cref="InvalidOperationException">Cannot obtain relative origin position for custom origins.</exception>
         public Vector2 RelativeOriginPosition
         {
             get
             {
                 if (Origin == Anchor.Custom)
-                    throw new InvalidOperationException(@"Can not obtain relative origin position for custom origins.");
+                    throw new InvalidOperationException("Cannot obtain relative origin position for custom origins.");
 
                 Vector2 result = Vector2.Zero;
+
                 if ((origin & Anchor.x1) > 0)
                     result.X = 0.5f;
                 else if ((origin & Anchor.x2) > 0)
@@ -928,6 +939,7 @@ namespace osu.Framework.Graphics
             get
             {
                 Vector2 result;
+
                 if (Origin == Anchor.Custom)
                     result = customOrigin;
                 else if (Origin == Anchor.TopLeft)
@@ -937,14 +949,12 @@ namespace osu.Framework.Graphics
 
                 return result - new Vector2(margin.Left, margin.Top);
             }
-
             set
             {
                 customOrigin = value;
                 Origin = Anchor.Custom;
             }
         }
-
 
         private Anchor anchor = Anchor.TopLeft;
 
@@ -955,10 +965,10 @@ namespace osu.Framework.Graphics
         /// Can either be one of 9 relative positions (0, 0.5, and 1 in x and y)
         /// or a fixed absolute position via <see cref="RelativeAnchorPosition"/>.
         /// </summary>
+        /// <exception cref="ArgumentException">Anchor cannot be 0.</exception>
         public Anchor Anchor
         {
             get { return anchor; }
-
             set
             {
                 if (anchor == value) return;
@@ -970,7 +980,6 @@ namespace osu.Framework.Graphics
                 Invalidate(Invalidation.MiscGeometry);
             }
         }
-
 
         private Vector2 customRelativeAnchorPosition;
 
@@ -989,6 +998,7 @@ namespace osu.Framework.Graphics
                     return customRelativeAnchorPosition;
 
                 Vector2 result = Vector2.Zero;
+
                 if ((anchor & Anchor.x1) > 0)
                     result.X = 0.5f;
                 else if ((anchor & Anchor.x2) > 0)
@@ -1001,7 +1011,6 @@ namespace osu.Framework.Graphics
 
                 return result;
             }
-
             set
             {
                 customRelativeAnchorPosition = value;
@@ -1014,7 +1023,7 @@ namespace osu.Framework.Graphics
         /// to the <see cref="Parent"/> in the coordinate system with origin at the top
         /// left corner of the <see cref="Parent"/>'s <see cref="DrawRectangle"/>.
         /// </summary>
-        public Vector2 AnchorPosition => RelativeAnchorPosition * Parent?.ChildSize ?? Vector2.Zero;
+        public Vector2 AnchorPosition => RelativeAnchorPosition * (Parent?.ChildSize ?? Vector2.Zero);
 
         /// <summary>
         /// Helper function to compute an absolute position given an absolute size and
@@ -1052,7 +1061,6 @@ namespace osu.Framework.Graphics
         public ColourInfo ColourInfo
         {
             get { return colourInfo; }
-
             set
             {
                 if (colourInfo.Equals(value)) return;
@@ -1069,11 +1077,10 @@ namespace osu.Framework.Graphics
         public SRGBColour Colour
         {
             get { return colourInfo.Colour; }
-
             set
             {
-                if (colourInfo.HasSingleColour && colourInfo.TopLeft.Equals(value)) return;
-
+                if (colourInfo.HasSingleColour
+                    && colourInfo.TopLeft.Equals(value)) return;
                 colourInfo.Colour = value;
 
                 Invalidate(Invalidation.Colour);
@@ -1083,17 +1090,14 @@ namespace osu.Framework.Graphics
         private float alpha = 1.0f;
 
         /// <summary>
-        /// Multiplicative alpha factor applied on top of <see cref="ColourInfo"/> and its existing
-        /// alpha channel(s).
+        /// Multiplicative alpha factor applied on top of <see cref="ColourInfo"/> and its existing alpha channel(s).
         /// </summary>
         public float Alpha
         {
             get { return alpha; }
-
             set
             {
                 if (alpha == value) return;
-
                 Invalidate(Invalidation.Colour);
 
                 alpha = value;
@@ -1111,18 +1115,16 @@ namespace osu.Framework.Graphics
         private bool alwaysPresent;
 
         /// <summary>
-        /// If true, forces <see cref="IsPresent"/> to always be true. In other words,
-        /// this drawable is always considered for layout, input, and drawing, regardless
-        /// of alpha value.
+        /// If true, forces <see cref="IsPresent"/> to always be true.
+        /// In other words, this drawable is always considered for layout, input, and drawing,
+        /// regardless of alpha value.
         /// </summary>
         public bool AlwaysPresent
         {
             get { return alwaysPresent; }
-
             set
             {
                 if (alwaysPresent == value) return;
-
                 Invalidate(Invalidation.Colour);
 
                 alwaysPresent = value;
@@ -1138,12 +1140,11 @@ namespace osu.Framework.Graphics
         public BlendingMode BlendingMode
         {
             get { return blendingMode; }
-
             set
             {
                 if (blendingMode == value) return;
-
                 blendingMode = value;
+
                 Invalidate(Invalidation.Colour);
             }
         }
@@ -1156,10 +1157,10 @@ namespace osu.Framework.Graphics
         private IFrameBasedClock clock;
 
         /// <summary>
-        /// The clock of this drawable. Used for keeping track of time across
-        /// frames. By default is inherited from <see cref="Parent"/>.
-        /// If set, then the provided value is used as a custom clock and the
-        /// <see cref="Parent"/>'s clock is ignored.
+        /// The clock of this drawable.
+        /// Used for keeping track of time across frames.
+        /// By default is inherited from <see cref="Parent"/>.
+        /// If set, then the provided value is used as a custom clock and the <see cref="Parent"/>'s clock is ignored.
         /// </summary>
         public override IFrameBasedClock Clock
         {
@@ -1172,14 +1173,10 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Updates the clock to be used. Has no effect if this drawable
-        /// uses a custom clock.
+        /// Updates the clock to be used. Has no effect if this drawable uses a custom clock.
         /// </summary>
         /// <param name="clock">The new clock to be used.</param>
-        public virtual void UpdateClock(IFrameBasedClock clock)
-        {
-            this.clock = customClock ?? clock;
-        }
+        public virtual void UpdateClock(IFrameBasedClock clock) => this.clock = customClock ?? clock;
 
         /// <summary>
         /// The time at which this drawable becomes valid (and is considered for drawing).
@@ -1192,8 +1189,8 @@ namespace osu.Framework.Graphics
         public virtual double LifetimeEnd { get; set; } = double.MaxValue;
 
         /// <summary>
-        /// Updates the current time to the provided time. For drawables this is a no-op
-        /// as they obtain their time via their <see cref="Clock"/>.
+        /// Updates the current time to the provided time.
+        /// For drawables this is a no-op as they obtain their time via their <see cref="Clock"/>.
         /// </summary>
         public void UpdateTime(FrameTimeInfo time)
         {
@@ -1206,13 +1203,15 @@ namespace osu.Framework.Graphics
         {
             get
             {
-                //we have been loaded but our parent has since been nullified
+                // We have been loaded but our parent has since been nullified
                 if (Parent == null && IsLoaded) return false;
 
-                if (LifetimeStart == double.MinValue && LifetimeEnd == double.MaxValue)
+                if (LifetimeStart == double.MinValue
+                    && LifetimeEnd == double.MaxValue)
                     return true;
 
-                return Time.Current >= LifetimeStart && Time.Current < LifetimeEnd;
+                return Time.Current >= LifetimeStart
+                    && Time.Current < LifetimeEnd;
             }
         }
 
@@ -1230,6 +1229,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// The parent of this drawable in the scene graph.
         /// </summary>
+        /// <exception cref="ObjectDisposedException">Drawable was disposed and cannot get a parent.</exception>
+        /// <exception cref="InvalidOperationException">Tried to add this drawable to multiple composites.</exception>
         public CompositeDrawable Parent
         {
             get { return parent; }
@@ -1243,7 +1244,7 @@ namespace osu.Framework.Graphics
                 if (parent == value) return;
 
                 if (value != null && parent != null)
-                    throw new InvalidOperationException("May not add a drawable to multiple containers.");
+                    throw new InvalidOperationException("May not add a drawable to multiple composites.");
 
                 parent = value;
                 Invalidate(InvalidationFromParentSize | Invalidation.Colour);
@@ -1259,8 +1260,8 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// Refers to the original if this drawable was created via
-        /// <see cref="CreateProxy"/>. Otherwise refers to this.
+        /// Refers to the original if this drawable was created via <see cref="CreateProxy"/>.
+        /// Otherwise refers to this.
         /// </summary>
         internal virtual Drawable Original => this;
 
@@ -1274,13 +1275,14 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Creates a proxy drawable which can be inserted elsewhere in the scene graph.
         /// Will cause the original instance to not render itself.
-        /// Creating multiple proxies is not supported and will result in an
-        /// <see cref="InvalidOperationException"/>.
+        /// Creating multiple proxies is not supported and will result in an <see cref="InvalidOperationException"/>.
         /// </summary>
+        /// <exception cref="InvalidOperationException">More than one proxy was tried to be created.</exception>
         public ProxyDrawable CreateProxy()
         {
             if (proxy != null)
                 throw new InvalidOperationException("Multiple proxies are not supported.");
+
             return proxy = new ProxyDrawable(this);
         }
 
@@ -1295,17 +1297,16 @@ namespace osu.Framework.Graphics
         /// </summary>
         internal bool IsMaskedAway;
 
-        private Cached<Quad> screenSpaceDrawQuadBacking;
-
         protected virtual Quad ComputeScreenSpaceDrawQuad() => ToScreenSpace(DrawRectangle);
+
+        private Cached<Quad> screenSpaceDrawQuadBacking;
 
         /// <summary>
         /// The screen-space quad this drawable occupies.
         /// </summary>
-        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid ? screenSpaceDrawQuadBacking : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
-
-
-        private Cached<DrawInfo> drawInfoBacking;
+        public virtual Quad ScreenSpaceDrawQuad => screenSpaceDrawQuadBacking.IsValid
+            ? screenSpaceDrawQuadBacking
+            : (screenSpaceDrawQuadBacking.Value = ComputeScreenSpaceDrawQuad());
 
         private DrawInfo computeDrawInfo()
         {
@@ -1328,8 +1329,7 @@ namespace osu.Framework.Graphics
 
             ColourInfo colour = alpha != 1 ? colourInfo.MultiplyAlpha(alpha) : colourInfo;
 
-            // No need for a Parent null check here, because null parents always have
-            // a single colour (white).
+            // No need for a Parent null check here, because null parents always have a single colour (white).
             if (di.Colour.HasSingleColour)
                 di.Colour.ApplyChild(colour);
             else
@@ -1352,18 +1352,19 @@ namespace osu.Framework.Graphics
             return di;
         }
 
+        private Cached<DrawInfo> drawInfoBacking;
+
         /// <summary>
         /// Contains a linear transformation, colour information, and blending information
         /// of this drawable.
         /// </summary>
-        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid ? drawInfoBacking : (drawInfoBacking.Value = computeDrawInfo());
-
-
-        private Cached<Vector2> requiredParentSizeToFitBacking;
+        public virtual DrawInfo DrawInfo => drawInfoBacking.IsValid
+            ? drawInfoBacking
+            : (drawInfoBacking.Value = computeDrawInfo());
 
         private Vector2 computeRequiredParentSizeToFit()
         {
-            // Auxilary variables required for the computation
+            // Auxiliary variables required for the computation
             Vector2 ap = AnchorPosition;
             Vector2 rap = RelativeAnchorPosition;
 
@@ -1393,18 +1394,20 @@ namespace osu.Framework.Graphics
                 Vector2.ComponentMax(bottomRightSize1, bottomRightSize2));
         }
 
+        private Cached<Vector2> requiredParentSizeToFitBacking;
+
         /// <summary>
         /// Returns the size of the smallest axis aligned box in parent space which
-        /// encompasses this drawable while preserving this drawable's
-        /// <see cref="RelativeAnchorPosition"/>.
+        /// encompasses this drawable while preserving this drawable's <see cref="RelativeAnchorPosition"/>.
         /// If a component of <see cref="RelativeAnchorPosition"/> is smaller than zero
         /// or larger than one, then it is impossible to preserve <see cref="RelativeAnchorPosition"/>
         /// while fitting into the parent, and thus <see cref="RelativeAnchorPosition"/> returns
         /// zero in that dimension; i.e. we no longer fit into the parent.
         /// This behavior is prominent with non-centre and non-custom <see cref="Anchor"/> values.
         /// </summary>
-        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid ? requiredParentSizeToFitBacking : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
-
+        internal Vector2 RequiredParentSizeToFit => requiredParentSizeToFitBacking.IsValid
+            ? requiredParentSizeToFitBacking
+            : (requiredParentSizeToFitBacking.Value = computeRequiredParentSizeToFit());
 
         private static readonly AtomicCounter invalidation_counter = new AtomicCounter();
 
@@ -1414,6 +1417,9 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Invalidates draw matrix and autosize caches.
         /// </summary>
+        /// <param name="invalidation">The type of cache to invalidate.</param>
+        /// <param name="source">The Drawable which invalidated this.</param>
+        /// <param name="shallPropagate">Propagate invalidation to children.</param>
         /// <returns>If the invalidate was actually necessary.</returns>
         public virtual bool Invalidate(Invalidation invalidation = Invalidation.All, Drawable source = null, bool shallPropagate = true)
         {
@@ -1449,10 +1455,12 @@ namespace osu.Framework.Graphics
             get
             {
                 Invalidation result = Invalidation.DrawInfo;
+
                 if (RelativeSizeAxes != Axes.None)
                     result |= Invalidation.DrawSize;
                 if (RelativePositionAxes != Axes.None)
                     result |= Invalidation.MiscGeometry;
+
                 return result;
             }
         }
@@ -1466,10 +1474,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Generates the DrawNode for ourselves.
         /// </summary>
+        /// <param name="treeIndex">Index of the node within the array.</param>
+        /// <param name="bounds">Bounding rectangle to mask away our children if needed.</param>
         /// <returns>A complete and updated DrawNode, or null if the DrawNode would be invisible.</returns>
         internal virtual DrawNode GenerateDrawNodeSubtree(int treeIndex, RectangleF bounds)
         {
             DrawNode node = drawNodes[treeIndex];
+
             if (node == null)
             {
                 drawNodes[treeIndex] = node = CreateDrawNode();
@@ -1552,40 +1563,28 @@ namespace osu.Framework.Graphics
         /// </summary>
         /// <param name="input">A vector in local coordinates.</param>
         /// <returns>The vector in screen coordinates.</returns>
-        public Vector2 ToScreenSpace(Vector2 input)
-        {
-            return input * DrawInfo.Matrix;
-        }
+        public Vector2 ToScreenSpace(Vector2 input) => input * DrawInfo.Matrix;
 
         /// <summary>
         /// Accepts a rectangle in local coordinates and converts it to a quad in screen space.
         /// </summary>
         /// <param name="input">A rectangle in local coordinates.</param>
         /// <returns>The quad in screen coordinates.</returns>
-        public Quad ToScreenSpace(RectangleF input)
-        {
-            return Quad.FromRectangle(input) * DrawInfo.Matrix;
-        }
+        public Quad ToScreenSpace(RectangleF input) => Quad.FromRectangle(input) * DrawInfo.Matrix;
 
         /// <summary>
         /// Accepts a vector in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpacePos">A vector in screen coordinates.</param>
         /// <returns>The vector in local coordinates.</returns>
-        public Vector2 ToLocalSpace(Vector2 screenSpacePos)
-        {
-            return screenSpacePos * DrawInfo.MatrixInverse;
-        }
+        public Vector2 ToLocalSpace(Vector2 screenSpacePos) => screenSpacePos * DrawInfo.MatrixInverse;
 
         /// <summary>
         /// Accepts a quad in screen coordinates and converts it to coordinates in local space.
         /// </summary>
         /// <param name="screenSpaceQuad">A quad in screen coordinates.</param>
         /// <returns>The quad in local coordinates.</returns>
-        public Quad ToLocalSpace(Quad screenSpaceQuad)
-        {
-            return screenSpaceQuad * DrawInfo.MatrixInverse;
-        }
+        public Quad ToLocalSpace(Quad screenSpaceQuad) => screenSpaceQuad * DrawInfo.MatrixInverse;
 
         #endregion
 
@@ -1594,6 +1593,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnHover(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnHover(InputState screenSpaceState) => OnHover(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1609,6 +1609,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnHoverLost(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public void TriggerOnHoverLost(InputState screenSpaceState) => OnHoverLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1622,6 +1623,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
+        /// <param name="args">Mouse event arguments.</param>
         public bool TriggerOnMouseDown(InputState screenSpaceState = null, MouseDownEventArgs args = null) => OnMouseDown(createCloneInParentSpace(screenSpaceState), args);
 
         /// <summary>
@@ -1636,6 +1639,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnMouseUp(InputState, MouseUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
+        /// <param name="args">Mouse event arguments.</param>
         public bool TriggerOnMouseUp(InputState screenSpaceState = null, MouseUpEventArgs args = null) => OnMouseUp(createCloneInParentSpace(screenSpaceState), args);
 
         /// <summary>
@@ -1650,6 +1655,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnClick(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnClick(InputState screenSpaceState = null) => OnClick(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1663,6 +1669,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnMouseDown(InputState, MouseDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnDoubleClick(InputState screenSpaceState) => OnDoubleClick(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1676,28 +1683,29 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnDragStart(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnDragStart(InputState screenSpaceState) => OnDragStart(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
-        /// Triggered whenever this Drawable is initially dragged by a held mouse click
-        /// and subsequent movement.
+        /// Triggered whenever this Drawable is initially dragged by a held mouse click and subsequent movement.
         /// </summary>
         /// <param name="state">The state after the mouse was moved.</param>
-        /// <returns>True if this Drawable accepts being dragged. If so, then future
-        /// <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/>
-        /// events will be reveiced. Otherwise, the event is propagated up the scene
-        /// graph to the next eligible Drawable.</returns>
+        /// <returns>
+        /// True if this Drawable accepts being dragged.
+        /// If so, then future <see cref="OnDrag(InputState)"/> and <see cref="OnDragEnd(InputState)"/> events will be received.
+        /// Otherwise, the event is propagated up the scene graph to the next eligible Drawable.
+        /// </returns>
         protected virtual bool OnDragStart(InputState state) => false;
 
         /// <summary>
         /// Triggers <see cref="OnDrag(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnDrag(InputState screenSpaceState) => OnDrag(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
         /// Triggered whenever the mouse is moved while dragging.
-        /// Only is received if a drag was previously initiated by returning true
-        /// from <see cref="OnDragStart(InputState)"/>.
+        /// Only is received if a drag was previously initiated by returning true from <see cref="OnDragStart(InputState)"/>.
         /// </summary>
         /// <param name="state">The state after the mouse was moved.</param>
         /// <returns>Currently unused.</returns>
@@ -1706,6 +1714,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnDragEnd(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnDragEnd(InputState screenSpaceState) => OnDragEnd(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1719,26 +1728,28 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnWheel(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnWheel(InputState screenSpaceState) => OnWheel(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
         /// Triggered whenever the mouse wheel was turned over this Drawable.
         /// </summary>
         /// <param name="state">The state after the wheel was turned.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
+        /// <returns>
+        /// True if this Drawable handled the event.
+        /// If false, then the event is propagated up the scene graph to the next eligible Drawable.
+        /// </returns>
         protected virtual bool OnWheel(InputState state) => false;
 
         /// <summary>
         /// Triggers <see cref="OnFocus(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
-        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public void TriggerOnFocus(InputState screenSpaceState = null) => OnFocus(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
         /// Triggered whenever this Drawable gains focus.
-        /// Focused Drawables receive keyboard input before all other Drawables,
-        /// and thus handle it first.
+        /// Focused Drawables receive keyboard input before all other Drawables, and thus handle it first.
         /// </summary>
         /// <param name="state">The state after focus when focus can be gained.</param>
         protected virtual void OnFocus(InputState state)
@@ -1748,7 +1759,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnFocusLost(InputState)"/> with a local version of the given <see cref="InputState"/>
         /// </summary>
-        /// <param name="screenSpaceState">The input state.</param>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public void TriggerOnFocusLost(InputState screenSpaceState = null) => OnFocusLost(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
@@ -1762,6 +1773,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnKeyDown(InputState, KeyDownEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
+        /// <param name="args">Key event arguments.</param>
         public bool TriggerOnKeyDown(InputState screenSpaceState, KeyDownEventArgs args) => OnKeyDown(createCloneInParentSpace(screenSpaceState), args);
 
         /// <summary>
@@ -1776,6 +1789,8 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnKeyUp(InputState, KeyUpEventArgs)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
+        /// <param name="args">Key event arguments.</param>
         public bool TriggerOnKeyUp(InputState screenSpaceState, KeyUpEventArgs args) => OnKeyUp(createCloneInParentSpace(screenSpaceState), args);
 
         /// <summary>
@@ -1790,14 +1805,17 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Triggers <see cref="OnMouseMove(InputState)"/> with a local version of the given <see cref="InputState"/>.
         /// </summary>
+        /// <param name="screenSpaceState">Screen-space input state which will be converted into parent space.</param>
         public bool TriggerOnMouseMove(InputState screenSpaceState) => OnMouseMove(createCloneInParentSpace(screenSpaceState));
 
         /// <summary>
         /// Triggered whenever the mouse moved over this Drawable.
         /// </summary>
         /// <param name="state">The state after the mouse moved.</param>
-        /// <returns>True if this Drawable handled the event. If false, then the event
-        /// is propagated up the scene graph to the next eligible Drawable.</returns>
+        /// <returns>
+        /// True if this Drawable handled the event.
+        /// If false, then the event is propagated up the scene graph to the next eligible Drawable.
+        /// </returns>
         protected virtual bool OnMouseMove(InputState state) => false;
 
         /// <summary>
@@ -1811,12 +1829,14 @@ namespace osu.Framework.Graphics
         public bool HasFocus { get; internal set; }
 
         /// <summary>
-        /// If true, we are eagerly requesting focus. If nothing else above us has (or is requesting focus) we will get it.
+        /// If true, we are eagerly requesting focus.
+        /// If nothing else above us has (or is requesting focus) we will get it.
         /// </summary>
         public virtual bool RequestsFocus => false;
 
         /// <summary>
-        /// If true, we will gain focus (receiving priority on keybaord input) (and receive an <see cref="OnFocus"/> event) on returning true in <see cref="OnClick(InputState)"/>.
+        /// If true, we will gain focus (receiving priority on keyboard input) (and receive an <see cref="OnFocus"/> event)
+        /// on returning true in <see cref="OnClick(InputState)"/>.
         /// </summary>
         public virtual bool AcceptsFocus => false;
 
@@ -1840,8 +1860,7 @@ namespace osu.Framework.Graphics
 
         /// <summary>
         /// Computes whether a given screen-space position is contained within this drawable.
-        /// Mouse input events are only received when this function is true, or when the drawable
-        /// is in focus.
+        /// Mouse input events are only received when this function is true, or when the drawable is in focus.
         /// </summary>
         /// <param name="screenSpacePos">The screen space position to be checked against this drawable.</param>
         public virtual bool Contains(Vector2 screenSpacePos) => DrawRectangle.Contains(ToLocalSpace(screenSpacePos));
@@ -1852,7 +1871,7 @@ namespace osu.Framework.Graphics
         public bool CanReceiveInput => HandleInput && IsPresent && !IsMaskedAway;
 
         /// <summary>
-        /// Creates a new InputState with mouse coodinates converted to the coordinate space of our parent.
+        /// Creates a new InputState with mouse coordinates converted to the coordinate space of our parent.
         /// </summary>
         /// <param name="screenSpaceState">The screen-space input state to be cloned and transformed.</param>
         /// <returns>The cloned and transformed state.</returns>
@@ -1869,8 +1888,8 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive keyboard input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// This method is responsible for building a queue of Drawables to receive keyboard input in reverse order.
+        /// This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="queue">The input queue to be built.</param>
@@ -1885,8 +1904,8 @@ namespace osu.Framework.Graphics
         }
 
         /// <summary>
-        /// This method is responsible for building a queue of Drawables to receive mouse input
-        /// in reverse order. This method is overridden by <see cref="T:Container"/> to be called on all
+        /// This method is responsible for building a queue of Drawables to receive mouse input in reverse order.
+        /// This method is overridden by <see cref="T:Container"/> to be called on all
         /// children such that the entire scene graph is covered.
         /// </summary>
         /// <param name="screenSpaceMousePos">The current position of the mouse cursor in screen space.</param>
@@ -1955,6 +1974,7 @@ namespace osu.Framework.Graphics
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
         /// Can be delayed using Delay().
         /// </summary>
+        /// <param name="calculateLifetimeStart">Calculate time of lifetime start based on the current transforms.</param>
         public void Expire(bool calculateLifetimeStart = false)
         {
             if (clock == null)
@@ -1963,28 +1983,33 @@ namespace osu.Framework.Graphics
                 return;
             }
 
-            //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
+            // Expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
             double max = TransformStartTime;
+
             foreach (ITransform<Drawable> t in Transforms)
-                if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+                if (t.EndTime > max)
+                    max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
+
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
+
                 foreach (ITransform<Drawable> t in Transforms)
                     if (t.StartTime < min) min = t.StartTime;
+
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
         }
 
         /// <summary>
-        /// Hide sprite instantly.
+        /// Hides this drawable instantly.
         /// </summary>
         public virtual void Hide() => FadeOut();
 
         /// <summary>
-        /// Show sprite instantly.
+        /// Shows this drawable instantly.
         /// </summary>
         public virtual void Show() => FadeIn();
 
@@ -2107,8 +2132,10 @@ namespace osu.Framework.Graphics
         #region Effects
 
         /// <summary>
-        /// Returns the drawable created by applying the given effect to this drawable. This method may add this drawable to a container.
-        /// If this drawable should be the child of another container, make sure to add the created drawable to the container instead of this drawable.
+        /// Returns the drawable created by applying the given effect to this drawable.
+        /// This method may add this drawable to a container.
+        /// If this drawable should be the child of another container,
+        /// make sure to add the created drawable to the container instead of this drawable.
         /// </summary>
         /// <typeparam name="T">The type of the drawable that results from applying the given effect.</typeparam>
         /// <param name="effect">The effect to apply to this drawable.</param>
@@ -2133,9 +2160,9 @@ namespace osu.Framework.Graphics
             string shortClass = GetType().ReadableName();
 
             if (!string.IsNullOrEmpty(Name))
-                shortClass = $@"{Name} ({shortClass})";
+                shortClass = $"{Name} ({shortClass})";
 
-            return $@"{shortClass} ({DrawPosition.X:#,0},{DrawPosition.Y:#,0}) {DrawSize.X:#,0}x{DrawSize.Y:#,0}";
+            return $"{shortClass} ({DrawPosition.X.ToString():#,0},{DrawPosition.Y.ToString():#,0}) {DrawSize.X.ToString():#,0}x{DrawSize.Y.ToString():#,0}";
         }
     }
 
@@ -2145,6 +2172,11 @@ namespace osu.Framework.Graphics
     [Flags]
     public enum Invalidation
     {
+        /// <summary>
+        /// No invalidation.
+        /// </summary>
+        None = 0,
+
         /// <summary>
         /// <see cref="Drawable.DrawInfo"/> has changed. No change to <see cref="Drawable.RequiredParentSizeToFit"/> or <see cref="Drawable.DrawSize"/>
         /// is assumed unless indicated by additional flags.
@@ -2160,6 +2192,10 @@ namespace osu.Framework.Graphics
         /// </summary>
         MiscGeometry = 1 << 2,
         /// <summary>
+        /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
+        /// </summary>
+        RequiredParentSizeToFit = MiscGeometry | DrawSize,
+        /// <summary>
         /// Our colour changed.
         /// </summary>
         Colour = 1 << 3,
@@ -2169,17 +2205,9 @@ namespace osu.Framework.Graphics
         DrawNode = 1 << 4,
 
         /// <summary>
-        /// No invalidation.
-        /// </summary>
-        None = 0,
-        /// <summary>
-        /// <see cref="Drawable.RequiredParentSizeToFit"/> has to be recomputed.
-        /// </summary>
-        RequiredParentSizeToFit = MiscGeometry | DrawSize,
-        /// <summary>
         /// All possible things are affected.
         /// </summary>
-        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo,
+        All = DrawNode | RequiredParentSizeToFit | Colour | DrawInfo
     }
 
     /// <summary>
@@ -2205,27 +2233,22 @@ namespace osu.Framework.Graphics
         /// The vertical counterpart is at "Top" position.
         /// </summary>
         y0 = 1 << 0,
-
         /// <summary>
         /// The vertical counterpart is at "Centre" position.
         /// </summary>
         y1 = 1 << 1,
-
         /// <summary>
         /// The vertical counterpart is at "Bottom" position.
         /// </summary>
         y2 = 1 << 2,
-
         /// <summary>
         /// The horizontal counterpart is at "Left" position.
         /// </summary>
         x0 = 1 << 3,
-
         /// <summary>
         /// The horizontal counterpart is at "Centre" position.
         /// </summary>
         x1 = 1 << 4,
-
         /// <summary>
         /// The horizontal counterpart is at "Right" position.
         /// </summary>

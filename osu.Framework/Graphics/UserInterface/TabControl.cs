@@ -1,14 +1,14 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
+using osu.Framework.Configuration;
+using osu.Framework.Extensions;
+using osu.Framework.Graphics.Containers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Configuration;
-using osu.Framework.Extensions;
-using osu.Framework.Graphics.Containers;
-using OpenTK;
 
 namespace osu.Framework.Graphics.UserInterface
 {
@@ -236,7 +236,7 @@ namespace osu.Framework.Graphics.UserInterface
         {
             public Action<U, bool> TabVisibilityChanged;
 
-            protected override IComparer<Drawable> DepthComparer => new ReverseCreationOrderDepthComparer();
+            protected override IComparer<Drawable> DepthComparer => ReverseCreationOrderDepthComparer.Instance;
 
             protected override IEnumerable<Drawable> FlowingChildren => base.FlowingChildren.Reverse();
 
