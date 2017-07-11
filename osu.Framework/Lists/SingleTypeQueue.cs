@@ -8,8 +8,10 @@ namespace osu.Framework.Lists
     /// <summary>
     /// Represents a thread-safe queue with a type for each element.
     ///
-    /// When adding an element with a specified type (not negative), all elements with this
-    /// exact same type will be removed.
+    /// When adding an element with a specified type (not negative), it is checked whether
+    /// there is already an element of this type.
+    /// If there is an element, the element either gets removed and the new element is added
+    /// or the new element is not added to the queue.
     /// </summary>
     public class SingleTypeQueue<T>
     {
@@ -41,8 +43,6 @@ namespace osu.Framework.Lists
         {
             return typeAmount++;
         }
-
-        /// When adding an element with a specified type (not negative), all elements with this
 
         /// <summary>
         /// Adds an element to the end of the queue with the specified type.
