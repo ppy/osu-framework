@@ -46,9 +46,10 @@ namespace osu.Framework.Graphics.Sprites
 
         protected override void Dispose(bool isDisposing)
         {
-            if (CanDisposeTexture)
+            if (CanDisposeTexture && texture != null)
             {
-                texture?.Dispose();
+                if (!(texture is TextureWhitePixel))
+                    texture.Dispose();
                 texture = null;
             }
 
