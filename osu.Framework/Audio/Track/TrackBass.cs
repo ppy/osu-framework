@@ -41,6 +41,10 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
+        private volatile byte seekCommands;
+
+        private readonly object seekLock = new Object();
+
         public TrackBass(Stream data, bool quick = false)
         {
             PendingActions.Enqueue(() =>
@@ -184,8 +188,18 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
+            lock (seekLock)
+                seekCommands++;
+
             PendingActions.Enqueue(() =>
             {
+                // Make sure this is the most recent seek action
+                lock (seekLock)
+                {
+                    if (--seekCommands != 0)
+                        return;
+                }
+
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
                 if (clamped != CurrentTime)
