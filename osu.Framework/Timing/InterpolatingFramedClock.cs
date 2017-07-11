@@ -87,10 +87,6 @@ namespace osu.Framework.Timing
                 //if we differ from the elapsed time of the source, let's adjust for the difference.
                 CurrentInterpolatedTime += (FramedSourceClock.CurrentTime - CurrentInterpolatedTime) / 8;
             }
-
-            // Small optimization to prevent the string from being allocated every frame.
-            if (ElapsedFrameTime < 0)
-                Trace.Assert(ElapsedFrameTime >= 0, $"Time should not run backwards, but did. {nameof(CurrentInterpolatedTime)}={CurrentInterpolatedTime} {nameof(LastInterpolatedTime)}={LastInterpolatedTime}");
         }
     }
 }
