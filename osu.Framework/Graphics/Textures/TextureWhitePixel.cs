@@ -19,7 +19,7 @@ namespace osu.Framework.Graphics.Textures
         {
             if (isDisposing)
                 throw new InvalidOperationException($"May not dispose {nameof(TextureWhitePixel)} explicitly.");
-            base.Dispose(isDisposing);
+            base.Dispose(false);
         }
 
         protected override RectangleF TextureBounds(RectangleF? textureRect = null)
