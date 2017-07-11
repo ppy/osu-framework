@@ -18,9 +18,9 @@ namespace osu.Framework.Graphics.Textures
 {
     public class Texture : IDisposable
     {
-        private static Texture whitePixel;
+        private static TextureWhitePixel whitePixel;
 
-        public static Texture WhitePixel
+        public static TextureWhitePixel WhitePixel
         {
             get
             {
@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Textures
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool isDisposing)
+        protected virtual void Dispose(bool isDisposing)
         {
             if (IsDisposed)
                 return;
@@ -212,6 +212,13 @@ namespace osu.Framework.Graphics.Textures
         public TextureWhitePixel(TextureGL textureGl)
             : base(textureGl)
         {
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (isDisposing)
+                throw new InvalidOperationException($"May not dispose {nameof(TextureWhitePixel)} explicitly.");
+            base.Dispose(isDisposing);
         }
 
         protected override RectangleF TextureBounds(RectangleF? textureRect = null)
