@@ -34,6 +34,8 @@ namespace osu.Framework.Testing
 
         private DynamicClassCompiler backgroundCompiler;
 
+        private bool interactive;
+
         public TestBrowser()
         {
             //we want to build the lists here because we're interested in the assembly we were *created* on.
@@ -45,8 +47,9 @@ namespace osu.Framework.Testing
         }
 
         [BackgroundDependencyLoader]
-        private void load(Storage storage)
+        private void load(Storage storage, GameHost host)
         {
+            interactive = host.Window != null;
             config = new TestBrowserConfig(storage);
 
             Children = new Drawable[]
@@ -184,7 +187,7 @@ namespace osu.Framework.Testing
             if (testType != null)
             {
                 testContentContainer.Add(CurrentTest = (TestCase)Activator.CreateInstance(testType));
-                CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
+                if (!interactive) CurrentTest.OnLoadComplete = d => ((TestCase)d).RunAllSteps(onCompletion);
             }
 
             updateButtons();
