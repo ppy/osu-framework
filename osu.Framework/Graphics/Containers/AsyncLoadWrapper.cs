@@ -33,7 +33,7 @@ namespace osu.Framework.Graphics.Containers
 
         public override void Add(Drawable drawable)
         {
-            throw new InvalidOperationException($@"{nameof(AsyncLoadWrapper)} doesn't support manually adding children. Please specify loadable conetnt in the constructor.");
+            throw new InvalidOperationException($@"{nameof(AsyncLoadWrapper)} doesn't support manually adding children. Please specify loadable content in the constructor.");
         }
 
         private readonly Drawable content;
