@@ -4,7 +4,6 @@
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using System;
-using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {

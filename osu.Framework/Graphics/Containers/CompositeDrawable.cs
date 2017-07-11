@@ -114,7 +114,7 @@ namespace osu.Framework.Graphics.Containers
 
         private class ChildComparer : IComparer<Drawable>
         {
-            private CompositeDrawable owner;
+            private readonly CompositeDrawable owner;
 
             public ChildComparer(CompositeDrawable owner)
             {

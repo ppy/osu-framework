@@ -485,97 +485,97 @@ namespace osu.Framework.Graphics.Containers
             scrollbar?.MoveTo(scrollDir, Current * scrollbar.Size[scrollDim]);
             content.MoveTo(scrollDir, -Current);
         }
+    }
 
-        private class Scrollbar : Container
+    internal class Scrollbar : Container
+    {
+        public Action<float> Dragged;
+
+        private static readonly Color4 hover_colour = Color4.White;
+        private static readonly Color4 default_colour = Color4.Gray;
+        private static readonly Color4 highlight_colour = Color4.GreenYellow;
+        private readonly Box box;
+
+        private float dragOffset;
+
+        private readonly int scrollDim;
+
+        public Scrollbar(Direction scrollDir)
         {
-            public Action<float> Dragged;
+            scrollDim = (int)scrollDir;
+            RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
+            Colour = default_colour;
 
-            private static readonly Color4 hover_colour = Color4.White;
-            private static readonly Color4 default_colour = Color4.Gray;
-            private static readonly Color4 highlight_colour = Color4.GreenYellow;
-            private readonly Box box;
+            BlendingMode = BlendingMode.Additive;
 
-            private float dragOffset;
+            CornerRadius = 5;
 
-            private readonly int scrollDim;
+            const float margin = 3;
 
-            public Scrollbar(Direction scrollDir)
+            Margin = new MarginPadding
             {
-                scrollDim = (int)scrollDir;
-                RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
-                Colour = default_colour;
+                Left = scrollDir == Direction.Vertical ? margin : 0,
+                Right = scrollDir == Direction.Vertical ? margin : 0,
+                Top = scrollDir == Direction.Horizontal ? margin : 0,
+                Bottom = scrollDir == Direction.Horizontal ? margin : 0,
+            };
 
-                BlendingMode = BlendingMode.Additive;
+            Masking = true;
 
-                CornerRadius = 5;
+            Child = box = new Box { RelativeSizeAxes = Axes.Both };
 
-                const float margin = 3;
+            ResizeTo(1);
+        }
 
-                Margin = new MarginPadding
-                {
-                    Left = scrollDir == Direction.Vertical ? margin : 0,
-                    Right = scrollDir == Direction.Vertical ? margin : 0,
-                    Top = scrollDir == Direction.Horizontal ? margin : 0,
-                    Bottom = scrollDir == Direction.Horizontal ? margin : 0,
-                };
-
-                Masking = true;
-
-                Child = box = new Box { RelativeSizeAxes = Axes.Both };
-
-                ResizeTo(1);
-            }
-
-            public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
+        public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
+        {
+            Vector2 size = new Vector2(10)
             {
-                Vector2 size = new Vector2(10)
-                {
-                    [scrollDim] = val
-                };
-                ResizeTo(size, duration, easing);
-            }
+                [scrollDim] = val
+            };
+            ResizeTo(size, duration, easing);
+        }
 
-            protected override bool OnClick(InputState state) => true;
+        protected override bool OnClick(InputState state) => true;
 
-            protected override bool OnHover(InputState state)
-            {
-                FadeColour(hover_colour, 100);
-                return true;
-            }
+        protected override bool OnHover(InputState state)
+        {
+            FadeColour(hover_colour, 100);
+            return true;
+        }
 
-            protected override void OnHoverLost(InputState state)
-            {
-                FadeColour(default_colour, 100);
-            }
+        protected override void OnHoverLost(InputState state)
+        {
+            FadeColour(default_colour, 100);
+        }
 
-            protected override bool OnDragStart(InputState state)
-            {
-                dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
-                return true;
-            }
+        protected override bool OnDragStart(InputState state)
+        {
+            dragOffset = state.Mouse.Position[scrollDim] - Position[scrollDim];
+            return true;
+        }
 
-            protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
-            {
-                //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlight_colour, 100);
+        protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
+        {
+            //note that we are changing the colour of the box here as to not interfere with the hover effect.
+            box.FadeColour(highlight_colour, 100);
 
-                dragOffset = Position[scrollDim];
-                Dragged?.Invoke(dragOffset);
-                return true;
-            }
+            dragOffset = Position[scrollDim];
+            Dragged?.Invoke(dragOffset);
+            return true;
+        }
 
-            protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
-            {
-                box.FadeColour(Color4.White, 100);
+        protected override bool OnMouseUp(InputState state, MouseUpEventArgs args)
+        {
+            box.FadeColour(Color4.White, 100);
 
-                return base.OnMouseUp(state, args);
-            }
+            return base.OnMouseUp(state, args);
+        }
 
-            protected override bool OnDrag(InputState state)
-            {
-                Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
-                return true;
-            }
+        protected override bool OnDrag(InputState state)
+        {
+            Dragged?.Invoke(state.Mouse.Position[scrollDim] - dragOffset);
+            return true;
         }
     }
 }
