@@ -12,7 +12,19 @@ using OpenTK.Input;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public class ScrollContainer : Container, DelayedLoadWrapper.IOnScreenOptimisingContainer
+    public class ScrollContainer : ScrollContainer<Drawable>
+    {
+        /// <summary>
+        /// Creates a scroll container.
+        /// </summary>
+        /// <param name="scrollDir">The direction in which should be scrolled. Can be vertical or horizontal. Default is vertical.</param>
+        public ScrollContainer(Direction scrollDir = Direction.Vertical) : base(scrollDir)
+        {
+        }
+    }
+
+    public class ScrollContainer<T> : Container<T>, DelayedLoadWrapper.IOnScreenOptimisingContainer
+        where T : Drawable
     {
         /// <summary>
         /// Determines whether the scroll dragger appears on the left side. If not, then it always appears on the right side.
@@ -44,7 +56,7 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private readonly Container content;
+        private readonly Container<T> content;
         private readonly Scrollbar scrollbar;
 
         private bool scrollbarOverlapsContent = true;
@@ -137,7 +149,7 @@ namespace osu.Framework.Graphics.Containers
         private float scrollableExtent => Math.Max(availableContent - displayableContent, 0);
         private float clamp(float position, float extension = 0) => MathHelper.Clamp(position, -extension, scrollableExtent + extension);
 
-        protected override Container<Drawable> Content => content;
+        protected override Container<T> Content => content;
 
         /// <summary>
         /// Whether we are currently scrolled as far as possible into the scroll direction.
@@ -148,7 +160,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The container holding all children which are getting scrolled around.
         /// </summary>
-        public Container<Drawable> ScrollContent => content;
+        public Container<T> ScrollContent => content;
 
         /// <summary>
         /// Encapsulates the types of drags which can be performed on a scrollcontainer.
@@ -178,7 +190,7 @@ namespace osu.Framework.Graphics.Containers
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
             AddInternal(new Drawable[]
             {
-                content = new Container
+                content = new Container<T>
                 {
                     RelativeSizeAxes = Axes.Both & ~scrollAxis,
                     AutoSizeAxes = scrollAxis,
