@@ -37,7 +37,7 @@ namespace osu.Framework.VisualTests.Tests
             {
                 for (int j = 0; j < Cols; ++j)
                 {
-                    Cell(i, j).Add(new Drawable[]
+                    Cell(i, j).AddRange(new Drawable[]
                     {
                         new SpriteText
                         {
@@ -97,7 +97,7 @@ namespace osu.Framework.VisualTests.Tests
 
             public PaddedBox(Color4 colour)
             {
-                AddInternal(new Drawable[]
+                AddRangeInternal(new Drawable[]
                 {
                     new Box
                     {

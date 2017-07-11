@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             Type type = source.GetType();
 
-            Add(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetMethod != null)) // Get all properties that can have a value
+            AddRange(((IEnumerable<MemberInfo>)type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(p => p.GetMethod != null)) // Get all properties that can have a value
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.Public)) // And all fields
                 .OrderBy(member => member.Name)
                 .Concat(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic).OrderBy(field => field.Name)) // Include non-public fields at the end
@@ -97,7 +97,7 @@ namespace osu.Framework.Graphics.Visualisation
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
 
-                AddInternal(new Drawable[]
+                AddRangeInternal(new Drawable[]
                 {
                     new Container
                     {

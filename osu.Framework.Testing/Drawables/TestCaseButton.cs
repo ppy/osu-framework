@@ -50,7 +50,7 @@ namespace osu.Framework.Testing.Drawables
 
             TestCase tempTestCase = (TestCase)Activator.CreateInstance(test);
 
-            Add(new Drawable[]
+            AddRange(new Drawable[]
             {
                 box = new Box
                 {

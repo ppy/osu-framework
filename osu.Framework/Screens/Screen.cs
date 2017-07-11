@@ -41,7 +41,7 @@ namespace osu.Framework.Screens
             Anchor = Anchor.Centre;
             Origin = Anchor.Centre;
 
-            AddInternal(new[]
+            AddRangeInternal(new[]
             {
                 content = new ContentContainer
                 {

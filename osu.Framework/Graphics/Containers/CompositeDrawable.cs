@@ -132,7 +132,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 ClearInternal();
-                AddInternal(value);
+                AddRangeInternal(value);
             }
         }
 
@@ -155,13 +155,15 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this <see cref="InternalChildren"/>.
         /// </summary>
-        protected internal void RemoveInternal(Drawable drawable)
+        /// <param name="drawable">The <see cref="Drawable"/> to be removed.</param>
+        /// <returns>False if <paramref name="drawable"/> was not a child of this <see cref="CompositeDrawable"/> and true otherwise.</returns>
+        protected internal bool RemoveInternal(Drawable drawable)
         {
             if (drawable == null)
                 throw new ArgumentNullException(nameof(drawable));
 
             if (!internalChildren.Remove(drawable))
-                throw new InvalidOperationException($@"Cannot remove a drawable ({drawable}) which is not a child of this ({this}), but {drawable.Parent}.");
+                return false;
 
             if (drawable.IsLoaded)
             {
@@ -173,6 +175,8 @@ namespace osu.Framework.Graphics.Containers
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
+
+            return true;
         }
 
         /// <summary>
@@ -231,7 +235,7 @@ namespace osu.Framework.Graphics.Containers
         /// Adds a range of children to <see cref="InternalChildren"/>. This is equivalent to calling
         /// <see cref="AddInternal(Drawable)"/> on each element of the range in order.
         /// </summary>
-        protected internal void AddInternal(IEnumerable<Drawable> range)
+        protected internal void AddRangeInternal(IEnumerable<Drawable> range)
         {
             foreach (Drawable d in range)
                 AddInternal(d);

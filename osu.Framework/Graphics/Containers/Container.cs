@@ -10,6 +10,7 @@ using osu.Framework.Extensions.TypeExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using OpenTK;
+using System.Collections;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -31,7 +32,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>
+    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
         /// <summary>
@@ -87,6 +88,46 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
+        /// Accesses the <paramref name="index"/>-th child.
+        /// </summary>
+        /// <param name="index">The index of the child to access.</param>
+        /// <returns>The <paramref name="index"/>-th child.</returns>
+        public T this[int index] => Children[index];
+
+        /// <summary>
+        /// The amount of elements in <see cref="Children"/>.
+        /// </summary>
+        public int Count => Children.Count;
+
+        /// <summary>
+        /// Whether this <see cref="Container{T}"/> can have elements added and removed. Always false.
+        /// </summary>
+        public bool IsReadOnly => false;
+
+        /// <summary>
+        /// Copies the elements of the <see cref="Container{T}"/> to an Array, starting at a particular Array index.
+        /// </summary>
+        /// <param name="array">The Array into which all children should be copied.</param>
+        /// <param name="arrayIndex">The starting index in the Array.</param>
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            foreach (var c in Children)
+                array[arrayIndex++] = c;
+        }
+
+        /// <summary>
+        /// Gets the enumerator over <see cref="Children"/>.
+        /// </summary>
+        /// <returns>The enumerator over <see cref="Children"/>.</returns>
+        public IEnumerator<T> GetEnumerator() => Children.GetEnumerator();
+
+        /// <summary>
+        /// Gets the enumerator over <see cref="Children"/>.
+        /// </summary>
+        /// <returns>The enumerator over <see cref="Children"/>.</returns>
+        IEnumerator IEnumerable.GetEnumerator() => Children.GetEnumerator();
+
+        /// <summary>
         /// Sets all children of this container to the elements contained in the enumerable.
         /// </summary>
         public IEnumerable<T> ChildrenEnumerable
@@ -94,7 +135,7 @@ namespace osu.Framework.Graphics.Containers
             set
             {
                 Clear();
-                Add(value);
+                AddRange(value);
             }
         }
 
@@ -158,7 +199,7 @@ namespace osu.Framework.Graphics.Containers
         /// Adds a range of children. This is equivalent to calling <see cref="Add(T)"/> on
         /// each element of the range in order.
         /// </summary>
-        public void Add(IEnumerable<T> range)
+        public void AddRange(IEnumerable<T> range)
         {
             foreach (T d in range)
                 Add(d);
@@ -175,12 +216,12 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes a given child from this container.
         /// </summary>
-        public void Remove(T drawable)
+        public bool Remove(T drawable)
         {
             if (Content != this)
-                Content.Remove(drawable);
+                return Content.Remove(drawable);
             else
-                RemoveInternal(drawable);
+                return RemoveInternal(drawable);
         }
 
         /// <summary>
@@ -215,7 +256,7 @@ namespace osu.Framework.Graphics.Containers
         /// Removes a range of children. This is equivalent to calling <see cref="Remove(T)"/> on
         /// each element of the range in order.
         /// </summary>
-        public void Remove(IEnumerable<T> range)
+        public void RemoveRange(IEnumerable<T> range)
         {
             if (range == null)
                 return;
@@ -227,11 +268,16 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Removes all children.
         /// </summary>
+        public void Clear() => Clear(true);
+
+        /// <summary>
+        /// Removes all children.
+        /// </summary>
         /// <param name="disposeChildren">
         /// Whether removed children should also get disposed.
         /// Disposal will be recursive.
         /// </param>
-        public virtual void Clear(bool disposeChildren = true)
+        public virtual void Clear(bool disposeChildren)
         {
             if (Content != null && Content != this)
                 Content.Clear(disposeChildren);

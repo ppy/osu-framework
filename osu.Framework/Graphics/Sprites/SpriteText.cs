@@ -250,7 +250,7 @@ namespace osu.Framework.Graphics.Sprites
             {
                 int length = Math.Min(lastText?.Length ?? 0, text.Length);
                 keepDrawables.AddRange(Children.TakeWhile((n, i) => i < length && lastText[i] == text[i]));
-                Remove(keepDrawables); //doesn't dispose
+                RemoveRange(keepDrawables); //doesn't dispose
             }
 
             Clear();

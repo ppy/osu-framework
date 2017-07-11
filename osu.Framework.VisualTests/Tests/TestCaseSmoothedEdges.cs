@@ -24,7 +24,7 @@ namespace osu.Framework.VisualTests.Tests
 
             for (int i = 0; i < Rows * Cols; ++i)
             {
-                Cell(i).Add(new Drawable[]
+                Cell(i).AddRange(new Drawable[]
                 {
                     new SpriteText
                     {

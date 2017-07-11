@@ -16,7 +16,7 @@ namespace osu.Framework.VisualTests.Tests
     {
         public TestCasePadding() : base(2, 2)
         {
-            Cell(0).Add(new Drawable[]
+            Cell(0).AddRange(new Drawable[]
             {
                 new SpriteText { Text = @"Padding - 20 All Sides" },
                 new Container
@@ -53,7 +53,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            Cell(1).Add(new Drawable[]
+            Cell(1).AddRange(new Drawable[]
             {
                 new SpriteText { Text = @"Padding - 20 Top, Left" },
                 new Container
@@ -94,7 +94,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            Cell(2).Add(new Drawable[]
+            Cell(2).AddRange(new Drawable[]
             {
                 new SpriteText { Text = @"Margin - 20 All Sides" },
                 new Container
@@ -131,7 +131,7 @@ namespace osu.Framework.VisualTests.Tests
                 }
             });
 
-            Cell(3).Add(new Drawable[]
+            Cell(3).AddRange(new Drawable[]
             {
                 new SpriteText { Text = @"Margin - 20 Top, Left" },
                 new Container
@@ -188,7 +188,7 @@ namespace osu.Framework.VisualTests.Tests
 
             public PaddedBox(Color4 colour)
             {
-                AddInternal(new Drawable[]
+                AddRangeInternal(new Drawable[]
                 {
                     new Box
                     {

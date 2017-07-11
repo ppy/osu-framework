@@ -55,7 +55,7 @@ namespace osu.Framework
         {
             RelativeSizeAxes = Axes.Both;
 
-            AddInternal(new Drawable[]
+            AddRangeInternal(new Drawable[]
             {
                 content = new Container
                 {
