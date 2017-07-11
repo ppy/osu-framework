@@ -4,6 +4,7 @@
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.MathUtils;
 using System;
+using System.Diagnostics;
 
 namespace osu.Framework.Timing
 {
@@ -79,10 +80,14 @@ namespace osu.Framework.Timing
             timeUntilNextCalculation -= ElapsedFrameTime;
             timeSinceLastCalculation += ElapsedFrameTime;
 
-            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Abs(ElapsedFrameTime) / 1000);
+            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, ElapsedFrameTime / 1000);
 
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;
+
+            // Small optimization to prevent the string from being allocated every frame.
+            if (ElapsedFrameTime < 0)
+                Trace.Assert(ElapsedFrameTime >= 0, $"Time should not run backwards, but did. {nameof(CurrentTime)}={CurrentTime} {nameof(LastFrameTime)}={LastFrameTime}");
         }
 
         public override string ToString() => $@"{GetType().ReadableName()} ({Math.Truncate(CurrentTime)}ms, {FramesPerSecond} FPS)";
