@@ -1140,7 +1140,7 @@ namespace osu.Framework.Graphics.Containers
                 c.EdgeEffect = e;
             }
 
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).Colour.Linear.A;
+            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).EdgeEffect.Colour.Linear.A;
         }
 
         private class TransformEdgeEffectColour : Transform<Color4, Drawable>
