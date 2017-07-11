@@ -206,6 +206,14 @@ namespace osu.Framework.Graphics.Containers
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
         }
 
+        protected virtual IComparer<Drawable> DepthComparer => new ChildIDDepthComparer();
+
+        /// <summary>
+        /// Used to assign a monotonically increasing ID to children as they are added. This member is
+        /// incremented whenever a child is added.
+        /// </summary>
+        private ulong currentChildID;
+
         /// <summary>
         /// Adds a child to <see cref="InternalChildren"/>.
         /// </summary>
@@ -220,8 +228,8 @@ namespace osu.Framework.Graphics.Containers
             if (drawable.IsLoaded)
                 drawable.Parent = this;
 
+            drawable.ChildID = ++currentChildID;
             internalChildren.Add(drawable);
-            drawable.IsPartOfComposite = true;
 
             if (AutoSizeAxes != Axes.None)
                 InvalidateFromChild(Invalidation.RequiredParentSizeToFit);
