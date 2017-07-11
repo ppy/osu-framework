@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
-    internal class TrackVirtual : Track
+    public class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
@@ -44,11 +44,13 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsRunning => clock.IsRunning;
 
+        public override bool HasCompleted => base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
+
         public override double CurrentTime => seekOffset + clock.CurrentTime;
 
         public override void Update()
         {
-            if (Length > 0 && CurrentTime >= Length)
+            if (CurrentTime >= Length)
                 Stop();
         }
     }
