@@ -10,8 +10,8 @@ namespace osu.Framework.Lists
     ///
     /// When adding an element with a specified type (not negative), it is checked whether
     /// there is already an element of this type.
-    /// If there is an element, the element either gets removed and the new element is added
-    /// or the new element is not added to the queue.
+    /// If there is a duplicate element, it either is removed and the new element is added,
+    /// it is replaced with the new element or  the new element is not added to the queue.
     /// </summary>
     public class SingleTypeQueue<T>
     {
@@ -50,24 +50,31 @@ namespace osu.Framework.Lists
         /// <param name="elementType">The type of the new element. If there already
         /// is an element of this type, it will be removed in the process. A negative value
         /// represents an unlimited amount of elements of this type.</param>
-        /// <param name="addNewElement">If true and there is a duplicate, the new element will be added
-        /// to the list; if false, the old element is kept.</param>
+        /// <param name="duplicateAction">The action to perform when finding a duplicate.</param>
         /// <param name="newElement">The element to add to the queue.</param>
-        public void EnqueueType(int elementType, bool addNewElement, T newElement)
+        public void EnqueueType(int elementType, DuplicateAction duplicateAction, T newElement)
         {
             lock (listLock)
             {
-                if(elementType >= 0) {
+                if (elementType >= 0)
+                {
 
-                    // Check if there already is an element of the specified type and remove it.
-                    foreach (ListElement listElement in list)
+                    // Check if there already is an element of the specified type and perform the duplicate action if necessary.
+                    for (int i = 0; i < list.Count; i++)
                     {
-                        if (listElement.ElementType == elementType)
+                        if (list[i].ElementType == elementType)
                         {
-                            if (!addNewElement)
+                            if (duplicateAction == DuplicateAction.KeepDuplicate)
                                 return;
 
-                            list.Remove(listElement);
+                            list.RemoveAt(i);
+
+                            if (duplicateAction == DuplicateAction.ReplaceDuplicate)
+                            {
+                                list.Insert(i, new ListElement(elementType, newElement));
+                                return;
+                            }
+
                             break;
                         }
                     }
@@ -83,13 +90,14 @@ namespace osu.Framework.Lists
         /// <param name="element">The element to add to the queue.</param>
         public void Enqueue(T element)
         {
-            EnqueueType(-1, false, element);
+            EnqueueType(-1, DuplicateAction.RemoveDuplicate, element);
         }
 
         /// <summary>
         /// Attempts to remove and return the element at the beginning of the queue.
         /// </summary>
-        /// <param name="result">When this method returns, this contains the dequeued element. If there was no element queued, the value is the default value of <see cref="T"/>.</param>
+        /// <param name="result">When this method returns, this contains the dequeued element.
+        /// If there was no element queued, the value is the default value of <see cref="T"/>.</param>
         /// <returns>True if an element was removed and returned from the beginning of the queue.</returns>
         public bool TryDequeue(out T result)
         {
@@ -112,10 +120,18 @@ namespace osu.Framework.Lists
             public readonly int ElementType;
             public readonly T Element;
 
-            public ListElement(int elementType, T element){
+            public ListElement(int elementType, T element)
+            {
                 ElementType = elementType;
                 Element = element;
             }
         }
+    }
+
+    public enum DuplicateAction
+    {
+        RemoveDuplicate,
+        ReplaceDuplicate,
+        KeepDuplicate
     }
 }
