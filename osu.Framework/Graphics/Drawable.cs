@@ -269,32 +269,6 @@ namespace osu.Framework.Graphics
             }
         }
 
-        public class ChildIDDepthComparer : IComparer<Drawable>
-        {
-            public virtual int Compare(Drawable x, Drawable y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
-                return x.ChildID.CompareTo(y.ChildID);
-            }
-        }
-
-        public class ReverseChildIDDepthComparer : IComparer<Drawable>
-        {
-            public virtual int Compare(Drawable x, Drawable y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
-                return y.ChildID.CompareTo(x.ChildID);
-            }
-        }
-
         #endregion
 
         #region Periodic tasks (events, Scheduler, Transforms, Update)

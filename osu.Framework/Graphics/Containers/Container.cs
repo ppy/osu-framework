@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Containers
         /// Contructs a container that stores its children in a given <see cref="LifetimeList{T}"/>.
         /// If null is provides, then a new <see cref="LifetimeList{T}"/> is automatically created.
         /// </summary>
-        public Container(LifetimeList<Drawable> lifetimeList = null) : base(lifetimeList)
+        public Container()
         {
             if (typeof(T) == typeof(Drawable))
                 internalChildrenAsT = (IReadOnlyList<T>)InternalChildren;
