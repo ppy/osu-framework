@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 
@@ -13,15 +14,28 @@ namespace osu.Framework.Testing
     {
         private const double time_between_tests = 200;
 
+        private Bindable<double> volume;
+        private double volumeAtStartup;
+
         public TestRunner(TestBrowser browser)
         {
             this.browser = browser;
         }
 
         [BackgroundDependencyLoader]
-        private void load(GameHost host)
+        private void load(GameHost host, FrameworkConfigManager config)
         {
             this.host = host;
+
+            volume = config.GetBindable<double>(FrameworkSetting.VolumeUniversal);
+            volumeAtStartup = volume.Value;
+            volume.Value = 0;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            volume.Value = volumeAtStartup;
+            base.Dispose(isDisposing);
         }
 
         protected override void LoadComplete()
