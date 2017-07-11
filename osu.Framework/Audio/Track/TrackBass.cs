@@ -41,11 +41,11 @@ namespace osu.Framework.Audio.Track
 
         public override bool IsLoaded => isLoaded;
 
-        protected int Action_seek;
+        protected int seekActionConstant;
 
         public TrackBass(Stream data, bool quick = false)
         {
-            Action_seek = PendingActions.AddType();
+            seekActionConstant = PendingActions.AddType();
 
             PendingActions.Enqueue(() =>
             {
@@ -188,7 +188,7 @@ namespace osu.Framework.Audio.Track
             double conservativeLength = Length == 0 ? double.MaxValue : Length;
             double conservativeClamped = MathHelper.Clamp(seek, 0, conservativeLength);
 
-            PendingActions.EnqueueType(Action_seek, true, () =>
+            PendingActions.EnqueueType(seekActionConstant, true, () =>
             {
                 double clamped = MathHelper.Clamp(seek, 0, Length);
 
