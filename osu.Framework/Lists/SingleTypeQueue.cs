@@ -107,7 +107,7 @@ namespace osu.Framework.Lists
             }
         }
 
-        private class ListElement
+        private struct ListElement
         {
             public readonly int ElementType;
             public readonly T Element;
