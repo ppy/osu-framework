@@ -56,11 +56,11 @@ namespace osu.Framework.VisualTests.Tests
             using (boxes[1].BeginLoopedSequence(1000))
                 boxes[1].RotateTo(360, 1000);
 
-            using (boxes[2].BeginLoopedSequence())
+            //using (boxes[2].BeginLoopedSequence())
             {
-                boxes[2].RotateTo(360, 1000);
-                using (boxes[2].BeginDelayedSequence(1000))
-                    boxes[2].RotateTo(0, 1000);
+                boxes[2].RotateTo(360, 1000)
+                    .Then(() => boxes[2].RotateTo(0, 1000), () => boxes[2].ScaleTo(2, 500))
+                    .Then(() => boxes[2].RotateTo(360, 1000), () => boxes[2].ScaleTo(0, 1000));
             }
 
             using (boxes[3].BeginLoopedSequence(1000))

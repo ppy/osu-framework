@@ -149,6 +149,9 @@
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
+    <Compile Include="Graphics\Transforms\CompositeContinuation.cs" />
+    <Compile Include="Graphics\Transforms\SingleContinuation.cs" />
+    <Compile Include="Graphics\Transforms\TransformContinuation.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />

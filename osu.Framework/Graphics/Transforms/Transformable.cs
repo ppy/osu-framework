@@ -91,10 +91,13 @@ namespace osu.Framework.Graphics.Transforms
 
                     for (int j = 0; j < i; j++)
                     {
-                        if (transformsLazy[j].GetType() == ourType)
+                        var otherTransform = transformsLazy[j];
+                        if (otherTransform.GetType() == ourType)
                         {
                             transformsLazy.RemoveAt(j--);
                             i--;
+
+                            otherTransform.OnAbort?.Invoke();
                         }
                     }
                 }
@@ -113,6 +116,8 @@ namespace osu.Framework.Graphics.Transforms
                         // running the same transform twice isn't a huge deal.
                         transformsLazy.Add(t);
                     }
+                    else
+                        t.OnComplete?.Invoke();
                 }
             }
         }
@@ -255,16 +260,8 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
-        public void TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
+        public TransformContinuation TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
         {
-            //if (duration == 0 && TransformDelay == 0)
-            //{
-            //    // we can apply transforms instantly under certain conditions.
-            //    transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-            //    transform.Apply(derivedThis);
-            //    return;
-            //}
-
             double startTime = TransformStartTime;
 
             transform.StartTime = startTime;
@@ -273,6 +270,7 @@ namespace osu.Framework.Graphics.Transforms
             transform.Easing = easing;
 
             addTransform(transform);
+            return new SingleContinuation<T>(transform);
         }
 
         private void addTransform(ITransform<T> transform)

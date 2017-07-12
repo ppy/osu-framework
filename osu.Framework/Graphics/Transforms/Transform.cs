@@ -3,6 +3,7 @@
 
 using osu.Framework.Threading;
 using osu.Framework.Timing;
+using System;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -55,6 +56,10 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         public FrameTimeInfo? Time { get; private set; }
+
+        public Action OnComplete { get; set; }
+
+        public Action OnAbort { get; set; }
     }
 
     public abstract class Transform<TValue, T> : Transform<T>

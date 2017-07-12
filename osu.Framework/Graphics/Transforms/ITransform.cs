@@ -29,6 +29,10 @@ namespace osu.Framework.Graphics.Transforms
         void UpdateTime(FrameTimeInfo time);
 
         FrameTimeInfo? Time { get; }
+
+        Action OnComplete { get; set; }
+
+        Action OnAbort { get; set; }
     }
 
     public class TransformTimeComparer<T> : IComparer<ITransform<T>>

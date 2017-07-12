@@ -1959,114 +1959,70 @@ namespace osu.Framework.Graphics
 
         #region Helpers
 
-        public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1, duration, easing);
-        }
+        public TransformContinuation FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None) => FadeTo(1, duration, easing);
 
-        public void FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
+        public TransformContinuation FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             FadeTo(0);
-            FadeIn(duration, easing);
+            return FadeIn(duration, easing);
         }
 
-        public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0, duration, easing);
-        }
+        public TransformContinuation FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None) => FadeTo(0, duration, easing);
 
-        public void FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
+        public TransformContinuation FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             FadeTo(1);
-            FadeOut(duration, easing);
+            return FadeOut(duration, easing);
         }
 
-        public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newAlpha, duration, easing, new TransformAlpha());
-        }
+        public TransformContinuation FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newAlpha, duration, easing, new TransformAlpha());
 
-        public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newRotation, duration, easing, new TransformRotation());
-        }
+        public TransformContinuation RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newRotation, duration, easing, new TransformRotation());
 
-        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public TransformContinuation MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             switch (direction)
             {
                 case Direction.Horizontal:
-                    MoveToX(destination, duration, easing);
-                    break;
+                    return MoveToX(destination, duration, easing);
                 case Direction.Vertical:
-                    MoveToY(destination, duration, easing);
-                    break;
+                    return MoveToY(destination, duration, easing);
             }
+
+            throw new InvalidOperationException($"Invalid direction ({direction}) passed to {nameof(MoveTo)}.");
         }
 
-        public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionX());
-        }
+        public TransformContinuation MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(destination, duration, easing, new TransformPositionX());
 
-        public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionY());
-        }
+        public TransformContinuation MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(destination, duration, easing, new TransformPositionY());
 
-        public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newScale), duration, easing, new TransformScale());
-        }
+        public TransformContinuation ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(new Vector2(newScale), duration, easing, new TransformScale());
 
-        public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newScale, duration, easing, new TransformScale());
-        }
+        public TransformContinuation ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newScale, duration, easing, new TransformScale());
 
-        public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newSize), duration, easing, new TransformSize());
-        }
+        public TransformContinuation ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(new Vector2(newSize), duration, easing, new TransformSize());
 
-        public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSize, duration, easing, new TransformSize());
-        }
+        public TransformContinuation ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newSize, duration, easing, new TransformSize());
 
-        public void ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newWidth, duration, easing, new TransformWidth());
-        }
+        public TransformContinuation ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newWidth, duration, easing, new TransformWidth());
 
-        public void ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newHeight, duration, easing, new TransformHeight());
-        }
+        public TransformContinuation ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newHeight, duration, easing, new TransformHeight());
 
-        public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newPosition, duration, easing, new TransformPosition());
-        }
+        public TransformContinuation MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newPosition, duration, easing, new TransformPosition());
 
-        public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
+        public TransformContinuation MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
             MoveTo((Transforms.LastOrDefault(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
-        }
 
-        public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newColour, duration, easing, new TransformColour());
-        }
+        public TransformContinuation FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newColour, duration, easing, new TransformColour());
 
-        public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
+        public TransformContinuation FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
         {
             Color4 endValue = (Transforms.LastOrDefault(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
 
             Flush(false, typeof(TransformColour));
 
             FadeColour(flashColour);
-            FadeColour(endValue, duration, easing);
+            return FadeColour(endValue, duration, easing);
         }
 
         #endregion
