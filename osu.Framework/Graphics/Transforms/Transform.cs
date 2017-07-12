@@ -57,9 +57,9 @@ namespace osu.Framework.Graphics.Transforms
 
         public FrameTimeInfo? Time { get; private set; }
 
-        public Action OnComplete { get; set; }
+        public Action<double> OnComplete { get; set; }
 
-        public Action OnAbort { get; set; }
+        public Action<double> OnAbort { get; set; }
     }
 
     public abstract class Transform<TValue, T> : Transform<T>

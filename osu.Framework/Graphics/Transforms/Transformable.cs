@@ -97,7 +97,9 @@ namespace osu.Framework.Graphics.Transforms
                             transformsLazy.RemoveAt(j--);
                             i--;
 
-                            otherTransform.OnAbort?.Invoke();
+                            // Trigger the abort event with the time we are behind when the abort
+                            // should have happened.
+                            otherTransform.OnAbort?.Invoke(Time.Current - t.StartTime);
                         }
                     }
                 }
@@ -117,7 +119,9 @@ namespace osu.Framework.Graphics.Transforms
                         transformsLazy.Add(t);
                     }
                     else
-                        t.OnComplete?.Invoke();
+                        // Trigger the completion event with the offset to the time when we the transform
+                        // actually completed.
+                        t.OnComplete?.Invoke(Time.Current - t.EndTime);
                 }
             }
         }
@@ -190,6 +194,13 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() => Delay(-delay, recursive));
         }
 
+        public void WithDelay(double delay, Action action, bool recursive = false)
+        {
+            Delay(delay, recursive);
+            action.Invoke();
+            Delay(-delay, recursive);
+        }
+
         /// <summary>
         /// Start a sequence of transforms from an absolute time value.
         /// </summary>
@@ -260,7 +271,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
-        public TransformContinuation TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
+        public TransformContinuation<T> TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
         {
             double startTime = TransformStartTime;
 
@@ -270,7 +281,9 @@ namespace osu.Framework.Graphics.Transforms
             transform.Easing = easing;
 
             addTransform(transform);
-            return new SingleContinuation<T>(transform);
+            var result = new TransformContinuation<T>((T)this);
+            result.AddTransformPrecondition(transform);
+            return result;
         }
 
         private void addTransform(ITransform<T> transform)

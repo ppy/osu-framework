@@ -5,6 +5,7 @@ using OpenTK;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -56,12 +57,25 @@ namespace osu.Framework.VisualTests.Tests
             using (boxes[1].BeginLoopedSequence(1000))
                 boxes[1].RotateTo(360, 1000);
 
-            //using (boxes[2].BeginLoopedSequence())
-            {
-                boxes[2].RotateTo(360, 1000)
-                    .Then(() => boxes[2].RotateTo(0, 1000), () => boxes[2].ScaleTo(2, 500))
-                    .Then(() => boxes[2].RotateTo(360, 1000), () => boxes[2].ScaleTo(0, 1000));
-            }
+            //boxes[2].RotateTo(360, 1000).ScaleTo(2, 500).Then().RotateTo(0, 500).ScaleTo(0, 1000);
+
+            boxes[2].RotateTo(360, 1000).Then().RotateTo(0, 1000).ScaleTo(2, 500).Then().RotateTo(360, 1000).ScaleTo(0, 1000);
+
+            /*boxes[2].RotateTo(360, 1000)
+            .Then(
+                () => boxes[2].RotateTo(0, 1000),
+                () => boxes[2].ScaleTo(2, 500)
+            )
+            .Then(
+                () => boxes[2].RotateTo(360, 1000),
+                () => boxes[2].ScaleTo(0, 1000)
+            );*/
+            /*.Loop(1000, 2)
+            .Then(
+                () => boxes[2].RotateTo(360, 1000),
+                () => boxes[2].ScaleTo(0, 1000)
+            );*/
+
 
             using (boxes[3].BeginLoopedSequence(1000))
             {
