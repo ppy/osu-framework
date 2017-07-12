@@ -43,11 +43,6 @@ namespace osu.Framework.Graphics
     {
         #region Construction and disposal
 
-        protected Drawable()
-        {
-            creationID = creation_counter.Increment();
-        }
-
         ~Drawable()
         {
             dispose(false);
@@ -237,14 +232,12 @@ namespace osu.Framework.Graphics
         #region Sorting (CreationID / Depth)
 
         /// <summary>
-        /// Captures the order in which Drawables were created. Each Drawable
-        /// is assigned a unique, monotonically increasing ID upon creation in a thread-safe manner.
-        /// The primary use case of this ID is stable sorting of Drawables with equal
-        /// <see cref="Depth"/>.
+        /// Captures the order in which Drawables were added to a <see cref="CompositeDrawable"/>. Each Drawable
+        /// is assigned a monotonically increasing ID upon being added to a <see cref="CompositeDrawable"/>. This
+        /// ID is unique within the <see cref="Parent"/> <see cref="CompositeDrawable"/>.
+        /// The primary use case of this ID is stable sorting of Drawables with equal <see cref="Depth"/>.
         /// </summary>
-        private long creationID { get; }
-
-        private static readonly AtomicCounter creation_counter = new AtomicCounter();
+        public ulong ChildID { get; internal set; }
 
         /// <summary>
         /// Whether this drawable has been added to a parent <see cref="CompositeDrawable"/>. Note that this does NOT imply that
@@ -252,7 +245,7 @@ namespace osu.Framework.Graphics
         /// This is primarily used to block properties such as <see cref="Depth"/> that strictly rely on the value of <see cref="Parent"/>
         /// to alert the user of an invalid operation.
         /// </summary>
-        internal bool IsPartOfComposite;
+        internal bool IsPartOfComposite => ChildID != 0;
 
         private float depth;
 
@@ -268,39 +261,13 @@ namespace osu.Framework.Graphics
             set
             {
                 if (IsPartOfComposite)
-                    throw new InvalidOperationException($"May not change {nameof(Depth)} while inside a parent container. Use the parent's {nameof(Container.ChangeChildDepth)} instead.");
+                    throw new InvalidOperationException(
+                        $"May not change {nameof(Depth)} while inside a parent {nameof(CompositeDrawable)}." +
+                        $"Use the parent's {nameof(CompositeDrawable.ChangeInternalChildDepth)} or {nameof(Container.ChangeChildDepth)} instead.");
 
                 depth = value;
             }
         }
-
-        public class CreationOrderDepthComparer : IComparer<Drawable>
-        {
-            public virtual int Compare(Drawable x, Drawable y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
-                return x.creationID.CompareTo(y.creationID);
-            }
-        }
-
-        public class ReverseCreationOrderDepthComparer : IComparer<Drawable>
-        {
-            public virtual int Compare(Drawable x, Drawable y)
-            {
-                if (x == null) throw new ArgumentNullException(nameof(x));
-                if (y == null) throw new ArgumentNullException(nameof(y));
-
-                int i = y.Depth.CompareTo(x.Depth);
-                if (i != 0) return i;
-                return y.creationID.CompareTo(x.creationID);
-            }
-        }
-
-        protected virtual IComparer<Drawable> DepthComparer => new CreationOrderDepthComparer();
 
         #endregion
 
@@ -1238,7 +1205,8 @@ namespace osu.Framework.Graphics
                 if (isDisposed)
                     throw new ObjectDisposedException(ToString(), "Disposed Drawables may never get a parent and return to the scene graph.");
 
-                IsPartOfComposite = value != null;
+                if (value == null)
+                    ChildID = 0;
 
                 if (parent == value) return;
 
