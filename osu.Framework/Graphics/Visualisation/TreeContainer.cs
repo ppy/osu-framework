@@ -76,7 +76,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             Button propertyButton;
 
-            AddInternal(new Drawable[]
+            AddRangeInternal(new Drawable[]
             {
                 new Box
                 {

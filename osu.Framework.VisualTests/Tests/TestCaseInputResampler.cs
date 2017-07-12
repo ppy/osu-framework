@@ -34,19 +34,19 @@ namespace osu.Framework.VisualTests.Tests
 
             SpriteText[] text = new SpriteText[6];
 
-            Cell(0, 0).Add(new Drawable[]
+            Cell(0, 0).AddRange(new Drawable[]
             {
                 text[0] = createLabel("Raw"),
                 new ArcPath(true, true, new InputResampler(), gradientTexture, Color4.Green, text[0]),
             });
 
-            Cell(0, 1).Add(new Drawable[]
+            Cell(0, 1).AddRange(new Drawable[]
             {
                 text[1] = createLabel("Rounded (resembles mouse input)"),
                 new ArcPath(true, false, new InputResampler(), gradientTexture, Color4.Blue, text[1]),
             });
 
-            Cell(0, 2).Add(new Drawable[]
+            Cell(0, 2).AddRange(new Drawable[]
             {
                 text[2] = createLabel("Custom: Smoothed=0, Raw=0"),
                 new UserDrawnPath
@@ -58,19 +58,19 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
 
-            Cell(1, 0).Add(new Drawable[]
+            Cell(1, 0).AddRange(new Drawable[]
             {
                 text[3] = createLabel("Smoothed raw"),
                 new ArcPath(false, true, new InputResampler(), gradientTexture, Color4.Green, text[3]),
             });
 
-            Cell(1, 1).Add(new Drawable[]
+            Cell(1, 1).AddRange(new Drawable[]
             {
                 text[4] = createLabel("Smoothed rounded"),
                 new ArcPath(false, false, new InputResampler(), gradientTexture, Color4.Blue, text[4]),
             });
 
-            Cell(1, 2).Add(new Drawable[]
+            Cell(1, 2).AddRange(new Drawable[]
             {
                 text[5] = createLabel("Smoothed custom: Smoothed=0, Raw=0"),
                 new SmoothedUserDrawnPath
@@ -83,19 +83,19 @@ namespace osu.Framework.VisualTests.Tests
                 },
             });
 
-            Cell(2, 0).Add(new Drawable[]
+            Cell(2, 0).AddRange(new Drawable[]
             {
                 text[3] = createLabel("Force-smoothed raw"),
                 new ArcPath(false, true, new InputResampler() { ResampleRawInput = true }, gradientTexture, Color4.Green, text[3]),
             });
 
-            Cell(2, 1).Add(new Drawable[]
+            Cell(2, 1).AddRange(new Drawable[]
             {
                 text[4] = createLabel("Force-smoothed rounded"),
                 new ArcPath(false, false, new InputResampler() { ResampleRawInput = true }, gradientTexture, Color4.Blue, text[4]),
             });
 
-            Cell(2, 2).Add(new Drawable[]
+            Cell(2, 2).AddRange(new Drawable[]
             {
                 text[5] = createLabel("Force-smoothed custom: Smoothed=0, Raw=0"),
                 new SmoothedUserDrawnPath

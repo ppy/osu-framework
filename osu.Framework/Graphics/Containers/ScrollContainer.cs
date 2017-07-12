@@ -188,7 +188,7 @@ namespace osu.Framework.Graphics.Containers
             Masking = true;
 
             Axes scrollAxis = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
-            AddInternal(new Drawable[]
+            AddRangeInternal(new Drawable[]
             {
                 content = new Container<T>
                 {

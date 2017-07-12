@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Performance
             Masking = true;
             CornerRadius = 5;
 
-            Add(new Drawable[]
+            AddRange(new Drawable[]
             {
                 new Box
                 {

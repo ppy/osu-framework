@@ -11,8 +11,11 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => "Making sure a container's internal state is consistent prior to async loads.";
 
+        private readonly Container container;
+
         public TestCaseNonAsyncContainer()
         {
+            Add(container = new Container());
             testRemoval();
             testReAddingDrawable();
         }
@@ -24,7 +27,6 @@ namespace osu.Framework.VisualTests.Tests
         {
             AddStep("Removal", () =>
             {
-                var container = new Container();
                 var sprite = new Sprite();
 
                 container.Add(sprite);
@@ -39,7 +41,6 @@ namespace osu.Framework.VisualTests.Tests
         {
             AddStep("Re-adding to same container", () =>
             {
-                var container = new Container();
                 var sprite = new Sprite();
 
                 container.Add(sprite);

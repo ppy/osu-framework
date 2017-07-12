@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.UserInterface
         /// <param name="title">The text to be displayed in this <see cref="ContextMenuItem"/>.</param>
         public ContextMenuItem(string title)
         {
-            base.Content.Add(new Drawable[]
+            base.Content.AddRange(new Drawable[]
             {
                 text = CreateTextContainer(title),
                 content = new FillFlowContainer
