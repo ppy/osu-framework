@@ -15,6 +15,7 @@ namespace osu.Framework.Lists
     /// </summary>
     public class SingleTypeQueue<T>
     {
+
         /// <summary>
         /// This list contains all queued elements in their appropriate order.
         /// </summary>
@@ -101,18 +102,18 @@ namespace osu.Framework.Lists
         /// <returns>True if an element was removed and returned from the beginning of the queue.</returns>
         public bool TryDequeue(out T result)
         {
+            result = default(T);
+
             lock (listLock)
             {
-                result = default(T);
-
                 if (list.Count == 0)
                     return false;
 
                 result = list[0].Element;
                 list.RemoveAt(0);
-
-                return true;
             }
+
+            return true;
         }
 
         private struct ListElement
@@ -130,8 +131,17 @@ namespace osu.Framework.Lists
 
     public enum DuplicateAction
     {
+        /// <summary>
+        /// Remove the duplicate from the list and add the new element to the end of the list.
+        /// </summary>
         RemoveDuplicate,
+        /// <summary>
+        /// Remove the duplicate from the list and add the new element to the duplicate's old position.
+        /// </summary>
         ReplaceDuplicate,
+        /// <summary>
+        /// Keep the duplicate in the list.
+        /// </summary>
         KeepDuplicate
     }
 }

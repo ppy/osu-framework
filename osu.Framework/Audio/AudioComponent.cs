@@ -3,8 +3,8 @@
 
 using System;
 using osu.Framework.DebugUtils;
-using osu.Framework.Statistics;
 using osu.Framework.Lists;
+using osu.Framework.Statistics;
 
 namespace osu.Framework.Audio
 {
