@@ -117,11 +117,6 @@ namespace osu.Framework.Graphics.Containers
         public double DistanceDecayJump = 0.01;
 
         /// <summary>
-        /// Controls the rate with which the target position is approached when performing a relative drag. Default is 0.02.
-        /// </summary>
-        public double DistanceDecayRelativeDrag = 0.02;
-
-        /// <summary>
         /// Controls the rate with which the target position is approached. It is automatically set after
         /// dragging or using the mouse wheel.
         /// </summary>
@@ -317,8 +312,6 @@ namespace osu.Framework.Graphics.Containers
             offset(-MouseWheelScrollDistance * state.Mouse.WheelDelta, true, DistanceDecayWheel);
             return true;
         }
-
-        private void scrollToRelative(float value) => scrollTo(clamp((value - scrollbar.DrawSize[scrollDim] / 2) / scrollbar.Size[scrollDim]), true, DistanceDecayRelativeDrag);
 
         private void onScrollbarMovement(float value) => scrollTo(clamp(value / scrollbar.Size[scrollDim]), false);
 
