@@ -11,7 +11,7 @@ namespace osu.Framework.Lists
     /// When adding an element with a specified type (not negative), it is checked whether
     /// there is already an element of this type.
     /// If there is a duplicate element, it either is removed and the new element is added,
-    /// it is replaced with the new element or  the new element is not added to the queue.
+    /// it is replaced with the new element or the new element is not added to the queue.
     /// </summary>
     public class SingleTypeQueue<T>
     {
@@ -48,8 +48,8 @@ namespace osu.Framework.Lists
         /// <summary>
         /// Adds an element to the end of the queue with the specified type.
         /// </summary>
-        /// <param name="elementType">The type of the new element. If there already
-        /// is an element of this type, it will be removed in the process. A negative value
+        /// <param name="elementType">The type of the new element. If there already is an
+        /// element of this type, the appropriate action will be performed. A negative value
         /// represents an unlimited amount of elements of this type.</param>
         /// <param name="duplicateAction">The action to perform when finding a duplicate.</param>
         /// <param name="newElement">The element to add to the queue.</param>
