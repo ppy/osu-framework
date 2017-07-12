@@ -22,6 +22,7 @@ using osu.Framework.Timing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -2050,7 +2051,7 @@ namespace osu.Framework.Graphics
 
         public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
+            MoveTo((Transforms.LastOrDefault(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
         }
 
         public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -2060,7 +2061,7 @@ namespace osu.Framework.Graphics
 
         public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
         {
-            Color4 endValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
+            Color4 endValue = (Transforms.LastOrDefault(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
 
             Flush(false, typeof(TransformColour));
 

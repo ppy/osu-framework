@@ -37,11 +37,14 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private SortedList<ITransform<T>> transforms;
+        private SortedList<ITransform<T>> transformsLazy;
+
+        private SortedList<ITransform<T>> transforms => transformsLazy ?? (transformsLazy = new SortedList<ITransform<T>>(new TransformTimeComparer<T>()));
+
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
-        public SortedList<ITransform<T>> Transforms => transforms ?? (transforms = new SortedList<ITransform<T>>(new TransformTimeComparer<T>()));
+        public IReadOnlyList<ITransform<T>> Transforms => transforms;
 
         /// <summary>
         /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)
@@ -69,12 +72,12 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private void updateTransforms()
         {
-            if (transforms == null || transforms.Count == 0)
+            if (transformsLazy == null)
                 return;
 
-            for (int i = 0; i < transforms.Count; ++i)
+            for (int i = 0; i < transformsLazy.Count; ++i)
             {
-                var t = transforms[i];
+                var t = transformsLazy[i];
 
                 if (t.StartTime > Time.Current)
                     break;
@@ -88,9 +91,9 @@ namespace osu.Framework.Graphics.Transforms
 
                     for (int j = 0; j < i; j++)
                     {
-                        if (transforms[j].GetType() == ourType)
+                        if (transformsLazy[j].GetType() == ourType)
                         {
-                            transforms.RemoveAt(j--);
+                            transformsLazy.RemoveAt(j--);
                             i--;
                         }
                     }
@@ -101,14 +104,14 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (t.EndTime <= Time.Current)
                 {
-                    transforms.RemoveAt(i--);
+                    transformsLazy.RemoveAt(i--);
                     if (t.HasNextIteration)
                     {
                         t.NextIteration();
 
                         // this could be added back at a lower index than where we are currently iterating, but
                         // running the same transform twice isn't a huge deal.
-                        transforms.Add(t);
+                        transformsLazy.Add(t);
                     }
                 }
             }
@@ -121,7 +124,7 @@ namespace osu.Framework.Graphics.Transforms
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
             DelayReset();
-            transforms?.Clear();
+            transformsLazy?.Clear();
         }
 
         /// <summary>
@@ -166,7 +169,7 @@ namespace osu.Framework.Graphics.Transforms
             if (flushType == null)
                 ClearTransforms();
             else
-                Transforms.RemoveAll(t => t.GetType() == flushType);
+                transformsLazy.RemoveAll(t => t.GetType() == flushType);
         }
 
         /// <summary>
@@ -284,7 +287,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
-            Transforms.Add(transform);
+            transforms.Add(transform);
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.

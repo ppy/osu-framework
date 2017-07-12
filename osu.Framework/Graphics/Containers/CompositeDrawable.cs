@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -1005,7 +1006,7 @@ namespace osu.Framework.Graphics.Containers
 
                 // if we have an existing transform, we want to update its duration.
                 // not doing this could potentially cause incorrect final autosize dimensions.
-                var existing = Transforms.Find(t => t is TransformAutoSize);
+                var existing = Transforms.FirstOrDefault(t => t is TransformAutoSize);
                 if (existing != null)
                     existing.EndTime = existing.StartTime + autoSizeDuration;
             }
