@@ -469,9 +469,10 @@ namespace osu.Framework.Graphics.Containers
         {
             public Action<float> Dragged;
 
-            private static readonly Color4 hover_colour = Color4.White;
-            private static readonly Color4 default_colour = Color4.Gray;
-            private static readonly Color4 highlight_colour = Color4.GreenYellow;
+            private readonly Color4 hoverColour = Color4.White;
+            private readonly Color4 defaultColour = Color4.Gray;
+            private readonly Color4 highlightColour = Color4.GreenYellow;
+
             private readonly Box box;
 
             private float dragOffset;
@@ -482,7 +483,7 @@ namespace osu.Framework.Graphics.Containers
             {
                 scrollDim = (int)scrollDir;
                 RelativeSizeAxes = scrollDir == Direction.Horizontal ? Axes.X : Axes.Y;
-                Colour = default_colour;
+                Colour = defaultColour;
 
                 BlendingMode = BlendingMode.Additive;
 
@@ -518,13 +519,13 @@ namespace osu.Framework.Graphics.Containers
 
             protected override bool OnHover(InputState state)
             {
-                FadeColour(hover_colour, 100);
+                FadeColour(hoverColour, 100);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                FadeColour(default_colour, 100);
+                FadeColour(defaultColour, 100);
             }
 
             protected override bool OnDragStart(InputState state)
@@ -536,7 +537,7 @@ namespace osu.Framework.Graphics.Containers
             protected override bool OnMouseDown(InputState state, MouseDownEventArgs args)
             {
                 //note that we are changing the colour of the box here as to not interfere with the hover effect.
-                box.FadeColour(highlight_colour, 100);
+                box.FadeColour(highlightColour, 100);
 
                 dragOffset = Position[scrollDim];
                 Dragged?.Invoke(dragOffset);
