@@ -79,7 +79,7 @@ namespace osu.Framework.Timing
             timeUntilNextCalculation -= ElapsedFrameTime;
             timeSinceLastCalculation += ElapsedFrameTime;
 
-            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Abs(ElapsedFrameTime) / 1000);
+            AverageFrameTime = Interpolation.Damp(AverageFrameTime, ElapsedFrameTime, 0.01, Math.Max(ElapsedFrameTime, 0) / 1000);
 
             LastFrameTime = CurrentTime;
             CurrentTime = SourceTime;

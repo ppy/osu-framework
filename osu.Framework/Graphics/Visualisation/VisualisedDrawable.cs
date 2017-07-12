@@ -89,7 +89,7 @@ namespace osu.Framework.Graphics.Visualisation
 
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
-            Add(new[]
+            AddRange(new[]
             {
                 activityInvalidate = new Box
                 {

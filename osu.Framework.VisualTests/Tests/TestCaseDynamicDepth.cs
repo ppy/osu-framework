@@ -26,7 +26,7 @@ namespace osu.Framework.VisualTests.Tests
             DepthBox red, blue, green, purple;
             Container container;
 
-            Add(new[]
+            AddRange(new[]
             {
                 container = new Container()
                 {
@@ -58,7 +58,7 @@ namespace osu.Framework.VisualTests.Tests
                 Size = new Vector2(240);
                 Anchor = Origin = anchor;
 
-                Add(new Drawable[]
+                AddRange(new Drawable[]
                 {
                     new Box()
                     {

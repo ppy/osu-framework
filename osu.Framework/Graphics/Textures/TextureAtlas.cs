@@ -103,7 +103,7 @@ namespace osu.Framework.Graphics.Textures
             }
         }
 
-        internal Texture GetWhitePixel()
+        internal TextureWhitePixel GetWhitePixel()
         {
             if (atlasTexture == null)
                 Reset();

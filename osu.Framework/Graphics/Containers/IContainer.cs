@@ -20,9 +20,9 @@ namespace osu.Framework.Graphics.Containers
         IReadOnlyList<T> Children { set; }
 
         void Add(T drawable);
-        void Add(IEnumerable<T> collection);
+        void AddRange(IEnumerable<T> collection);
 
-        void Remove(T drawable);
-        void Remove(IEnumerable<T> range);
+        bool Remove(T drawable);
+        void RemoveRange(IEnumerable<T> range);
     }
 }

@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.MathUtils;
 using osu.Framework.Timing;
+using System;
 
 namespace osu.Framework.Graphics.Performance
 {
@@ -26,7 +27,7 @@ namespace osu.Framework.Graphics.Performance
             Masking = true;
             CornerRadius = 5;
 
-            Add(new Drawable[]
+            AddRange(new Drawable[]
             {
                 new Box
                 {
@@ -52,7 +53,7 @@ namespace osu.Framework.Graphics.Performance
 
             if (!Counting) return;
 
-            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, clock.ElapsedFrameTime / 1000);
+            displayFps = Interpolation.Damp(displayFps, clock.FramesPerSecond, 0.01, Math.Max(clock.ElapsedFrameTime, 0) / 1000);
 
             if (counter.DrawWidth != aimWidth)
             {

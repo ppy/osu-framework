@@ -90,7 +90,7 @@ namespace osu.Framework.VisualTests.Tests
 
                     addCornerMarkers(box);
 
-                    box.Add(new[]
+                    box.AddRange(new[]
                     {
                         new DraggableTriangle
                         {

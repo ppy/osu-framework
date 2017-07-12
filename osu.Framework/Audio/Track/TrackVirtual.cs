@@ -5,7 +5,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Audio.Track
 {
-    internal class TrackVirtual : Track
+    public class TrackVirtual : Track
     {
         private readonly StopwatchClock clock = new StopwatchClock();
 
@@ -16,7 +16,7 @@ namespace osu.Framework.Audio.Track
             double current = CurrentTime;
 
             seekOffset = seek;
-            clock.Restart();
+            lock (clock) clock.Restart();
 
             if (Length > 0 && seekOffset > Length)
                 seekOffset = Length;
@@ -26,12 +26,12 @@ namespace osu.Framework.Audio.Track
 
         public override void Start()
         {
-            clock.Start();
+            lock (clock) clock.Start();
         }
 
         public override void Reset()
         {
-            clock.Reset();
+            lock (clock) clock.Reset();
             seekOffset = 0;
 
             base.Reset();
@@ -39,17 +39,40 @@ namespace osu.Framework.Audio.Track
 
         public override void Stop()
         {
-            clock.Stop();
+            lock (clock) clock.Stop();
         }
 
-        public override bool IsRunning => clock.IsRunning;
+        public override bool IsRunning
+        {
+            get
+            {
+                lock (clock) return clock.IsRunning;
+            }
+        }
 
-        public override double CurrentTime => seekOffset + clock.CurrentTime;
+        public override bool HasCompleted
+        {
+            get
+            {
+                lock (clock) return base.HasCompleted || IsLoaded && !IsRunning && CurrentTime >= Length;
+            }
+        }
+
+        public override double CurrentTime
+        {
+            get
+            {
+                lock (clock) return seekOffset + clock.CurrentTime;
+            }
+        }
 
         public override void Update()
         {
-            if (Length > 0 && CurrentTime >= Length)
-                Stop();
+            lock (clock)
+            {
+                if (CurrentTime >= Length)
+                    Stop();
+            }
         }
     }
 }
