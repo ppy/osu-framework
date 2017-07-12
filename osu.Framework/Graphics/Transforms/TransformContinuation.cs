@@ -26,5 +26,30 @@ namespace osu.Framework.Graphics.Transforms
             OnCompleteActions += () => result.Invoke();
             return result;
         }
+
+        public TransformContinuation OnAbort(params Func<TransformContinuation>[] funcs)
+        {
+            var result = new CompositeContinuation(funcs);
+            OnAbortActions += () => result.Invoke();
+            return result;
+        }
+
+        public TransformContinuation Finally(params Func<TransformContinuation>[] funcs)
+        {
+            var result = new CompositeContinuation(funcs);
+            OnCompleteActions += () => result.Invoke();
+            OnAbortActions += () => result.Invoke();
+            return result;
+        }
+
+        public void Then(Action func) => OnCompleteActions += func;
+
+        public void OnAbort(Action func) => OnAbortActions += func;
+
+        public void Finally(Action func)
+        {
+            Then(func);
+            OnAbort(func);
+        }
     }
 }

@@ -25,7 +25,6 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-
         private int countCompletions;
         private void onCompleteCallback()
         {
