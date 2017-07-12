@@ -20,7 +20,6 @@ namespace osu.Framework.VisualTests.Tests
             {
                 new ScrollContainer
                 {
-                    RelativeMouseDrag = true,
                     RelativeSizeAxes = Axes.Both,
                     Children = new[]
                     {
