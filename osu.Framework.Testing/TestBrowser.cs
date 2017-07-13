@@ -69,7 +69,6 @@ namespace osu.Framework.Testing
                         {
                             RelativeSizeAxes = Axes.Both,
                             ScrollbarOverlapsContent = false,
-                            RelativeMouseDrag = true,
                             Child = leftFlowContainer = new FillFlowContainer<TestCaseButton>
                             {
                                 Padding = new MarginPadding(3),
