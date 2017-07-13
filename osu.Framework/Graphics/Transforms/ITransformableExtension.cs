@@ -25,9 +25,7 @@ namespace osu.Framework.Graphics.Transforms
             transform.Easing = easing;
 
             t.AddTransform(transform);
-            var result = new TransformContinuation<TThis>(t);
-            result.AddTransformPrecondition(transform);
-            return result;
+            return new TransformContinuation<TThis>(t, transform);
         }
 
 
