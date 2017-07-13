@@ -156,7 +156,7 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         public Container<T> ScrollContent => content;
 
-        protected virtual bool IsDragging { get; set; }
+        protected virtual bool IsDragging { get; private set; }
 
         /// <summary>
         /// The direction in which scrolling is supported.
