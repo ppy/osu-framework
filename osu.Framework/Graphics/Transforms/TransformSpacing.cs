@@ -5,13 +5,13 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformSpacing<T> : TransformVector<FillFlowContainer<T>> where T : Drawable
+    public class TransformSpacing : TransformVector<IFillFlowContainer>
     {
-        public TransformSpacing(FillFlowContainer<T> target) : base(target)
+        public TransformSpacing(IFillFlowContainer target) : base(target)
         {
         }
 
-        public override void Apply(FillFlowContainer<T> d) => d.Spacing = CurrentValue;
-        public override void ReadIntoStartValue(FillFlowContainer<T> d) => StartValue = d.Spacing;
+        public override void Apply(IFillFlowContainer d) => d.Spacing = CurrentValue;
+        public override void ReadIntoStartValue(IFillFlowContainer d) => StartValue = d.Spacing;
     }
 }

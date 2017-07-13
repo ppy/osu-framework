@@ -9,7 +9,7 @@ using System.Linq;
 namespace osu.Framework.Graphics.Transforms
 {
     public class TransformContinuation<T> : ITransformContinuation<T>
-        where T : Transformable
+        where T : ITransformable
     {
         public T Origin { get; }
 
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
             Trace.Assert(state == State.Running);
 
             var continuation = precondition.Invoke();
-            if (continuation.Origin != Origin)
+            if (!ReferenceEquals(continuation.Origin, Origin))
                 throw new InvalidOperationException($"May only chain transforms on the same origin, but chained {continuation.Origin} from {Origin}.");
 
             continuation.SubscribeCompleted(onPreconditionComplete);
@@ -123,10 +123,11 @@ namespace osu.Framework.Graphics.Transforms
 
         private void onTrigger(double offset, IEnumerable<Func<ITransformContinuation<T>>> funcs)
         {
-            Origin.Delay(-offset);
-            AddPreconditions(funcs);
-            Invoke();
-            Origin.Delay(offset);
+            Origin.WithDelay(-offset, delegate
+            {
+                AddPreconditions(funcs);
+                Invoke();
+            });
         }
 
         private ITransformContinuation<T> then(IEnumerable<Func<ITransformContinuation<T>>> funcs)

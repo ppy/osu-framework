@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public interface IContainer
+    public interface IContainer : IDrawable
     {
         EdgeEffectParameters EdgeEffect { get; set; }
 
@@ -16,7 +16,7 @@ namespace osu.Framework.Graphics.Containers
         Vector2 RelativeChildOffset { get; set; }
     }
 
-    public interface IContainerEnumerable<out T>
+    public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
         IReadOnlyList<T> Children { get; }
@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
         int RemoveAll(Predicate<T> match);
     }
 
-    public interface IContainerCollection<in T>
+    public interface IContainerCollection<in T> : IContainer
         where T : IDrawable
     {
         IReadOnlyList<T> Children { set; }

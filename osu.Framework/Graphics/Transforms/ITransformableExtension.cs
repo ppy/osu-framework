@@ -3,7 +3,7 @@
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public static class TransformableExtension
+    public static class ITransformableExtension
     {
         /// <summary>
         /// Applies a transform to this object.
@@ -15,7 +15,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="transform">The transform to use.</param>
         public static ITransformContinuation<TThis> TransformTo<TThis, TValue, TBase>(
             this TThis t, TValue newValue, double duration, EasingTypes easing, Transform<TValue, TBase> transform)
-            where TThis : Transformable, TBase
+            where TThis : ITransformable, TBase
         {
             double startTime = t.TransformStartTime;
 

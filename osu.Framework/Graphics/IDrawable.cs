@@ -3,6 +3,7 @@
 
 using OpenTK;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Lists;
 using osu.Framework.Timing;
 
@@ -15,7 +16,7 @@ namespace osu.Framework.Graphics
     /// It is mostly useful in cases where you need to specify additional constraints on a <see cref="Drawable"/>, but also do not want to force inheriting from
     /// any particular subclass of <see cref="Drawable"/>.
     /// </summary>
-    public interface IDrawable : IHasLifetime
+    public interface IDrawable : IHasLifetime, ITransformable
     {
         /// <summary>
         /// Absolute size of this Drawable in the <see cref="Parent"/>'s coordinate system.

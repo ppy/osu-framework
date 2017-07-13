@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
     /// </summary>
-    public class FillFlowContainer<T> : FlowContainer<T> where T : Drawable
+    public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
         private FillDirection direction = FillDirection.Full;
 

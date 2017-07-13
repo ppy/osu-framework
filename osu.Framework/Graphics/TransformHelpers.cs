@@ -100,17 +100,17 @@ namespace osu.Framework.Graphics
         /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public static ITransformContinuation<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
         {
             container.Flush(false, typeof(TransformEdgeEffectColour));
-            return ((T)container).TransformTo(newAlpha, duration, easing, new TransformEdgeEffectAlpha(container));
+            return container.TransformTo(newAlpha, duration, easing, new TransformEdgeEffectAlpha(container));
         }
 
         /// <summary>
         /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
         public static ITransformContinuation<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
         {
             container.Flush(false, typeof(TransformEdgeEffectAlpha));
             return container.TransformTo(newColour, duration, easing, new TransformEdgeEffectColour(container));
@@ -139,15 +139,13 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs the buffered container.
         /// </summary>
-        public static ITransformContinuation<T> BlurTo<T, U>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : BufferedContainer<U>
-            where U : Drawable
-            => bufferedContainer.TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma<U>(bufferedContainer));
+        public static ITransformContinuation<T> BlurTo<T>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
+            where T : Transformable, IBufferedContainer
+            => bufferedContainer.TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma(bufferedContainer));
 
-        public static ITransformContinuation<T> TransformSpacingTo<T, U>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : FillFlowContainer<U>
-            where U : Drawable
-            => flowContainer.TransformTo(newSpacing, duration, easing, new TransformSpacing<U>(flowContainer));
+        public static ITransformContinuation<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
+            where T : Transformable, IFillFlowContainer
+            => flowContainer.TransformTo(newSpacing, duration, easing, new TransformSpacing(flowContainer));
     }
 
     public static class TransformContinuationExtensions
@@ -214,11 +212,11 @@ namespace osu.Framework.Graphics
         #endregion
 
         public static ITransformContinuation<T> FadeEdgeEffectTo<T>(this ITransformContinuation<T> t, float newAlpha, double duration, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => t.AddPrecondition(() => t.Origin.FadeEdgeEffectTo(newAlpha, duration, easing));
 
         public static ITransformContinuation<T> FadeEdgeEffectTo<T>(this ITransformContinuation<T> t, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => t.AddPrecondition(() => t.Origin.FadeEdgeEffectTo(newColour, duration, easing));
 
         public static ITransformContinuation<T> TransformRelativeChildSizeTo<T>(this ITransformContinuation<T> t, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
@@ -229,14 +227,12 @@ namespace osu.Framework.Graphics
             where T : Transformable, IContainer
             => t.AddPrecondition(() => t.Origin.TransformRelativeChildOffsetTo(newOffset, duration, easing));
 
-        public static ITransformContinuation<T> BlurTo<T, U>(this ITransformContinuation<T> t, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : BufferedContainer<U>
-            where U : Drawable
-            => t.AddPrecondition(() => t.Origin.BlurTo<T, U>(newBlurSigma, duration, easing));
+        public static ITransformContinuation<T> BlurTo<T>(this ITransformContinuation<T> t, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
+            where T : Transformable, IBufferedContainer
+            => t.AddPrecondition(() => t.Origin.BlurTo(newBlurSigma, duration, easing));
 
-        public static ITransformContinuation<T> TransformSpacingTo<T, U>(this ITransformContinuation<T> t, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : FillFlowContainer<U>
-            where U : Drawable
-            => t.AddPrecondition(() => t.Origin.TransformSpacingTo<T, U>(newSpacing, duration, easing));
+        public static ITransformContinuation<T> TransformSpacingTo<T>(this ITransformContinuation<T> t, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
+            where T : Transformable, IFillFlowContainer
+            => t.AddPrecondition(() => t.Origin.TransformSpacingTo(newSpacing, duration, easing));
     }
 }

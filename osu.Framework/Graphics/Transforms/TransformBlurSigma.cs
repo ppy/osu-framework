@@ -5,13 +5,13 @@ using osu.Framework.Graphics.Containers;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformBlurSigma<T> : TransformVector<BufferedContainer<T>> where T : Drawable
+    public class TransformBlurSigma : TransformVector<IBufferedContainer>
     {
-        public TransformBlurSigma(BufferedContainer<T> target) : base(target)
+        public TransformBlurSigma(IBufferedContainer target) : base(target)
         {
         }
 
-        public override void Apply(BufferedContainer<T> d) => d.BlurSigma = CurrentValue;
-        public override void ReadIntoStartValue(BufferedContainer<T> d) => StartValue = d.BlurSigma;
+        public override void Apply(IBufferedContainer d) => d.BlurSigma = CurrentValue;
+        public override void ReadIntoStartValue(IBufferedContainer d) => StartValue = d.BlurSigma;
     }
 }
