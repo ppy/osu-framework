@@ -130,7 +130,7 @@ namespace osu.Framework.Graphics.Containers
             // positions for horizontal centre anchor children.
             // We also store for each child to which row it belongs.
             int[] rowIndices = new int[children.Length];
-            List<float> rowOffsetsToMiddle = new List<float>() { 0 };
+            List<float> rowOffsetsToMiddle = new List<float> { 0 };
 
             // Variables keeping track of the current state while iterating over children
             // and computing initial flow positions.
