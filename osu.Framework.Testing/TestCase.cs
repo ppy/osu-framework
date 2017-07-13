@@ -164,7 +164,7 @@ namespace osu.Framework.Testing
 
         protected void AddAssert(string description, Func<bool> assert, string extendedDescription = null)
         {
-            StepsContainer.Add(new AssertButton()
+            StepsContainer.Add(new AssertButton
             {
                 Text = description,
                 ExtendedDescription = extendedDescription,

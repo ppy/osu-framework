@@ -21,7 +21,7 @@ namespace osu.Framework.VisualTests.Tests
 
         public TestCaseMasking()
         {
-            Add(TestContainer = new Container()
+            Add(TestContainer = new Container
             {
                 RelativeSizeAxes = Axes.Both,
             });
@@ -235,7 +235,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 case 4:
                     {
-                        Func<float, Drawable> createMaskingBox = delegate(float scale)
+                        Func<float, Drawable> createMaskingBox = delegate (float scale)
                         {
                             float size = 200 / scale;
                             return new Container
