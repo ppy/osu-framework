@@ -114,7 +114,7 @@ namespace osu.Framework.Testing
             //Add buttons for each TestCase.
             leftFlowContainer.AddRange(TestTypes.Select(t => new TestCaseButton(t) { Action = () => LoadTest(t) }));
 
-            backgroundCompiler = new DynamicClassCompiler()
+            backgroundCompiler = new DynamicClassCompiler
             {
                 CompilationStarted = compileStarted,
                 CompilationFinished = compileFinished,

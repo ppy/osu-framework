@@ -86,13 +86,13 @@ namespace osu.Framework.VisualTests.Tests
             Cell(2, 0).AddRange(new Drawable[]
             {
                 text[3] = createLabel("Force-smoothed raw"),
-                new ArcPath(false, true, new InputResampler() { ResampleRawInput = true }, gradientTexture, Color4.Green, text[3]),
+                new ArcPath(false, true, new InputResampler { ResampleRawInput = true }, gradientTexture, Color4.Green, text[3]),
             });
 
             Cell(2, 1).AddRange(new Drawable[]
             {
                 text[4] = createLabel("Force-smoothed rounded"),
-                new ArcPath(false, false, new InputResampler() { ResampleRawInput = true }, gradientTexture, Color4.Blue, text[4]),
+                new ArcPath(false, false, new InputResampler { ResampleRawInput = true }, gradientTexture, Color4.Blue, text[4]),
             });
 
             Cell(2, 2).AddRange(new Drawable[]
@@ -104,7 +104,7 @@ namespace osu.Framework.VisualTests.Tests
                     RelativeSizeAxes = Axes.Both,
                     Texture = gradientTexture,
                     Colour = Color4.White,
-                    InputResampler = new InputResampler()
+                    InputResampler = new InputResampler
                     {
                         ResampleRawInput = true
                     },
@@ -167,8 +167,8 @@ namespace osu.Framework.VisualTests.Tests
 
                 for (int i = 0; i < target_raw; i++)
                 {
-                    float x = (float) (Math.Sin(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
-                    float y = (float) (Math.Cos(i / (double) target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float x = (float)(Math.Sin(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
+                    float y = (float)(Math.Cos(i / (double)target_raw * (Math.PI * 0.5)) * 200) + 50.5f;
                     Vector2 v = keepFraction ? new Vector2(x, y) : new Vector2((int)x, (int)y);
                     if (raw)
                         AddRawVertex(v);

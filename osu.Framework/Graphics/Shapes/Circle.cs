@@ -14,10 +14,7 @@ namespace osu.Framework.Graphics.Shapes
         {
             Masking = true;
 
-            AddInternal(new Box()
-            {
-                RelativeSizeAxes = Axes.Both,
-            });
+            AddInternal(new Box { RelativeSizeAxes = Axes.Both });
         }
     }
 }

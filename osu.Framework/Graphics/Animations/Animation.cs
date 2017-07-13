@@ -69,7 +69,7 @@ namespace osu.Framework.Graphics.Animations
         /// <param name="displayDuration">The duration the new frame should be displayed for.</param>
         public void AddFrame(T content, double? displayDuration = null)
         {
-            AddFrame(new FrameData<T>()
+            AddFrame(new FrameData<T>
             {
                 Duration = displayDuration ?? DefaultFrameLength, // 60 fps by default
                 Content = content
