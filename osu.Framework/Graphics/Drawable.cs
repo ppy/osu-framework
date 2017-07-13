@@ -40,7 +40,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : Transformable<Drawable>, IDisposable, IDrawable
+    public abstract class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -1934,14 +1934,14 @@ namespace osu.Framework.Graphics
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
             double max = TransformStartTime;
-            foreach (ITransform<Drawable> t in Transforms)
+            foreach (ITransform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (ITransform<Drawable> t in Transforms)
+                foreach (ITransform t in Transforms)
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
@@ -1950,82 +1950,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Hide sprite instantly.
         /// </summary>
-        public virtual void Hide() => FadeOut();
+        public virtual void Hide() => this.FadeOut();
 
         /// <summary>
         /// Show sprite instantly.
         /// </summary>
-        public virtual void Show() => FadeIn();
-
-        #region Helpers
-
-        public TransformContinuation<Drawable> FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None) => FadeTo(1, duration, easing);
-
-        public TransformContinuation<Drawable> FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0);
-            return FadeIn(duration, easing);
-        }
-
-        public TransformContinuation<Drawable> FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None) => FadeTo(0, duration, easing);
-
-        public TransformContinuation<Drawable> FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1);
-            return FadeOut(duration, easing);
-        }
-
-        public TransformContinuation<Drawable> FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newAlpha, duration, easing, new TransformAlpha());
-
-        public TransformContinuation<Drawable> RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newRotation, duration, easing, new TransformRotation());
-
-        public TransformContinuation<Drawable> MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            switch (direction)
-            {
-                case Direction.Horizontal:
-                    return MoveToX(destination, duration, easing);
-                case Direction.Vertical:
-                    return MoveToY(destination, duration, easing);
-            }
-
-            throw new InvalidOperationException($"Invalid direction ({direction}) passed to {nameof(MoveTo)}.");
-        }
-
-        public TransformContinuation<Drawable> MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(destination, duration, easing, new TransformPositionX());
-
-        public TransformContinuation<Drawable> MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(destination, duration, easing, new TransformPositionY());
-
-        public TransformContinuation<Drawable> ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(new Vector2(newScale), duration, easing, new TransformScale());
-
-        public TransformContinuation<Drawable> ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newScale, duration, easing, new TransformScale());
-
-        public TransformContinuation<Drawable> ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(new Vector2(newSize), duration, easing, new TransformSize());
-
-        public TransformContinuation<Drawable> ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newSize, duration, easing, new TransformSize());
-
-        public TransformContinuation<Drawable> ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newWidth, duration, easing, new TransformWidth());
-
-        public TransformContinuation<Drawable> ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newHeight, duration, easing, new TransformHeight());
-
-        public TransformContinuation<Drawable> MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newPosition, duration, easing, new TransformPosition());
-
-        public TransformContinuation<Drawable> MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            MoveTo((Transforms.LastOrDefault(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
-
-        public TransformContinuation<Drawable> FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) => TransformTo(newColour, duration, easing, new TransformColour());
-
-        public TransformContinuation<Drawable> FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
-        {
-            Color4 endValue = (Transforms.LastOrDefault(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
-
-            Flush(false, typeof(TransformColour));
-
-            FadeColour(flashColour);
-            return FadeColour(endValue, duration, easing);
-        }
-
-        #endregion
+        public virtual void Show() => this.FadeIn();
 
         #endregion
 

@@ -7,15 +7,18 @@ using System;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class Transform<T> : ITransform<T>
+    public abstract class Transform<T> : ITransform
     {
         public long CreationID { get; private set; }
 
         // ReSharper disable once StaticMemberInGenericType
         private static readonly AtomicCounter creation_counter = new AtomicCounter();
 
-        protected Transform()
+        private T target;
+
+        protected Transform(T target)
         {
+            this.target = target;
             CreationID = creation_counter.Increment();
         }
 
@@ -25,6 +28,10 @@ namespace osu.Framework.Graphics.Transforms
 
         public double StartTime { get; set; }
         public double EndTime { get; set; }
+
+        public void Apply() => Apply(target);
+
+        public void ReadIntoStartValue() => ReadIntoStartValue(target);
 
         public abstract void Apply(T d);
 
@@ -64,6 +71,10 @@ namespace osu.Framework.Graphics.Transforms
 
     public abstract class Transform<TValue, T> : Transform<T>
     {
+        public Transform(T target) : base(target)
+        {
+        }
+
         public TValue StartValue { get; protected set; }
         public TValue EndValue { get; set; }
 

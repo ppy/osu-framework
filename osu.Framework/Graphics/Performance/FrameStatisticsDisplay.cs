@@ -275,7 +275,7 @@ namespace osu.Framework.Graphics.Performance
                 active = value || state != FrameStatisticsMode.Full;
 
                 overlayContainer.FadeTo(active ? 0 : 1, 100);
-                FadeTo(active ? alpha_when_active : 1, 100);
+                this.FadeTo(active ? alpha_when_active : 1, 100);
                 fpsDisplay.Counting = active;
                 processFrames = active;
                 foreach (CounterBar bar in counterBars.Values)
@@ -503,12 +503,12 @@ namespace osu.Framework.Graphics.Performance
 
                     if (active)
                     {
-                        ResizeTo(new Vector2(bar_width, 1), 100);
+                        this.ResizeTo(new Vector2(bar_width, 1), 100);
                         text.FadeOut(100);
                     }
                     else
                     {
-                        ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
+                        this.ResizeTo(new Vector2(bar_width + text.TextSize + 2, 1), 100);
                         text.FadeIn(100);
                         text.Text = $@"{Label}: {NumberFormatter.PrintWithSiSuffix(this.value)}";
                     }

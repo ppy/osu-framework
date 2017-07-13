@@ -7,6 +7,10 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformFloat<T> : Transform<float, T>
     {
+        public TransformFloat(T target) : base(target)
+        {
+        }
+
         public virtual float CurrentValue
         {
             get

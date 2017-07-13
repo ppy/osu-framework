@@ -8,13 +8,13 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformContinuation<T>
-        where T : Transformable<T>
+    public class TransformContinuation<T> : ITransformContinuation<T>
+        where T : Transformable
     {
-        public readonly T Origin;
+        public T Origin { get; }
 
         private int countPreconditions;
-        private readonly List<Func<TransformContinuation<T>>> preconditions = new List<Func<TransformContinuation<T>>>();
+        private readonly List<Func<ITransformContinuation<T>>> preconditions = new List<Func<ITransformContinuation<T>>>();
 
         private enum State
         {
@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Transforms
                 continuePrecondition(p);
         }
 
-        private void continuePrecondition(Func<TransformContinuation<T>> precondition)
+        private void continuePrecondition(Func<ITransformContinuation<T>> precondition)
         {
             Trace.Assert(state == State.Running);
 
@@ -49,11 +49,11 @@ namespace osu.Framework.Graphics.Transforms
             if (continuation.Origin != Origin)
                 throw new InvalidOperationException($"May only chain transforms on the same origin, but chained {continuation.Origin} from {Origin}.");
 
-            continuation.OnCompleteActions += onPreconditionComplete;
-            continuation.OnAbortActions += onPreconditionAbort;
+            continuation.SubscribeCompleted(onPreconditionComplete);
+            continuation.SubscribeAborted(onPreconditionAbort);
         }
 
-        public TransformContinuation<T> AddTransformPrecondition(ITransform<T> transform)
+        public ITransformContinuation<T> AddTransformPrecondition(ITransform transform)
         {
             if (state == State.Dormant)
                 Invoke();
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        public TransformContinuation<T> AddPreconditions(IEnumerable<Func<TransformContinuation<T>>> preconditions)
+        public ITransformContinuation<T> AddPreconditions(IEnumerable<Func<ITransformContinuation<T>>> preconditions)
         {
             foreach (var p in preconditions)
                 AddPrecondition(p);
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        public TransformContinuation<T> AddPrecondition(Func<TransformContinuation<T>> precondition)
+        public ITransformContinuation<T> AddPrecondition(Func<ITransformContinuation<T>> precondition)
         {
             if (state == State.Finished)
                 throw new InvalidOperationException($"Cannot add preconditions to finished continuations.");
@@ -105,19 +105,23 @@ namespace osu.Framework.Graphics.Transforms
             ++countPreconditionsAborted;
         }
 
-        public event Action<double> OnCompleteActions;
-        public event Action<double> OnAbortActions;
+        private event Action<double> onCompleteActions;
+        private event Action<double> onAbortActions;
 
-        protected void OnComplete(double offset) => OnCompleteActions?.Invoke(offset);
+        public void SubscribeCompleted(Action<double> action) => onCompleteActions += action;
 
-        protected void OnAbort(double offset) => OnAbortActions?.Invoke(offset);
+        public void SubscribeAborted(Action<double> action) => onAbortActions += action;
+
+        protected void OnComplete(double offset) => onCompleteActions?.Invoke(offset);
+
+        protected void OnAbort(double offset) => onAbortActions?.Invoke(offset);
 
         public TransformContinuation<T> Loop(double pause = 0, int numIters = -1)
         {
             return null;
         }
 
-        private void onTrigger(double offset, Func<TransformContinuation<T>>[] funcs)
+        private void onTrigger(double offset, IEnumerable<Func<ITransformContinuation<T>>> funcs)
         {
             Origin.Delay(-offset);
             AddPreconditions(funcs);
@@ -125,31 +129,26 @@ namespace osu.Framework.Graphics.Transforms
             Origin.Delay(offset);
         }
 
-        public TransformContinuation<T> Then(params Func<TransformContinuation<T>>[] funcs)
+        private ITransformContinuation<T> then(IEnumerable<Func<ITransformContinuation<T>>> funcs)
         {
             var result = new TransformContinuation<T>(Origin);
-            OnCompleteActions += offset => result.onTrigger(offset, funcs);
+            onCompleteActions += offset => result.onTrigger(offset, funcs);
             return result;
         }
 
-        public TransformContinuation<T> OnAbort(params Func<TransformContinuation<T>>[] funcs)
-        {
-            var result = new TransformContinuation<T>(Origin);
-            OnAbortActions += offset => result.onTrigger(offset, funcs);
-            return result;
-        }
+        public ITransformContinuation<T> Then(Func<ITransformContinuation<T>> firstFun, params Func<ITransformContinuation<T>>[] funcs) =>
+            then(new[] { firstFun }.Concat(funcs));
 
-        public TransformContinuation<T> Finally(params Func<TransformContinuation<T>>[] funcs)
-        {
-            var result = new TransformContinuation<T>(Origin);
-            OnCompleteActions += offset => result.onTrigger(offset, funcs);
-            OnAbortActions += offset => result.onTrigger(offset, funcs);
-            return result;
-        }
+        private Func<ITransformContinuation<T>> bindOrigin(Func<T, ITransformContinuation<T>> fun) => () => fun(Origin);
 
-        public void Then(Action<double> func) => OnCompleteActions += func;
+        public ITransformContinuation<T> Then(Func<T, ITransformContinuation<T>> firstFun, params Func<T, ITransformContinuation<T>>[] funcs) =>
+            then(new[] { firstFun }.Concat(funcs).Select(bindOrigin));
 
-        public void OnAbort(Action<double> func) => OnAbortActions += func;
+        public ITransformContinuation<T> WaitForCompletion() => then(new Func<ITransformContinuation<T>>[0]);
+
+        public void Then(Action<double> func) => onCompleteActions += func;
+
+        public void OnAbort(Action<double> func) => onAbortActions += func;
 
         public void Finally(Action<double> func)
         {

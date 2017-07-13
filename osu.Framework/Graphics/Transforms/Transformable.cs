@@ -14,8 +14,7 @@ namespace osu.Framework.Graphics.Transforms
     /// A type of object which can have transforms attached to it.
     /// An implementer of this class must call <see cref="UpdateTransforms"/> to update the transforms.
     /// </summary>
-    public abstract class Transformable<T>
-        where T : Transformable<T>
+    public abstract class Transformable
     {
         /// <summary>
         /// The clock that is used to provide the timing for the transforms.
@@ -30,32 +29,21 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
         /// </summary>
-        protected double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
+        public double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
         /// <summary>
         /// Delay until the transformations are started, in milliseconds.
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private SortedList<ITransform<T>> transformsLazy;
+        private SortedList<ITransform> transformsLazy;
 
-        private SortedList<ITransform<T>> transforms => transformsLazy ?? (transformsLazy = new SortedList<ITransform<T>>(new TransformTimeComparer<T>()));
+        private SortedList<ITransform> transforms => transformsLazy ?? (transformsLazy = new SortedList<ITransform>(new TransformTimeComparer()));
 
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform{T}"/>s applied to this class.
         /// </summary>
-        public IReadOnlyList<ITransform<T>> Transforms => transforms;
-
-        /// <summary>
-        /// We will need to pass in the derived version of ourselves in various methods below (including <see cref="ITransform{T}.Apply(T)"/>)
-        /// however this is both messy and may potentially have a performance overhead. So a local casted reference is kept to avoid this.
-        /// </summary>
-        private readonly T derivedThis;
-
-        protected Transformable()
-        {
-            derivedThis = (T)this;
-        }
+        public IReadOnlyList<ITransform> Transforms => transforms;
 
         /// <summary>
         /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded transforms.
@@ -85,7 +73,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (!t.Time.HasValue)
                 {
                     // this is the first time we are updating this transform with a valid time.
-                    t.ReadIntoStartValue(derivedThis);
+                    t.ReadIntoStartValue();
 
                     var ourType = t.GetType();
 
@@ -105,7 +93,7 @@ namespace osu.Framework.Graphics.Transforms
                 }
 
                 t.UpdateTime(Time);
-                t.Apply(derivedThis);
+                t.Apply();
 
                 if (t.EndTime <= Time.Current)
                 {
@@ -142,22 +130,20 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The delay duration to add.</param>
         /// <param name="propagateChildren">Whether we also delay down the child tree.</param>
         /// <returns>This</returns>
-        public virtual T Delay(double duration, bool propagateChildren = false)
+        public virtual Transformable Delay(double duration, bool propagateChildren = false)
         {
-            if (duration == 0) return derivedThis;
-
             TransformDelay += duration;
-            return derivedThis;
+            return this;
         }
 
         /// <summary>
         /// Reset <see cref="TransformDelay"/>.
         /// </summary>
         /// <returns>This</returns>
-        public virtual T DelayReset()
+        public virtual Transformable DelayReset()
         {
             Delay(-TransformDelay);
-            return derivedThis;
+            return this;
         }
 
         /// <summary>
@@ -169,10 +155,10 @@ namespace osu.Framework.Graphics.Transforms
         {
             var operateTransforms = flushType == null ? Transforms : Transforms.Where(t => t.GetType() == flushType);
 
-            foreach (ITransform<T> t in operateTransforms)
+            foreach (ITransform t in operateTransforms)
             {
                 t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
-                t.Apply(derivedThis);
+                t.Apply();
             }
 
             if (flushType == null)
@@ -231,7 +217,7 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequence)} with a negative {nameof(pause)}, but was {pause}.");
 
             // We do not want to loop those
-            HashSet<ITransform<T>> existingTransforms = new HashSet<ITransform<T>>(Transforms);
+            HashSet<ITransform> existingTransforms = new HashSet<ITransform>(Transforms);
 
             return new InvokeOnDisposal(delegate
             {
@@ -256,37 +242,14 @@ namespace osu.Framework.Graphics.Transforms
             if (timeSpan == 0)
                 return;
 
-            foreach (ITransform<T> t in Transforms)
+            foreach (ITransform t in Transforms)
             {
                 t.StartTime += timeSpan;
                 t.EndTime += timeSpan;
             }
         }
 
-        /// <summary>
-        /// Applies a transform to this object.
-        /// </summary>
-        /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>
-        /// <param name="newValue">The value to transform to.</param>
-        /// <param name="duration">The transform duration.</param>
-        /// <param name="easing">The transform easing.</param>
-        /// <param name="transform">The transform to use.</param>
-        public TransformContinuation<T> TransformTo<TValue>(TValue newValue, double duration, EasingTypes easing, Transform<TValue, T> transform) where TValue : struct, IEquatable<TValue>
-        {
-            double startTime = TransformStartTime;
-
-            transform.StartTime = startTime;
-            transform.EndTime = startTime + duration;
-            transform.EndValue = newValue;
-            transform.Easing = easing;
-
-            addTransform(transform);
-            var result = new TransformContinuation<T>((T)this);
-            result.AddTransformPrecondition(transform);
-            return result;
-        }
-
-        private void addTransform(ITransform<T> transform)
+        public void AddTransform(ITransform transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
@@ -294,7 +257,7 @@ namespace osu.Framework.Graphics.Transforms
             if (Clock == null)
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply(derivedThis);
+                transform.Apply();
                 return;
             }
 

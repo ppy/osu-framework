@@ -1,11 +1,21 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
+    public interface IContainer
+    {
+        EdgeEffectParameters EdgeEffect { get; set; }
+
+        Vector2 RelativeChildSize { get; set; }
+
+        Vector2 RelativeChildOffset { get; set; }
+    }
+
     public interface IContainerEnumerable<out T>
         where T : IDrawable
     {

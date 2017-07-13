@@ -5,6 +5,10 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformRotation : TransformFloat<Drawable>
     {
+        public TransformRotation(Drawable target) : base(target)
+        {
+        }
+
         public override void Apply(Drawable d) => d.Rotation = CurrentValue;
         public override void ReadIntoStartValue(Drawable d) => StartValue = d.Rotation;
     }

@@ -3,8 +3,12 @@
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformScale : TransformVector
+    public class TransformScale : TransformVector<Drawable>
     {
+        public TransformScale(Drawable target) : base(target)
+        {
+        }
+
         public override void Apply(Drawable d) => d.Scale = CurrentValue;
         public override void ReadIntoStartValue(Drawable d) => StartValue = d.Scale;
     }

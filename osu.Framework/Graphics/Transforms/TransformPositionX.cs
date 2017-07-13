@@ -5,6 +5,10 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformPositionX : TransformFloat<Drawable>
     {
+        public TransformPositionX(Drawable target) : base(target)
+        {
+        }
+
         public override void Apply(Drawable d) => d.X = CurrentValue;
         public override void ReadIntoStartValue(Drawable d) => StartValue = d.X;
     }

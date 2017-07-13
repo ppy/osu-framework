@@ -1,24 +1,23 @@
-// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
+﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.MathUtils;
+using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    /// <summary>
-    /// Transforms colour value in linear colour space.
-    /// </summary>
-    public class TransformColour : Transform<Color4, Drawable>
+    public class TransformEdgeEffectColour : Transform<Color4, IContainer>
     {
-        public TransformColour(Drawable target) : base(target)
+        public TransformEdgeEffectColour(IContainer target) : base(target)
         {
         }
 
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>
-        public virtual Color4 CurrentValue
+        public Color4 CurrentValue
         {
             get
             {
@@ -30,7 +29,13 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        public override void Apply(Drawable d) => d.Colour = CurrentValue;
-        public override void ReadIntoStartValue(Drawable d) => StartValue = d.Colour;
+        public override void Apply(IContainer c)
+        {
+            EdgeEffectParameters e = c.EdgeEffect;
+            e.Colour = CurrentValue;
+            c.EdgeEffect = e;
+        }
+
+        public override void ReadIntoStartValue(IContainer c) => StartValue = c.EdgeEffect.Colour;
     }
 }

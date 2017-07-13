@@ -52,10 +52,10 @@ namespace osu.Framework.Graphics.Visualisation
                 {
                     case TreeContainerStatus.Offscreen:
                         using (BeginDelayedSequence(500, true))
-                            FadeTo(0.7f, 300);
+                            this.FadeTo(0.7f, 300);
                         break;
                     case TreeContainerStatus.Onscreen:
-                        FadeIn(300, EasingTypes.OutQuint);
+                        this.FadeIn(300, EasingTypes.OutQuint);
                         break;
                 }
             }

@@ -7,7 +7,7 @@ using osu.Framework.Timing;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public interface ITransform<in T>
+    public interface ITransform
     {
         long CreationID { get; }
 
@@ -16,9 +16,9 @@ namespace osu.Framework.Graphics.Transforms
         double StartTime { get; set; }
         double EndTime { get; set; }
 
-        void Apply(T d);
+        void Apply();
 
-        void ReadIntoStartValue(T d);
+        void ReadIntoStartValue();
 
         void Loop(double delay, int loopCount = -1);
 
@@ -35,9 +35,9 @@ namespace osu.Framework.Graphics.Transforms
         Action<double> OnAbort { get; set; }
     }
 
-    public class TransformTimeComparer<T> : IComparer<ITransform<T>>
+    public class TransformTimeComparer : IComparer<ITransform>
     {
-        public int Compare(ITransform<T> x, ITransform<T> y)
+        public int Compare(ITransform x, ITransform y)
         {
             if (x == null) throw new ArgumentNullException(nameof(x));
             if (y == null) throw new ArgumentNullException(nameof(y));

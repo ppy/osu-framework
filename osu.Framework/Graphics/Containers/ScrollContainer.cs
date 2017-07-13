@@ -533,20 +533,20 @@ namespace osu.Framework.Graphics.Containers
             {
                 [scrollDim] = val
             };
-            ResizeTo(size, duration, easing);
+            this.ResizeTo(size, duration, easing);
         }
 
         protected override bool OnClick(InputState state) => true;
 
         protected override bool OnHover(InputState state)
         {
-            FadeColour(hover_colour, 100);
+            this.FadeColour(hover_colour, 100);
             return true;
         }
 
         protected override void OnHoverLost(InputState state)
         {
-            FadeColour(default_colour, 100);
+            this.FadeColour(default_colour, 100);
         }
 
         protected override bool OnDragStart(InputState state)

@@ -1074,19 +1074,19 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = (Anchor)((int)Origin + 1);
                         break;
                     case 1:
-                        MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
                         break;
                     case 2:
-                        MoveTo(new Vector2(200, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(200, 0), 800, EasingTypes.Out);
                         break;
                     case 3:
-                        MoveTo(new Vector2(200, 200), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(200, 200), 800, EasingTypes.Out);
                         break;
                     case 4:
-                        MoveTo(new Vector2(0, 200), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 200), 800, EasingTypes.Out);
                         break;
                     case 5:
-                        MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
                         break;
                 }
             }

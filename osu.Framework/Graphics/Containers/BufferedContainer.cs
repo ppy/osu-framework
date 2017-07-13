@@ -39,7 +39,8 @@ namespace osu.Framework.Graphics.Containers
     /// appearance of the container at the cost of performance. Such effects include
     /// uniform fading of children, blur, and other post-processing effects.
     /// </summary>
-    public class BufferedContainer<T> : Container<T>, IBufferedContainer where T : Drawable
+    public class BufferedContainer<T> : Container<T>, IBufferedContainer
+        where T : Drawable
     {
         private bool drawOriginal;
 
@@ -312,20 +313,5 @@ namespace osu.Framework.Graphics.Containers
 
         //    base.Dispose(isDisposing);
         //}
-
-        /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs
-        /// the buffered container.
-        /// </summary>
-        public void BlurTo(Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma());
-        }
-
-        protected class TransformBlurSigma : TransformVector
-        {
-            public override void Apply(Drawable d) => ((BufferedContainer)d).BlurSigma = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((BufferedContainer)d).BlurSigma;
-        }
     }
 }

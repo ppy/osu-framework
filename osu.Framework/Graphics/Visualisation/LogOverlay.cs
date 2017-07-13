@@ -131,7 +131,7 @@ namespace osu.Framework.Graphics.Visualisation
         {
             Logger.NewEntry += addEntry;
             enabled.Value = true;
-            FadeIn(100);
+            this.FadeIn(100);
         }
 
         protected override void PopOut()
@@ -139,7 +139,7 @@ namespace osu.Framework.Graphics.Visualisation
             Logger.NewEntry -= addEntry;
             setHoldState(false);
             enabled.Value = false;
-            FadeOut(100);
+            this.FadeOut(100);
         }
     }
 
