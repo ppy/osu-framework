@@ -13,7 +13,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
-        public static ITransformContinuation<TThis> TransformTo<TThis, TValue, TBase>(
+        public static TransformContinuation<TThis> TransformTo<TThis, TValue, TBase>(
             this TThis t, TValue newValue, double duration, EasingTypes easing, Transform<TValue, TBase> transform)
             where TThis : ITransformable, TBase
         {

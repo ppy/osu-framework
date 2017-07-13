@@ -154,7 +154,6 @@
     <Compile Include="Graphics\Transforms\ITransformableExtension.cs" />
     <Compile Include="Graphics\Transforms\TransformBlurSigma.cs" />
     <Compile Include="Graphics\TransformHelpers.cs" />
-    <Compile Include="Graphics\Transforms\ITransformContinuation.cs" />
     <Compile Include="Graphics\Transforms\TransformContinuation.cs" />
     <Compile Include="Graphics\Transforms\TransformRelativeChildOffset.cs" />
     <Compile Include="Graphics\Transforms\TransformEdgeEffectAlpha.cs" />

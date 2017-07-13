@@ -8,13 +8,13 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public class TransformContinuation<T> : ITransformContinuation<T>
+    public class TransformContinuation<T>
         where T : ITransformable
     {
-        public T Origin { get; }
+        private T origin { get; }
 
         private int countPreconditions;
-        private readonly List<Func<ITransformContinuation<T>>> preconditions = new List<Func<ITransformContinuation<T>>>();
+        private readonly List<Func<T, TransformContinuation<T>>> preconditions = new List<Func<T, TransformContinuation<T>>>();
 
         private enum State
         {
@@ -27,7 +27,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformContinuation(T origin)
         {
-            Origin = origin;
+            this.origin = origin;
         }
 
         internal void Invoke()
@@ -41,19 +41,19 @@ namespace osu.Framework.Graphics.Transforms
                 continuePrecondition(p);
         }
 
-        private void continuePrecondition(Func<ITransformContinuation<T>> precondition)
+        private void continuePrecondition(Func<T, TransformContinuation<T>> precondition)
         {
             Trace.Assert(state == State.Running);
 
-            var continuation = precondition.Invoke();
-            if (!ReferenceEquals(continuation.Origin, Origin))
-                throw new InvalidOperationException($"May only chain transforms on the same origin, but chained {continuation.Origin} from {Origin}.");
+            var continuation = precondition.Invoke(origin);
+            if (!ReferenceEquals(continuation.origin, origin))
+                throw new InvalidOperationException($"May only chain transforms on the same origin, but chained {continuation.origin} from {origin}.");
 
             continuation.SubscribeCompleted(onPreconditionComplete);
             continuation.SubscribeAborted(onPreconditionAbort);
         }
 
-        public ITransformContinuation<T> AddTransformPrecondition(ITransform transform)
+        public TransformContinuation<T> AddTransformPrecondition(ITransform transform)
         {
             if (state == State.Dormant)
                 Invoke();
@@ -66,7 +66,7 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        public ITransformContinuation<T> AddPreconditions(IEnumerable<Func<ITransformContinuation<T>>> preconditions)
+        public TransformContinuation<T> AddPreconditions(IEnumerable<Func<T, TransformContinuation<T>>> preconditions)
         {
             foreach (var p in preconditions)
                 AddPrecondition(p);
@@ -74,7 +74,7 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        public ITransformContinuation<T> AddPrecondition(Func<ITransformContinuation<T>> precondition)
+        public TransformContinuation<T> AddPrecondition(Func<T, TransformContinuation<T>> precondition)
         {
             if (state == State.Finished)
                 throw new InvalidOperationException($"Cannot add preconditions to finished continuations.");
@@ -121,31 +121,26 @@ namespace osu.Framework.Graphics.Transforms
             return null;
         }
 
-        private void onTrigger(double offset, IEnumerable<Func<ITransformContinuation<T>>> funcs)
+        private void onTrigger(double offset, IEnumerable<Func<T, TransformContinuation<T>>> funcs)
         {
-            Origin.WithDelay(-offset, delegate
+            origin.WithDelay(-offset, delegate
             {
                 AddPreconditions(funcs);
                 Invoke();
             });
         }
 
-        private ITransformContinuation<T> then(IEnumerable<Func<ITransformContinuation<T>>> funcs)
+        private TransformContinuation<T> then(IEnumerable<Func<T, TransformContinuation<T>>> funcs)
         {
-            var result = new TransformContinuation<T>(Origin);
+            var result = new TransformContinuation<T>(origin);
             onCompleteActions += offset => result.onTrigger(offset, funcs);
             return result;
         }
 
-        public ITransformContinuation<T> Then(Func<ITransformContinuation<T>> firstFun, params Func<ITransformContinuation<T>>[] funcs) =>
+        public TransformContinuation<T> Then(Func<T, TransformContinuation<T>> firstFun, params Func<T, TransformContinuation<T>>[] funcs) =>
             then(new[] { firstFun }.Concat(funcs));
 
-        private Func<ITransformContinuation<T>> bindOrigin(Func<T, ITransformContinuation<T>> fun) => () => fun(Origin);
-
-        public ITransformContinuation<T> Then(Func<T, ITransformContinuation<T>> firstFun, params Func<T, ITransformContinuation<T>>[] funcs) =>
-            then(new[] { firstFun }.Concat(funcs).Select(bindOrigin));
-
-        public ITransformContinuation<T> WaitForCompletion() => then(new Func<ITransformContinuation<T>>[0]);
+        public TransformContinuation<T> WaitForCompletion() => then(new Func<T, TransformContinuation<T>>[0]);
 
         public void Then(Action<double> func) => onCompleteActions += func;
 
