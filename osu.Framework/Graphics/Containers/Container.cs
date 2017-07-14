@@ -7,7 +7,6 @@ using System;
 using osu.Framework.Allocation;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
-using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using OpenTK;
 using System.Collections;

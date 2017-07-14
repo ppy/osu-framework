@@ -12,6 +12,7 @@ using osu.Framework.Input;
 using osu.Framework.Timing;
 using OpenTK.Input;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Visualisation
 {

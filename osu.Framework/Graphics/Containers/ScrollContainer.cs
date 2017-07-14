@@ -9,6 +9,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using OpenTK.Input;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Containers
 {

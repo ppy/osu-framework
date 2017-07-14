@@ -11,7 +11,6 @@ using osu.Framework.Graphics.OpenGL.Buffers;
 using osu.Framework.Graphics.OpenGL.Vertices;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shaders;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using System;

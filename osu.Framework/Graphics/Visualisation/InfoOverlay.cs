@@ -5,6 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Visualisation
 {

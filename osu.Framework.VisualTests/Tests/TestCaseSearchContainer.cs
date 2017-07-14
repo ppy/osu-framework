@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics;
 using OpenTK;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.VisualTests.Tests
 {

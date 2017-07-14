@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
 using osu.Framework.Threading;
 using osu.Framework.Lists;
+using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Visualisation
 {
