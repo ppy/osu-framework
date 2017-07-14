@@ -8,7 +8,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformVector<T> : Transform<Vector2, T>
     {
-        public TransformVector(T target) : base(target)
+        protected TransformVector(T target) : base(target)
         {
         }
 

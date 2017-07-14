@@ -196,7 +196,7 @@ namespace osu.Framework.Graphics.UserInterface
                 else
                     Caret
                         .FadeColour(Color4.White, 200, EasingTypes.Out)
-                        .Loop(c => c.FadeTo(0.7f, 0).FadeTo(0.4f, 500, EasingTypes.InOutSine));
+                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, EasingTypes.InOutSine));
             }
 
             if (textAtLastLayout != text)

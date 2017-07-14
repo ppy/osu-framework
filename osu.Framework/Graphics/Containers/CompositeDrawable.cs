@@ -989,7 +989,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
+        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
         /// </summary>
         public float AutoSizeDuration
         {

@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Transforms
     {
         public ulong TransformID { get; internal set; }
 
-        private T target;
+        private readonly T target;
 
         protected Transform(T target)
         {
@@ -46,7 +46,7 @@ namespace osu.Framework.Graphics.Transforms
 
     public abstract class Transform<TValue, T> : Transform<T>
     {
-        public Transform(T target) : base(target)
+        protected Transform(T target) : base(target)
         {
         }
 

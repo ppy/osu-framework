@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public static class ITransformableExtensions
+    public static class TransformableExtensions
     {
         /// <summary>
         /// Applies a <see cref="Transform{TValue, T}"/> to a given <see cref="ITransformable"/>.
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a transform that fades the current <see cref="IContainer.EdgeEffect"/>.
         /// </summary>
         public static TransformContinuation<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
@@ -144,7 +144,7 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
+        /// Helper function for creating and adding a transform that fades the current <see cref="IContainer.EdgeEffect"/>.
         /// </summary>
         public static TransformContinuation<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer

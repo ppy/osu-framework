@@ -31,7 +31,7 @@ namespace osu.Framework.Graphics.Containers
     /// Additionally, containers support various effects, such as masking, edge effect,
     /// padding, and automatic sizing depending on their children.
     /// </summary>
-    public class Container<T> : CompositeDrawable, IContainer, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
+    public class Container<T> : CompositeDrawable, IContainerEnumerable<T>, IContainerCollection<T>, ICollection<T>, IReadOnlyList<T>
         where T : Drawable
     {
         /// <summary>
@@ -412,7 +412,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
+        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
         /// </summary>
         public new float AutoSizeDuration
         {

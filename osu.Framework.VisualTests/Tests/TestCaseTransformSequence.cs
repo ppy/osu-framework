@@ -91,7 +91,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.ScaleTo(2)
             )
             .Then(
-                b => b.Loop(500, 2, d => d.RotateTo(0, 0).RotateTo(360, 1000)),
+                b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
             .WaitForCompletion().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
