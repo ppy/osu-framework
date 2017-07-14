@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Transforms;
-using osu.Framework.Input;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
