@@ -351,13 +351,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
                     }
 
-                    using (shrinkContainer.BeginLoopedSequence())
-                    {
-                        shrinkContainer.ScaleTo(new Vector2(1.5f, 1), 1000);
-                        using (shrinkContainer.BeginDelayedSequence(1000))
-                            shrinkContainer.ScaleTo(new Vector2(1f, 1), 1000);
-                    }
-
+                    shrinkContainer.Loop(c => c.ScaleTo(new Vector2(1.5f, 1), 1000).Then().ScaleTo(Vector2.One, 1000));
                     break;
 
                 case 8:
@@ -477,14 +471,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                        {
-                            using (b.BeginLoopedSequence())
-                            {
-                                b.ScaleTo(new Vector2(2, 2), 1000);
-                                using (b.BeginDelayedSequence(1000))
-                                    b.ScaleTo(new Vector2(1, 1), 1000);
-                            }
-                        }
+                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
 
                         break;
                     }
@@ -606,14 +593,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                        {
-                            using (b.BeginLoopedSequence())
-                            {
-                                b.ScaleTo(new Vector2(2, 2), 1000);
-                                using (b.BeginDelayedSequence(1000))
-                                    b.ScaleTo(new Vector2(1, 1), 1000);
-                            }
-                        }
+                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
 
                         break;
                     }
@@ -735,14 +715,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                        {
-                            using (b.BeginLoopedSequence())
-                            {
-                                b.ScaleTo(new Vector2(2, 2), 1000);
-                                using (b.BeginDelayedSequence(1000))
-                                    b.ScaleTo(new Vector2(1, 1), 1000);
-                            }
-                        }
+                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
 
                         break;
                     }
@@ -864,14 +837,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Drawable b in new[] { box1, box2, box3 })
-                        {
-                            using (b.BeginLoopedSequence())
-                            {
-                                b.ScaleTo(new Vector2(2, 2), 1000);
-                                using (b.BeginDelayedSequence(1000))
-                                    b.ScaleTo(new Vector2(1, 1), 1000);
-                            }
-                        }
+                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
 
                         break;
                     }
@@ -922,13 +888,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        using (sizedBox.BeginLoopedSequence())
-                        {
-                            sizedBox.ScaleTo(new Vector2(2, 2), 1000, EasingTypes.Out);
-                            using (sizedBox.BeginDelayedSequence(1000))
-                                sizedBox.ScaleTo(new Vector2(1, 1), 1000, EasingTypes.In);
-                        }
-
+                        sizedBox.Loop(b => b.ScaleTo(new Vector2(2), 1000, EasingTypes.Out).Then().ScaleTo(Vector2.One, 1000, EasingTypes.In));
                         break;
                     }
             }

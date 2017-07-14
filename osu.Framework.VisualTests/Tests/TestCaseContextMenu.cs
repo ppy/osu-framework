@@ -59,20 +59,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            using (movingBox.BeginLoopedSequence())
-            {
-                movingBox.MoveTo(new Vector2(0, 100), duration);
-                using (movingBox.BeginDelayedSequence(duration))
-                {
-                    movingBox.MoveTo(new Vector2(100, 100), duration);
-                    using (movingBox.BeginDelayedSequence(duration))
-                    {
-                        movingBox.MoveTo(new Vector2(100, 0), duration);
-                        using (movingBox.BeginDelayedSequence(duration))
-                            movingBox.MoveTo(Vector2.Zero, duration);
-                    }
-                }
-            }
+            // Move box along a square trajectory
+            movingBox.Loop(b => b
+                .MoveTo(new Vector2(0, 100), duration)
+                .Then().MoveTo(new Vector2(100, 100), duration)
+                .Then().MoveTo(new Vector2(100, 0), duration)
+                .Then().MoveTo(Vector2.Zero, duration)
+            );
         }
 
         private class ContextMenuBox : Container, IHasContextMenu

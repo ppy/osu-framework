@@ -189,17 +189,13 @@ namespace osu.Framework.Graphics.UserInterface
                 Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
 
                 if (selectionLength > 0)
-                {
-                    Caret.FadeTo(0.5f, 200, EasingTypes.Out);
-                    Caret.FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
-                }
+                    Caret
+                        .FadeTo(0.5f, 200, EasingTypes.Out)
+                        .FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
                 else
-                {
-                    Caret.FadeTo(0.7f, 200, EasingTypes.Out);
-                    Caret.FadeColour(Color4.White, 200, EasingTypes.Out);
-                    using (Caret.BeginLoopedSequence())
-                        Caret.FadeTo(0.4f, 500, EasingTypes.InOutSine);
-                }
+                    Caret
+                        .FadeColour(Color4.White, 200, EasingTypes.Out)
+                        .Loop(c => c.FadeTo(0.7f, 0).FadeTo(0.4f, 500, EasingTypes.InOutSine));
             }
 
             if (textAtLastLayout != text)
