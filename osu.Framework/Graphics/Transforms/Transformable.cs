@@ -113,7 +113,15 @@ namespace osu.Framework.Graphics.Transforms
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
             DelayReset();
-            transformsLazy?.Clear();
+
+            if (transformsLazy == null)
+                return;
+
+            var toAbort = transformsLazy.ToArray();
+            transformsLazy.Clear();
+
+            foreach (var t in toAbort)
+                t.OnAbort(Time.Current - t.EndTime);
         }
 
         /// <summary>
