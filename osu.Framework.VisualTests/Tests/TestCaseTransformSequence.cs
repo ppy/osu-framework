@@ -20,6 +20,37 @@ namespace osu.Framework.VisualTests.Tests
 
         public TestCaseTransformSequence() : base(3, 2)
         {
+            boxes = new Container[Rows * Cols];
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            setup();
+            animate();
+
+            AddStep("Animate", delegate
+            {
+                setup();
+                animate();
+            });
+
+            AddStep($"{nameof(ClearTransforms)}", delegate
+            {
+                foreach (var box in boxes)
+                    box.ClearTransforms();
+            });
+
+            AddStep($"{nameof(Flush)}", delegate
+            {
+                foreach (var box in boxes)
+                    box.Flush();
+            });
+        }
+
+        private void setup()
+        {
             string[] labels =
             {
                 "Spin after 2 seconds",
@@ -30,10 +61,9 @@ namespace osu.Framework.VisualTests.Tests
                 $"Red on {nameof(TransformContinuation<Container>)}.{nameof(TransformContinuation<Container>.Finally)}",
             };
 
-            boxes = new Container[Rows * Cols];
             for (int i = 0; i < Rows * Cols; ++i)
             {
-                Cell(i).AddRange(new Drawable[]
+                Cell(i).Children = new Drawable[]
                 {
                     new SpriteText
                     {
@@ -58,27 +88,19 @@ namespace osu.Framework.VisualTests.Tests
                             RelativeSizeAxes = Axes.Both,
                         }
                     }
-                });
+                };
             }
-
-            AddStep("Abort all", delegate
-            {
-                foreach (var box in boxes)
-                    box.ClearTransforms();
-            });
         }
 
-        protected override void LoadComplete()
+        private void animate()
         {
-            base.LoadComplete();
-
             boxes[0].Delayed(500).Then(500).Then(500).Then(
                 b => b.Delayed(500).Spin(1000)
             );
 
             boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0).RotateTo(360, 1000));
 
-            boxes[2].RotateTo(360, 1000)
+            boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
                 b => b.RotateTo(0, 1000),
                 b => b.ScaleTo(2, 500)
@@ -86,7 +108,7 @@ namespace osu.Framework.VisualTests.Tests
             .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
             .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
-            boxes[3].RotateTo(360, 500)
+            boxes[3].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
@@ -98,7 +120,7 @@ namespace osu.Framework.VisualTests.Tests
             .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
 
-            boxes[4].RotateTo(360, 500)
+            boxes[4].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
@@ -110,7 +132,7 @@ namespace osu.Framework.VisualTests.Tests
             .Catch(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
 
-            boxes[5].RotateTo(360, 500)
+            boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 500)
             .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)

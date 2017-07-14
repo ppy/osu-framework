@@ -153,18 +153,22 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
         public virtual void Flush(bool propagateChildren = false, Type flushType = null)
         {
-            var operateTransforms = flushType == null ? Transforms : Transforms.Where(t => t.GetType() == flushType);
+            if (transformsLazy == null)
+                return;
 
-            foreach (ITransform t in operateTransforms)
+            var toFlush = (flushType == null ? transformsLazy : transformsLazy.Where(t => t.GetType() == flushType)).ToArray();
+
+            if (flushType == null)
+                transformsLazy.Clear();
+            else
+                transformsLazy.RemoveAll(t => t.GetType() == flushType);
+
+            foreach (ITransform t in toFlush)
             {
                 t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
                 t.Apply();
+                t.OnComplete(100000);
             }
-
-            if (flushType == null)
-                ClearTransforms();
-            else
-                transformsLazy.RemoveAll(t => t.GetType() == flushType);
         }
 
         /// <summary>
