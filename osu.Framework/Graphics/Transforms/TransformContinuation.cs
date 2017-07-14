@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
@@ -19,7 +20,7 @@ namespace osu.Framework.Graphics.Transforms
         // a simple transform as child via our second constructor.
         private int countChildren;
         private int countChildrenComplete;
-        private int countChildrenAborted;
+        private bool isAborted;
 
         private double finishedOffset;
 
@@ -56,19 +57,20 @@ namespace osu.Framework.Graphics.Transforms
             else
             {
                 transform.OnComplete = onChildComplete;
-                transform.OnAbort = onChildAbort;
+                transform.OnAbort = offset => onChildAbort();
             }
         }
 
         private void run(double offset)
         {
+            Trace.Assert(!isAborted, "Cannot run an aborted continuation.");
+
             if (state == State.Running)
                 throw new InvalidOperationException("Cannot invoke the same continuation twice.");
 
             state = State.Running;
 
             countChildrenComplete = 0;
-            countChildrenAborted = 0;
 
             if (childrenGenerators.Count > 0)
             {
@@ -137,14 +139,16 @@ namespace osu.Framework.Graphics.Transforms
                 triggerComplete(offset);
         }
 
-        private void onChildAbort(double offset)
+        private void onChildAbort()
         {
-            if (countChildrenAborted++ == 0)
-                triggerAbort(offset);
+            if (!isAborted)
+                triggerAbort();
         }
 
         private void triggerComplete(double offset)
         {
+            Trace.Assert(!isAborted, "It is impossible for a transform continuation to both complete and be aborted.");
+
             state = State.Finished;
             if (remainingIterations == 0)
             {
@@ -157,34 +161,37 @@ namespace osu.Framework.Graphics.Transforms
             run(offset - iterationPause);
         }
 
-        private void triggerAbort(double offset)
+        private void triggerAbort()
         {
             state = State.Finished;
 
-            finishedOffset = offset;
-            OnAbort?.Invoke(offset);
+            isAborted = true;
+            OnAbort?.Invoke();
         }
 
         private void subscribeComplete(Action<double> action)
         {
-            if (state != State.Finished)
-                OnComplete += action;
-            // If we were already completed before, immediately trigger.
-            else if (countChildrenComplete == countChildren)
+            // If we are already completed, immediately trigger.
+            if (countChildrenComplete == countChildren)
+            {
+                Trace.Assert(!isAborted, "It is impossible for a transform continuation to both complete and be aborted.");
                 action.Invoke(finishedOffset);
+            }
+            else
+                OnComplete += action;
         }
 
-        private void subscribeAbort(Action<double> action)
+        private void subscribeAbort(Action action)
         {
-            if (state != State.Finished)
-                OnAbort += action;
             // If we were already aborted before, immediately trigger.
-            else if(countChildrenAborted > 0)
-                action.Invoke(finishedOffset);
+            if (isAborted)
+                action.Invoke();
+            else
+                OnAbort += action;
         }
 
         private event Action<double> OnComplete;
-        private event Action<double> OnAbort;
+        private event Action OnAbort;
 
         private TransformContinuation<T> loop(double pause, int numIters, IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
         {
@@ -220,6 +227,8 @@ namespace osu.Framework.Graphics.Transforms
             var nextContinuation = new TransformContinuation<T>(origin, false, nextDelay);
             nextContinuation.AddChildGenerators(nextChildGenerators);
             subscribeComplete(offset => nextContinuation.run(offset));
+            subscribeAbort(() => nextContinuation.triggerAbort());
+
             return nextContinuation;
         }
 
@@ -227,19 +236,14 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformContinuation<T> Then(params Func<T, TransformContinuation<T>>[] childGenerators) => then(0, childGenerators);
 
-        public TransformContinuation<T> WaitForCompletion(double delay = 0) => then(delay, new Func<T, TransformContinuation<T>>[0]);
+        public void Then(Action func) => subscribeComplete(offset => func());
 
-        public void Then(Action<double> func) => subscribeComplete(func);
+        public void Catch(Action func) => subscribeAbort(func);
 
-        public void WhenAborted(Action<double> func)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Finally(Action<double> func)
+        public void Finally(Action func)
         {
             Then(func);
-            WhenAborted(func);
+            Catch(func);
         }
     }
 }

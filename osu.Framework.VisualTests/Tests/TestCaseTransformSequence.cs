@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input;
 using osu.Framework.Testing;
 
 namespace osu.Framework.VisualTests.Tests
@@ -17,14 +18,16 @@ namespace osu.Framework.VisualTests.Tests
 
         private readonly Container[] boxes;
 
-        public TestCaseTransformSequence() : base(2, 2)
+        public TestCaseTransformSequence() : base(3, 2)
         {
             string[] labels =
             {
                 "Spin after 2 seconds",
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
-                "Complex transform 2 (should end in sync with CT1)"
+                "Complex transform 2 (should end in sync with CT1)",
+                "Red when abort",
+                "Red when finally",
             };
 
             boxes = new Container[Rows * Cols];
@@ -57,6 +60,12 @@ namespace osu.Framework.VisualTests.Tests
                     }
                 });
             }
+
+            AddStep("Abort all", delegate
+            {
+                foreach (var box in boxes)
+                    box.ClearTransforms();
+            });
         }
 
         protected override void LoadComplete()
@@ -87,6 +96,36 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.ScaleTo(0.5f, 500)
             )
             .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+
+
+            boxes[4].RotateTo(360, 500)
+            .Then(1000,
+                b => b.RotateTo(0),
+                b => b.ScaleTo(2)
+            )
+            .Then(
+                b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
+                b => b.ScaleTo(0.5f, 500)
+            )
+            .Catch(() =>
+            {
+                boxes[4].FadeEdgeEffectTo(Color4.Red, 1000);
+            });
+
+
+            boxes[5].RotateTo(360, 500)
+            .Then(1000,
+                b => b.RotateTo(0),
+                b => b.ScaleTo(2)
+            )
+            .Then(
+                b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
+                b => b.ScaleTo(0.5f, 500)
+            )
+            .Finally(() =>
+            {
+                boxes[5].FadeEdgeEffectTo(Color4.Red, 1000);
+            });
         }
     }
 }
