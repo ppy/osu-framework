@@ -58,7 +58,7 @@ namespace osu.Framework.Graphics.Transforms
             return drawable.FadeIn(duration, easing);
         }
 
-        public static TransformContinuation<T> FadeOut<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable => 
+        public static TransformContinuation<T> FadeOut<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.FadeTo(0, duration, easing);
 
         public static TransformContinuation<T> FadeOutFromOne<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
