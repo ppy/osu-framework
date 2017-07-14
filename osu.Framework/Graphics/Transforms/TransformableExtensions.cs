@@ -77,6 +77,9 @@ namespace osu.Framework.Graphics.Transforms
         public static TransformContinuation<T> RotateTo<T>(this T drawable, float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newRotation, duration, easing, new TransformRotation(drawable));
 
+        public static TransformContinuation<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0, int numRevolutions = -1) where T : Drawable =>
+            drawable.Delayed(0).Spin(revolutionDuration, startRotation, numRevolutions);
+
         public static TransformContinuation<T> MoveTo<T>(this T drawable, Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             switch (direction)

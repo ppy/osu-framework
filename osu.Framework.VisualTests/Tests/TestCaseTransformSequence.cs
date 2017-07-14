@@ -65,7 +65,7 @@ namespace osu.Framework.VisualTests.Tests
             base.LoadComplete();
 
             // Loop a rotation from 0 to 360 degrees with duration 1000 ms
-            boxes[0].Loop(b => b.RotateTo(0).RotateTo(360, 1000));
+            boxes[0].Spin(1000);
 
             // After 1000 ms, loop a rotation from 0 to 360 degrees with duration 1000 ms, but pause for 1000 ms between rotations.
             boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0).RotateTo(360, 1000));

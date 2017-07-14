@@ -9,6 +9,9 @@ namespace osu.Framework.Graphics.Transforms
 {
     public static class TransformContinuationExtensions
     {
+        public static TransformContinuation<T> Spin<T>(this TransformContinuation<T> t, double revolutionDuration, float startRotation = 0, int numRevolutions = -1) where T : Drawable =>
+            t.Loop(0, numRevolutions, d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
+
         public static TransformContinuation<T> FadeIn<T>(this TransformContinuation<T> t, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             t.AddChildGenerator(o => o.FadeIn(duration, easing));
 
