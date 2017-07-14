@@ -892,11 +892,6 @@ namespace osu.Framework.VisualTests.Tests
                         break;
                     }
             }
-
-#if DEBUG
-            //if (toggleDebugAutosize.State)
-            //    testContainer.Children.FindAll(c => c.HasAutosizeChildren).ForEach(c => c.AutoSizeDebug = true);
-#endif
         }
 
         private void addCornerMarkers(Container box, int size = 50, Color4? colour = null)
