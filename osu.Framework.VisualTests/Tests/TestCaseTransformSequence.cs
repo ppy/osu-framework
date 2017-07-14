@@ -65,10 +65,10 @@ namespace osu.Framework.VisualTests.Tests
             base.LoadComplete();
 
             // Loop a rotation from 0 to 360 degrees with duration 1000 ms
-            boxes[0].Loop(b => b.RotateTo(0, 0).RotateTo(360, 1000));
+            boxes[0].Loop(b => b.RotateTo(0).RotateTo(360, 1000));
 
             // After 1000 ms, loop a rotation from 0 to 360 degrees with duration 1000 ms, but pause for 1000 ms between rotations.
-            boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0, 0).RotateTo(360, 1000));
+            boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0).RotateTo(360, 1000));
 
             // Rotate by 360 degrees during 1000 ms, then simultaneously rotate back during 1000 ms and
             // scale to 2 during 500 ms. Then, rotate by 360 degrees during 1000 ms again, and simultaneously
@@ -87,8 +87,8 @@ namespace osu.Framework.VisualTests.Tests
             // Lastly, simultaneously fade the edge effect to red during 1000 ms and scale to 2 during 500 ms.
             boxes[3].RotateTo(360, 500)
             .Then(
-                b => b.RotateTo(0, 0),
-                b => b.ScaleTo(2, 0)
+                b => b.RotateTo(0),
+                b => b.ScaleTo(2)
             )
             .Then(
                 b => b.Loop(500, 2, d => d.RotateTo(0, 0).RotateTo(360, 1000)),

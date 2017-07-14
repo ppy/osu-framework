@@ -75,19 +75,19 @@ namespace osu.Framework.Graphics.Transforms
             => t.AddChildGenerator(o => o.FadeEdgeEffectTo(newColour, duration, easing));
 
         public static TransformContinuation<T> TransformRelativeChildSizeTo<T>(this TransformContinuation<T> t, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => t.AddChildGenerator(o => o.TransformRelativeChildSizeTo(newSize, duration, easing));
 
         public static TransformContinuation<T> TransformRelativeChildOffsetTo<T>(this TransformContinuation<T> t, Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => t.AddChildGenerator(o => o.TransformRelativeChildOffsetTo(newOffset, duration, easing));
 
         public static TransformContinuation<T> BlurTo<T>(this TransformContinuation<T> t, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IBufferedContainer
+            where T : IBufferedContainer
             => t.AddChildGenerator(o => o.BlurTo(newBlurSigma, duration, easing));
 
         public static TransformContinuation<T> TransformSpacingTo<T>(this TransformContinuation<T> t, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IFillFlowContainer
+            where T : IFillFlowContainer
             => t.AddChildGenerator(o => o.TransformSpacingTo(newSpacing, duration, easing));
     }
 }

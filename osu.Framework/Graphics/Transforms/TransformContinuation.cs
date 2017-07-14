@@ -12,6 +12,9 @@ namespace osu.Framework.Graphics.Transforms
     {
         private T origin { get; }
 
+        private readonly double delay;
+        private readonly List<Func<T, TransformContinuation<T>>> childrenGenerators = new List<Func<T, TransformContinuation<T>>>();
+
         // countChildren may be different from the amount of children generators, as we can have
         // a simple transform as child via our second constructor.
         private int countChildren;
@@ -20,14 +23,10 @@ namespace osu.Framework.Graphics.Transforms
 
         private double finishedOffset;
 
-        private double delay;
-
         // Amount of additional loop iterations to perform
         private long remainingIterations;
         // Pause in milliseconds between iterations
         private double iterationPause;
-
-        private readonly List<Func<T, TransformContinuation<T>>> childrenGenerators = new List<Func<T, TransformContinuation<T>>>();
 
         private enum State
         {
@@ -63,7 +62,7 @@ namespace osu.Framework.Graphics.Transforms
         private void run(double offset)
         {
             if (state == State.Running)
-                throw new InvalidOperationException($"Cannot invoke the same continuation twice.");
+                throw new InvalidOperationException("Cannot invoke the same continuation twice.");
 
             state = State.Running;
 
@@ -139,7 +138,7 @@ namespace osu.Framework.Graphics.Transforms
             if (remainingIterations == 0)
             {
                 finishedOffset = offset;
-                onComplete?.Invoke(offset);
+                OnComplete?.Invoke(offset);
                 return;
             }
 
@@ -152,13 +151,13 @@ namespace osu.Framework.Graphics.Transforms
             state = State.Finished;
 
             finishedOffset = offset;
-            onAbort?.Invoke(offset);
+            OnAbort?.Invoke(offset);
         }
 
         private void subscribeComplete(Action<double> action)
         {
             if (state != State.Finished)
-                onComplete += action;
+                OnComplete += action;
             // If we were already completed before, immediately trigger.
             else if (countChildrenComplete == countChildren)
                 action.Invoke(finishedOffset);
@@ -167,14 +166,14 @@ namespace osu.Framework.Graphics.Transforms
         private void subscribeAbort(Action<double> action)
         {
             if (state != State.Finished)
-                onAbort += action;
+                OnAbort += action;
             // If we were already aborted before, immediately trigger.
             else if(countChildrenAborted > 0)
                 action.Invoke(finishedOffset);
         }
 
-        private event Action<double> onComplete;
-        private event Action<double> onAbort;
+        private event Action<double> OnComplete;
+        private event Action<double> OnAbort;
 
         private TransformContinuation<T> loop(double pause, int numIters, IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
         {
@@ -221,7 +220,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public void Then(Action<double> func) => subscribeComplete(func);
 
-        public void OnAbort(Action<double> func)
+        public void WhenAborted(Action<double> func)
         {
             throw new NotImplementedException();
         }
@@ -229,7 +228,7 @@ namespace osu.Framework.Graphics.Transforms
         public void Finally(Action<double> func)
         {
             Then(func);
-            OnAbort(func);
+            WhenAborted(func);
         }
     }
 }

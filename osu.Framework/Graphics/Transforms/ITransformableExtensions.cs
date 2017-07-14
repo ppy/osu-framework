@@ -12,13 +12,17 @@ namespace osu.Framework.Graphics.Transforms
     public static class ITransformableExtensions
     {
         /// <summary>
-        /// Applies a transform to this object.
+        /// Applies a <see cref="Transform{TValue, T}"/> to a given <see cref="ITransformable"/>.
         /// </summary>
-        /// <typeparam name="TValue">The value type upon which the transform acts.</typeparam>
+        /// <typeparam name="TThis">The type of the <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</typeparam>
+        /// <typeparam name="TValue">The value type which is being transformed.</typeparam>
+        /// <typeparam name="TBase">The minimum type required for the given <see cref="Transform{TValue, T}"/>.</typeparam>
+        /// <param name="t">The <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</param>
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
+        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
         public static TransformContinuation<TThis> TransformTo<TThis, TValue, TBase>(
             this TThis t, TValue newValue, double duration, EasingTypes easing, Transform<TValue, TBase> transform)
             where TThis : ITransformable, TBase
@@ -150,34 +154,40 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Tweens the <see cref="RelativeChildSize"/> of this <see cref="Container"/>.
+        /// Tweens the <see cref="Container.RelativeChildSize"/> of a <see cref="Container"/>.
         /// </summary>
-        /// <param name="newSize">The coordinate space to tween to.</param>
+        /// <typeparam name="T">The type of the <see cref="Container"/> to be tweened.</typeparam>
+        /// <param name="container">The <see cref="Container"/> to be tweened.</param>
+        /// <param name="newSize">The child size to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
+        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
         public static TransformContinuation<T> TransformRelativeChildSizeTo<T>(this T container, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => container.TransformTo(newSize, duration, easing, new TransformRelativeChildSize(container));
 
         /// <summary>
-        /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="Container"/>.
+        /// Tweens the <see cref="Container.RelativeChildOffset"/> of a <see cref="Container"/>.
         /// </summary>
-        /// <param name="newOffset">The coordinate space to tween to.</param>
+        /// <typeparam name="T">The type of the <see cref="Container"/> to be tweened.</typeparam>
+        /// <param name="container">The <see cref="Container"/> to be tweened.</param>
+        /// <param name="newOffset">The child offset to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
+        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
         public static TransformContinuation<T> TransformRelativeChildOffsetTo<T>(this T container, Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IContainer
+            where T : IContainer
             => container.TransformTo(newOffset, duration, easing, new TransformRelativeChildOffset(container));
 
         /// <summary>
-        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs the buffered container.
+        /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs a <see cref="BufferedContainer{T}"/>.
         /// </summary>
         public static TransformContinuation<T> BlurTo<T>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IBufferedContainer
+            where T : IBufferedContainer
             => bufferedContainer.TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma(bufferedContainer));
 
         public static TransformContinuation<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-            where T : Transformable, IFillFlowContainer
+            where T : IFillFlowContainer
             => flowContainer.TransformTo(newSpacing, duration, easing, new TransformSpacing(flowContainer));
     }
 }
