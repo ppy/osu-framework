@@ -10,7 +10,6 @@ using OpenTK.Graphics;
 using System;
 using osu.Framework.Testing;
 using osu.Framework.Input;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.VisualTests.Tests
 {

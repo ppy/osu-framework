@@ -18,7 +18,6 @@ using osu.Framework.Audio;
 using osu.Framework.Configuration;
 using osu.Framework.Platform;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.UserInterface
 {

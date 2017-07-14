@@ -10,7 +10,6 @@ using osu.Framework.Graphics.Sprites;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.Extensions.TypeExtensions;
 
 namespace osu.Framework.Graphics.Visualisation

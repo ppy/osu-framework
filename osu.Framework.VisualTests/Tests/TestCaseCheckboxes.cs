@@ -6,7 +6,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Testing;
 using OpenTK;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.VisualTests.Tests
 {

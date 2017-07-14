@@ -4,8 +4,9 @@
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Transforms;
 
-namespace osu.Framework.Graphics.Transforms
+namespace osu.Framework.Graphics
 {
     public static class TransformContinuationExtensions
     {

@@ -10,7 +10,6 @@ using osu.Framework.Input;
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Transforms;
 
 namespace osu.Framework.Graphics.Visualisation
 {
