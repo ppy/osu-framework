@@ -59,7 +59,7 @@ namespace osu.Framework.VisualTests.Tests
 
                 Children = new Drawable[]
                 {
-                    box = new Box()
+                    box = new Box
                     {
                         Colour = normalColour,
                         RelativeSizeAxes = Axes.Both
