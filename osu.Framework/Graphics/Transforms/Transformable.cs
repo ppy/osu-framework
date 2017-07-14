@@ -14,7 +14,7 @@ namespace osu.Framework.Graphics.Transforms
     /// A type of object which can have transforms attached to it.
     /// An implementer of this class must call <see cref="UpdateTransforms"/> to update the transforms.
     /// </summary>
-    public abstract class Transformable
+    public abstract class Transformable : ITransformable
     {
         /// <summary>
         /// The clock that is used to provide the timing for the transforms.
@@ -258,6 +258,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply();
+                transform.OnComplete?.Invoke(0);
                 return;
             }
 

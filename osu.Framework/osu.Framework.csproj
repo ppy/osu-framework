@@ -151,7 +151,6 @@
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
     <Compile Include="Graphics\Transforms\ITransformable.cs" />
-    <Compile Include="Graphics\Transforms\ITransformableExtension.cs" />
     <Compile Include="Graphics\Transforms\TransformBlurSigma.cs" />
     <Compile Include="Graphics\TransformHelpers.cs" />
     <Compile Include="Graphics\Transforms\TransformContinuation.cs" />

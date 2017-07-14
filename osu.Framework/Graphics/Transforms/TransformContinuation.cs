@@ -16,6 +16,18 @@ namespace osu.Framework.Graphics.Transforms
         // countChildren may be different from the amount of children generators, as we can have
         // a simple transform as child via our second constructor.
         private int countChildren;
+        private int countChildrenComplete;
+        private int countChildrenAborted;
+
+        private double finishedOffset;
+
+        private double delay;
+
+        // Amount of additional loop iterations to perform
+        private long remainingIterations;
+        // Pause in milliseconds between iterations
+        private double iterationPause;
+
         private readonly List<Func<T, TransformContinuation<T>>> childrenGenerators = new List<Func<T, TransformContinuation<T>>>();
 
         private enum State
@@ -27,45 +39,57 @@ namespace osu.Framework.Graphics.Transforms
 
         private State state = State.Dormant;
 
-        public TransformContinuation(T origin)
+        public TransformContinuation(T origin, bool running, double delay)
         {
+            this.delay = delay;
             this.origin = origin;
+            if (running)
+                run(0);
         }
 
-        public TransformContinuation(T origin, ITransform transform) : this(origin)
+        public TransformContinuation(T origin, ITransform transform) : this(origin, true, 0)
         {
-            run(0);
-
             ++countChildren;
 
-            transform.OnComplete = onChildComplete;
-            transform.OnAbort = onChildAbort;
+            // If we transform already finished, then let's immediately trigger a completion
+            if (transform.EndTime <= transform.Time?.Current)
+                onChildComplete(0);
+            else
+            {
+                transform.OnComplete = onChildComplete;
+                transform.OnAbort = onChildAbort;
+            }
         }
 
         private void run(double offset)
         {
-            origin.WithDelay(-offset, delegate
+            if (state == State.Running)
+                throw new InvalidOperationException($"Cannot invoke the same continuation twice.");
+
+            state = State.Running;
+
+            countChildrenComplete = 0;
+            countChildrenAborted = 0;
+
+            TransformContinuation<T>[] children;
+
+            using (origin.BeginDelayedSequence(-offset))
+                children = childrenGenerators.Select(generateChild).ToArray();
+
+            foreach (var c in children)
             {
-                if (state != State.Dormant)
-                    throw new InvalidOperationException($"Cannot invoke the same continuation twice.");
-
-                state = State.Running;
-
-                foreach (var p in childrenGenerators)
-                    generateChild(p);
-            });
+                c.subscribeComplete(onChildComplete);
+                c.subscribeAbort(onChildAbort);
+            }
         }
 
-        private void generateChild(Func<T, TransformContinuation<T>> childGenerator)
+        private TransformContinuation<T> generateChild(Func<T, TransformContinuation<T>> childGenerator)
         {
-            Trace.Assert(state == State.Running);
-
             var childContinuation = childGenerator.Invoke(origin);
             if (!ReferenceEquals(childContinuation.origin, origin))
                 throw new InvalidOperationException($"May only chain transforms on the same origin, but chained {childContinuation.origin} from {origin}.");
 
-            childContinuation.onAllChildrenComplete += onChildComplete;
-            childContinuation.onOneChildAbort += onChildAbort;
+            return childContinuation;
         }
 
         public TransformContinuation<T> AddChildGenerators(IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
@@ -78,57 +102,130 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformContinuation<T> AddChildGenerator(Func<T, TransformContinuation<T>> childGenerator)
         {
-            if (state == State.Finished)
-                throw new InvalidOperationException($"Cannot add preconditions to finished continuations.");
-
             ++countChildren;
 
             childrenGenerators.Add(childGenerator);
-            if (state == State.Running)
-                generateChild(childGenerator);
+
+            if (state != State.Dormant)
+            {
+                state = State.Running;
+
+                TransformContinuation<T> c;
+                using (origin.BeginDelayedSequence(delay))
+                    c = generateChild(childGenerator);
+
+                c.subscribeComplete(onChildComplete);
+                c.subscribeAbort(onChildAbort);
+            }
 
             return this;
         }
 
-        private int countChildrenComplete;
         private void onChildComplete(double offset)
         {
             ++countChildrenComplete;
             if (countChildrenComplete == countChildren)
-                onAllChildrenComplete?.Invoke(offset);
+                triggerComplete(offset);
         }
 
-        private int countChildrenAborted;
         private void onChildAbort(double offset)
         {
-            if (countChildrenAborted == 0)
-                onOneChildAbort?.Invoke(offset);
-            ++countChildrenAborted;
+            if (countChildrenAborted++ == 0)
+                triggerAbort(offset);
         }
 
-        private event Action<double> onAllChildrenComplete;
-        private event Action<double> onOneChildAbort;
-
-        public TransformContinuation<T> Loop(double pause = 0, int numIters = -1)
+        private void triggerComplete(double offset)
         {
-            return null;
+            state = State.Finished;
+            if (remainingIterations == 0)
+            {
+                finishedOffset = offset;
+                onComplete?.Invoke(offset);
+                return;
+            }
+
+            --remainingIterations;
+            run(offset - iterationPause);
         }
 
-        private TransformContinuation<T> then(IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
+        private void triggerAbort(double offset)
         {
-            var result = new TransformContinuation<T>(origin);
-            result.AddChildGenerators(childGenerators);
-            onAllChildrenComplete += offset => result.run(offset);
-            return result;
+            state = State.Finished;
+
+            finishedOffset = offset;
+            onAbort?.Invoke(offset);
         }
 
-        public TransformContinuation<T> Then(params Func<T, TransformContinuation<T>>[] childGenerators) => then(childGenerators);
+        private void subscribeComplete(Action<double> action)
+        {
+            if (state != State.Finished)
+                onComplete += action;
+            // If we were already completed before, immediately trigger.
+            else if (countChildrenComplete == countChildren)
+                action.Invoke(finishedOffset);
+        }
 
-        public TransformContinuation<T> WaitForCompletion() => then(new Func<T, TransformContinuation<T>>[0]);
+        private void subscribeAbort(Action<double> action)
+        {
+            if (state != State.Finished)
+                onAbort += action;
+            // If we were already aborted before, immediately trigger.
+            else if(countChildrenAborted > 0)
+                action.Invoke(finishedOffset);
+        }
 
-        public void Then(Action<double> func) => onAllChildrenComplete += func;
+        private event Action<double> onComplete;
+        private event Action<double> onAbort;
 
-        public void OnAbort(Action<double> func) => onOneChildAbort += func;
+        private TransformContinuation<T> loop(double pause, int numIters, IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
+        {
+            // Add a new child generator, which will generate an immediately running and looping continuation.
+            AddChildGenerator(o =>
+            {
+                var loopedContinuation = new TransformContinuation<T>(o, false, 0)
+                {
+                    remainingIterations = numIters - 1,
+                    iterationPause = pause,
+                };
+
+                loopedContinuation.AddChildGenerators(childGenerators);
+                loopedContinuation.run(0);
+
+                return loopedContinuation;
+            });
+
+            return this;
+        }
+
+        public TransformContinuation<T> Loop(double pause, int numIters, Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators) =>
+            loop(pause, numIters, new[] { firstChildGenerator }.Concat(childGenerators));
+
+        public TransformContinuation<T> Loop(double pause, Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators) =>
+            Loop(pause, -1, firstChildGenerator, childGenerators);
+
+        public TransformContinuation<T> Loop(Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators) =>
+            Loop(0, -1, firstChildGenerator, childGenerators);
+
+        private TransformContinuation<T> then(double delay, IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
+        {
+            var nextContinuation = new TransformContinuation<T>(origin, false, delay);
+            nextContinuation.AddChildGenerators(childGenerators);
+            subscribeComplete(offset => nextContinuation.run(offset - delay));
+            return nextContinuation;
+        }
+
+        public TransformContinuation<T> Then(double delay, params Func<T, TransformContinuation<T>>[] childGenerators) => then(delay, childGenerators);
+
+        public TransformContinuation<T> Then(params Func<T, TransformContinuation<T>>[] childGenerators) => then(0, childGenerators);
+
+        public TransformContinuation<T> WaitForCompletion(double delay = 0) => then(delay, new Func<T, TransformContinuation<T>>[0]);
+
+        public void Then(Action<double> func) => subscribeComplete(func);
+
+        public void OnAbort(Action<double> func)
+        {
+            throw new NotImplementedException();
+        }
 
         public void Finally(Action<double> func)
         {
