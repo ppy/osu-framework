@@ -9,7 +9,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public interface ITransform
     {
-        long CreationID { get; }
+        ulong TransformID { get; }
 
         double Duration { get; }
 
@@ -38,7 +38,7 @@ namespace osu.Framework.Graphics.Transforms
 
             int compare = x.StartTime.CompareTo(y.StartTime);
             if (compare != 0) return compare;
-            compare = x.CreationID.CompareTo(y.CreationID);
+            compare = x.TransformID.CompareTo(y.TransformID);
             return compare;
         }
     }

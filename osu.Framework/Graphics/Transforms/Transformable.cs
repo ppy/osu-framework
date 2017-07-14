@@ -208,7 +208,13 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
-        public void AddTransform(ITransform transform)
+        /// <summary>
+        /// Used to assign a monotonically increasing ID to transforms as they are added. This member is
+        /// incremented whenever a transform is added.
+        /// </summary>
+        private ulong currentTransformID;
+
+        public void AddTransform<T>(Transform<T> transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
@@ -221,6 +227,7 @@ namespace osu.Framework.Graphics.Transforms
                 return;
             }
 
+            transform.TransformID = ++currentTransformID;
             transforms.Add(transform);
 
             // If our newly added transform could have an immediate effect, then let's

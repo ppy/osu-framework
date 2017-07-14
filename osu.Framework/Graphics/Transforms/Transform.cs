@@ -9,17 +9,13 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class Transform<T> : ITransform
     {
-        public long CreationID { get; private set; }
-
-        // ReSharper disable once StaticMemberInGenericType
-        private static readonly AtomicCounter creation_counter = new AtomicCounter();
+        public ulong TransformID { get; internal set; }
 
         private T target;
 
         protected Transform(T target)
         {
             this.target = target;
-            CreationID = creation_counter.Increment();
         }
 
         public double Duration => EndTime - StartTime;
