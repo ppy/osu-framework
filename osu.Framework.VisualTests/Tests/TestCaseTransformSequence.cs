@@ -21,10 +21,10 @@ namespace osu.Framework.VisualTests.Tests
         {
             string[] labels =
             {
-                "Looped single transform with 3 iterations",
-                "Looped single transform with 1 sec pause",
-                "Looped double transforms",
-                "Looped double transforms with 1 sec pause"
+                "Spin after 2 seconds",
+                "Loop(1 sec pause; 1 sec rotate)",
+                "Complex transform 1 (should end in sync with CT2)",
+                "Complex transform 2 (should end in sync with CT1)"
             };
 
             boxes = new Container[Rows * Cols];
@@ -63,29 +63,22 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            // Loop a rotation from 0 to 360 degrees with duration 1000 ms
-            boxes[0].Spin(1000);
+            boxes[0].Delayed(500).Then(500).Then(500).Then(
+                b => b.Delayed(500).Spin(1000)
+            );
 
-            // After 1000 ms, loop a rotation from 0 to 360 degrees with duration 1000 ms, but pause for 1000 ms between rotations.
             boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0).RotateTo(360, 1000));
 
-            // Rotate by 360 degrees during 1000 ms, then simultaneously rotate back during 1000 ms and
-            // scale to 2 during 500 ms. Then, rotate by 360 degrees during 1000 ms again, and simultaneously
-            // scale to 0.5 during 1000 ms.
-            // Lastly, simultaneously fade the edge effect to red during 1000 ms and scale to 2 during 500 ms.
             boxes[2].RotateTo(360, 1000)
-            .Then(
+            .Then(1000,
                 b => b.RotateTo(0, 1000),
                 b => b.ScaleTo(2, 500)
             )
-            .WaitForCompletion().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
-            .WaitForCompletion().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+            .Then().RotateTo(360, 1000).ScaleTo(0.5f, 1000)
+            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
 
-            // Rotate by 360 during 500 ms degrees, then instantly rotate back and scale to 2,
-            // then loop a 1-second rotation twice with 500 ms break between them, and a simultaneous scaling operation for 500 ms.
-            // Lastly, simultaneously fade the edge effect to red during 1000 ms and scale to 2 during 500 ms.
             boxes[3].RotateTo(360, 500)
-            .Then(
+            .Then(1000,
                 b => b.RotateTo(0),
                 b => b.ScaleTo(2)
             )
@@ -93,7 +86,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
-            .WaitForCompletion().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
+            .Then().FadeEdgeEffectTo(Color4.Red, 1000).ScaleTo(2, 500);
         }
     }
 }
