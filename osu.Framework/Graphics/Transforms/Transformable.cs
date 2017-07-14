@@ -98,18 +98,10 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.EndTime <= Time.Current)
                 {
                     transformsLazy.RemoveAt(i--);
-                    if (t.HasNextIteration)
-                    {
-                        t.NextIteration();
 
-                        // this could be added back at a lower index than where we are currently iterating, but
-                        // running the same transform twice isn't a huge deal.
-                        transformsLazy.Add(t);
-                    }
-                    else
-                        // Trigger the completion event with the offset to the time when we the transform
-                        // actually completed.
-                        t.OnComplete?.Invoke(Time.Current - t.EndTime);
+                    // Trigger the completion event with the offset to the time when we the transform
+                    // actually completed.
+                    t.OnComplete?.Invoke(Time.Current - t.EndTime);
                 }
             }
         }
@@ -198,39 +190,6 @@ namespace osu.Framework.Graphics.Transforms
         {
             if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
             return BeginDelayedSequence(-(Clock?.CurrentTime ?? 0) + startOffset, recursive);
-        }
-
-        private bool isInLoopedSequence;
-
-        /// <summary>
-        /// Loop all transforms created within a using block of this sequence.
-        /// </summary>
-        /// <param name="pause">The time to pause between loop iterations. 0 by default.</param>
-        /// <param name="numIterations">The amount of loop iterations to perform. A negative value results in looping indefinitely. -1 by default.</param>
-        public InvokeOnDisposal BeginLoopedSequence(double pause = 0, int numIterations = -1)
-        {
-            if (isInLoopedSequence)
-                throw new InvalidOperationException($"May not nest multiple {nameof(BeginLoopedSequence)}s.");
-            isInLoopedSequence = true;
-
-            if (pause < 0)
-                throw new InvalidOperationException($"May not call {nameof(BeginLoopedSequence)} with a negative {nameof(pause)}, but was {pause}.");
-
-            // We do not want to loop those
-            HashSet<ITransform> existingTransforms = new HashSet<ITransform>(Transforms);
-
-            return new InvokeOnDisposal(delegate
-            {
-                var newTransforms = Transforms.Except(existingTransforms).ToArray();
-                isInLoopedSequence = false;
-
-                if (newTransforms.Length == 0)
-                    return;
-
-                double duration = newTransforms.Max(t => t.EndTime) - newTransforms.Min(t => t.StartTime);
-                foreach (var t in Transforms.Except(existingTransforms))
-                    t.Loop(pause + duration - t.Duration, numIterations);
-            });
         }
 
         /// <summary>

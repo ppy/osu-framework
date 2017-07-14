@@ -20,12 +20,6 @@ namespace osu.Framework.Graphics.Transforms
 
         void ReadIntoStartValue();
 
-        void Loop(double delay, int loopCount = -1);
-
-        void NextIteration();
-
-        bool HasNextIteration { get; }
-
         void UpdateTime(FrameTimeInfo time);
 
         FrameTimeInfo? Time { get; }

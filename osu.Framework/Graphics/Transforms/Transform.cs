@@ -37,26 +37,6 @@ namespace osu.Framework.Graphics.Transforms
 
         public abstract void ReadIntoStartValue(T d);
 
-        private double loopDelay;
-        private int loopCount;
-        private int currentLoopCount;
-
-        public void Loop(double delay, int loopCount = -1)
-        {
-            loopDelay = delay;
-            this.loopCount = loopCount;
-        }
-
-        public void NextIteration()
-        {
-            currentLoopCount++;
-            double duration = Duration;
-            StartTime = EndTime + loopDelay;
-            EndTime = StartTime + duration;
-        }
-
-        public bool HasNextIteration => Time?.Current > EndTime && loopCount != currentLoopCount;
-
         public void UpdateTime(FrameTimeInfo time)
         {
             Time = time;
