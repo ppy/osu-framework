@@ -45,9 +45,10 @@ namespace osu.Framework.Graphics.Transforms
                 run(0);
         }
 
-        public TransformContinuation(T origin, ITransform transform) : this(origin, true, 0)
+        public TransformContinuation(T origin, ITransform transform) : this(origin, false, 0)
         {
             ++countChildren;
+            run(0);
 
             // If we transform already finished, then let's immediately trigger a completion
             if (transform.EndTime <= transform.Time?.Current)
@@ -69,16 +70,21 @@ namespace osu.Framework.Graphics.Transforms
             countChildrenComplete = 0;
             countChildrenAborted = 0;
 
-            TransformContinuation<T>[] children;
-
-            using (origin.BeginDelayedSequence(-offset))
-                children = childrenGenerators.Select(generateChild).ToArray();
-
-            foreach (var c in children)
+            if (childrenGenerators.Count > 0)
             {
-                c.subscribeComplete(onChildComplete);
-                c.subscribeAbort(onChildAbort);
+                TransformContinuation<T>[] children;
+
+                using (origin.BeginDelayedSequence(delay - offset))
+                    children = childrenGenerators.Select(generateChild).ToArray();
+
+                foreach (var c in children)
+                {
+                    c.subscribeComplete(onChildComplete);
+                    c.subscribeAbort(onChildAbort);
+                }
             }
+            else if (countChildren == 0)
+                triggerComplete(offset - delay);
         }
 
         private TransformContinuation<T> generateChild(Func<T, TransformContinuation<T>> childGenerator)
@@ -106,10 +112,15 @@ namespace osu.Framework.Graphics.Transforms
 
             if (state != State.Dormant)
             {
+                // If we already finished, then let's check how early / late we finished
+                // to determine the offset of child start points, assuming that we are
+                // adding the new child right when we finish.
+                double actualDelay = state == State.Finished ? -finishedOffset : delay;
+
                 state = State.Running;
 
                 TransformContinuation<T> c;
-                using (origin.BeginDelayedSequence(delay))
+                using (origin.BeginDelayedSequence(actualDelay))
                     c = generateChild(childGenerator);
 
                 c.subscribeComplete(onChildComplete);
@@ -204,11 +215,11 @@ namespace osu.Framework.Graphics.Transforms
         public TransformContinuation<T> Loop(Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators) =>
             Loop(0, -1, firstChildGenerator, childGenerators);
 
-        private TransformContinuation<T> then(double delay, IEnumerable<Func<T, TransformContinuation<T>>> childGenerators)
+        private TransformContinuation<T> then(double nextDelay, IEnumerable<Func<T, TransformContinuation<T>>> nextChildGenerators)
         {
-            var nextContinuation = new TransformContinuation<T>(origin, false, delay);
-            nextContinuation.AddChildGenerators(childGenerators);
-            subscribeComplete(offset => nextContinuation.run(offset - delay));
+            var nextContinuation = new TransformContinuation<T>(origin, false, nextDelay);
+            nextContinuation.AddChildGenerators(nextChildGenerators);
+            subscribeComplete(offset => nextContinuation.run(offset));
             return nextContinuation;
         }
 
