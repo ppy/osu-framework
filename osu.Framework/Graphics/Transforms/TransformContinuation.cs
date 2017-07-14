@@ -236,11 +236,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformContinuation<T> Then(params Func<T, TransformContinuation<T>>[] childGenerators) => then(0, childGenerators);
 
-        public void Then(Action func) => subscribeComplete(offset => func());
+        public void Then(Action<T> func) => subscribeComplete(offset => func(origin));
 
-        public void Catch(Action func) => subscribeAbort(func);
+        public void Catch(Action<T> func) => subscribeAbort(() => func(origin));
 
-        public void Finally(Action func)
+        public void Finally(Action<T> func)
         {
             Then(func);
             Catch(func);

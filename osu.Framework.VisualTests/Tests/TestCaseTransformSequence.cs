@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Transforms;
 using osu.Framework.Input;
 using osu.Framework.Testing;
 
@@ -26,8 +27,8 @@ namespace osu.Framework.VisualTests.Tests
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
                 "Complex transform 2 (should end in sync with CT1)",
-                "Red when abort",
-                "Red when finally",
+                $"Red on {nameof(TransformContinuation<Container>)}.{nameof(TransformContinuation<Container>.Catch)}",
+                $"Red on {nameof(TransformContinuation<Container>)}.{nameof(TransformContinuation<Container>.Finally)}",
             };
 
             boxes = new Container[Rows * Cols];
@@ -107,10 +108,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
-            .Catch(() =>
-            {
-                boxes[4].FadeEdgeEffectTo(Color4.Red, 1000);
-            });
+            .Catch(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
 
             boxes[5].RotateTo(360, 500)
@@ -122,10 +120,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
-            .Finally(() =>
-            {
-                boxes[5].FadeEdgeEffectTo(Color4.Red, 1000);
-            });
+            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }
 }
