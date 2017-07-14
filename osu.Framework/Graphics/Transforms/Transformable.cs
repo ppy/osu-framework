@@ -172,13 +172,6 @@ namespace osu.Framework.Graphics.Transforms
             return new InvokeOnDisposal(() => Delay(-delay, recursive));
         }
 
-        public void WithDelay(double delay, Action action, bool recursive = false)
-        {
-            Delay(delay, recursive);
-            action.Invoke();
-            Delay(-delay, recursive);
-        }
-
         /// <summary>
         /// Start a sequence of transforms from an absolute time value.
         /// </summary>

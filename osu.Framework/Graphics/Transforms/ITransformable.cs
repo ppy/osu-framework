@@ -8,8 +8,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public interface ITransformable
     {
-        void WithDelay(double delay, Action action, bool recursive = false);
-
         InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false);
 
         double TransformStartTime { get; }
