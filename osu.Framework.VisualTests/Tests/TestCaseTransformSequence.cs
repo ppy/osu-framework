@@ -18,7 +18,7 @@ namespace osu.Framework.VisualTests.Tests
 
         private readonly Container[] boxes;
 
-        public TestCaseTransformSequence() : base(3, 2)
+        public TestCaseTransformSequence() : base(3, 3)
         {
             boxes = new Container[Rows * Cols];
         }
@@ -59,6 +59,9 @@ namespace osu.Framework.VisualTests.Tests
                 "Complex transform 2 (should end in sync with CT1)",
                 $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Catch)}",
                 $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Finally)}",
+                $"Red after instant transform",
+                $"Red after instant transform 1 sec in the past",
+                $"Red after 1 sec transform 1 sec in the past",
             };
 
             for (int i = 0; i < Rows * Cols; ++i)
@@ -143,6 +146,15 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(2, 500, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
+            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+
+            boxes[6].RotateTo(200)
+            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+
+            boxes[7].Delayed(-1000).RotateTo(200)
+            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+
+            boxes[8].Delayed(-1000).RotateTo(200, 1000)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }
