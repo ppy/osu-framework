@@ -75,12 +75,12 @@ namespace osu.Framework.Graphics.Transforms
                     // this is the first time we are updating this transform with a valid time.
                     t.ReadIntoStartValue();
 
-                    var ourType = t.GetType();
+                    var ourTargetMember = t.TargetMember;
 
                     for (int j = 0; j < i; j++)
                     {
                         var otherTransform = transformsLazy[j];
-                        if (otherTransform.GetType() == ourType)
+                        if (otherTransform.TargetMember == ourTargetMember)
                         {
                             transformsLazy.RemoveAt(j--);
                             i--;
@@ -168,25 +168,24 @@ namespace osu.Framework.Graphics.Transforms
         /// Flush specified transforms, using the last available values (ignoring current clock time).
         /// </summary>
         /// <param name="propagateChildren">Whether we also flush down the child tree.</param>
-        /// <param name="flushType">An optional type of transform to flush. Null for all types.</param>
-        public virtual void Flush(bool propagateChildren = false, Type flushType = null)
+        /// <param name="flushMember">An optional property name of transforms to flush. Null for all transforms.</param>
+        public virtual void Flush(bool propagateChildren = false, string flushMember = null)
         {
             if (transformsLazy == null)
                 return;
 
-            // Flush is undefined for endlessly looping transforms
-            var toFlush = transformsLazy.Where(t => !t.IsLooping);
-            if (flushType != null)
-                toFlush = toFlush.Where(t => t.GetType() == flushType);
-
-            var toFlushArray = toFlush.ToArray();
-
-            if (flushType == null)
-                transformsLazy.RemoveAll(t => !t.IsLooping);
+            Func<Transform, bool> toFlushPredicate;
+            if (flushMember == null)
+                toFlushPredicate = t => !t.IsLooping;
             else
-                transformsLazy.RemoveAll(t => !t.IsLooping && t.GetType() == flushType);
+                toFlushPredicate = t => !t.IsLooping && t.TargetMember == flushMember;
 
-            foreach (Transform t in toFlushArray)
+            // Flush is undefined for endlessly looping transforms
+            var toFlush = transformsLazy.Where(toFlushPredicate).ToArray();
+
+            transformsLazy.RemoveAll(t => toFlushPredicate(t));
+
+            foreach (Transform t in toFlush)
             {
                 t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
                 t.Apply();

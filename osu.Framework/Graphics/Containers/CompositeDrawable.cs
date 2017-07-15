@@ -610,12 +610,12 @@ namespace osu.Framework.Graphics.Containers
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
-        public override void Flush(bool propagateChildren = false, Type flushType = null)
+        public override void Flush(bool propagateChildren = false, string flushMember = null)
         {
-            base.Flush(propagateChildren, flushType);
+            base.Flush(propagateChildren, flushMember);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.Flush(true, flushType);
+                foreach (var c in internalChildren) c.Flush(true, flushMember);
         }
 
         public override Transformable DelayReset()
@@ -1186,6 +1186,8 @@ namespace osu.Framework.Graphics.Containers
                     return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
                 }
             }
+
+            public override string TargetMember => "EdgeEffect.Colour";
 
             public override void Apply(CompositeDrawable c)
             {

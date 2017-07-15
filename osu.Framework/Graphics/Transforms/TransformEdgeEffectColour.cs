@@ -24,6 +24,8 @@ namespace osu.Framework.Graphics.Transforms
             }
         }
 
+        public override string TargetMember => "EdgeEffect.Colour";
+
         public override void Apply(IContainer c)
         {
             EdgeEffectParameters e = c.EdgeEffect;

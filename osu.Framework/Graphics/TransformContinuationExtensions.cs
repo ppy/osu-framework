@@ -64,8 +64,8 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveTo<T>(this TransformSequence<T> t, Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             t.Append(o => o.MoveTo(newPosition, duration, easing));
 
-        //public static TransformSequence<T> MoveToOffset<T>(this TransformSequence<T> t, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-        //    t.Append(o => o.MoveToOffset(offset, duration, easing));
+        public static TransformSequence<T> MoveToOffset<T>(this TransformSequence<T> t, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+            t.Append(o => o.MoveToOffset(offset, duration, easing));
 
         public static TransformSequence<T> FadeColour<T>(this TransformSequence<T> t, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             t.Append(o => o.FadeColour(newColour, duration, easing));

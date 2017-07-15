@@ -16,7 +16,5 @@ namespace osu.Framework.Graphics.Transforms
         void AddTransform(Transform transform);
 
         void RemoveTransforms(IEnumerable<Transform> toRemove);
-
-        void Flush(bool propagateChildren = false, Type flushType = null);
     }
 }

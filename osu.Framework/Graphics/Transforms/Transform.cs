@@ -1,6 +1,7 @@
 // Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Timing;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public bool IsLooping;
         public double LoopDelay;
+
+        public abstract string TargetMember { get; }
 
         public abstract void Apply();
 
@@ -53,7 +56,13 @@ namespace osu.Framework.Graphics.Transforms
         }
     }
 
-    public abstract class Transform<T> : Transform
+    public abstract class Transform<TValue> : Transform
+    {
+        public TValue StartValue { get; protected set; }
+        public TValue EndValue { get; set; }
+    }
+
+    public abstract class Transform<TValue, T> : Transform<TValue>
     {
         public T Target;
 
@@ -64,16 +73,7 @@ namespace osu.Framework.Graphics.Transforms
         public abstract void Apply(T d);
 
         public abstract void ReadIntoStartValue(T d);
-    }
 
-    public abstract class Transform<TValue, T> : Transform<T>
-    {
-        public TValue StartValue { get; protected set; }
-        public TValue EndValue { get; set; }
-
-        public override string ToString()
-        {
-            return string.Format("Transform({2}) {0}-{1}", StartTime, EndTime, typeof(TValue));
-        }
+        public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
     }
 }

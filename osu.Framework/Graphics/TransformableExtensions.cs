@@ -137,19 +137,18 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> MoveTo<T>(this T drawable, Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Position), newPosition, duration, easing));
 
-        //public static TransformSequence<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-        //    drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t is TransformPosition) as TransformPosition)?.EndValue ?? drawable.Position + offset, duration, easing);
+        public static TransformSequence<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+            drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position + offset, duration, easing);
 
         public static TransformSequence<T> FadeColour<T>(this T drawable, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(drawable.PopulateTransform(new TransformCustom<SRGBColour, Drawable>(nameof(drawable.Colour)), newColour, duration, easing));
 
         public static TransformSequence<T> FlashColour<T>(this T drawable, Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
-            //Color4 endValue = (drawable.Transforms.LastOrDefault(t => t is TransformColour) as TransformColour)?.EndValue ?? drawable.Colour;
+            Color4 endValue = (drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Colour)) as Transform<SRGBColour>)?.EndValue ?? drawable.Colour;
 
-            //drawable.Flush(false, typeof(TransformColour));
+            drawable.Flush(false, nameof(drawable.Colour));
 
-            Color4 endValue = drawable.Colour;
             drawable.FadeColour(flashColour);
             return drawable.FadeColour(endValue, duration, easing);
         }

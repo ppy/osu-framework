@@ -96,6 +96,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformCustom(string propertyOrFieldName, CurrentValueFunc<TValue> currentValueFunc = null)
         {
+            TargetMember = propertyOrFieldName;
+
             applyAction = getApplyAction(propertyOrFieldName);
             readIntoStartValueAction = getReadIntoStartValueAction(propertyOrFieldName);
             this.currentValueFunc = currentValueFunc ?? current_value_func;
@@ -112,6 +114,8 @@ namespace osu.Framework.Graphics.Transforms
                 return currentValueFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
             }
         }
+
+        public override string TargetMember { get; }
 
         public override void Apply(T d) => applyAction(this, d);
 
