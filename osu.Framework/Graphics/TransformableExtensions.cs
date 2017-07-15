@@ -14,15 +14,26 @@ namespace osu.Framework.Graphics
     public static class TransformableExtensions
     {
         /// <summary>
-        /// Applies a <see cref="Transform{TValue, T}"/> to a given <see cref="ITransformable"/>.
+        /// Transforms a given property or field member of a given <see cref="ITransformable"/> <typeparamref name="TThis"/> to <paramref name="newValue"/>.
+        /// The value of the given member is smoothly changed over time using the given <paramref name="easing"/> for tweening.
         /// </summary>
         /// <typeparam name="TThis">The type of the <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</typeparam>
         /// <typeparam name="TValue">The value type which is being transformed.</typeparam>
-        /// <typeparam name="TBase">The minimum type required for the given <see cref="Transform{TValue, T}"/>.</typeparam>
         /// <param name="t">The <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</param>
+        /// <param name="propertyOrFieldName">The property or field name of the member ot <typeparamref name="TThis"/> to transform.</param>
         /// <param name="newValue">The value to transform to.</param>
         /// <param name="duration">The transform duration.</param>
-        /// <param name="easing">The transform easing.</param>
+        /// <param name="easing">The transform easing to be used for tweening.</param>
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<TThis> TransformTo<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, EasingTypes easing)
+            where TThis : ITransformable
+            => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing));
+
+        /// <summary>
+        /// Applies a <see cref="Transform"/> to a given <see cref="ITransformable"/>.
+        /// </summary>
+        /// <typeparam name="TThis">The type of the <see cref="ITransformable"/> to apply the <see cref="Transform"/> to.</typeparam>
+        /// <param name="t">The <see cref="ITransformable"/> to apply the <see cref="Transform{TValue, T}"/> to.</param>
         /// <param name="transform">The transform to use.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<TThis> TransformTo<TThis>(this TThis t, Transform transform) where TThis : ITransformable
@@ -32,6 +43,9 @@ namespace osu.Framework.Graphics
             t.AddTransform(transform);
             return result;
         }
+
+        public static Transform<TValue, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, EasingTypes easing) where TThis : ITransformable =>
+            t.PopulateTransform(new TransformCustom<TValue, TThis>(propertyOrFieldName), newValue, duration, easing);
 
         public static Transform<TValue, TBase> PopulateTransform<TThis, TValue, TBase>(
             this TThis t, Transform<TValue, TBase> transform, TValue newValue, double duration, EasingTypes easing)
@@ -48,9 +62,6 @@ namespace osu.Framework.Graphics
 
             return transform;
         }
-
-        public static Transform<TValue, TThis> MakeTransform<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, EasingTypes easing) where TThis : ITransformable =>
-            t.PopulateTransform(new TransformCustom<TValue, TThis>(propertyOrFieldName), newValue, duration, easing);
 
         public static TransformSequence<T> Delayed<T>(this T transformable, double delay) where T : ITransformable =>
             new TransformSequence<T>(transformable).Then(delay);
