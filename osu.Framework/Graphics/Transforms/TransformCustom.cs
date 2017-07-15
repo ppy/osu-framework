@@ -15,10 +15,16 @@ namespace osu.Framework.Graphics.Transforms
 
     public class TransformCustom<TValue, T> : Transform<TValue, T>
     {
-        private delegate void TransformAction(TransformCustom<TValue, T> transform, T transformable);
+        private delegate TValue ReadFunc(T transformable);
+        private delegate void WriteFunc(T transformable, TValue value);
 
-        private static Dictionary<string, TransformAction> applyMethods = new Dictionary<string, TransformAction>();
-        private static Dictionary<string, TransformAction> readIntoStartValueMethods = new Dictionary<string, TransformAction>();
+        private struct Accessor
+        {
+            public ReadFunc Read;
+            public WriteFunc Write;
+        }
+
+        private static Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
         private static readonly CurrentValueFunc<TValue> current_value_func;
 
         static TransformCustom()
@@ -32,74 +38,29 @@ namespace osu.Framework.Graphics.Transforms
                 )?.CreateDelegate(typeof(CurrentValueFunc<TValue>));
         }
 
-        private static TransformAction getApplyAction(string propertyOrFieldName)
+        private static Accessor getAccessor(string propertyOrFieldName)
         {
-            TransformAction result;
-            if (applyMethods.TryGetValue(propertyOrFieldName, out result))
+            Accessor result;
+            if (accessors.TryGetValue(propertyOrFieldName, out result))
                 return result;
 
-            var method = new DynamicMethod(
-                $"{typeof(T).ReadableName()}_{propertyOrFieldName}_{Guid.NewGuid().ToString("N")}",
-                typeof(void),
-                new[] { typeof(TransformCustom<TValue, T>), typeof(T) },
-                true
-            );
-
             var property = typeof(T).GetProperty(propertyOrFieldName);
-            var currentValueProperty = typeof(TransformCustom<TValue, T>).GetProperty(nameof(currentValue), BindingFlags.NonPublic | BindingFlags.Instance);
+            result.Write = (WriteFunc)property.GetSetMethod(true).CreateDelegate(typeof(WriteFunc));
+            result.Read = (ReadFunc)property.GetGetMethod(true).CreateDelegate(typeof(ReadFunc));
 
-            var ilGen = method.GetILGenerator();
-            ilGen.Emit(OpCodes.Ldarg_1);
-            ilGen.Emit(OpCodes.Ldarg_0);
-            ilGen.Emit(OpCodes.Callvirt, currentValueProperty.GetMethod);
-            ilGen.Emit(OpCodes.Callvirt, property.SetMethod);
-            ilGen.Emit(OpCodes.Ret);
-
-            result = (TransformAction)method.CreateDelegate(typeof(TransformAction));
-            applyMethods.Add(propertyOrFieldName, result);
+            accessors.Add(propertyOrFieldName, result);
 
             return result;
         }
 
-        private static TransformAction getReadIntoStartValueAction(string propertyOrFieldName)
-        {
-            TransformAction result;
-            if (readIntoStartValueMethods.TryGetValue(propertyOrFieldName, out result))
-                return result;
-
-            var method = new DynamicMethod(
-                $"{typeof(T).ReadableName()}_{propertyOrFieldName}_{Guid.NewGuid().ToString("N")}",
-                typeof(void),
-                new[] { typeof(TransformCustom<TValue, T>), typeof(T) },
-                true
-            );
-
-            var property = typeof(T).GetProperty(propertyOrFieldName);
-            var startValueProperty = typeof(Transform<TValue, T>).GetProperty(nameof(StartValue), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var ilGen = method.GetILGenerator();
-            ilGen.Emit(OpCodes.Ldarg_0);
-            ilGen.Emit(OpCodes.Ldarg_1);
-            ilGen.Emit(OpCodes.Callvirt, property.GetMethod);
-            ilGen.Emit(OpCodes.Callvirt, startValueProperty.SetMethod);
-            ilGen.Emit(OpCodes.Ret);
-
-            result = (TransformAction)method.CreateDelegate(typeof(TransformAction));
-            readIntoStartValueMethods.Add(propertyOrFieldName, result);
-
-            return result;
-        }
-
-        private TransformAction applyAction;
-        private TransformAction readIntoStartValueAction;
+        private Accessor accessor;
         private CurrentValueFunc<TValue> currentValueFunc;
 
         public TransformCustom(string propertyOrFieldName, CurrentValueFunc<TValue> currentValueFunc = null)
         {
             TargetMember = propertyOrFieldName;
 
-            applyAction = getApplyAction(propertyOrFieldName);
-            readIntoStartValueAction = getReadIntoStartValueAction(propertyOrFieldName);
+            accessor = getAccessor(propertyOrFieldName);
             this.currentValueFunc = currentValueFunc ?? current_value_func;
         }
 
@@ -117,8 +78,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public override string TargetMember { get; }
 
-        public override void Apply(T d) => applyAction(this, d);
+        public override void Apply(T d) => accessor.Write(d, currentValue);
 
-        public override void ReadIntoStartValue(T d) => readIntoStartValueAction(this, d);
+        public override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
     }
 }
