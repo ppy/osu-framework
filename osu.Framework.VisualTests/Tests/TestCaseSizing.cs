@@ -351,7 +351,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
                     }
 
-                    shrinkContainer.Loop(c => c.ScaleTo(new Vector2(1.5f, 1), 1000).Then().ScaleTo(Vector2.One, 1000));
+                    shrinkContainer.ScaleTo(new Vector2(1.5f, 1), 1000).Then().ScaleTo(Vector2.One, 1000).Loop();
                     break;
 
                 case 8:
@@ -471,7 +471,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
+                            b.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000).Loop();
 
                         break;
                     }
@@ -593,7 +593,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
+                            b.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000).Loop();
 
                         break;
                     }
@@ -715,7 +715,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Container b in new[] { box1, box2, box3 })
-                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
+                            b.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000).Loop();
 
                         break;
                     }
@@ -837,7 +837,7 @@ namespace osu.Framework.VisualTests.Tests
                         });
 
                         foreach (Drawable b in new[] { box1, box2, box3 })
-                            b.Loop(b2 => b2.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000));
+                            b.ScaleTo(new Vector2(2), 1000).Then().ScaleTo(Vector2.One, 1000).Loop();
 
                         break;
                     }
@@ -888,7 +888,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        sizedBox.Loop(b => b.ScaleTo(new Vector2(2), 1000, EasingTypes.Out).Then().ScaleTo(Vector2.One, 1000, EasingTypes.In));
+                        sizedBox.ScaleTo(new Vector2(2), 1000, EasingTypes.Out).Then().ScaleTo(Vector2.One, 1000, EasingTypes.In).Loop();
                         break;
                     }
             }
