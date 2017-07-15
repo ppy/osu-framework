@@ -4,7 +4,6 @@
 using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms

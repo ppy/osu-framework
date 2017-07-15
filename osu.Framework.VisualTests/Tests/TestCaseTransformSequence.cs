@@ -59,9 +59,9 @@ namespace osu.Framework.VisualTests.Tests
                 "Complex transform 2 (should end in sync with CT1)",
                 $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Catch)}",
                 $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Finally)}",
-                $"Red after instant transform",
-                $"Red after instant transform 1 sec in the past",
-                $"Red after 1 sec transform 1 sec in the past",
+                "Red after instant transform",
+                "Red after instant transform 1 sec in the past",
+                "Red after 1 sec transform 1 sec in the past",
             };
 
             for (int i = 0; i < Rows * Cols; ++i)
@@ -100,8 +100,6 @@ namespace osu.Framework.VisualTests.Tests
             boxes[0].Delayed(500).Then(500).Then(500).Then(
                 b => b.Delayed(500).Spin(1000)
             );
-
-            //boxes[0].Spin(1, 0, 1000);
 
             boxes[1].Delayed(1000).Loop(5, 1000, b => b.RotateTo(0).RotateTo(340, 1000));
 

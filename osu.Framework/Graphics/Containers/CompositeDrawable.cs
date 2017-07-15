@@ -19,7 +19,6 @@ using osu.Framework.Caching;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Containers
 {
