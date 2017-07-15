@@ -1189,14 +1189,14 @@ namespace osu.Framework.Graphics.Containers
 
             public override string TargetMember => "EdgeEffect.Colour";
 
-            public override void Apply(CompositeDrawable c)
+            protected override void Apply(CompositeDrawable c)
             {
                 EdgeEffectParameters e = c.EdgeEffect;
                 e.Colour = CurrentValue;
                 c.EdgeEffect = e;
             }
 
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour;
+            protected override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour;
         }
     }
 }

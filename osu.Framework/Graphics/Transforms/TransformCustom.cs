@@ -152,8 +152,8 @@ namespace osu.Framework.Graphics.Transforms
 
         public override string TargetMember { get; }
 
-        public override void Apply(T d) => accessor.Write(d, currentValue);
+        protected override void Apply(T d) => accessor.Write(d, currentValue);
 
-        public override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
+        protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
     }
 }

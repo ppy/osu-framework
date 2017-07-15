@@ -26,13 +26,13 @@ namespace osu.Framework.Graphics.Transforms
 
         public override string TargetMember => "EdgeEffect.Colour";
 
-        public override void Apply(IContainer c)
+        protected override void Apply(IContainer c)
         {
             EdgeEffectParameters e = c.EdgeEffect;
             e.Colour = CurrentValue;
             c.EdgeEffect = e;
         }
 
-        public override void ReadIntoStartValue(IContainer c) => StartValue = c.EdgeEffect.Colour;
+        protected override void ReadIntoStartValue(IContainer c) => StartValue = c.EdgeEffect.Colour;
     }
 }

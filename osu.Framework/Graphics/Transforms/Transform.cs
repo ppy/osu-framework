@@ -64,15 +64,15 @@ namespace osu.Framework.Graphics.Transforms
 
     public abstract class Transform<TValue, T> : Transform<TValue>
     {
-        public T Target;
+        public T Target { get; internal set; }
 
         public sealed override void Apply() => Apply(Target);
 
         public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
 
-        public abstract void Apply(T d);
+        protected abstract void Apply(T d);
 
-        public abstract void ReadIntoStartValue(T d);
+        protected abstract void ReadIntoStartValue(T d);
 
         public override string ToString() => $"{typeof(Transform<TValue, T>).ReadableName()} => {Target} {StartTime}:{StartValue}-{EndTime}:{EndValue}";
     }
