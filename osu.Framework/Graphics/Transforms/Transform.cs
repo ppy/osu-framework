@@ -16,11 +16,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public EasingTypes Easing;
 
-        public double StartTime;
-        public double EndTime;
+        public double StartTime { get; internal set; }
+        public double EndTime { get; internal set; }
 
-        public bool IsLooping;
-        public double LoopDelay;
+        public bool IsLooping { get; internal set; }
+        public double LoopDelay { get; internal set; }
 
         public abstract string TargetMember { get; }
 
@@ -59,7 +59,7 @@ namespace osu.Framework.Graphics.Transforms
     public abstract class Transform<TValue> : Transform
     {
         public TValue StartValue { get; protected set; }
-        public TValue EndValue { get; set; }
+        public TValue EndValue { get; protected internal set; }
     }
 
     public abstract class Transform<TValue, T> : Transform<TValue>
