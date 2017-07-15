@@ -631,18 +631,16 @@ namespace osu.Framework.Graphics.Containers
         /// </summary>
         protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            Flush(false, typeof(TransformEdgeEffectColour));
-            return this.TransformTo(this.MakeTransform(newAlpha, duration, easing, new TransformEdgeEffectAlpha()));
+            Color4 targetColour = EdgeEffect.Colour;
+            targetColour.A = newAlpha;
+            return FadeEdgeEffectTo(targetColour, duration, easing);
         }
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            Flush(false, typeof(TransformEdgeEffectAlpha));
-            return this.TransformTo(this.MakeTransform(newColour, duration, easing, new TransformEdgeEffectColour()));
-        }
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+            this.TransformTo(this.PopulateTransform(new TransformEdgeEffectColour(), newColour, duration, easing));
 
         #endregion
 
@@ -935,7 +933,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
         protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(newSize, duration, easing, new TransformRelativeChildSize()));
+            this.TransformTo(this.MakeTransform(nameof(RelativeChildSize), newSize, duration, easing));
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.
@@ -944,7 +942,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
         protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(newOffset, duration, easing, new TransformRelativeChildOffset()));
+            this.TransformTo(this.MakeTransform(nameof(RelativeChildOffset), newOffset, duration, easing));
 
         public override Axes RelativeSizeAxes
         {
@@ -999,12 +997,6 @@ namespace osu.Framework.Graphics.Containers
                 if (autoSizeDuration == value) return;
 
                 autoSizeDuration = value;
-
-                // if we have an existing transform, we want to update its duration.
-                // not doing this could potentially cause incorrect final autosize dimensions.
-                var existing = Transforms.FirstOrDefault(t => t is TransformAutoSize);
-                if (existing != null)
-                    existing.EndTime = existing.StartTime + autoSizeDuration;
             }
         }
 
@@ -1160,7 +1152,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(newSize, duration, easing, new TransformAutoSize()));
+            this.TransformTo(this.MakeTransform(nameof(baseSize), newSize, duration, easing));
 
         /// <summary>
         /// A helper property for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
@@ -1177,18 +1169,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         #endregion
-
-        private class TransformEdgeEffectAlpha : TransformFloat<CompositeDrawable>
-        {
-            public override void Apply(CompositeDrawable c)
-            {
-                EdgeEffectParameters e = c.EdgeEffect;
-                e.Colour.Linear.A = CurrentValue;
-                c.EdgeEffect = e;
-            }
-
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour.Linear.A;
-        }
 
         private class TransformEdgeEffectColour : Transform<Color4, CompositeDrawable>
         {
@@ -1215,28 +1195,6 @@ namespace osu.Framework.Graphics.Containers
             }
 
             public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.Colour;
-        }
-
-        /// <summary>
-        /// A special type of transform which can change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
-        /// Used for <see cref="AutoSizeDuration"/>.
-        /// </summary>
-        private class TransformAutoSize : TransformVector<CompositeDrawable>
-        {
-            public override void Apply(CompositeDrawable d) => d.baseSize = CurrentValue;
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.baseSize;
-        }
-
-        private class TransformRelativeChildSize : TransformVector<CompositeDrawable>
-        {
-            public override void Apply(CompositeDrawable d) => d.RelativeChildSize = CurrentValue;
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.RelativeChildSize;
-        }
-
-        private class TransformRelativeChildOffset : TransformVector<CompositeDrawable>
-        {
-            public override void Apply(CompositeDrawable d) => d.RelativeChildOffset = CurrentValue;
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.RelativeChildOffset;
         }
     }
 }

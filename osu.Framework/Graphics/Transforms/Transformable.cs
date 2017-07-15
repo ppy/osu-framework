@@ -87,7 +87,7 @@ namespace osu.Framework.Graphics.Transforms
 
                             // Trigger the abort event with the time we are behind when the abort
                             // should have happened.
-                            otherTransform.OnAbort?.Invoke(Time.Current - t.StartTime);
+                            otherTransform.OnAbort?.Invoke();
                         }
                     }
                 }
@@ -98,12 +98,30 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.EndTime <= Time.Current)
                 {
                     transformsLazy.RemoveAt(i--);
+                    if (t.IsLooping)
+                    {
+                        t.StartTime += t.LoopDelay;
+                        t.EndTime += t.LoopDelay;
 
-                    // Trigger the completion event with the offset to the time when we the transform
-                    // actually completed.
-                    t.OnComplete?.Invoke(Time.Current - t.EndTime);
+                        // this could be added back at a lower index than where we are currently iterating, but
+                        // running the same transform twice isn't a huge deal.
+                        transformsLazy.Add(t);
+                    }
+                    else
+                        // Trigger the completion event with the offset to the time when we the transform
+                        // actually completed.
+                        t.OnComplete?.Invoke();
                 }
             }
+        }
+
+        public void RemoveTransforms(IEnumerable<Transform> toRemove)
+        {
+            if (transformsLazy == null)
+                return;
+
+            foreach (var t in toRemove)
+                transformsLazy.Remove(t);
         }
 
         /// <summary>
@@ -121,7 +139,7 @@ namespace osu.Framework.Graphics.Transforms
             transformsLazy.Clear();
 
             foreach (var t in toAbort)
-                t.OnAbort(Time.Current - t.EndTime);
+                t.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -156,18 +174,23 @@ namespace osu.Framework.Graphics.Transforms
             if (transformsLazy == null)
                 return;
 
-            var toFlush = (flushType == null ? transformsLazy : transformsLazy.Where(t => t.GetType() == flushType)).ToArray();
+            // Flush is undefined for endlessly looping transforms
+            var toFlush = transformsLazy.Where(t => !t.IsLooping);
+            if (flushType != null)
+                toFlush = toFlush.Where(t => t.GetType() == flushType);
+
+            var toFlushArray = toFlush.ToArray();
 
             if (flushType == null)
-                transformsLazy.Clear();
+                transformsLazy.RemoveAll(t => !t.IsLooping);
             else
-                transformsLazy.RemoveAll(t => t.GetType() == flushType);
+                transformsLazy.RemoveAll(t => !t.IsLooping && t.GetType() == flushType);
 
-            foreach (Transform t in toFlush)
+            foreach (Transform t in toFlushArray)
             {
                 t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
                 t.Apply();
-                t.OnComplete(100000);
+                t.OnComplete?.Invoke();
             }
         }
 
@@ -228,7 +251,7 @@ namespace osu.Framework.Graphics.Transforms
             {
                 transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
                 transform.Apply();
-                transform.OnComplete?.Invoke(0);
+                transform.OnComplete?.Invoke();
                 return;
             }
 

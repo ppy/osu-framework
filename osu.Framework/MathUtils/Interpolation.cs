@@ -6,6 +6,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using OpenTK;
 using OpenTK.Graphics;
+using osu.Framework.Graphics.Colour;
 
 namespace osu.Framework.MathUtils
 {
@@ -31,6 +32,9 @@ namespace osu.Framework.MathUtils
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
 
+        public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
+
         public static Color4 ValueAt(double time, Color4 startColour, Color4 endColour, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
         {
             if (startColour == endColour)
@@ -48,6 +52,36 @@ namespace osu.Framework.MathUtils
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.B, endColour.B - startColour.B, duration))),
                 (float)Math.Max(0, Math.Min(1, ApplyEasing(easing, current, startColour.A, endColour.A - startColour.A, duration))));
         }
+
+        public static byte ValueAt(double time, byte val1, byte val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (byte)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static sbyte ValueAt(double time, sbyte val1, sbyte val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (sbyte)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static short ValueAt(double time, short val1, short val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (short)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static ushort ValueAt(double time, ushort val1, ushort val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (ushort)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static int ValueAt(double time, int val1, int val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (int)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static uint ValueAt(double time, uint val1, uint val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (uint)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static long ValueAt(double time, long val1, long val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (long)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static ulong ValueAt(double time, ulong val1, ulong val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (ulong)Math.Round(ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing));
+
+        public static float ValueAt(double time, float val1, float val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (float)ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing);
+
+        public static decimal ValueAt(double time, decimal val1, decimal val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None) =>
+            (decimal)ValueAt(time, (double)val1, (double)val2, startTime, endTime, easing);
 
         public static double ValueAt(double time, double val1, double val2, double startTime, double endTime, EasingTypes easing = EasingTypes.None)
         {

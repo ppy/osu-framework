@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -13,6 +14,8 @@ namespace osu.Framework.Graphics.Transforms
         double TransformStartTime { get; }
 
         void AddTransform(Transform transform);
+
+        void RemoveTransforms(IEnumerable<Transform> toRemove);
 
         void Flush(bool propagateChildren = false, Type flushType = null);
     }
