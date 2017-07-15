@@ -24,6 +24,8 @@ namespace osu.Framework.Graphics.Transforms
         private double currentTime;
         private double endTime;
 
+        private bool hasEnd => endTime != double.PositiveInfinity;
+
         public TransformSequence(T origin)
         {
             if (origin == null)
@@ -33,12 +35,27 @@ namespace osu.Framework.Graphics.Transforms
             startTime = currentTime = endTime = origin.TransformStartTime;
         }
 
+        private void onLoopingTransform()
+        {
+            // As soon as we have an infinitely looping transform,
+            // completion no longer makes sense.
+            if (last != null)
+                last.OnComplete = null;
+
+            last = null;
+            endTime = double.PositiveInfinity;
+            hasCompleted = false;
+        }
+
         public TransformSequence<T> Append(Transform transform)
         {
             transforms.Add(transform);
 
             transform.OnComplete = null;
             transform.OnAbort = onTransformAborted;
+
+            if (transform.IsLooping)
+                onLoopingTransform();
 
             // Update last transform for completion callback
             if (transform.EndTime > endTime)
@@ -124,6 +141,9 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformSequence<T> Loop(double pause = 0)
         {
+            if (!hasEnd)
+                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
+
             var iterDuration = endTime - startTime + pause;
             foreach (var t in transforms)
             {
@@ -131,13 +151,17 @@ namespace osu.Framework.Graphics.Transforms
                 t.LoopDelay = iterDuration;
             }
 
+            onLoopingTransform();
             return this;
         }
 
         public TransformSequence<T> Loop(int numIters, double pause = 0)
         {
             if (numIters < 1)
-                throw new InvalidOperationException($"May not loop for fewer than 1 iteration ({numIters} attempted).");
+                throw new InvalidOperationException($"May not {nameof(Loop)} for fewer than 1 iteration ({numIters} attempted).");
+
+            if (!hasEnd)
+                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
             var iterDuration = endTime - startTime + pause;
             var toLoop = transforms.ToArray();
@@ -195,6 +219,9 @@ namespace osu.Framework.Graphics.Transforms
 
         private TransformSequence<T> then(double nextDelay, IEnumerable<Generator> nextChildGenerators)
         {
+            if (!hasEnd)
+                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
+
             // After a then statement, future transforms are appended after our last one finished
             // plus the specified extra delay.
             endTime += nextDelay;
@@ -206,13 +233,20 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformSequence<T> Then(params Generator[] childGenerators) => then(0, childGenerators);
 
-        public void Then(Action<T> func) => subscribeComplete(() => func(origin));
+        public void Then(Action<T> func)
+        {
+            if (!hasEnd)
+                throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
+
+            subscribeComplete(() => func(origin));
+        }
 
         public void Catch(Action<T> func) => subscribeAbort(() => func(origin));
 
         public void Finally(Action<T> func)
         {
-            Then(func);
+            if (hasEnd)
+                Then(func);
             Catch(func);
         }
     }
