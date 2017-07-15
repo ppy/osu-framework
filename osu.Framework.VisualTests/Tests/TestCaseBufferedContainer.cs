@@ -17,7 +17,7 @@ namespace osu.Framework.VisualTests.Tests
         public TestCaseBufferedContainer()
         {
             Remove(TestContainer);
-            
+
             Add(buffer = new BufferedContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -29,7 +29,7 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            buffer.Loop(b => b.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000));
+            buffer.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000).Loop();
         }
     }
 }
