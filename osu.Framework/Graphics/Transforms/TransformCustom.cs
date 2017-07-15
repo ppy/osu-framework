@@ -38,18 +38,92 @@ namespace osu.Framework.Graphics.Transforms
                 )?.CreateDelegate(typeof(CurrentValueFunc<TValue>));
         }
 
+        private static ReadFunc createFieldGetter(FieldInfo field)
+        {
+            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid().ToString("N")}";
+            DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new Type[1] { typeof(T) }, true);
+            ILGenerator gen = setterMethod.GetILGenerator();
+            gen.Emit(OpCodes.Ldarg_0);
+            gen.Emit(OpCodes.Ldfld, field);
+            gen.Emit(OpCodes.Ret);
+            return (ReadFunc)setterMethod.CreateDelegate(typeof(ReadFunc));
+        }
+
+        private static WriteFunc createFieldSetter(FieldInfo field)
+        {
+            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid().ToString("N")}";
+            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new Type[2] { typeof(T), typeof(TValue) }, true);
+            ILGenerator gen = setterMethod.GetILGenerator();
+            gen.Emit(OpCodes.Ldarg_0);
+            gen.Emit(OpCodes.Ldarg_1);
+            gen.Emit(OpCodes.Stfld, field);
+            gen.Emit(OpCodes.Ret);
+            return (WriteFunc)setterMethod.CreateDelegate(typeof(WriteFunc));
+        }
+
+        private static Accessor findAccessor(Type type, string propertyOrFieldName)
+        {
+            PropertyInfo property = type.GetProperty(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (property != null)
+            {
+                if (property.PropertyType != typeof(TValue))
+                    throw new InvalidOperationException(
+                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"since its type should be {typeof(TValue).ReadableName()}, but is {property.PropertyType.ReadableName()}.");
+
+                var getter = property.GetGetMethod(true);
+                var setter = property.GetSetMethod(true);
+
+                if (getter == null || setter == null)
+                    throw new InvalidOperationException(
+                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"since it needs to have both a getter and a setter.");
+
+                if (getter.IsStatic || setter.IsStatic)
+                    throw new NotSupportedException(
+                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+
+                return new Accessor
+                {
+                    Read = (ReadFunc)getter.CreateDelegate(typeof(ReadFunc)),
+                    Write = (WriteFunc)setter.CreateDelegate(typeof(WriteFunc)),
+                };
+            }
+
+            FieldInfo field = type.GetField(propertyOrFieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+            if (field != null)
+            {
+                if (field.FieldType != typeof(TValue))
+                    throw new InvalidOperationException(
+                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} " +
+                        $"since its type should be {typeof(TValue).ReadableName()}, but is {field.FieldType.ReadableName()}.");
+
+                if (field.IsStatic)
+                    throw new NotSupportedException(
+                        $"Cannot create {nameof(TransformCustom<TValue, T>)} for field {type.ReadableName()}.{propertyOrFieldName} because static fields are not supported.");
+
+                return new Accessor
+                {
+                    Read = createFieldGetter(field),
+                    Write = createFieldSetter(field),
+                };
+            }
+
+            if (type.BaseType == null)
+                throw new InvalidOperationException($"Cannot create {nameof(TransformCustom<TValue, T>)} for non-existent property or field {typeof(T).ReadableName()}.{propertyOrFieldName}.");
+
+            // Private members aren't visible unless we check the base type explicitly, so let's try our luck.
+            return findAccessor(type.BaseType, propertyOrFieldName);
+        }
+
         private static Accessor getAccessor(string propertyOrFieldName)
         {
             Accessor result;
             if (accessors.TryGetValue(propertyOrFieldName, out result))
                 return result;
 
-            var property = typeof(T).GetProperty(propertyOrFieldName);
-            result.Write = (WriteFunc)property.GetSetMethod(true).CreateDelegate(typeof(WriteFunc));
-            result.Read = (ReadFunc)property.GetGetMethod(true).CreateDelegate(typeof(ReadFunc));
-
+            result = findAccessor(typeof(T), propertyOrFieldName);
             accessors.Add(propertyOrFieldName, result);
-
             return result;
         }
 
