@@ -51,6 +51,9 @@ namespace osu.Framework.Graphics
             this TThis t, Transform<TValue, TBase> transform, TValue newValue, double duration, EasingTypes easing)
             where TThis : ITransformable, TBase
         {
+            if (duration < 0)
+                throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
+
             transform.Target = t;
 
             double startTime = t.TransformStartTime;
