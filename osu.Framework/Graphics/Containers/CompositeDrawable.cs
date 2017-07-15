@@ -1196,7 +1196,7 @@ namespace osu.Framework.Graphics.Containers
                 c.EdgeEffect = e;
             }
 
-            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.Colour;
+            public override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour;
         }
     }
 }
