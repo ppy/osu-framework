@@ -36,14 +36,14 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         protected double TransformDelay { get; private set; }
 
-        private SortedList<ITransform> transformsLazy;
+        private SortedList<Transform> transformsLazy;
 
-        private SortedList<ITransform> transforms => transformsLazy ?? (transformsLazy = new SortedList<ITransform>(new TransformTimeComparer()));
+        private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));
 
         /// <summary>
         /// A lazily-initialized list of <see cref="ITransform"/>s applied to this class.
         /// </summary>
-        public IReadOnlyList<ITransform> Transforms => transforms;
+        public IReadOnlyList<Transform> Transforms => transforms;
 
         /// <summary>
         /// Resets <see cref="TransformDelay"/> and processes updates to this class based on loaded transforms.
@@ -163,7 +163,7 @@ namespace osu.Framework.Graphics.Transforms
             else
                 transformsLazy.RemoveAll(t => t.GetType() == flushType);
 
-            foreach (ITransform t in toFlush)
+            foreach (Transform t in toFlush)
             {
                 t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
                 t.Apply();
@@ -206,7 +206,7 @@ namespace osu.Framework.Graphics.Transforms
             if (timeSpan == 0)
                 return;
 
-            foreach (ITransform t in Transforms)
+            foreach (Transform t in Transforms)
             {
                 t.StartTime += timeSpan;
                 t.EndTime += timeSpan;
@@ -219,7 +219,7 @@ namespace osu.Framework.Graphics.Transforms
         /// </summary>
         private ulong currentTransformID;
 
-        public void AddTransform<T>(Transform<T> transform)
+        public void AddTransform(Transform transform)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));

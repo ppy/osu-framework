@@ -23,8 +23,8 @@ namespace osu.Framework.Graphics
         /// <param name="duration">The transform duration.</param>
         /// <param name="easing">The transform easing.</param>
         /// <param name="transform">The transform to use.</param>
-        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
-        public static TransformContinuation<TThis> TransformTo<TThis, TValue, TBase>(
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<TThis> TransformTo<TThis, TValue, TBase>(
             this TThis t, TValue newValue, double duration, EasingTypes easing, Transform<TValue, TBase> transform)
             where TThis : ITransformable, TBase
         {
@@ -35,53 +35,54 @@ namespace osu.Framework.Graphics
             transform.EndValue = newValue;
             transform.Easing = easing;
 
+            var result = new TransformSequence<TThis>(t, transform);
             t.AddTransform(transform);
-            return new TransformContinuation<TThis>(t, transform);
+            return result;
         }
 
-        public static TransformContinuation<T> Delayed<T>(this T transformable, double delay) where T : ITransformable =>
-            new TransformContinuation<T>(transformable, true, delay);
+        public static TransformSequence<T> Delayed<T>(this T transformable, double delay) where T : ITransformable =>
+            new TransformSequence<T>(transformable, true, delay);
 
-        public static TransformContinuation<T> Loop<T>(this T transformable, double pause, int numIters, Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, Func<T, TransformSequence<T>> firstChildGenerator, params Func<T, TransformSequence<T>>[] childGenerators)
             where T : ITransformable =>
             transformable.Delayed(0).Loop(pause, numIters, firstChildGenerator, childGenerators);
 
-        public static TransformContinuation<T> Loop<T>(this T transformable, double pause, Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, Func<T, TransformSequence<T>> firstChildGenerator, params Func<T, TransformSequence<T>>[] childGenerators)
             where T : ITransformable =>
             transformable.Loop(pause, -1, firstChildGenerator, childGenerators);
 
-        public static TransformContinuation<T> Loop<T>(this T transformable, Func<T, TransformContinuation<T>> firstChildGenerator, params Func<T, TransformContinuation<T>>[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, Func<T, TransformSequence<T>> firstChildGenerator, params Func<T, TransformSequence<T>>[] childGenerators)
             where T : ITransformable =>
             transformable.Loop(0, -1, firstChildGenerator, childGenerators);
 
-        public static TransformContinuation<T> FadeIn<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> FadeIn<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.FadeTo(1, duration, easing);
 
-        public static TransformContinuation<T> FadeInFromZero<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
+        public static TransformSequence<T> FadeInFromZero<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             drawable.FadeTo(0);
             return drawable.FadeIn(duration, easing);
         }
 
-        public static TransformContinuation<T> FadeOut<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> FadeOut<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.FadeTo(0, duration, easing);
 
-        public static TransformContinuation<T> FadeOutFromOne<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
+        public static TransformSequence<T> FadeOutFromOne<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             drawable.FadeTo(1);
             return drawable.FadeOut(duration, easing);
         }
 
-        public static TransformContinuation<T> FadeTo<T>(this T drawable, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> FadeTo<T>(this T drawable, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newAlpha, duration, easing, new TransformAlpha(drawable));
 
-        public static TransformContinuation<T> RotateTo<T>(this T drawable, float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> RotateTo<T>(this T drawable, float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newRotation, duration, easing, new TransformRotation(drawable));
 
-        public static TransformContinuation<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0, int numRevolutions = -1) where T : Drawable =>
+        public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0, int numRevolutions = -1) where T : Drawable =>
             drawable.Delayed(0).Spin(revolutionDuration, startRotation, numRevolutions);
 
-        public static TransformContinuation<T> MoveTo<T>(this T drawable, Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
+        public static TransformSequence<T> MoveTo<T>(this T drawable, Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             switch (direction)
             {
@@ -94,40 +95,40 @@ namespace osu.Framework.Graphics
             throw new InvalidOperationException($"Invalid direction ({direction}) passed to {nameof(MoveTo)}.");
         }
 
-        public static TransformContinuation<T> MoveToX<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> MoveToX<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(destination, duration, easing, new TransformPositionX(drawable));
 
-        public static TransformContinuation<T> MoveToY<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> MoveToY<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(destination, duration, easing, new TransformPositionY(drawable));
 
-        public static TransformContinuation<T> ScaleTo<T>(this T drawable, float newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ScaleTo<T>(this T drawable, float newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(new Vector2(newScale), duration, easing, new TransformScale(drawable));
 
-        public static TransformContinuation<T> ScaleTo<T>(this T drawable, Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ScaleTo<T>(this T drawable, Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newScale, duration, easing, new TransformScale(drawable));
 
-        public static TransformContinuation<T> ResizeTo<T>(this T drawable, float newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ResizeTo<T>(this T drawable, float newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(new Vector2(newSize), duration, easing, new TransformSize(drawable));
 
-        public static TransformContinuation<T> ResizeTo<T>(this T drawable, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ResizeTo<T>(this T drawable, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newSize, duration, easing, new TransformSize(drawable));
 
-        public static TransformContinuation<T> ResizeWidthTo<T>(this T drawable, float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ResizeWidthTo<T>(this T drawable, float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newWidth, duration, easing, new TransformWidth(drawable));
 
-        public static TransformContinuation<T> ResizeHeightTo<T>(this T drawable, float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> ResizeHeightTo<T>(this T drawable, float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newHeight, duration, easing, new TransformHeight(drawable));
 
-        public static TransformContinuation<T> MoveTo<T>(this T drawable, Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> MoveTo<T>(this T drawable, Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newPosition, duration, easing, new TransformPosition(drawable));
 
-        public static TransformContinuation<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t is TransformPosition) as TransformPosition)?.EndValue ?? drawable.Position + offset, duration, easing);
 
-        public static TransformContinuation<T> FadeColour<T>(this T drawable, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
+        public static TransformSequence<T> FadeColour<T>(this T drawable, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(newColour, duration, easing, new TransformColour(drawable));
 
-        public static TransformContinuation<T> FlashColour<T>(this T drawable, Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None) where T : Drawable
+        public static TransformSequence<T> FlashColour<T>(this T drawable, Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             Color4 endValue = (drawable.Transforms.LastOrDefault(t => t is TransformColour) as TransformColour)?.EndValue ?? drawable.Colour;
 
@@ -140,7 +141,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Helper function for creating and adding a transform that fades the current <see cref="IContainer.EdgeEffect"/>.
         /// </summary>
-        public static TransformContinuation<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
         {
             container.Flush(false, typeof(TransformEdgeEffectColour));
@@ -150,7 +151,7 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Helper function for creating and adding a transform that fades the current <see cref="IContainer.EdgeEffect"/>.
         /// </summary>
-        public static TransformContinuation<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public static TransformSequence<T> FadeEdgeEffectTo<T>(this T container, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
         {
             container.Flush(false, typeof(TransformEdgeEffectAlpha));
@@ -165,8 +166,8 @@ namespace osu.Framework.Graphics
         /// <param name="newSize">The child size to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
-        public static TransformContinuation<T> TransformRelativeChildSizeTo<T>(this T container, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> TransformRelativeChildSizeTo<T>(this T container, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
             => container.TransformTo(newSize, duration, easing, new TransformRelativeChildSize(container));
 
@@ -178,19 +179,19 @@ namespace osu.Framework.Graphics
         /// <param name="newOffset">The child offset to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        /// <returns>A <see cref="TransformContinuation{T}"/> to which further transforms can be added.</returns>
-        public static TransformContinuation<T> TransformRelativeChildOffsetTo<T>(this T container, Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
+        /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
+        public static TransformSequence<T> TransformRelativeChildOffsetTo<T>(this T container, Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
             => container.TransformTo(newOffset, duration, easing, new TransformRelativeChildOffset(container));
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs a <see cref="BufferedContainer{T}"/>.
         /// </summary>
-        public static TransformContinuation<T> BlurTo<T>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public static TransformSequence<T> BlurTo<T>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IBufferedContainer
             => bufferedContainer.TransformTo(newBlurSigma, duration, easing, new TransformBlurSigma(bufferedContainer));
 
-        public static TransformContinuation<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
+        public static TransformSequence<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IFillFlowContainer
             => flowContainer.TransformTo(newSpacing, duration, easing, new TransformSpacing(flowContainer));
     }

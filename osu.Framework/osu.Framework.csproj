@@ -150,11 +150,12 @@
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
+    <Compile Include="Graphics\Transforms\Continuations\TransformBlock.cs" />
     <Compile Include="Graphics\Transforms\ITransformable.cs" />
     <Compile Include="Graphics\TransformContinuationExtensions.cs" />
     <Compile Include="Graphics\Transforms\TransformBlurSigma.cs" />
     <Compile Include="Graphics\TransformableExtensions.cs" />
-    <Compile Include="Graphics\Transforms\TransformContinuation.cs" />
+    <Compile Include="Graphics\Transforms\Continuations\TransformSequence.cs" />
     <Compile Include="Graphics\Transforms\TransformDouble.cs" />
     <Compile Include="Graphics\Transforms\TransformLong.cs" />
     <Compile Include="Graphics\Transforms\TransformInt.cs" />
@@ -221,7 +222,6 @@
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
-    <Compile Include="Graphics\Transforms\ITransform.cs" />
     <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
     <Compile Include="Graphics\Transforms\TransformColour.cs" />
     <Compile Include="Graphics\Transforms\TransformFloat.cs" />

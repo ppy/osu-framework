@@ -629,7 +629,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformContinuation<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectColour));
             return this.TransformTo(newAlpha, duration, easing, new TransformEdgeEffectAlpha(this));
@@ -638,7 +638,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformContinuation<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
             Flush(false, typeof(TransformEdgeEffectAlpha));
             return this.TransformTo(newColour, duration, easing, new TransformEdgeEffectColour(this));
@@ -934,7 +934,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformContinuation<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
             this.TransformTo(newSize, duration, easing, new TransformRelativeChildSize(this));
 
         /// <summary>
@@ -943,7 +943,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newOffset">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformContinuation<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
             this.TransformTo(newOffset, duration, easing, new TransformRelativeChildOffset(this));
 
         public override Axes RelativeSizeAxes

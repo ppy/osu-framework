@@ -12,7 +12,7 @@ namespace osu.Framework.Graphics.Transforms
 
         double TransformStartTime { get; }
 
-        void AddTransform<T>(Transform<T> transform);
+        void AddTransform(Transform transform);
 
         void Flush(bool propagateChildren = false, Type flushType = null);
     }

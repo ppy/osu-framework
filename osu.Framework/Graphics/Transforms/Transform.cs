@@ -3,19 +3,13 @@
 
 using osu.Framework.Timing;
 using System;
+using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public abstract class Transform<T> : ITransform
+    public abstract class Transform
     {
-        public ulong TransformID { get; internal set; }
-
-        private readonly T target;
-
-        protected Transform(T target)
-        {
-            this.target = target;
-        }
+        internal ulong TransformID { private get; set; }
 
         public double Duration => EndTime - StartTime;
 
@@ -24,13 +18,9 @@ namespace osu.Framework.Graphics.Transforms
         public double StartTime { get; set; }
         public double EndTime { get; set; }
 
-        public void Apply() => Apply(target);
+        public abstract void Apply();
 
-        public void ReadIntoStartValue() => ReadIntoStartValue(target);
-
-        public abstract void Apply(T d);
-
-        public abstract void ReadIntoStartValue(T d);
+        public abstract void ReadIntoStartValue();
 
         public void UpdateTime(FrameTimeInfo time)
         {
@@ -42,6 +32,41 @@ namespace osu.Framework.Graphics.Transforms
         public Action<double> OnComplete { get; set; }
 
         public Action<double> OnAbort { get; set; }
+
+
+        public static readonly IComparer<Transform> COMPARER = new TransformTimeComparer();
+
+        private class TransformTimeComparer : IComparer<Transform>
+        {
+            public int Compare(Transform x, Transform y)
+            {
+                if (x == null) throw new ArgumentNullException(nameof(x));
+                if (y == null) throw new ArgumentNullException(nameof(y));
+
+                int compare = x.StartTime.CompareTo(y.StartTime);
+                if (compare != 0) return compare;
+                compare = x.TransformID.CompareTo(y.TransformID);
+                return compare;
+            }
+        }
+    }
+
+    public abstract class Transform<T> : Transform
+    {
+        private readonly T target;
+
+        protected Transform(T target)
+        {
+            this.target = target;
+        }
+
+        public sealed override void Apply() => Apply(target);
+
+        public sealed override void ReadIntoStartValue() => ReadIntoStartValue(target);
+
+        public abstract void Apply(T d);
+
+        public abstract void ReadIntoStartValue(T d);
     }
 
     public abstract class Transform<TValue, T> : Transform<T>

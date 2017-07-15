@@ -57,8 +57,8 @@ namespace osu.Framework.VisualTests.Tests
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
                 "Complex transform 2 (should end in sync with CT1)",
-                $"Red on {nameof(TransformContinuation<Container>)}.{nameof(TransformContinuation<Container>.Catch)}",
-                $"Red on {nameof(TransformContinuation<Container>)}.{nameof(TransformContinuation<Container>.Finally)}",
+                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Catch)}",
+                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Finally)}",
             };
 
             for (int i = 0; i < Rows * Cols; ++i)
@@ -94,11 +94,13 @@ namespace osu.Framework.VisualTests.Tests
 
         private void animate()
         {
-            boxes[0].Delayed(500).Then(500).Then(500).Then(
+            /*boxes[0].Delayed(500).Then(500).Then(500).Then(
                 b => b.Delayed(500).Spin(1000)
-            );
+            );*/
 
-            boxes[1].Delayed(1000).Loop(1000, b => b.RotateTo(0).RotateTo(360, 1000));
+            boxes[0].Spin(1, 0, 1000);
+
+            /*boxes[1].Delayed(1000).Loop(1000, 10000, b => b.RotateTo(0).RotateTo(340, 1000));
 
             boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
@@ -141,7 +143,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(500, 2, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
-            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+            .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));*/
         }
     }
 }
