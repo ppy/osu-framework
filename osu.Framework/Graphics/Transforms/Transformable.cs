@@ -220,22 +220,6 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Warp the time for all transformations contained in <see cref="Transforms"/>.
-        /// </summary>
-        /// <param name="timeSpan">The time span to warp, in milliseconds.</param>
-        public void TimeWarp(double timeSpan)
-        {
-            if (timeSpan == 0)
-                return;
-
-            foreach (Transform t in Transforms)
-            {
-                t.StartTime += timeSpan;
-                t.EndTime += timeSpan;
-            }
-        }
-
-        /// <summary>
         /// Used to assign a monotonically increasing ID to transforms as they are added. This member is
         /// incremented whenever a transform is added.
         /// </summary>
