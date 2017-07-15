@@ -41,7 +41,7 @@ namespace osu.Framework.Graphics.Transforms
         private SortedList<Transform> transforms => transformsLazy ?? (transformsLazy = new SortedList<Transform>(Transform.COMPARER));
 
         /// <summary>
-        /// A lazily-initialized list of <see cref="ITransform"/>s applied to this class.
+        /// A lazily-initialized list of <see cref="Transform"/>s applied to this class.
         /// </summary>
         public IReadOnlyList<Transform> Transforms => transforms;
 

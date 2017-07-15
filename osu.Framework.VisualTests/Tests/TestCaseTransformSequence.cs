@@ -57,7 +57,7 @@ namespace osu.Framework.VisualTests.Tests
                 "Loop(1 sec pause; 1 sec rotate)",
                 "Complex transform 1 (should end in sync with CT2)",
                 "Complex transform 2 (should end in sync with CT1)",
-                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Catch)}",
+                $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.OnAbort)}",
                 $"Red on {nameof(TransformSequence<Container>)}.{nameof(TransformSequence<Container>.Finally)}",
                 "Red after instant transform",
                 "Red after instant transform 1 sec in the past",
@@ -132,7 +132,7 @@ namespace osu.Framework.VisualTests.Tests
                 b => b.Loop(2, 500, d => d.RotateTo(0).RotateTo(360, 1000)),
                 b => b.ScaleTo(0.5f, 500)
             )
-            .Catch(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
+            .OnAbort(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
 
             boxes[5].RotateTo(0).ScaleTo(1).RotateTo(360, 500)

@@ -240,7 +240,7 @@ namespace osu.Framework.Graphics.Transforms
 
         public TransformSequence<T> Then(params Generator[] childGenerators) => then(0, childGenerators);
 
-        public void Then(Action<T> func)
+        public void OnComplete(Action<T> func)
         {
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
@@ -248,13 +248,13 @@ namespace osu.Framework.Graphics.Transforms
             subscribeComplete(() => func(origin));
         }
 
-        public void Catch(Action<T> func) => subscribeAbort(() => func(origin));
+        public void OnAbort(Action<T> func) => subscribeAbort(() => func(origin));
 
         public void Finally(Action<T> func)
         {
             if (hasEnd)
-                Then(func);
-            Catch(func);
+                OnComplete(func);
+            OnAbort(func);
         }
     }
 }

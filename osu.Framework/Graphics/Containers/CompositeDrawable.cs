@@ -982,22 +982,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float autoSizeDuration;
-
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
         /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
         /// </summary>
-        public float AutoSizeDuration
-        {
-            get { return autoSizeDuration; }
-            protected set
-            {
-                if (autoSizeDuration == value) return;
-
-                autoSizeDuration = value;
-            }
-        }
+        public float AutoSizeDuration { get; protected set; }
 
         /// <summary>
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
@@ -1154,7 +1143,7 @@ namespace osu.Framework.Graphics.Containers
             this.TransformTo(this.MakeTransform(nameof(baseSize), newSize, duration, easing));
 
         /// <summary>
-        /// A helper property for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, EasingTypes)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         private Vector2 baseSize
         {

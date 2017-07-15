@@ -24,7 +24,7 @@ namespace osu.Framework.Graphics.Transforms
             public WriteFunc Write;
         }
 
-        private static Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
+        private static readonly Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
         private static readonly CurrentValueFunc<TValue> current_value_func;
 
         static TransformCustom()
@@ -40,8 +40,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private static ReadFunc createFieldGetter(FieldInfo field)
         {
-            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid().ToString("N")}";
-            DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new Type[1] { typeof(T) }, true);
+            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.get_{Guid.NewGuid():N}";
+            DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(TValue), new[] { typeof(T) }, true);
             ILGenerator gen = setterMethod.GetILGenerator();
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, field);
@@ -51,8 +51,8 @@ namespace osu.Framework.Graphics.Transforms
 
         private static WriteFunc createFieldSetter(FieldInfo field)
         {
-            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid().ToString("N")}";
-            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new Type[2] { typeof(T), typeof(TValue) }, true);
+            string methodName = $"{typeof(T).ReadableName()}.{field.Name}.set_{Guid.NewGuid():N}";
+            DynamicMethod setterMethod = new DynamicMethod(methodName, null, new[] { typeof(T), typeof(TValue) }, true);
             ILGenerator gen = setterMethod.GetILGenerator();
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldarg_1);
@@ -77,7 +77,7 @@ namespace osu.Framework.Graphics.Transforms
                 if (getter == null || setter == null)
                     throw new InvalidOperationException(
                         $"Cannot create {nameof(TransformCustom<TValue, T>)} for property {type.ReadableName()}.{propertyOrFieldName} " +
-                        $"since it needs to have both a getter and a setter.");
+                        "since it needs to have both a getter and a setter.");
 
                 if (getter.IsStatic || setter.IsStatic)
                     throw new NotSupportedException(
@@ -127,8 +127,8 @@ namespace osu.Framework.Graphics.Transforms
             return result;
         }
 
-        private Accessor accessor;
-        private CurrentValueFunc<TValue> currentValueFunc;
+        private readonly Accessor accessor;
+        private readonly CurrentValueFunc<TValue> currentValueFunc;
 
         public TransformCustom(string propertyOrFieldName, CurrentValueFunc<TValue> currentValueFunc = null)
         {
