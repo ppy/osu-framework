@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformDouble<T> : Transform<double, T>
     {
-        protected TransformDouble(T target) : base(target)
-        {
-        }
-
         public virtual double CurrentValue
         {
             get

@@ -53,16 +53,11 @@ namespace osu.Framework.Graphics.Transforms
 
     public abstract class Transform<T> : Transform
     {
-        private readonly T target;
+        public T Target;
 
-        protected Transform(T target)
-        {
-            this.target = target;
-        }
+        public sealed override void Apply() => Apply(Target);
 
-        public sealed override void Apply() => Apply(target);
-
-        public sealed override void ReadIntoStartValue() => ReadIntoStartValue(target);
+        public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
 
         public abstract void Apply(T d);
 
@@ -71,10 +66,6 @@ namespace osu.Framework.Graphics.Transforms
 
     public abstract class Transform<TValue, T> : Transform<T>
     {
-        protected Transform(T target) : base(target)
-        {
-        }
-
         public TValue StartValue { get; protected set; }
         public TValue EndValue { get; set; }
 

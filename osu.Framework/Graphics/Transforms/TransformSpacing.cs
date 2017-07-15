@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformSpacing : TransformVector<IFillFlowContainer>
     {
-        public TransformSpacing(IFillFlowContainer target) : base(target)
-        {
-        }
-
         public override void Apply(IFillFlowContainer d) => d.Spacing = CurrentValue;
         public override void ReadIntoStartValue(IFillFlowContainer d) => StartValue = d.Spacing;
     }

@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformEdgeEffectAlpha : TransformFloat<IContainer>
     {
-        public TransformEdgeEffectAlpha(IContainer target) : base(target)
-        {
-        }
-
         public override void Apply(IContainer c)
         {
             EdgeEffectParameters e = c.EdgeEffect;

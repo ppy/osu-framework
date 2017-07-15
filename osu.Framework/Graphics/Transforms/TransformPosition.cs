@@ -5,10 +5,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformPosition : TransformVector<Drawable>
     {
-        public TransformPosition(Drawable target) : base(target)
-        {
-        }
-
         public override void Apply(Drawable d) => d.Position = CurrentValue;
         public override void ReadIntoStartValue(Drawable d) => StartValue = d.Position;
     }

@@ -11,10 +11,6 @@ namespace osu.Framework.Graphics.Transforms
     /// </summary>
     public class TransformColour : Transform<Color4, Drawable>
     {
-        public TransformColour(Drawable target) : base(target)
-        {
-        }
-
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>

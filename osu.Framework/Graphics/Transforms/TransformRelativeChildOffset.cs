@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformRelativeChildOffset : TransformVector<IContainer>
     {
-        public TransformRelativeChildOffset(IContainer target) : base(target)
-        {
-        }
-
         public override void Apply(IContainer d) => d.RelativeChildOffset = CurrentValue;
         public override void ReadIntoStartValue(IContainer d) => StartValue = d.RelativeChildOffset;
     }

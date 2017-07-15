@@ -9,10 +9,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public class TransformEdgeEffectColour : Transform<Color4, IContainer>
     {
-        public TransformEdgeEffectColour(IContainer target) : base(target)
-        {
-        }
-
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>

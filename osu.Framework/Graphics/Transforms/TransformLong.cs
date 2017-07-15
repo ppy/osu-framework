@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformLong<T> : Transform<long, T>
     {
-        protected TransformLong(T target) : base(target)
-        {
-        }
-
         public virtual long CurrentValue
         {
             get

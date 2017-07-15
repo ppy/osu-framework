@@ -7,10 +7,6 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class TransformInt<T> : Transform<int, T>
     {
-        protected TransformInt(T target) : base(target)
-        {
-        }
-
         public virtual int CurrentValue
         {
             get
