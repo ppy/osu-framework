@@ -1,6 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -58,7 +59,7 @@ namespace osu.Framework.Graphics.Transforms
                 onLoopingTransform();
 
             // Update last transform for completion callback
-            if (transform.EndTime > endTime)
+            if (Precision.AlmostBigger(transform.EndTime, endTime))
             {
                 if (last != null)
                     last.OnComplete = null;
@@ -86,8 +87,15 @@ namespace osu.Framework.Graphics.Transforms
             using (origin.BeginDelayedSequence(currentTime - startTime))
                 child = childGenerator.Invoke(origin);
 
+            var oldLast = last;
             foreach (var t in child.transforms)
                 Append(t);
+
+            // If we flatten a child into ourselves that already completed, then
+            // we need to make sure to update the hasCompleted value, too, since
+            // the already completed final transform will no longer fire any events.
+            if (oldLast != last)
+                hasCompleted = child.hasCompleted;
 
             return this;
         }
