@@ -100,10 +100,10 @@ namespace osu.Framework.Graphics
         }
 
         public static TransformSequence<T> FadeTo<T>(this T drawable, float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Alpha), newAlpha, duration, easing));
+            drawable.TransformTo(nameof(drawable.Alpha), newAlpha, duration, easing);
 
         public static TransformSequence<T> RotateTo<T>(this T drawable, float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Rotation), newRotation, duration, easing));
+            drawable.TransformTo(nameof(drawable.Rotation), newRotation, duration, easing);
 
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0) where T : Drawable =>
             drawable.Delayed(0).Spin(revolutionDuration, startRotation);
@@ -125,37 +125,37 @@ namespace osu.Framework.Graphics
         }
 
         public static TransformSequence<T> MoveToX<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.X), destination, duration, easing));
+            drawable.TransformTo(nameof(drawable.X), destination, duration, easing);
 
         public static TransformSequence<T> MoveToY<T>(this T drawable, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Y), destination, duration, easing));
+            drawable.TransformTo(nameof(drawable.Y), destination, duration, easing);
 
         public static TransformSequence<T> ScaleTo<T>(this T drawable, float newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.ScaleTo(new Vector2(newScale), duration, easing);
 
         public static TransformSequence<T> ScaleTo<T>(this T drawable, Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Scale), newScale, duration, easing));
+            drawable.TransformTo(nameof(drawable.Scale), newScale, duration, easing);
 
         public static TransformSequence<T> ResizeTo<T>(this T drawable, float newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.ResizeTo(new Vector2(newSize), duration, easing);
 
         public static TransformSequence<T> ResizeTo<T>(this T drawable, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Size), newSize, duration, easing));
+            drawable.TransformTo(nameof(drawable.Size), newSize, duration, easing);
 
         public static TransformSequence<T> ResizeWidthTo<T>(this T drawable, float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Width), newWidth, duration, easing));
+            drawable.TransformTo(nameof(drawable.Width), newWidth, duration, easing);
 
         public static TransformSequence<T> ResizeHeightTo<T>(this T drawable, float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Height), newHeight, duration, easing));
+            drawable.TransformTo(nameof(drawable.Height), newHeight, duration, easing);
 
         public static TransformSequence<T> MoveTo<T>(this T drawable, Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.MakeTransform(nameof(drawable.Position), newPosition, duration, easing));
+            drawable.TransformTo(nameof(drawable.Position), newPosition, duration, easing);
 
         public static TransformSequence<T> MoveToOffset<T>(this T drawable, Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.MoveTo((drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Position)) as Transform<Vector2>)?.EndValue ?? drawable.Position + offset, duration, easing);
 
         public static TransformSequence<T> FadeColour<T>(this T drawable, Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
-            drawable.TransformTo(drawable.PopulateTransform(new TransformCustom<SRGBColour, Drawable>(nameof(drawable.Colour)), newColour, duration, easing));
+            drawable.TransformTo(nameof(drawable.Colour), (SRGBColour)newColour, duration, easing);
 
         public static TransformSequence<T> FlashColour<T>(this T drawable, Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
@@ -195,7 +195,7 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformRelativeChildSizeTo<T>(this T container, Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
-            => container.TransformTo(container.MakeTransform(nameof(container.RelativeChildSize), newSize, duration, easing));
+            => container.TransformTo(nameof(container.RelativeChildSize), newSize, duration, easing);
 
         /// <summary>
         /// Tweens the <see cref="Container.RelativeChildOffset"/> of a <see cref="Container"/>.
@@ -208,17 +208,17 @@ namespace osu.Framework.Graphics
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<T> TransformRelativeChildOffsetTo<T>(this T container, Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IContainer
-            => container.TransformTo(container.MakeTransform(nameof(container.RelativeChildOffset), newOffset, duration, easing));
+            => container.TransformTo(nameof(container.RelativeChildOffset), newOffset, duration, easing);
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that blurs a <see cref="BufferedContainer{T}"/>.
         /// </summary>
         public static TransformSequence<T> BlurTo<T>(this T bufferedContainer, Vector2 newBlurSigma, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IBufferedContainer
-            => bufferedContainer.TransformTo(bufferedContainer.MakeTransform(nameof(bufferedContainer.BlurSigma), newBlurSigma, duration, easing));
+            => bufferedContainer.TransformTo(nameof(bufferedContainer.BlurSigma), newBlurSigma, duration, easing);
 
         public static TransformSequence<T> TransformSpacingTo<T>(this T flowContainer, Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : IFillFlowContainer
-            => flowContainer.TransformTo(flowContainer.MakeTransform(nameof(flowContainer.Spacing), newSpacing, duration, easing));
+            => flowContainer.TransformTo(nameof(flowContainer.Spacing), newSpacing, duration, easing);
     }
 }

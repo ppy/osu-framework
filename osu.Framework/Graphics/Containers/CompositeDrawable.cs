@@ -932,7 +932,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
         protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(nameof(RelativeChildSize), newSize, duration, easing));
+            this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.
@@ -941,7 +941,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
         protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(nameof(RelativeChildOffset), newOffset, duration, easing));
+            this.TransformTo(nameof(RelativeChildOffset), newOffset, duration, easing);
 
         public override Axes RelativeSizeAxes
         {
@@ -1140,7 +1140,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
-            this.TransformTo(this.MakeTransform(nameof(baseSize), newSize, duration, easing));
+            this.TransformTo(nameof(baseSize), newSize, duration, easing);
 
         /// <summary>
         /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, EasingTypes)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
