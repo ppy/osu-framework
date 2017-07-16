@@ -123,6 +123,9 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (var t in toRemove)
                 transformsLazy.Remove(t);
+
+            foreach (var t in toRemove)
+                t.OnAbort?.Invoke();
         }
 
         /// <summary>

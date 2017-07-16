@@ -104,6 +104,11 @@ namespace osu.Framework.Graphics.Transforms
             if (transforms.Count == 0)
                 return;
 
+            // No need for OnAbort events to trigger anymore, since
+            // we are already aware of the abortion.
+            foreach (var t in transforms)
+                t.OnAbort = null;
+
             origin.RemoveTransforms(transforms);
             transforms.Clear();
 
