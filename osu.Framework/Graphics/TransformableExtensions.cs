@@ -69,6 +69,9 @@ namespace osu.Framework.Graphics
             return transform;
         }
 
+        public static TransformSequence<T> Animate<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators) where T : ITransformable =>
+            transformable.Delay(0, childGenerators);
+
         public static TransformSequence<T> Delay<T>(this T transformable, double delay, params TransformSequence<T>.Generator[] childGenerators) where T : ITransformable =>
             new TransformSequence<T>(transformable).Delay(delay, childGenerators);
 

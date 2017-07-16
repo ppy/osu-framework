@@ -1917,7 +1917,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        internal protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.

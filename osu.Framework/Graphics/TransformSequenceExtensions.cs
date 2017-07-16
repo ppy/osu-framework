@@ -5,6 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Transforms;
+using System;
 
 namespace osu.Framework.Graphics
 {
@@ -20,6 +21,9 @@ namespace osu.Framework.Graphics
 
         public static TransformSequence<T> Expire<T>(this TransformSequence<T> t) where T : Drawable =>
             t.Append(o => o.Expire());
+
+        public static TransformSequence<T> Schedule<T>(this TransformSequence<T> t, Action scheduledAction) where T : Drawable =>
+            t.Append(o => o.Schedule(scheduledAction));
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation = 0) where T : Drawable =>
             t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop();
