@@ -69,24 +69,24 @@ namespace osu.Framework.Graphics
             return transform;
         }
 
-        public static TransformSequence<T> Delayed<T>(this T transformable, double delay) where T : ITransformable =>
-            new TransformSequence<T>(transformable).Then(delay);
+        public static TransformSequence<T> Delay<T>(this T transformable, double delay) where T : ITransformable =>
+            new TransformSequence<T>(transformable).Delay(delay);
 
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Delayed(0).Loop(pause, numIters, childGenerators);
+            transformable.Delay(0).Loop(pause, numIters, childGenerators);
 
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Delayed(0).Loop(pause, childGenerators);
+            transformable.Delay(0).Loop(pause, childGenerators);
 
         public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Delayed(0).Loop(childGenerators);
+            transformable.Delay(0).Loop(childGenerators);
 
         public static TransformSequence<T> Loop<T>(this T transformable, double pause = 0)
             where T : ITransformable =>
-            transformable.Delayed(0).Loop(pause);
+            transformable.Delay(0).Loop(pause);
 
         public static TransformSequence<T> FadeIn<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.FadeTo(1, duration, easing);
@@ -113,10 +113,10 @@ namespace osu.Framework.Graphics
             drawable.TransformTo(nameof(drawable.Rotation), newRotation, duration, easing);
 
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0) where T : Drawable =>
-            drawable.Delayed(0).Spin(revolutionDuration, startRotation);
+            drawable.Delay(0).Spin(revolutionDuration, startRotation);
 
         public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation, int numRevolutions) where T : Drawable =>
-            drawable.Delayed(0).Spin(revolutionDuration, startRotation, numRevolutions);
+            drawable.Delay(0).Spin(revolutionDuration, startRotation, numRevolutions);
 
         public static TransformSequence<T> MoveTo<T>(this T drawable, Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {

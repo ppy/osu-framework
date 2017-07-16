@@ -97,11 +97,11 @@ namespace osu.Framework.VisualTests.Tests
 
         private void animate()
         {
-            boxes[0].Delayed(500).Then(500).Then(500).Then(
-                b => b.Delayed(500).Spin(1000)
+            boxes[0].Delay(500).Then(500).Then(500).Then(
+                b => b.Delay(500).Spin(1000)
             );
 
-            boxes[1].Delayed(1000).Loop(5, 1000, b => b.RotateTo(0).RotateTo(340, 1000));
+            boxes[1].Delay(1000).Loop(5, 1000, b => b.RotateTo(0).RotateTo(340, 1000));
 
             boxes[2].RotateTo(0).ScaleTo(1).RotateTo(360, 1000)
             .Then(1000,
@@ -148,10 +148,10 @@ namespace osu.Framework.VisualTests.Tests
             boxes[6].RotateTo(200)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            boxes[7].Delayed(-1000).RotateTo(200)
+            boxes[7].Delay(-1000).RotateTo(200)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
 
-            boxes[8].Delayed(-1000).RotateTo(200, 1000)
+            boxes[8].Delay(-1000).RotateTo(200, 1000)
             .Finally(b => b.FadeEdgeEffectTo(Color4.Red, 1000));
         }
     }
