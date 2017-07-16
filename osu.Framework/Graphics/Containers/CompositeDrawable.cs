@@ -596,15 +596,15 @@ namespace osu.Framework.Graphics.Containers
                 foreach (var c in internalChildren) c.ClearTransforms(true);
         }
 
-        public override Transformable Delay(double duration, bool propagateChildren = false)
+        public override void ApplyDelay(double duration, bool propagateChildren = false)
         {
-            if (duration == 0) return this;
+            if (duration == 0)
+                return;
 
-            base.Delay(duration, propagateChildren);
+            base.ApplyDelay(duration, propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.Delay(duration, true);
-            return this;
+                foreach (var c in internalChildren) c.ApplyDelay(duration, true);
         }
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
@@ -614,15 +614,17 @@ namespace osu.Framework.Graphics.Containers
             base.Flush(propagateChildren, flushMember);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.Flush(true, flushMember);
+                foreach (var c in internalChildren)
+                    c.Flush(true, flushMember);
         }
 
-        public override Transformable DelayReset()
+        public override void ResetDelay(bool propagateChildren = false)
         {
-            base.DelayReset();
-            foreach (var c in internalChildren) c.DelayReset();
+            base.ResetDelay(propagateChildren);
 
-            return this;
+            if (propagateChildren)
+                foreach (var c in internalChildren)
+                    c.ResetDelay(true);
         }
 
         /// <summary>

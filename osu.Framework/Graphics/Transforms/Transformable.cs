@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Transforms
         public FrameTimeInfo Time => Clock.TimeInfo;
 
         /// <summary>
-        /// The time to use for starting transforms which support <see cref="Delay(double, bool)"/>
+        /// The time to use for starting transforms which support <see cref="ApplyDelay(double, bool)"/>
         /// </summary>
         public double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
@@ -134,7 +134,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="propagateChildren">Whether we also clear down the child tree.</param>
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
-            DelayReset();
+            ResetDelay(propagateChildren);
 
             if (transformsLazy == null)
                 return;
@@ -152,21 +152,13 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The delay duration to add.</param>
         /// <param name="propagateChildren">Whether we also delay down the child tree.</param>
         /// <returns>This</returns>
-        public virtual Transformable Delay(double duration, bool propagateChildren = false)
-        {
-            TransformDelay += duration;
-            return this;
-        }
+        public virtual void ApplyDelay(double duration, bool propagateChildren = false) => TransformDelay += duration;
 
         /// <summary>
         /// Reset <see cref="TransformDelay"/>.
         /// </summary>
         /// <returns>This</returns>
-        public virtual Transformable DelayReset()
-        {
-            Delay(-TransformDelay);
-            return this;
-        }
+        public virtual void ResetDelay(bool propagateChildren = false) => ApplyDelay(-TransformDelay);
 
         /// <summary>
         /// Flush specified transforms, using the last available values (ignoring current clock time).
@@ -205,9 +197,9 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
         {
-            Delay(delay, recursive);
+            ApplyDelay(delay, recursive);
 
-            return new InvokeOnDisposal(() => Delay(-delay, recursive));
+            return new InvokeOnDisposal(() => ApplyDelay(-delay, recursive));
         }
 
         /// <summary>
