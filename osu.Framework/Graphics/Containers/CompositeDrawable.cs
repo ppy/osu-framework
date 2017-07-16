@@ -596,15 +596,15 @@ namespace osu.Framework.Graphics.Containers
                 foreach (var c in internalChildren) c.ClearTransforms(true);
         }
 
-        public override void ApplyDelay(double duration, bool propagateChildren = false)
+        public override void AddDelay(double duration, bool propagateChildren = false)
         {
             if (duration == 0)
                 return;
 
-            base.ApplyDelay(duration, propagateChildren);
+            base.AddDelay(duration, propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.ApplyDelay(duration, true);
+                foreach (var c in internalChildren) c.AddDelay(duration, true);
         }
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
