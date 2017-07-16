@@ -1,10 +1,8 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using osu.Framework.MathUtils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -16,15 +14,17 @@ namespace osu.Framework.Graphics.Transforms
         private readonly T origin;
 
         private readonly List<Transform> transforms = new List<Transform>();
-        private Transform last;
 
         private bool hasCompleted;
 
         private readonly double startTime;
         private double currentTime;
-        private double endTime;
+        private double endTime => Math.Max(currentTime, lastEndTime);
 
-        private bool hasEnd => endTime != double.PositiveInfinity;
+        private Transform last;
+        private double lastEndTime;
+
+        private bool hasEnd => lastEndTime != double.PositiveInfinity;
 
         public TransformSequence(T origin)
         {
@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Transforms
                 throw new NullReferenceException($"May not create a {nameof(TransformSequence<T>)} with a null {nameof(origin)}.");
 
             this.origin = origin;
-            startTime = currentTime = endTime = origin.TransformStartTime;
+            startTime = currentTime = lastEndTime = origin.TransformStartTime;
         }
 
         private void onLoopingTransform()
@@ -43,7 +43,7 @@ namespace osu.Framework.Graphics.Transforms
                 last.OnComplete = null;
 
             last = null;
-            endTime = double.PositiveInfinity;
+            lastEndTime = double.PositiveInfinity;
             hasCompleted = false;
         }
 
@@ -58,14 +58,14 @@ namespace osu.Framework.Graphics.Transforms
                 onLoopingTransform();
 
             // Update last transform for completion callback
-            if (Precision.AlmostBigger(transform.EndTime, endTime))
+            if (last == null || transform.EndTime > lastEndTime)
             {
                 if (last != null)
                     last.OnComplete = null;
 
                 last = transform;
                 last.OnComplete = onTransformsComplete;
-                endTime = last.EndTime;
+                lastEndTime = last.EndTime;
                 hasCompleted = false;
             }
 
@@ -111,6 +111,7 @@ namespace osu.Framework.Graphics.Transforms
 
             origin.RemoveTransforms(transforms);
             transforms.Clear();
+            last = null;
 
             onAbort?.Invoke();
         }
