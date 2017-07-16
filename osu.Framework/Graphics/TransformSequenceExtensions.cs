@@ -10,13 +10,13 @@ namespace osu.Framework.Graphics
 {
     public static class TransformSequenceExtensions
     {
-        public static TransformSequence<T> TransformTo<T, TValue>(this TransformSequence<T> t, Transform transform)
-            where T : ITransformable
-            => t.Append(o => o.TransformTo(transform));
-
         public static TransformSequence<T> TransformTo<T, TValue>(this TransformSequence<T> t, string propertyOrFieldName, TValue newValue, double duration = 0, EasingTypes easing = EasingTypes.None)
             where T : ITransformable
             => t.Append(o => o.TransformTo(propertyOrFieldName, newValue, duration, easing));
+
+        public static TransformSequence<T> TransformTo<T>(this TransformSequence<T> t, Transform transform)
+            where T : ITransformable
+            => t.Append(o => o.TransformTo(transform));
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation = 0) where T : Drawable =>
             t.Loop(0, d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
