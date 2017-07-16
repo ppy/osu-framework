@@ -7,6 +7,7 @@ using osu.Framework.Timing;
 using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -237,6 +238,12 @@ namespace osu.Framework.Graphics.Transforms
                 transform.OnComplete?.Invoke();
                 return;
             }
+
+            Debug.Assert(!(transform.TransformID == 0 && transforms.Contains(transform)), $"Zero-id {nameof(Transform)}s should never be contained already.");
+
+            // This contains check may be optimized away in the future, should it become a bottleneck
+            if (transform.TransformID != 0 && transforms.Contains(transform))
+                throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
 
             transform.TransformID = ++currentTransformID;
             transforms.Add(transform);

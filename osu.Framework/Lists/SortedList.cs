@@ -56,9 +56,10 @@ namespace osu.Framework.Lists
 
             int index = list.BinarySearch(value, Comparer);
 
-            if (index < 0)
-                index = ~index;
+            if (index >= 0)
+                throw new InvalidOperationException($"{nameof(SortedList)} may not contain the same element multiple times. ({nameof(value)}={value})");
 
+            index = ~index;
             list.Insert(index, value);
 
             return index;

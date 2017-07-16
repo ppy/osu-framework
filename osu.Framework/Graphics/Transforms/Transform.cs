@@ -10,7 +10,7 @@ namespace osu.Framework.Graphics.Transforms
 {
     public abstract class Transform
     {
-        internal ulong TransformID { private get; set; }
+        internal ulong TransformID;
 
         public double Duration => EndTime - StartTime;
 

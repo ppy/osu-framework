@@ -54,6 +54,9 @@ namespace osu.Framework.Graphics
             if (duration < 0)
                 throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
 
+            if (transform.Target != null)
+                throw new InvalidOperationException($"May not {nameof(PopulateTransform)} the same {nameof(Transform<TValue, TBase>)} more than once.");
+
             transform.Target = t;
 
             double startTime = t.TransformStartTime;
