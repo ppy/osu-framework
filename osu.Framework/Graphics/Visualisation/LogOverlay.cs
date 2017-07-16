@@ -91,9 +91,7 @@ namespace osu.Framework.Graphics.Visualisation
 
                 flow.Add(drawEntry);
 
-                drawEntry.FadeInFromZero(800, EasingTypes.OutQuint);
-                using (drawEntry.BeginDelayedSequence(display_length))
-                    drawEntry.FadeOut(800, EasingTypes.InQuint);
+                drawEntry.FadeInFromZero(800, EasingTypes.OutQuint).Delay(display_length).FadeOut(800, EasingTypes.InQuint);
                 drawEntry.Expire();
             });
         }

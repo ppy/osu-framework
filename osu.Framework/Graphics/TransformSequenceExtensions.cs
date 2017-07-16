@@ -18,6 +18,9 @@ namespace osu.Framework.Graphics
             where T : ITransformable
             => t.Append(o => o.TransformTo(transform));
 
+        public static TransformSequence<T> Expire<T>(this TransformSequence<T> t) where T : Drawable =>
+            t.Append(o => o.Expire());
+
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation = 0) where T : Drawable =>
             t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop();
 

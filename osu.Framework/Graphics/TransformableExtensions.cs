@@ -69,8 +69,8 @@ namespace osu.Framework.Graphics
             return transform;
         }
 
-        public static TransformSequence<T> Delay<T>(this T transformable, double delay) where T : ITransformable =>
-            new TransformSequence<T>(transformable).Delay(delay);
+        public static TransformSequence<T> Delay<T>(this T transformable, double delay, params TransformSequence<T>.Generator[] childGenerators) where T : ITransformable =>
+            new TransformSequence<T>(transformable).Delay(delay, childGenerators);
 
         public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>

@@ -84,7 +84,10 @@ namespace osu.Framework.Graphics.Transforms
         {
             TransformSequence<T> child;
             using (origin.BeginDelayedSequence(currentTime - startTime))
-                child = childGenerator.Invoke(origin);
+                child = childGenerator(origin);
+
+            if (!ReferenceEquals(child.origin, origin))
+                throw new InvalidOperationException($"May not append {nameof(TransformSequence<T>)} with different origin.");
 
             var oldLast = last;
             foreach (var t in child.transforms)
@@ -95,6 +98,14 @@ namespace osu.Framework.Graphics.Transforms
             // the already completed final transform will no longer fire any events.
             if (oldLast != last)
                 hasCompleted = child.hasCompleted;
+
+            return this;
+        }
+
+        internal TransformSequence<T> Append(Action<T> originAction)
+        {
+            using (origin.BeginDelayedSequence(currentTime - startTime))
+                originAction(origin);
 
             return this;
         }
@@ -135,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
             // and therefore when subscribing we need to take into account
             // potential previous completions.
             if (hasCompleted)
-                func.Invoke();
+                func();
         }
 
         private void subscribeAbort(Action func)
