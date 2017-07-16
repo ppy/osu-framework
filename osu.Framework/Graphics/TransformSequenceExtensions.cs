@@ -19,10 +19,10 @@ namespace osu.Framework.Graphics
             => t.Append(o => o.TransformTo(transform));
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation = 0) where T : Drawable =>
-            t.Loop(0, d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
+            t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop();
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation, int numRevolutions) where T : Drawable =>
-            t.Loop(numRevolutions, 0, d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
+            t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop(0, numRevolutions);
 
         public static TransformSequence<T> FadeIn<T>(this TransformSequence<T> t, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             t.Append(o => o.FadeIn(duration, easing));

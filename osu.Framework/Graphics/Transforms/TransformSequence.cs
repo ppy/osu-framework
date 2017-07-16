@@ -151,23 +151,20 @@ namespace osu.Framework.Graphics.Transforms
         private Action onComplete;
         private Action onAbort;
 
-        public TransformSequence<T> Loop(double pause = 0)
+        public TransformSequence<T> Loop(double pause, int numIters, params Generator[] childGenerators)
         {
-            if (!hasEnd)
-                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
-
-            var iterDuration = endTime - startTime + pause;
-            foreach (var t in transforms)
+            Append(o =>
             {
-                t.IsLooping = true;
-                t.LoopDelay = iterDuration;
-            }
+                var childSequence = new TransformSequence<T>(o);
+                childSequence.Append(childGenerators);
+                childSequence.Loop(pause, numIters);
+                return childSequence;
+            });
 
-            onLoopingTransform();
             return this;
         }
 
-        public TransformSequence<T> Loop(int numIters, double pause = 0)
+        public TransformSequence<T> Loop(double pause, int numIters)
         {
             if (numIters < 1)
                 throw new InvalidOperationException($"May not {nameof(Loop)} for fewer than 1 iteration ({numIters} attempted).");
@@ -194,20 +191,9 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        private TransformSequence<T> loop(int numIters, double pause, IEnumerable<Generator> childGenerators)
-        {
-            Append(o =>
-            {
-                var childSequence = new TransformSequence<T>(o);
-                childSequence.Append(childGenerators);
-                childSequence.Loop(numIters, pause);
-                return childSequence;
-            });
+        public TransformSequence<T> Loop(params Generator[] childGenerators) => Loop(0, childGenerators);
 
-            return this;
-        }
-
-        private TransformSequence<T> loop(double pause, IEnumerable<Generator> childGenerators)
+        public TransformSequence<T> Loop(double pause, params Generator[] childGenerators)
         {
             Append(o =>
             {
@@ -220,30 +206,41 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
-        public TransformSequence<T> Loop(int numIters, double pause, Generator firstChildGenerator, params Generator[] childGenerators) =>
-            loop(numIters, pause, new[] { firstChildGenerator }.Concat(childGenerators));
+        public TransformSequence<T> Loop(double pause = 0)
+        {
+            if (!hasEnd)
+                throw new InvalidOperationException($"Can not perform {nameof(Loop)} on an endless {nameof(TransformSequence<T>)}.");
 
-        public TransformSequence<T> Loop(double pause, Generator firstChildGenerator, params Generator[] childGenerators) =>
-            loop(pause, new[] { firstChildGenerator }.Concat(childGenerators));
+            var iterDuration = endTime - startTime + pause;
+            foreach (var t in transforms)
+            {
+                t.IsLooping = true;
+                t.LoopDelay = iterDuration;
+            }
 
-        public TransformSequence<T> Loop(Generator firstChildGenerator, params Generator[] childGenerators) =>
-            Loop(0, firstChildGenerator, childGenerators);
+            onLoopingTransform();
+            return this;
+        }
 
-        private TransformSequence<T> then(double nextDelay, IEnumerable<Generator> nextChildGenerators)
+        public TransformSequence<T> Then(params Generator[] childGenerators) => Then(0, childGenerators);
+
+        public TransformSequence<T> Then(double delay, params Generator[] childGenerators)
         {
             if (!hasEnd)
                 throw new InvalidOperationException($"Can not perform {nameof(Then)} on an endless {nameof(TransformSequence<T>)}.");
 
-            // After a then statement, future transforms are appended after our last one finished
-            // plus the specified extra delay.
-            endTime += nextDelay;
+            // "Then" simply sets the currentTime to endTime to continue where the last transform left off,
+            // followed by a subsequent delay call.
             currentTime = endTime;
-            return Append(nextChildGenerators);
+            return Delay(delay, childGenerators);
         }
 
-        public TransformSequence<T> Then(double delay, params Generator[] childGenerators) => then(delay, childGenerators);
-
-        public TransformSequence<T> Then(params Generator[] childGenerators) => then(0, childGenerators);
+        public TransformSequence<T> Delay(double delay, params Generator[] childGenerators)
+        {
+            // After a delay statement, future transforms are appended after a currentTime which got offset by a delay.
+            currentTime += delay;
+            return Append(childGenerators);
+        }
 
         public void OnComplete(Action<T> func)
         {

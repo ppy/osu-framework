@@ -72,17 +72,21 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> Delayed<T>(this T transformable, double delay) where T : ITransformable =>
             new TransformSequence<T>(transformable).Then(delay);
 
-        public static TransformSequence<T> Loop<T>(this T transformable, int numIters, double pause, TransformSequence<T>.Generator firstChildGenerator, params TransformSequence<T>.Generator[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, int numIters, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Delayed(0).Loop(numIters, pause, firstChildGenerator, childGenerators);
+            transformable.Delayed(0).Loop(pause, numIters, childGenerators);
 
-        public static TransformSequence<T> Loop<T>(this T transformable, double pause, TransformSequence<T>.Generator firstChildGenerator, params TransformSequence<T>.Generator[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Loop(-1, pause, firstChildGenerator, childGenerators);
+            transformable.Delayed(0).Loop(pause, childGenerators);
 
-        public static TransformSequence<T> Loop<T>(this T transformable, TransformSequence<T>.Generator firstChildGenerator, params TransformSequence<T>.Generator[] childGenerators)
+        public static TransformSequence<T> Loop<T>(this T transformable, params TransformSequence<T>.Generator[] childGenerators)
             where T : ITransformable =>
-            transformable.Loop(-1, 0, firstChildGenerator, childGenerators);
+            transformable.Delayed(0).Loop(childGenerators);
+
+        public static TransformSequence<T> Loop<T>(this T transformable, double pause = 0)
+            where T : ITransformable =>
+            transformable.Delayed(0).Loop(pause);
 
         public static TransformSequence<T> FadeIn<T>(this T drawable, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.FadeTo(1, duration, easing);
