@@ -863,7 +863,6 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-                padding.ThrowIfNegative();
 
                 foreach (Drawable c in internalChildren)
                     c.Invalidate(c.InvalidationFromParentSize);
