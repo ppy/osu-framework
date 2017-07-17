@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Extensions;
@@ -57,15 +56,21 @@ namespace osu.Framework.Threading
             if (newClock == null)
                 throw new NullReferenceException($"{nameof(newClock)} may not be null.");
 
-            if (clock == null)
-            {
-                // This is the first time we will get a valid time, so assume this is the
-                // reference point everything scheduled so far starts from.
-                foreach (var s in timedTasks)
-                    s.ExecutionTime += newClock.CurrentTime;
-            }
+            if (newClock == clock)
+                return;
 
-            clock = newClock;
+            lock (timedTasks)
+            {
+                if (clock == null)
+                {
+                    // This is the first time we will get a valid time, so assume this is the
+                    // reference point everything scheduled so far starts from.
+                    foreach (var s in timedTasks)
+                        s.ExecutionTime += newClock.CurrentTime;
+                }
+
+                clock = newClock;
+            }
         }
 
         /// <summary>
@@ -83,15 +88,15 @@ namespace osu.Framework.Threading
         /// <returns>true if any tasks were run.</returns>
         public virtual int Update()
         {
-            double currentTime = this.currentTime;
-
             lock (timedTasks)
             {
+                double currentTimeLocal = currentTime;
+
                 if (timedTasks.Count > 0)
                 {
                     foreach (var sd in timedTasks)
                     {
-                        if (sd.ExecutionTime <= currentTime)
+                        if (sd.ExecutionTime <= currentTimeLocal)
                         {
                             tasksToRemove.Add(sd);
 
@@ -197,9 +202,12 @@ namespace osu.Framework.Threading
         /// <param name="repeat">Whether this task should repeat.</param>
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
-            ScheduledDelegate del = new ScheduledDelegate(task, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
-
-            return Add(del) ? del : null;
+            // We are locking here already to make sure we have no concurrent access to currentTime
+            lock (timedTasks)
+            {
+                ScheduledDelegate del = new ScheduledDelegate(task, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
+                return Add(del) ? del : null;
+            }
         }
 
         /// <summary>
