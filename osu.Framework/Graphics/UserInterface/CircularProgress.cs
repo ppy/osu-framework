@@ -61,8 +61,8 @@ namespace osu.Framework.Graphics.UserInterface
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED, ShaderSourceType.GLSL);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE, ShaderSourceType.GLSL);
         }
 
         private Texture texture = Texture.WhitePixel;

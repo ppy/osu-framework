@@ -79,8 +79,8 @@ namespace osu.Framework.Graphics.Sprites
         [BackgroundDependencyLoader]
         private void load(ShaderManager shaders)
         {
-            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+            textureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE, ShaderSourceType.GLSL);
+            roundedTextureShader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED, ShaderSourceType.GLSL);
         }
 
         private Texture texture;

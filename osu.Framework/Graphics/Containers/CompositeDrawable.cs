@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Containers
         private void load(ShaderManager shaders)
         {
             if (shader == null)
-                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
+                shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED, ShaderSourceType.GLSL);
 
             // From now on, since we ourself are loaded now,
             // we actually permit children to be loaded if our

@@ -50,7 +50,7 @@ namespace osu.Framework.Graphics.Shaders
 
         internal byte[] LoadRaw(string name) => store.Get(name);
 
-        private ShaderPart createShaderPart(string name, ShaderType type, bool bypassCache = false)
+        private ShaderPart createShaderPart<T>(string name, ShaderType type, bool bypassCache = false) where T : ShaderPart, new()
         {
             name = ensureValidName(name, type);
 
@@ -60,14 +60,16 @@ namespace osu.Framework.Graphics.Shaders
 
             byte[] rawData = LoadRaw(name);
 
-            part = new ShaderPart(name, rawData, type, this);
+            part = new T();
+            part.Init(name, rawData, type, this);
 
             //cache even on failure so we don't try and fail every time.
             partCache[name] = part;
             return part;
         }
 
-        public Shader Load(string vertex, string fragment, bool continuousCompilation = false)
+
+        public Shader Load(string vertex, string fragment, ShaderSourceType sourceType, bool continuousCompilation = false)
         {
             string name = vertex + '/' + fragment;
 
@@ -75,11 +77,20 @@ namespace osu.Framework.Graphics.Shaders
 
             if (!shaderCache.TryGetValue(name, out shader))
             {
-                List<ShaderPart> parts = new List<ShaderPart>
+                List<ShaderPart> parts;
+
+                switch (sourceType)
                 {
-                    createShaderPart(vertex, ShaderType.VertexShader),
-                    createShaderPart(fragment, ShaderType.FragmentShader)
-                };
+                    case ShaderSourceType.GLSL:
+                        parts = new List<ShaderPart>
+                            {
+                                createShaderPart<GLSLShaderPart>(vertex, ShaderType.VertexShader),
+                                createShaderPart<GLSLShaderPart>(fragment, ShaderType.FragmentShader)
+                            };
+                        break;
+                    default:
+                        throw new NotSupportedException("The ShaderSourceType specified is not supported.");
+                }
 
                 shader = new Shader(name, parts);
 
