@@ -102,6 +102,14 @@ namespace osu.Framework.Graphics.Transforms
             return this;
         }
 
+        internal TransformSequence<T> Append<U>(Func<T, U> originFunc, out U result)
+        {
+            using (origin.BeginDelayedSequence(currentTime - startTime))
+                result = originFunc(origin);
+
+            return this;
+        }
+
         internal TransformSequence<T> Append(Action<T> originAction)
         {
             using (origin.BeginDelayedSequence(currentTime - startTime))
