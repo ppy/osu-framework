@@ -55,6 +55,9 @@ namespace osu.Framework.Graphics.Transforms
             updateTransforms();
         }
 
+        private List<Action> removalActionsLazy;
+        private List<Action> removalActions => removalActionsLazy ?? (removalActionsLazy = new List<Action>());
+
         /// <summary>
         /// Process updates to this class based on loaded transforms. This does not reset <see cref="TransformDelay"/>.
         /// This is used for performing extra updates on transforms when new transforms are added.
@@ -86,9 +89,8 @@ namespace osu.Framework.Graphics.Transforms
                             transformsLazy.RemoveAt(j--);
                             i--;
 
-                            // Trigger the abort event with the time we are behind when the abort
-                            // should have happened.
-                            otherTransform.OnAbort?.Invoke();
+                            if (otherTransform.OnAbort != null)
+                                removalActions.Add(otherTransform.OnAbort);
                         }
                     }
                 }
@@ -108,12 +110,14 @@ namespace osu.Framework.Graphics.Transforms
                         // running the same transform twice isn't a huge deal.
                         transformsLazy.Add(t);
                     }
-                    else
-                        // Trigger the completion event with the offset to the time when we the transform
-                        // actually completed.
-                        t.OnComplete?.Invoke();
+                    else if (t.OnComplete != null)
+                        removalActions.Add(t.OnComplete);
                 }
             }
+
+            if (removalActionsLazy != null)
+                foreach (var action in removalActionsLazy)
+                    action();
         }
 
         public void RemoveTransforms(IEnumerable<Transform> toRemove)
