@@ -596,7 +596,7 @@ namespace osu.Framework.Graphics.Containers
                 foreach (var c in internalChildren) c.ClearTransforms(true);
         }
 
-        public override void AddDelay(double duration, bool propagateChildren = false)
+        internal override void AddDelay(double duration, bool propagateChildren = false)
         {
             if (duration == 0)
                 return;
@@ -616,15 +616,6 @@ namespace osu.Framework.Graphics.Containers
             if (propagateChildren)
                 foreach (var c in internalChildren)
                     c.Flush(true, flushMember);
-        }
-
-        public override void ResetDelay(bool propagateChildren = false)
-        {
-            base.ResetDelay(propagateChildren);
-
-            if (propagateChildren)
-                foreach (var c in internalChildren)
-                    c.ResetDelay(true);
         }
 
         /// <summary>

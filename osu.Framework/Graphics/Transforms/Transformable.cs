@@ -129,13 +129,11 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Clear all transformations and resets <see cref="TransformDelay"/>.
+        /// Clear all transforms.
         /// </summary>
         /// <param name="propagateChildren">Whether we also clear down the child tree.</param>
         public virtual void ClearTransforms(bool propagateChildren = false)
         {
-            ResetDelay(propagateChildren);
-
             if (transformsLazy == null)
                 return;
 
@@ -152,13 +150,7 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="duration">The delay duration to add.</param>
         /// <param name="propagateChildren">Whether we also delay down the child tree.</param>
         /// <returns>This</returns>
-        public virtual void AddDelay(double duration, bool propagateChildren = false) => TransformDelay += duration;
-
-        /// <summary>
-        /// Reset <see cref="TransformDelay"/>.
-        /// </summary>
-        /// <returns>This</returns>
-        public virtual void ResetDelay(bool propagateChildren = false) => AddDelay(-TransformDelay);
+        internal virtual void AddDelay(double duration, bool propagateChildren = false) => TransformDelay += duration;
 
         /// <summary>
         /// Flush specified transforms, using the last available values (ignoring current clock time).
