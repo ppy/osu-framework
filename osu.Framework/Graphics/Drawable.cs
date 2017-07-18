@@ -613,7 +613,6 @@ namespace osu.Framework.Graphics
                 if (margin.Equals(value)) return;
 
                 margin = value;
-                margin.ThrowIfNegative();
 
                 Invalidate(Invalidation.MiscGeometry);
             }
