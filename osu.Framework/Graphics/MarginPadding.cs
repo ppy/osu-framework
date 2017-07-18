@@ -32,12 +32,6 @@ namespace osu.Framework.Graphics
             Top = Left = Bottom = Right = allSides;
         }
 
-        public void ThrowIfNegative()
-        {
-            if (Top < 0 || Left < 0 || Bottom < 0 || Right < 0)
-                throw new InvalidOperationException($"{nameof(MarginPadding)} may not have negative values, but values are {this}.");
-        }
-
         public bool Equals(MarginPadding other)
         {
             return Top == other.Top && Left == other.Left && Bottom == other.Bottom && Right == other.Right;
