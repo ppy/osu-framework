@@ -9,7 +9,6 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -152,7 +151,7 @@ namespace osu.Framework.Graphics.Cursor
             }
         }
 
-        private List<TimedPosition> recentMousePositions = new List<TimedPosition>();
+        private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
         private double lastRecordedPositionTime;
 
         /// <summary>
@@ -164,8 +163,9 @@ namespace osu.Framework.Graphics.Cursor
         private IHasTooltip findTooltipTarget()
         {
             // While we are dragging a tooltipped drawable we should show a tooltip for it.
-            if (inputManager?.DraggedDrawable is IHasTooltip)
-                return (IHasTooltip)inputManager.DraggedDrawable;
+            IHasTooltip draggedTarget = inputManager.DraggedDrawable as IHasTooltip;
+            if (draggedTarget != null)
+                return draggedTarget;
 
             // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
             double positionRecordInterval = AppearDelay / 10;
