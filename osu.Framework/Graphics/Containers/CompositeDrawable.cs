@@ -312,7 +312,7 @@ namespace osu.Framework.Graphics.Containers
 
         private Scheduler schedulerAfterChildren;
 
-        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread));
+        protected Scheduler SchedulerAfterChildren => schedulerAfterChildren ?? (schedulerAfterChildren = new Scheduler(MainThread, Clock));
 
         /// <summary>
         /// Updates the life status of <see cref="InternalChildren"/> according to their
@@ -330,7 +330,7 @@ namespace osu.Framework.Graphics.Containers
             return false;
         }
 
-        public sealed override void UpdateClock(IFrameBasedClock clock)
+        public override void UpdateClock(IFrameBasedClock clock)
         {
             if (Clock == clock)
                 return;
@@ -338,6 +338,8 @@ namespace osu.Framework.Graphics.Containers
             base.UpdateClock(clock);
             foreach (Drawable child in internalChildren)
                 child.UpdateClock(Clock);
+
+            schedulerAfterChildren?.UpdateClock(Clock);
         }
 
         /// <summary>
@@ -854,7 +856,6 @@ namespace osu.Framework.Graphics.Containers
                 if (padding.Equals(value)) return;
 
                 padding = value;
-                padding.ThrowIfNegative();
 
                 foreach (Drawable c in internalChildren)
                     c.Invalidate(c.InvalidationFromParentSize);

@@ -300,7 +300,7 @@ namespace osu.Framework.Graphics
         /// A lazily-initialized scheduler used to schedule tasks to be invoked in future <see cref="Update"/>s calls.
         /// The tasks are invoked at the beginning of the <see cref="Update"/> method before anything else.
         /// </summary>
-        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread));
+        protected Scheduler Scheduler => scheduler ?? (scheduler = new Scheduler(MainThread, Clock));
 
         /// <summary>
         /// Updates this Drawable and all Drawables further down the scene graph.
@@ -613,7 +613,6 @@ namespace osu.Framework.Graphics
                 if (margin.Equals(value)) return;
 
                 margin = value;
-                margin.ThrowIfNegative();
 
                 Invalidate(Invalidation.MiscGeometry);
             }
@@ -1146,6 +1145,7 @@ namespace osu.Framework.Graphics
         public virtual void UpdateClock(IFrameBasedClock clock)
         {
             this.clock = customClock ?? clock;
+            scheduler?.UpdateClock(this.clock);
         }
 
         /// <summary>
