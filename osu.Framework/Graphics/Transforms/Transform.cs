@@ -12,8 +12,6 @@ namespace osu.Framework.Graphics.Transforms
     {
         internal ulong TransformID;
 
-        public double Duration => EndTime - StartTime;
-
         public EasingTypes Easing;
 
         public double StartTime { get; internal set; }
@@ -24,13 +22,11 @@ namespace osu.Framework.Graphics.Transforms
 
         public abstract string TargetMember { get; }
 
-        public abstract void Apply();
+        public abstract void Apply(double time);
 
         public abstract void ReadIntoStartValue();
 
-        public void UpdateTime(FrameTimeInfo time) => Time = time;
-
-        public FrameTimeInfo? Time { get; private set; }
+        internal bool HasStartValue;
 
         public Action OnComplete;
 
@@ -66,11 +62,11 @@ namespace osu.Framework.Graphics.Transforms
     {
         public T Target { get; internal set; }
 
-        public sealed override void Apply() => Apply(Target);
+        public sealed override void Apply(double time) => Apply(Target, time);
 
         public sealed override void ReadIntoStartValue() => ReadIntoStartValue(Target);
 
-        protected abstract void Apply(T d);
+        protected abstract void Apply(T d, double time);
 
         protected abstract void ReadIntoStartValue(T d);
 

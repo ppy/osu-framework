@@ -12,24 +12,20 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Current value of the transformed colour in linear colour space.
         /// </summary>
-        public Color4 CurrentValue
+        private Color4 valueAt(double time)
         {
-            get
-            {
-                double time = Time?.Current ?? 0;
-                if (time < StartTime) return StartValue;
-                if (time >= EndTime) return EndValue;
+            if (time < StartTime) return StartValue;
+            if (time >= EndTime) return EndValue;
 
-                return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-            }
+            return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember => "EdgeEffect.Colour";
 
-        protected override void Apply(IContainer c)
+        protected override void Apply(IContainer c, double time)
         {
             EdgeEffectParameters e = c.EdgeEffect;
-            e.Colour = CurrentValue;
+            e.Colour = valueAt(time);
             c.EdgeEffect = e;
         }
 

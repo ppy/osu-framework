@@ -83,7 +83,7 @@ namespace osu.Framework.Graphics.Transforms
         public TransformSequence<T> Append(Generator childGenerator)
         {
             TransformSequence<T> child;
-            using (origin.BeginDelayedSequence(currentTime - startTime))
+            using (origin.BeginAbsoluteSequence(currentTime))
                 child = childGenerator(origin);
 
             if (!ReferenceEquals(child.origin, origin))
@@ -104,7 +104,7 @@ namespace osu.Framework.Graphics.Transforms
 
         internal TransformSequence<T> Append<U>(Func<T, U> originFunc, out U result)
         {
-            using (origin.BeginDelayedSequence(currentTime - startTime))
+            using (origin.BeginAbsoluteSequence(currentTime))
                 result = originFunc(origin);
 
             return this;
@@ -112,7 +112,7 @@ namespace osu.Framework.Graphics.Transforms
 
         internal TransformSequence<T> Append(Action<T> originAction)
         {
-            using (origin.BeginDelayedSequence(currentTime - startTime))
+            using (origin.BeginAbsoluteSequence(currentTime))
                 originAction(origin);
 
             return this;

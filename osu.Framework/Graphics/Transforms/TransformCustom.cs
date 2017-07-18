@@ -138,21 +138,17 @@ namespace osu.Framework.Graphics.Transforms
             this.currentValueFunc = currentValueFunc ?? current_value_func;
         }
 
-        private TValue currentValue
+        private TValue valueAt(double time)
         {
-            get
-            {
-                double time = Time?.Current ?? 0;
-                if (time < StartTime) return StartValue;
-                if (time >= EndTime) return EndValue;
+            if (time < StartTime) return StartValue;
+            if (time >= EndTime) return EndValue;
 
-                return currentValueFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
-            }
+            return currentValueFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }
 
-        protected override void Apply(T d) => accessor.Write(d, currentValue);
+        protected override void Apply(T d, double time) => accessor.Write(d, valueAt(time));
 
         protected override void ReadIntoStartValue(T d) => StartValue = accessor.Read(d);
     }

@@ -28,7 +28,7 @@ namespace osu.Framework.Graphics.Transforms
         public FrameTimeInfo Time => Clock.TimeInfo;
 
         /// <summary>
-        /// The time to use for starting transforms which support <see cref="AddDelay(double, bool)"/>
+        /// The starting time to use for new transforms.
         /// </summary>
         public double TransformStartTime => (Clock?.CurrentTime ?? 0) + TransformDelay;
 
@@ -74,11 +74,12 @@ namespace osu.Framework.Graphics.Transforms
                 if (t.StartTime > Time.Current)
                     break;
 
-                if (!t.Time.HasValue)
+                if (!t.HasStartValue)
                 {
                     t.ReadIntoStartValue();
+                    t.HasStartValue = true;
 
-                    // This is the first time we are updating this transform with a valid time.
+                    // This is the first time we are updating this transform.
                     // We will find other still active transforms which act on the same target member and remove them.
                     // Since following transforms acting on the same target member are immediately removed when a
                     // new one is added, we can be sure that previous transforms were added before this one and can
@@ -97,8 +98,7 @@ namespace osu.Framework.Graphics.Transforms
                     }
                 }
 
-                t.UpdateTime(Time);
-                t.Apply();
+                t.Apply(Time.Current);
 
                 if (t.EndTime <= Time.Current)
                 {
@@ -191,8 +191,7 @@ namespace osu.Framework.Graphics.Transforms
 
             foreach (Transform t in toFlush)
             {
-                t.UpdateTime(new FrameTimeInfo { Current = t.EndTime });
-                t.Apply();
+                t.Apply(t.EndTime);
                 t.OnComplete?.Invoke();
             }
         }
@@ -205,9 +204,21 @@ namespace osu.Framework.Graphics.Transforms
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         public InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false)
         {
-            AddDelay(delay, recursive);
+            if (delay == 0)
+                return null;
 
-            return new InvokeOnDisposal(() => AddDelay(-delay, recursive));
+            AddDelay(delay, recursive);
+            double newTransformStartTime = TransformStartTime;
+
+            return new InvokeOnDisposal(() =>
+            {
+                if (newTransformStartTime != TransformStartTime)
+                    throw new InvalidOperationException(
+                        $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={newTransformStartTime} end={TransformStartTime})");
+
+                AddDelay(-delay, recursive);
+            });
         }
 
         /// <summary>
@@ -217,10 +228,20 @@ namespace osu.Framework.Graphics.Transforms
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
-        public InvokeOnDisposal BeginAbsoluteSequence(double startOffset = 0, bool recursive = false)
+        public virtual InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
-            if (TransformDelay != 0) throw new InvalidOperationException($"Cannot use {nameof(BeginAbsoluteSequence)} with a non-zero transform delay already present");
-            return BeginDelayedSequence(-(Clock?.CurrentTime ?? 0) + startOffset, recursive);
+            double oldTransformDelay = TransformDelay;
+            TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
+
+            return new InvokeOnDisposal(() =>
+            {
+                if (newTransformStartTime != TransformStartTime)
+                    throw new InvalidOperationException(
+                        $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
+                        $"(begin={newTransformStartTime} end={TransformStartTime})");
+
+                TransformDelay = oldTransformDelay;
+            });
         }
 
         /// <summary>
@@ -236,8 +257,7 @@ namespace osu.Framework.Graphics.Transforms
 
             if (Clock == null)
             {
-                transform.UpdateTime(new FrameTimeInfo { Current = transform.EndTime });
-                transform.Apply();
+                transform.Apply(transform.EndTime);
                 transform.OnComplete?.Invoke();
                 return;
             }

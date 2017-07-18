@@ -10,6 +10,8 @@ namespace osu.Framework.Graphics.Transforms
     {
         InvokeOnDisposal BeginDelayedSequence(double delay, bool recursive = false);
 
+        InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false);
+
         double TransformStartTime { get; }
 
         void AddTransform(Transform transform);
