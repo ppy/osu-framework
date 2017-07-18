@@ -84,7 +84,7 @@ namespace osu.Framework.Threading
 
             Clock = new ThrottledFrameClock();
             Monitor = new PerformanceMonitor(Clock, StatisticsCounters);
-            Scheduler = new Scheduler(null);
+            Scheduler = new Scheduler(null, Clock);
         }
 
         public void WaitUntilInitialized()

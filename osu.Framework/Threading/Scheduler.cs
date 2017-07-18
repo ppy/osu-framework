@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using osu.Framework.Extensions;
+using osu.Framework.Timing;
 
 namespace osu.Framework.Threading
 {
@@ -20,7 +20,9 @@ namespace osu.Framework.Threading
         private readonly List<ScheduledDelegate> timedTasks = new List<ScheduledDelegate>();
         private readonly List<ScheduledDelegate> perUpdateTasks = new List<ScheduledDelegate>();
         private int mainThreadId;
-        private readonly Stopwatch timer = new Stopwatch();
+
+        private IClock clock;
+        private double currentTime => clock?.CurrentTime ?? 0;
 
         /// <summary>
         /// The base thread is assumed to be the the thread on which the constructor is run.
@@ -28,7 +30,7 @@ namespace osu.Framework.Threading
         public Scheduler()
         {
             SetCurrentThread();
-            timer.Start();
+            clock = new StopwatchClock(true);
         }
 
         /// <summary>
@@ -37,7 +39,38 @@ namespace osu.Framework.Threading
         public Scheduler(Thread mainThread)
         {
             SetCurrentThread(mainThread);
-            timer.Start();
+            clock = new StopwatchClock(true);
+        }
+
+        /// <summary>
+        /// The base thread is assumed to be the the thread on which the constructor is run.
+        /// </summary>
+        public Scheduler(Thread mainThread, IClock clock)
+        {
+            SetCurrentThread(mainThread);
+            this.clock = clock;
+        }
+
+        public void UpdateClock(IClock newClock)
+        {
+            if (newClock == null)
+                throw new NullReferenceException($"{nameof(newClock)} may not be null.");
+
+            if (newClock == clock)
+                return;
+
+            lock (timedTasks)
+            {
+                if (clock == null)
+                {
+                    // This is the first time we will get a valid time, so assume this is the
+                    // reference point everything scheduled so far starts from.
+                    foreach (var s in timedTasks)
+                        s.ExecutionTime += newClock.CurrentTime;
+                }
+
+                clock = newClock;
+            }
         }
 
         /// <summary>
@@ -53,17 +86,17 @@ namespace osu.Framework.Threading
         /// Run any pending work tasks.
         /// </summary>
         /// <returns>true if any tasks were run.</returns>
-        public int Update()
+        public virtual int Update()
         {
-            long currentTime = timer.ElapsedMilliseconds;
-
             lock (timedTasks)
             {
+                double currentTimeLocal = currentTime;
+
                 if (timedTasks.Count > 0)
                 {
                     foreach (var sd in timedTasks)
                     {
-                        if (sd.ExecutionTime <= currentTime)
+                        if (sd.ExecutionTime <= currentTimeLocal)
                         {
                             tasksToRemove.Add(sd);
 
@@ -169,9 +202,12 @@ namespace osu.Framework.Threading
         /// <param name="repeat">Whether this task should repeat.</param>
         public ScheduledDelegate AddDelayed(Action task, double timeUntilRun, bool repeat = false)
         {
-            ScheduledDelegate del = new ScheduledDelegate(task, timer.ElapsedMilliseconds + timeUntilRun, repeat ? timeUntilRun : -1);
-
-            return Add(del) ? del : null;
+            // We are locking here already to make sure we have no concurrent access to currentTime
+            lock (timedTasks)
+            {
+                ScheduledDelegate del = new ScheduledDelegate(task, currentTime + timeUntilRun, repeat ? timeUntilRun : -1);
+                return Add(del) ? del : null;
+            }
         }
 
         /// <summary>
