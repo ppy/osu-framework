@@ -76,15 +76,17 @@ namespace osu.Framework.Graphics.Transforms
 
                 if (!t.Time.HasValue)
                 {
-                    // this is the first time we are updating this transform with a valid time.
                     t.ReadIntoStartValue();
 
-                    var ourTargetMember = t.TargetMember;
-
-                    for (int j = 0; j < i; j++)
+                    // This is the first time we are updating this transform with a valid time.
+                    // We will find other still active transforms which act on the same target member and remove them.
+                    // Since following transforms acting on the same target member are immediately removed when a
+                    // new one is added, we can be sure that previous transforms were added before this one and can
+                    // be safely removed.
+                    for (int j = 0; j < i; ++j)
                     {
                         var otherTransform = transformsLazy[j];
-                        if (otherTransform.TargetMember == ourTargetMember)
+                        if (otherTransform.TargetMember == t.TargetMember)
                         {
                             transformsLazy.RemoveAt(j--);
                             i--;
@@ -115,9 +117,19 @@ namespace osu.Framework.Graphics.Transforms
                 }
             }
 
-            if (removalActionsLazy != null)
-                foreach (var action in removalActionsLazy)
+            invokePendingRemovalActions();
+        }
+
+        private void invokePendingRemovalActions()
+        {
+            if (removalActionsLazy?.Count > 0)
+            {
+                var toRemove = removalActionsLazy.ToArray();
+                removalActionsLazy.Clear();
+
+                foreach (var action in toRemove)
                     action();
+            }
         }
 
         public void RemoveTransforms(IEnumerable<Transform> toRemove)
@@ -237,7 +249,21 @@ namespace osu.Framework.Graphics.Transforms
                 throw new InvalidOperationException($"{nameof(Transformable)} may not contain the same {nameof(Transform)} more than once.");
 
             transform.TransformID = ++currentTransformID;
-            transforms.Add(transform);
+            int insertionIndex = transforms.Add(transform);
+
+            // Remove all existing following transforms touching the same property at this one.
+            for (int i = insertionIndex + 1; i < transformsLazy.Count; ++i)
+            {
+                var t = transformsLazy[i];
+                if (t.TargetMember == transform.TargetMember)
+                {
+                    transformsLazy.RemoveAt(i--);
+                    if (t.OnAbort != null)
+                        removalActions.Add(t.OnAbort);
+                }
+            }
+
+            invokePendingRemovalActions();
 
             // If our newly added transform could have an immediate effect, then let's
             // make this effect happen immediately.
