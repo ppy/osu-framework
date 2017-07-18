@@ -30,10 +30,10 @@ namespace osu.Framework.Graphics
             t.Append(o => o.Schedule(scheduledAction), out scheduledDelegate);
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation = 0) where T : Drawable =>
-            t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop();
+            t.Loop(d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
 
         public static TransformSequence<T> Spin<T>(this TransformSequence<T> t, double revolutionDuration, float startRotation, int numRevolutions) where T : Drawable =>
-            t.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration).Loop(0, numRevolutions);
+            t.Loop(0, numRevolutions, d => d.RotateTo(startRotation).RotateTo(startRotation + 360, revolutionDuration));
 
         public static TransformSequence<T> FadeIn<T>(this TransformSequence<T> t, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             t.Append(o => o.FadeIn(duration, easing));
