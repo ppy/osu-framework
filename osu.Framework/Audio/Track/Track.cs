@@ -56,8 +56,6 @@ namespace osu.Framework.Audio.Track
 
         public virtual int? Bitrate => null;
 
-        public Action<Track> OnLoaded;
-
         /// <summary>
         /// Seek to a new position.
         /// </summary>
