@@ -611,6 +611,7 @@ namespace osu.Framework.Graphics.Containers
         }
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
+
         public override InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
             var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
@@ -619,7 +620,7 @@ namespace osu.Framework.Graphics.Containers
 
             List<InvokeOnDisposal> disposalActions = new List<InvokeOnDisposal>(internalChildren.Count + 1) { baseDisposalAction };
             foreach (var c in internalChildren)
-                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, recursive));
+                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
 
             return new InvokeOnDisposal(() =>
             {

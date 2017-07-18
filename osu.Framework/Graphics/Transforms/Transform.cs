@@ -2,7 +2,6 @@
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Timing;
 using System;
 using System.Collections.Generic;
 

@@ -222,9 +222,9 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Start a sequence of transforms from an absolute time value.
+        /// Start a sequence of transforms from an absolute time value (adjusts <see cref="TransformStartTime"/>).
         /// </summary>
-        /// <param name="startOffset">The offset in milliseconds from absolute zero.</param>
+        /// <param name="newTransformStartTime">The new value for <see cref="TransformStartTime"/>.</param>
         /// <param name="recursive">Whether this should be applied to all children.</param>
         /// <returns>A <see cref="InvokeOnDisposal"/> to be used in a using() statement.</returns>
         /// <exception cref="InvalidOperationException">Absolute sequences should never be nested inside another existing sequence.</exception>
