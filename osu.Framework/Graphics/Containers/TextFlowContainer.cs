@@ -221,6 +221,9 @@ namespace osu.Framework.Graphics.Containers
                 builder.Append(c);
             }
 
+            if (builder.Length > 0)
+                words.Add(builder.ToString());
+
             return words.ToArray();
         }
 
