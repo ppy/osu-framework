@@ -125,7 +125,7 @@ namespace osu.Framework.Graphics
         /// The target this Drawable may eventually be loaded into.
         /// <see cref="Clock"/> and <see cref="Dependencies"/> are inherited from the target.
         /// </param>
-        /// <param name="onLoaded">Callback to be invoked asynchronously after loading is complete.</param>
+        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
         /// <returns>The task which is used for loading and callbacks.</returns>
         internal Task LoadAsync(Game game, Drawable target, Action onLoaded = null)
         {
