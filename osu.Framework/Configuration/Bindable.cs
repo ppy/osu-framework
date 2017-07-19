@@ -79,6 +79,7 @@ namespace osu.Framework.Configuration
         {
             Value = them.Value;
             Disabled = them.Disabled;
+            Default = them.Default;
 
             AddWeakReference(them.WeakReference);
             them.AddWeakReference(WeakReference);
