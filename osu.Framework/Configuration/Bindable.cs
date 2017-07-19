@@ -34,6 +34,8 @@ namespace osu.Framework.Configuration
 
         public virtual bool IsDefault => Equals(value, Default);
 
+        public void SetDefault() => Value = Default;
+
         public event BindableValueChanged<T> ValueChanged;
 
         public event BindableDisabledChanged DisabledChanged;
