@@ -62,7 +62,7 @@ namespace osu.Framework.Graphics.Containers
             if (game == null)
                 throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
 
-            return component.LoadAsync(game, this, () => onLoaded(component));
+            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
         }
 
         [BackgroundDependencyLoader(true)]
