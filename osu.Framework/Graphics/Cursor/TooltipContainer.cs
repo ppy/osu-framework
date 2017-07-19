@@ -9,8 +9,9 @@ using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input;
-using osu.Framework.Threading;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace osu.Framework.Graphics.Cursor
 {
@@ -24,13 +25,19 @@ namespace osu.Framework.Graphics.Cursor
 
         private ITooltip currentTooltip;
 
-        private ScheduledDelegate findTooltipTask;
         private UserInputManager inputManager;
 
         /// <summary>
-        /// Duration in milliseconds of still hovering until tooltips appear.
+        /// Duration the cursor has to stay in a circular region of <see cref="AppearRadius"/>
+        /// for the tooltip to appear.
         /// </summary>
-        protected virtual int AppearDelay => 220;
+        protected virtual double AppearDelay => 220;
+
+        /// <summary>
+        /// Radius of the circular region the cursor has to stay in for <see cref="AppearDelay"/>
+        /// milliseconds for the tooltip to appear.
+        /// </summary>
+        protected virtual float AppearRadius => 20;
 
         private IHasTooltip currentlyDisplayed;
 
@@ -121,6 +128,77 @@ namespace osu.Framework.Graphics.Cursor
             return tooltipPos;
         }
 
+        private struct TimedPosition
+        {
+            public double Time;
+            public Vector2 Position;
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            IHasTooltip target = findTooltipTarget();
+            if (target != null && target != currentlyDisplayed)
+            {
+                currentlyDisplayed = target;
+
+                RemoveInternal((Drawable)currentTooltip);
+                currentTooltip = getTooltip(target);
+                AddInternal((Drawable)currentTooltip);
+
+                currentTooltip.Show();
+            }
+        }
+
+        private readonly List<TimedPosition> recentMousePositions = new List<TimedPosition>();
+        private double lastRecordedPositionTime;
+
+        /// <summary>
+        /// Determines which drawable should currently receive a tooltip, taking into account
+        /// <see cref="AppearDelay"/> and <see cref="AppearRadius"/>. Returns null if no valid
+        /// target is found.
+        /// </summary>
+        /// <returns>The tooltip target. null if no valid one is found.</returns>
+        private IHasTooltip findTooltipTarget()
+        {
+            // While we are dragging a tooltipped drawable we should show a tooltip for it.
+            IHasTooltip draggedTarget = inputManager.DraggedDrawable as IHasTooltip;
+            if (draggedTarget != null)
+                return draggedTarget;
+
+            // Always keep 10 positions at equally-sized time intervals that add up to AppearDelay.
+            double positionRecordInterval = AppearDelay / 10;
+            if (Time.Current - lastRecordedPositionTime >= positionRecordInterval)
+            {
+                lastRecordedPositionTime = Time.Current;
+                recentMousePositions.Add(new TimedPosition
+                {
+                    Time = Time.Current,
+                    Position = ToLocalSpace(inputManager.CurrentState.Mouse.Position)
+                });
+            }
+
+            recentMousePositions.RemoveAll(t => Time.Current - t.Time > AppearDelay);
+
+            // For determining whether to show a tooltip we first select only those positions
+            // which happened within a shorter, alpha-adjusted appear delay.
+            double alphaModifiedAppearDelay = (1 - currentTooltip.Alpha) * AppearDelay;
+            var relevantPositions = recentMousePositions.Where(t => Time.Current - t.Time <= alphaModifiedAppearDelay);
+
+            // We then check whether all relevant positions fall within a radius of AppearRadius within the
+            // first relevant position. If so, then the mouse has stayed within a small circular region of
+            // AppearRadius for the duration of the modified appear delay, and we therefore want to display
+            // the tooltip.
+            Vector2 first = relevantPositions.FirstOrDefault().Position;
+            float appearRadiusSq = AppearRadius * AppearRadius;
+
+            if (relevantPositions.All(t => Vector2.DistanceSquared(t.Position, first) < appearRadiusSq))
+                return FindTarget();
+
+            return null;
+        }
+
         /// <summary>
         /// Refreshes the displayed tooltip. By default, this <see cref="ITooltip.Move(Vector2)"/>s the tooltip to the cursor position, updates its <see cref="ITooltip.TooltipText"/> and calls its <see cref="ITooltip.Refresh"/> method.
         /// </summary>
@@ -145,13 +223,6 @@ namespace osu.Framework.Graphics.Cursor
 
             if (currentlyDisplayed != null && ShallHideTooltip(currentlyDisplayed))
                 hideTooltip();
-
-        }
-
-        protected override bool OnMouseMove(InputState state)
-        {
-            updateTooltipVisibility();
-            return base.OnMouseMove(state);
         }
 
         private void hideTooltip()
@@ -166,26 +237,6 @@ namespace osu.Framework.Graphics.Cursor
         /// <param name="tooltipTarget">The target of the tooltip.</param>
         /// <returns>True if the currently visible tooltip should be hidden, false otherwise.</returns>
         protected virtual bool ShallHideTooltip(IHasTooltip tooltipTarget) => !tooltipTarget.IsHovered && !tooltipTarget.IsDragged;
-
-        private void updateTooltipVisibility()
-        {
-            findTooltipTask?.Cancel();
-            findTooltipTask = Scheduler.AddDelayed(delegate
-            {
-                IHasTooltip target = FindTarget();
-                if (target != null)
-                {
-                    currentlyDisplayed = target;
-
-                    RemoveInternal((Drawable)currentTooltip);
-                    currentTooltip = getTooltip(target);
-                    AddInternal((Drawable)currentTooltip);
-
-                    currentTooltip.Show();
-                }
-
-            }, (1 - currentTooltip.Alpha) * AppearDelay);
-        }
 
         private ITooltip getTooltip(IHasTooltip target) => (target as IHasCustomTooltip)?.GetCustomTooltip() ?? defaultTooltip;
 

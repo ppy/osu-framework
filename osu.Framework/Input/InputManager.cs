@@ -76,7 +76,10 @@ namespace osu.Framework.Input
         /// </summary>
         private readonly List<Drawable> keyboardInputQueue = new List<Drawable>();
 
-        private Drawable draggingDrawable;
+        /// <summary>
+        /// The <see cref="Drawable"/> which is currently being dragged. null if none is.
+        /// </summary>
+        public Drawable DraggedDrawable { get; private set; }
 
         /// <summary>
         /// Contains the previously hovered <see cref="Drawable"/>s prior to when
@@ -536,7 +539,7 @@ namespace osu.Framework.Input
             }
             else if (last.HasAnyButtonPressed)
             {
-                if (isValidClick && (draggingDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
+                if (isValidClick && (DraggedDrawable == null || Vector2.Distance(mouse.PositionMouseDown ?? mouse.Position, mouse.Position) < click_drag_distance))
                     handleMouseClick(state);
 
                 mouseDownInputQueue = null;
@@ -630,26 +633,26 @@ namespace osu.Framework.Input
         private bool handleMouseDrag(InputState state)
         {
             //Once a drawable is dragged, it remains in a dragged state until the drag is finished.
-            return draggingDrawable?.TriggerOnDrag(state) ?? false;
+            return DraggedDrawable?.TriggerOnDrag(state) ?? false;
         }
 
         private bool handleMouseDragStart(InputState state)
         {
-            Trace.Assert(draggingDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
-            draggingDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
-            if (draggingDrawable != null)
-                draggingDrawable.IsDragged = true;
-            return draggingDrawable != null;
+            Trace.Assert(DraggedDrawable == null, "The draggingDrawable was not set to null by handleMouseDragEnd.");
+            DraggedDrawable = mouseDownInputQueue?.FirstOrDefault(target => target.IsAlive && target.TriggerOnDragStart(state));
+            if (DraggedDrawable != null)
+                DraggedDrawable.IsDragged = true;
+            return DraggedDrawable != null;
         }
 
         private bool handleMouseDragEnd(InputState state)
         {
-            if (draggingDrawable == null)
+            if (DraggedDrawable == null)
                 return false;
 
-            bool result = draggingDrawable.TriggerOnDragEnd(state);
-            draggingDrawable.IsDragged = false;
-            draggingDrawable = null;
+            bool result = DraggedDrawable.TriggerOnDragEnd(state);
+            DraggedDrawable.IsDragged = false;
+            DraggedDrawable = null;
 
             return result;
         }
