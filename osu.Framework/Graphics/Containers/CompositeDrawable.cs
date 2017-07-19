@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -46,9 +47,21 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private Game game;
+
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
         {
+            if (game == null)
+                throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
+
+            return component.LoadAsync(game, this, onLoaded);
+        }
+
+        [BackgroundDependencyLoader(true)]
+        private void load(Game game, ShaderManager shaders)
+        {
+            this.game = game;
+
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
