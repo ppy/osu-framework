@@ -205,20 +205,15 @@ namespace osu.Framework.Graphics.Containers
             var words = new List<string>();
             var builder = new StringBuilder();
 
-            bool pendingNewWord = false;
-
-            foreach (char c in text)
+            for (var i = 0; i < text.Length; i++)
             {
-                if (char.IsSeparator(c) || char.IsControl(c))
-                    pendingNewWord = true;
-                else if (pendingNewWord)
+                if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
                 {
                     words.Add(builder.ToString());
                     builder.Clear();
-                    pendingNewWord = false;
                 }
 
-                builder.Append(c);
+                builder.Append(text[i]);
             }
 
             if (builder.Length > 0)
