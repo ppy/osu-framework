@@ -1,9 +1,7 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
-using System.Linq;
 using osu.Framework.IO.Stores;
-using System;
 
 namespace osu.Framework.Audio.Track
 {
