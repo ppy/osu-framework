@@ -19,6 +19,7 @@ using osu.Framework.Caching;
 using osu.Framework.MathUtils;
 using osu.Framework.Threading;
 using osu.Framework.Statistics;
+using System.Threading.Tasks;
 
 namespace osu.Framework.Graphics.Containers
 {
@@ -46,9 +47,29 @@ namespace osu.Framework.Graphics.Containers
             };
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(ShaderManager shaders)
+        private Game game;
+
+        /// <summary>
+        /// Loads a future child or grand-child of this <see cref="CompositeDrawable"/> asyncronously. <see cref="Drawable.Dependencies"/>
+        /// and <see cref="Drawable.Clock"/> are inherited from this <see cref="CompositeDrawable"/>.
+        /// </summary>
+        /// <typeparam name="TLoadable">The type of the future future child or grand-child to be loaded.</typeparam>
+        /// <param name="component">The type of the future future child or grand-child to be loaded.</param>
+        /// <param name="onLoaded">Callback to be invoked on the update thread after loading is complete.</param>
+        /// <returns>The task which is used for loading and callbacks.</returns>
+        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable
         {
+            if (game == null)
+                throw new InvalidOperationException($"May not invoke {nameof(LoadComponentAsync)} prior to this {nameof(CompositeDrawable)} being loaded.");
+
+            return component.LoadAsync(game, this, () => onLoaded?.Invoke(component));
+        }
+
+        [BackgroundDependencyLoader(true)]
+        private void load(Game game, ShaderManager shaders)
+        {
+            this.game = game;
+
             if (shader == null)
                 shader = shaders?.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 

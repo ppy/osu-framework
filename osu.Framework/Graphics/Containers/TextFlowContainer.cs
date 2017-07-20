@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 using osu.Framework.Caching;
 using osu.Framework.Graphics.Sprites;
 
@@ -184,7 +184,7 @@ namespace osu.Framework.Graphics.Containers
                         base.Add(new NewLineContainer(newLineIsParagraph));
                 }
 
-                foreach (string word in Regex.Split(l, @"(?<=[ .,;-])"))
+                foreach (string word in splitWords(l))
                 {
                     if (string.IsNullOrEmpty(word)) continue;
 
@@ -198,6 +198,28 @@ namespace osu.Framework.Graphics.Containers
             }
 
             return sprites;
+        }
+
+        private string[] splitWords(string text)
+        {
+            var words = new List<string>();
+            var builder = new StringBuilder();
+
+            for (var i = 0; i < text.Length; i++)
+            {
+                if (i == 0 || char.IsSeparator(text[i - 1]) || char.IsControl(text[i - 1]))
+                {
+                    words.Add(builder.ToString());
+                    builder.Clear();
+                }
+
+                builder.Append(text[i]);
+            }
+
+            if (builder.Length > 0)
+                words.Add(builder.ToString());
+
+            return words.ToArray();
         }
 
         private Cached layout = new Cached();
