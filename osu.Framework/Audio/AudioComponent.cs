@@ -34,6 +34,18 @@ namespace osu.Framework.Audio
                 onLoaded += action;
         }
 
+        private void checkOnLoaded()
+        {
+            if (IsLoaded && onLoaded != null)
+            {
+                lock (loadedLock)
+                {
+                    onLoaded();
+                    onLoaded = null;
+                }
+            }
+        }
+
         /// <summary>
         /// Updates this audio component. Always runs on the audio thread.
         /// </summary>
@@ -46,18 +58,15 @@ namespace osu.Framework.Audio
             FrameStatistics.Add(StatisticsCounterType.TasksRun, PendingActions.Count);
             FrameStatistics.Increment(StatisticsCounterType.Components);
 
+            checkOnLoaded();
+
             Action action;
             while (!IsDisposed && PendingActions.TryDequeue(out action))
+            {
                 action();
 
-            // Perform all OnLoaded actions if there is need to.
-            if (IsLoaded && onLoaded != null)
-            {
-                lock (loadedLock)
-                {
-                    onLoaded();
-                    onLoaded = null;
-                }
+                // Check if the OnLoaded event should be executed as IsLoaded may have changed.
+                checkOnLoaded();
             }
         }
 
