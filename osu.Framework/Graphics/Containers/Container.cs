@@ -4,8 +4,6 @@
 using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
-using osu.Framework.Allocation;
-using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -46,16 +44,6 @@ namespace osu.Framework.Graphics.Containers
             else
                 internalChildrenAsT = new LazyList<Drawable, T>(InternalChildren, c => (T)c);
         }
-
-        private Game game;
-
-        [BackgroundDependencyLoader(true)]
-        private void load(Game game)
-        {
-            this.game = game;
-        }
-
-        protected Task LoadComponentAsync<TLoadable>(TLoadable component, Action<TLoadable> onLoaded = null) where TLoadable : Drawable => component.LoadAsync(game, this, onLoaded);
 
         /// <summary>
         /// The content of this container. <see cref="Children"/> and all methods that mutate
