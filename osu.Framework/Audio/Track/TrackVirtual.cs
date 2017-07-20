@@ -11,6 +11,11 @@ namespace osu.Framework.Audio.Track
 
         private double seekOffset;
 
+        public TrackVirtual()
+        {
+            Length = double.MaxValue;
+        }
+
         public override bool Seek(double seek)
         {
             double current = CurrentTime;
