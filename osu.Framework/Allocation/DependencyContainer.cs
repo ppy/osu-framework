@@ -164,7 +164,6 @@ namespace osu.Framework.Allocation
             return instance;
         }
 
-        public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         /// <summary>
         /// Injects dependencies for the given instance.
         /// </summary>
@@ -172,6 +171,7 @@ namespace osu.Framework.Allocation
         /// <param name="instance">The instance to inject dependencies for.</param>
         /// <param name="autoRegister">True if the instance should be automatically registered as injectable if it isn't already.</param>
         /// <param name="lazy">True if the dependencies should be initialized lazily.</param>
+        public void Inject<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
         {
             var type = instance.GetType();
 
