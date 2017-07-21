@@ -7,6 +7,7 @@ using osu.Framework.Graphics.OpenGL.Textures;
 using OpenTK.Graphics.ES30;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 
 namespace osu.Framework.Graphics.Textures
 {
@@ -40,6 +41,9 @@ namespace osu.Framework.Graphics.Textures
 
         public void Reset()
         {
+            if (atlasTexture != null)
+                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture");
+
             subTextureBounds.Clear();
             currentY = 0;
 
