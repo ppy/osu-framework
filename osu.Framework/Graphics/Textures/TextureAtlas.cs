@@ -41,9 +41,6 @@ namespace osu.Framework.Graphics.Textures
 
         public void Reset()
         {
-            if (atlasTexture != null)
-                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture");
-
             subTextureBounds.Clear();
             currentY = 0;
 
@@ -68,7 +65,10 @@ namespace osu.Framework.Graphics.Textures
             if (atlasHeight == 0 || atlasWidth == 0) return Vector2I.Zero;
 
             if (currentY + height > atlasHeight)
+            {
+                Logger.Log($"TextureAtlas size exceeded; generating new {atlasWidth}x{atlasHeight} texture");
                 Reset();
+            }
 
             // Super naive implementation only going from left to right.
             Vector2I res = new Vector2I(0, currentY);
