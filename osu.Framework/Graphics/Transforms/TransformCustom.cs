@@ -139,11 +139,11 @@ namespace osu.Framework.Graphics.Transforms
         /// <summary>
         /// Creates a new instance operating on a property or field of <see cref="T"/>. The property or field is
         /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
-        /// By default, an interpolation method <see cref="Interpolation.ValueAt"/> with suitable signature is
+        /// By default, an interpolation method "ValueAt" from <see cref="Interpolation"/> with suitable signature is
         /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
         /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
         /// <see cref="Transform.EndTime"/>, and a current time.
-        /// Optionally, or when no suitable <see cref="Interpolation.ValueAt"/> exists, a custom function can be supplied
+        /// Optionally, or when no suitable "ValueAt" from <see cref="Interpolation"/> exists, a custom function can be supplied
         /// via <paramref name="interpolationFunc"/>.
         /// </summary>
         /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
@@ -151,7 +151,7 @@ namespace osu.Framework.Graphics.Transforms
         /// The function to be used for interpolating between <see cref="Transform{TValue}.StartValue"/> and
         /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
         /// <see cref="Transform.EndTime"/>, and a current time.
-        /// If null, an interpolation method <see cref="Interpolation.ValueAt"/> with suitable signature is picked.
+        /// If null, an interpolation method "ValueAt" from <see cref="Interpolation"/> with a suitable signature is picked.
         /// If none exists, then this parameter must not be null.
         /// </param>
         public TransformCustom(string propertyOrFieldName, InterpolationFunc<TValue> interpolationFunc = null)

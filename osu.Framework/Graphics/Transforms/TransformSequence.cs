@@ -319,11 +319,9 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Repeats all <see cref="Transform"/>s within this <see cref="TransformSequence{T}"/>
-        /// <paramref name="numIters"/> times with <paramref name="pause"/> milliseconds between iterations.
+        /// Repeats all <see cref="Transform"/>s within this <see cref="TransformSequence{T}"/> indefinitely.
         /// </summary>
         /// <param name="pause">The pause between iterations in milliseconds.</param>
-        /// <param name="numIters">The amount of iterations.</param>
         /// <returns>This <see cref="TransformSequence{T}"/>.</returns>
         public TransformSequence<T> Loop(double pause = 0)
         {
