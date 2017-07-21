@@ -15,7 +15,7 @@ namespace osu.Framework.Allocation
     /// </summary>
     public class DependencyContainer
     {
-        internal delegate object ObjectActivator(DependencyContainer dc, object instance);
+        private delegate object ObjectActivator(DependencyContainer dc, object instance);
 
         private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
