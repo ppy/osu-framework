@@ -134,19 +134,15 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         /// <summary>
-        /// Removes all <see cref="Transform"/>s within <paramref name="toRemove"/>.
+        /// Removes a <see cref="Transform"/>.
         /// </summary>
-        /// <param name="toRemove">The <see cref="Transform"/>s to remove.</param>
-        public void RemoveTransforms(IEnumerable<Transform> toRemove)
+        /// <param name="toRemove">The <see cref="Transform"/> to remove.</param>
+        public void RemoveTransform(Transform toRemove)
         {
-            if (transformsLazy == null)
+            if (transformsLazy == null || !transformsLazy.Remove(toRemove))
                 return;
 
-            foreach (var t in toRemove)
-                transformsLazy.Remove(t);
-
-            foreach (var t in toRemove)
-                t.OnAbort?.Invoke();
+            toRemove.OnAbort?.Invoke();
         }
 
         /// <summary>
@@ -284,7 +280,7 @@ namespace osu.Framework.Graphics.Transforms
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
-            if (!transform.CanBeAddedTo(this))
+            if (!ReferenceEquals(transform.TargetTransformable, this))
                 throw new InvalidOperationException(
                     $"{nameof(transform)} must have been populated via {nameof(TransformableExtensions)}.{nameof(TransformableExtensions.PopulateTransform)} " +
                     "using this object prior to being added.");

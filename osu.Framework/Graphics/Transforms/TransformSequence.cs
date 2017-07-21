@@ -126,9 +126,11 @@ namespace osu.Framework.Graphics.Transforms
             // No need for OnAbort events to trigger anymore, since
             // we are already aware of the abortion.
             foreach (var t in transforms)
+            {
                 t.OnAbort = null;
+                t.TargetTransformable.RemoveTransform(t);
+            }
 
-            origin.RemoveTransforms(transforms);
             transforms.Clear();
             last = null;
 
@@ -204,7 +206,7 @@ namespace osu.Framework.Graphics.Transforms
                     clone.StartTime += i * iterDuration;
                     clone.EndTime += i * iterDuration;
                     Append(clone);
-                    origin.AddTransform(clone);
+                    t.TargetTransformable.AddTransform(clone);
                 }
             }
 

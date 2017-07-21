@@ -11,9 +11,9 @@ namespace osu.Framework.Graphics.Transforms
     {
         internal ulong TransformID;
 
-        internal abstract bool CanBeAddedTo(Transformable target);
-
         public EasingTypes Easing;
+
+        public abstract ITransformable TargetTransformable { get; }
 
         public double StartTime { get; internal set; }
         public double EndTime { get; internal set; }
@@ -62,9 +62,9 @@ namespace osu.Framework.Graphics.Transforms
     public abstract class Transform<TValue, T> : Transform<TValue>
         where T : ITransformable
     {
-        public T Target { get; internal set; }
+        public override ITransformable TargetTransformable => Target;
 
-        internal override bool CanBeAddedTo(Transformable target) => ReferenceEquals(target, Target);
+        public T Target { get; internal set; }
 
         public sealed override void Apply(double time) => Apply(Target, time);
 
