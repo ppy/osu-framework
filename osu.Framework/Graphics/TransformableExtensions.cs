@@ -26,8 +26,8 @@ namespace osu.Framework.Graphics
         /// <param name="easing">The transform easing to be used for tweening.</param>
         /// <returns>A <see cref="TransformSequence{T}"/> to which further transforms can be added.</returns>
         public static TransformSequence<TThis> TransformTo<TThis, TValue>(this TThis t, string propertyOrFieldName, TValue newValue, double duration, EasingTypes easing)
-            where TThis : ITransformable
-            => t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing));
+            where TThis : ITransformable =>
+            t.TransformTo(t.MakeTransform(propertyOrFieldName, newValue, duration, easing));
 
         /// <summary>
         /// Applies a <see cref="Transform"/> to a given <see cref="ITransformable"/>.
@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics
         public static TransformSequence<TThis> TransformTo<TThis>(this TThis t, Transform transform) where TThis : ITransformable
         {
             var result = new TransformSequence<TThis>(t);
-            result.Append(transform);
+            result.Add(transform);
             t.AddTransform(transform);
             return result;
         }
