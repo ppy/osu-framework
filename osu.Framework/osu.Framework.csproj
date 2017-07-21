@@ -82,6 +82,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Allocation\IReadOnlyDependencyContainer.cs" />
     <Compile Include="Audio\AudioComponent.cs" />
     <Compile Include="Audio\IBassAudio.cs" />
     <Compile Include="Audio\IHasPitchAdjust.cs" />
