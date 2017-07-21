@@ -13,7 +13,7 @@ namespace osu.Framework.Audio.Track
 
         public TrackVirtual()
         {
-            Length = double.MaxValue;
+            Length = double.PositiveInfinity;
         }
 
         public override bool Seek(double seek)
