@@ -49,7 +49,8 @@ namespace osu.Framework.Graphics
 
         public static Transform<TValue, TBase> PopulateTransform<TThis, TValue, TBase>(
             this TThis t, Transform<TValue, TBase> transform, TValue newValue, double duration, EasingTypes easing)
-            where TThis : ITransformable, TBase
+            where TBase : ITransformable
+            where TThis : TBase
         {
             if (duration < 0)
                 throw new ArgumentOutOfRangeException(nameof(duration), $"{nameof(duration)} must be positive.");
@@ -170,8 +171,6 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> FlashColour<T>(this T drawable, Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None) where T : Drawable
         {
             Color4 endValue = (drawable.Transforms.LastOrDefault(t => t.TargetMember == nameof(drawable.Colour)) as Transform<SRGBColour>)?.EndValue ?? drawable.Colour;
-
-            drawable.Flush(false, nameof(drawable.Colour));
 
             drawable.FadeColour(flashColour);
             return drawable.FadeColour(endValue, duration, easing);

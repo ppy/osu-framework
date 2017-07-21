@@ -611,12 +611,13 @@ namespace osu.Framework.Graphics.Containers
 
         #region Transforms
 
-        public override void ClearTransforms(bool propagateChildren = false)
+        public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            base.ClearTransforms(propagateChildren);
+            base.ClearTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.ClearTransforms(true);
+                foreach (var c in internalChildren)
+                    c.ClearTransforms(true, targetMember);
         }
 
         internal override void AddDelay(double duration, bool propagateChildren = false)
@@ -650,13 +651,13 @@ namespace osu.Framework.Graphics.Containers
             });
         }
 
-        public override void Flush(bool propagateChildren = false, string flushMember = null)
+        public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            base.Flush(propagateChildren, flushMember);
+            base.FinishTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
                 foreach (var c in internalChildren)
-                    c.Flush(true, flushMember);
+                    c.FinishTransforms(true, targetMember);
         }
 
         /// <summary>

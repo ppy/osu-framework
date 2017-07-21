@@ -42,10 +42,10 @@ namespace osu.Framework.VisualTests.Tests
                     box.ClearTransforms();
             });
 
-            AddStep($"{nameof(Flush)}", delegate
+            AddStep($"{nameof(FinishTransforms)}", delegate
             {
                 foreach (var box in boxes)
-                    box.Flush();
+                    box.FinishTransforms();
             });
         }
 
