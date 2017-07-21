@@ -8,6 +8,7 @@ using System.Reflection.Emit;
 using osu.Framework.Extensions.TypeExtensions;
 using System.Reflection;
 using System.Linq;
+using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -158,10 +159,13 @@ namespace osu.Framework.Graphics.Transforms
             TargetMember = propertyOrFieldName;
 
             accessor = getAccessor(propertyOrFieldName);
+            Trace.Assert(accessor.Read != null && accessor.Write != null, $"Failed to populate {nameof(accessor)}.");
+
             this.interpolationFunc = interpolationFunc ?? interpolation_func;
 
             if (this.interpolationFunc == null)
-                throw new InvalidOperationException($"Need to pass a custom {nameof(interpolationFunc)} since no default exists.");
+                throw new InvalidOperationException(
+                    $"Need to pass a custom {nameof(interpolationFunc)} since no default {nameof(Interpolation)}.{nameof(Interpolation.ValueAt)} exists.");
         }
 
         private TValue valueAt(double time)
