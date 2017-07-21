@@ -60,7 +60,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Whether this bindable has a user-defined range that is not the full range of the <see cref="T"/> type.
         /// </summary>
-        public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) && !MaxValue.Equals(DefaultMaxValue);
+        public bool HasDefinedRange => !MinValue.Equals(DefaultMinValue) || !MaxValue.Equals(DefaultMaxValue);
 
         public static implicit operator T(BindableNumber<T> value) => value?.Value ?? default(T);
 
