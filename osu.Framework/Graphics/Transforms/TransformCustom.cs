@@ -11,9 +11,9 @@ using System.Linq;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public delegate TValue CurrentValueFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, EasingTypes easingType);
+    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, EasingTypes easingType);
 
-    public class TransformCustom<TValue, T> : Transform<TValue, T>
+    internal class TransformCustom<TValue, T> : Transform<TValue, T>
     {
         private delegate TValue ReadFunc(T transformable);
         private delegate void WriteFunc(T transformable, TValue value);
@@ -25,17 +25,17 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         private static readonly Dictionary<string, Accessor> accessors = new Dictionary<string, Accessor>();
-        private static readonly CurrentValueFunc<TValue> current_value_func;
+        private static readonly InterpolationFunc<TValue> interpolation_func;
 
         static TransformCustom()
         {
-            current_value_func =
-                (CurrentValueFunc<TValue>)typeof(Interpolation).GetMethod(
+            interpolation_func =
+                (InterpolationFunc<TValue>)typeof(Interpolation).GetMethod(
                     nameof(Interpolation.ValueAt),
-                    typeof(CurrentValueFunc<TValue>)
-                        .GetMethod(nameof(CurrentValueFunc<TValue>.Invoke))
+                    typeof(InterpolationFunc<TValue>)
+                        .GetMethod(nameof(InterpolationFunc<TValue>.Invoke))
                         .GetParameters().Select(p => p.ParameterType).ToArray()
-                )?.CreateDelegate(typeof(CurrentValueFunc<TValue>));
+                )?.CreateDelegate(typeof(InterpolationFunc<TValue>));
         }
 
         private static ReadFunc createFieldGetter(FieldInfo field)
@@ -128,14 +128,17 @@ namespace osu.Framework.Graphics.Transforms
         }
 
         private readonly Accessor accessor;
-        private readonly CurrentValueFunc<TValue> currentValueFunc;
+        private readonly InterpolationFunc<TValue> interpolationFunc;
 
-        public TransformCustom(string propertyOrFieldName, CurrentValueFunc<TValue> currentValueFunc = null)
+        public TransformCustom(string propertyOrFieldName, InterpolationFunc<TValue> interpolationFunc = null)
         {
             TargetMember = propertyOrFieldName;
 
             accessor = getAccessor(propertyOrFieldName);
-            this.currentValueFunc = currentValueFunc ?? current_value_func;
+            this.interpolationFunc = interpolationFunc ?? interpolation_func;
+
+            if (this.interpolationFunc == null)
+                throw new InvalidOperationException($"Need to pass a custom {nameof(interpolationFunc)} since no default exists.");
         }
 
         private TValue valueAt(double time)
@@ -143,7 +146,7 @@ namespace osu.Framework.Graphics.Transforms
             if (time < StartTime) return StartValue;
             if (time >= EndTime) return EndValue;
 
-            return currentValueFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
+            return interpolationFunc(time, StartValue, EndValue, StartTime, EndTime, Easing);
         }
 
         public override string TargetMember { get; }
