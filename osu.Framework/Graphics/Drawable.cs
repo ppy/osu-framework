@@ -190,7 +190,7 @@ namespace osu.Framework.Graphics
                 // get our dependencies from our parent, but allow local overriding of our inherited dependency container
                 Dependencies = CreateLocalDependencies(dependencies);
 
-                Dependencies.Initialize(this);
+                Dependencies.Inject(this);
 
                 double elapsed = perf.CurrentTime - t1;
                 if (perf.CurrentTime > 1000 && elapsed > 50 && ThreadSafety.IsUpdateThread)
