@@ -10,9 +10,12 @@ using System.Reflection;
 
 namespace osu.Framework.Allocation
 {
+    /// <summary>
+    /// Hierarchically caches dependencies and can inject those automatically into types registered for dependency injection.
+    /// </summary>
     public class DependencyContainer
     {
-        public delegate object ObjectActivator(DependencyContainer dc, object instance);
+        internal delegate object ObjectActivator(DependencyContainer dc, object instance);
 
         private readonly ConcurrentDictionary<Type, ObjectActivator> activators = new ConcurrentDictionary<Type, ObjectActivator>();
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
@@ -162,6 +165,13 @@ namespace osu.Framework.Allocation
         }
 
         public void Initialize<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class
+        /// <summary>
+        /// Injects dependencies for the given instance.
+        /// </summary>
+        /// <typeparam name="T">The type of the instance to inject dependencies for.</typeparam>
+        /// <param name="instance">The instance to inject dependencies for.</param>
+        /// <param name="autoRegister">True if the instance should be automatically registered as injectable if it isn't already.</param>
+        /// <param name="lazy">True if the dependencies should be initialized lazily.</param>
         {
             var type = instance.GetType();
 
