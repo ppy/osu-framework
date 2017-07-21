@@ -2100,8 +2100,14 @@ namespace osu.Framework.Graphics
 
     public enum Direction
     {
-        Horizontal = 0,
-        Vertical = 1,
+        Horizontal,
+        Vertical,
+    }
+
+    public enum RotationDirection
+    {
+        Clockwise,
+        CounterClockwise,
     }
 
     public enum BlendingMode

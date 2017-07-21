@@ -116,11 +116,11 @@ namespace osu.Framework.Graphics
         public static TransformSequence<T> RotateTo<T>(this T drawable, float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable =>
             drawable.TransformTo(nameof(drawable.Rotation), newRotation, duration, easing);
 
-        public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation = 0) where T : Drawable =>
-            drawable.Delay(0).Spin(revolutionDuration, startRotation);
+        public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation = 0) where T : Drawable =>
+            drawable.Delay(0).Spin(revolutionDuration, direction, startRotation);
 
-        public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, float startRotation, int numRevolutions) where T : Drawable =>
-            drawable.Delay(0).Spin(revolutionDuration, startRotation, numRevolutions);
+        public static TransformSequence<T> Spin<T>(this T drawable, double revolutionDuration, RotationDirection direction, float startRotation, int numRevolutions) where T : Drawable =>
+            drawable.Delay(0).Spin(revolutionDuration, direction, startRotation, numRevolutions);
 
         public static TransformSequence<T> MoveTo<T>(this T drawable, Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None) where T : Drawable
         {

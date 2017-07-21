@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The direction in which scrolling is supported, converted to an int for array index lookups.
         /// </summary>
-        protected int ScrollDim => (int)ScrollDirection;
+        protected int ScrollDim => ScrollDirection == Direction.Horizontal ? 0 : 1;
 
         /// <summary>
         /// Creates a scroll container.
