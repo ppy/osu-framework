@@ -80,7 +80,7 @@ namespace osu.Framework.Configuration
         /// <summary>
         /// Creates a new bindable instance.
         /// </summary>
-        /// <param name="value">The initial value. Will use the default <see cref="T"/> if null.</param>
+        /// <param name="value">The initial value.</param>
         public Bindable(T value = default(T))
         {
             this.value = value;
