@@ -13,6 +13,11 @@ namespace osu.Framework.Graphics.Transforms
 {
     public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, EasingTypes easingType);
 
+    /// <summary>
+    /// A transform which operates on arbitrary fields or properties of a given target.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the field or property to operate upon.</typeparam>
+    /// <typeparam name="T">The type of the target to operate upon.</typeparam>
     internal class TransformCustom<TValue, T> : Transform<TValue, T>
     {
         private delegate TValue ReadFunc(T transformable);
@@ -130,6 +135,24 @@ namespace osu.Framework.Graphics.Transforms
         private readonly Accessor accessor;
         private readonly InterpolationFunc<TValue> interpolationFunc;
 
+        /// <summary>
+        /// Creates a new instance operating on a property or field of <see cref="T"/>. The property or field is
+        /// denoted by its name, passed as <paramref name="propertyOrFieldName"/>.
+        /// By default, an interpolation method <see cref="Interpolation.ValueAt"/> with suitable signature is
+        /// picked for interpolating between <see cref="Transform{TValue}.StartValue"/> and
+        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
+        /// <see cref="Transform.EndTime"/>, and a current time.
+        /// Optionally, or when no suitable <see cref="Interpolation.ValueAt"/> exists, a custom function can be supplied
+        /// via <paramref name="interpolationFunc"/>.
+        /// </summary>
+        /// <param name="propertyOrFieldName">The property or field name to be operated upon.</param>
+        /// <param name="interpolationFunc">
+        /// The function to be used for interpolating between <see cref="Transform{TValue}.StartValue"/> and
+        /// <see cref="Transform{TValue}.EndValue"/> according to <see cref="Transform.StartTime"/>,
+        /// <see cref="Transform.EndTime"/>, and a current time.
+        /// If null, an interpolation method <see cref="Interpolation.ValueAt"/> with suitable signature is picked.
+        /// If none exists, then this parameter must not be null.
+        /// </param>
         public TransformCustom(string propertyOrFieldName, InterpolationFunc<TValue> interpolationFunc = null)
         {
             TargetMember = propertyOrFieldName;
