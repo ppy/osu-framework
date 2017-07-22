@@ -8,6 +8,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using System.Collections.Generic;
 using System.Diagnostics;
+using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Transforms
 {
@@ -225,14 +226,14 @@ namespace osu.Framework.Graphics.Transforms
                 return null;
 
             AddDelay(delay, recursive);
-            double newTransformStartTime = TransformStartTime;
+            double newTransformDelay = TransformDelay;
 
             return new InvokeOnDisposal(() =>
             {
-                if (newTransformStartTime != TransformStartTime)
+                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of delayed sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformStartTime} end={TransformStartTime})");
+                        $"(begin={newTransformDelay} end={TransformDelay})");
 
                 AddDelay(-delay, recursive);
             });
@@ -248,14 +249,14 @@ namespace osu.Framework.Graphics.Transforms
         public virtual InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
             double oldTransformDelay = TransformDelay;
-            TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
+            double newTransformDelay = TransformDelay = newTransformStartTime - (Clock?.CurrentTime ?? 0);
 
             return new InvokeOnDisposal(() =>
             {
-                if (newTransformStartTime != TransformStartTime)
+                if (!Precision.AlmostEquals(newTransformDelay, TransformDelay))
                     throw new InvalidOperationException(
                         $"{nameof(TransformStartTime)} at the end of absolute sequence is not the same as at the beginning, but should be. " +
-                        $"(begin={newTransformStartTime} end={TransformStartTime})");
+                        $"(begin={newTransformDelay} end={TransformDelay})");
 
                 TransformDelay = oldTransformDelay;
             });
