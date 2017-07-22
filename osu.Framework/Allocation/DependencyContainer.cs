@@ -30,7 +30,6 @@ namespace osu.Framework.Allocation
         public DependencyContainer(IReadOnlyDependencyContainer parent = null)
         {
             parentContainer = parent;
-            Cache(this);
         }
 
         private MethodInfo getLoaderMethod(Type type)
