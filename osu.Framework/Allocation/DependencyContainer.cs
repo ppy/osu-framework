@@ -118,14 +118,14 @@ namespace osu.Framework.Allocation
         }
 
         /// <summary>
-        /// Caches an instance of a type. This instance will be returned each time you <see cref="Get{T}"/>.
+        /// Caches an instance of a type. This instance will be returned each time you <see cref="Get(Type)"/>.
         /// </summary>
         public T Cache<T>(T instance = null, bool overwrite = false, bool lazy = false) where T : class
         {
             if (!overwrite && cache.ContainsKey(typeof(T)))
                 throw new InvalidOperationException($@"Type {typeof(T).FullName} is already cached");
             if (instance == null)
-                instance = Get<T>(false);
+                instance = this.Get<T>();
             cacheable.Add(typeof(T));
             cache[typeof(T)] = instance;
             return instance;
@@ -154,20 +154,6 @@ namespace osu.Framework.Allocation
             //if (cacheable.Contains(type))
             //    cache[type] = instance;
             //return instance;
-        }
-
-        /// <summary>
-        /// Gets an instance of the specified type.
-        /// </summary>
-        public T Get<T>(bool autoRegister = true, bool lazy = false) where T : class
-        {
-            T instance = (T)Get(typeof(T));
-            if (autoRegister && instance == null)
-            {
-                Register<T>(lazy);
-                instance = (T)Get(typeof(T));
-            }
-            return instance;
         }
 
         /// <summary>
