@@ -1,12 +1,22 @@
 ﻿// Copyright (c) 2007-2017 ppy Pty Ltd <contact@ppy.sh>.
 // Licensed under the MIT Licence - https://raw.githubusercontent.com/ppy/osu-framework/master/LICENCE
 
+using OpenTK;
 using System;
 using System.Collections.Generic;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public interface IContainerEnumerable<out T>
+    public interface IContainer : IDrawable
+    {
+        EdgeEffectParameters EdgeEffect { get; set; }
+
+        Vector2 RelativeChildSize { get; set; }
+
+        Vector2 RelativeChildOffset { get; set; }
+    }
+
+    public interface IContainerEnumerable<out T> : IContainer
         where T : IDrawable
     {
         IReadOnlyList<T> Children { get; }
@@ -14,7 +24,7 @@ namespace osu.Framework.Graphics.Containers
         int RemoveAll(Predicate<T> match);
     }
 
-    public interface IContainerCollection<in T>
+    public interface IContainerCollection<in T> : IContainer
         where T : IDrawable
     {
         IReadOnlyList<T> Children { set; }

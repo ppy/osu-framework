@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using OpenTK;
 using System.Linq;
-using osu.Framework.Graphics.Transforms;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Containers
@@ -40,7 +39,7 @@ namespace osu.Framework.Graphics.Containers
     /// <see cref="Drawable.Anchor"/> is to the top or centered vertically.
     /// They are arranged from bottom-to-top otherwise.
     /// </summary>
-    public class FillFlowContainer<T> : FlowContainer<T> where T : Drawable
+    public class FillFlowContainer<T> : FlowContainer<T>, IFillFlowContainer where T : Drawable
     {
         private FillDirection direction = FillDirection.Full;
 
@@ -83,17 +82,6 @@ namespace osu.Framework.Graphics.Containers
                 spacing = value;
                 InvalidateLayout();
             }
-        }
-
-        public void TransformSpacingTo(Vector2 newSpacing, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSpacing, duration, easing, new TransformSpacing());
-        }
-
-        public class TransformSpacing : TransformVector
-        {
-            public override void Apply(Drawable d) => ((FillFlowContainer<T>)d).Spacing = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((FillFlowContainer<T>)d).Spacing;
         }
 
         private Vector2 spacingFactor(Drawable c)

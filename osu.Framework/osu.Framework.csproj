@@ -121,6 +121,7 @@
     <Compile Include="Graphics\Containers\AsyncLoadWrapper.cs" />
     <Compile Include="Graphics\Containers\CompositeDrawable.cs" />
     <Compile Include="Graphics\Containers\DelayedLoadWrapper.cs" />
+    <Compile Include="Graphics\Containers\IFillFlowContainer.cs" />
     <Compile Include="Graphics\Effects\OutlineEffect.cs" />
     <Compile Include="Graphics\Containers\IBufferedContainer.cs" />
     <Compile Include="Graphics\Cursor\CursorEffectContainer.cs" />
@@ -151,6 +152,12 @@
     <Compile Include="Graphics\OpenGL\Vertices\UncolouredVertex2D.cs" />
     <Compile Include="Graphics\OpenGL\Vertices\Vertex2D.cs" />
     <Compile Include="Graphics\Textures\TextureWhitePixel.cs" />
+    <Compile Include="Graphics\Transforms\ITransformable.cs" />
+    <Compile Include="Graphics\TransformSequenceExtensions.cs" />
+    <Compile Include="Graphics\TransformableExtensions.cs" />
+    <Compile Include="Graphics\Transforms\TransformSequence.cs" />
+    <Compile Include="Graphics\Transforms\TransformCustom.cs" />
+    <Compile Include="Graphics\Transforms\TransformEdgeEffectColour.cs" />
     <Compile Include="Graphics\UserInterface\BasicCheckbox.cs" />
     <Compile Include="Graphics\UserInterface\Checkbox.cs" />
     <Compile Include="Graphics\UserInterface\ContextMenu.cs" />
@@ -193,7 +200,6 @@
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlas.cs" />
     <Compile Include="Graphics\OpenGL\Textures\TextureGLAtlasWhite.cs" />
     <Compile Include="Graphics\Shapes\Triangle.cs" />
-    <Compile Include="Graphics\Transforms\TransformSize.cs" />
     <Compile Include="Graphics\UserInterface\BasicSliderBar.cs" />
     <Compile Include="Graphics\UserInterface\DropdownHeader.cs" />
     <Compile Include="Graphics\UserInterface\Dropdown.cs" />
@@ -209,16 +215,6 @@
     <Compile Include="Graphics\Performance\PerformanceOverlay.cs" />
     <Compile Include="Graphics\MarginPadding.cs" />
     <Compile Include="Graphics\Sprites\SpriteDrawNode.cs" />
-    <Compile Include="Graphics\Transforms\ITransform.cs" />
-    <Compile Include="Graphics\Transforms\TransformAlpha.cs" />
-    <Compile Include="Graphics\Transforms\TransformColour.cs" />
-    <Compile Include="Graphics\Transforms\TransformFloat.cs" />
-    <Compile Include="Graphics\Transforms\TransformPosition.cs" />
-    <Compile Include="Graphics\Transforms\TransformPositionX.cs" />
-    <Compile Include="Graphics\Transforms\TransformPositionY.cs" />
-    <Compile Include="Graphics\Transforms\TransformRotation.cs" />
-    <Compile Include="Graphics\Transforms\TransformVector.cs" />
-    <Compile Include="Graphics\Transforms\TransformScale.cs" />
     <Compile Include="Graphics\UserInterface\Button.cs" />
     <Compile Include="Graphics\UserInterface\TextBox.cs" />
     <Compile Include="Graphics\Visualisation\FlashyBox.cs" />

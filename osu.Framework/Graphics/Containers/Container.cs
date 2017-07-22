@@ -5,7 +5,6 @@ using osu.Framework.Lists;
 using System.Collections.Generic;
 using System;
 using osu.Framework.Extensions.TypeExtensions;
-using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using OpenTK;
 using System.Collections;
@@ -289,16 +288,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
-        /// </summary>
-        public new void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None) => base.FadeEdgeEffectTo(newAlpha, duration, easing);
-
-        /// <summary>
-        /// Helper function for creating and adding a transform that fades the current <see cref="EdgeEffect"/>.
-        /// </summary>
-        public new void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) => base.FadeEdgeEffectTo(newColour, duration, easing);
-
-        /// <summary>
         /// If enabled, only the portion of children that falls within this <see cref="Container"/>'s
         /// shape is drawn to the screen.
         /// </summary>
@@ -396,22 +385,6 @@ namespace osu.Framework.Graphics.Containers
         }
 
         /// <summary>
-        /// Tweens the <see cref="RelativeChildSize"/> of this <see cref="Container"/>.
-        /// </summary>
-        /// <param name="newSize">The coordinate space to tween to.</param>
-        /// <param name="duration">The tween duration.</param>
-        /// <param name="easing">The tween easing.</param>
-        public new void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) => base.TransformRelativeChildSizeTo(newSize, duration, easing);
-
-        /// <summary>
-        /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="Container"/>.
-        /// </summary>
-        /// <param name="newOffset">The coordinate space to tween to.</param>
-        /// <param name="duration">The tween duration.</param>
-        /// <param name="easing">The tween easing.</param>
-        public new void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) => base.TransformRelativeChildOffsetTo(newOffset, duration, easing);
-
-        /// <summary>
         /// Controls which <see cref="Axes"/> are automatically sized w.r.t. <see cref="CompositeDrawable.InternalChildren"/>.
         /// Children's <see cref="Drawable.BypassAutoSizeAxes"/> are ignored for automatic sizing.
         /// Most notably, <see cref="Drawable.RelativePositionAxes"/> and <see cref="Drawable.RelativeSizeAxes"/> of children
@@ -427,7 +400,7 @@ namespace osu.Framework.Graphics.Containers
 
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
+        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
         /// </summary>
         public new float AutoSizeDuration
         {

@@ -59,30 +59,22 @@ namespace osu.Framework.VisualTests.Tests
         {
             base.LoadComplete();
 
-            using (movingBox.BeginLoopedSequence())
-            {
-                movingBox.MoveTo(new Vector2(0, 100), duration);
-                using (movingBox.BeginDelayedSequence(duration))
-                {
-                    movingBox.MoveTo(new Vector2(100, 100), duration);
-                    using (movingBox.BeginDelayedSequence(duration))
-                    {
-                        movingBox.MoveTo(new Vector2(100, 0), duration);
-                        using (movingBox.BeginDelayedSequence(duration))
-                            movingBox.MoveTo(Vector2.Zero, duration);
-                    }
-                }
-            }
+            // Move box along a square trajectory
+            movingBox.MoveTo(new Vector2(0, 100), duration)
+                .Then().MoveTo(new Vector2(100, 100), duration)
+                .Then().MoveTo(new Vector2(100, 0), duration)
+                .Then().MoveTo(Vector2.Zero, duration)
+                .Loop();
         }
 
         private class ContextMenuBox : Container, IHasContextMenu
         {
             public ContextMenuItem[] ContextMenuItems => new []
             {
-                new ContextMenuItem(@"Change width") { Action = () => ResizeWidthTo(Width * 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change height") { Action = () => ResizeHeightTo(Height * 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change width back") { Action = () => ResizeWidthTo(Width / 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change height back") { Action = () => ResizeHeightTo(Height / 2, 100, EasingTypes.OutQuint) },
+                new ContextMenuItem(@"Change width") { Action = () => this.ResizeWidthTo(Width * 2, 100, EasingTypes.OutQuint) },
+                new ContextMenuItem(@"Change height") { Action = () => this.ResizeHeightTo(Height * 2, 100, EasingTypes.OutQuint) },
+                new ContextMenuItem(@"Change width back") { Action = () => this.ResizeWidthTo(Width / 2, 100, EasingTypes.OutQuint) },
+                new ContextMenuItem(@"Change height back") { Action = () => this.ResizeHeightTo(Height / 2, 100, EasingTypes.OutQuint) },
             };
         }
     }

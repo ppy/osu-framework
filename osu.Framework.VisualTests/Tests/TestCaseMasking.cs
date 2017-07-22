@@ -447,13 +447,13 @@ namespace osu.Framework.VisualTests.Tests
         {
             protected override bool OnHover(InputState state)
             {
-                ScaleTo(1.2f, 100);
+                this.ScaleTo(1.2f, 100);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                ScaleTo(1f, 100);
+                this.ScaleTo(1f, 100);
             }
         }
     }
