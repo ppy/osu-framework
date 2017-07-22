@@ -4,7 +4,6 @@
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using OpenTK;
-using System;
 
 namespace osu.Framework.VisualTests.Tests
 {
@@ -12,23 +11,24 @@ namespace osu.Framework.VisualTests.Tests
     {
         public override string Description => @"Buffered containers containing almost all visual effects.";
 
+        private readonly BufferedContainer buffer;
+
         public TestCaseBufferedContainer()
         {
             Remove(TestContainer);
 
-            BufferedContainer buffer;
             Add(buffer = new BufferedContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Children = new[] { TestContainer }
             });
+        }
 
-            double timer = 0.0;
-            buffer.OnUpdate += delegate
-            {
-                timer += 0.001;
-                buffer.BlurSigma = new Vector2((float)Math.Abs(Math.Sin(timer) * 10 + 10), (float)Math.Abs(Math.Sin(timer) * 10 + 10));
-            };
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            buffer.BlurTo(new Vector2(20), 1000).Then().BlurTo(Vector2.Zero, 1000).Loop();
         }
     }
 }

@@ -122,13 +122,11 @@ namespace osu.Framework.VisualTests.Tests
                 flow.Add(container);
 
                 container.FadeInFromZero(1000);
-                using (container.BeginDelayedSequence(RNG.Next(0, 20000), true))
-                {
-                    container.FadeOutFromOne(4000);
-                    box.RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
-                    box.ScaleTo(0.5f, 4000);
-                    container.Expire();
-                }
+
+                double displayTime = RNG.Next(0, 20000);
+                box.Delay(displayTime).ScaleTo(0.5f, 4000).RotateTo((RNG.NextSingle() - 0.5f) * 90, 4000);
+                container.Delay(displayTime).FadeOut(4000).Expire();
+
             }, 100, true);
         }
     }

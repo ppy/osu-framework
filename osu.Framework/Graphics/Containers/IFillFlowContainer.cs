@@ -5,8 +5,8 @@ using OpenTK;
 
 namespace osu.Framework.Graphics.Containers
 {
-    public interface IBufferedContainer : IContainer
+    public interface IFillFlowContainer : IContainer
     {
-        Vector2 BlurSigma { get; set; }
+        Vector2 Spacing { get; set; }
     }
 }

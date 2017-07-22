@@ -39,7 +39,7 @@ namespace osu.Framework.Graphics
     /// Drawables are always rectangular in shape in their local coordinate system,
     /// which makes them quad-shaped in arbitrary (linearly transformed) coordinate systems.
     /// </summary>
-    public abstract class Drawable : Transformable<Drawable>, IDisposable, IDrawable
+    public abstract class Drawable : Transformable, IDisposable, IDrawable
     {
         #region Construction and disposal
 
@@ -1913,7 +1913,7 @@ namespace osu.Framework.Graphics
 
         #region Transforms
 
-        protected ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
+        protected internal ScheduledDelegate Schedule(Action action) => Scheduler.AddDelayed(action, TransformDelay);
 
         /// <summary>
         /// Make this drawable automatically clean itself up after all transforms have finished playing.
@@ -1929,14 +1929,14 @@ namespace osu.Framework.Graphics
 
             //expiry should happen either at the end of the last transform or using the current sequence delay (whichever is highest).
             double max = TransformStartTime;
-            foreach (ITransform<Drawable> t in Transforms)
+            foreach (Transform t in Transforms)
                 if (t.EndTime > max) max = t.EndTime + 1; //adding 1ms here ensures we can expire on the current frame without issue.
             LifetimeEnd = max;
 
             if (calculateLifetimeStart)
             {
                 double min = double.MaxValue;
-                foreach (ITransform<Drawable> t in Transforms)
+                foreach (Transform t in Transforms)
                     if (t.StartTime < min) min = t.StartTime;
                 LifetimeStart = min < int.MaxValue ? min : int.MinValue;
             }
@@ -1945,126 +1945,12 @@ namespace osu.Framework.Graphics
         /// <summary>
         /// Hide sprite instantly.
         /// </summary>
-        public virtual void Hide() => FadeOut();
+        public virtual void Hide() => this.FadeOut();
 
         /// <summary>
         /// Show sprite instantly.
         /// </summary>
-        public virtual void Show() => FadeIn();
-
-        #region Helpers
-
-        public void FadeIn(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1, duration, easing);
-        }
-
-        public void FadeInFromZero(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0);
-            FadeIn(duration, easing);
-        }
-
-        public void FadeOut(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(0, duration, easing);
-        }
-
-        public void FadeOutFromOne(double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            FadeTo(1);
-            FadeOut(duration, easing);
-        }
-
-        public void FadeTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newAlpha, duration, easing, new TransformAlpha());
-        }
-
-        public void RotateTo(float newRotation, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newRotation, duration, easing, new TransformRotation());
-        }
-
-        public void MoveTo(Direction direction, float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            switch (direction)
-            {
-                case Direction.Horizontal:
-                    MoveToX(destination, duration, easing);
-                    break;
-                case Direction.Vertical:
-                    MoveToY(destination, duration, easing);
-                    break;
-            }
-        }
-
-        public void MoveToX(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionX());
-        }
-
-        public void MoveToY(float destination, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(destination, duration, easing, new TransformPositionY());
-        }
-
-        public void ScaleTo(float newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newScale), duration, easing, new TransformScale());
-        }
-
-        public void ScaleTo(Vector2 newScale, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newScale, duration, easing, new TransformScale());
-        }
-
-        public void ResizeTo(float newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(new Vector2(newSize), duration, easing, new TransformSize());
-        }
-
-        public void ResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSize, duration, easing, new TransformSize());
-        }
-
-        public void ResizeWidthTo(float newWidth, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newWidth, duration, easing, new TransformWidth());
-        }
-
-        public void ResizeHeightTo(float newHeight, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newHeight, duration, easing, new TransformHeight());
-        }
-
-        public void MoveTo(Vector2 newPosition, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newPosition, duration, easing, new TransformPosition());
-        }
-
-        public void MoveToOffset(Vector2 offset, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            MoveTo((Transforms.FindLast(t => t is TransformPosition) as TransformPosition)?.EndValue ?? Position + offset, duration, easing);
-        }
-
-        public void FadeColour(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newColour, duration, easing, new TransformColour());
-        }
-
-        public void FlashColour(Color4 flashColour, double duration, EasingTypes easing = EasingTypes.None)
-        {
-            Color4 endValue = (Transforms.FindLast(t => t is TransformColour) as TransformColour)?.EndValue ?? Colour;
-
-            Flush(false, typeof(TransformColour));
-
-            FadeColour(flashColour);
-            FadeColour(endValue, duration, easing);
-        }
-
-        #endregion
+        public virtual void Show() => this.FadeIn();
 
         #endregion
 
@@ -2214,8 +2100,14 @@ namespace osu.Framework.Graphics
 
     public enum Direction
     {
-        Horizontal = 0,
-        Vertical = 1,
+        Horizontal,
+        Vertical,
+    }
+
+    public enum RotationDirection
+    {
+        Clockwise,
+        CounterClockwise,
     }
 
     public enum BlendingMode

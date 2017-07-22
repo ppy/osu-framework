@@ -132,9 +132,9 @@ namespace osu.Framework.VisualTests.Tests
                 set
                 {
                     if (value)
-                        FadeIn();
+                        this.FadeIn();
                     else
-                        FadeOut();
+                        this.FadeOut();
                 }
             }
 

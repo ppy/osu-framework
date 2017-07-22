@@ -27,11 +27,11 @@ namespace osu.Framework.Graphics.Performance
                 switch (state)
                 {
                     case FrameStatisticsMode.None:
-                        FadeOut(100);
+                        this.FadeOut(100);
                         break;
                     case FrameStatisticsMode.Minimal:
                     case FrameStatisticsMode.Full:
-                        FadeIn(100);
+                        this.FadeIn(100);
                         break;
                 }
 

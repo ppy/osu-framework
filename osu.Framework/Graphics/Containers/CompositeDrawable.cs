@@ -611,60 +611,70 @@ namespace osu.Framework.Graphics.Containers
 
         #region Transforms
 
-        public override void ClearTransforms(bool propagateChildren = false)
+        public override void ClearTransforms(bool propagateChildren = false, string targetMember = null)
         {
-            base.ClearTransforms(propagateChildren);
+            base.ClearTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.ClearTransforms(true);
+                foreach (var c in internalChildren)
+                    c.ClearTransforms(true, targetMember);
         }
 
-        public override Drawable Delay(double duration, bool propagateChildren = false)
+        internal override void AddDelay(double duration, bool propagateChildren = false)
         {
-            if (duration == 0) return this;
+            if (duration == 0)
+                return;
 
-            base.Delay(duration, propagateChildren);
+            base.AddDelay(duration, propagateChildren);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.Delay(duration, true);
-            return this;
+                foreach (var c in internalChildren)
+                    c.AddDelay(duration, true);
         }
 
         protected ScheduledDelegate ScheduleAfterChildren(Action action) => SchedulerAfterChildren.AddDelayed(action, TransformDelay);
 
-        public override void Flush(bool propagateChildren = false, Type flushType = null)
+        public override InvokeOnDisposal BeginAbsoluteSequence(double newTransformStartTime, bool recursive = false)
         {
-            base.Flush(propagateChildren, flushType);
+            var baseDisposalAction = base.BeginAbsoluteSequence(newTransformStartTime, recursive);
+            if (!recursive)
+                return baseDisposalAction;
+
+            List<InvokeOnDisposal> disposalActions = new List<InvokeOnDisposal>(internalChildren.Count + 1) { baseDisposalAction };
+            foreach (var c in internalChildren)
+                disposalActions.Add(c.BeginAbsoluteSequence(newTransformStartTime, true));
+
+            return new InvokeOnDisposal(() =>
+            {
+                foreach (var a in disposalActions)
+                    a.Dispose();
+            });
+        }
+
+        public override void FinishTransforms(bool propagateChildren = false, string targetMember = null)
+        {
+            base.FinishTransforms(propagateChildren, targetMember);
 
             if (propagateChildren)
-                foreach (var c in internalChildren) c.Flush(true, flushType);
-        }
-
-        public override Drawable DelayReset()
-        {
-            base.DelayReset();
-            foreach (var c in internalChildren) c.DelayReset();
-
-            return this;
+                foreach (var c in internalChildren)
+                    c.FinishTransforms(true, targetMember);
         }
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected void FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
         {
-            Flush(false, typeof(TransformEdgeEffectColour));
-            TransformTo(newAlpha, duration, easing, new TransformEdgeEffectAlpha());
+            Color4 targetColour = EdgeEffect.Colour;
+            targetColour.A = newAlpha;
+            return FadeEdgeEffectTo(targetColour, duration, easing);
         }
 
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected void FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            Flush(false, typeof(TransformEdgeEffectAlpha));
-            TransformTo(newColour, duration, easing, new TransformEdgeEffectColour());
-        }
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+            this.TransformTo(this.PopulateTransform(new TransformEdgeEffectColour(), newColour, duration, easing));
 
         #endregion
 
@@ -955,10 +965,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected void TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSize, duration, easing, new TransformRelativeChildSize());
-        }
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+            this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
 
         /// <summary>
         /// Tweens the <see cref="RelativeChildOffset"/> of this <see cref="CompositeDrawable"/>.
@@ -966,10 +974,8 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newOffset">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected void TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newOffset, duration, easing, new TransformRelativeChildOffset());
-        }
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+            this.TransformTo(nameof(RelativeChildOffset), newOffset, duration, easing);
 
         public override Axes RelativeSizeAxes
         {
@@ -1010,28 +1016,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private float autoSizeDuration;
-
         /// <summary>
         /// The duration which automatic sizing should take. If zero, then it is instantaneous.
-        /// Otherwise, this is equivalent to applying an automatic size via <see cref="Drawable.ResizeTo(Vector2, double, EasingTypes)"/>.
+        /// Otherwise, this is equivalent to applying an automatic size via a resize transform.
         /// </summary>
-        public float AutoSizeDuration
-        {
-            get { return autoSizeDuration; }
-            protected set
-            {
-                if (autoSizeDuration == value) return;
-
-                autoSizeDuration = value;
-
-                // if we have an existing transform, we want to update its duration.
-                // not doing this could potentially cause incorrect final autosize dimensions.
-                var existing = Transforms.Find(t => t is TransformAutoSize);
-                if (existing != null)
-                    existing.EndTime = existing.StartTime + autoSizeDuration;
-            }
-        }
+        public float AutoSizeDuration { get; protected set; }
 
         /// <summary>
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
@@ -1184,13 +1173,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None)
-        {
-            TransformTo(newSize, duration, easing, new TransformAutoSize());
-        }
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+            this.TransformTo(nameof(baseSize), newSize, duration, easing);
 
         /// <summary>
-        /// A helper property for <see cref="TransformAutoSize"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, EasingTypes)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         private Vector2 baseSize
         {
@@ -1205,93 +1192,29 @@ namespace osu.Framework.Graphics.Containers
 
         #endregion
 
-        private class TransformEdgeEffectAlpha : TransformFloat<Drawable>
-        {
-            public override void Apply(Drawable d)
-            {
-                CompositeDrawable c = (CompositeDrawable)d;
-
-                EdgeEffectParameters e = c.EdgeEffect;
-                e.Colour.Linear.A = CurrentValue;
-                c.EdgeEffect = e;
-            }
-
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).EdgeEffect.Colour.Linear.A;
-        }
-
-        private class TransformEdgeEffectColour : Transform<Color4, Drawable>
+        private class TransformEdgeEffectColour : Transform<Color4, CompositeDrawable>
         {
             /// <summary>
             /// Current value of the transformed colour in linear colour space.
             /// </summary>
-            public Color4 CurrentValue
+            private Color4 valueAt(double time)
             {
-                get
-                {
-                    double time = Time?.Current ?? 0;
-                    if (time < StartTime) return StartValue;
-                    if (time >= EndTime) return EndValue;
+                if (time < StartTime) return StartValue;
+                if (time >= EndTime) return EndValue;
 
-                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-                }
+                return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
             }
 
-            public override void Apply(Drawable d)
-            {
-                CompositeDrawable c = (CompositeDrawable)d;
+            public override string TargetMember => "EdgeEffect.Colour";
 
+            protected override void Apply(CompositeDrawable c, double time)
+            {
                 EdgeEffectParameters e = c.EdgeEffect;
-                e.Colour = CurrentValue;
+                e.Colour = valueAt(time);
                 c.EdgeEffect = e;
             }
 
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).Colour;
-        }
-
-        /// <summary>
-        /// A special type of transform which can change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
-        /// Used for <see cref="AutoSizeDuration"/>.
-        /// </summary>
-        private class TransformAutoSize : TransformVector
-        {
-            public override void Apply(Drawable d) => ((CompositeDrawable)d).baseSize = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).baseSize;
-        }
-
-        private class TransformRelativeChildSize : TransformVector
-        {
-            public override Vector2 CurrentValue
-            {
-                get
-                {
-                    double time = Time?.Current ?? 0;
-                    if (time < StartTime) return StartValue;
-                    if (time >= EndTime) return EndValue;
-
-                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-                }
-            }
-
-            public override void Apply(Drawable d) => ((CompositeDrawable)d).RelativeChildSize = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).RelativeChildSize;
-        }
-
-        private class TransformRelativeChildOffset : TransformVector
-        {
-            public override Vector2 CurrentValue
-            {
-                get
-                {
-                    double time = Time?.Current ?? 0;
-                    if (time < StartTime) return StartValue;
-                    if (time >= EndTime) return EndValue;
-
-                    return Interpolation.ValueAt(time, StartValue, EndValue, StartTime, EndTime, Easing);
-                }
-            }
-
-            public override void Apply(Drawable d) => ((CompositeDrawable)d).RelativeChildOffset = CurrentValue;
-            public override void ReadIntoStartValue(Drawable d) => StartValue = ((CompositeDrawable)d).RelativeChildOffset;
+            protected override void ReadIntoStartValue(CompositeDrawable d) => StartValue = d.EdgeEffect.Colour;
         }
     }
 }

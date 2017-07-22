@@ -166,7 +166,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// The direction in which scrolling is supported, converted to an int for array index lookups.
         /// </summary>
-        protected int ScrollDim => (int)ScrollDirection;
+        protected int ScrollDim => ScrollDirection == Direction.Horizontal ? 0 : 1;
 
         /// <summary>
         /// Creates a scroll container.
@@ -512,20 +512,20 @@ namespace osu.Framework.Graphics.Containers
                 {
                     [scrollDim] = val
                 };
-                ResizeTo(size, duration, easing);
+                this.ResizeTo(size, duration, easing);
             }
 
             protected override bool OnClick(InputState state) => true;
 
             protected override bool OnHover(InputState state)
             {
-                FadeColour(hoverColour, 100);
+                this.FadeColour(hoverColour, 100);
                 return true;
             }
 
             protected override void OnHoverLost(InputState state)
             {
-                FadeColour(defaultColour, 100);
+                this.FadeColour(defaultColour, 100);
             }
 
             protected override bool OnDragStart(InputState state)
