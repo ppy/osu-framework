@@ -35,7 +35,6 @@ namespace osu.Framework.Graphics.Transforms
 
         public Transform Clone() => (Transform)MemberwiseClone();
 
-
         public static readonly IComparer<Transform> COMPARER = new TransformTimeComparer();
 
         private class TransformTimeComparer : IComparer<Transform>
