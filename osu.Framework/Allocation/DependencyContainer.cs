@@ -13,7 +13,7 @@ namespace osu.Framework.Allocation
     /// <summary>
     /// Hierarchically caches dependencies and can inject those automatically into types registered for dependency injection.
     /// </summary>
-    public class DependencyContainer
+    public class DependencyContainer : IReadOnlyDependencyContainer
     {
         private delegate object ObjectActivator(DependencyContainer dc, object instance);
 
@@ -21,13 +21,13 @@ namespace osu.Framework.Allocation
         private readonly ConcurrentDictionary<Type, object> cache = new ConcurrentDictionary<Type, object>();
         private readonly HashSet<Type> cacheable = new HashSet<Type>();
 
-        private readonly DependencyContainer parentContainer;
+        private readonly IReadOnlyDependencyContainer parentContainer;
 
         /// <summary>
         /// Create a new DependencyContainer instance.
         /// </summary>
         /// <param name="parent">An optional parent container which we should use as a fallback for cache lookups.</param>
-        public DependencyContainer(DependencyContainer parent = null)
+        public DependencyContainer(IReadOnlyDependencyContainer parent = null)
         {
             parentContainer = parent;
             Cache(this);
@@ -70,7 +70,7 @@ namespace osu.Framework.Allocation
                 var parameters = initializer.GetParameters().Select(p => p.ParameterType)
                                             .Select(t => new Func<object>(() =>
                                             {
-                                                var val = get(t);
+                                                var val = Get(t);
                                                 if (val == null && !permitNull)
                                                 {
                                                     throw new InvalidOperationException(
@@ -132,13 +132,20 @@ namespace osu.Framework.Allocation
             return instance;
         }
 
-        private object get(Type type)
+        /// <summary>
+        /// Retrieves a cached dependency of <paramref name="type"/> if it exists. If not, then the parent
+        /// <see cref="IReadOnlyDependencyContainer"/> is recursively queried. If no parent contains
+        /// <paramref name="type"/>, then null is returned.
+        /// </summary>
+        /// <param name="type">The dependency type to query for.</param>
+        /// <returns>The requested dependency, or null if not found.</returns>
+        public object Get(Type type)
         {
             object ret;
             if (cache.TryGetValue(type, out ret))
                 return ret;
 
-            return parentContainer?.get(type);
+            return parentContainer?.Get(type);
 
             //we don't ever want to instantiate for now, as this breaks expectations when using permitNull.
             //need to revisit this when/if it is required.
@@ -155,20 +162,20 @@ namespace osu.Framework.Allocation
         /// </summary>
         public T Get<T>(bool autoRegister = true, bool lazy = false) where T : class
         {
-            T instance = (T)get(typeof(T));
+            T instance = (T)Get(typeof(T));
             if (autoRegister && instance == null)
             {
                 Register<T>(lazy);
-                instance = (T)get(typeof(T));
+                instance = (T)Get(typeof(T));
             }
             return instance;
         }
 
         /// <summary>
-        /// Injects dependencies for the given instance.
+        /// Injects dependencies into the given instance.
         /// </summary>
-        /// <typeparam name="T">The type of the instance to inject dependencies for.</typeparam>
-        /// <param name="instance">The instance to inject dependencies for.</param>
+        /// <typeparam name="T">The type of the instance to inject dependencies into.</typeparam>
+        /// <param name="instance">The instance to inject dependencies into.</param>
         /// <param name="autoRegister">True if the instance should be automatically registered as injectable if it isn't already.</param>
         /// <param name="lazy">True if the dependencies should be initialized lazily.</param>
         public void Inject<T>(T instance, bool autoRegister = true, bool lazy = false) where T : class

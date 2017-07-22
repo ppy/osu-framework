@@ -95,6 +95,11 @@ namespace osu.Framework
             host.Deactivated += () => IsActive = false;
         }
 
+        private DependencyContainer dependencies;
+
+        protected override IReadOnlyDependencyContainer CreateLocalDependencies(IReadOnlyDependencyContainer parent) =>
+            dependencies = new DependencyContainer(base.CreateLocalDependencies(parent));
+
         [BackgroundDependencyLoader]
         private void load(FrameworkConfigManager config)
         {
@@ -104,7 +109,7 @@ namespace osu.Framework
 
             Textures = new TextureStore(new RawTextureLoaderStore(new NamespacedResourceStore<byte[]>(Resources, @"Textures")));
             Textures.AddStore(new RawTextureLoaderStore(new OnlineStore()));
-            Dependencies.Cache(Textures);
+            dependencies.Cache(Textures);
 
             var tracks = new ResourceStore<byte[]>(Resources);
             tracks.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Tracks"));
@@ -114,7 +119,7 @@ namespace osu.Framework
             samples.AddStore(new NamespacedResourceStore<byte[]>(Resources, @"Samples"));
             samples.AddStore(new OnlineStore());
 
-            Audio = Dependencies.Cache(new AudioManager(
+            Audio = dependencies.Cache(new AudioManager(
                 tracks,
                 samples)
             {
@@ -130,13 +135,13 @@ namespace osu.Framework
             config.BindWith(FrameworkSetting.VolumeMusic, Audio.VolumeTrack);
 
             Shaders = new ShaderManager(new NamespacedResourceStore<byte[]>(Resources, @"Shaders"));
-            Dependencies.Cache(Shaders);
+            dependencies.Cache(Shaders);
 
             Fonts = new FontStore(new GlyphStore(Resources, @"Fonts/OpenSans"))
             {
                 ScaleAdjust = 100
             };
-            Dependencies.Cache(Fonts);
+            dependencies.Cache(Fonts);
         }
 
         protected override void LoadComplete()
