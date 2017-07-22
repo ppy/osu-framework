@@ -35,7 +35,7 @@ namespace osu.Framework.VisualTests.Tests
                         flow = new FillFlowContainer
                         {
                             LayoutDuration = 100,
-                            LayoutEasing = EasingTypes.Out,
+                            LayoutEasing = Easing.Out,
                             Spacing = new Vector2(1, 1),
                             RelativeSizeAxes = Axes.Both & ~scrollAxis,
                             AutoSizeAxes = scrollAxis,
@@ -65,7 +65,7 @@ namespace osu.Framework.VisualTests.Tests
                                 flow = new FillFlowContainer
                                 {
                                     LayoutDuration = 100,
-                                    LayoutEasing = EasingTypes.Out,
+                                    LayoutEasing = Easing.Out,
                                     Spacing = new Vector2(1, 1),
                                     Size = new Vector2(1000, 0),
                                     AutoSizeAxes = Axes.Y,

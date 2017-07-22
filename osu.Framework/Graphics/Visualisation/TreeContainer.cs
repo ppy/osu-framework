@@ -54,7 +54,7 @@ namespace osu.Framework.Graphics.Visualisation
                         this.Delay(500).FadeTo(0.7f, 300);
                         break;
                     case TreeContainerStatus.Onscreen:
-                        this.FadeIn(300, EasingTypes.OutQuint);
+                        this.FadeIn(300, Easing.OutQuint);
                         break;
                 }
             }

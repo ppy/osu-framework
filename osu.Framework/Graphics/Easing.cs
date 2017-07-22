@@ -6,7 +6,7 @@ namespace osu.Framework.Graphics
     /// <summary>
     /// See http://easings.net/ for more samples.
     /// </summary>
-    public enum EasingTypes
+    public enum Easing
     {
         None,
         Out,

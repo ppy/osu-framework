@@ -140,7 +140,7 @@ namespace osu.Framework.Testing
         {
             Schedule(() =>
             {
-                compilingNotice.FadeOut(800, EasingTypes.InQuint);
+                compilingNotice.FadeOut(800, Easing.InQuint);
                 compilingNotice.FadeColour(newType == null ? Color4.Red : Color4.YellowGreen, 100);
 
                 if (newType == null) return;

@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace osu.Framework.Graphics.Transforms
 {
-    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, EasingTypes easingType);
+    public delegate TValue InterpolationFunc<TValue>(double time, TValue startValue, TValue endValue, double startTime, double endTime, Easing easingType);
 
     /// <summary>
     /// A transform which operates on arbitrary fields or properties of a given target.

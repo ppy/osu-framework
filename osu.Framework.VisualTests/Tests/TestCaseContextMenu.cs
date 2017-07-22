@@ -71,10 +71,10 @@ namespace osu.Framework.VisualTests.Tests
         {
             public ContextMenuItem[] ContextMenuItems => new []
             {
-                new ContextMenuItem(@"Change width") { Action = () => this.ResizeWidthTo(Width * 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change height") { Action = () => this.ResizeHeightTo(Height * 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change width back") { Action = () => this.ResizeWidthTo(Width / 2, 100, EasingTypes.OutQuint) },
-                new ContextMenuItem(@"Change height back") { Action = () => this.ResizeHeightTo(Height / 2, 100, EasingTypes.OutQuint) },
+                new ContextMenuItem(@"Change width") { Action = () => this.ResizeWidthTo(Width * 2, 100, Easing.OutQuint) },
+                new ContextMenuItem(@"Change height") { Action = () => this.ResizeHeightTo(Height * 2, 100, Easing.OutQuint) },
+                new ContextMenuItem(@"Change width back") { Action = () => this.ResizeWidthTo(Width / 2, 100, Easing.OutQuint) },
+                new ContextMenuItem(@"Change height back") { Action = () => this.ResizeHeightTo(Height / 2, 100, Easing.OutQuint) },
             };
         }
     }
