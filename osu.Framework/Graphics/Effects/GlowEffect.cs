@@ -29,7 +29,7 @@ namespace osu.Framework.Graphics.Effects
         public ColourInfo Colour = Color4.White;
 
         /// <summary>
-        /// The blending mode of the glow. Default is <see cref="BlendingMode.Additive"/>.
+        /// The blending mode of the glow. Default is additive.
         /// </summary>
         public BlendingMode BlendingMode = BlendingMode.Additive;
 

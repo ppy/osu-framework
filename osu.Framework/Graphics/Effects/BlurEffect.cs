@@ -5,7 +5,6 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Effects

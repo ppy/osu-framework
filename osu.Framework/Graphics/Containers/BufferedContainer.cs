@@ -163,8 +163,8 @@ namespace osu.Framework.Graphics.Containers
         private EffectPlacement effectPlacement;
 
         /// <summary>
-        /// Whether the buffered effect should be drawn <see cref="EffectPlacement.Behind"/> or <see cref="EffectPlacement.InFront"/> of the original. 
-        /// <see cref="EffectPlacement.Behind"/> by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
+        /// Whether the buffered effect should be drawn behind or in front of the original. 
+        /// Behind by default. Does not have any effect if <see cref="DrawOriginal"/> is false.
         /// </summary>
         public EffectPlacement EffectPlacement
         {
