@@ -271,7 +271,7 @@ namespace osu.Framework.Graphics.Visualisation
             }
 
             previewBox.Alpha = Math.Max(0.2f, Target.Alpha);
-            previewBox.ColourInfo = Target.ColourInfo;
+            previewBox.Colour = Target.Colour;
 
             int childCount = (Target as CompositeDrawable)?.InternalChildren.Count ?? 0;
 

@@ -32,6 +32,20 @@ namespace osu.Framework.MathUtils
             return Lerp(start, final, 1 - Math.Pow(@base, exponent));
         }
 
+        public static ColourInfo ValueAt(double time, ColourInfo startColour, ColourInfo endColour, double startTime, double endTime, Easing easing = Easing.None)
+        {
+            if (startColour.HasSingleColour && endColour.HasSingleColour)
+                return ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
+
+            return new ColourInfo
+            {
+                TopLeft = ValueAt(time, (Color4)startColour.TopLeft, (Color4)endColour.TopLeft, startTime, endTime, easing),
+                BottomLeft = ValueAt(time, (Color4)startColour.BottomLeft, (Color4)endColour.BottomLeft, startTime, endTime, easing),
+                TopRight = ValueAt(time, (Color4)startColour.TopRight, (Color4)endColour.TopRight, startTime, endTime, easing),
+                BottomRight = ValueAt(time, (Color4)startColour.BottomRight, (Color4)endColour.BottomRight, startTime, endTime, easing),
+            };
+        } 
+
         public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, Easing easing = Easing.None) =>
             ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);
 

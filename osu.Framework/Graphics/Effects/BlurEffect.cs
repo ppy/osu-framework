@@ -35,12 +35,12 @@ namespace osu.Framework.Graphics.Effects
         public SRGBColour Colour = Color4.White;
 
         /// <summary>
-        /// The blending mode of the blur. Default is <see cref="BlendingMode.Inherit"/>.
+        /// The blending mode of the blur. Default is inheriting from the target drawable.
         /// </summary>
         public BlendingMode BlendingMode;
 
         /// <summary>
-        /// Whether to draw the blur in front or behind the original. Default is <see cref="EffectPlacement.Behind"/>.
+        /// Whether to draw the blur in front or behind the original. Default is behind.
         /// </summary>
         public EffectPlacement Placement;
 

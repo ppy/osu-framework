@@ -155,7 +155,7 @@ namespace osu.Framework.VisualTests.Tests
                     clock.Colour = new Color4(255, 128, 128, 255);
                     break;
                 case 2:
-                    clock.ColourInfo = new ColourInfo
+                    clock.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
@@ -164,7 +164,7 @@ namespace osu.Framework.VisualTests.Tests
                     };
                     break;
                 case 3:
-                    clock.ColourInfo = new ColourInfo
+                    clock.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(255, 128, 128, 255),
@@ -173,7 +173,7 @@ namespace osu.Framework.VisualTests.Tests
                     };
                     break;
                 case 4:
-                    clock.ColourInfo = new ColourInfo
+                    clock.Colour = new ColourInfo
                     {
                         TopLeft = new Color4(255, 128, 128, 255),
                         TopRight = new Color4(128, 255, 128, 255),
