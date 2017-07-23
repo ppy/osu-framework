@@ -44,7 +44,7 @@ namespace osu.Framework.VisualTests.Tests
                     {
                         Sigma = new Vector2(2f, 0f),
                         Strength = 2f,
-                        BlurRotation = 45f,
+                        Rotation = 45f,
                     }),
                     new SpriteText
                     {
@@ -109,9 +109,38 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 Text = "Outlined Text",
                                 TextSize = 32f
-                            }.WithEffect(new OutlineEffect { BlurSigma = new Vector2(3f), Strength = 3f, OutlineColour = new Color4(1f, 0f, 0f, 1f) })
+                            }.WithEffect(new OutlineEffect
+                            {
+                                BlurSigma = new Vector2(3f),
+                                Strength = 3f,
+                                Colour = new Color4(1f, 0f, 0f, 1f),
+                                PadExtent = true,
+                            })
                         }
-                    }
+                    },
+                    new Container
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Children = new Drawable[]
+                        {
+                            new Box
+                            {
+                                Colour = Color4.CornflowerBlue,
+                                RelativeSizeAxes = Axes.Both,
+                            },
+                            new SpriteText
+                            {
+                                Text = "Glowing Text",
+                                TextSize = 32f,
+                            }.WithEffect(new GlowEffect
+                            {
+                                BlurSigma = new Vector2(3f),
+                                Strength = 3f,
+                                Colour = new Color4(1f, 0f, 0f, 1f),
+                                PadExtent = true,
+                            }),
+                        }
+                    },
                 }
             });
         }
