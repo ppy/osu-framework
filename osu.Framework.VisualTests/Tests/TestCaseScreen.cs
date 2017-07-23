@@ -40,23 +40,23 @@ namespace osu.Framework.VisualTests.Tests
                 }
 
                 Content.MoveTo(new Vector2(0, -DrawSize.Y));
-                Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
             protected override bool OnExiting(Screen next)
             {
-                Content.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, -DrawSize.Y), transition_time, Easing.OutQuint);
                 return base.OnExiting(next);
             }
 
             protected override void OnSuspending(Screen next)
             {
-                Content.MoveTo(new Vector2(0, DrawSize.Y), transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(new Vector2(0, DrawSize.Y), transition_time, Easing.OutQuint);
             }
 
             protected override void OnResuming(Screen last)
             {
-                Content.MoveTo(Vector2.Zero, transition_time, EasingTypes.OutQuint);
+                Content.MoveTo(Vector2.Zero, transition_time, Easing.OutQuint);
             }
 
             [BackgroundDependencyLoader]

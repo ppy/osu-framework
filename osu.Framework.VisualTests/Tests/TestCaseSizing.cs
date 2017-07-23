@@ -888,7 +888,7 @@ namespace osu.Framework.VisualTests.Tests
                             }
                         });
 
-                        sizedBox.ScaleTo(new Vector2(2), 1000, EasingTypes.Out).Then().ScaleTo(Vector2.One, 1000, EasingTypes.In).Loop();
+                        sizedBox.ScaleTo(new Vector2(2), 1000, Easing.Out).Then().ScaleTo(Vector2.One, 1000, Easing.In).Loop();
                         break;
                     }
             }
@@ -1029,19 +1029,19 @@ namespace osu.Framework.VisualTests.Tests
                         Origin = (Anchor)((int)Origin + 1);
                         break;
                     case 1:
-                        this.MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
                         break;
                     case 2:
-                        this.MoveTo(new Vector2(200, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(200, 0), 800, Easing.Out);
                         break;
                     case 3:
-                        this.MoveTo(new Vector2(200, 200), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(200, 200), 800, Easing.Out);
                         break;
                     case 4:
-                        this.MoveTo(new Vector2(0, 200), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 200), 800, Easing.Out);
                         break;
                     case 5:
-                        this.MoveTo(new Vector2(0, 0), 800, EasingTypes.Out);
+                        this.MoveTo(new Vector2(0, 0), 800, Easing.Out);
                         break;
                 }
             }

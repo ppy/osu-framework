@@ -663,7 +663,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, EasingTypes easing = EasingTypes.None)
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(float newAlpha, double duration = 0, Easing easing = Easing.None)
         {
             Color4 targetColour = EdgeEffect.Colour;
             targetColour.A = newAlpha;
@@ -673,7 +673,7 @@ namespace osu.Framework.Graphics.Containers
         /// <summary>
         /// Helper function for creating and adding a <see cref="Transform{TValue, T}"/> that fades the current <see cref="EdgeEffect"/>.
         /// </summary>
-        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        protected TransformSequence<CompositeDrawable> FadeEdgeEffectTo(Color4 newColour, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(this.PopulateTransform(new TransformEdgeEffectColour(), newColour, duration, easing));
 
         #endregion
@@ -965,7 +965,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newSize">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildSizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(RelativeChildSize), newSize, duration, easing);
 
         /// <summary>
@@ -974,7 +974,7 @@ namespace osu.Framework.Graphics.Containers
         /// <param name="newOffset">The coordinate space to tween to.</param>
         /// <param name="duration">The tween duration.</param>
         /// <param name="easing">The tween easing.</param>
-        protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        protected TransformSequence<CompositeDrawable> TransformRelativeChildOffsetTo(Vector2 newOffset, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(RelativeChildOffset), newOffset, duration, easing);
 
         public override Axes RelativeSizeAxes
@@ -1026,7 +1026,7 @@ namespace osu.Framework.Graphics.Containers
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
         /// is non-zero.
         /// </summary>
-        public EasingTypes AutoSizeEasing { get; protected set; }
+        public Easing AutoSizeEasing { get; protected set; }
 
         /// <summary>
         /// THIS EVENT PURELY EXISTS FOR THE SCENE GRAPH VISUALIZER. DO NOT USE.
@@ -1173,11 +1173,11 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, EasingTypes easing = EasingTypes.None) =>
+        private void autoSizeResizeTo(Vector2 newSize, double duration = 0, Easing easing = Easing.None) =>
             this.TransformTo(nameof(baseSize), newSize, duration, easing);
 
         /// <summary>
-        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, EasingTypes)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
+        /// A helper property for <see cref="autoSizeResizeTo(Vector2, double, Easing)"/> to change the size of <see cref="CompositeDrawable"/>s with <see cref="AutoSizeAxes"/>.
         /// </summary>
         private Vector2 baseSize
         {

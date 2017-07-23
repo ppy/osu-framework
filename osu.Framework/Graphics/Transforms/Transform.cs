@@ -11,7 +11,7 @@ namespace osu.Framework.Graphics.Transforms
     {
         internal ulong TransformID;
 
-        public EasingTypes Easing;
+        public Easing Easing;
 
         public abstract ITransformable TargetTransformable { get; }
 

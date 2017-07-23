@@ -412,7 +412,7 @@ namespace osu.Framework.Graphics.Containers
         /// The type of easing which should be used for smooth automatic sizing when <see cref="AutoSizeDuration"/>
         /// is non-zero.
         /// </summary>
-        public new EasingTypes AutoSizeEasing
+        public new Easing AutoSizeEasing
         {
             get { return base.AutoSizeEasing; }
             set { base.AutoSizeEasing = value; }

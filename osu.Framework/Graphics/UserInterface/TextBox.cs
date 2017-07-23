@@ -193,22 +193,22 @@ namespace osu.Framework.Graphics.UserInterface
 
             textContainerPosX = MathHelper.Clamp(textContainerPosX, 0, Math.Max(0, TextFlow.DrawWidth - DrawWidth + LeftRightPadding * 2));
 
-            TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, EasingTypes.OutExpo);
+            TextContainer.MoveToX(LeftRightPadding - textContainerPosX, 300, Easing.OutExpo);
 
             if (HasFocus)
             {
                 Caret.ClearTransforms();
-                Caret.MoveTo(cursorPos, 60, EasingTypes.Out);
-                Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, EasingTypes.Out);
+                Caret.MoveTo(cursorPos, 60, Easing.Out);
+                Caret.ScaleTo(new Vector2(cursorWidth, 1), 60, Easing.Out);
 
                 if (selectionLength > 0)
                     Caret
-                        .FadeTo(0.5f, 200, EasingTypes.Out)
-                        .FadeColour(new Color4(249, 90, 255, 255), 200, EasingTypes.Out);
+                        .FadeTo(0.5f, 200, Easing.Out)
+                        .FadeColour(new Color4(249, 90, 255, 255), 200, Easing.Out);
                 else
                     Caret
-                        .FadeColour(Color4.White, 200, EasingTypes.Out)
-                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, EasingTypes.InOutSine));
+                        .FadeColour(Color4.White, 200, Easing.Out)
+                        .Loop(c => c.FadeTo(0.7f).FadeTo(0.4f, 500, Easing.InOutSine));
             }
 
             if (textAtLastLayout != text)
@@ -320,7 +320,7 @@ namespace osu.Framework.Graphics.UserInterface
 
                 TextContainer.Add(d);
                 d.FadeOut(200);
-                d.MoveToY(d.DrawSize.Y, 200, EasingTypes.InExpo);
+                d.MoveToY(d.DrawSize.Y, 200, Easing.InExpo);
                 d.Expire();
             }
 
@@ -775,7 +775,7 @@ namespace osu.Framework.Graphics.UserInterface
 
 
             Background.ClearTransforms();
-            Background.FadeColour(BackgroundUnfocused, 200, EasingTypes.OutExpo);
+            Background.FadeColour(BackgroundUnfocused, 200, Easing.OutExpo);
 
             cursorAndLayout.Invalidate();
         }
@@ -789,7 +789,7 @@ namespace osu.Framework.Graphics.UserInterface
             bindInput();
 
             Background.ClearTransforms();
-            Background.FadeColour(BackgroundFocused, 200, EasingTypes.Out);
+            Background.FadeColour(BackgroundFocused, 200, Easing.Out);
 
             cursorAndLayout.Invalidate();
         }
@@ -814,7 +814,7 @@ namespace osu.Framework.Graphics.UserInterface
                 foreach (Drawable d in imeDrawables)
                 {
                     d.Colour = Color4.White;
-                    d.FadeTo(1, 200, EasingTypes.Out);
+                    d.FadeTo(1, 200, Easing.Out);
                 }
             }
 

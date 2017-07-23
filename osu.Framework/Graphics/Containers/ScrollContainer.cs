@@ -209,7 +209,7 @@ namespace osu.Framework.Graphics.Containers
 
         private void updateScrollbar()
         {
-            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, EasingTypes.OutQuint);
+            Scrollbar.ResizeTo(Math.Min(1, availableContent > 0 ? displayableContent / availableContent : 0), 200, Easing.OutQuint);
             Scrollbar.FadeTo(ScrollbarVisible && availableContent - 1 > displayableContent ? 1 : 0, 200);
             updatePadding();
         }
@@ -506,7 +506,7 @@ namespace osu.Framework.Graphics.Containers
                 ResizeTo(1);
             }
 
-            public void ResizeTo(float val, int duration = 0, EasingTypes easing = EasingTypes.None)
+            public void ResizeTo(float val, int duration = 0, Easing easing = Easing.None)
             {
                 Vector2 size = new Vector2(10)
                 {
