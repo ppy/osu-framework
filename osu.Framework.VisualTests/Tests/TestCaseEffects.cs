@@ -135,7 +135,7 @@ namespace osu.Framework.VisualTests.Tests
                                 TextSize = 32f,
                             }.WithEffect(new GlowEffect
                             {
-                                BlurSigma = new Vector2(5f),
+                                BlurSigma = new Vector2(3f),
                                 Strength = 3f,
                                 Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
                                 PadExtent = true,

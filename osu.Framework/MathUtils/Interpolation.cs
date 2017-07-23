@@ -44,7 +44,7 @@ namespace osu.Framework.MathUtils
                 TopRight = ValueAt(time, (Color4)startColour.TopRight, (Color4)endColour.TopRight, startTime, endTime, easing),
                 BottomRight = ValueAt(time, (Color4)startColour.BottomRight, (Color4)endColour.BottomRight, startTime, endTime, easing),
             };
-        } 
+        }
 
         public static SRGBColour ValueAt(double time, SRGBColour startColour, SRGBColour endColour, double startTime, double endTime, Easing easing = Easing.None) =>
             ValueAt(time, (Color4)startColour, (Color4)endColour, startTime, endTime, easing);

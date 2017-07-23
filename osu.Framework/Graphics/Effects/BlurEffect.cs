@@ -5,6 +5,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.MathUtils;
 
 namespace osu.Framework.Graphics.Effects
@@ -59,30 +60,37 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool CacheDrawnEffect;
 
-        public BufferedContainer ApplyTo(Drawable drawable) => new BufferedContainer
+        public BufferedContainer ApplyTo(Drawable drawable)
         {
-            RelativeSizeAxes = drawable.RelativeSizeAxes,
-            AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-            Anchor = drawable.Anchor,
-            Origin = drawable.Origin,
+            Vector2 position = drawable.Position;
+            drawable.Position = Vector2.Zero;
 
-            BlurSigma = Sigma,
-            BlurRotation = Rotation,
-            EffectColour = Colour.MultiplyAlpha(Strength),
-            EffectBlendingMode = BlendingMode,
-            EffectPlacement = Placement,
-
-            DrawOriginal = DrawOriginal,
-
-            CacheDrawnFrameBuffer = CacheDrawnEffect,
-
-            Padding = !PadExtent ? new MarginPadding() : new MarginPadding
+            return new BufferedContainer
             {
-                Horizontal = Blur.KernelSize(Sigma.X),
-                Vertical = Blur.KernelSize(Sigma.Y)
-            },
+                RelativeSizeAxes = drawable.RelativeSizeAxes,
+                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
+                Anchor = drawable.Anchor,
+                Origin = drawable.Origin,
 
-            Child = drawable
-        };
+                BlurSigma = Sigma,
+                BlurRotation = Rotation,
+                EffectColour = Colour.MultiplyAlpha(Strength),
+                EffectBlendingMode = BlendingMode,
+                EffectPlacement = Placement,
+
+                DrawOriginal = DrawOriginal,
+
+                CacheDrawnFrameBuffer = CacheDrawnEffect,
+
+                Position = position,
+                Padding = !PadExtent ? new MarginPadding() : new MarginPadding
+                {
+                    Horizontal = Blur.KernelSize(Sigma.X),
+                    Vertical = Blur.KernelSize(Sigma.Y),
+                },
+
+                Child = drawable
+            };
+        }
     }
 }
