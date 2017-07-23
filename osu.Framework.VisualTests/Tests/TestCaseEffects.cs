@@ -4,6 +4,7 @@
 using OpenTK;
 using OpenTK.Graphics;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
@@ -113,7 +114,7 @@ namespace osu.Framework.VisualTests.Tests
                             {
                                 BlurSigma = new Vector2(3f),
                                 Strength = 3f,
-                                Colour = new Color4(1f, 0f, 0f, 1f),
+                                Colour = Color4.Red,
                                 PadExtent = true,
                             })
                         }
@@ -134,9 +135,9 @@ namespace osu.Framework.VisualTests.Tests
                                 TextSize = 32f,
                             }.WithEffect(new GlowEffect
                             {
-                                BlurSigma = new Vector2(3f),
+                                BlurSigma = new Vector2(5f),
                                 Strength = 3f,
-                                Colour = new Color4(1f, 0f, 0f, 1f),
+                                Colour = ColourInfo.GradientHorizontal(new Color4(1.2f, 0, 0, 1f), new Color4(0, 1f, 0, 1f)),
                                 PadExtent = true,
                             }),
                         }

@@ -119,13 +119,13 @@ namespace osu.Framework.Graphics.Containers
             }
         }
 
-        private SRGBColour effectColour = Color4.White;
+        private ColourInfo effectColour = Color4.White;
 
         /// <summary>
         /// The multiplicative colour of drawn buffered object after applying all effects (e.g. blur). Default is <see cref="Color4.White"/>.
         /// Does not affect the original which is drawn when <see cref="DrawOriginal"/> is true.
         /// </summary>
-        public SRGBColour EffectColour
+        public ColourInfo EffectColour
         {
             get { return effectColour; }
 

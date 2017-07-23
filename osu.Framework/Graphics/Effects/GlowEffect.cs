@@ -26,7 +26,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The color of the outline. Default is <see cref="Color4.White"/>.
         /// </summary>
-        public SRGBColour Colour = Color4.White;
+        public ColourInfo Colour = Color4.White;
 
         /// <summary>
         /// The blending mode of the glow. Default is <see cref="BlendingMode.Additive"/>.

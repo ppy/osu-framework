@@ -32,7 +32,7 @@ namespace osu.Framework.Graphics.Effects
         /// <summary>
         /// The colour of the blur. Default is <see cref="Color4.White"/>.
         /// </summary>
-        public SRGBColour Colour = Color4.White;
+        public ColourInfo Colour = Color4.White;
 
         /// <summary>
         /// The blending mode of the blur. Default is inheriting from the target drawable.
@@ -59,35 +59,30 @@ namespace osu.Framework.Graphics.Effects
         /// </summary>
         public bool CacheDrawnEffect;
 
-        public BufferedContainer ApplyTo(Drawable drawable)
+        public BufferedContainer ApplyTo(Drawable drawable) => new BufferedContainer
         {
-            SRGBColour effectColour = Colour;
-            effectColour.MultiplyAlpha(Strength);
-            return new BufferedContainer
+            RelativeSizeAxes = drawable.RelativeSizeAxes,
+            AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
+            Anchor = drawable.Anchor,
+            Origin = drawable.Origin,
+
+            BlurSigma = Sigma,
+            BlurRotation = Rotation,
+            EffectColour = Colour.MultiplyAlpha(Strength),
+            EffectBlendingMode = BlendingMode,
+            EffectPlacement = Placement,
+
+            DrawOriginal = DrawOriginal,
+
+            CacheDrawnFrameBuffer = CacheDrawnEffect,
+
+            Padding = !PadExtent ? new MarginPadding() : new MarginPadding
             {
-                RelativeSizeAxes = drawable.RelativeSizeAxes,
-                AutoSizeAxes = Axes.Both & ~drawable.RelativeSizeAxes,
-                Anchor = drawable.Anchor,
-                Origin = drawable.Origin,
+                Horizontal = Blur.KernelSize(Sigma.X),
+                Vertical = Blur.KernelSize(Sigma.Y)
+            },
 
-                BlurSigma = Sigma,
-                BlurRotation = Rotation,
-                EffectColour = effectColour,
-                EffectBlendingMode = BlendingMode,
-                EffectPlacement = Placement,
-
-                DrawOriginal = DrawOriginal,
-
-                CacheDrawnFrameBuffer = CacheDrawnEffect,
-
-                Padding = !PadExtent ? new MarginPadding() : new MarginPadding
-                {
-                    Horizontal = Blur.KernelSize(Sigma.X),
-                    Vertical = Blur.KernelSize(Sigma.Y)
-                },
-
-                Child = drawable
-            };
-        }
+            Child = drawable
+        };
     }
 }

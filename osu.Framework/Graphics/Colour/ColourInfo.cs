@@ -136,9 +136,7 @@ namespace osu.Framework.Graphics.Colour
             result.TopLeft.MultiplyAlpha(alpha);
 
             if (HasSingleColour)
-            {
                 result.BottomLeft = result.TopRight = result.BottomRight = result.TopLeft;
-            }
             else
             {
                 result.BottomLeft.MultiplyAlpha(alpha);
